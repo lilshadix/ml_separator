@@ -116,11 +116,15 @@ bash slurm/submit_simplicial_multiseed.sh
 
 ```bash
 PYTHON_BIN=/path/to/env/bin/python \
-PARTITION=your_partition \
-ACCOUNT=your_account \
 DRY_RUN=0 \
 bash slurm/submit_simplicial_multiseed.sh
 ```
+
+Эта форма использует default partition/account кластера. Если их обязательно
+указывать, сначала посмотрите реальные имена через `sinfo -h -o '%P'`, затем
+задайте именно их, например `PARTITION=cpu ACCOUNT=my_project`. Строки
+`your_partition` и `your_account` являются placeholders и wrapper намеренно их
+отклоняет до вызова `sbatch`.
 
 Primary profile — deterministic CPU: 8 CPU, 32 GB, 24 часа, не более одной
 одновременной array task. Параметры меняются через environment:

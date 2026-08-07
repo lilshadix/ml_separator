@@ -68,6 +68,15 @@ if [[ "$ACCELERATOR" == cpu && "$DETERMINISM" != strict ]]; then
   echo "The primary CPU profile requires DETERMINISM=strict." >&2
   exit 2
 fi
+if [[ "${PARTITION:-}" == "your_partition" || \
+      "${AGGREGATE_PARTITION:-}" == "your_partition" ]]; then
+  echo "Replace the literal placeholder 'your_partition' with a real SLURM partition, or omit PARTITION to use the cluster default." >&2
+  exit 2
+fi
+if [[ "${ACCOUNT:-}" == "your_account" ]]; then
+  echo "Replace the literal placeholder 'your_account' with a real SLURM account, or omit ACCOUNT if the cluster supplies a default." >&2
+  exit 2
+fi
 
 read -r -a model_seed_array <<< "$MODEL_SEEDS"
 read -r -a split_seed_array <<< "$SPLIT_SEEDS"

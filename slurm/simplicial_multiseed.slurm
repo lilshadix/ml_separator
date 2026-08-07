@@ -161,7 +161,11 @@ fi
 
 export PYTHONUNBUFFERED=1
 export PYTHONHASHSEED=$MODEL_SEED
-export OMP_NUM_THREADS=1
+# Some clusters reject --cpus-per-task unless this exact OpenMP contract is
+# present in the batch file. SLURM always defines it for submitted jobs; the
+# fallback keeps deliberate direct/manual execution well-defined.
+export SLURM_CPUS_PER_TASK=${SLURM_CPUS_PER_TASK:-8}
+export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
 export MKL_NUM_THREADS=1
 export OPENBLAS_NUM_THREADS=1
 export NUMEXPR_NUM_THREADS=1
@@ -184,8 +188,8 @@ command=(
   --inner-folds "$INNER_FOLDS"
   --trees "$TREES"
   --bootstrap "$BOOTSTRAP"
-  --n-jobs "${SLURM_CPUS_PER_TASK:-8}"
-  --torch-threads "${SLURM_CPUS_PER_TASK:-8}"
+  --n-jobs "$SLURM_CPUS_PER_TASK"
+  --torch-threads "$SLURM_CPUS_PER_TASK"
   --device "$DEVICE"
   --determinism "$DETERMINISM"
   --epochs "$EPOCHS"

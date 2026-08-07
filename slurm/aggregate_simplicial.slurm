@@ -22,6 +22,10 @@ RUN_ROOT=${RUN_ROOT:?RUN_ROOT is required}
 EXPECTED_RUNS=${EXPECTED_RUNS:?EXPECTED_RUNS is required}
 RESUME_AGGREGATE=${RESUME_AGGREGATE:-1}
 
+# Required by clusters that enforce an explicit OpenMP/cpus-per-task contract.
+export SLURM_CPUS_PER_TASK=${SLURM_CPUS_PER_TASK:-1}
+export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
+
 if [[ "$RUN_ROOT" != /* ]]; then
   echo "RUN_ROOT must be absolute." >&2
   exit 2
