@@ -1,0 +1,60 @@
+{
+  "acceptance": "exact composition/file QC and nearest-coreCN qc_class == OK",
+  "counts": {
+    "accepted_geometries": 1155,
+    "baseline_geometry_specs": 1256,
+    "dataset_rows_with_geometry": 5479,
+    "dataset_rows_without_geometry": 513,
+    "excluded_geometries": 101
+  },
+  "description": "One current-dual-QC accepted XYZ per scientific geometry_key",
+  "implementation_sha256": {
+    "scripts/build_unique_geometries.py": "368b0b6b21bebb6b219e8cda7840572c145c25792547a5831d5563b02309af16",
+    "src/chemistry/coordination.py": "19ddddd22464d536c78657006d89dded423fcb8a5ab3ab45bd2b2f894c34e2bc",
+    "src/geometry_schema.py": "a0f1a75cecac84605e50497b4495c0ac61bb7977bec776d8a4f4533a234aa1ab"
+  },
+  "inputs": {
+    "accepted_seed_1098.csv": {
+      "path": "provenance/accepted_seed_1098.csv",
+      "sha256": "5bcbdcd6a84981b0458e143dd57bd9521e5d70cc646ae484eaaeb1230f654e87"
+    },
+    "current_borderline_qc.csv": {
+      "path": "provenance/current_borderline_qc.csv",
+      "sha256": "a52ba92fac7032ba0fd4efa5932103c726843fafa11a804a631a422ae4a21fb2"
+    },
+    "current_fail_long_bond_qc.csv": {
+      "path": "provenance/current_fail_long_bond_qc.csv",
+      "sha256": "ca0cc6a166e157f6d49c554ed33b1bc94359a43fc864f3e1fd7eb3da0abfe47c"
+    },
+    "current_geometry_index.csv": {
+      "path": "provenance/current_geometry_index.csv",
+      "sha256": "7a473135900baaf8fc5360508e9eac3de65436f8a1c541cb5632cf2169301368"
+    },
+    "current_qc_supplement.csv": {
+      "path": "provenance/current_qc_supplement.csv",
+      "sha256": "6e71aa78ac9d1cd119b08c6eb597f1dd0989703f53c803dc6d8c9baed6a055c9"
+    },
+    "geometry_specs.csv": {
+      "path": "provenance/geometry_specs.csv",
+      "sha256": "7a180bc34ee043bcede7cc4715c11e82171cd0ee4dd60b7e50f6e0a40da4df7c"
+    },
+    "terminal_exclusions.csv": {
+      "path": "provenance/terminal_exclusions.csv",
+      "sha256": "e368bc87a9c17dc06c8a3e08091e990461e4e68280fd75c246da87e01f15330b"
+    }
+  },
+  "outputs": {
+    "accepted_geometries": "final_dataset_3d/accepted_geometries.csv",
+    "accepted_geometries_sha256": "1618ce4a29a819fb1c92538fb8345fe992a854211758abe745802d80520aff46",
+    "coverage_by_metal": "final_dataset_3d/geometry_coverage_by_metal.csv",
+    "coverage_by_metal_sha256": "7ceda9d302fef5401a359c5379f26e93e3ee8371465926547ffbe8959818e5a0",
+    "excluded_geometries": "final_dataset_3d/excluded_geometries.csv",
+    "excluded_geometries_sha256": "5bd3e8bd6eff502f5076d0edf135e9c70194d5008d371f4f3c725322ec62d9b2",
+    "xyz_directory": "final_dataset_3d/geometries"
+  },
+  "thresholds_angstrom": {
+    "ambiguous_gap": 0.1,
+    "borderline_longish": 2.95,
+    "long_bond": 3.1
+  }
+}
