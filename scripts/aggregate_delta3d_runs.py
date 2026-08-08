@@ -16,6 +16,28 @@ from typing import Any, Iterable
 
 PRIMARY_COMPARISON = "primary_delta3d_vs_2d_ensemble"
 BOOTSTRAP_COMPARISON = "delta3d_vs_2d_ensemble"
+
+# Each entry names the improvement key, the bootstrap key, the two model
+# branches whose OOF metrics are tabulated, and the protocol sentence that must
+# be present in every run being pooled.
+COMPARISONS: dict[str, dict[str, Any]] = {
+    "delta3d_vs_2d_ensemble": {
+        "improvement_key": "primary_delta3d_vs_2d_ensemble",
+        "bootstrap_key": "delta3d_vs_2d_ensemble",
+        "models": ("2d_ensemble", "delta3d"),
+        "protocol_sentinel": "2D+2D",
+        "description": "adaptive Delta3D blend minus matched adaptive 2D+2D blend",
+    },
+    "extended_vs_delta3d": {
+        "improvement_key": "primary_extended_vs_delta3d",
+        "bootstrap_key": "extended_vs_delta3d",
+        "models": ("delta3d", "delta3d_extended"),
+        "protocol_sentinel": "2D+2D",
+        "description": (
+            "adaptive Delta3D+metal-site-descriptor blend minus adaptive Delta3D blend"
+        ),
+    },
+}
 IMPROVEMENT_METRICS = (
     "r2_gain",
     "group_balanced_r2_gain",
@@ -42,6 +64,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--run-root", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, default=None)
     parser.add_argument("--expected-runs", type=int, default=None)
+    parser.add_argument(
+        "--comparison",
+        choices=tuple(COMPARISONS),
+        default="delta3d_vs_2d_ensemble",
+        help=(
+            "Which pre-declared contrast to aggregate. 'extended_vs_delta3d' pools the "
+            "metal-site descriptor arm and requires every run to carry it."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -169,14 +200,39 @@ def success_report(
         "",
         "Status: PASSED",
         "",
+        f"Comparison: {validation['comparison_description']}.",
+        "",
         "All runs have identical dataset, exact pair cohort, implementation, feature contract, "
         "and protocol fingerprints. Model and split seeds are intentionally different.",
         "",
-        "## Runs",
-        "",
-        "| model seed | split seed | Delta R2 | Delta balanced R2 | macro-MAE reduction | R2 CI |",
-        "|---:|---:|---:|---:|---:|---:|",
     ]
+    permutations = sorted({str(row.get("descriptor_permutation", "")) for row in rows} - {""})
+    if permutations:
+        lines.extend(
+            [
+                f"Descriptor permutation arm: {', '.join(permutations)}; "
+                f"descriptor columns: {rows[0].get('descriptor_column_count')}.",
+                "",
+            ]
+        )
+        if permutations != ["none"]:
+            lines.extend(
+                [
+                    "**This is a negative-control aggregate.** Descriptor values were detached "
+                    "from their geometry, so the numbers below measure how much any block of "
+                    "continuous columns of this width moves the metrics. A real descriptor "
+                    "effect must exceed this reference, not merely exceed zero.",
+                    "",
+                ]
+            )
+    lines.extend(
+        [
+            "## Runs",
+            "",
+            "| model seed | split seed | Delta R2 | Delta balanced R2 | macro-MAE reduction | R2 CI |",
+            "|---:|---:|---:|---:|---:|---:|",
+        ]
+    )
     for row in rows:
         lines.append(
             "| {model_seed} | {split_seed} | {r2} | {balanced} | {macro} | [{low}, {high}] |".format(
@@ -246,10 +302,16 @@ def main() -> int:
         if args.output_dir is not None
         else run_root / "aggregate"
     )
+    comparison = COMPARISONS[args.comparison]
+    required_artifacts = REQUIRED_ARTIFACTS
+    if args.comparison == "extended_vs_delta3d":
+        required_artifacts = REQUIRED_ARTIFACTS + ("geometry_descriptor_audit.json",)
+
     output_dir.mkdir(parents=True, exist_ok=False)
     errors: list[str] = []
     warnings: list[str] = []
     summaries: list[tuple[Path, dict[str, Any]]] = []
+    descriptor_contracts: set[str] = set()
 
     summary_paths = sorted(
         path
@@ -265,7 +327,7 @@ def main() -> int:
 
     for summary_path in summary_paths:
         run_dir = summary_path.parent
-        missing = [name for name in REQUIRED_ARTIFACTS if not (run_dir / name).is_file()]
+        missing = [name for name in required_artifacts if not (run_dir / name).is_file()]
         if missing:
             errors.append(f"{run_dir.name}: missing artifacts {missing}")
             continue
@@ -327,8 +389,36 @@ def main() -> int:
             if not bool(nested(summary, "benchmark", "leakage_audit", "passed")):
                 raise ValueError("leakage audit did not pass")
             primary_text = str(nested(summary, "benchmark", "protocol", "primary_comparison"))
-            if "2D+2D" not in primary_text:
+            if comparison["protocol_sentinel"] not in primary_text:
                 raise ValueError("matched 2D+2D primary comparison is missing")
+
+            if args.comparison == "extended_vs_delta3d":
+                model_names = nested(summary, "benchmark", "model_names")
+                if "delta3d_extended" not in list(model_names):
+                    raise ValueError("run has no metal-site descriptor arm")
+                # Pooling runs whose descriptor block, profile or permutation
+                # differ would silently average different experiments.
+                descriptor_contracts.add(
+                    canonical_json(
+                        {
+                            "blocks": list(
+                                nested(summary, "arguments", "descriptor_blocks")
+                            ),
+                            "profile": str(
+                                nested(summary, "arguments", "descriptor_profile")
+                            ),
+                            "permutation": str(
+                                nested(summary, "arguments", "descriptor_permutation")
+                            ),
+                            "columns": list(
+                                nested(summary, "geometry_descriptor_audit", "descriptor_columns")
+                            ),
+                        }
+                    )
+                )
+                row_permutation_seed = int(
+                    nested(summary, "arguments", "descriptor_permutation_seed")
+                )
 
             dataset_hashes.add(dataset_hash)
             cohort_hashes.add(cohort_hash)
@@ -358,7 +448,20 @@ def main() -> int:
                 ),
                 "leakage_passed": True,
             }
-            for model_name in ("2d_ensemble", "delta3d"):
+            if args.comparison == "extended_vs_delta3d":
+                row["descriptor_permutation"] = str(
+                    nested(summary, "arguments", "descriptor_permutation")
+                )
+                row["descriptor_permutation_seed"] = row_permutation_seed
+                row["descriptor_column_count"] = int(
+                    nested(
+                        summary,
+                        "benchmark",
+                        "feature_counts",
+                        "metal_site_descriptors_added",
+                    )
+                )
+            for model_name in comparison["models"]:
                 for metric in (
                     "r2",
                     "group_balanced_r2",
@@ -377,7 +480,7 @@ def main() -> int:
                         summary,
                         "benchmark",
                         "improvements",
-                        PRIMARY_COMPARISON,
+                        comparison["improvement_key"],
                         metric,
                     ),
                     f"{run_name}.{metric}",
@@ -387,7 +490,7 @@ def main() -> int:
                     "benchmark",
                     "paired_group_bootstrap",
                     "comparisons",
-                    BOOTSTRAP_COMPARISON,
+                    comparison["bootstrap_key"],
                     metric,
                 )
                 mean = finite_number(interval["mean"], f"{run_name}.{metric}.mean")
@@ -422,9 +525,24 @@ def main() -> int:
         errors.append("Split seeds must be unique across the prespecified runs.")
     if len(software_fingerprints) > 1:
         warnings.append("Software/platform metadata differs across runs.")
+    if len(descriptor_contracts) > 1:
+        errors.append(
+            "Runs do not share one metal-site descriptor contract "
+            "(block, profile or permutation differs); they are different experiments."
+        )
+    if args.comparison == "extended_vs_delta3d" and rows:
+        permutations = {str(row["descriptor_permutation"]) for row in rows}
+        if len(permutations) == 1 and permutations != {"none"}:
+            warnings.append(
+                "Every run in this aggregate is a permuted negative control; the "
+                "result describes the descriptor-width artefact, not chemistry."
+            )
 
     validation = {
         "passed": not errors,
+        "comparison": args.comparison,
+        "comparison_description": comparison["description"],
+        "descriptor_contract": sorted(descriptor_contracts),
         "expected_runs": args.expected_runs,
         "discovered_summaries": len(summary_paths),
         "validated_completed_runs": len(rows),

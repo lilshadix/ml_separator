@@ -24,6 +24,18 @@ DEFAULT_PARAMETER_GRID: tuple[dict[str, Any], ...] = (
 )
 DEFAULT_DELTA3D_WEIGHTS: tuple[float, ...] = (0.0, 0.25, 0.50, 0.75, 1.0)
 
+BASE_MODEL_NAMES: tuple[str, ...] = (
+    "baseline",
+    "2d_second_unshrunk",
+    "2d_ensemble",
+    "delta3d_unshrunk",
+    "delta3d",
+)
+EXTENDED_MODEL_NAMES: tuple[str, ...] = (
+    "delta3d_extended_unshrunk",
+    "delta3d_extended",
+)
+
 
 @dataclass
 class BenchmarkResult:
@@ -362,6 +374,7 @@ def _cluster_bootstrap_comparisons(
     group_column: str,
     n_bootstrap: int,
     seed: int,
+    comparisons: dict[str, tuple[str, str]] | None = None,
 ) -> dict[str, Any]:
     """Paired bootstrap comparisons using identical held-out group draws.
 
@@ -375,15 +388,16 @@ def _cluster_bootstrap_comparisons(
         group: prediction_frame.index[prediction_frame[group_column].eq(group)].to_numpy()
         for group in unique_groups
     }
-    comparisons = {
-        "delta3d_vs_2d_ensemble": ("prediction_2d_ensemble", "prediction_delta3d"),
-        "delta3d_unshrunk_vs_2d_second_unshrunk": (
-            "prediction_2d_second_unshrunk",
-            "prediction_delta3d_unshrunk",
-        ),
-        "delta3d_vs_baseline": ("prediction_baseline", "prediction_delta3d"),
-        "2d_ensemble_vs_baseline": ("prediction_baseline", "prediction_2d_ensemble"),
-    }
+    if comparisons is None:
+        comparisons = {
+            "delta3d_vs_2d_ensemble": ("prediction_2d_ensemble", "prediction_delta3d"),
+            "delta3d_unshrunk_vs_2d_second_unshrunk": (
+                "prediction_2d_second_unshrunk",
+                "prediction_delta3d_unshrunk",
+            ),
+            "delta3d_vs_baseline": ("prediction_baseline", "prediction_delta3d"),
+            "2d_ensemble_vs_baseline": ("prediction_baseline", "prediction_2d_ensemble"),
+        }
     draws: dict[str, dict[str, list[float]]] = {
         name: {
             "r2_gain": [],
@@ -478,19 +492,16 @@ def _cluster_bootstrap_comparisons(
 
 
 def _group_metric_table(
-    predictions: pd.DataFrame, group_column: str, label: str
+    predictions: pd.DataFrame,
+    group_column: str,
+    label: str,
+    model_names: tuple[str, ...] = BASE_MODEL_NAMES,
 ) -> pd.DataFrame:
     rows: list[dict[str, Any]] = []
     for group, group_frame in predictions.groupby(group_column, dropna=False):
         truth = group_frame[PAIR_TARGET_COLUMN].to_numpy(dtype=float)
         row: dict[str, Any] = {group_column: group, "n_rows": int(len(group_frame))}
-        for model_name in (
-            "baseline",
-            "2d_second_unshrunk",
-            "2d_ensemble",
-            "delta3d_unshrunk",
-            "delta3d",
-        ):
+        for model_name in model_names:
             pred = group_frame[f"prediction_{model_name}"].to_numpy(dtype=float)
             row[f"{model_name}_mae"] = float(mean_absolute_error(truth, pred))
             row[f"{model_name}_rmse"] = float(np.sqrt(mean_squared_error(truth, pred)))
@@ -503,6 +514,10 @@ def _group_metric_table(
         row["mae_reduction_delta3d_vs_2d_ensemble"] = (
             row["2d_ensemble_mae"] - row["delta3d_mae"]
         )
+        if "delta3d_extended" in model_names:
+            row["mae_reduction_extended_vs_delta3d"] = (
+                row["delta3d_mae"] - row["delta3d_extended_mae"]
+            )
         rows.append(row)
     result = pd.DataFrame(rows)
     result.insert(0, "grouping", label)
@@ -539,6 +554,13 @@ def nested_group_benchmark(
         allow_fewer_splits=False,
     )
 
+    # The metal-site descriptor arm is present only when the caller opted into a
+    # descriptor block. Its branch is built exactly like the Delta3D branch --
+    # same seed stream, same selection budget, same blend rule -- so the
+    # extended-minus-Delta3D contrast isolates the added columns.
+    has_extension = bool(pair_data.descriptor_columns)
+    model_names = BASE_MODEL_NAMES + (EXTENDED_MODEL_NAMES if has_extension else ())
+
     feature_sets = {
         "baseline": pair_data.baseline_columns,
         "2d_second_unshrunk": pair_data.baseline_columns,
@@ -552,6 +574,9 @@ def nested_group_benchmark(
         "2d_second_unshrunk": 100_003,
         "delta3d_unshrunk": 100_003,
     }
+    if has_extension:
+        feature_sets["delta3d_extended_unshrunk"] = pair_data.extended_columns
+        branch_seed_offsets["delta3d_extended_unshrunk"] = 100_003
     predictions = frame[
         [
             "pair_id",
@@ -567,11 +592,8 @@ def nested_group_benchmark(
         ]
     ].copy()
     predictions["outer_fold"] = -1
-    predictions["prediction_baseline"] = np.nan
-    predictions["prediction_2d_second_unshrunk"] = np.nan
-    predictions["prediction_2d_ensemble"] = np.nan
-    predictions["prediction_delta3d_unshrunk"] = np.nan
-    predictions["prediction_delta3d"] = np.nan
+    for model_name in model_names:
+        predictions[f"prediction_{model_name}"] = np.nan
 
     leakage_folds: list[dict[str, Any]] = []
     tuning_rows: list[dict[str, Any]] = []
@@ -582,6 +604,9 @@ def nested_group_benchmark(
         "delta3d_unshrunk": [],
         "delta3d_weight": [],
     }
+    if has_extension:
+        selected_by_fold["delta3d_extended_unshrunk"] = []
+        selected_by_fold["delta3d_extended_weight"] = []
 
     for outer_fold, (train_index, test_index) in enumerate(folds):
         train_groups = set(groups[train_index].tolist())
@@ -686,6 +711,20 @@ def nested_group_benchmark(
         selected_by_fold["delta3d_weight"].append(
             {"outer_fold": outer_fold, "delta3d_weight": delta3d_weight}
         )
+        if has_extension:
+            extended_weight, extended_weight_rows = _select_delta3d_weight(
+                outer_target,
+                outer_groups,
+                baseline_inner,
+                selected_inner_predictions["delta3d_extended_unshrunk"],
+            )
+            for row in extended_weight_rows:
+                tuning_rows.append(
+                    {"context": f"outer_{outer_fold}:delta3d_extended_weight", **row}
+                )
+            selected_by_fold["delta3d_extended_weight"].append(
+                {"outer_fold": outer_fold, "delta3d_extended_weight": extended_weight}
+            )
 
         baseline_model = AntisymmetricExtraTreesRegressor(
             pair_data.baseline_columns,
@@ -729,13 +768,29 @@ def nested_group_benchmark(
         predictions.loc[test_index, "prediction_delta3d_unshrunk"] = full_test
         predictions.loc[test_index, "prediction_delta3d"] = shrinkage_test
 
-    prediction_columns = [
-        "prediction_baseline",
-        "prediction_2d_second_unshrunk",
-        "prediction_2d_ensemble",
-        "prediction_delta3d_unshrunk",
-        "prediction_delta3d",
-    ]
+        if has_extension:
+            extended_model = AntisymmetricExtraTreesRegressor(
+                pair_data.extended_columns,
+                n_estimators=n_estimators,
+                max_features=selected_parameters["delta3d_extended_unshrunk"][
+                    "max_features"
+                ],
+                min_samples_leaf=selected_parameters["delta3d_extended_unshrunk"][
+                    "min_samples_leaf"
+                ],
+                random_state=seed + outer_fold * 101 + 19,
+                n_jobs=n_jobs,
+            )
+            extended_model.fit(outer_train, outer_target, outer_groups)
+            extended_test = extended_model.predict(frame.iloc[test_index])
+            predictions.loc[test_index, "prediction_delta3d_extended_unshrunk"] = (
+                extended_test
+            )
+            predictions.loc[test_index, "prediction_delta3d_extended"] = (
+                baseline_test + extended_weight * (extended_test - baseline_test)
+            )
+
+    prediction_columns = [f"prediction_{name}" for name in model_names]
     if predictions[prediction_columns].isna().any().any():
         raise AssertionError("Outer CV did not produce one prediction per row and model.")
     if (predictions["outer_fold"] < 0).any():
@@ -747,13 +802,7 @@ def nested_group_benchmark(
             predictions[f"prediction_{model_name}"].to_numpy(dtype=float),
             groups,
         )
-        for model_name in (
-            "baseline",
-            "2d_second_unshrunk",
-            "2d_ensemble",
-            "delta3d_unshrunk",
-            "delta3d",
-        )
+        for model_name in model_names
     }
 
     def comparison(reference: str, candidate: str) -> dict[str, float]:
@@ -781,11 +830,43 @@ def nested_group_benchmark(
         "delta3d_vs_baseline": comparison("baseline", "delta3d"),
         "2d_ensemble_vs_baseline": comparison("baseline", "2d_ensemble"),
     }
+    bootstrap_comparisons = {
+        "delta3d_vs_2d_ensemble": ("prediction_2d_ensemble", "prediction_delta3d"),
+        "delta3d_unshrunk_vs_2d_second_unshrunk": (
+            "prediction_2d_second_unshrunk",
+            "prediction_delta3d_unshrunk",
+        ),
+        "delta3d_vs_baseline": ("prediction_baseline", "prediction_delta3d"),
+        "2d_ensemble_vs_baseline": ("prediction_baseline", "prediction_2d_ensemble"),
+    }
+    if has_extension:
+        improvements["primary_extended_vs_delta3d"] = comparison(
+            "delta3d", "delta3d_extended"
+        )
+        improvements["extended_unshrunk_vs_delta3d_unshrunk"] = comparison(
+            "delta3d_unshrunk", "delta3d_extended_unshrunk"
+        )
+        improvements["extended_vs_2d_ensemble"] = comparison(
+            "2d_ensemble", "delta3d_extended"
+        )
+        bootstrap_comparisons["extended_vs_delta3d"] = (
+            "prediction_delta3d",
+            "prediction_delta3d_extended",
+        )
+        bootstrap_comparisons["extended_unshrunk_vs_delta3d_unshrunk"] = (
+            "prediction_delta3d_unshrunk",
+            "prediction_delta3d_extended_unshrunk",
+        )
+        bootstrap_comparisons["extended_vs_2d_ensemble"] = (
+            "prediction_2d_ensemble",
+            "prediction_delta3d_extended",
+        )
     bootstrap = _cluster_bootstrap_comparisons(
         predictions,
         group_column=group_column,
         n_bootstrap=n_bootstrap,
         seed=seed + 999_983,
+        comparisons=bootstrap_comparisons,
     )
 
     # A multi-seed evaluation should not repeat an unused full-data deployment
@@ -882,8 +963,10 @@ def nested_group_benchmark(
             "delta3d_weight": final_delta3d_weight,
         }
 
-    per_extractant = _group_metric_table(predictions, "extractant", "extractant")
-    per_pair = _group_metric_table(predictions, "pair_label", "pair_type")
+    per_extractant = _group_metric_table(
+        predictions, "extractant", "extractant", model_names
+    )
+    per_pair = _group_metric_table(predictions, "pair_label", "pair_type", model_names)
     fold_assignments = predictions[
         ["pair_id", "extractant", "ecfp_exact_cluster", "outer_fold"]
     ].copy()
@@ -924,6 +1007,13 @@ def nested_group_benchmark(
                 "by the same inner-CV rule."
             ),
             "primary_comparison": "adaptive Delta3D blend minus matched adaptive 2D+2D blend",
+            "metal_site_descriptor_arm": (
+                "adaptive blend of a Delta3D+descriptor forest built with the same seed "
+                "stream, selection budget and blend rule as the Delta3D forest; the "
+                "extended-minus-Delta3D contrast isolates the descriptor columns"
+                if has_extension
+                else "absent"
+            ),
             "model_selection_metric": "inner macro-group MAE",
             "trees_per_fit": int(n_estimators),
             "model_seed": int(seed),
@@ -934,7 +1024,10 @@ def nested_group_benchmark(
             "baseline": len(pair_data.baseline_columns),
             "delta3d_added": len(pair_data.delta3d_columns),
             "full": len(pair_data.full_columns),
+            "metal_site_descriptors_added": len(pair_data.descriptor_columns),
+            "extended": len(pair_data.extended_columns),
         },
+        "model_names": list(model_names),
         "metrics": metrics,
         "improvements": improvements,
         "paired_group_bootstrap": bootstrap,

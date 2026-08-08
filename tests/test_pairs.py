@@ -181,6 +181,69 @@ class PairBuildingTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "geometry_ok=True"):
             build_adjacent_pair_dataset(pd.DataFrame(rows))
 
+    def test_descriptor_blocks_extend_without_touching_the_frozen_contract(self) -> None:
+        rows = [
+            source_row(ligand="L1", name="L1", metal="La", log_d=1.0),
+            source_row(ligand="L1", name="L1", metal="Ce", log_d=2.0),
+            source_row(ligand="L2", name="L2", metal="La", log_d=0.5),
+            source_row(ligand="L2", name="L2", metal="Ce", log_d=1.5),
+        ]
+        frame = pd.DataFrame(rows)
+        frame["feat3d__ligand_field__field_strength_k2"] = [1.0, 1.1, 1.2, 1.3]
+        frame["feat3d__enclosure__buried_fraction_r3p5"] = [0.9, 0.8, 0.7, 0.6]
+
+        frozen = build_adjacent_pair_dataset(frame)
+        self.assertEqual(frozen.descriptor_columns, ())
+        self.assertEqual(frozen.full_columns, frozen.extended_columns)
+        # A descriptor column that was not requested must not leak into the
+        # contract merely because it is present in the source frame.
+        self.assertNotIn(
+            "delta3d__feat3d__ligand_field__field_strength_k2", frozen.delta3d_columns
+        )
+
+        extended = build_adjacent_pair_dataset(
+            frame, geometry_descriptor_blocks=("ligand_field",)
+        )
+        self.assertEqual(extended.delta3d_columns, frozen.delta3d_columns)
+        self.assertEqual(
+            extended.descriptor_columns,
+            ("delta3d__feat3d__ligand_field__field_strength_k2",),
+        )
+        self.assertEqual(
+            extended.audit["cohort_sha256"], frozen.audit["cohort_sha256"]
+        )
+        self.assertNotIn(
+            "delta3d__feat3d__enclosure__buried_fraction_r3p5",
+            extended.extended_columns,
+        )
+
+    def test_requesting_an_absent_descriptor_block_fails_closed(self) -> None:
+        rows = [
+            source_row(ligand="L1", name="L1", metal="La", log_d=1.0),
+            source_row(ligand="L1", name="L1", metal="Ce", log_d=2.0),
+        ]
+        with self.assertRaises(ValueError):
+            build_adjacent_pair_dataset(
+                pd.DataFrame(rows), geometry_descriptor_blocks=("ligand_field",)
+            )
+
+    def test_descriptor_contrasts_are_negated_by_the_reverse_view(self) -> None:
+        rows = [
+            source_row(ligand="L1", name="L1", metal="La", log_d=1.0),
+            source_row(ligand="L1", name="L1", metal="Ce", log_d=2.0),
+        ]
+        frame = pd.DataFrame(rows)
+        frame["feat3d__ligand_field__field_strength_k2"] = [1.0, 1.4]
+        dataset = build_adjacent_pair_dataset(
+            frame, geometry_descriptor_blocks=("ligand_field",)
+        )
+        column = "delta3d__feat3d__ligand_field__field_strength_k2"
+        reversed_frame = reverse_pair_features(dataset.frame)
+        np.testing.assert_allclose(
+            reversed_frame[column].to_numpy(dtype=float),
+            -dataset.frame[column].to_numpy(dtype=float),
+        )
+
     def test_reverse_pair_features_swaps_and_negates_contrasts(self) -> None:
         frame = pd.DataFrame(
             {

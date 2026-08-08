@@ -18,6 +18,8 @@ from typing import Any, Iterable
 import numpy as np
 import pandas as pd
 
+from .geometry_descriptors import BLOCK_PREFIXES, validate_blocks
+
 
 LANTHANIDE_Z: dict[str, int] = {
     "La": 57,
@@ -106,10 +108,19 @@ class PairDataset:
     delta3d_columns: tuple[str, ...]
     audit: dict[str, Any]
     quarantine: pd.DataFrame
+    descriptor_columns: tuple[str, ...] = ()
 
     @property
     def full_columns(self) -> tuple[str, ...]:
+        """The frozen Delta3D contract; unchanged when descriptors are requested."""
+
         return self.baseline_columns + self.delta3d_columns
+
+    @property
+    def extended_columns(self) -> tuple[str, ...]:
+        """The frozen contract plus the opt-in metal-site descriptor block."""
+
+        return self.baseline_columns + self.delta3d_columns + self.descriptor_columns
 
 
 def _required_columns() -> set[str]:
@@ -303,6 +314,7 @@ def _feature_contract(
     df: pd.DataFrame,
     *,
     delta3d_feature_set: str,
+    geometry_descriptor_blocks: tuple[str, ...] = (),
 ) -> tuple[list[str], list[str], list[str], list[str], list[str]]:
     condition_cols = _select_numeric_columns(
         df, [c for c in df.columns if str(c).startswith("cond__")]
@@ -317,11 +329,24 @@ def _feature_contract(
     all_invariant_3d = [
         c for c in candidate_3d if not any(token in c for token in EXCLUDED_3D_TOKENS)
     ]
+    # Descriptor blocks are opt-in.  When none are requested the contract is
+    # bit-for-bit the frozen one, so earlier runs stay reproducible.
+    descriptor_prefixes = tuple(
+        BLOCK_PREFIXES[block] for block in geometry_descriptor_blocks
+    )
+    all_invariant_3d = [
+        c
+        for c in all_invariant_3d
+        if not str(c).startswith(tuple(BLOCK_PREFIXES.values()))
+        or str(c).startswith(descriptor_prefixes)
+    ]
     if delta3d_feature_set == "compact-invariant":
         selected_3d = [
             c
             for c in all_invariant_3d
-            if c in COMPACT_3D_COLUMNS or str(c).startswith(DERIVED_3D_PREFIX)
+            if c in COMPACT_3D_COLUMNS
+            or str(c).startswith(DERIVED_3D_PREFIX)
+            or (descriptor_prefixes and str(c).startswith(descriptor_prefixes))
         ]
     elif delta3d_feature_set == "all-ranked":
         selected_3d = all_invariant_3d
@@ -398,6 +423,7 @@ def build_adjacent_pair_dataset(
     require_complete_conditions: bool = True,
     delta3d_feature_set: str = "compact-invariant",
     require_complete_3d: bool | None = None,
+    geometry_descriptor_blocks: Iterable[str] = (),
 ) -> PairDataset:
     """Create condition-matched, true-adjacent lanthanide pairs.
 
@@ -428,11 +454,27 @@ def build_adjacent_pair_dataset(
         Exclude pairs with a missing selected 3D contrast, preventing feature
         availability from becoming a provenance shortcut. By default this is
         true for ``compact-invariant`` and false for padded ``all-ranked`` data.
+    geometry_descriptor_blocks:
+        Metal-site descriptor blocks to admit into the Delta3D contract. The
+        columns must already be attached to ``source`` by
+        :func:`~lanthanide_separation.geometry_descriptors.attach_geometry_descriptors`.
+        The empty default reproduces the frozen contract exactly.
     """
 
     _validate_source(source)
     if replicate_policy not in {"median", "unique"}:
         raise ValueError("replicate_policy must be 'median' or 'unique'.")
+    descriptor_blocks = validate_blocks(geometry_descriptor_blocks)
+    missing_blocks = [
+        block
+        for block in descriptor_blocks
+        if not any(str(c).startswith(BLOCK_PREFIXES[block]) for c in source.columns)
+    ]
+    if missing_blocks:
+        raise ValueError(
+            "Requested geometry descriptor blocks are absent from the source frame: "
+            f"{missing_blocks}"
+        )
     if require_complete_3d is None:
         require_complete_3d = delta3d_feature_set == "compact-invariant"
 
@@ -459,7 +501,11 @@ def build_adjacent_pair_dataset(
         ecfp_cols,
         invariant_3d_cols,
         all_invariant_3d_cols,
-    ) = _feature_contract(df, delta3d_feature_set=delta3d_feature_set)
+    ) = _feature_contract(
+        df,
+        delta3d_feature_set=delta3d_feature_set,
+        geometry_descriptor_blocks=descriptor_blocks,
+    )
     all_condition_cols = [c for c in df.columns if str(c).startswith("cond__")]
     nonnumeric_conditions = sorted(set(all_condition_cols) - set(condition_cols))
     if nonnumeric_conditions:
@@ -625,8 +671,22 @@ def build_adjacent_pair_dataset(
         ]
         + [f"base__{c}" for c in [*condition_cols, *molecular_cols, *ecfp_cols]]
     )
-    delta3d_columns = tuple(f"delta3d__{c}" for c in usable_3d_cols)
-    missing_selected_3d = pairs.loc[:, list(delta3d_columns)].isna().any(axis=1)
+    descriptor_prefixes = tuple(BLOCK_PREFIXES[block] for block in descriptor_blocks)
+    all_delta3d_columns = tuple(f"delta3d__{c}" for c in usable_3d_cols)
+    delta3d_columns = tuple(
+        c
+        for c in all_delta3d_columns
+        if not str(c).startswith(tuple(f"delta3d__{p}" for p in BLOCK_PREFIXES.values()))
+    )
+    descriptor_columns = tuple(
+        c
+        for c in all_delta3d_columns
+        if descriptor_prefixes
+        and str(c).startswith(tuple(f"delta3d__{p}" for p in descriptor_prefixes))
+    )
+    if len(delta3d_columns) + len(descriptor_columns) != len(all_delta3d_columns):
+        raise AssertionError("Delta3D and descriptor column partition is not exhaustive.")
+    missing_selected_3d = pairs.loc[:, list(all_delta3d_columns)].isna().any(axis=1)
     pairs_excluded_missing_3d_features = int(missing_selected_3d.sum())
     if require_complete_3d:
         pairs = pairs.loc[~missing_selected_3d].reset_index(drop=True)
@@ -646,7 +706,7 @@ def build_adjacent_pair_dataset(
     )
     leaked = [
         c
-        for c in baseline_columns + delta3d_columns
+        for c in baseline_columns + all_delta3d_columns
         if any(fragment.lower() in c.lower() for fragment in forbidden_fragments)
     ]
     if leaked:
@@ -677,6 +737,9 @@ def build_adjacent_pair_dataset(
             c for c in all_invariant_3d_cols if c not in invariant_3d_cols
         ],
         "usable_invariant_3d_count": len(usable_3d_cols),
+        "geometry_descriptor_blocks": list(descriptor_blocks),
+        "geometry_descriptor_column_count": len(descriptor_columns),
+        "frozen_delta3d_column_count": len(delta3d_columns),
         "all_nan_3d_columns": all_nan_3d_cols,
         "excluded_noninvariant_or_noncomparable_3d_columns": [
             c
@@ -718,6 +781,7 @@ def build_adjacent_pair_dataset(
         delta3d_columns=delta3d_columns,
         audit=audit,
         quarantine=quarantine,
+        descriptor_columns=descriptor_columns,
     )
 
 

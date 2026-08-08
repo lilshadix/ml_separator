@@ -29,10 +29,22 @@ from lanthanide_separation.evaluation import (  # noqa: E402
     DEFAULT_PARAMETER_GRID,
     nested_group_benchmark,
 )
+from lanthanide_separation.geometry_descriptors import (  # noqa: E402
+    DESCRIPTOR_BLOCKS,
+    DESCRIPTOR_PERMUTATIONS,
+    DESCRIPTOR_PROFILES,
+    MetalSiteDescriptorBuilder,
+    attach_geometry_descriptors,
+    permute_descriptors,
+    validate_blocks,
+)
 from lanthanide_separation.pairs import build_adjacent_pair_dataset  # noqa: E402
 
 
 DEFAULT_DATASET = REPO_ROOT / "dataset with 3D structures" / "dataset.parquet"
+DEFAULT_VR_ASSETS = (
+    REPO_ROOT / "dataset with 3D structures" / "features" / "vietoris_rips_inputs.npz"
+)
 
 
 def _default_n_jobs() -> int:
@@ -77,6 +89,51 @@ def parse_args() -> argparse.Namespace:
         choices=("compact-invariant", "all-ranked"),
         default="compact-invariant",
         help="Primary stable shell summaries or all donor-rank tabular features.",
+    )
+    parser.add_argument(
+        "--vr-assets",
+        type=Path,
+        default=DEFAULT_VR_ASSETS,
+        help="Coordinate asset used to compute metal-site descriptors.",
+    )
+    parser.add_argument(
+        "--geometry-descriptor-blocks",
+        default="none",
+        help=(
+            "Comma-separated metal-site descriptor blocks to add to the Delta3D "
+            f"contract, or 'none'. Available: {','.join(DESCRIPTOR_BLOCKS)}."
+        ),
+    )
+    parser.add_argument(
+        "--descriptor-profile",
+        choices=DESCRIPTOR_PROFILES,
+        default="core",
+        help=(
+            "'core' keeps the theory-declared minimal set (even crystal-field ranks "
+            "plus two shell radii); 'full' adds the odd ranks and the remaining "
+            "enclosure scalars as a width sensitivity."
+        ),
+    )
+    parser.add_argument(
+        "--descriptor-permutation",
+        choices=DESCRIPTOR_PERMUTATIONS,
+        default="none",
+        help=(
+            "Negative control: detach descriptor values from their geometry. "
+            "A permuted run measures how much any block of continuous columns "
+            "moves the metrics and must never be reported as a chemistry result."
+        ),
+    )
+    parser.add_argument(
+        "--descriptor-permutation-seed",
+        type=int,
+        default=0,
+        help="Seed for the descriptor permutation control.",
+    )
+    parser.add_argument(
+        "--expected-vr-sha256",
+        default=None,
+        help="Fail before creating a run directory if the coordinate asset hash differs.",
     )
     parser.add_argument(
         "--group-mode",
@@ -127,11 +184,29 @@ def validate_args(args: argparse.Namespace) -> None:
         raise SystemExit("--bootstrap must be positive.")
     if args.n_jobs == 0:
         raise SystemExit("--n-jobs cannot be zero.")
-    if args.expected_dataset_sha256 is not None:
-        expected = args.expected_dataset_sha256.strip().lower()
+    for name in ("expected_dataset_sha256", "expected_vr_sha256"):
+        value = getattr(args, name)
+        if value is None:
+            continue
+        expected = value.strip().lower()
         if len(expected) != 64 or any(character not in "0123456789abcdef" for character in expected):
-            raise SystemExit("--expected-dataset-sha256 must be a 64-character hex digest.")
-        args.expected_dataset_sha256 = expected
+            flag = "--" + name.replace("_", "-")
+            raise SystemExit(f"{flag} must be a 64-character hex digest.")
+        setattr(args, name, expected)
+
+    raw_blocks = str(args.geometry_descriptor_blocks).strip().lower()
+    if raw_blocks in {"", "none"}:
+        args.descriptor_blocks = ()
+    else:
+        try:
+            args.descriptor_blocks = validate_blocks(raw_blocks.split(","))
+        except ValueError as error:
+            raise SystemExit(str(error)) from error
+    if args.descriptor_permutation != "none" and not args.descriptor_blocks:
+        raise SystemExit(
+            "--descriptor-permutation requires --geometry-descriptor-blocks; a "
+            "permutation control is meaningless without a descriptor block."
+        )
 
 
 def json_default(value: Any) -> Any:
@@ -210,6 +285,19 @@ def main() -> int:
             f"expected {args.expected_dataset_sha256}, observed {dataset_sha256}"
         )
 
+    vr_path: Path | None = None
+    vr_sha256: str | None = None
+    if args.descriptor_blocks:
+        vr_path = args.vr_assets.expanduser().resolve()
+        if not vr_path.is_file():
+            raise SystemExit(f"Coordinate asset not found: {vr_path}")
+        vr_sha256 = sha256_file(vr_path)
+        if args.expected_vr_sha256 is not None and vr_sha256 != args.expected_vr_sha256:
+            raise SystemExit(
+                "Coordinate asset SHA-256 mismatch: "
+                f"expected {args.expected_vr_sha256}, observed {vr_sha256}"
+            )
+
     output_dir = make_output_dir(args.output_dir, args)
     started_at = datetime.now(timezone.utc).isoformat()
     group_column = "extractant" if args.group_mode == "extractant" else "ecfp_exact_cluster"
@@ -224,6 +312,8 @@ def main() -> int:
             "started_at_utc": started_at,
             "dataset_path": str(dataset_path),
             "dataset_sha256": dataset_sha256,
+            "vr_asset_path": str(vr_path) if vr_path is not None else None,
+            "vr_asset_sha256": vr_sha256,
             "arguments": vars(args),
             "slurm": slurm_metadata(),
         },
@@ -236,6 +326,29 @@ def main() -> int:
     print(f"Output: {output_dir}", flush=True)
     print("Reading parquet...", flush=True)
     source = pd.read_parquet(dataset_path)
+
+    descriptor_audit: dict[str, Any] | None = None
+    if args.descriptor_blocks:
+        print(f"Computing metal-site descriptors from {vr_path}...", flush=True)
+        descriptors = MetalSiteDescriptorBuilder(
+            vr_path,
+            blocks=args.descriptor_blocks,
+            profile=args.descriptor_profile,
+        ).build()
+        descriptors = permute_descriptors(
+            descriptors,
+            mode=args.descriptor_permutation,
+            seed=args.descriptor_permutation_seed,
+        )
+        source, descriptor_audit = attach_geometry_descriptors(source, descriptors)
+        write_json(descriptor_audit, output_dir / "geometry_descriptor_audit.json")
+        print(
+            f"Descriptors: {descriptor_audit['descriptor_column_count']} columns over "
+            f"{descriptor_audit['geometry_count']} geometries "
+            f"(permutation={args.descriptor_permutation})",
+            flush=True,
+        )
+
     pair_data = build_adjacent_pair_dataset(
         source,
         require_geometry=True,
@@ -244,10 +357,13 @@ def main() -> int:
         quarantine_known_censored_targets=args.quarantine_known_censored_targets,
         require_complete_conditions=not args.allow_incomplete_conditions,
         delta3d_feature_set=args.delta3d_feature_set,
+        geometry_descriptor_blocks=args.descriptor_blocks,
     )
     print(
         f"Pairs: {len(pair_data.frame)} | extractants: "
-        f"{pair_data.frame['extractant'].nunique()} | Delta3D: {len(pair_data.delta3d_columns)}",
+        f"{pair_data.frame['extractant'].nunique()} | Delta3D: "
+        f"{len(pair_data.delta3d_columns)} | descriptors: "
+        f"{len(pair_data.descriptor_columns)}",
         flush=True,
     )
 
@@ -260,6 +376,10 @@ def main() -> int:
             "cohort_sha256": pair_data.audit["cohort_sha256"],
             "baseline_columns": list(pair_data.baseline_columns),
             "delta3d_columns": list(pair_data.delta3d_columns),
+            "metal_site_descriptor_blocks": list(args.descriptor_blocks),
+            "metal_site_descriptor_profile": args.descriptor_profile,
+            "metal_site_descriptor_columns": list(pair_data.descriptor_columns),
+            "descriptor_permutation": args.descriptor_permutation,
             "forbidden_model_inputs": [
                 "D",
                 "log_D",
@@ -311,13 +431,26 @@ def main() -> int:
         "src/lanthanide_separation/evaluation.py": sha256_file(
             SRC_ROOT / "lanthanide_separation" / "evaluation.py"
         ),
+        "src/lanthanide_separation/geometry_descriptors.py": sha256_file(
+            SRC_ROOT / "lanthanide_separation" / "geometry_descriptors.py"
+        ),
+    }
+    # Every published artifact is hashed inside summary.json so a reviewer who
+    # receives only the run directory can prove nothing was truncated or swapped.
+    artifact_sha256 = {
+        path.name: sha256_file(path)
+        for path in sorted(output_dir.iterdir())
+        if path.is_file() and path.name not in {"summary.json", "_SUCCESS.json", "_INCOMPLETE"}
     }
     run_manifest = {
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "started_at_utc": started_at,
         "dataset_path": str(dataset_path),
         "dataset_sha256": dataset_sha256,
+        "vr_asset_path": str(vr_path) if vr_path is not None else None,
+        "vr_asset_sha256": vr_sha256,
         "cohort_sha256": pair_data.audit["cohort_sha256"],
+        "geometry_descriptor_audit": descriptor_audit,
         "implementation_sha256": implementation_sha256,
         "software": {
             "python": platform.python_version(),
@@ -331,7 +464,10 @@ def main() -> int:
         "arguments": vars(args),
         "pair_build_audit": pair_data.audit,
         "benchmark": result.summary,
-        "artifacts": {"deployment_model_saved": deployment_model_saved},
+        "artifacts": {
+            "deployment_model_saved": deployment_model_saved,
+            "sha256": artifact_sha256,
+        },
     }
 
     # summary.json and _SUCCESS are deliberately last: aggregators can reject
@@ -364,6 +500,29 @@ def main() -> int:
         f"group-bootstrap 95% CI [{ci['ci95_low']:+.4f}, {ci['ci95_high']:+.4f}]",
         flush=True,
     )
+    if pair_data.descriptor_columns:
+        extended = result.summary["metrics"]["delta3d_extended"]
+        primary = result.summary["improvements"]["primary_extended_vs_delta3d"]
+        extended_ci = result.summary["paired_group_bootstrap"]["comparisons"][
+            "extended_vs_delta3d"
+        ]
+        print(
+            f"\nMetal-site descriptor arm (permutation={args.descriptor_permutation})",
+            flush=True,
+        )
+        print(
+            f"extended R2={extended['r2']:.4f}; group-balanced R2="
+            f"{extended['group_balanced_r2']:.4f}; macro-group MAE="
+            f"{extended['macro_group_mae']:.4f}",
+            flush=True,
+        )
+        for metric in ("group_balanced_r2_gain", "macro_group_mae_reduction", "r2_gain"):
+            interval = extended_ci[metric]
+            print(
+                f"extended vs Delta3D {metric}={primary[metric]:+.5f}; "
+                f"95% CI [{interval['ci95_low']:+.5f}, {interval['ci95_high']:+.5f}]",
+                flush=True,
+            )
     print(f"Saved: {output_dir}", flush=True)
     return 0
 
