@@ -1,12 +1,61 @@
+# --- Local tooling and build products -------------------------------------
 .DS_Store
 __pycache__/
 *.py[cod]
 .pytest_cache/
 .ruff_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+.venv/
+venv/
+build/
+dist/
+*.egg-info/
+.idea/
+.vscode/
 
-runs/*
-!runs/README.md
-
+# SLURM output written next to the submission directory rather than into a run.
 slurm-*.out
 slurm-*.err
-.venv/
+
+
+# --- Training run artifacts -------------------------------------------------
+#
+# A blanket runs/* rule once let a _SUCCESS.json reach the repository while the
+# artifacts whose hashes it declares stayed on the cluster, so a reviewer with a
+# clean clone could not complete the audit the marker invited.
+#
+# The rule is therefore inverted for current-protocol run roots: everything a
+# reviewer needs to reproduce the verdict is tracked, and only in-flight,
+# machine-local or oversized material is excluded. Reports and per-run tables
+# are small, and the ones that repeat across seeds (feature_contract.json,
+# quarantined_source_rows.csv) are byte-identical, so Git stores them once.
+runs/*
+!runs/README.md
+!runs/simplicial_*/
+!runs/descriptor_*/
+
+# In-flight, machine-local, or scheduler-owned material inside a tracked root.
+runs/*/logs/
+runs/*/tmp/
+runs/*/attempts/
+runs/*/submissions/
+runs/*/status/
+runs/**/.publish.lock
+runs/**/.submission.lock
+runs/**/_INCOMPLETE
+runs/**/.*.tmp
+
+# Regenerable binaries. Fitted forests run to hundreds of megabytes and are
+# reproducible from the recorded seeds, contracts and asset hashes; the other
+# patterns keep a future large dump from silently entering history.
+runs/**/*.joblib
+runs/**/*.npz
+runs/**/*.pt
+runs/**/*.pth
+runs/**/*.pkl
+runs/**/*.parquet
+
+# Note: "dataset with 3D structures/" is deliberately versioned. The cluster
+# obtains it by pulling this repository, and every run manifest pins it by
+# SHA-256, so it must not be added here.
