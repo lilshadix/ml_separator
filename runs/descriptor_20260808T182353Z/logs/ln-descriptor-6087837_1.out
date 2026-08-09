@@ -1,0 +1,21 @@
+Starting arm=real model_seed=7 split_seed=130363 permutation=none
+Dataset: /nfs/home/nshank3/ml_separator/dataset with 3D structures/dataset.parquet
+Dataset SHA-256: fefbefc6fe993aa9ce9db1a0c338adb9e5f58a8b75bab084cc1df4e024faf5dd
+Output: /nfs/home/nshank3/ml_separator/runs/descriptor_20260808T182353Z/attempts/real_run_1_model_7_split_130363__array_6087837_job_6087845_task_1_restart_0
+Reading parquet...
+Computing metal-site descriptors from /nfs/home/nshank3/ml_separator/dataset with 3D structures/features/vietoris_rips_inputs.npz...
+Descriptors: 11 columns over 1155 geometries (permutation=none)
+Pairs: 1081 | extractants: 32 | Delta3D: 29 | descriptors: 11
+Running nested group-held-out benchmark...
+
+OOF results
+baseline R2=0.0553; matched 2D ensemble R2=0.0418; Delta3D R2=0.0873
+Delta3D vs 2D-ensemble R2 gain=+0.0455; group-bootstrap 95% CI [-0.0122, +0.0700]
+
+Metal-site descriptor arm (permutation=none)
+extended R2=0.0946; group-balanced R2=0.1367; macro-group MAE=0.1282
+extended vs Delta3D group_balanced_r2_gain=+0.01199; 95% CI [-0.00974, +0.03864]
+extended vs Delta3D macro_group_mae_reduction=+0.00150; 95% CI [-0.00058, +0.00379]
+extended vs Delta3D r2_gain=+0.00729; 95% CI [-0.00349, +0.03101]
+Saved: /nfs/home/nshank3/ml_separator/runs/descriptor_20260808T182353Z/attempts/real_run_1_model_7_split_130363__array_6087837_job_6087845_task_1_restart_0
+Published validated run: /nfs/home/nshank3/ml_separator/runs/descriptor_20260808T182353Z/arm_real/run_1_model_7_split_130363

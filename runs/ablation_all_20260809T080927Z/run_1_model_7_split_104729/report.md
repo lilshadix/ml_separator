@@ -1,0 +1,166 @@
+# Leakage-safe lanthanide feature-ablation report
+
+## Scope and protocol
+
+- Pair scope: `all` (6,699 condition-matched pairs).
+- Held-out group: `extractant`; split seed `104729`.
+- Model seed: `7`; outer/inner folds: `5/3`.
+- Main ablations: `A0, A1, A2, A3, A4, A5, A6` on exactly the same outer folds.
+- Training-only 3D shuffle seeds: `1009, 2017, 3019`.
+- VR descriptor blocks: `global_shape, coordination_shape`.
+- Non-geometric xTB/electronic columns excluded from A0–A6: `6`.
+
+The primary comparison is A2 (conditions + lanthanide + 2D) versus A5 (A2 + local 3D). A2 versus A6 is secondary. A3 versus A2 tests whether local coordination geometry can substitute for ligand 2D information.
+The excluded column names and reasons are frozen in `feature_registry.json`; therefore the primary A2-vs-A5 contrast is not confounded by dipole or partial-charge features.
+
+## Direct answers
+
+1. **Does 3D improve unseen-extractant prediction?** inconclusive; the equal-extractant paired 95% interval includes zero (equal-extractant macro delta_MAE=-0.011872; 95% CI [-0.024192, +0.000735]).
+2. **Absolute MAE improvement:** +0.004568 log units (A2 minus A5).
+3. **Relative MAE improvement:** 1.089136% versus A2.
+4. **Held-out extractant breadth:** 14/34 (41.176471%) have positive delta_MAE.
+5. **Descriptor blocks:** A2+D1: delta_MAE=+0.004276, A2+D5: delta_MAE=+0.000468, A2+D2: delta_MAE=-0.000827, A2+D4: delta_MAE=-0.001329, A2+D3: delta_MAE=-0.003370. Secondary complete-3D result: A2-vs-A6 delta_MAE=+0.006352.
+6. **Training-only 3D shuffle:** A5_SHUFFLED_s1009: delta_MAE=+0.002408, A5_SHUFFLED_s2017: delta_MAE=-0.002137, A5_SHUFFLED_s3019: delta_MAE=+0.005751.
+7. **Geometry-quality dependence:** not estimable because the accepted common cohort does not contain both quality strata.
+8. **Largest lanthanide gains:** Ce (+0.022573), La (+0.014986), Nd (+0.011157). Largest exact-extractant gains: COCCN(CCOC)C(=O)COCC(=O)N(CCOC)CCOC (+0.083144); CN(C(=O)c1cccc(C(=O)N(C)c2ccccc2)n1)c1ccccc1 (+0.040236); CCCCCCCCCCN(CCCCCCCCCC)C(=O)COCC(=O)N(CCCCCC)CCCCCC (+0.039089). No separate ligand-family label was inferred.
+9. **Across seeds:** this directory is one fixed model/split seed; consistency across seeds must be answered by the aggregate run, not inferred here.
+10. **Metric consistency (positive favors A5):** MAE=+0.004568, RMSE=+0.013381, R2=+0.029805, Spearman=+0.007079.
+
+## Aggregate OOF metrics by ablation
+
+| ablation | n_rows | mae | rmse | r2 | pearson | spearman | fold_mae_mean | fold_mae_sample_sd | fold_rmse_mean | fold_rmse_sample_sd | fold_r2_mean | fold_r2_sample_sd | fold_pearson_mean | fold_pearson_sample_sd | fold_spearman_mean | fold_spearman_sample_sd | macro_group_mae |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| A0 | 6699.000000 | 0.657417 | 0.958609 | -0.681009 | 0.006121 | -0.049585 | 0.628364 | 0.239875 | 0.910452 | 0.265823 | -0.669715 | 0.267782 | 0.126866 | 0.247501 | 0.037370 | 0.221098 | 0.635956 |
+| A1 | 6699.000000 | 0.484750 | 0.720647 | 0.049979 | 0.476307 | 0.296107 | 0.417324 | 0.138805 | 0.590728 | 0.197885 | 0.200355 | 0.514977 | 0.643775 | 0.219682 | 0.535540 | 0.259613 | 0.346359 |
+| A2 | 6699.000000 | 0.419448 | 0.615489 | 0.307008 | 0.597839 | 0.571001 | 0.380191 | 0.101637 | 0.547622 | 0.144326 | 0.304189 | 0.414487 | 0.677054 | 0.156820 | 0.645765 | 0.191813 | 0.315620 |
+| A3 | 6699.000000 | 0.494086 | 0.759321 | -0.054723 | 0.393724 | 0.278671 | 0.427294 | 0.145571 | 0.618336 | 0.218875 | 0.113305 | 0.596777 | 0.577016 | 0.305991 | 0.514669 | 0.312034 | 0.363912 |
+| A4 | 6699.000000 | 0.421065 | 0.614634 | 0.308931 | 0.596060 | 0.574580 | 0.384817 | 0.095804 | 0.548276 | 0.142457 | 0.309682 | 0.391713 | 0.672461 | 0.152980 | 0.642183 | 0.191894 | 0.327054 |
+| A5 | 6699.000000 | 0.414879 | 0.602107 | 0.336814 | 0.612831 | 0.578080 | 0.381328 | 0.092271 | 0.541804 | 0.136440 | 0.334823 | 0.349924 | 0.678028 | 0.138549 | 0.642343 | 0.189121 | 0.327492 |
+| A6 | 6699.000000 | 0.413096 | 0.599212 | 0.343177 | 0.616807 | 0.589149 | 0.382751 | 0.086587 | 0.544833 | 0.128332 | 0.327124 | 0.341471 | 0.678826 | 0.129994 | 0.646251 | 0.185451 | 0.333131 |
+| A2+D1 | 6699.000000 | 0.415172 | 0.606128 | 0.327928 | 0.608357 | 0.585747 | 0.379144 | 0.099792 | 0.540860 | 0.142629 | 0.325914 | 0.389351 | 0.680155 | 0.151681 | 0.651045 | 0.192141 | 0.322503 |
+| A2+D2 | 6699.000000 | 0.420274 | 0.615677 | 0.306584 | 0.595370 | 0.578135 | 0.381996 | 0.100644 | 0.546402 | 0.146842 | 0.309855 | 0.402881 | 0.674776 | 0.158232 | 0.648537 | 0.188029 | 0.321563 |
+| A2+D3 | 6699.000000 | 0.422818 | 0.619546 | 0.297841 | 0.594985 | 0.555590 | 0.380860 | 0.102433 | 0.548601 | 0.147746 | 0.311867 | 0.385719 | 0.674232 | 0.153576 | 0.639405 | 0.183718 | 0.315353 |
+| A2+D4 | 6699.000000 | 0.420777 | 0.616042 | 0.305762 | 0.594587 | 0.575009 | 0.383591 | 0.098841 | 0.549532 | 0.143850 | 0.305243 | 0.396335 | 0.671359 | 0.154781 | 0.644658 | 0.189436 | 0.322024 |
+| A2+D5 | 6699.000000 | 0.418980 | 0.613378 | 0.311754 | 0.601366 | 0.576954 | 0.379410 | 0.101212 | 0.544108 | 0.142521 | 0.314746 | 0.400896 | 0.678544 | 0.157095 | 0.650165 | 0.191118 | 0.317191 |
+| A5_SHUFFLED_s1009 | 6699.000000 | 0.417040 | 0.600369 | 0.340638 | 0.614564 | 0.581146 | 0.385828 | 0.093105 | 0.543044 | 0.135412 | 0.325448 | 0.370419 | 0.680157 | 0.138219 | 0.641590 | 0.187281 | 0.331339 |
+| A5_SHUFFLED_s2017 | 6699.000000 | 0.421585 | 0.615249 | 0.307548 | 0.593656 | 0.572741 | 0.384964 | 0.099847 | 0.546553 | 0.147397 | 0.309091 | 0.405920 | 0.670256 | 0.164758 | 0.641522 | 0.193759 | 0.325684 |
+| A5_SHUFFLED_s3019 | 6699.000000 | 0.413697 | 0.597909 | 0.346031 | 0.618348 | 0.587838 | 0.381082 | 0.091628 | 0.538301 | 0.135417 | 0.334439 | 0.374459 | 0.684827 | 0.141377 | 0.649660 | 0.193527 | 0.327555 |
+
+## Paired fold improvements
+
+Positive `delta_MAE` and `delta_RMSE` mean the named candidate model wins; positive `delta_R2` and `delta_Spearman` also favor the candidate. The reference/candidate columns define direction explicitly.
+
+| comparison | reference | candidate | outer_fold | delta_mae | delta_rmse | delta_r2 | delta_spearman |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| A2_vs_A5 | A2 | A5 | 0.000000 | 0.013818 | 0.031678 | 0.132389 | 0.007487 |
+| A2_vs_A5 | A2 | A5 | 1.000000 | -0.012613 | -0.007597 | -0.018381 | -0.018371 |
+| A2_vs_A5 | A2 | A5 | 2.000000 | -0.021806 | -0.021500 | -0.031004 | -0.004864 |
+| A2_vs_A5 | A2 | A5 | 3.000000 | 0.017676 | 0.024566 | 0.067258 | -0.010451 |
+| A2_vs_A5 | A2 | A5 | 4.000000 | -0.002758 | 0.001940 | 0.002908 | 0.009091 |
+| A2_vs_A6 | A2 | A6 | 0.000000 | 0.012197 | 0.028522 | 0.119526 | 0.011335 |
+| A2_vs_A6 | A2 | A6 | 1.000000 | -0.025215 | -0.027900 | -0.069374 | -0.026621 |
+| A2_vs_A6 | A2 | A6 | 2.000000 | -0.025344 | -0.026117 | -0.037801 | -0.007010 |
+| A2_vs_A6 | A2 | A6 | 3.000000 | 0.026862 | 0.035482 | 0.096404 | 0.018200 |
+| A2_vs_A6 | A2 | A6 | 4.000000 | -0.001299 | 0.003959 | 0.005923 | 0.006526 |
+| A3_vs_A2 | A3 | A2 | 0.000000 | 0.005673 | -0.031121 | -0.130124 | 0.022480 |
+| A3_vs_A2 | A3 | A2 | 1.000000 | 0.027145 | 0.063754 | 0.166078 | 0.047198 |
+| A3_vs_A2 | A3 | A2 | 2.000000 | 0.047174 | 0.045970 | 0.067585 | 0.021656 |
+| A3_vs_A2 | A3 | A2 | 3.000000 | 0.141154 | 0.248309 | 0.809623 | 0.543208 |
+| A3_vs_A2 | A3 | A2 | 4.000000 | 0.014371 | 0.026659 | 0.041259 | 0.020941 |
+| A2_vs_A5_SHUFFLED_s1009 | A2 | A5_SHUFFLED_s1009 | 0.000000 | 0.005268 | 0.015514 | 0.065751 | 0.007965 |
+| A2_vs_A5_SHUFFLED_s1009 | A2 | A5_SHUFFLED_s1009 | 1.000000 | -0.018294 | -0.010996 | -0.026728 | -0.043254 |
+| A2_vs_A5_SHUFFLED_s1009 | A2 | A5_SHUFFLED_s1009 | 2.000000 | -0.036793 | -0.021969 | -0.031692 | -0.007235 |
+| A2_vs_A5_SHUFFLED_s1009 | A2 | A5_SHUFFLED_s1009 | 3.000000 | 0.020767 | 0.031492 | 0.085804 | 0.012181 |
+| A2_vs_A5_SHUFFLED_s1009 | A2 | A5_SHUFFLED_s1009 | 4.000000 | 0.000866 | 0.008848 | 0.013162 | 0.009467 |
+| A2_vs_A5_SHUFFLED_s2017 | A2 | A5_SHUFFLED_s2017 | 0.000000 | -0.001680 | 0.006801 | 0.029039 | -0.003249 |
+| A2_vs_A5_SHUFFLED_s2017 | A2 | A5_SHUFFLED_s2017 | 1.000000 | -0.010082 | -0.002557 | -0.006145 | -0.022747 |
+| A2_vs_A5_SHUFFLED_s2017 | A2 | A5_SHUFFLED_s2017 | 2.000000 | -0.019447 | -0.012267 | -0.017560 | 0.000159 |
+| A2_vs_A5_SHUFFLED_s2017 | A2 | A5_SHUFFLED_s2017 | 3.000000 | 0.003646 | -0.000459 | -0.001278 | -0.002933 |
+| A2_vs_A5_SHUFFLED_s2017 | A2 | A5_SHUFFLED_s2017 | 4.000000 | 0.003702 | 0.013827 | 0.020453 | 0.007555 |
+| A2_vs_A5_SHUFFLED_s3019 | A2 | A5_SHUFFLED_s3019 | 0.000000 | 0.005959 | 0.017251 | 0.073005 | -0.000156 |
+| A2_vs_A5_SHUFFLED_s3019 | A2 | A5_SHUFFLED_s3019 | 1.000000 | -0.013207 | -0.003439 | -0.008274 | -0.020477 |
+| A2_vs_A5_SHUFFLED_s3019 | A2 | A5_SHUFFLED_s3019 | 2.000000 | -0.017581 | -0.006008 | -0.008557 | 0.004009 |
+| A2_vs_A5_SHUFFLED_s3019 | A2 | A5_SHUFFLED_s3019 | 3.000000 | 0.021149 | 0.030136 | 0.082188 | 0.024342 |
+| A2_vs_A5_SHUFFLED_s3019 | A2 | A5_SHUFFLED_s3019 | 4.000000 | -0.000774 | 0.008664 | 0.012892 | 0.011754 |
+
+_Only the first 30 of 55 rows are shown._
+
+## Geometry-shuffle negative control
+
+Shuffling is performed only inside each outer-training fold and never uses outer-test labels or descriptors. Compare A5 to A2 and every `A5_SHUFFLED` row above. Meaningful structure-specific signal is supported only when correct A5 improves while shuffled A5 falls back toward A2.
+
+## Descriptor-block availability
+
+| block | column_count | status |
+| --- | --- | --- |
+| D1 | 11.000000 | evaluated_if_enabled |
+| D2 | 10.000000 | evaluated_if_enabled |
+| D3 | 7.000000 | evaluated_if_enabled |
+| D4 | 8.000000 | evaluated_if_enabled |
+| D5 | 2.000000 | evaluated_if_enabled |
+
+Empty local blocks are unavailable and were skipped, not fit as duplicate A2 models. Unavailable blocks in this run: `none`. The pre-specified exact coordinate-only blocks are `global_shape` and `coordination_shape`; `ligand_field` and approximate ray-based `enclosure` require explicit CLI selection.
+
+## Held-out extractant comparison
+
+| extractant_id | n_samples | MAE_2D | MAE_2D3D | delta_MAE | RMSE_2D | RMSE_2D3D | delta_RMSE | Spearman_2D | Spearman_2D3D | delta_Spearman |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| CC(C)CCCC(C)CCCCN(C)C(=O)COCC(=O)N(C)CCCCC(C)CCCC(C)C | 91.000000 | 0.223248 | 0.243033 | -0.019785 | 0.306397 | 0.346661 | -0.040264 | 0.976222 | 0.951234 | -0.024988 |
+| CC(C)CN(CC(C)C)C(=O)COCC(=O)N(CC(C)C)CC(C)C | 28.000000 | 0.303202 | 0.276857 | 0.026345 | 0.376358 | 0.350573 | 0.025785 | 0.618500 | 0.821565 | 0.203065 |
+| CCCCC(CC)CN(C)C(=O)COCC(=O)N(C)CC(CC)CCCC | 91.000000 | 0.269984 | 0.266890 | 0.003095 | 0.380622 | 0.388383 | -0.007762 | 0.940070 | 0.938159 | -0.001911 |
+| CCCCC(CC)CN(CC(CC)CCCC)C(=O)COCC(=O)N(CC(CC)CCCC)CC(CC)CCCC | 210.000000 | 0.396118 | 0.404709 | -0.008591 | 0.572605 | 0.584367 | -0.011762 | 0.869149 | 0.872970 | 0.003821 |
+| CCCCCCC(C)N(CCCC)C(=O)COCC(=O)N(CCCC)C(C)CCCCCC | 112.000000 | 0.299274 | 0.299032 | 0.000242 | 0.442470 | 0.437729 | 0.004741 | 0.669283 | 0.684369 | 0.015086 |
+| CCCCCCC(CCCC)CCCN(C)C(=O)COCC(=O)N(C)CCCC(CCCC)CCCCCC | 91.000000 | 0.218929 | 0.191000 | 0.027929 | 0.275054 | 0.239792 | 0.035262 | 0.960758 | 0.962462 | 0.001704 |
+| CCCCCCCCC(C)(C)SCC1CN(C(=O)COCC(=O)N2CC(C)C(CSC(C)(C)CCCCCCCC)C2)CC1C | 91.000000 | 0.167084 | 0.225694 | -0.058610 | 0.236814 | 0.309685 | -0.072871 | 0.987546 | 0.986351 | -0.001194 |
+| CCCCCCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCCCCCC | 78.000000 | 0.540211 | 0.575291 | -0.035081 | 0.684435 | 0.711727 | -0.027292 | 0.934167 | 0.924809 | -0.009358 |
+| CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC | 16.000000 | 0.212072 | 0.247540 | -0.035468 | 0.280564 | 0.286910 | -0.006346 | 0.541176 | 0.494118 | -0.047059 |
+| CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCCOCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC | 79.000000 | 0.783251 | 0.815128 | -0.031877 | 1.121370 | 1.218058 | -0.096688 | -0.304119 | -0.438786 | -0.134667 |
+| CCCCCCCCCCN(CCCCCCCCCC)C(=O)C(C)OC(C)C(=O)N(CCCCCCCCCC)CCCCCCCCCC | 140.000000 | 0.130558 | 0.202953 | -0.072395 | 0.159842 | 0.264654 | -0.104812 | 0.878692 | 0.800373 | -0.078319 |
+| CCCCCCCCCCN(CCCCCCCCCC)C(=O)COCC(=O)N(CCCCCC)CCCCCC | 298.000000 | 0.637045 | 0.597956 | 0.039089 | 0.766848 | 0.718417 | 0.048431 | 0.456705 | 0.449569 | -0.007135 |
+| CCCCCCCCN(C)C(=O)COCC(=O)N(C)CCCCCCCC | 507.000000 | 0.512518 | 0.521657 | -0.009139 | 0.677990 | 0.679287 | -0.001297 | 0.818325 | 0.830909 | 0.012584 |
+| CCCCCCCCN(C)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC | 91.000000 | 0.118243 | 0.148749 | -0.030506 | 0.146884 | 0.182511 | -0.035627 | 0.985061 | 0.961714 | -0.023348 |
+| CCCCCCCCN(CC(C)C)C(=O)COCC(=O)N(CCCCCCCC)CC(C)C | 28.000000 | 0.116886 | 0.131511 | -0.014625 | 0.143512 | 0.166006 | -0.022494 | 0.847291 | 0.845649 | -0.001642 |
+| CCCCCCCCN(CC(CC)CCCC)C(=O)COCC(=O)N(CCCCCCCC)CC(CC)CCCC | 28.000000 | 0.097333 | 0.124612 | -0.027280 | 0.115078 | 0.155299 | -0.040221 | 0.854406 | 0.818281 | -0.036125 |
+| CCCCCCCCN(CC)C(=O)COCC(=O)N(CC)CCCCCCCC | 91.000000 | 0.095765 | 0.154267 | -0.058501 | 0.118027 | 0.194036 | -0.076009 | 0.985221 | 0.959946 | -0.025275 |
+| CCCCCCCCN(CCC(C)CC(C)(C)C)C(=O)COCC(=O)N(CCCCCCCC)CCC(C)CC(C)(C)C | 91.000000 | 0.232597 | 0.229885 | 0.002712 | 0.331770 | 0.311925 | 0.019846 | 0.972018 | 0.974009 | 0.001991 |
+| CCCCCCCCN(CCC)C(=O)COCC(=O)N(CCC)CCCCCCCC | 91.000000 | 0.099516 | 0.158575 | -0.059059 | 0.128529 | 0.200253 | -0.071724 | 0.983676 | 0.963036 | -0.020640 |
+| CCCCCCCCN(CCCC(CCCC)CCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCC(CCCC)CCCCCC | 78.000000 | 0.298053 | 0.284965 | 0.013087 | 0.363281 | 0.339564 | 0.023718 | 0.971193 | 0.957283 | -0.013910 |
+| CCCCCCCCN(CCCCC(C)CCCC(C)C)C(=O)COCC(=O)N(CCCCCCCC)CCCCC(C)CCCC(C)C | 91.000000 | 0.195084 | 0.205186 | -0.010102 | 0.285526 | 0.278380 | 0.007146 | 0.987275 | 0.980506 | -0.006769 |
+| CCCCCCCCN(CCCCCCCC)C(=O)CN(CC(=O)N(CCCCCCCC)CCCCCCCC)CC(=O)N(CCCCCCCC)CCCCCCCC | 1.000000 | 0.605652 | 0.672008 | -0.066356 | 0.605652 | 0.672008 | -0.066356 | NA | NA | NA |
+| CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(C)C | 21.000000 | 0.382030 | 0.427890 | -0.045860 | 0.569592 | 0.602293 | -0.032701 | 0.853247 | 0.871429 | 0.018182 |
+| CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC | 2921.000000 | 0.513347 | 0.495670 | 0.017676 | 0.726988 | 0.702422 | 0.024566 | 0.616148 | 0.605697 | -0.010451 |
+| CCCCCCCCN(CCCCCCCC)C(=O)[C@H](C)O[C@@H](C)C(=O)N(CCCCCCCC)CCCCCCCC | 91.000000 | 0.421829 | 0.398152 | 0.023677 | 0.557861 | 0.526889 | 0.030971 | 0.916563 | 0.847762 | -0.068801 |
+| CCCCCCCCN(CCCCCCCC)C(=O)[C@H](C)O[C@H](C)C(=O)N(CCCCCCCC)CCCCCCCC | 91.000000 | 0.156069 | 0.212372 | -0.056304 | 0.199550 | 0.266976 | -0.067426 | 0.740278 | 0.686204 | -0.054074 |
+| CCCCCCN(CCCCCC)C(=O)COCC(=O)N(CCCCCC)CCCCCC | 21.000000 | 0.086116 | 0.107389 | -0.021272 | 0.095393 | 0.116743 | -0.021350 | 0.932468 | 0.910390 | -0.022078 |
+| CCCCN(CCCC)C(=O)COCC(=O)N(CCCC)CCCC | 172.000000 | 0.427484 | 0.416768 | 0.010716 | 0.554079 | 0.531248 | 0.022832 | 0.664738 | 0.671186 | 0.006448 |
+| CCCN(CCC)C(=O)COCC(=O)N(CCC)CCC | 150.000000 | 0.169207 | 0.213804 | -0.044598 | 0.231596 | 0.279268 | -0.047672 | 0.740722 | 0.664041 | -0.076681 |
+| CCN(CC)C(=O)COCC(=O)N(CC)CC | 258.000000 | 0.204981 | 0.195292 | 0.009689 | 0.276920 | 0.257945 | 0.018975 | 0.284472 | 0.313007 | 0.028535 |
+
+_Only the first 30 of 34 rows are shown._
+
+## Lanthanide comparison
+
+| Ln | n_samples | MAE_2D | MAE_2D3D | delta_MAE | RMSE_2D | RMSE_2D3D | delta_RMSE | Spearman_2D | Spearman_2D3D | delta_Spearman |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Ce | 913.000000 | 0.585166 | 0.562592 | 0.022573 | 0.792586 | 0.757447 | 0.035140 | 0.656284 | 0.690791 | 0.034507 |
+| Dy | 1123.000000 | 0.353135 | 0.345669 | 0.007466 | 0.541517 | 0.523063 | 0.018454 | 0.726556 | 0.737685 | 0.011129 |
+| Er | 1045.000000 | 0.369727 | 0.371317 | -0.001590 | 0.589615 | 0.578959 | 0.010655 | 0.685559 | 0.665467 | -0.020092 |
+| Eu | 949.000000 | 0.366595 | 0.362201 | 0.004395 | 0.502538 | 0.491913 | 0.010624 | 0.797166 | 0.788762 | -0.008403 |
+| Gd | 1144.000000 | 0.364637 | 0.353913 | 0.010724 | 0.495177 | 0.476310 | 0.018867 | 0.690525 | 0.683842 | -0.006683 |
+| Ho | 929.000000 | 0.390865 | 0.397377 | -0.006512 | 0.607848 | 0.604123 | 0.003725 | 0.714029 | 0.699978 | -0.014051 |
+| La | 923.000000 | 0.656725 | 0.641739 | 0.014986 | 0.894651 | 0.878313 | 0.016338 | 0.569840 | 0.589478 | 0.019637 |
+| Lu | 849.000000 | 0.358741 | 0.360726 | -0.001985 | 0.563271 | 0.563275 | -0.000004 | 0.722108 | 0.696923 | -0.025185 |
+| Nd | 1095.000000 | 0.519965 | 0.508808 | 0.011157 | 0.702372 | 0.680529 | 0.021843 | 0.599551 | 0.614201 | 0.014650 |
+| Pr | 704.000000 | 0.436916 | 0.436146 | 0.000770 | 0.603433 | 0.587155 | 0.016278 | 0.767678 | 0.782094 | 0.014416 |
+| Sm | 1120.000000 | 0.418894 | 0.410350 | 0.008544 | 0.544658 | 0.534715 | 0.009944 | 0.677134 | 0.687698 | 0.010564 |
+| Tb | 897.000000 | 0.351773 | 0.356944 | -0.005171 | 0.523935 | 0.512381 | 0.011554 | 0.791802 | 0.766714 | -0.025088 |
+| Tm | 827.000000 | 0.349034 | 0.354412 | -0.005379 | 0.580679 | 0.580343 | 0.000336 | 0.744775 | 0.719134 | -0.025641 |
+| Yb | 880.000000 | 0.356110 | 0.358273 | -0.002163 | 0.568034 | 0.566265 | 0.001769 | 0.758852 | 0.747816 | -0.011036 |
+
+## Geometry quality
+
+The machine-readable `geometry_qc_summary.json` states which quality strata are actually represented. Failed geometries are excluded by pair construction and are never silently imputed into a 3D arm. A high-versus-low-confidence claim is unavailable when either stratum has no eligible pairs.
+
+## Audit interpretation
+
+This run does not declare a positive 3D result merely from one metric. Review the paired A2-vs-A5 MAE first, then RMSE, R2, Spearman, extractant win fraction, shuffle controls, geometry quality, and seed-to-seed aggregation. `validation.json` and `leakage_audit.json` must both pass before scientific interpretation.
