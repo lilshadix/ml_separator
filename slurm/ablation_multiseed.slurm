@@ -9,9 +9,8 @@
 #SBATCH --output=slurm-%x-%A_%a.out
 #SBATCH --error=slurm-%x-%A_%a.err
 
-# ISAAC's submit filter looks for this explicit contract near the scheduler
-# directives when --cpus-per-task is greater than one.  Keep it early: a
-# functionally equivalent export later in a long script is not detected.
+# Keep this exact OpenMP/cpus-per-task contract next to the scheduler
+# directives for compatibility with cluster submission filters.
 export SLURM_CPUS_PER_TASK=${SLURM_CPUS_PER_TASK:-8}
 export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
 

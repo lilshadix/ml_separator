@@ -31,11 +31,16 @@ class AblationSlurmContractTests(unittest.TestCase):
 
     def test_openmp_contract_precedes_worker_setup(self) -> None:
         required = "export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}"
-        for script in (WORKER_SCRIPT, AGGREGATE_SCRIPT):
+        cases = ((WORKER_SCRIPT, "8"), (AGGREGATE_SCRIPT, "1"))
+        for script, fallback in cases:
             with self.subTest(script=script.name):
-                source = script.read_text(encoding="utf-8")
-                self.assertIn(required, source)
-                self.assertLess(source.index(required), source.index("PROJECT_DIR="))
+                lines = script.read_text(encoding="utf-8").splitlines()
+                header = lines[:40]
+                self.assertIn(
+                    f"export SLURM_CPUS_PER_TASK=${{SLURM_CPUS_PER_TASK:-{fallback}}}",
+                    header,
+                )
+                self.assertIn(required, header)
 
     def test_dry_run_uses_exact_shape_defaults_without_creating_root(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
