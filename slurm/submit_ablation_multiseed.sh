@@ -36,6 +36,10 @@ MEMORY=${MEMORY:-48G}
 WALLTIME=${WALLTIME:-24:00:00}
 AGGREGATE_MEMORY=${AGGREGATE_MEMORY:-16G}
 AGGREGATE_WALLTIME=${AGGREGATE_WALLTIME:-02:00:00}
+# Frozen ISAAC submission identity for this project. Both remain overrideable
+# for an intentional run on another valid account/partition.
+PARTITION=${PARTITION:-campus}
+ACCOUNT=${ACCOUNT:-acf-utk0011}
 QUICK=${QUICK:-0}
 RESUME_RUN_ROOT=${RESUME_RUN_ROOT:-0}
 RESUME_COMPLETED=${RESUME_COMPLETED:-1}
@@ -145,12 +149,14 @@ if [[ ! "$AGGREGATE_BOOTSTRAP_SEED" =~ ^[0-9]+$ ]] || (( 10#$AGGREGATE_BOOTSTRAP
   echo "AGGREGATE_BOOTSTRAP_SEED must be an integer in [0, 4000000000]." >&2
   exit 2
 fi
-if [[ "${PARTITION:-}" == your_partition || "${AGGREGATE_PARTITION:-}" == your_partition ]]; then
-  echo "Replace 'your_partition' with a real SLURM partition, or omit it." >&2
+if [[ "$PARTITION" == your_partition || "$PARTITION" == actual_partition || \
+      "${AGGREGATE_PARTITION:-}" == your_partition || \
+      "${AGGREGATE_PARTITION:-}" == actual_partition ]]; then
+  echo "Placeholder partition is forbidden; use the default 'campus' or an explicitly verified partition." >&2
   exit 2
 fi
-if [[ "${ACCOUNT:-}" == your_account ]]; then
-  echo "Replace 'your_account' with a real SLURM account, or omit it." >&2
+if [[ "$ACCOUNT" == your_account || "$ACCOUNT" == actual_account ]]; then
+  echo "Placeholder account is forbidden; use the default 'acf-utk0011' or an explicitly verified account." >&2
   exit 2
 fi
 

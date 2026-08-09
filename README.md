@@ -158,6 +158,10 @@ DRY_RUN=1 \
 bash slurm/submit_ablation_multiseed.sh
 ```
 
+Для этого проекта wrapper уже использует проверенные ISAAC defaults:
+`PARTITION=campus` и `ACCOUNT=acf-utk0011`. Их не нужно повторять в команде;
+литеральные placeholders `actual_*` и `your_*` отклоняются до `sbatch`.
+
 Он использует пять model seeds и один общий `SPLIT_SEED=104729`, поэтому
 outer/inner folds физически совпадают между arms и seed-runs. Помимо
 `seed_plan.tsv`, wrapper до первого `sbatch` замораживает

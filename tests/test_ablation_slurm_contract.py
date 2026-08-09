@@ -66,6 +66,35 @@ class AblationSlurmContractTests(unittest.TestCase):
                 "Descriptor blocks: global_shape,coordination_shape", completed.stdout
             )
             self.assertIn("Donor-composition counts enabled: 1", completed.stdout)
+            self.assertIn("--partition=campus", completed.stdout)
+            self.assertIn("--account=acf-utk0011", completed.stdout)
+
+    def test_literal_partition_and_account_placeholders_fail_before_run_creation(self) -> None:
+        cases = (("PARTITION", "actual_partition"), ("ACCOUNT", "actual_account"))
+        for variable, value in cases:
+            with (
+                self.subTest(variable=variable),
+                tempfile.TemporaryDirectory() as temporary_directory,
+            ):
+                run_root = Path(temporary_directory) / "must_not_exist"
+                environment = {
+                    **os.environ,
+                    "DRY_RUN": "1",
+                    "RUN_ROOT": str(run_root),
+                    "PYTHON_BIN": sys.executable,
+                    variable: value,
+                }
+                completed = subprocess.run(
+                    ["/bin/bash", str(SUBMIT_SCRIPT)],
+                    cwd=PROJECT_ROOT,
+                    env=environment,
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                )
+                self.assertEqual(completed.returncode, 2)
+                self.assertIn("Placeholder", completed.stderr)
+                self.assertFalse(run_root.exists())
 
     def test_resume_rejects_protocol_drift_before_another_sbatch(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
