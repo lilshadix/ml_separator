@@ -8,6 +8,11 @@
 #SBATCH --output=slurm-%x-%j.out
 #SBATCH --error=slurm-%x-%j.err
 
+# Keep the OpenMP/cpus-per-task contract next to the scheduler directives so
+# cluster submission filters can validate it before accepting the job.
+export SLURM_CPUS_PER_TASK=${SLURM_CPUS_PER_TASK:-1}
+export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
+
 # Fail-closed cross-seed aggregation.  This job is submitted with afterany so
 # it records a useful failure when any worker is missing; the Python aggregator
 # will only publish a scientific aggregate when all five hashed runs align.

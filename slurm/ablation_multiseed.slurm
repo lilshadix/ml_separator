@@ -9,6 +9,12 @@
 #SBATCH --output=slurm-%x-%A_%a.out
 #SBATCH --error=slurm-%x-%A_%a.err
 
+# ISAAC's submit filter looks for this explicit contract near the scheduler
+# directives when --cpus-per-task is greater than one.  Keep it early: a
+# functionally equivalent export later in a long script is not detected.
+export SLURM_CPUS_PER_TASK=${SLURM_CPUS_PER_TASK:-8}
+export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
+
 # One model-seed replicate of the leakage-safe A0--A6 benchmark.
 #
 # Every array task uses the same SPLIT_SEED and therefore the same outer and
@@ -436,8 +442,6 @@ trap on_exit EXIT
 
 export PYTHONUNBUFFERED=1
 export PYTHONHASHSEED=$MODEL_SEED
-export SLURM_CPUS_PER_TASK=${SLURM_CPUS_PER_TASK:-8}
-export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
 export MKL_NUM_THREADS=1
 export OPENBLAS_NUM_THREADS=1
 export NUMEXPR_NUM_THREADS=1

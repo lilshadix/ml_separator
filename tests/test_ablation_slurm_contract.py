@@ -19,19 +19,23 @@ AGGREGATE_SCRIPT = PROJECT_ROOT / "slurm" / "aggregate_ablation.slurm"
 
 class AblationSlurmContractTests(unittest.TestCase):
     def test_scripts_parse_with_stock_bash(self) -> None:
-        completed = subprocess.run(
-            [
-                "/bin/bash",
-                "-n",
-                str(SUBMIT_SCRIPT),
-                str(WORKER_SCRIPT),
-                str(AGGREGATE_SCRIPT),
-            ],
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-        self.assertEqual(completed.returncode, 0, completed.stderr)
+        for script in (SUBMIT_SCRIPT, WORKER_SCRIPT, AGGREGATE_SCRIPT):
+            with self.subTest(script=script.name):
+                completed = subprocess.run(
+                    ["/bin/bash", "-n", str(script)],
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                )
+                self.assertEqual(completed.returncode, 0, completed.stderr)
+
+    def test_openmp_contract_precedes_worker_setup(self) -> None:
+        required = "export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}"
+        for script in (WORKER_SCRIPT, AGGREGATE_SCRIPT):
+            with self.subTest(script=script.name):
+                source = script.read_text(encoding="utf-8")
+                self.assertIn(required, source)
+                self.assertLess(source.index(required), source.index("PROJECT_DIR="))
 
     def test_dry_run_uses_exact_shape_defaults_without_creating_root(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
