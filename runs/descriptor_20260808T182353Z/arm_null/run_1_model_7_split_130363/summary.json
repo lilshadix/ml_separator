@@ -1,0 +1,957 @@
+{
+  "created_at_utc": "2026-08-08T19:24:38.594015+00:00",
+  "started_at_utc": "2026-08-08T19:12:24.031213+00:00",
+  "dataset_path": "/nfs/home/nshank3/ml_separator/dataset with 3D structures/dataset.parquet",
+  "dataset_sha256": "fefbefc6fe993aa9ce9db1a0c338adb9e5f58a8b75bab084cc1df4e024faf5dd",
+  "vr_asset_path": "/nfs/home/nshank3/ml_separator/dataset with 3D structures/features/vietoris_rips_inputs.npz",
+  "vr_asset_sha256": "eb7279b5ea78ecc8994e942c1cc15c7b398c904b60d21c591b8f1b93f761ce37",
+  "cohort_sha256": "e557b9f5975886ef519b9ac74df2d16be6db1418b38fa236c6a6569cf212d17a",
+  "geometry_descriptor_audit": {
+    "vr_asset_path": "/nfs/home/nshank3/ml_separator/dataset with 3D structures/features/vietoris_rips_inputs.npz",
+    "vr_asset_sha256": "eb7279b5ea78ecc8994e942c1cc15c7b398c904b60d21c591b8f1b93f761ce37",
+    "blocks": [
+      "ligand_field",
+      "enclosure"
+    ],
+    "profile": "core",
+    "descriptor_columns": [
+      "feat3d__ligand_field__field_strength_k2",
+      "feat3d__ligand_field__field_strength_k4",
+      "feat3d__ligand_field__field_strength_k6",
+      "feat3d__ligand_field__field_shape_k2",
+      "feat3d__ligand_field__field_shape_k4",
+      "feat3d__ligand_field__field_shape_k6",
+      "feat3d__ligand_field__effective_field_radius",
+      "feat3d__enclosure__buried_fraction_r3p5",
+      "feat3d__enclosure__buried_fraction_r5p0",
+      "feat3d__enclosure__contact_distance_min",
+      "feat3d__enclosure__open_anisotropy"
+    ],
+    "descriptor_column_count": 11,
+    "geometry_count": 1155,
+    "ray_count": 1024,
+    "max_legendre_degree": 6,
+    "enclosure_radii_angstrom": [
+      3.5,
+      5.0,
+      7.0
+    ],
+    "donor_count_min": 8,
+    "donor_count_max": 9,
+    "atom_count_min": 34,
+    "atom_count_max": 484,
+    "constant_descriptor_columns": [],
+    "descriptor_sha256": "121c7e957dcc515ea673fc04623aaeb4a095c431788d50cb5f3432e1dc611072",
+    "descriptor_permutation_mode": "metal-preserving",
+    "descriptor_permutation_seed": 8100012,
+    "descriptor_permutation_fixed_points": 9,
+    "descriptor_permutation_note": "Negative control: descriptor values are detached from their geometry. Any run using this mode must not be reported as a chemistry result.",
+    "source_rows": 5992,
+    "rows_with_accepted_geometry": 5479,
+    "rows_with_descriptors": 5479,
+    "descriptor_join_key": "geometry_feature_build_id"
+  },
+  "implementation_sha256": {
+    "scripts/run_delta3d_benchmark.py": "d0472a54d7d7e69c0814155d31bc07f8d0c775778f32cad858892d23526676f9",
+    "src/lanthanide_separation/pairs.py": "95f2b6e20c3aa154f4c3eea9ad92e70902da514e9b6df5ee645e68600b74acab",
+    "src/lanthanide_separation/evaluation.py": "390ce2ab927127f4aa4099c81f8f57f6238330efcf600b8cb50c300c00bc7d1a",
+    "src/lanthanide_separation/geometry_descriptors.py": "f8222e94c3b2b11f8e9aefb3be3205fcf2604884ff196a93ec3eda8274478d96"
+  },
+  "software": {
+    "python": "3.11.11",
+    "numpy": "2.4.6",
+    "pandas": "3.0.5",
+    "scikit_learn": "1.9.0",
+    "platform": "Linux-4.18.0-553.137.1.el8_10.x86_64-x86_64-with-glibc2.28"
+  },
+  "slurm": {
+    "SLURM_JOB_ID": "6087893",
+    "SLURM_ARRAY_JOB_ID": "6087837",
+    "SLURM_ARRAY_TASK_ID": "6",
+    "SLURM_JOB_NAME": "ln-descriptor",
+    "SLURM_CLUSTER_NAME": "isaac",
+    "SLURM_CPUS_PER_TASK": "8",
+    "SLURM_MEM_PER_NODE": "24576",
+    "SLURM_SUBMIT_DIR": "/nfs/home/nshank3/ml_separator",
+    "hostname": "il1229"
+  },
+  "output_dir": "/nfs/home/nshank3/ml_separator/runs/descriptor_20260808T182353Z/attempts/null_run_1_model_7_split_130363__array_6087837_job_6087893_task_6_restart_0",
+  "arguments": {
+    "dataset": "/nfs/home/nshank3/ml_separator/dataset with 3D structures/dataset.parquet",
+    "output_dir": "/nfs/home/nshank3/ml_separator/runs/descriptor_20260808T182353Z/attempts/null_run_1_model_7_split_130363__array_6087837_job_6087893_task_6_restart_0",
+    "outer_folds": 5,
+    "inner_folds": 3,
+    "trees": 200,
+    "bootstrap": 2000,
+    "seed": 7,
+    "split_seed": 130363,
+    "n_jobs": 8,
+    "expected_dataset_sha256": "fefbefc6fe993aa9ce9db1a0c338adb9e5f58a8b75bab084cc1df4e024faf5dd",
+    "delta3d_feature_set": "compact-invariant",
+    "vr_assets": "/nfs/home/nshank3/ml_separator/dataset with 3D structures/features/vietoris_rips_inputs.npz",
+    "geometry_descriptor_blocks": "ligand_field,enclosure",
+    "descriptor_profile": "core",
+    "descriptor_permutation": "metal-preserving",
+    "descriptor_permutation_seed": 8100012,
+    "expected_vr_sha256": "eb7279b5ea78ecc8994e942c1cc15c7b398c904b60d21c591b8f1b93f761ce37",
+    "group_mode": "ecfp-exact-cluster",
+    "replicate_policy": "unique",
+    "allow_incomplete_conditions": false,
+    "quarantine_known_censored_targets": false,
+    "no_default_quarantine": false,
+    "evaluation_only": true,
+    "quick": false,
+    "descriptor_blocks": [
+      "ligand_field",
+      "enclosure"
+    ]
+  },
+  "pair_build_audit": {
+    "source_rows": 5992,
+    "rows_after_quarantine_and_target_validation": 3012,
+    "quarantined_rows": 129,
+    "quarantine_reasons": {
+      "todga_structure_assigned_to_different_extractant": 129
+    },
+    "invalid_nonfinite_target_rows": 0,
+    "known_target_extreme_rows_retained": 3,
+    "incomplete_condition_rows_seen": 2851,
+    "require_complete_conditions": true,
+    "extractant_group_identity_mismatches": 0,
+    "condition_columns": [
+      "cond__acid__citric_acid",
+      "cond__acid__h2so4",
+      "cond__acid__hcl",
+      "cond__acid__hclo4",
+      "cond__acid__hno3",
+      "cond__acid__hno3_oxalic_acid",
+      "cond__acid__lactic_acid",
+      "cond__acid__malonic_acid",
+      "cond__acid__tartaric_acid",
+      "cond__acid_concentration_M",
+      "cond__additive__1_octanol",
+      "cond__additive__dhoa",
+      "cond__additive__dohya",
+      "cond__additive__hdehp",
+      "cond__additive__isodecanol",
+      "cond__additive__isodecyl",
+      "cond__additive__isododecanol",
+      "cond__additive__octanol",
+      "cond__additive__tbp",
+      "cond__contact_time_min",
+      "cond__diluent__1_2_dichloroethane",
+      "cond__diluent__1_4_diisopropylbenzene",
+      "cond__diluent__1_octanol",
+      "cond__diluent__1_octanol_0_5_kerosene_0_5",
+      "cond__diluent__avkerosene",
+      "cond__diluent__benzene",
+      "cond__diluent__c4mim_tf2n",
+      "cond__diluent__ch3cl",
+      "cond__diluent__chcl3",
+      "cond__diluent__chloroform",
+      "cond__diluent__cyclohexanone",
+      "cond__diluent__dichloromethane",
+      "cond__diluent__dipb",
+      "cond__diluent__hydrogenated_tetrapropene",
+      "cond__diluent__hydrogenated_tetrapropene_with_50_vol_1_octanol",
+      "cond__diluent__hydrogenated_tetrapropene_with_5_vol_1_octanol",
+      "cond__diluent__hydrogenated_tetrapropylene",
+      "cond__diluent__isopar_l_0_7_exxal_13_0_3",
+      "cond__diluent__isopar_l_with_30_vol_exxal_13",
+      "cond__diluent__isoparl",
+      "cond__diluent__kerosene",
+      "cond__diluent__kerosene_0_7_1_octanol_0_3",
+      "cond__diluent__kerosene_0_95_1_octanol_0_05",
+      "cond__diluent__kerosene_with_30_vol_1_octanol",
+      "cond__diluent__kerosene_with_40_vol_1_octanol",
+      "cond__diluent__meta_nitrobenzotrifluoride",
+      "cond__diluent__n_dodecane",
+      "cond__diluent__n_dodecane_with_5_vol_iso_decanol",
+      "cond__diluent__n_hexane",
+      "cond__diluent__n_octane_with_5_1_octanol",
+      "cond__diluent__nitrobenzene",
+      "cond__diluent__other",
+      "cond__diluent__phenyl_trifluoromethyl_sulfone",
+      "cond__diluent__sulfonated_kerosene",
+      "cond__diluent__tbub",
+      "cond__diluent__tert_butylbenzene",
+      "cond__diluent__toluene",
+      "cond__diluent__total_petroleum_hydrocarbons",
+      "cond__diluent__tph",
+      "cond__diluent__tph_0_95_1_octanol_0_05",
+      "cond__diluent__tphkerosene",
+      "cond__extractant_concentration_M",
+      "cond__metal_concentration_mM",
+      "cond__temperature_C"
+    ],
+    "condition_column_count": 64,
+    "molecular_descriptor_count": 10,
+    "ecfp_feature_count": 2048,
+    "candidate_invariant_3d_count": 40,
+    "available_invariant_3d_count": 111,
+    "delta3d_feature_set": "compact-invariant",
+    "excluded_by_delta3d_feature_set": [
+      "feat3d__complex_physical__binding_energy_eV",
+      "feat3d__complex_physical__donor_partial_charge_01",
+      "feat3d__complex_physical__donor_partial_charge_02",
+      "feat3d__complex_physical__donor_partial_charge_03",
+      "feat3d__complex_physical__donor_partial_charge_04",
+      "feat3d__complex_physical__donor_partial_charge_05",
+      "feat3d__complex_physical__donor_partial_charge_06",
+      "feat3d__complex_physical__donor_partial_charge_07",
+      "feat3d__complex_physical__donor_partial_charge_08",
+      "feat3d__complex_physical__donor_partial_charge_09",
+      "feat3d__complex_physical__homo_eV",
+      "feat3d__complex_physical__homo_lumo_gap_eV",
+      "feat3d__complex_physical__lumo_eV",
+      "feat3d__complex_physical__strain_energy_eV",
+      "feat3d__polyhedron__coordination_number",
+      "feat3d__polyhedron__donor_angle_01_02_deg",
+      "feat3d__polyhedron__donor_angle_01_03_deg",
+      "feat3d__polyhedron__donor_angle_01_04_deg",
+      "feat3d__polyhedron__donor_angle_01_05_deg",
+      "feat3d__polyhedron__donor_angle_01_06_deg",
+      "feat3d__polyhedron__donor_angle_01_07_deg",
+      "feat3d__polyhedron__donor_angle_01_08_deg",
+      "feat3d__polyhedron__donor_angle_01_09_deg",
+      "feat3d__polyhedron__donor_angle_02_03_deg",
+      "feat3d__polyhedron__donor_angle_02_04_deg",
+      "feat3d__polyhedron__donor_angle_02_05_deg",
+      "feat3d__polyhedron__donor_angle_02_06_deg",
+      "feat3d__polyhedron__donor_angle_02_07_deg",
+      "feat3d__polyhedron__donor_angle_02_08_deg",
+      "feat3d__polyhedron__donor_angle_02_09_deg",
+      "feat3d__polyhedron__donor_angle_03_04_deg",
+      "feat3d__polyhedron__donor_angle_03_05_deg",
+      "feat3d__polyhedron__donor_angle_03_06_deg",
+      "feat3d__polyhedron__donor_angle_03_07_deg",
+      "feat3d__polyhedron__donor_angle_03_08_deg",
+      "feat3d__polyhedron__donor_angle_03_09_deg",
+      "feat3d__polyhedron__donor_angle_04_05_deg",
+      "feat3d__polyhedron__donor_angle_04_06_deg",
+      "feat3d__polyhedron__donor_angle_04_07_deg",
+      "feat3d__polyhedron__donor_angle_04_08_deg",
+      "feat3d__polyhedron__donor_angle_04_09_deg",
+      "feat3d__polyhedron__donor_angle_05_06_deg",
+      "feat3d__polyhedron__donor_angle_05_07_deg",
+      "feat3d__polyhedron__donor_angle_05_08_deg",
+      "feat3d__polyhedron__donor_angle_05_09_deg",
+      "feat3d__polyhedron__donor_angle_06_07_deg",
+      "feat3d__polyhedron__donor_angle_06_08_deg",
+      "feat3d__polyhedron__donor_angle_06_09_deg",
+      "feat3d__polyhedron__donor_angle_07_08_deg",
+      "feat3d__polyhedron__donor_angle_07_09_deg",
+      "feat3d__polyhedron__donor_angle_08_09_deg",
+      "feat3d__polyhedron__donor_atomic_number_01",
+      "feat3d__polyhedron__donor_atomic_number_02",
+      "feat3d__polyhedron__donor_atomic_number_03",
+      "feat3d__polyhedron__donor_atomic_number_04",
+      "feat3d__polyhedron__donor_atomic_number_05",
+      "feat3d__polyhedron__donor_atomic_number_06",
+      "feat3d__polyhedron__donor_atomic_number_07",
+      "feat3d__polyhedron__donor_atomic_number_08",
+      "feat3d__polyhedron__donor_atomic_number_09",
+      "feat3d__polyhedron__ln_donor_distance_01",
+      "feat3d__polyhedron__ln_donor_distance_02",
+      "feat3d__polyhedron__ln_donor_distance_03",
+      "feat3d__polyhedron__ln_donor_distance_04",
+      "feat3d__polyhedron__ln_donor_distance_05",
+      "feat3d__polyhedron__ln_donor_distance_06",
+      "feat3d__polyhedron__ln_donor_distance_07",
+      "feat3d__polyhedron__ln_donor_distance_08",
+      "feat3d__polyhedron__ln_donor_distance_09",
+      "feat3d__polyhedron_scalars__coreCN_max_donor_dist",
+      "feat3d__polyhedron_scalars__next_donor_dist"
+    ],
+    "usable_invariant_3d_count": 40,
+    "geometry_descriptor_blocks": [
+      "ligand_field",
+      "enclosure"
+    ],
+    "geometry_descriptor_column_count": 11,
+    "frozen_delta3d_column_count": 29,
+    "all_nan_3d_columns": [],
+    "excluded_noninvariant_or_noncomparable_3d_columns": [
+      "feat3d__complex_physical__complex_free_energy_eV",
+      "feat3d__complex_physical__complex_total_energy_eV",
+      "feat3d__complex_physical__dipole_x",
+      "feat3d__complex_physical__dipole_y",
+      "feat3d__complex_physical__dipole_z"
+    ],
+    "same_metal_condition_cells": 2520,
+    "replicated_cells": 198,
+    "replicated_cells_with_target_conflict": 197,
+    "maximum_within_cell_target_range": 4.110907673962235,
+    "cells_with_multiple_geometry_keys": 0,
+    "true_adjacent_pairs_before_pair_filters": 1306,
+    "pairs_excluded_missing_geometry": 101,
+    "pairs_excluded_by_replicate_policy": 122,
+    "pairs_excluded_missing_selected_3d": 2,
+    "pairs_with_missing_selected_3d_retained": 0,
+    "require_complete_3d": true,
+    "pair_rows": 1081,
+    "cohort_sha256": "e557b9f5975886ef519b9ac74df2d16be6db1418b38fa236c6a6569cf212d17a",
+    "pair_extractants": 32,
+    "pair_ecfp_exact_clusters": 26,
+    "pairs_by_type": {
+      "Ce-Pr": 81,
+      "Dy-Ho": 96,
+      "Er-Tm": 89,
+      "Eu-Gd": 83,
+      "Gd-Tb": 98,
+      "Ho-Er": 96,
+      "La-Ce": 95,
+      "Pr-Nd": 81,
+      "Sm-Eu": 106,
+      "Tb-Dy": 88,
+      "Tm-Yb": 86,
+      "Yb-Lu": 82
+    },
+    "replicate_policy": "unique",
+    "require_geometry": true,
+    "target_definition": "log_D_A - log_D_B; A has lower atomic number; delta_Z == -1"
+  },
+  "benchmark": {
+    "protocol": {
+      "outer_split": "5-fold seeded shuffled StratifiedGroupKFold; stratified by pair_label",
+      "inner_split": "up to 3-fold seeded shuffled StratifiedGroupKFold; shared by all model branches within an outer fold",
+      "group_column": "ecfp_exact_cluster",
+      "group_overlap_required": 0,
+      "preprocessing_scope": "SimpleImputer fitted inside every inner/outer training fold",
+      "training_weights": "equal total weight per training group",
+      "pair_swap_augmentation": true,
+      "antisymmetric_inference": "(f(A,B) - f(B,A)) / 2",
+      "delta3d_shrinkage": "Inner group CV selects w in {0,.25,.5,.75,1}; prediction = baseline + w * (full_delta3d - baseline)",
+      "matched_2d_ensemble_control": "An independently tuned second 2D forest uses the same seed stream and selection budget as the full Delta3D forest; its blend weight is selected by the same inner-CV rule.",
+      "primary_comparison": "adaptive Delta3D blend minus matched adaptive 2D+2D blend",
+      "metal_site_descriptor_arm": "adaptive blend of a Delta3D+descriptor forest built with the same seed stream, selection budget and blend rule as the Delta3D forest; the extended-minus-Delta3D contrast isolates the descriptor columns",
+      "model_selection_metric": "inner macro-group MAE",
+      "trees_per_fit": 200,
+      "model_seed": 7,
+      "split_seed": 130363,
+      "fit_final_model": false
+    },
+    "feature_counts": {
+      "baseline": 2130,
+      "delta3d_added": 29,
+      "full": 2159,
+      "metal_site_descriptors_added": 11,
+      "extended": 2170
+    },
+    "model_names": [
+      "baseline",
+      "2d_second_unshrunk",
+      "2d_ensemble",
+      "delta3d_unshrunk",
+      "delta3d",
+      "delta3d_extended_unshrunk",
+      "delta3d_extended"
+    ],
+    "metrics": {
+      "baseline": {
+        "n_rows": 1081,
+        "n_groups": 26,
+        "r2": 0.05532591615791582,
+        "group_balanced_r2": 0.12403392782076283,
+        "mae": 0.12296192781589109,
+        "rmse": 0.1788803826906984,
+        "macro_group_mae": 0.1262358264387316,
+        "worst_group_mae": 0.2985315157409296,
+        "spearman": 0.39198688274765076,
+        "sign_accuracy": 0.7215541165587419,
+        "magnitude_mae": 0.0978712187186993
+      },
+      "2d_second_unshrunk": {
+        "n_rows": 1081,
+        "n_groups": 26,
+        "r2": 0.043083967805848666,
+        "group_balanced_r2": 0.12666215047667817,
+        "mae": 0.12373997828531415,
+        "rmse": 0.18003569939870923,
+        "macro_group_mae": 0.1263782658439177,
+        "worst_group_mae": 0.2992396820359707,
+        "spearman": 0.385446993330681,
+        "sign_accuracy": 0.7243293246993524,
+        "magnitude_mae": 0.09917875606766095
+      },
+      "2d_ensemble": {
+        "n_rows": 1081,
+        "n_groups": 26,
+        "r2": 0.041836802329832334,
+        "group_balanced_r2": 0.12487464555049854,
+        "mae": 0.12389682710469686,
+        "rmse": 0.18015298304165592,
+        "macro_group_mae": 0.12651954627587195,
+        "worst_group_mae": 0.2990626404622104,
+        "spearman": 0.38386118948419023,
+        "sign_accuracy": 0.7187789084181314,
+        "magnitude_mae": 0.09899047422832956
+      },
+      "delta3d_unshrunk": {
+        "n_rows": 1081,
+        "n_groups": 26,
+        "r2": 0.09811879007281377,
+        "group_balanced_r2": 0.07893125786963284,
+        "mae": 0.12183263160287086,
+        "rmse": 0.17478187104448512,
+        "macro_group_mae": 0.1371933028875189,
+        "worst_group_mae": 0.27591726500010916,
+        "spearman": 0.38562058455291265,
+        "sign_accuracy": 0.727104532839963,
+        "magnitude_mae": 0.0992534376842051
+      },
+      "delta3d": {
+        "n_rows": 1081,
+        "n_groups": 26,
+        "r2": 0.08729762796465745,
+        "group_balanced_r2": 0.12474162996901939,
+        "mae": 0.12149573576341964,
+        "rmse": 0.1758272988864107,
+        "macro_group_mae": 0.12971492756701547,
+        "worst_group_mae": 0.28701994958560306,
+        "spearman": 0.4051630590068541,
+        "sign_accuracy": 0.7150786308973173,
+        "magnitude_mae": 0.09683636183373982
+      },
+      "delta3d_extended_unshrunk": {
+        "n_rows": 1081,
+        "n_groups": 26,
+        "r2": 0.11451590339523365,
+        "group_balanced_r2": 0.11206313982885563,
+        "mae": 0.12062196414879987,
+        "rmse": 0.1731857272194631,
+        "macro_group_mae": 0.13362131276014003,
+        "worst_group_mae": 0.27155314584424073,
+        "spearman": 0.4128602349516777,
+        "sign_accuracy": 0.727104532839963,
+        "magnitude_mae": 0.09702089891619027
+      },
+      "delta3d_extended": {
+        "n_rows": 1081,
+        "n_groups": 26,
+        "r2": 0.09911769350751776,
+        "group_balanced_r2": 0.1402054052096029,
+        "mae": 0.12120042445044811,
+        "rmse": 0.174685051984929,
+        "macro_group_mae": 0.12863962041482283,
+        "worst_group_mae": 0.28483789000766885,
+        "spearman": 0.40992656471657885,
+        "sign_accuracy": 0.7197039777983348,
+        "magnitude_mae": 0.09668580966786085
+      }
+    },
+    "improvements": {
+      "primary_delta3d_vs_2d_ensemble": {
+        "r2_gain": 0.04546082563482512,
+        "group_balanced_r2_gain": -0.0001330155814791567,
+        "mae_reduction": 0.002401091341277223,
+        "macro_group_mae_reduction": -0.003195381291143523,
+        "sign_accuracy_gain": -0.0037002775208141436
+      },
+      "delta3d_unshrunk_vs_2d_second_unshrunk": {
+        "r2_gain": 0.0550348222669651,
+        "group_balanced_r2_gain": -0.04773089260704533,
+        "mae_reduction": 0.0019073466824432866,
+        "macro_group_mae_reduction": -0.010815037043601206,
+        "sign_accuracy_gain": 0.0027752081406106077
+      },
+      "delta3d_vs_baseline": {
+        "r2_gain": 0.03197171180674163,
+        "group_balanced_r2_gain": 0.0007077021482565504,
+        "mae_reduction": 0.001466192052471449,
+        "macro_group_mae_reduction": -0.003479101128283868,
+        "sign_accuracy_gain": -0.00647548566142464
+      },
+      "2d_ensemble_vs_baseline": {
+        "r2_gain": -0.013489113828083488,
+        "group_balanced_r2_gain": 0.0008407177297357071,
+        "mae_reduction": -0.0009348992888057739,
+        "macro_group_mae_reduction": -0.0002837198371403449,
+        "sign_accuracy_gain": -0.0027752081406104967
+      },
+      "primary_extended_vs_delta3d": {
+        "r2_gain": 0.011820065542860303,
+        "group_balanced_r2_gain": 0.01546377524058351,
+        "mae_reduction": 0.0002953113129715301,
+        "macro_group_mae_reduction": 0.001075307152192645,
+        "sign_accuracy_gain": 0.0046253469010175685
+      },
+      "extended_unshrunk_vs_delta3d_unshrunk": {
+        "r2_gain": 0.016397113322419887,
+        "group_balanced_r2_gain": 0.033131881959222786,
+        "mae_reduction": 0.0012106674540709877,
+        "macro_group_mae_reduction": 0.0035719901273788823,
+        "sign_accuracy_gain": 0.0
+      },
+      "extended_vs_2d_ensemble": {
+        "r2_gain": 0.05728089117768542,
+        "group_balanced_r2_gain": 0.015330759659104354,
+        "mae_reduction": 0.002696402654248753,
+        "macro_group_mae_reduction": -0.002120074138950878,
+        "sign_accuracy_gain": 0.0009250693802034249
+      }
+    },
+    "paired_group_bootstrap": {
+      "method": "paired cluster bootstrap over fixed OOF held-out-group predictions",
+      "scope_limitation": "Does not refit nested CV and therefore excludes split, training, and model-selection variability.",
+      "replicates": 2000,
+      "comparisons": {
+        "delta3d_vs_2d_ensemble": {
+          "r2_gain": {
+            "mean": 0.03972380157339844,
+            "ci95_low": -0.012248537714010608,
+            "ci95_high": 0.06996927388653594
+          },
+          "group_balanced_r2_gain": {
+            "mean": -0.0019301999829121246,
+            "ci95_low": -0.0749925266751449,
+            "ci95_high": 0.05951910463320818
+          },
+          "mae_reduction": {
+            "mean": 0.0015219652072818262,
+            "ci95_low": -0.0038100815000639767,
+            "ci95_high": 0.005126521120086803
+          },
+          "macro_group_mae_reduction": {
+            "mean": -0.003165927779751822,
+            "ci95_low": -0.009736417149591088,
+            "ci95_high": 0.0024662909022111594
+          },
+          "sign_accuracy_gain": {
+            "mean": -0.005093644670893556,
+            "ci95_low": -0.04114168732872243,
+            "ci95_high": 0.016277433999867624
+          }
+        },
+        "delta3d_unshrunk_vs_2d_second_unshrunk": {
+          "r2_gain": {
+            "mean": 0.047380550602684694,
+            "ci95_low": -0.04009877273118216,
+            "ci95_high": 0.09939029095708363
+          },
+          "group_balanced_r2_gain": {
+            "mean": -0.05298502453022823,
+            "ci95_low": -0.19612330295588098,
+            "ci95_high": 0.06542797197874403
+          },
+          "mae_reduction": {
+            "mean": 0.0004703807567317236,
+            "ci95_low": -0.009561177051595173,
+            "ci95_high": 0.006200852241835789
+          },
+          "macro_group_mae_reduction": {
+            "mean": -0.010839151517802851,
+            "ci95_low": -0.0228101189084252,
+            "ci95_high": -0.0003438530551484878
+          },
+          "sign_accuracy_gain": {
+            "mean": 0.0011718339981778203,
+            "ci95_low": -0.047811381983657295,
+            "ci95_high": 0.03377241750358675
+          }
+        },
+        "delta3d_vs_baseline": {
+          "r2_gain": {
+            "mean": 0.03021732830266559,
+            "ci95_low": -0.006750604480968308,
+            "ci95_high": 0.05686448682056181
+          },
+          "group_balanced_r2_gain": {
+            "mean": -0.0013492067432393344,
+            "ci95_low": -0.07666588069980337,
+            "ci95_high": 0.060870301362940755
+          },
+          "mae_reduction": {
+            "mean": 0.0008729228734144164,
+            "ci95_low": -0.0035320478195442952,
+            "ci95_high": 0.003402057883752676
+          },
+          "macro_group_mae_reduction": {
+            "mean": -0.003470757401575862,
+            "ci95_low": -0.010101230449841323,
+            "ci95_high": 0.002232080715590235
+          },
+          "sign_accuracy_gain": {
+            "mean": -0.008448098576973219,
+            "ci95_low": -0.04586860236220467,
+            "ci95_high": 0.01131402995270161
+          }
+        },
+        "2d_ensemble_vs_baseline": {
+          "r2_gain": {
+            "mean": -0.009506473270732852,
+            "ci95_low": -0.027546873079560604,
+            "ci95_high": 0.014067824986466203
+          },
+          "group_balanced_r2_gain": {
+            "mean": 0.0005809932396727901,
+            "ci95_low": -0.006411219326562837,
+            "ci95_high": 0.006704508591083025
+          },
+          "mae_reduction": {
+            "mean": -0.0006490423338674099,
+            "ci95_low": -0.0019206382921444522,
+            "ci95_high": 0.001279748274234937
+          },
+          "macro_group_mae_reduction": {
+            "mean": -0.00030482962182403975,
+            "ci95_low": -0.0009645272716200755,
+            "ci95_high": 0.00037565769320523567
+          },
+          "sign_accuracy_gain": {
+            "mean": -0.0033544539060796643,
+            "ci95_low": -0.011345218800648208,
+            "ci95_high": 0.0
+          }
+        },
+        "extended_vs_delta3d": {
+          "r2_gain": {
+            "mean": 0.010853741880945598,
+            "ci95_low": -0.00924001278327249,
+            "ci95_high": 0.027120287746166736
+          },
+          "group_balanced_r2_gain": {
+            "mean": 0.015637764429017167,
+            "ci95_low": -0.012954050130078045,
+            "ci95_high": 0.046454972776144195
+          },
+          "mae_reduction": {
+            "mean": 0.00018335585588346803,
+            "ci95_low": -0.002043952767342587,
+            "ci95_high": 0.001876466020312379
+          },
+          "macro_group_mae_reduction": {
+            "mean": 0.001032223272958006,
+            "ci95_low": -0.002321139345164959,
+            "ci95_high": 0.004513711938012296
+          },
+          "sign_accuracy_gain": {
+            "mean": 0.004528623522225196,
+            "ci95_low": -0.0042828850024353386,
+            "ci95_high": 0.013092031095464984
+          }
+        },
+        "extended_unshrunk_vs_delta3d_unshrunk": {
+          "r2_gain": {
+            "mean": 0.013576738686254931,
+            "ci95_low": -0.014410371185083024,
+            "ci95_high": 0.03170977263434147
+          },
+          "group_balanced_r2_gain": {
+            "mean": 0.03385383164881668,
+            "ci95_low": -0.010748921486870499,
+            "ci95_high": 0.08402475172965947
+          },
+          "mae_reduction": {
+            "mean": 0.0011282516041938142,
+            "ci95_low": -0.0007001034328625946,
+            "ci95_high": 0.0025065954959237646
+          },
+          "macro_group_mae_reduction": {
+            "mean": 0.0035750851374981235,
+            "ci95_low": -0.0005573715791674573,
+            "ci95_high": 0.008099404361581429
+          },
+          "sign_accuracy_gain": {
+            "mean": -0.00016477564810479006,
+            "ci95_low": -0.013593957239110888,
+            "ci95_high": 0.016370780332680954
+          }
+        },
+        "extended_vs_2d_ensemble": {
+          "r2_gain": {
+            "mean": 0.05057754345434404,
+            "ci95_low": -0.008128854523320078,
+            "ci95_high": 0.08497330655558218
+          },
+          "group_balanced_r2_gain": {
+            "mean": 0.013707564446105042,
+            "ci95_low": -0.0518709854055875,
+            "ci95_high": 0.07212202716754873
+          },
+          "mae_reduction": {
+            "mean": 0.0017053210631652945,
+            "ci95_low": -0.005088274015980859,
+            "ci95_high": 0.005711313632162392
+          },
+          "macro_group_mae_reduction": {
+            "mean": -0.0021337045067938163,
+            "ci95_low": -0.007782274791259689,
+            "ci95_high": 0.0032819716707909925
+          },
+          "sign_accuracy_gain": {
+            "mean": -0.00056502114866836,
+            "ci95_low": -0.03918139404659723,
+            "ci95_high": 0.022662921270813458
+          }
+        }
+      }
+    },
+    "leakage_audit": {
+      "passed": true,
+      "outer_folds": [
+        {
+          "outer_fold": 0,
+          "outer_split_seed": 130363,
+          "train_rows": 556,
+          "test_rows": 525,
+          "train_groups": 25,
+          "test_groups": 1,
+          "group_overlap": 0,
+          "extractant_overlap": 0,
+          "ecfp_exact_cluster_overlap": 0,
+          "source_id_overlap": 0,
+          "geometry_key_overlap": 0
+        },
+        {
+          "outer_fold": 1,
+          "outer_split_seed": 130363,
+          "train_rows": 939,
+          "test_rows": 142,
+          "train_groups": 21,
+          "test_groups": 5,
+          "group_overlap": 0,
+          "extractant_overlap": 0,
+          "ecfp_exact_cluster_overlap": 0,
+          "source_id_overlap": 0,
+          "geometry_key_overlap": 0
+        },
+        {
+          "outer_fold": 2,
+          "outer_split_seed": 130363,
+          "train_rows": 946,
+          "test_rows": 135,
+          "train_groups": 22,
+          "test_groups": 4,
+          "group_overlap": 0,
+          "extractant_overlap": 0,
+          "ecfp_exact_cluster_overlap": 0,
+          "source_id_overlap": 0,
+          "geometry_key_overlap": 0
+        },
+        {
+          "outer_fold": 3,
+          "outer_split_seed": 130363,
+          "train_rows": 941,
+          "test_rows": 140,
+          "train_groups": 19,
+          "test_groups": 7,
+          "group_overlap": 0,
+          "extractant_overlap": 0,
+          "ecfp_exact_cluster_overlap": 0,
+          "source_id_overlap": 0,
+          "geometry_key_overlap": 0
+        },
+        {
+          "outer_fold": 4,
+          "outer_split_seed": 130363,
+          "train_rows": 942,
+          "test_rows": 139,
+          "train_groups": 17,
+          "test_groups": 9,
+          "group_overlap": 0,
+          "extractant_overlap": 0,
+          "ecfp_exact_cluster_overlap": 0,
+          "source_id_overlap": 0,
+          "geometry_key_overlap": 0
+        }
+      ]
+    },
+    "selected_hyperparameters_by_outer_fold": {
+      "baseline": [
+        {
+          "outer_fold": 0,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        },
+        {
+          "outer_fold": 1,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        },
+        {
+          "outer_fold": 2,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        },
+        {
+          "outer_fold": 3,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        },
+        {
+          "outer_fold": 4,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        }
+      ],
+      "2d_second_unshrunk": [
+        {
+          "outer_fold": 0,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        },
+        {
+          "outer_fold": 1,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        },
+        {
+          "outer_fold": 2,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        },
+        {
+          "outer_fold": 3,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        },
+        {
+          "outer_fold": 4,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        }
+      ],
+      "2d_ensemble_weight": [
+        {
+          "outer_fold": 0,
+          "2d_ensemble_weight": 1.0
+        },
+        {
+          "outer_fold": 1,
+          "2d_ensemble_weight": 1.0
+        },
+        {
+          "outer_fold": 2,
+          "2d_ensemble_weight": 0.75
+        },
+        {
+          "outer_fold": 3,
+          "2d_ensemble_weight": 0.0
+        },
+        {
+          "outer_fold": 4,
+          "2d_ensemble_weight": 0.75
+        }
+      ],
+      "delta3d_unshrunk": [
+        {
+          "outer_fold": 0,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        },
+        {
+          "outer_fold": 1,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        },
+        {
+          "outer_fold": 2,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        },
+        {
+          "outer_fold": 3,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        },
+        {
+          "outer_fold": 4,
+          "max_features": 1.0,
+          "min_samples_leaf": 4
+        }
+      ],
+      "delta3d_weight": [
+        {
+          "outer_fold": 0,
+          "delta3d_weight": 0.5
+        },
+        {
+          "outer_fold": 1,
+          "delta3d_weight": 0.25
+        },
+        {
+          "outer_fold": 2,
+          "delta3d_weight": 0.0
+        },
+        {
+          "outer_fold": 3,
+          "delta3d_weight": 0.75
+        },
+        {
+          "outer_fold": 4,
+          "delta3d_weight": 0.5
+        }
+      ],
+      "delta3d_extended_unshrunk": [
+        {
+          "outer_fold": 0,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        },
+        {
+          "outer_fold": 1,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        },
+        {
+          "outer_fold": 2,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        },
+        {
+          "outer_fold": 3,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        },
+        {
+          "outer_fold": 4,
+          "max_features": 1.0,
+          "min_samples_leaf": 4
+        }
+      ],
+      "delta3d_extended_weight": [
+        {
+          "outer_fold": 0,
+          "delta3d_extended_weight": 0.5
+        },
+        {
+          "outer_fold": 1,
+          "delta3d_extended_weight": 0.5
+        },
+        {
+          "outer_fold": 2,
+          "delta3d_extended_weight": 0.25
+        },
+        {
+          "outer_fold": 3,
+          "delta3d_extended_weight": 1.0
+        },
+        {
+          "outer_fold": 4,
+          "delta3d_extended_weight": 0.5
+        }
+      ]
+    },
+    "final_deployment_parameters": {
+      "fitted": false,
+      "reason": "evaluation_only"
+    },
+    "interpretation_guardrail": "This exploratory benchmark cannot establish an experimental separation factor without publication/experiment-series identifiers. A robust 3D claim additionally requires positive Delta3D-vs-2D-ensemble and unshrunk matched-control effects across prespecified seeds/splits and prospective data."
+  },
+  "artifacts": {
+    "deployment_model_saved": false,
+    "sha256": {
+      "feature_contract.json": "b6bfe2108c041b1851f07de99ab9f17cad49dfc847d05baa23ebfdb13466c1c5",
+      "fold_assignments.csv": "93781b26e1748904c76aba2027fad70f305106ed53ebc5f508cc19587d83bda3",
+      "geometry_descriptor_audit.json": "ca3210ac170f72165d80a52032956c2b2bd1c4d4fd3d939d8311f43454482509",
+      "inner_cv_tuning.csv": "f6924c63245bcff07cecd1ebdade5944a16a0201b78b76ba80ec06665eabe5e6",
+      "oof_predictions.csv": "33752bffd8b145ce9124b3c9124d9c772fb2b11e34d9c657c19d90575c742dd5",
+      "pair_build_audit.json": "a9fb9b23b87f4f75f2608a698edbdef86dd2c1f6b2458f9a12c4e905eda84dce",
+      "per_extractant_metrics.csv": "72ba8581ef320b29760de25f304514d98db3e404daf3d229890fbfce6e713131",
+      "per_pair_type_metrics.csv": "36e9dc315165ee0bf36d99b8ee04779bded160cd89217f106bf4c5ef2069f3a7",
+      "quarantined_source_rows.csv": "1e112abe1af284a8936af1256292614621b49df224e69a675302b77c5fb54a91",
+      "run_config.json": "4ef5efb735a1364eb795e4f7e21664399cb7eb7cd75bc8b4e7fe6d1c21569d5c"
+    }
+  }
+}
