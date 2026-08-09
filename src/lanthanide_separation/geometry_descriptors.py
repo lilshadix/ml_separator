@@ -1,4 +1,4 @@
-"""Rotation-invariant metal-site descriptors from the bundled VR coordinates.
+"""Invariant local and global descriptors from the bundled VR coordinates.
 
 The tabular Delta3D contract summarises the first coordination shell with
 unweighted distance and pair-angle moments.  Two physically distinct quantities
@@ -16,8 +16,8 @@ new external asset:
     harmonic basis and no donor ordering ever enters the calculation.  The
     unweighted ``k <= 3`` shape terms are close to the pair-angle Legendre means
     that the existing contract already carries; the radially weighted terms are
-    new because they couple shell contraction to shell geometry, which is the
-    mechanism that distinguishes two adjacent lanthanides.
+    new because they couple shell contraction to shell geometry, which is a
+    mechanism that distinguishes metals anywhere along the lanthanide series.
 
 ``enclosure``
     Solid-angle shielding of the metal by every atom of the complex.  The
@@ -28,8 +28,25 @@ new external asset:
     integral quantity and therefore tolerant of the coordinate noise left by
     heterogeneously relaxed source geometries.
 
-Both blocks are invariant to translation, rotation, reflection and donor
-relabelling, so the paired ``value_A - value_B`` contrast keeps the exact
+``global_shape``
+    Exact all-atom coordinate statistics for the complete complex.  The radius
+    of gyration, principal variances and dimensionless shape scalars are
+    computed from the centred gyration tensor.  Convex-hull volume and surface
+    area add global size and packing information when the coordinates span all
+    three dimensions.  Unlike the ray-integrated enclosure block, these
+    descriptors introduce no sampling grid.
+
+``coordination_shape``
+    Exact metal-centred invariants of the selected coordination donors.  Radial
+    distortion, metal off-centring, donor-cloud and unit-direction shape tensors
+    describe coordination shape without choosing donor labels or aligning to a
+    reference frame.  The donor convex hull supplies the coordination-polyhedron
+    volume and surface area when (and only when) the shell spans three
+    dimensions.  No ray grid, ideal-polyhedron assignment or fitted reference
+    geometry enters this block.
+
+All blocks are invariant to translation, rotation, reflection and the relevant
+atom relabelling, so the paired ``value_A - value_B`` contrast keeps the exact
 antisymmetry the pair model relies on.
 """
 
@@ -42,16 +59,27 @@ from typing import Iterable, Sequence
 
 import numpy as np
 import pandas as pd
+import scipy
+from scipy.spatial import ConvexHull, QhullError
 
 
-DESCRIPTOR_BLOCKS: tuple[str, ...] = ("ligand_field", "enclosure")
+DESCRIPTOR_BLOCKS: tuple[str, ...] = (
+    "ligand_field",
+    "enclosure",
+    "global_shape",
+    "coordination_shape",
+)
 
 LIGAND_FIELD_PREFIX = "feat3d__ligand_field__"
 ENCLOSURE_PREFIX = "feat3d__enclosure__"
+GLOBAL_GEOMETRY_PREFIX = "feat3d__global_geometry__"
+COORDINATION_SHAPE_PREFIX = "feat3d__coordination_shape__"
 
 BLOCK_PREFIXES: dict[str, str] = {
     "ligand_field": LIGAND_FIELD_PREFIX,
     "enclosure": ENCLOSURE_PREFIX,
+    "global_shape": GLOBAL_GEOMETRY_PREFIX,
+    "coordination_shape": COORDINATION_SHAPE_PREFIX,
 }
 
 MAX_LEGENDRE_DEGREE = 6
@@ -74,6 +102,7 @@ FALLBACK_VAN_DER_WAALS_RADIUS = 1.70
 
 MINIMUM_DONORS = 3
 MINIMUM_DONOR_DISTANCE_ANGSTROM = 0.5
+MINIMUM_GLOBAL_ATOMS = 2
 
 
 DESCRIPTOR_PERMUTATIONS: tuple[str, ...] = ("none", "free", "metal-preserving")
@@ -105,6 +134,32 @@ CORE_DESCRIPTOR_NAMES: dict[str, tuple[str, ...]] = {
         "buried_fraction_r5p0",
         "contact_distance_min",
         "open_anisotropy",
+    ),
+    "global_shape": (
+        "radius_of_gyration",
+        "principal_variance_1",
+        "principal_variance_2",
+        "principal_variance_3",
+        "principal_moment_of_inertia_1",
+        "principal_moment_of_inertia_2",
+        "principal_moment_of_inertia_3",
+        "normalized_asphericity",
+        "relative_shape_anisotropy",
+        "eccentricity",
+        "convex_hull_volume",
+        "convex_hull_surface_area",
+    ),
+    "coordination_shape": (
+        "radial_distortion_coefficient",
+        "radial_range_fraction",
+        "metal_offset_from_donor_centroid_fraction",
+        "coordination_normalized_asphericity",
+        "coordination_relative_shape_anisotropy",
+        "coordination_eccentricity",
+        "directional_relative_shape_anisotropy",
+        "directional_inversion_imbalance",
+        "coordination_polyhedron_volume",
+        "coordination_polyhedron_surface_area",
     ),
 }
 
@@ -274,8 +329,238 @@ def enclosure_descriptors(
     return features
 
 
+def _convex_hull_measures(coordinates: np.ndarray) -> tuple[float, float, bool]:
+    """Return three-dimensional hull measures or a deterministic degenerate result.
+
+    Qhull's three-dimensional volume and surface area are meaningful only when
+    at least four unique points have affine rank three.  Linear and planar
+    complexes still have well-defined gyration descriptors, so they are not an
+    error: their unavailable 3D hull measures are represented by exact zeros and
+    counted in the builder audit.
+    """
+
+    unique_coordinates = np.unique(coordinates, axis=0)
+    if len(unique_coordinates) < 4:
+        return 0.0, 0.0, False
+    relative = unique_coordinates - unique_coordinates.mean(axis=0, keepdims=True)
+    if int(np.linalg.matrix_rank(relative)) < 3:
+        return 0.0, 0.0, False
+    try:
+        hull = ConvexHull(relative)
+    except QhullError:
+        # Near-degenerate point clouds can pass the rank test but still be too
+        # ill-conditioned for a stable 3D hull.  Do not add Qhull jitter: it
+        # would make the supposedly exact descriptor depend on a perturbation.
+        return 0.0, 0.0, False
+    volume = float(hull.volume)
+    surface_area = float(hull.area)
+    if (
+        not np.isfinite(volume)
+        or not np.isfinite(surface_area)
+        or volume <= 0.0
+        or surface_area <= 0.0
+    ):
+        return 0.0, 0.0, False
+    return volume, surface_area, True
+
+
+def _coordination_shape_descriptors_with_hull_status(
+    donor_vectors: np.ndarray,
+) -> tuple[dict[str, float], bool]:
+    """Compute exact donor-shell shape invariants and hull availability.
+
+    ``donor_vectors`` must point from the unique metal atom to the donor atoms
+    selected by the frozen ``is_coord_donor`` asset mask.  The construction is
+    deliberately reference-free: no ideal coordination geometry, atom order,
+    coordinate frame or sampled angular grid is used.
+    """
+
+    donor_vectors = np.asarray(donor_vectors, dtype=np.float64)
+    if donor_vectors.ndim != 2 or donor_vectors.shape[1] != 3:
+        raise ValueError("donor_vectors must have shape [n_donors, 3].")
+    if len(donor_vectors) < MINIMUM_DONORS:
+        raise ValueError(f"At least {MINIMUM_DONORS} donors are required.")
+    if not np.isfinite(donor_vectors).all():
+        raise ValueError("donor_vectors must be finite.")
+
+    radii = np.linalg.norm(donor_vectors, axis=1)
+    if float(radii.min()) < MINIMUM_DONOR_DISTANCE_ANGSTROM:
+        raise ValueError(
+            "Donor radii must be physically separated from the metal."
+        )
+    mean_radius = float(radii.mean())
+    if not np.isfinite(mean_radius) or mean_radius <= np.finfo(np.float64).tiny:
+        raise ValueError("The donor shell must have nonzero radial extent.")
+
+    donor_centroid = donor_vectors.mean(axis=0)
+    centered = donor_vectors - donor_centroid
+    gyration_tensor = centered.transpose() @ centered / float(len(centered))
+    eigenvalues = np.linalg.eigvalsh(gyration_tensor)
+    trace = float(np.trace(gyration_tensor))
+    if not np.isfinite(trace) or trace <= np.finfo(np.float64).tiny:
+        raise ValueError("The donor cloud must have nonzero spatial extent.")
+    numerical_tolerance = 64.0 * np.finfo(np.float64).eps * trace
+    if float(eigenvalues.min()) < -numerical_tolerance:
+        raise ValueError("The donor gyration tensor has a negative eigenvalue.")
+    principal = np.clip(eigenvalues, 0.0, None)[::-1]
+    principal_trace = float(principal.sum())
+    mean_principal = principal_trace / 3.0
+
+    normalized_asphericity = float(
+        (principal[0] - 0.5 * (principal[1] + principal[2]))
+        / principal_trace
+    )
+    relative_shape_anisotropy = float(
+        1.5 * np.square(principal - mean_principal).sum() / principal_trace**2
+    )
+    eccentricity = float(
+        np.sqrt(max(0.0, 1.0 - float(principal[2] / principal[0])))
+    )
+
+    # Normalising each vector removes shell contraction and isolates angular
+    # shape.  The second-moment eigenvalues and the norm of the mean unit vector
+    # are unchanged by every orthogonal transform and by donor relabelling.
+    unit_vectors = donor_vectors / radii[:, None]
+    directional_tensor = unit_vectors.transpose() @ unit_vectors / float(
+        len(unit_vectors)
+    )
+    directional_eigenvalues = np.linalg.eigvalsh(directional_tensor)
+    directional_trace = float(directional_eigenvalues.sum())
+    if not np.isfinite(directional_trace) or directional_trace <= 0.0:
+        raise ValueError("The donor direction tensor is invalid.")
+    directional_mean = directional_trace / 3.0
+    directional_anisotropy = float(
+        1.5
+        * np.square(directional_eigenvalues - directional_mean).sum()
+        / directional_trace**2
+    )
+    inversion_imbalance = float(np.linalg.norm(unit_vectors.mean(axis=0)))
+
+    volume, surface_area, hull_available = _convex_hull_measures(donor_vectors)
+    features = {
+        "radial_distortion_coefficient": float(np.std(radii, ddof=0) / mean_radius),
+        "radial_range_fraction": float((radii.max() - radii.min()) / mean_radius),
+        "metal_offset_from_donor_centroid_fraction": float(
+            np.linalg.norm(donor_centroid) / mean_radius
+        ),
+        "coordination_normalized_asphericity": float(
+            np.clip(normalized_asphericity, 0.0, 1.0)
+        ),
+        "coordination_relative_shape_anisotropy": float(
+            np.clip(relative_shape_anisotropy, 0.0, 1.0)
+        ),
+        "coordination_eccentricity": float(np.clip(eccentricity, 0.0, 1.0)),
+        "directional_relative_shape_anisotropy": float(
+            np.clip(directional_anisotropy, 0.0, 1.0)
+        ),
+        "directional_inversion_imbalance": float(
+            np.clip(inversion_imbalance, 0.0, 1.0)
+        ),
+        "coordination_polyhedron_volume": volume,
+        "coordination_polyhedron_surface_area": surface_area,
+    }
+    if not np.isfinite(np.fromiter(features.values(), dtype=np.float64)).all():
+        raise ValueError("Coordination-shape descriptors contain non-finite values.")
+    return features, hull_available
+
+
+def coordination_shape_descriptors(donor_vectors: np.ndarray) -> dict[str, float]:
+    """Exact local coordination-shape and coordination-polyhedron descriptors.
+
+    The D4 shape/distortion quantities are dimensionless.  The D5 convex-hull
+    volume and surface area are in angstrom cubed and angstrom squared.  A donor
+    shell that is planar, linear, duplicated or otherwise lacks a stable 3D hull
+    receives exact zeros for both D5 values; the builder separately records hull
+    availability so those zeros cannot be mistaken for measured polyhedron
+    sizes.  Invalid, non-finite or metal-collapsed donor shells raise instead of
+    being imputed here.
+    """
+
+    features, _ = _coordination_shape_descriptors_with_hull_status(donor_vectors)
+    return features
+
+
+def _global_shape_descriptors_with_hull_status(
+    coordinates: np.ndarray,
+) -> tuple[dict[str, float], bool]:
+    """Compute exact all-atom shape invariants and report hull availability."""
+
+    coordinates = np.asarray(coordinates, dtype=np.float64)
+    if coordinates.ndim != 2 or coordinates.shape[1] != 3:
+        raise ValueError("coordinates must have shape [n_atoms, 3].")
+    if len(coordinates) < MINIMUM_GLOBAL_ATOMS:
+        raise ValueError(f"At least {MINIMUM_GLOBAL_ATOMS} atoms are required.")
+    if not np.isfinite(coordinates).all():
+        raise ValueError("coordinates must be finite.")
+
+    centered = coordinates - coordinates.mean(axis=0, keepdims=True)
+    gyration_tensor = centered.transpose() @ centered / float(len(centered))
+    eigenvalues = np.linalg.eigvalsh(gyration_tensor)
+    trace = float(np.trace(gyration_tensor))
+    if not np.isfinite(trace) or trace <= np.finfo(np.float64).tiny:
+        raise ValueError("coordinates must have nonzero spatial extent.")
+    numerical_tolerance = 64.0 * np.finfo(np.float64).eps * trace
+    if float(eigenvalues.min()) < -numerical_tolerance:
+        raise ValueError("gyration tensor has a non-physical negative eigenvalue.")
+    # eigvalsh is ascending; the public contract uses major-to-minor order.
+    principal = np.clip(eigenvalues, 0.0, None)[::-1]
+    principal_trace = float(principal.sum())
+    mean_principal = principal_trace / 3.0
+    # Unit-mass, per-atom inertia tensor about the centroid.  Its eigenvalues
+    # are trace(G) - lambda_i(G); publish them from smallest to largest.
+    principal_moments = np.sort(principal_trace - principal)
+
+    # b / Rg^2: zero for a spherical point distribution and one for a line.
+    normalized_asphericity = float(
+        (principal[0] - 0.5 * (principal[1] + principal[2]))
+        / principal_trace
+    )
+    # Standard relative shape anisotropy kappa^2, likewise bounded in [0, 1].
+    relative_shape_anisotropy = float(
+        1.5 * np.square(principal - mean_principal).sum() / principal_trace**2
+    )
+    # Axis eccentricity based on the major and minor principal variances.
+    eccentricity = float(
+        np.sqrt(max(0.0, 1.0 - float(principal[2] / principal[0])))
+    )
+    volume, surface_area, hull_available = _convex_hull_measures(centered)
+
+    features = {
+        "radius_of_gyration": float(np.sqrt(principal_trace)),
+        "principal_variance_1": float(principal[0]),
+        "principal_variance_2": float(principal[1]),
+        "principal_variance_3": float(principal[2]),
+        "principal_moment_of_inertia_1": float(principal_moments[0]),
+        "principal_moment_of_inertia_2": float(principal_moments[1]),
+        "principal_moment_of_inertia_3": float(principal_moments[2]),
+        "normalized_asphericity": float(np.clip(normalized_asphericity, 0.0, 1.0)),
+        "relative_shape_anisotropy": float(
+            np.clip(relative_shape_anisotropy, 0.0, 1.0)
+        ),
+        "eccentricity": float(np.clip(eccentricity, 0.0, 1.0)),
+        "convex_hull_volume": volume,
+        "convex_hull_surface_area": surface_area,
+    }
+    return features, hull_available
+
+
+def global_shape_descriptors(coordinates: np.ndarray) -> dict[str, float]:
+    """Exact translation-, rotation- and atom-permutation-invariant shape metrics.
+
+    Every atom, including the metal, receives unit weight.  Principal variances
+    are the descending eigenvalues of the population gyration tensor about the
+    all-atom centroid; the corresponding per-atom principal moments of inertia
+    are published in ascending order.  Convex-hull values are zero for
+    non-three-dimensional or numerically ill-conditioned point clouds; the
+    builder records that outcome separately in its audit metadata.
+    """
+
+    features, _ = _global_shape_descriptors_with_hull_status(coordinates)
+    return features
+
+
 class MetalSiteDescriptorBuilder:
-    """Compute invariant metal-site descriptors for every geometry in the asset."""
+    """Compute invariant local and global descriptors for every bundled geometry."""
 
     def __init__(
         self,
@@ -381,6 +666,8 @@ class MetalSiteDescriptorBuilder:
         donor_counts: list[int] = []
         atom_counts: list[int] = []
         metal_numbers: list[int] = []
+        global_hull_available: list[bool] = []
+        coordination_hull_available: list[bool] = []
         for graph_index in range(len(self.build_ids)):
             coordinates, numbers, metal_index, donor_mask = self._graph_slice(graph_index)
             metal_numbers.append(int(numbers[metal_index]))
@@ -404,6 +691,25 @@ class MetalSiteDescriptorBuilder:
                     ),
                 ).items():
                     record[f"{ENCLOSURE_PREFIX}{name}"] = value
+            if "global_shape" in self.blocks:
+                global_features, hull_available = (
+                    _global_shape_descriptors_with_hull_status(coordinates)
+                )
+                global_hull_available.append(hull_available)
+                for name, value in self._selected(
+                    "global_shape", global_features
+                ).items():
+                    record[f"{GLOBAL_GEOMETRY_PREFIX}{name}"] = value
+            if "coordination_shape" in self.blocks:
+                donor_vectors = coordinates[donor_mask] - coordinates[metal_index]
+                coordination_features, hull_available = (
+                    _coordination_shape_descriptors_with_hull_status(donor_vectors)
+                )
+                coordination_hull_available.append(hull_available)
+                for name, value in self._selected(
+                    "coordination_shape", coordination_features
+                ).items():
+                    record[f"{COORDINATION_SHAPE_PREFIX}{name}"] = value
             records.append(record)
 
         frame = pd.DataFrame.from_records(records)
@@ -446,6 +752,90 @@ class MetalSiteDescriptorBuilder:
                 .tobytes()
             ).hexdigest(),
         }
+        if "global_shape" in self.blocks:
+            audit.update(
+                {
+                    "global_shape_coordinate_selection": "all atoms including metal",
+                    "global_shape_atom_weighting": "uniform",
+                    "global_shape_center": "all-atom arithmetic centroid",
+                    "global_shape_gyration_normalization": "population 1/n",
+                    "global_shape_principal_variance_order": "descending",
+                    "global_shape_principal_moment_order": "ascending",
+                    "global_shape_invariances": [
+                        "translation",
+                        "orthogonal_transform",
+                        "atom_permutation",
+                    ],
+                    "global_shape_units": {
+                        "radius_of_gyration": "angstrom",
+                        "principal_variance": "angstrom^2",
+                        "principal_moment_of_inertia": "unit-mass angstrom^2 per atom",
+                        "normalized_shape_scalars": "dimensionless",
+                        "convex_hull_volume": "angstrom^3",
+                        "convex_hull_surface_area": "angstrom^2",
+                    },
+                    "global_shape_hull_backend": "scipy.spatial.ConvexHull",
+                    "global_shape_hull_scipy_version": scipy.__version__,
+                    "global_shape_hull_degenerate_policy": (
+                        "convex_hull_volume=0 and convex_hull_surface_area=0"
+                    ),
+                    "global_shape_hull_available_count": int(
+                        sum(global_hull_available)
+                    ),
+                    "global_shape_hull_unavailable_count": int(
+                        len(global_hull_available) - sum(global_hull_available)
+                    ),
+                }
+            )
+        if "coordination_shape" in self.blocks:
+            audit.update(
+                {
+                    "coordination_shape_coordinate_selection": (
+                        "is_coord_donor == 1, expressed relative to the unique metal"
+                    ),
+                    "coordination_shape_donor_weighting": "uniform",
+                    "coordination_shape_radial_normalization": (
+                        "population statistics divided by mean metal-donor radius"
+                    ),
+                    "coordination_shape_invariances": [
+                        "translation",
+                        "orthogonal_transform",
+                        "donor_permutation",
+                    ],
+                    "coordination_shape_reference_geometry": None,
+                    "coordination_shape_sampling_grid": None,
+                    "coordination_shape_units": {
+                        "D4_shape_and_distortion": "dimensionless",
+                        "coordination_polyhedron_volume": "angstrom^3",
+                        "coordination_polyhedron_surface_area": "angstrom^2",
+                    },
+                    "coordination_shape_invalid_shell_policy": (
+                        "raise ValueError and abort descriptor build"
+                    ),
+                    "coordination_shape_hull_backend": "scipy.spatial.ConvexHull",
+                    "coordination_shape_hull_scipy_version": scipy.__version__,
+                    "coordination_shape_hull_degenerate_policy": (
+                        "coordination_polyhedron_volume=0 and "
+                        "coordination_polyhedron_surface_area=0, with unavailable audit"
+                    ),
+                    "coordination_shape_hull_available_count": int(
+                        sum(coordination_hull_available)
+                    ),
+                    "coordination_shape_hull_unavailable_count": int(
+                        len(coordination_hull_available)
+                        - sum(coordination_hull_available)
+                    ),
+                    "coordination_shape_hull_unavailable_build_ids": [
+                        str(build_id)
+                        for build_id, is_available in zip(
+                            self.build_ids,
+                            coordination_hull_available,
+                            strict=True,
+                        )
+                        if not is_available
+                    ],
+                }
+            )
         return MetalSiteDescriptors(
             frame=frame,
             blocks=self.blocks,

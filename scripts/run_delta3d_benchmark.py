@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the leakage-safe adjacent-lanthanide Delta3D benchmark."""
+"""Run the leakage-safe lanthanide-pair Delta3D benchmark."""
 
 from __future__ import annotations
 
@@ -38,7 +38,10 @@ from lanthanide_separation.geometry_descriptors import (  # noqa: E402
     permute_descriptors,
     validate_blocks,
 )
-from lanthanide_separation.pairs import build_adjacent_pair_dataset  # noqa: E402
+from lanthanide_separation.pairs import (  # noqa: E402
+    PAIR_SCOPES,
+    build_lanthanide_pair_dataset,
+)
 
 
 DEFAULT_DATASET = REPO_ROOT / "dataset with 3D structures" / "dataset.parquet"
@@ -62,6 +65,15 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dataset", type=Path, default=DEFAULT_DATASET)
     parser.add_argument("--output-dir", type=Path, default=None)
+    parser.add_argument(
+        "--pair-scope",
+        choices=PAIR_SCOPES,
+        default="all",
+        help=(
+            "'all' evaluates every observed lanthanide pair under matched conditions; "
+            "'adjacent' reproduces the historical nearest-neighbour cohort."
+        ),
+    )
     parser.add_argument("--outer-folds", type=int, default=5)
     parser.add_argument("--inner-folds", type=int, default=3)
     parser.add_argument("--trees", type=int, default=200)
@@ -247,7 +259,10 @@ def make_output_dir(requested: Path | None, args: argparse.Namespace) -> Path:
         requested = (
             REPO_ROOT
             / "runs"
-            / f"{stamp}_delta3d_{group_slug}_m{args.seed}_s{args.split_seed}"
+            / (
+                f"{stamp}_delta3d_{args.pair_scope}_{group_slug}_"
+                f"m{args.seed}_s{args.split_seed}"
+            )
         )
     requested = requested.expanduser().resolve()
     requested.mkdir(parents=True, exist_ok=False)
@@ -349,8 +364,9 @@ def main() -> int:
             flush=True,
         )
 
-    pair_data = build_adjacent_pair_dataset(
+    pair_data = build_lanthanide_pair_dataset(
         source,
+        pair_scope=args.pair_scope,
         require_geometry=True,
         replicate_policy=args.replicate_policy,
         quarantine_known_bad=not args.no_default_quarantine,
@@ -360,7 +376,7 @@ def main() -> int:
         geometry_descriptor_blocks=args.descriptor_blocks,
     )
     print(
-        f"Pairs: {len(pair_data.frame)} | extractants: "
+        f"Pairs: {len(pair_data.frame)} | scope: {args.pair_scope} | extractants: "
         f"{pair_data.frame['extractant'].nunique()} | Delta3D: "
         f"{len(pair_data.delta3d_columns)} | descriptors: "
         f"{len(pair_data.descriptor_columns)}",
@@ -372,6 +388,7 @@ def main() -> int:
     write_json(pair_data.audit, output_dir / "pair_build_audit.json")
     write_json(
         {
+            "pair_scope": args.pair_scope,
             "delta3d_feature_set": args.delta3d_feature_set,
             "cohort_sha256": pair_data.audit["cohort_sha256"],
             "baseline_columns": list(pair_data.baseline_columns),

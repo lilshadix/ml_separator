@@ -8,13 +8,17 @@ import numpy as np
 import pandas as pd
 
 from lanthanide_separation.geometry_descriptors import (
+    COORDINATION_SHAPE_PREFIX,
     CORE_DESCRIPTOR_NAMES,
     ENCLOSURE_PREFIX,
+    GLOBAL_GEOMETRY_PREFIX,
     LIGAND_FIELD_PREFIX,
     MetalSiteDescriptorBuilder,
     attach_geometry_descriptors,
+    coordination_shape_descriptors,
     enclosure_descriptors,
     fibonacci_directions,
+    global_shape_descriptors,
     ligand_field_descriptors,
     permute_descriptors,
     validate_blocks,
@@ -175,6 +179,162 @@ class EnclosureTests(unittest.TestCase):
             self.assertAlmostEqual(value, candidate[name], places=1, msg=name)
 
 
+class GlobalShapeTests(unittest.TestCase):
+    def test_invariants_are_unchanged_by_translation_rotation_and_relabelling(
+        self,
+    ) -> None:
+        coordinates = np.array(
+            [
+                [-1.2, 0.4, 0.1],
+                [0.3, -0.8, 1.5],
+                [1.7, 0.2, -0.4],
+                [-0.1, 1.9, 0.7],
+                [0.6, -1.1, -1.3],
+                [-1.5, -0.6, 0.9],
+            ]
+        )
+        reference = global_shape_descriptors(coordinates)
+        permutation = np.random.default_rng(17).permutation(len(coordinates))
+        transformed = (
+            coordinates[permutation] @ random_rotation(13).transpose()
+            + np.array([8.0, -3.5, 11.2])
+        )
+        candidate = global_shape_descriptors(transformed)
+        self.assertEqual(set(reference), set(candidate))
+        for name, value in reference.items():
+            self.assertAlmostEqual(value, candidate[name], places=11, msg=name)
+
+    def test_regular_octahedron_has_known_isotropic_shape_and_hull(self) -> None:
+        scale = 2.4
+        features = global_shape_descriptors(octahedron(scale))
+        self.assertAlmostEqual(features["radius_of_gyration"], scale, places=12)
+        for index in (1, 2, 3):
+            self.assertAlmostEqual(
+                features[f"principal_variance_{index}"], scale**2 / 3.0, places=12
+            )
+            self.assertAlmostEqual(
+                features[f"principal_moment_of_inertia_{index}"],
+                2.0 * scale**2 / 3.0,
+                places=12,
+            )
+        self.assertAlmostEqual(features["normalized_asphericity"], 0.0, places=12)
+        self.assertAlmostEqual(
+            features["relative_shape_anisotropy"], 0.0, places=12
+        )
+        self.assertAlmostEqual(features["eccentricity"], 0.0, places=12)
+        self.assertAlmostEqual(
+            features["convex_hull_volume"], 4.0 * scale**3 / 3.0, places=11
+        )
+        self.assertAlmostEqual(
+            features["convex_hull_surface_area"],
+            4.0 * np.sqrt(3.0) * scale**2,
+            places=11,
+        )
+
+    def test_linear_cloud_keeps_shape_metrics_and_marks_hull_unavailable(self) -> None:
+        coordinates = np.array(
+            [[-2.0, 0.0, 0.0], [0.0, 0.0, 0.0], [2.0, 0.0, 0.0]]
+        )
+        features = global_shape_descriptors(coordinates)
+        self.assertAlmostEqual(features["normalized_asphericity"], 1.0, places=12)
+        self.assertAlmostEqual(
+            features["relative_shape_anisotropy"], 1.0, places=12
+        )
+        self.assertAlmostEqual(features["eccentricity"], 1.0, places=12)
+        self.assertEqual(features["convex_hull_volume"], 0.0)
+        self.assertEqual(features["convex_hull_surface_area"], 0.0)
+
+    def test_invalid_or_collapsed_coordinates_fail_closed(self) -> None:
+        with self.assertRaises(ValueError):
+            global_shape_descriptors(np.zeros((1, 3)))
+        with self.assertRaises(ValueError):
+            global_shape_descriptors(np.zeros((4, 3)))
+        invalid = octahedron()
+        invalid[0, 0] = np.nan
+        with self.assertRaises(ValueError):
+            global_shape_descriptors(invalid)
+
+
+class CoordinationShapeTests(unittest.TestCase):
+    def test_exact_invariants_survive_rigid_motion_and_donor_relabelling(
+        self,
+    ) -> None:
+        metal = np.array([1.7, -2.1, 0.8])
+        donor_positions = octahedron(2.4) + metal
+        reference = coordination_shape_descriptors(donor_positions - metal)
+
+        rotation = random_rotation(29)
+        translation = np.array([-8.0, 3.5, 12.2])
+        permutation = np.random.default_rng(31).permutation(len(donor_positions))
+        transformed_metal = metal @ rotation.transpose() + translation
+        transformed_donors = (
+            donor_positions[permutation] @ rotation.transpose() + translation
+        )
+        candidate = coordination_shape_descriptors(
+            transformed_donors - transformed_metal
+        )
+
+        self.assertEqual(set(reference), set(candidate))
+        for name, value in reference.items():
+            self.assertAlmostEqual(value, candidate[name], places=11, msg=name)
+
+    def test_regular_octahedron_has_known_shape_and_polyhedron_measures(self) -> None:
+        scale = 2.4
+        features = coordination_shape_descriptors(octahedron(scale))
+        for name in (
+            "radial_distortion_coefficient",
+            "radial_range_fraction",
+            "metal_offset_from_donor_centroid_fraction",
+            "coordination_normalized_asphericity",
+            "coordination_relative_shape_anisotropy",
+            "coordination_eccentricity",
+            "directional_relative_shape_anisotropy",
+            "directional_inversion_imbalance",
+        ):
+            self.assertAlmostEqual(features[name], 0.0, places=12, msg=name)
+        self.assertAlmostEqual(
+            features["coordination_polyhedron_volume"],
+            4.0 * scale**3 / 3.0,
+            places=11,
+        )
+        self.assertAlmostEqual(
+            features["coordination_polyhedron_surface_area"],
+            4.0 * np.sqrt(3.0) * scale**2,
+            places=11,
+        )
+
+    def test_radial_and_off_center_distortions_are_detected(self) -> None:
+        donors = octahedron(2.4)
+        donors[0] *= 1.2
+        donors += np.array([0.25, -0.05, 0.1])
+        features = coordination_shape_descriptors(donors)
+        self.assertGreater(features["radial_distortion_coefficient"], 0.0)
+        self.assertGreater(features["radial_range_fraction"], 0.0)
+        self.assertGreater(
+            features["metal_offset_from_donor_centroid_fraction"], 0.0
+        )
+        self.assertGreater(features["directional_inversion_imbalance"], 0.0)
+
+    def test_degenerate_hull_is_zero_but_invalid_shells_fail(self) -> None:
+        square = 2.4 * np.array(
+            [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [-1.0, 0.0, 0.0], [0.0, -1.0, 0.0]]
+        )
+        features = coordination_shape_descriptors(square)
+        self.assertEqual(features["coordination_polyhedron_volume"], 0.0)
+        self.assertEqual(features["coordination_polyhedron_surface_area"], 0.0)
+
+        with self.assertRaises(ValueError):
+            coordination_shape_descriptors(octahedron()[:2])
+        collapsed = octahedron()
+        collapsed[0] = [0.0, 0.0, 0.0]
+        with self.assertRaises(ValueError):
+            coordination_shape_descriptors(collapsed)
+        invalid = octahedron()
+        invalid[0, 0] = np.nan
+        with self.assertRaises(ValueError):
+            coordination_shape_descriptors(invalid)
+
+
 class BuilderTests(unittest.TestCase):
     def setUp(self) -> None:
         self._temporary = tempfile.TemporaryDirectory()
@@ -188,10 +348,34 @@ class BuilderTests(unittest.TestCase):
         descriptors = MetalSiteDescriptorBuilder(self.path, profile="core").build()
         expected = [
             f"{LIGAND_FIELD_PREFIX}{name}" for name in CORE_DESCRIPTOR_NAMES["ligand_field"]
-        ] + [f"{ENCLOSURE_PREFIX}{name}" for name in CORE_DESCRIPTOR_NAMES["enclosure"]]
+        ] + [
+            f"{ENCLOSURE_PREFIX}{name}" for name in CORE_DESCRIPTOR_NAMES["enclosure"]
+        ] + [
+            f"{GLOBAL_GEOMETRY_PREFIX}{name}"
+            for name in CORE_DESCRIPTOR_NAMES["global_shape"]
+        ] + [
+            f"{COORDINATION_SHAPE_PREFIX}{name}"
+            for name in CORE_DESCRIPTOR_NAMES["coordination_shape"]
+        ]
         self.assertEqual(list(descriptors.columns), expected)
         self.assertEqual(len(descriptors.frame), 2)
         self.assertEqual(descriptors.audit["profile"], "core")
+        self.assertEqual(descriptors.audit["global_shape_hull_available_count"], 2)
+        self.assertEqual(descriptors.audit["global_shape_hull_unavailable_count"], 0)
+        self.assertEqual(
+            descriptors.audit["global_shape_coordinate_selection"],
+            "all atoms including metal",
+        )
+        self.assertEqual(
+            descriptors.audit["coordination_shape_hull_available_count"], 2
+        )
+        self.assertEqual(
+            descriptors.audit["coordination_shape_hull_unavailable_count"], 0
+        )
+        self.assertIsNone(
+            descriptors.audit["coordination_shape_reference_geometry"]
+        )
+        self.assertIsNone(descriptors.audit["coordination_shape_sampling_grid"])
 
     def test_full_profile_is_a_strict_superset(self) -> None:
         core = MetalSiteDescriptorBuilder(self.path, profile="core").build()
@@ -204,6 +388,76 @@ class BuilderTests(unittest.TestCase):
         ).build()
         self.assertTrue(
             all(name.startswith(LIGAND_FIELD_PREFIX) for name in descriptors.columns)
+        )
+
+    def test_global_shape_block_has_explicit_namespace(self) -> None:
+        descriptors = MetalSiteDescriptorBuilder(
+            self.path, blocks=("global_shape",)
+        ).build()
+        self.assertEqual(
+            list(descriptors.columns),
+            [
+                f"{GLOBAL_GEOMETRY_PREFIX}{name}"
+                for name in CORE_DESCRIPTOR_NAMES["global_shape"]
+            ],
+        )
+
+    def test_coordination_shape_block_has_explicit_namespace(self) -> None:
+        descriptors = MetalSiteDescriptorBuilder(
+            self.path, blocks=("coordination_shape",)
+        ).build()
+        self.assertEqual(
+            list(descriptors.columns),
+            [
+                f"{COORDINATION_SHAPE_PREFIX}{name}"
+                for name in CORE_DESCRIPTOR_NAMES["coordination_shape"]
+            ],
+        )
+        self.assertEqual(
+            descriptors.audit["coordination_shape_invariances"],
+            ["translation", "orthogonal_transform", "donor_permutation"],
+        )
+
+    def test_degenerate_coordination_hull_is_identified_by_build_id(self) -> None:
+        planar_path = Path(self._temporary.name) / "planar_vr.npz"
+        donors = 2.4 * np.array(
+            [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [-1.0, 0.0, 0.0], [0.0, -1.0, 0.0]]
+        )
+        coordinates = np.vstack([np.zeros((1, 3)), donors])
+        np.savez(
+            planar_path,
+            coordinates=coordinates.astype(np.float32),
+            atomic_numbers=np.array([58, 8, 8, 8, 8], dtype=np.int16),
+            is_metal=np.array([1, 0, 0, 0, 0], dtype=np.int8),
+            is_coord_donor=np.array([0, 1, 1, 1, 1], dtype=np.int8),
+            node_ptr=np.array([0, 5], dtype=np.int64),
+            build_ids=np.array(["planar_geom"]),
+        )
+
+        descriptors = MetalSiteDescriptorBuilder(
+            planar_path, blocks=("coordination_shape",)
+        ).build()
+        self.assertEqual(
+            descriptors.frame[
+                f"{COORDINATION_SHAPE_PREFIX}coordination_polyhedron_volume"
+            ].iloc[0],
+            0.0,
+        )
+        self.assertEqual(
+            descriptors.frame[
+                f"{COORDINATION_SHAPE_PREFIX}coordination_polyhedron_surface_area"
+            ].iloc[0],
+            0.0,
+        )
+        self.assertEqual(
+            descriptors.audit["coordination_shape_hull_available_count"], 0
+        )
+        self.assertEqual(
+            descriptors.audit["coordination_shape_hull_unavailable_count"], 1
+        )
+        self.assertEqual(
+            descriptors.audit["coordination_shape_hull_unavailable_build_ids"],
+            ["planar_geom"],
         )
 
     def test_unknown_block_is_rejected(self) -> None:

@@ -21,6 +21,7 @@ if [[ -z "$PROJECT_DIR" ]]; then
 fi
 PROJECT_DIR=$(cd "$PROJECT_DIR" && pwd -P)
 PYTHON_BIN=${PYTHON_BIN:-$PROJECT_DIR/.venv/bin/python}
+PAIR_SCOPE=${PAIR_SCOPE:-all}
 
 if [[ -z "${RUN_ROOT:-}" || "$RUN_ROOT" != /* ]]; then
   echo "RUN_ROOT must be an absolute path." >&2
@@ -32,6 +33,10 @@ RUN_ROOT=$(cd "$RUN_ROOT" && pwd -P)
 EXPECTED_RUNS=${EXPECTED_RUNS:-5}
 if [[ ! "$EXPECTED_RUNS" =~ ^[2-9][0-9]*$ ]]; then
   echo "EXPECTED_RUNS must be an integer of at least 2." >&2
+  exit 2
+fi
+if [[ "$PAIR_SCOPE" != all && "$PAIR_SCOPE" != adjacent ]]; then
+  echo "PAIR_SCOPE must be all or adjacent." >&2
   exit 2
 fi
 RESUME_AGGREGATE=${RESUME_AGGREGATE:-1}
@@ -62,6 +67,7 @@ for arm in real null; do
   echo "Aggregating arm=$arm"
   if ! "$PYTHON_BIN" -u "$PROJECT_DIR/scripts/aggregate_delta3d_runs.py" \
     --run-root "$arm_root" \
+    --expected-pair-scope "$PAIR_SCOPE" \
     --comparison extended_vs_delta3d \
     --expected-runs "$EXPECTED_RUNS"; then
     echo "Aggregation failed for arm=$arm" >&2

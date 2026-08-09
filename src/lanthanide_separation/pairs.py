@@ -1,17 +1,20 @@
-"""Build leakage-auditable adjacent-lanthanide selectivity pairs.
+"""Build leakage-auditable lanthanide selectivity pairs.
 
 The model target is a directly observed, condition-matched separation factor:
 
     log_SF_A_over_B = log_D_A - log_D_B
 
-where A is the lighter lanthanide and B is the next element in atomic-number
-order.  Nd-Sm is deliberately *not* a pair: promethium lies between them.
+where A is the lighter lanthanide and B is the heavier lanthanide.  The primary
+``all`` scope includes every observed A/B combination under exactly matched
+extractant and experimental conditions.  A legacy ``adjacent`` scope remains
+available for reproducing the original nearest-neighbour benchmark.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 import hashlib
+from itertools import combinations
 import json
 from typing import Any, Iterable
 
@@ -83,6 +86,12 @@ COMPACT_3D_COLUMNS = {
     "feat3d__polyhedron_scalars__coreCN_donor_gap",
 }
 DERIVED_3D_PREFIX = "feat3d__derived_invariant__"
+DONOR_ELEMENT_ATOMIC_NUMBERS: dict[str, int] = {
+    "N": 7,
+    "O": 8,
+    "P": 15,
+    "S": 16,
+}
 
 # Dataset-specific, provenance-backed quarantine.  The first rule catches rows
 # whose canonical structure, ECFP and 3D complex are TODGA although the named
@@ -97,6 +106,7 @@ KNOWN_CENSORED_SAFE_IDS = {
 
 PAIR_TARGET_COLUMN = "log_SF_A_over_B"
 EXTRACTANT_COLUMN = "canonical_smiles"
+PAIR_SCOPES = ("all", "adjacent")
 
 
 @dataclass(frozen=True)
@@ -240,7 +250,11 @@ def _select_numeric_columns(df: pd.DataFrame, columns: Iterable[str]) -> list[st
     return [c for c in columns if c in df.columns and pd.api.types.is_numeric_dtype(df[c])]
 
 
-def _add_derived_invariant_3d_features(df: pd.DataFrame) -> pd.DataFrame:
+def _add_derived_invariant_3d_features(
+    df: pd.DataFrame,
+    *,
+    include_donor_composition_counts: bool = False,
+) -> pd.DataFrame:
     """Add compact permutation-invariant shell summaries from ranked inputs.
 
     Ranked arrays in the bundle can be zero padded.  Zero is not a physical
@@ -291,6 +305,38 @@ def _add_derived_invariant_3d_features(df: pd.DataFrame) -> pd.DataFrame:
         )
         result[f"{DERIVED_3D_PREFIX}donor_distance_q75"] = ranked_distances.quantile(
             0.75, axis=1
+        )
+
+    if include_donor_composition_counts:
+        donor_element_columns = [
+            column
+            for column in result.columns
+            if str(column).startswith(
+                "feat3d__polyhedron__donor_atomic_number_"
+            )
+        ]
+        if not donor_element_columns:
+            raise ValueError(
+                "Donor-composition counts were requested but ranked donor atomic "
+                "numbers are absent."
+            )
+        donor_atomic_numbers = result[donor_element_columns].apply(
+            pd.to_numeric, errors="coerce"
+        )
+        donor_atomic_numbers = donor_atomic_numbers.mask(donor_atomic_numbers <= 0.0)
+        has_donor = donor_atomic_numbers.notna().any(axis=1)
+        known_atomic_numbers = tuple(DONOR_ELEMENT_ATOMIC_NUMBERS.values())
+        for symbol, atomic_number in DONOR_ELEMENT_ATOMIC_NUMBERS.items():
+            counts = donor_atomic_numbers.eq(float(atomic_number)).sum(axis=1).astype(float)
+            result[f"{DERIVED_3D_PREFIX}donor_count_{symbol}"] = counts.where(
+                has_donor, np.nan
+            )
+        other_counts = (
+            donor_atomic_numbers.notna()
+            & ~donor_atomic_numbers.isin(known_atomic_numbers)
+        ).sum(axis=1).astype(float)
+        result[f"{DERIVED_3D_PREFIX}donor_count_other"] = other_counts.where(
+            has_donor, np.nan
         )
 
     distance_mean = "feat3d__complex_physical__ln_donor_distance_mean"
@@ -413,9 +459,10 @@ def _pair_cohort_sha256(pairs: pd.DataFrame) -> str:
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
-def build_adjacent_pair_dataset(
+def build_lanthanide_pair_dataset(
     source: pd.DataFrame,
     *,
+    pair_scope: str = "all",
     require_geometry: bool = True,
     replicate_policy: str = "unique",
     quarantine_known_bad: bool = True,
@@ -424,13 +471,18 @@ def build_adjacent_pair_dataset(
     delta3d_feature_set: str = "compact-invariant",
     require_complete_3d: bool | None = None,
     geometry_descriptor_blocks: Iterable[str] = (),
+    include_donor_composition_counts: bool = False,
 ) -> PairDataset:
-    """Create condition-matched, true-adjacent lanthanide pairs.
+    """Create condition-matched lanthanide pairs for the requested scope.
 
     Parameters
     ----------
     source:
         Row-level extraction dataset.
+    pair_scope:
+        ``all`` creates every unordered observed metal pair within an exact
+        extractant/condition cell. ``adjacent`` retains only atomic-number
+        neighbours and exists to reproduce the historical benchmark.
     require_geometry:
         Require accepted 3D geometry for both metals.  Keeping this true gives a
         common cohort for the 2D-vs-3D ablation.
@@ -459,9 +511,15 @@ def build_adjacent_pair_dataset(
         columns must already be attached to ``source`` by
         :func:`~lanthanide_separation.geometry_descriptors.attach_geometry_descriptors`.
         The empty default reproduces the frozen contract exactly.
+    include_donor_composition_counts:
+        Add permutation-invariant N/O/P/S/other donor counts derived from the
+        ranked donor atomic-number fields. This is enabled by the geometry
+        ablation runner and remains off for legacy frozen-contract reproduction.
     """
 
     _validate_source(source)
+    if pair_scope not in PAIR_SCOPES:
+        raise ValueError(f"pair_scope must be one of {PAIR_SCOPES}; got {pair_scope!r}.")
     if replicate_policy not in {"median", "unique"}:
         raise ValueError("replicate_policy must be 'median' or 'unique'.")
     descriptor_blocks = validate_blocks(geometry_descriptor_blocks)
@@ -493,7 +551,10 @@ def build_adjacent_pair_dataset(
     finite_target = np.isfinite(pd.to_numeric(df["log_D"], errors="coerce"))
     invalid_target_rows = int((~finite_target).sum())
     df = df.loc[finite_target].copy()
-    df = _add_derived_invariant_3d_features(df)
+    df = _add_derived_invariant_3d_features(
+        df,
+        include_donor_composition_counts=include_donor_composition_counts,
+    )
 
     (
         condition_cols,
@@ -545,6 +606,12 @@ def build_adjacent_pair_dataset(
         "vr_graph_index",
         "_ecfp_exact_cluster",
     ]
+    optional_geometry_metadata = [
+        column
+        for column in ("geometry_status", "geometry_qc_class")
+        if column in df.columns
+    ]
+    metadata_to_aggregate.extend(optional_geometry_metadata)
 
     selected = list(
         dict.fromkeys(cell_key + ["geometry_ok"] + numeric_to_aggregate + metadata_to_aggregate)
@@ -564,6 +631,7 @@ def build_adjacent_pair_dataset(
     cells["Z"] = cells["metal"].map(LANTHANIDE_Z).astype(int)
 
     pair_rows: list[dict[str, Any]] = []
+    candidate_pairs_before_filters = 0
     true_adjacent_before_filters = 0
     excluded_missing_geometry = 0
     excluded_replicates = 0
@@ -574,12 +642,18 @@ def build_adjacent_pair_dataset(
             condition_values if isinstance(condition_values, tuple) else (condition_values,)
         )
         by_z = {int(row["Z"]): row for _, row in group.iterrows()}
-        for z_a in sorted(by_z):
+        z_values = sorted(by_z)
+        if pair_scope == "all":
+            candidate_z_pairs = combinations(z_values, 2)
+        else:
+            candidate_z_pairs = (
+                (z_a, z_a + 1) for z_a in z_values if z_a + 1 in by_z
+            )
+        for z_a, z_b in candidate_z_pairs:
             row_a = by_z[z_a]
-            row_b = by_z.get(z_a + 1)
-            if row_b is None:
-                continue
-            true_adjacent_before_filters += 1
+            row_b = by_z[z_b]
+            candidate_pairs_before_filters += 1
+            true_adjacent_before_filters += int(z_b - z_a == 1)
 
             if require_geometry and not (bool(row_a["geometry_ok"]) and bool(row_b["geometry_ok"])):
                 excluded_missing_geometry += 1
@@ -608,6 +682,8 @@ def build_adjacent_pair_dataset(
                 "metal_A": metal_a,
                 "metal_B": metal_b,
                 "pair_label": f"{metal_a}-{metal_b}",
+                "geometry_ok_A": bool(row_a["geometry_ok"]),
+                "geometry_ok_B": bool(row_b["geometry_ok"]),
                 "geometry_key_A": str(row_a["geometry_key"]),
                 "geometry_key_B": str(row_b["geometry_key"]),
                 "build_id_A": str(row_a["build_id"]),
@@ -630,14 +706,19 @@ def build_adjacent_pair_dataset(
                 "log_D_B": float(row_b["log_D"]),
                 PAIR_TARGET_COLUMN: float(row_a["log_D"] - row_b["log_D"]),
                 "pair__Z_A": float(z_a),
-                "pair__Z_B": float(z_a + 1),
-                "pair__Z_mean": float(z_a + 0.5),
-                "pair__delta_Z": -1.0,
+                "pair__Z_B": float(z_b),
+                "pair__Z_mean": float((z_a + z_b) / 2.0),
+                "pair__delta_Z": float(z_a - z_b),
                 "pair__ionic_radius_A": radius_a,
                 "pair__ionic_radius_B": radius_b,
                 "pair__ionic_radius_mean": (radius_a + radius_b) / 2.0,
                 "pair__delta_ionic_radius": radius_a - radius_b,
             }
+            for column in optional_geometry_metadata:
+                value_a = row_a[column]
+                value_b = row_b[column]
+                record[f"{column}_A"] = None if pd.isna(value_a) else str(value_a)
+                record[f"{column}_B"] = None if pd.isna(value_b) else str(value_b)
             record["SF_A_over_B"] = float(10.0 ** record[PAIR_TARGET_COLUMN])
 
             for column in condition_cols:
@@ -656,7 +737,9 @@ def build_adjacent_pair_dataset(
 
     pairs = pd.DataFrame(pair_rows)
     if pairs.empty:
-        raise ValueError("No true-adjacent, condition-matched pairs survived the filters.")
+        if pair_scope == "adjacent":
+            raise ValueError("No true-adjacent, condition-matched pairs survived the filters.")
+        raise ValueError("No condition-matched lanthanide pairs survived the filters.")
 
     baseline_columns = tuple(
         [
@@ -713,6 +796,23 @@ def build_adjacent_pair_dataset(
         raise AssertionError(f"Forbidden target/identifier features entered the model: {leaked}")
 
     cohort_sha256 = _pair_cohort_sha256(pairs)
+    atomic_number_spans = (
+        pairs["pair__Z_B"].to_numpy(dtype=int)
+        - pairs["pair__Z_A"].to_numpy(dtype=int)
+    )
+    span_counts = pd.Series(atomic_number_spans).value_counts().sort_index()
+    source_usage = pd.concat(
+        [pairs["source_id_A"], pairs["source_id_B"]], ignore_index=True
+    ).value_counts()
+    source_geometry_ok = df["geometry_ok"].fillna(False).astype(bool)
+    source_geometry_qc_counts = (
+        df["geometry_qc_class"].astype("string").fillna("UNAVAILABLE_OR_UNCLASSIFIED")
+        .value_counts()
+        .sort_index()
+        .to_dict()
+        if "geometry_qc_class" in df.columns
+        else {"UNAVAILABLE_OR_UNCLASSIFIED": int((~source_geometry_ok).sum())}
+    )
 
     audit = {
         "source_rows": original_rows,
@@ -723,6 +823,11 @@ def build_adjacent_pair_dataset(
         "known_target_extreme_rows_retained": int(
             df["safe_exp_id"].astype(str).isin(KNOWN_CENSORED_SAFE_IDS).sum()
         ),
+        "source_geometry_ok_rows": int(source_geometry_ok.sum()),
+        "source_geometry_unavailable_or_rejected_rows": int((~source_geometry_ok).sum()),
+        "source_geometry_qc_class_counts": {
+            str(label): int(count) for label, count in source_geometry_qc_counts.items()
+        },
         "incomplete_condition_rows_seen": incomplete_condition_rows,
         "require_complete_conditions": bool(require_complete_conditions),
         "extractant_group_identity_mismatches": group_identity_mismatches,
@@ -733,6 +838,9 @@ def build_adjacent_pair_dataset(
         "candidate_invariant_3d_count": len(invariant_3d_cols),
         "available_invariant_3d_count": len(all_invariant_3d_cols),
         "delta3d_feature_set": delta3d_feature_set,
+        "include_donor_composition_counts": bool(
+            include_donor_composition_counts
+        ),
         "excluded_by_delta3d_feature_set": [
             c for c in all_invariant_3d_cols if c not in invariant_3d_cols
         ],
@@ -756,6 +864,8 @@ def build_adjacent_pair_dataset(
             (cells["target_max"] - cells["target_min"]).max()
         ),
         "cells_with_multiple_geometry_keys": int((cells["n_geometry_keys"] > 1).sum()),
+        "pair_scope": pair_scope,
+        "candidate_pairs_before_pair_filters": candidate_pairs_before_filters,
         "true_adjacent_pairs_before_pair_filters": true_adjacent_before_filters,
         "pairs_excluded_missing_geometry": excluded_missing_geometry,
         "pairs_excluded_by_replicate_policy": excluded_replicates,
@@ -771,9 +881,21 @@ def build_adjacent_pair_dataset(
         "pair_extractants": int(pairs["extractant"].nunique()),
         "pair_ecfp_exact_clusters": int(pairs["ecfp_exact_cluster"].nunique()),
         "pairs_by_type": pairs["pair_label"].value_counts().sort_index().to_dict(),
+        "pairs_by_atomic_number_span": {
+            str(int(span)): int(count) for span, count in span_counts.items()
+        },
+        "minimum_atomic_number_span": int(atomic_number_spans.min()),
+        "maximum_atomic_number_span": int(atomic_number_spans.max()),
+        "nonadjacent_pair_rows": int((atomic_number_spans > 1).sum()),
+        "unique_source_rows_in_pairs": int(len(source_usage)),
+        "pair_side_usages": int(source_usage.sum()),
+        "maximum_pairs_per_source_row": int(source_usage.max()),
         "replicate_policy": replicate_policy,
         "require_geometry": bool(require_geometry),
-        "target_definition": "log_D_A - log_D_B; A has lower atomic number; delta_Z == -1",
+        "target_definition": (
+            "log_D_A - log_D_B; A has lower atomic number; "
+            "delta_Z = Z_A - Z_B < 0"
+        ),
     }
     return PairDataset(
         frame=pairs,
@@ -782,6 +904,34 @@ def build_adjacent_pair_dataset(
         audit=audit,
         quarantine=quarantine,
         descriptor_columns=descriptor_columns,
+    )
+
+
+def build_adjacent_pair_dataset(
+    source: pd.DataFrame,
+    *,
+    require_geometry: bool = True,
+    replicate_policy: str = "unique",
+    quarantine_known_bad: bool = True,
+    quarantine_known_censored_targets: bool = False,
+    require_complete_conditions: bool = True,
+    delta3d_feature_set: str = "compact-invariant",
+    require_complete_3d: bool | None = None,
+    geometry_descriptor_blocks: Iterable[str] = (),
+) -> PairDataset:
+    """Build the legacy true-adjacent cohort for reproducibility."""
+
+    return build_lanthanide_pair_dataset(
+        source,
+        pair_scope="adjacent",
+        require_geometry=require_geometry,
+        replicate_policy=replicate_policy,
+        quarantine_known_bad=quarantine_known_bad,
+        quarantine_known_censored_targets=quarantine_known_censored_targets,
+        require_complete_conditions=require_complete_conditions,
+        delta3d_feature_set=delta3d_feature_set,
+        require_complete_3d=require_complete_3d,
+        geometry_descriptor_blocks=geometry_descriptor_blocks,
     )
 
 

@@ -20,6 +20,7 @@ PROJECT_DIR=$(cd "$PROJECT_DIR" && pwd -P)
 PYTHON_BIN=${PYTHON_BIN:-$PROJECT_DIR/.venv/bin/python}
 RUN_ROOT=${RUN_ROOT:?RUN_ROOT is required}
 EXPECTED_RUNS=${EXPECTED_RUNS:?EXPECTED_RUNS is required}
+PAIR_SCOPE=${PAIR_SCOPE:-all}
 RESUME_AGGREGATE=${RESUME_AGGREGATE:-1}
 
 # Required by clusters that enforce an explicit OpenMP/cpus-per-task contract.
@@ -43,18 +44,32 @@ if [[ "$RESUME_AGGREGATE" != 0 && "$RESUME_AGGREGATE" != 1 ]]; then
   echo "RESUME_AGGREGATE must be 0 or 1." >&2
   exit 2
 fi
+if [[ "$PAIR_SCOPE" != all && "$PAIR_SCOPE" != adjacent ]]; then
+  echo "PAIR_SCOPE must be all or adjacent." >&2
+  exit 2
+fi
 
 validate_aggregate() {
   local directory=$1
+  local expected_pair_scope=$2
   "$PYTHON_BIN" -c '
 import hashlib, json, pathlib, sys
 directory = pathlib.Path(sys.argv[1])
+expected_pair_scope = sys.argv[2]
 summary = directory / "aggregate_summary.json"
 marker = directory / "_SUCCESS.json"
 if not summary.is_file() or not marker.is_file() or (directory / "_INCOMPLETE").exists():
     raise SystemExit(1)
 payload = json.loads(marker.read_text(encoding="utf-8"))
+summary_payload = json.loads(summary.read_text(encoding="utf-8"))
 digest = hashlib.sha256(summary.read_bytes()).hexdigest()
+validation = summary_payload.get("validation", {})
+if payload.get("pair_scope") != expected_pair_scope:
+    raise SystemExit(1)
+if validation.get("expected_pair_scope") != expected_pair_scope:
+    raise SystemExit(1)
+if validation.get("observed_pair_scopes") != [expected_pair_scope]:
+    raise SystemExit(1)
 artifact_hashes = payload.get("artifact_sha256", {})
 if not isinstance(artifact_hashes, dict) or not artifact_hashes:
     raise SystemExit(1)
@@ -66,11 +81,11 @@ for name, expected in artifact_hashes.items():
     if not artifact.is_file() or hashlib.sha256(artifact.read_bytes()).hexdigest() != expected:
         raise SystemExit(1)
 raise SystemExit(0 if payload.get("status") == "complete" and payload.get("aggregate_summary_sha256") == digest else 1)
-' "$directory"
+' "$directory" "$expected_pair_scope"
 }
 
 if [[ -e "$FINAL_DIR" ]]; then
-  if validate_aggregate "$FINAL_DIR"; then
+  if validate_aggregate "$FINAL_DIR" "$PAIR_SCOPE"; then
     if [[ "$RESUME_AGGREGATE" == 1 ]]; then
       echo "Validated aggregate already exists; skipping: $FINAL_DIR"
       exit 0
@@ -97,11 +112,12 @@ fi
 "$PYTHON_BIN" -u "$PROJECT_DIR/scripts/aggregate_simplicial_runs.py" \
   --run-root "$RUN_ROOT" \
   --output-dir "$ATTEMPT_DIR" \
+  --expected-pair-scope "$PAIR_SCOPE" \
   --expected-runs "$EXPECTED_RUNS" \
   --ensemble-bootstrap "${ENSEMBLE_BOOTSTRAP:-5000}" \
   --ensemble-bootstrap-seed "${ENSEMBLE_BOOTSTRAP_SEED:-8675309}"
 
-if ! validate_aggregate "$ATTEMPT_DIR"; then
+if ! validate_aggregate "$ATTEMPT_DIR" "$PAIR_SCOPE"; then
   echo "Aggregator returned without a valid completion contract: $ATTEMPT_DIR" >&2
   exit 2
 fi
@@ -109,7 +125,7 @@ fi
 exec 9>"$RUN_ROOT/.publish.lock"
 flock 9
 if [[ -e "$FINAL_DIR" ]]; then
-  if ! validate_aggregate "$FINAL_DIR"; then
+  if ! validate_aggregate "$FINAL_DIR" "$PAIR_SCOPE"; then
     echo "A competing job published an invalid aggregate: $FINAL_DIR" >&2
     exit 2
   fi
@@ -119,7 +135,7 @@ else
 fi
 flock -u 9
 
-if ! validate_aggregate "$FINAL_DIR"; then
+if ! validate_aggregate "$FINAL_DIR" "$PAIR_SCOPE"; then
   echo "Final aggregate failed post-publication validation: $FINAL_DIR" >&2
   exit 2
 fi

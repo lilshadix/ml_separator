@@ -4,13 +4,13 @@
 
 | № | Направление | Новизна | Реализуемость сейчас | Leakage safety |
 |---|---|---:|---:|---:|
-| 1 | Counterfactual adjacent-Ln Delta3D: предсказывать `Delta logD` по изменению одной и той же координационной среды при замене Ln | 4.5/5 | 5/5 | 5/5 |
+| 1 | Counterfactual all-pairs Ln Delta3D: предсказывать `Delta logD` по изменению одной и той же координационной среды при замене любой пары Ln | 4.5/5 | 5/5 | 5/5 |
 | 2 | Metal-centered many-body representation: radial Ln-donor и angular donor-Ln-donor terms, shape/strain invariants | 3.5/5 | 5/5 | 5/5 |
 | 3 | Ensemble нескольких conformers, CN, nitrate denticity и stoichiometry с rank/quantile pooling | 4.5/5 | 3/5 | 5/5 |
 | 4 | Preorganization/reorganization: free-ligand vs bound-ligand RMSD, strain energy и bite-angle change | 5/5 | 3.5/5 | 5/5 |
 | 5 | Hydration/speciation mixture: target-free состояния с водой, nitrate и разным CN, объединённые thermodynamic pooling | 5/5 | 2/5 | 4/5 |
 | 6 | Frozen OMol25/UMA metal-shell embeddings и force/relaxation diagnostics | 5/5 | 2.5/5 | 5/5 |
-| 7 | Full-series multitask model: общий `logD` head плюс adjacent-difference loss | 4/5 | 4.5/5 | 5/5 |
+| 7 | Full-series multitask model: общий `logD` head плюс all-pairs difference loss | 4/5 | 4.5/5 | 5/5 |
 
 ## Выбранный вариант
 
@@ -23,7 +23,7 @@ SNN не обучается на полном молекулярном VR-ком
 Она выделяет замкнутый coordination subcomplex: Ln, отмеченные доноры в пределах
 3.10 Å, все их VR-рёбра и только треугольники `Ln-D_i-D_j`. Это уменьшает
 переобучение на ligand identity и напрямую кодирует many-body response первой
-координационной сферы на замену соседнего металла.
+координационной сферы на замену металла в любой части лантанидного ряда.
 
 Каждый 2-симплекс несёт явную инвариантную геометрию: три отсортированные
 стороны, нормированную площадь, triangle quality и косинус угла
@@ -99,7 +99,8 @@ Metal-centered расстояния и CN физически мотивиров�
 6. После появления настоящих series IDs проверить block-specific shrinkage или
    multi-kernel model, где inner CV может дать 3D-блоку нулевой вес.
 7. Провести prospectively frozen тест: заранее зафиксировать неизвестные
-   экстрагенты, затем измерить их adjacent separation factors в лаборатории.
+   экстрагенты, затем измерить separation factors для набора ближних и дальних
+   пар лантанидов в лаборатории.
 
 ## Критерий инновационного результата
 

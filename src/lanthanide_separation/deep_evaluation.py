@@ -665,6 +665,7 @@ def nested_simplicial_benchmark(
         predictions[f"prediction_{model_name}"] = np.nan
 
     leakage_rows: list[dict[str, Any]] = []
+    all_pair_types = set(frame["pair_label"].astype(str))
     tuning_rows: list[dict[str, Any]] = []
     history_rows: list[dict[str, Any]] = []
     selected_rows: list[dict[str, Any]] = []
@@ -672,6 +673,8 @@ def nested_simplicial_benchmark(
     for outer_fold, (train_indices, test_indices) in enumerate(outer_split_list):
         train_frame = frame.iloc[train_indices]
         test_frame = frame.iloc[test_indices]
+        train_pair_types = set(train_frame["pair_label"].astype(str))
+        test_pair_types = set(test_frame["pair_label"].astype(str))
 
         def identity_overlap(columns: tuple[str, ...]) -> int:
             train_values = set(
@@ -687,6 +690,10 @@ def nested_simplicial_benchmark(
             "outer_split_seed": int(split_seed),
             "train_rows": len(train_indices),
             "test_rows": len(test_indices),
+            "train_pair_types": len(train_pair_types),
+            "test_pair_types": len(test_pair_types),
+            "pair_types_missing_from_train": sorted(all_pair_types - train_pair_types),
+            "pair_types_missing_from_test": sorted(all_pair_types - test_pair_types),
             "group_overlap": identity_overlap((group_column,)),
             "extractant_overlap": identity_overlap(("extractant",)),
             "ecfp_exact_cluster_overlap": identity_overlap(("ecfp_exact_cluster",)),
@@ -1029,6 +1036,7 @@ def nested_simplicial_benchmark(
     )
     summary = {
         "protocol": {
+            "pair_scope": pair_data.audit.get("pair_scope", "adjacent"),
             "model_family": (
                 "guarded hybrid of tabular Delta3D and metal-centred "
                 "0/1/2-simplex Siamese neural network"
@@ -1091,6 +1099,7 @@ def nested_simplicial_benchmark(
     fold_assignments = predictions[
         ["pair_id", "extractant", "ecfp_exact_cluster", "outer_fold"]
     ].copy()
+    fold_assignments["pair_scope"] = pair_data.audit.get("pair_scope", "adjacent")
     fold_assignments["outer_split_seed"] = int(split_seed)
     return SimplicialBenchmarkResult(
         summary=summary,

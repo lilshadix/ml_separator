@@ -1,21 +1,27 @@
 # 3D-модели сепарации лантанидов
 
-Репозиторий содержит два leakage-safe benchmark для прямого предсказания
-сепарации соседних лантанидов:
+Репозиторий содержит три leakage-safe benchmark для прямого предсказания
+сепарации произвольных пар лантанидов:
 
 1. tabular `Delta3D` на инвариантных статистиках координационной сферы;
 2. основной исследовательский вариант — сиамская simplicial neural network
-   (SNN) по готовому Vietoris–Rips asset.
+   (SNN) по готовому Vietoris–Rips asset;
+3. pre-specified `A0`–`A6` ablation, которая отделяет CONDITIONS, LN, 2D,
+   global 3D и local metal-centred 3D на одних и тех же frozen folds.
 
-Цель обеих моделей:
+Общая целевая величина:
 
 ```text
 log_SF(A/B) = log_D(A) - log_D(B)
 ```
 
-`A` — более лёгкий элемент, `B` — следующий элемент по атомному номеру.
-Строятся только настоящие adjacent-пары; `Nd-Sm` не является соседней парой,
-поскольку между ними находится прометий.
+`A` — более лёгкий элемент, `B` — любой более тяжёлый элемент, наблюдаемый для
+того же экстрагента при точно совпадающих экспериментальных условиях. Primary
+scope `all` строит все неупорядоченные комбинации без зеркальных дублей; поэтому
+`Nd-Sm` является допустимой парой, даже если Pm отсутствует в данных. Scope
+`adjacent` оставлен только для воспроизведения исторического nearest-neighbour
+benchmark и включается явно через `--pair-scope adjacent` или
+`PAIR_SCOPE=adjacent` в SLURM wrapper.
 
 ## Почему simplicial-модель
 
@@ -76,6 +82,8 @@ transfer, но не обещает улучшения на неизвестно�
   leave-extractants-out и одновременно запрещает ECFP-collision leakage;
 - seeded shuffled `StratifiedGroupKFold`, stratification только по `pair_label`,
   не по target;
+- fold audit сохраняет число представленных типов пар и отсутствующие типы для
+  каждого train/test split;
 - outer и inner split seeds отделены от model seed;
 - одинаковые inner folds для 2D, tabular Delta3D и SNN branches;
 - scaling и imputation обучаются только на held-in группах; число neural epochs
@@ -98,15 +106,78 @@ python -m venv .venv
 .venv/bin/python -m pip install -e '.[deep]'
 ```
 
+## Полная A0–A6 абляция 2D против 3D
+
+Новый auditable runner отвечает на основной вопрос `A2` против `A5`: добавляет
+ли local coordination 3D переносимый сигнал поверх CONDITIONS + LN + полного
+2D-блока. Он также выполняет `A2` против `A6`, `A3` против `A2`, несколько
+training-only geometry shuffles и непустые exploratory `D1`–`D5` blocks.
+
+```bash
+.venv/bin/python scripts/run_ablation_benchmark.py \
+  --pair-scope all \
+  --group-mode extractant \
+  --split-seed 104729 \
+  --model-seed 42 \
+  --output-dir runs/ablation_example
+```
+
+На текущем immutable parquet primary scope содержит 6 699 пар 91 типа:
+1 081 соседнюю и 5 618 несоседних, с атомным span от 1 до 14. Эти строки
+коррелированы: панель из `n` металлов даёт `n(n-1)/2` pair contrasts, но не
+столько же независимых экспериментов. Поэтому целые extractant panels остаются
+в одном fold, обучение выравнивает веса групп, а вывод опирается на
+per-extractant metrics и paired group bootstrap, а не на трактовку всех 6 699
+строк как независимых наблюдений.
+
+`extractant` здесь означает canonical-SMILES identity и является primary
+leave-extractants-out протоколом из preregistration. Совпадение exact-ECFP между
+двумя разными SMILES записывается как sensitivity warning, но не подменяет
+определение extractant. Более строгий secondary run включается через
+`--group-mode ecfp-exact-cluster` и уже требует нулевого ECFP overlap.
+
+Каждый run сохраняет machine-readable `feature_registry.json`, одну frozen
+outer/inner fold plan для всех arms, fold-local preprocessing, long OOF,
+paired deltas, per-extractant/per-Ln tables, geometry QC и shuffle provenance.
+Dipole, partial charges и другие xTB/electronic quantities явно перечисляются
+как excluded non-geometric source columns и не входят в A0–A6: основной
+`A2`-vs-`A5` contrast изолирует координатную coordination geometry.
+Предзаданные точные coordinate-only blocks — `global_shape` и
+`coordination_shape` (D4 shape/distortion и D5 donor-hull sterics).
+`ligand_field` и приближённый ray-based `enclosure` требуют явного opt-in.
+Полный production benchmark этой командой не запускался; выполнен только
+локальный bounded smoke для проверки реального all-pairs artifact contract.
+
 ## SLURM: сначала только план
 
-Submission wrapper по умолчанию работает как dry-run и ничего не отправляет:
+Primary A0–A6 wrapper по умолчанию работает как dry-run и ничего не отправляет:
+
+```bash
+PYTHON_BIN=/path/to/env/bin/python \
+DRY_RUN=1 \
+bash slurm/submit_ablation_multiseed.sh
+```
+
+Он использует пять model seeds и один общий `SPLIT_SEED=104729`, поэтому
+outer/inner folds физически совпадают между arms и seed-runs. Помимо
+`seed_plan.tsv`, wrapper до первого `sbatch` замораживает
+`experiment_contract.tsv`: scope/grouping, folds, trees/grid mode, bootstrap,
+descriptor blocks/profile, shuffle seeds, feature policy, а также канонические
+пути и SHA-256 dataset/VR asset. Resume или aggregate при любом drift
+завершается fail-closed. Реальный запуск остаётся явным действием пользователя:
+`DRY_RUN=0 bash slurm/submit_ablation_multiseed.sh`.
+
+Для отдельного simplicial benchmark безопасный план печатается аналогично:
 
 ```bash
 PYTHON_BIN=/path/to/env/bin/python \
 DRY_RUN=1 \
 bash slurm/submit_simplicial_multiseed.sh
 ```
+
+`PAIR_SCOPE=all` используется по умолчанию и входит в immutable run protocol,
+completion validation и aggregation checks; смешать all-pair и adjacent runs в
+одном aggregate нельзя.
 
 Он покажет array из пяти заранее заданных пар `model_seed/split_seed` и
 зависимый fail-closed aggregation job. В job не зашиты `partition`, `account`,
@@ -126,8 +197,10 @@ bash slurm/submit_simplicial_multiseed.sh
 `your_partition` и `your_account` являются placeholders и wrapper намеренно их
 отклоняет до вызова `sbatch`.
 
-Primary profile — deterministic CPU: 8 CPU, 32 GB, 24 часа, не более одной
-одновременной array task. Параметры меняются через environment:
+Начальный deterministic CPU profile: 8 CPU, 32 GB, 24 часа, не более одной
+одновременной array task. All-pair cohort существенно больше исторической
+adjacent-когорты, поэтому walltime нужно подтвердить коротким cluster smoke-run.
+Параметры меняются через environment:
 
 ```bash
 CPUS=16 MEMORY=48G WALLTIME=2-00:00:00 MAX_CONCURRENT=2 \

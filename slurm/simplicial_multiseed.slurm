@@ -26,6 +26,7 @@ ROW_MAP_PATH=${ROW_MAP_PATH:-$PROJECT_DIR/dataset with 3D structures/row_geometr
 RUN_ROOT=${RUN_ROOT:-$PROJECT_DIR/runs/simplicial_${SLURM_ARRAY_JOB_ID:-manual}}
 MODEL_SEEDS=${MODEL_SEEDS:-"42 7 137 2027 9001"}
 SPLIT_SEEDS=${SPLIT_SEEDS:-"104729 130363 169087 214087 275015"}
+PAIR_SCOPE=${PAIR_SCOPE:-all}
 TREES=${TREES:-200}
 BOOTSTRAP=${BOOTSTRAP:-2000}
 OUTER_FOLDS=${OUTER_FOLDS:-5}
@@ -54,6 +55,10 @@ for value_name in RESUME_COMPLETED STAGE_VR_TO_TMP; do
     exit 2
   fi
 done
+if [[ "$PAIR_SCOPE" != all && "$PAIR_SCOPE" != adjacent ]]; then
+  echo "PAIR_SCOPE must be all or adjacent." >&2
+  exit 2
+fi
 
 read -r -a MODEL_SEED_ARRAY <<< "$MODEL_SEEDS"
 read -r -a SPLIT_SEED_ARRAY <<< "$SPLIT_SEEDS"
@@ -90,9 +95,11 @@ command -v flock >/dev/null || { echo "flock is required for atomic publication.
 
 validate_completion() {
   local directory=$1
+  local expected_pair_scope=$2
   "$PYTHON_BIN" -c '
 import hashlib, json, pathlib, sys
 directory = pathlib.Path(sys.argv[1])
+expected_pair_scope = sys.argv[2]
 summary = directory / "summary.json"
 marker = directory / "_SUCCESS.json"
 if not summary.is_file() or not marker.is_file() or (directory / "_INCOMPLETE").exists():
@@ -100,6 +107,8 @@ if not summary.is_file() or not marker.is_file() or (directory / "_INCOMPLETE").
 payload = json.loads(marker.read_text(encoding="utf-8"))
 digest = hashlib.sha256(summary.read_bytes()).hexdigest()
 summary_payload = json.loads(summary.read_text(encoding="utf-8"))
+if summary_payload.get("arguments", {}).get("pair_scope") != expected_pair_scope:
+    raise SystemExit(1)
 artifact_hashes = summary_payload.get("artifacts", {}).get("sha256", {})
 if not isinstance(artifact_hashes, dict) or not artifact_hashes:
     raise SystemExit(1)
@@ -111,12 +120,12 @@ for name, expected in artifact_hashes.items():
     if not artifact.is_file() or hashlib.sha256(artifact.read_bytes()).hexdigest() != expected:
         raise SystemExit(1)
 raise SystemExit(0 if payload.get("status") == "complete" and payload.get("summary_sha256") == digest else 1)
-' "$directory"
+' "$directory" "$expected_pair_scope"
 }
 
 mkdir -p "$RUN_ROOT/status" "$RUN_ROOT/attempts"
 if [[ -e "$RUN_DIR" ]]; then
-  if validate_completion "$RUN_DIR"; then
+  if validate_completion "$RUN_DIR" "$PAIR_SCOPE"; then
     if [[ "$RESUME_COMPLETED" == 1 ]]; then
       echo "Validated completed run; skipping: $RUN_DIR"
       exit 0
@@ -182,6 +191,7 @@ command=(
   --row-geometry-map "$ROW_MAP_PATH"
   --output-dir "$ATTEMPT_DIR"
   --logical-output-dir "$RUN_DIR"
+  --pair-scope "$PAIR_SCOPE"
   --seed "$MODEL_SEED"
   --split-seed "$SPLIT_SEED"
   --outer-folds "$OUTER_FOLDS"
@@ -214,9 +224,9 @@ if [[ -n "${EXPECTED_VR_SHA256:-}" ]]; then
   command+=(--expected-vr-sha256 "$EXPECTED_VR_SHA256")
 fi
 
-echo "Starting simplicial run model_seed=$MODEL_SEED split_seed=$SPLIT_SEED"
+echo "Starting simplicial run pair_scope=$PAIR_SCOPE model_seed=$MODEL_SEED split_seed=$SPLIT_SEED"
 "${command[@]}"
-if ! validate_completion "$ATTEMPT_DIR"; then
+if ! validate_completion "$ATTEMPT_DIR" "$PAIR_SCOPE"; then
   echo "Runner returned without a valid completion contract: $ATTEMPT_DIR" >&2
   exit 2
 fi
@@ -226,7 +236,7 @@ fi
 exec 9>"$RUN_ROOT/.publish.lock"
 flock 9
 if [[ -e "$RUN_DIR" ]]; then
-  if ! validate_completion "$RUN_DIR"; then
+  if ! validate_completion "$RUN_DIR" "$PAIR_SCOPE"; then
     echo "A competing task published an invalid final run: $RUN_DIR" >&2
     exit 2
   fi
@@ -236,7 +246,7 @@ else
 fi
 flock -u 9
 
-if ! validate_completion "$RUN_DIR"; then
+if ! validate_completion "$RUN_DIR" "$PAIR_SCOPE"; then
   echo "Final run failed post-publication validation: $RUN_DIR" >&2
   exit 2
 fi

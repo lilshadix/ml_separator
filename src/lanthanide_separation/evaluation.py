@@ -596,6 +596,7 @@ def nested_group_benchmark(
         predictions[f"prediction_{model_name}"] = np.nan
 
     leakage_folds: list[dict[str, Any]] = []
+    all_pair_types = set(frame["pair_label"].astype(str))
     tuning_rows: list[dict[str, Any]] = []
     selected_by_fold: dict[str, list[dict[str, Any]]] = {
         "baseline": [],
@@ -614,6 +615,8 @@ def nested_group_benchmark(
         overlap = train_groups & test_groups
         train_frame = frame.iloc[train_index]
         test_frame = frame.iloc[test_index]
+        train_pair_types = set(train_frame["pair_label"].astype(str))
+        test_pair_types = set(test_frame["pair_label"].astype(str))
 
         def identity_overlap(columns: tuple[str, ...]) -> int:
             train_values = set(
@@ -636,6 +639,10 @@ def nested_group_benchmark(
                 "test_rows": int(len(test_index)),
                 "train_groups": int(len(train_groups)),
                 "test_groups": int(len(test_groups)),
+                "train_pair_types": int(len(train_pair_types)),
+                "test_pair_types": int(len(test_pair_types)),
+                "pair_types_missing_from_train": sorted(all_pair_types - train_pair_types),
+                "pair_types_missing_from_test": sorted(all_pair_types - test_pair_types),
                 "group_overlap": int(len(overlap)),
                 "extractant_overlap": extractant_overlap,
                 "ecfp_exact_cluster_overlap": ecfp_cluster_overlap,
@@ -970,6 +977,7 @@ def nested_group_benchmark(
     fold_assignments = predictions[
         ["pair_id", "extractant", "ecfp_exact_cluster", "outer_fold"]
     ].copy()
+    fold_assignments["pair_scope"] = pair_data.audit.get("pair_scope", "adjacent")
     fold_assignments["outer_split_seed"] = int(split_seed)
 
     leakage_passed = all(
@@ -983,6 +991,7 @@ def nested_group_benchmark(
 
     summary = {
         "protocol": {
+            "pair_scope": pair_data.audit.get("pair_scope", "adjacent"),
             "outer_split": (
                 f"{len(folds)}-fold seeded shuffled StratifiedGroupKFold; "
                 "stratified by pair_label"

@@ -13,6 +13,7 @@ PROJECT_DIR=$(cd "$PROJECT_DIR" && pwd -P)
 PYTHON_BIN=${PYTHON_BIN:-$PROJECT_DIR/.venv/bin/python}
 MODEL_SEEDS=${MODEL_SEEDS:-"42 7 137 2027 9001"}
 SPLIT_SEEDS=${SPLIT_SEEDS:-"104729 130363 169087 214087 275015"}
+PAIR_SCOPE=${PAIR_SCOPE:-all}
 DESCRIPTOR_BLOCKS=${DESCRIPTOR_BLOCKS:-"ligand_field,enclosure"}
 DESCRIPTOR_PROFILE=${DESCRIPTOR_PROFILE:-core}
 NULL_PERMUTATION=${NULL_PERMUTATION:-metal-preserving}
@@ -29,7 +30,7 @@ RESUME_RUN_ROOT=${RESUME_RUN_ROOT:-0}
 RESUME_COMPLETED=${RESUME_COMPLETED:-1}
 RESUME_AGGREGATE=${RESUME_AGGREGATE:-1}
 DRY_RUN=${DRY_RUN:-1}
-RUN_ROOT=${RUN_ROOT:-$PROJECT_DIR/runs/descriptor_$(date -u +%Y%m%dT%H%M%SZ)}
+RUN_ROOT=${RUN_ROOT:-$PROJECT_DIR/runs/descriptor_${PAIR_SCOPE}_$(date -u +%Y%m%dT%H%M%SZ)}
 
 RUN_ROOT_CHECK=$RUN_ROOT/
 if [[ "$RUN_ROOT" != /* || "$RUN_ROOT_CHECK" == *"/../"* || "$RUN_ROOT_CHECK" == *"/./"* ]]; then
@@ -68,12 +69,16 @@ if [[ "$DESCRIPTOR_PROFILE" != core && "$DESCRIPTOR_PROFILE" != full ]]; then
   echo "DESCRIPTOR_PROFILE must be core or full." >&2
   exit 2
 fi
+if [[ "$PAIR_SCOPE" != all && "$PAIR_SCOPE" != adjacent ]]; then
+  echo "PAIR_SCOPE must be all or adjacent." >&2
+  exit 2
+fi
 if [[ "$NULL_PERMUTATION" != free && "$NULL_PERMUTATION" != metal-preserving ]]; then
   echo "NULL_PERMUTATION must be free or metal-preserving." >&2
   exit 2
 fi
-if [[ ! "$DESCRIPTOR_BLOCKS" =~ ^(ligand_field|enclosure)(,(ligand_field|enclosure))*$ ]]; then
-  echo "DESCRIPTOR_BLOCKS must be a comma-separated subset of ligand_field,enclosure." >&2
+if [[ ! "$DESCRIPTOR_BLOCKS" =~ ^(ligand_field|enclosure|global_shape)(,(ligand_field|enclosure|global_shape))*$ ]]; then
+  echo "DESCRIPTOR_BLOCKS must be a comma-separated subset of ligand_field,enclosure,global_shape." >&2
   exit 2
 fi
 if [[ "${PARTITION:-}" == "your_partition" || "${AGGREGATE_PARTITION:-}" == "your_partition" ]]; then
@@ -95,23 +100,34 @@ if (( ${#model_seed_array[@]} < 2 )); then
   echo "At least two prespecified seed pairs are required." >&2
   exit 2
 fi
-declare -A seen_model=()
-declare -A seen_split=()
+contains_seed() {
+  local candidate=$1
+  shift
+  local seen
+  for seen in "$@"; do
+    [[ "$seen" == "$candidate" ]] && return 0
+  done
+  return 1
+}
+# Bash 3.2 treats expansion of a truly empty array as an unbound variable under
+# `set -u`, so keep a sentinel that cannot collide with a numeric seed.
+seen_model=("__empty__")
+seen_split=("__empty__")
 for seed in "${model_seed_array[@]}"; do
   [[ "$seed" =~ ^[0-9]+$ ]] || { echo "Invalid model seed: $seed" >&2; exit 2; }
   (( 10#$seed <= 4000000000 )) || { echo "Model seed exceeds 4000000000: $seed" >&2; exit 2; }
-  [[ -z "${seen_model[$seed]:-}" ]] || { echo "Duplicate model seed: $seed" >&2; exit 2; }
-  seen_model[$seed]=1
+  ! contains_seed "$seed" "${seen_model[@]}" || { echo "Duplicate model seed: $seed" >&2; exit 2; }
+  seen_model+=("$seed")
 done
 for seed in "${split_seed_array[@]}"; do
   [[ "$seed" =~ ^[0-9]+$ ]] || { echo "Invalid split seed: $seed" >&2; exit 2; }
   (( 10#$seed <= 4000000000 )) || { echo "Split seed exceeds 4000000000: $seed" >&2; exit 2; }
-  [[ -z "${seen_split[$seed]:-}" ]] || { echo "Duplicate split seed: $seed" >&2; exit 2; }
-  seen_split[$seed]=1
+  ! contains_seed "$seed" "${seen_split[@]}" || { echo "Duplicate split seed: $seed" >&2; exit 2; }
+  seen_split+=("$seed")
 done
 
 seed_count=${#model_seed_array[@]}
-export PROJECT_DIR PYTHON_BIN MODEL_SEEDS SPLIT_SEEDS RUN_ROOT
+export PROJECT_DIR PYTHON_BIN MODEL_SEEDS SPLIT_SEEDS RUN_ROOT PAIR_SCOPE
 export DESCRIPTOR_BLOCKS DESCRIPTOR_PROFILE NULL_PERMUTATION NULL_PERMUTATION_BASE_SEED
 export TREES BOOTSTRAP RESUME_COMPLETED RESUME_AGGREGATE
 export EXPECTED_RUNS=$seed_count
@@ -165,6 +181,7 @@ echo "Run root: $RUN_ROOT"
 echo "Array: $array_spec  (tasks 0-$((seed_count - 1)) = real arm, $seed_count-$((2 * seed_count - 1)) = permuted null arm)"
 echo "Model seeds: $MODEL_SEEDS"
 echo "Split seeds: $SPLIT_SEEDS"
+echo "Pair scope: $PAIR_SCOPE"
 echo "Descriptor blocks: $DESCRIPTOR_BLOCKS  profile: $DESCRIPTOR_PROFILE"
 echo "Null permutation: $NULL_PERMUTATION  base seed: $NULL_PERMUTATION_BASE_SEED"
 if [[ "$DRY_RUN" == 1 ]]; then
@@ -181,6 +198,7 @@ if [[ "$DRY_RUN" == 1 ]]; then
     "MODEL_SEEDS=$MODEL_SEEDS"
     "SPLIT_SEEDS=$SPLIT_SEEDS"
     "RUN_ROOT=$RUN_ROOT"
+    "PAIR_SCOPE=$PAIR_SCOPE"
     "DESCRIPTOR_BLOCKS=$DESCRIPTOR_BLOCKS"
     "DESCRIPTOR_PROFILE=$DESCRIPTOR_PROFILE"
     "NULL_PERMUTATION=$NULL_PERMUTATION"

@@ -16,30 +16,35 @@ from lanthanide_separation.pairs import PAIR_TARGET_COLUMN, PairDataset, reverse
 def synthetic_pair_dataset() -> PairDataset:
     rng = np.random.default_rng(7)
     rows = []
+    pair_types = (
+        ("La", "Ce", 57.0, 58.0),
+        ("La", "Pr", 57.0, 59.0),
+        ("Ce", "Pr", 58.0, 59.0),
+    )
     for extractant_index in range(8):
-        for pair_index in range(3):
+        for pair_index, (metal_a, metal_b, z_a, z_b) in enumerate(pair_types):
             geometry_delta = 0.05 * (extractant_index - 3.5) + 0.02 * pair_index
             target = 0.3 * geometry_delta + rng.normal(0.0, 0.005)
             rows.append(
                 {
                     "pair_id": f"p-{extractant_index}-{pair_index}",
-                    "condition_id": f"c-{extractant_index}-{pair_index}",
+                    "condition_id": f"c-{extractant_index}",
                     "extractant": f"ligand-{extractant_index}",
-                    "ecfp_exact_cluster": f"cluster-{extractant_index // 2}",
-                    "pair_label": "La-Ce",
-                    "metal_A": "La",
-                    "metal_B": "Ce",
+                    "ecfp_exact_cluster": f"cluster-{extractant_index}",
+                    "pair_label": f"{metal_a}-{metal_b}",
+                    "metal_A": metal_a,
+                    "metal_B": metal_b,
                     "n_replicates_A": 1,
                     "n_replicates_B": 1,
-                    "source_id_A": f"source-a-{extractant_index}-{pair_index}",
-                    "source_id_B": f"source-b-{extractant_index}-{pair_index}",
-                    "geometry_key_A": f"geometry-a-{extractant_index}-{pair_index}",
-                    "geometry_key_B": f"geometry-b-{extractant_index}-{pair_index}",
+                    "source_id_A": f"source-{extractant_index}-{metal_a}",
+                    "source_id_B": f"source-{extractant_index}-{metal_b}",
+                    "geometry_key_A": f"geometry-{extractant_index}-{metal_a}",
+                    "geometry_key_B": f"geometry-{extractant_index}-{metal_b}",
                     PAIR_TARGET_COLUMN: target,
-                    "pair__Z_A": 57.0,
-                    "pair__Z_B": 58.0,
-                    "pair__Z_mean": 57.5,
-                    "pair__delta_Z": -1.0,
+                    "pair__Z_A": z_a,
+                    "pair__Z_B": z_b,
+                    "pair__Z_mean": (z_a + z_b) / 2.0,
+                    "pair__delta_Z": z_a - z_b,
                     "pair__ionic_radius_A": 1.16,
                     "pair__ionic_radius_B": 1.143,
                     "pair__ionic_radius_mean": 1.1515,
@@ -64,7 +69,7 @@ def synthetic_pair_dataset() -> PairDataset:
         frame=frame,
         baseline_columns=baseline,
         delta3d_columns=("delta3d__distance",),
-        audit={},
+        audit={"pair_scope": "all"},
         quarantine=pd.DataFrame(),
     )
 
@@ -97,9 +102,17 @@ class EvaluationTests(unittest.TestCase):
             fit_final_model=False,
         )
         self.assertTrue(result.summary["leakage_audit"]["passed"])
+        self.assertEqual(result.summary["protocol"]["pair_scope"], "all")
         self.assertTrue(
             all(
                 fold["group_overlap"] == 0
+                for fold in result.summary["leakage_audit"]["outer_folds"]
+            )
+        )
+        self.assertTrue(
+            all(
+                fold["test_pair_types"] == 3
+                and not fold["pair_types_missing_from_test"]
                 for fold in result.summary["leakage_audit"]["outer_folds"]
             )
         )

@@ -57,6 +57,14 @@ REQUIRED_ARTIFACTS = (
     "per_extractant_metrics.csv",
     "per_pair_type_metrics.csv",
 )
+DESCRIPTOR_SEED_PLAN_FIELDS = (
+    "arm",
+    "task_index",
+    "model_seed",
+    "split_seed",
+    "descriptor_permutation",
+    "permutation_seed",
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -64,6 +72,30 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--run-root", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, default=None)
     parser.add_argument("--expected-runs", type=int, default=None)
+    parser.add_argument(
+        "--expected-pair-scope",
+        choices=("all", "adjacent"),
+        required=True,
+        help="Fail unless every run uses this explicitly requested pair cohort scope.",
+    )
+    parser.add_argument(
+        "--descriptor-arm",
+        choices=("real", "null"),
+        default=None,
+        help=(
+            "Expected descriptor arm. By default this is inferred fail-closed from an "
+            "arm_real or arm_null run-root basename."
+        ),
+    )
+    parser.add_argument(
+        "--descriptor-seed-plan",
+        type=Path,
+        default=None,
+        help=(
+            "Immutable descriptor seed_plan.tsv. Defaults to the parent of the arm "
+            "run root."
+        ),
+    )
     parser.add_argument(
         "--comparison",
         choices=tuple(COMPARISONS),
@@ -131,9 +163,105 @@ def finite_number(value: Any, label: str) -> float:
     return result
 
 
+def read_descriptor_seed_plan(path: Path) -> list[dict[str, Any]]:
+    """Read and validate the immutable real/null descriptor seed contract."""
+
+    rows: list[dict[str, Any]] = []
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle, delimiter="\t")
+        if tuple(reader.fieldnames or ()) != DESCRIPTOR_SEED_PLAN_FIELDS:
+            raise ValueError(
+                "Descriptor seed plan header must be "
+                f"{list(DESCRIPTOR_SEED_PLAN_FIELDS)}."
+            )
+        for source_row in reader:
+            arm = str(source_row["arm"])
+            if arm not in {"real", "null"}:
+                raise ValueError(f"Unknown descriptor arm in seed plan: {arm!r}.")
+            permutation = str(source_row["descriptor_permutation"]).strip()
+            if not permutation:
+                raise ValueError("Descriptor seed plan contains an empty permutation mode.")
+            try:
+                task_index = int(source_row["task_index"])
+                model_seed = int(source_row["model_seed"])
+                split_seed = int(source_row["split_seed"])
+                permutation_seed = int(source_row["permutation_seed"])
+            except (TypeError, ValueError) as exc:
+                raise ValueError("Descriptor seed plan contains a non-integer seed field.") from exc
+            if min(task_index, model_seed, split_seed, permutation_seed) < 0:
+                raise ValueError("Descriptor seed plan integers must be nonnegative.")
+            if max(model_seed, split_seed, permutation_seed) > 4_000_000_000:
+                raise ValueError("Descriptor seed plan seeds must not exceed 4000000000.")
+            rows.append(
+                {
+                    "arm": arm,
+                    "task_index": task_index,
+                    "model_seed": model_seed,
+                    "split_seed": split_seed,
+                    "descriptor_permutation": permutation,
+                    "descriptor_permutation_seed": permutation_seed,
+                }
+            )
+
+    if not rows:
+        raise ValueError("Descriptor seed plan is empty.")
+    task_indices = [int(row["task_index"]) for row in rows]
+    if len(set(task_indices)) != len(task_indices):
+        raise ValueError("Descriptor seed plan task indices are not unique.")
+    if set(task_indices) != set(range(len(rows))):
+        raise ValueError("Descriptor seed plan task indices must be contiguous from zero.")
+
+    by_arm = {arm: [row for row in rows if row["arm"] == arm] for arm in ("real", "null")}
+    if not by_arm["real"] or not by_arm["null"]:
+        raise ValueError("Descriptor seed plan must contain both real and null arms.")
+    for arm, arm_rows in by_arm.items():
+        model_split = [
+            (int(row["model_seed"]), int(row["split_seed"])) for row in arm_rows
+        ]
+        if len(set(model_split)) != len(model_split):
+            raise ValueError(f"Descriptor seed plan has duplicate {arm} model/split pairs.")
+    real_plan = {
+        (int(row["model_seed"]), int(row["split_seed"])) for row in by_arm["real"]
+    }
+    null_plan = {
+        (int(row["model_seed"]), int(row["split_seed"])) for row in by_arm["null"]
+    }
+    if real_plan != null_plan:
+        raise ValueError("Real and null arms do not share one model/split seed plan.")
+    if any(
+        row["descriptor_permutation"] != "none"
+        or int(row["descriptor_permutation_seed"]) != 0
+        for row in by_arm["real"]
+    ):
+        raise ValueError("Real seed-plan rows must use permutation=none and seed=0.")
+    if any(row["descriptor_permutation"] == "none" for row in by_arm["null"]):
+        raise ValueError("Null seed-plan rows must use a non-none permutation.")
+    null_modes = {str(row["descriptor_permutation"]) for row in by_arm["null"]}
+    if len(null_modes) != 1:
+        raise ValueError("Null seed-plan rows must share one permutation mode.")
+    if not null_modes <= {"free", "metal-preserving"}:
+        raise ValueError(
+            f"Unsupported null descriptor permutation mode: {sorted(null_modes)}."
+        )
+    null_seeds = [int(row["descriptor_permutation_seed"]) for row in by_arm["null"]]
+    if len(set(null_seeds)) != len(null_seeds):
+        raise ValueError("Null descriptor permutation seeds must be unique.")
+    return sorted(rows, key=lambda row: int(row["task_index"]))
+
+
 def normalized_protocol(summary: dict[str, Any]) -> dict[str, Any]:
     arguments = dict(nested(summary, "arguments"))
-    for key in ("dataset", "output_dir", "seed", "split_seed", "n_jobs"):
+    # Permutation mode and seed define the descriptor arm, not the common model
+    # protocol. They are validated independently against the immutable seed plan.
+    for key in (
+        "dataset",
+        "output_dir",
+        "seed",
+        "split_seed",
+        "n_jobs",
+        "descriptor_permutation",
+        "descriptor_permutation_seed",
+    ):
         arguments.pop(key, None)
     protocol = dict(nested(summary, "benchmark", "protocol"))
     for key in ("model_seed", "split_seed"):
@@ -173,8 +301,17 @@ def fmt(value: Any) -> str:
     return str(value)
 
 
-def failure_report(errors: list[str], warnings: list[str]) -> str:
-    lines = ["# Delta3D multi-seed aggregation", "", "Status: FAILED (fail-closed)", ""]
+def failure_report(
+    errors: list[str], warnings: list[str], expected_pair_scope: str
+) -> str:
+    lines = [
+        "# Delta3D multi-seed aggregation",
+        "",
+        "Status: FAILED (fail-closed)",
+        "",
+        f"Expected pair scope: `{expected_pair_scope}`.",
+        "",
+    ]
     lines.extend(["## Validation errors", ""])
     lines.extend(f"- {error}" for error in errors)
     if warnings:
@@ -200,12 +337,22 @@ def success_report(
         "",
         "Status: PASSED",
         "",
+        f"Pair scope: `{validation['expected_pair_scope']}`.",
+        "",
         f"Comparison: {validation['comparison_description']}.",
         "",
         "All runs have identical dataset, exact pair cohort, implementation, feature contract, "
         "and protocol fingerprints. Model and split seeds are intentionally different.",
         "",
     ]
+    if validation.get("descriptor_arm"):
+        lines.extend(
+            [
+                f"Descriptor arm: `{validation['descriptor_arm']}`; immutable seed plan: "
+                f"`{validation['descriptor_seed_plan']['semantic_sha256']}`.",
+                "",
+            ]
+        )
     permutations = sorted({str(row.get("descriptor_permutation", "")) for row in rows} - {""})
     if permutations:
         lines.extend(
@@ -312,6 +459,45 @@ def main() -> int:
     warnings: list[str] = []
     summaries: list[tuple[Path, dict[str, Any]]] = []
     descriptor_contracts: set[str] = set()
+    descriptor_arm: str | None = None
+    descriptor_seed_plan_path: Path | None = None
+    descriptor_seed_plan_sha256: str | None = None
+    descriptor_seed_plan_fingerprint: str | None = None
+    descriptor_seed_plan_rows: list[dict[str, Any]] = []
+    if args.comparison == "extended_vs_delta3d":
+        descriptor_arm = args.descriptor_arm
+        if descriptor_arm is None:
+            if run_root.name in {"arm_real", "arm_null"}:
+                descriptor_arm = run_root.name.removeprefix("arm_")
+            else:
+                errors.append(
+                    "Cannot infer descriptor arm from run root; use --descriptor-arm "
+                    "or name it arm_real/arm_null."
+                )
+        descriptor_seed_plan_path = (
+            args.descriptor_seed_plan.expanduser().resolve()
+            if args.descriptor_seed_plan is not None
+            else run_root.parent / "seed_plan.tsv"
+        )
+        try:
+            if not descriptor_seed_plan_path.is_file():
+                raise ValueError(
+                    f"descriptor seed plan not found: {descriptor_seed_plan_path}"
+                )
+            descriptor_seed_plan_rows = read_descriptor_seed_plan(
+                descriptor_seed_plan_path
+            )
+            descriptor_seed_plan_sha256 = file_sha256(descriptor_seed_plan_path)
+            descriptor_seed_plan_fingerprint = object_sha256(
+                descriptor_seed_plan_rows
+            )
+        except (OSError, TypeError, ValueError) as exc:
+            errors.append(f"Invalid immutable descriptor seed plan: {exc}")
+    elif args.descriptor_arm is not None or args.descriptor_seed_plan is not None:
+        errors.append(
+            "--descriptor-arm/--descriptor-seed-plan require "
+            "--comparison extended_vs_delta3d."
+        )
 
     summary_paths = sorted(
         path
@@ -355,6 +541,7 @@ def main() -> int:
     audit_hashes: set[str] = set()
     feature_contract_hashes: set[str] = set()
     software_fingerprints: set[str] = set()
+    observed_pair_scopes: set[str] = set()
     run_keys: set[tuple[int, int]] = set()
     model_seeds: set[int] = set()
     split_seeds: set[int] = set()
@@ -363,6 +550,13 @@ def main() -> int:
     for summary_path, summary in summaries:
         run_name = summary_path.parent.name
         try:
+            pair_scope = str(nested(summary, "arguments", "pair_scope"))
+            observed_pair_scopes.add(pair_scope)
+            if pair_scope != args.expected_pair_scope:
+                raise ValueError(
+                    "pair scope mismatch: "
+                    f"expected {args.expected_pair_scope!r}, observed {pair_scope!r}"
+                )
             dataset_hash = str(nested(summary, "dataset_sha256"))
             cohort_hash = str(nested(summary, "cohort_sha256"))
             implementation = nested(summary, "implementation_sha256")
@@ -530,8 +724,67 @@ def main() -> int:
             "Runs do not share one metal-site descriptor contract "
             "(block, profile or permutation differs); they are different experiments."
         )
+    descriptor_arm_contract: dict[str, Any] | None = None
     if args.comparison == "extended_vs_delta3d" and rows:
         permutations = {str(row["descriptor_permutation"]) for row in rows}
+        permutation_seeds = [int(row["descriptor_permutation_seed"]) for row in rows]
+        if any(seed < 0 for seed in permutation_seeds):
+            errors.append("Descriptor permutation seeds must be nonnegative.")
+        if descriptor_arm == "real":
+            if permutations != {"none"} or any(seed != 0 for seed in permutation_seeds):
+                errors.append(
+                    "Real descriptor arm must use permutation=none and seed=0 in every run."
+                )
+        elif descriptor_arm == "null":
+            if not permutations or "none" in permutations:
+                errors.append("Null descriptor arm must use a non-none permutation.")
+            if len(permutation_seeds) != len(set(permutation_seeds)):
+                errors.append("Null descriptor permutation seeds must be unique.")
+
+        observed_arm_rows = sorted(
+            (
+                int(row["model_seed"]),
+                int(row["split_seed"]),
+                str(row["descriptor_permutation"]),
+                int(row["descriptor_permutation_seed"]),
+            )
+            for row in rows
+        )
+        expected_arm_rows = sorted(
+            (
+                int(row["model_seed"]),
+                int(row["split_seed"]),
+                str(row["descriptor_permutation"]),
+                int(row["descriptor_permutation_seed"]),
+            )
+            for row in descriptor_seed_plan_rows
+            if row["arm"] == descriptor_arm
+        )
+        if descriptor_seed_plan_rows and observed_arm_rows != expected_arm_rows:
+            errors.append(
+                f"Observed {descriptor_arm} runs do not exactly match immutable "
+                "descriptor seed-plan rows."
+            )
+        if (
+            args.expected_runs is not None
+            and expected_arm_rows
+            and len(expected_arm_rows) != args.expected_runs
+        ):
+            errors.append(
+                "Descriptor seed plan arm cardinality does not match --expected-runs: "
+                f"plan={len(expected_arm_rows)}, expected={args.expected_runs}."
+            )
+        descriptor_arm_contract = {
+            "arm": descriptor_arm,
+            "observed_rows": [list(row) for row in observed_arm_rows],
+            "expected_rows": [list(row) for row in expected_arm_rows],
+            "validated_against_seed_plan": bool(
+                descriptor_seed_plan_rows and observed_arm_rows == expected_arm_rows
+            ),
+            "sha256": object_sha256(
+                {"arm": descriptor_arm, "rows": observed_arm_rows}
+            ),
+        }
         if len(permutations) == 1 and permutations != {"none"}:
             warnings.append(
                 "Every run in this aggregate is a permuted negative control; the "
@@ -540,9 +793,27 @@ def main() -> int:
 
     validation = {
         "passed": not errors,
+        "expected_pair_scope": args.expected_pair_scope,
+        "observed_pair_scopes": sorted(observed_pair_scopes),
         "comparison": args.comparison,
         "comparison_description": comparison["description"],
         "descriptor_contract": sorted(descriptor_contracts),
+        "descriptor_arm": descriptor_arm,
+        "descriptor_arm_contract": descriptor_arm_contract,
+        "descriptor_seed_plan": {
+            "path": str(descriptor_seed_plan_path)
+            if descriptor_seed_plan_path is not None
+            else None,
+            "file_sha256": descriptor_seed_plan_sha256,
+            "semantic_sha256": descriptor_seed_plan_fingerprint,
+            "validated": bool(
+                descriptor_seed_plan_fingerprint
+                and descriptor_arm_contract
+                and descriptor_arm_contract["validated_against_seed_plan"]
+            ),
+        }
+        if args.comparison == "extended_vs_delta3d"
+        else None,
         "expected_runs": args.expected_runs,
         "discovered_summaries": len(summary_paths),
         "validated_completed_runs": len(rows),
@@ -555,13 +826,29 @@ def main() -> int:
             "protocol": sorted(protocol_hashes),
             "pair_audit": sorted(audit_hashes),
             "feature_contract": sorted(feature_contract_hashes),
+            "descriptor_seed_plan": (
+                [descriptor_seed_plan_fingerprint]
+                if descriptor_seed_plan_fingerprint is not None
+                else []
+            ),
         },
     }
-    validation["combined_validation_sha256"] = object_sha256(validation["fingerprints"])
+    validation["combined_validation_sha256"] = object_sha256(
+        {
+            "expected_pair_scope": args.expected_pair_scope,
+            "observed_pair_scopes": sorted(observed_pair_scopes),
+            "descriptor_arm": descriptor_arm,
+            "descriptor_arm_contract": descriptor_arm_contract,
+            "fingerprints": validation["fingerprints"],
+        }
+    )
     write_json_atomic(validation, output_dir / "validation.json")
 
     if errors:
-        write_text_atomic(failure_report(errors, warnings), output_dir / "report.md")
+        write_text_atomic(
+            failure_report(errors, warnings, args.expected_pair_scope),
+            output_dir / "report.md",
+        )
         return 2
 
     rows.sort(key=lambda row: (int(row["split_seed"]), int(row["model_seed"])))
@@ -596,6 +883,7 @@ def main() -> int:
     write_json_atomic(
         {
             "status": "complete",
+            "pair_scope": args.expected_pair_scope,
             "aggregate_summary_sha256": file_sha256(output_dir / "aggregate_summary.json"),
         },
         output_dir / "_SUCCESS.json",

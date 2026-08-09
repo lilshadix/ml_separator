@@ -31,7 +31,10 @@ from lanthanide_separation.deep_evaluation import (  # noqa: E402
     validate_vr_pair_links,
 )
 from lanthanide_separation.evaluation import DEFAULT_PARAMETER_GRID  # noqa: E402
-from lanthanide_separation.pairs import build_adjacent_pair_dataset  # noqa: E402
+from lanthanide_separation.pairs import (  # noqa: E402
+    PAIR_SCOPES,
+    build_lanthanide_pair_dataset,
+)
 from lanthanide_separation.simplicial import VietorisRipsStore  # noqa: E402
 
 
@@ -66,6 +69,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--vr-assets", type=Path, default=DEFAULT_VR_ASSET)
     parser.add_argument("--row-geometry-map", type=Path, default=DEFAULT_ROW_MAP)
     parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument(
+        "--pair-scope",
+        choices=PAIR_SCOPES,
+        default="all",
+        help=(
+            "'all' evaluates every observed lanthanide pair under matched conditions; "
+            "'adjacent' reproduces the historical nearest-neighbour cohort."
+        ),
+    )
     parser.add_argument(
         "--logical-output-dir",
         type=Path,
@@ -468,8 +480,9 @@ def main() -> int:
     print(f"Dataset: {dataset_path}", flush=True)
     print(f"VR asset: {vr_path}", flush=True)
     source = pd.read_parquet(dataset_path)
-    pair_data = build_adjacent_pair_dataset(
+    pair_data = build_lanthanide_pair_dataset(
         source,
+        pair_scope=args.pair_scope,
         require_geometry=True,
         replicate_policy=args.replicate_policy,
         quarantine_known_bad=not args.no_default_quarantine,
@@ -516,6 +529,7 @@ def main() -> int:
     write_json(asset_contract, output_dir / "asset_contract.json")
     write_json(
         {
+            "pair_scope": args.pair_scope,
             "simplicial_input": "0/1/2-simplex coordination subcomplex",
             "triangle_invariants": [
                 "three sorted side lengths",

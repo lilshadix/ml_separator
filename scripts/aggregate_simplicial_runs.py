@@ -59,6 +59,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, default=None)
     parser.add_argument("--seed-plan", type=Path, default=None)
     parser.add_argument("--expected-runs", type=int, default=None)
+    parser.add_argument(
+        "--expected-pair-scope",
+        choices=("all", "adjacent"),
+        required=True,
+        help="Fail unless every run uses this explicitly requested pair cohort scope.",
+    )
     parser.add_argument("--ensemble-bootstrap", type=int, default=5000)
     parser.add_argument("--ensemble-bootstrap-seed", type=int, default=8675309)
     return parser.parse_args()
@@ -323,6 +329,8 @@ def report_markdown(payload: dict[str, Any]) -> str:
         "",
         "Validation: PASSED",
         "",
+        f"Pair scope: `{payload['validation']['expected_pair_scope']}`.",
+        "",
         "Primary comparison: guarded SNN hybrid minus adaptive tabular Delta3D.",
         "",
         "| model seed | split seed | Delta R2 | Delta balanced R2 | macro-MAE reduction |",
@@ -480,10 +488,18 @@ def main() -> int:
     run_rows: list[dict[str, Any]] = []
     prediction_frames: list[pd.DataFrame] = []
     group_column: str | None = None
+    observed_pair_scopes: set[str] = set()
 
     for path, summary in summaries:
         run_name = path.parent.name
         try:
+            pair_scope = str(nested(summary, "arguments", "pair_scope"))
+            observed_pair_scopes.add(pair_scope)
+            if pair_scope != args.expected_pair_scope:
+                raise ValueError(
+                    "pair scope mismatch: "
+                    f"expected {args.expected_pair_scope!r}, observed {pair_scope!r}"
+                )
             if not bool(nested(summary, "arguments", "evaluation_only")):
                 raise ValueError("evaluation_only must be true")
             if not bool(nested(summary, "benchmark", "leakage_audit", "passed")):
@@ -641,6 +657,8 @@ def main() -> int:
 
     validation = {
         "passed": not errors,
+        "expected_pair_scope": args.expected_pair_scope,
+        "observed_pair_scopes": sorted(observed_pair_scopes),
         "expected_runs": args.expected_runs,
         "discovered_summaries": len(summary_paths),
         "validated_runs": len(run_rows),
@@ -651,14 +669,18 @@ def main() -> int:
     }
     validation["combined_sha256"] = object_sha256(
         {
+            "expected_pair_scope": args.expected_pair_scope,
+            "observed_pair_scopes": sorted(observed_pair_scopes),
             "fingerprints": validation["fingerprints"],
             "seed_plan_sha256": seed_plan_sha256,
         }
     )
     if errors:
         write_json_atomic(validation, output_dir / "validation.json")
-        text = "# Simplicial aggregation failed\n\n" + "\n".join(
-            f"- {error}" for error in errors
+        text = (
+            "# Simplicial aggregation failed\n\n"
+            f"Expected pair scope: `{args.expected_pair_scope}`.\n\n"
+            + "\n".join(f"- {error}" for error in errors)
         )
         write_text_atomic(text + "\n", output_dir / "report.md")
         return 2
@@ -723,6 +745,7 @@ def main() -> int:
     write_json_atomic(
         {
             "status": "complete",
+            "pair_scope": args.expected_pair_scope,
             "aggregate_summary_sha256": file_sha256(output_dir / "aggregate_summary.json"),
             "artifact_sha256": {
                 name: file_sha256(output_dir / name)

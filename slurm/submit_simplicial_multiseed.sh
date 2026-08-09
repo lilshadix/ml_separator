@@ -8,6 +8,7 @@ PROJECT_DIR=$(cd "$PROJECT_DIR" && pwd -P)
 PYTHON_BIN=${PYTHON_BIN:-$PROJECT_DIR/.venv/bin/python}
 MODEL_SEEDS=${MODEL_SEEDS:-"42 7 137 2027 9001"}
 SPLIT_SEEDS=${SPLIT_SEEDS:-"104729 130363 169087 214087 275015"}
+PAIR_SCOPE=${PAIR_SCOPE:-all}
 MAX_CONCURRENT=${MAX_CONCURRENT:-1}
 CPUS=${CPUS:-8}
 MEMORY=${MEMORY:-32G}
@@ -21,7 +22,7 @@ RESUME_RUN_ROOT=${RESUME_RUN_ROOT:-0}
 RESUME_COMPLETED=${RESUME_COMPLETED:-1}
 RESUME_AGGREGATE=${RESUME_AGGREGATE:-1}
 DRY_RUN=${DRY_RUN:-1}
-RUN_ROOT=${RUN_ROOT:-$PROJECT_DIR/runs/simplicial_$(date -u +%Y%m%dT%H%M%SZ)}
+RUN_ROOT=${RUN_ROOT:-$PROJECT_DIR/runs/simplicial_${PAIR_SCOPE}_$(date -u +%Y%m%dT%H%M%SZ)}
 
 RUN_ROOT_CHECK=$RUN_ROOT/
 if [[ "$RUN_ROOT" != /* || "$RUN_ROOT_CHECK" == *"/../"* || "$RUN_ROOT_CHECK" == *"/./"* ]]; then
@@ -60,6 +61,10 @@ if [[ "$ACCELERATOR" != cpu && "$ACCELERATOR" != cuda ]]; then
   echo "ACCELERATOR must be cpu or cuda." >&2
   exit 2
 fi
+if [[ "$PAIR_SCOPE" != all && "$PAIR_SCOPE" != adjacent ]]; then
+  echo "PAIR_SCOPE must be all or adjacent." >&2
+  exit 2
+fi
 if [[ "$DETERMINISM" != strict && "$DETERMINISM" != warn ]]; then
   echo "DETERMINISM must be strict or warn." >&2
   exit 2
@@ -88,22 +93,33 @@ if (( ${#model_seed_array[@]} < 2 )); then
   echo "At least two prespecified seed pairs are required." >&2
   exit 2
 fi
-declare -A seen_model=()
-declare -A seen_split=()
+contains_seed() {
+  local candidate=$1
+  shift
+  local seen
+  for seen in "$@"; do
+    [[ "$seen" == "$candidate" ]] && return 0
+  done
+  return 1
+}
+# Bash 3.2 treats expansion of a truly empty array as an unbound variable under
+# `set -u`, so keep a sentinel that cannot collide with a numeric seed.
+seen_model=("__empty__")
+seen_split=("__empty__")
 for seed in "${model_seed_array[@]}"; do
   [[ "$seed" =~ ^[0-9]+$ ]] || { echo "Invalid model seed: $seed" >&2; exit 2; }
   (( 10#$seed <= 4000000000 )) || { echo "Model seed exceeds 4000000000: $seed" >&2; exit 2; }
-  [[ -z "${seen_model[$seed]:-}" ]] || { echo "Duplicate model seed: $seed" >&2; exit 2; }
-  seen_model[$seed]=1
+  ! contains_seed "$seed" "${seen_model[@]}" || { echo "Duplicate model seed: $seed" >&2; exit 2; }
+  seen_model+=("$seed")
 done
 for seed in "${split_seed_array[@]}"; do
   [[ "$seed" =~ ^[0-9]+$ ]] || { echo "Invalid split seed: $seed" >&2; exit 2; }
   (( 10#$seed <= 4000000000 )) || { echo "Split seed exceeds 4000000000: $seed" >&2; exit 2; }
-  [[ -z "${seen_split[$seed]:-}" ]] || { echo "Duplicate split seed: $seed" >&2; exit 2; }
-  seen_split[$seed]=1
+  ! contains_seed "$seed" "${seen_split[@]}" || { echo "Duplicate split seed: $seed" >&2; exit 2; }
+  seen_split+=("$seed")
 done
 
-export PROJECT_DIR PYTHON_BIN MODEL_SEEDS SPLIT_SEEDS RUN_ROOT ACCELERATOR DETERMINISM
+export PROJECT_DIR PYTHON_BIN MODEL_SEEDS SPLIT_SEEDS RUN_ROOT PAIR_SCOPE ACCELERATOR DETERMINISM
 export STAGE_VR_TO_TMP RESUME_COMPLETED RESUME_AGGREGATE
 export EXPECTED_RUNS=${#model_seed_array[@]}
 array_spec="0-$((${#model_seed_array[@]} - 1))%$MAX_CONCURRENT"
@@ -164,6 +180,7 @@ echo "Run root: $RUN_ROOT"
 echo "Array: $array_spec"
 echo "Model seeds: $MODEL_SEEDS"
 echo "Split seeds: $SPLIT_SEEDS"
+echo "Pair scope: $PAIR_SCOPE"
 echo "Accelerator/determinism: $ACCELERATOR/$DETERMINISM"
 if [[ "$DRY_RUN" == 1 ]]; then
   echo "DRY_RUN=1; nothing will be submitted and no directories will be created."
@@ -179,6 +196,7 @@ if [[ "$DRY_RUN" == 1 ]]; then
     "MODEL_SEEDS=$MODEL_SEEDS"
     "SPLIT_SEEDS=$SPLIT_SEEDS"
     "RUN_ROOT=$RUN_ROOT"
+    "PAIR_SCOPE=$PAIR_SCOPE"
     "MAX_CONCURRENT=$MAX_CONCURRENT"
     "CPUS=$CPUS"
     "MEMORY=$MEMORY"
@@ -254,6 +272,7 @@ fi
   printf 'PYTHON_BIN=%q\n' "$PYTHON_BIN"
   printf 'MODEL_SEEDS=%q\n' "$MODEL_SEEDS"
   printf 'SPLIT_SEEDS=%q\n' "$SPLIT_SEEDS"
+  printf 'PAIR_SCOPE=%q\n' "$PAIR_SCOPE"
   printf 'ACCELERATOR=%q\n' "$ACCELERATOR"
   printf 'DETERMINISM=%q\n' "$DETERMINISM"
   printf 'ARRAY_SPEC=%q\n' "$array_spec"
