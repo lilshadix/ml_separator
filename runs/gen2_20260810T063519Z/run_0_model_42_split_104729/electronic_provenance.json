@@ -1,0 +1,140 @@
+{
+  "provenance": {
+    "source_asset": "features/complex_physical_scalars.parquet",
+    "method": "GFN2-xTB scalars bundled with each QC-accepted geometry",
+    "join_keys": [
+      "safe_exp_id",
+      "geometry_key"
+    ],
+    "note": "Values were not recomputed here. They are used exactly as bundled and are audited, not trusted a priori."
+  },
+  "available_sources": {
+    "q_metal": {
+      "column": "feat3d__complex_physical__metal_partial_charge",
+      "units": "e",
+      "description": "GFN2-xTB partial charge on the lanthanide centre.",
+      "status": "available",
+      "non_null_rows": 5365,
+      "non_null_rows_with_accepted_geometry": 5365,
+      "distinct_values": 1116,
+      "extractants_where_value_varies_across_metals": 87
+    },
+    "q_donor_mean": {
+      "column": "feat3d__complex_physical__donor_partial_charge_mean",
+      "units": "e",
+      "description": "Mean GFN2-xTB partial charge over the selected coordinating donors.",
+      "status": "available",
+      "non_null_rows": 5365,
+      "non_null_rows_with_accepted_geometry": 5365,
+      "distinct_values": 1116,
+      "extractants_where_value_varies_across_metals": 87
+    },
+    "q_donor_std": {
+      "column": "feat3d__complex_physical__donor_partial_charge_std",
+      "units": "e",
+      "description": "Population standard deviation of the donor partial charges.",
+      "status": "available",
+      "non_null_rows": 5365,
+      "non_null_rows_with_accepted_geometry": 5365,
+      "distinct_values": 1116,
+      "extractants_where_value_varies_across_metals": 87
+    },
+    "q_donor_min": {
+      "column": "feat3d__complex_physical__donor_partial_charge_min",
+      "units": "e",
+      "description": "Most negative donor partial charge.",
+      "status": "available",
+      "non_null_rows": 5365,
+      "non_null_rows_with_accepted_geometry": 5365,
+      "distinct_values": 1116,
+      "extractants_where_value_varies_across_metals": 87
+    },
+    "q_donor_max": {
+      "column": "feat3d__complex_physical__donor_partial_charge_max",
+      "units": "e",
+      "description": "Least negative donor partial charge.",
+      "status": "available",
+      "non_null_rows": 5365,
+      "non_null_rows_with_accepted_geometry": 5365,
+      "distinct_values": 1116,
+      "extractants_where_value_varies_across_metals": 87
+    },
+    "dipole_magnitude": {
+      "column": "feat3d__complex_physical__dipole_magnitude",
+      "units": "debye",
+      "description": "Norm of the complex dipole vector; the frame-dependent components dipole_x/y/z are never used.",
+      "status": "available",
+      "non_null_rows": 5365,
+      "non_null_rows_with_accepted_geometry": 5365,
+      "distinct_values": 1116,
+      "extractants_where_value_varies_across_metals": 87
+    },
+    "complex_total_energy": {
+      "column": "feat3d__complex_physical__complex_total_energy_eV",
+      "units": "eV",
+      "description": "GFN2-xTB total energy of the whole complex as bundled.",
+      "status": "available",
+      "non_null_rows": 5365,
+      "non_null_rows_with_accepted_geometry": 5365,
+      "distinct_values": 1116,
+      "extractants_where_value_varies_across_metals": 87
+    }
+  },
+  "duplicate_columns": [
+    {
+      "columns": "feat3d__complex_physical__complex_total_energy_eV == feat3d__complex_physical__complex_free_energy_eV",
+      "finding": "bit-identical on every row where both are observed; the bundle reports one energy under two names, so only the total-energy column is used"
+    }
+  ],
+  "unavailable_descriptors": {
+    "homo_eV": {
+      "reason": "All-null in the bundle; the manifest records that the existing extxyz payloads lack individual frontier-orbital energies.",
+      "all_null_in_dataset": true
+    },
+    "lumo_eV": {
+      "reason": "All-null in the bundle; same reason as homo_eV.",
+      "all_null_in_dataset": true
+    },
+    "homo_lumo_gap_eV": {
+      "reason": "All-null in the bundle; requires homo_eV and lumo_eV.",
+      "all_null_in_dataset": true
+    },
+    "binding_energy_eV": {
+      "reason": "All-null in the bundle; requires free-ion, free-ligand and free-fill reference xTB energies that were queued (features/xtb_reference_calculation_queue.csv, calculation_status=not_run_requires_reference_xtb) but never run.",
+      "all_null_in_dataset": true
+    },
+    "strain_energy_eV": {
+      "reason": "All-null in the bundle; requires a free-ligand reference geometry and single point at the bound conformation.",
+      "all_null_in_dataset": true
+    },
+    "geometry_xtb_energy_eV": {
+      "reason": "Row-level column present but all-null in the bundle.",
+      "all_null_in_dataset": true
+    },
+    "ligand_level_electronic": {
+      "reason": "No free-ligand electronic calculation exists in the bundle. Every available electronic quantity is a property of the metal complex, so a ligand-only electronic block (ligand dipole, ligand HOMO/LUMO, ligand partial charges) cannot be constructed. The E1 arm is therefore declared unavailable rather than filled with complex-level values relabelled as ligand-level.",
+      "all_null_in_dataset": false
+    },
+    "solvation_energy": {
+      "reason": "No implicit-solvent single points are bundled and the extraction conditions are not encoded in the geometry assets.",
+      "all_null_in_dataset": false
+    },
+    "interaction_energy": {
+      "reason": "Requires fragment references (ion plus ligands at the complex geometry); see binding_energy_eV.",
+      "all_null_in_dataset": false
+    }
+  },
+  "energy_definition": {
+    "equation": "elec__odd__delta_complex_total_energy_eV = E_total(complex with metal A) - E_total(complex with metal B), emitted only when both complexes share coreCN, n_ligs, inner_sphere_anion, fill_ligand, n_fill and metal_ox.",
+    "units": "eV",
+    "assumptions": "This is a total-energy difference, NOT a binding, complexation or interaction energy: the bundle contains no free-ion and no free-ligand reference calculation, so no thermodynamic cycle can be closed. The difference retains an unknown additive constant per metal pair (the free-ion reference difference). That constant is bounded in this cohort: the between-metal-pair spread of mean dE is smaller than the within-pair ligand-dependent spread, so the column is not merely a metal-pair label. It is still redundant with the LN family by construction and must not be read as a stability constant.",
+    "composition_match_columns": [
+      "coreCN",
+      "n_ligs",
+      "inner_sphere_anion",
+      "fill_ligand",
+      "n_fill",
+      "metal_ox"
+    ]
+  }
+}

@@ -1,0 +1,623 @@
+{
+  "created_at_utc": "2026-08-07T17:46:23.220177+00:00",
+  "dataset_path": "/Users/lilshadix/PycharmProjects/ml_separator/dataset with 3D structures/dataset.parquet",
+  "dataset_sha256": "fefbefc6fe993aa9ce9db1a0c338adb9e5f58a8b75bab084cc1df4e024faf5dd",
+  "implementation_sha256": {
+    "scripts/run_delta3d_benchmark.py": "4ab4590475211b3d24947267c8c5e3e304d858f15bacce14b7b0fc2efaac3ead",
+    "src/lanthanide_separation/pairs.py": "51fd085244599b310489a2710d18a397bdd56399b1b9ea6bc2fc1d98bc910036",
+    "src/lanthanide_separation/evaluation.py": "896eb5044c47859dab415fdb91492c84a9dc87af9ba0a57bd883fe1e0c9fe039"
+  },
+  "software": {
+    "python": "3.13.0",
+    "numpy": "2.4.6",
+    "pandas": "2.3.3",
+    "scikit_learn": "1.9.0",
+    "platform": "macOS-26.5.2-arm64-arm-64bit-Mach-O"
+  },
+  "output_dir": "/Users/lilshadix/PycharmProjects/ml_separator/runs/20260807_compact_seed7",
+  "arguments": {
+    "dataset": "/Users/lilshadix/PycharmProjects/ml_separator/dataset with 3D structures/dataset.parquet",
+    "output_dir": "runs/20260807_compact_seed7",
+    "outer_folds": 5,
+    "inner_folds": 3,
+    "trees": 120,
+    "bootstrap": 1000,
+    "seed": 7,
+    "n_jobs": 2,
+    "delta3d_feature_set": "compact-invariant",
+    "group_mode": "ecfp-exact-cluster",
+    "replicate_policy": "unique",
+    "allow_incomplete_conditions": false,
+    "quarantine_known_censored_targets": false,
+    "no_default_quarantine": false,
+    "quick": false
+  },
+  "pair_build_audit": {
+    "source_rows": 5992,
+    "rows_after_quarantine_and_target_validation": 3012,
+    "quarantined_rows": 129,
+    "quarantine_reasons": {
+      "todga_structure_assigned_to_different_extractant": 129
+    },
+    "invalid_nonfinite_target_rows": 0,
+    "known_target_extreme_rows_retained": 3,
+    "incomplete_condition_rows_seen": 2851,
+    "require_complete_conditions": true,
+    "extractant_group_identity_mismatches": 0,
+    "condition_columns": [
+      "cond__acid__citric_acid",
+      "cond__acid__h2so4",
+      "cond__acid__hcl",
+      "cond__acid__hclo4",
+      "cond__acid__hno3",
+      "cond__acid__hno3_oxalic_acid",
+      "cond__acid__lactic_acid",
+      "cond__acid__malonic_acid",
+      "cond__acid__tartaric_acid",
+      "cond__acid_concentration_M",
+      "cond__additive__1_octanol",
+      "cond__additive__dhoa",
+      "cond__additive__dohya",
+      "cond__additive__hdehp",
+      "cond__additive__isodecanol",
+      "cond__additive__isodecyl",
+      "cond__additive__isododecanol",
+      "cond__additive__octanol",
+      "cond__additive__tbp",
+      "cond__contact_time_min",
+      "cond__diluent__1_2_dichloroethane",
+      "cond__diluent__1_4_diisopropylbenzene",
+      "cond__diluent__1_octanol",
+      "cond__diluent__1_octanol_0_5_kerosene_0_5",
+      "cond__diluent__avkerosene",
+      "cond__diluent__benzene",
+      "cond__diluent__c4mim_tf2n",
+      "cond__diluent__ch3cl",
+      "cond__diluent__chcl3",
+      "cond__diluent__chloroform",
+      "cond__diluent__cyclohexanone",
+      "cond__diluent__dichloromethane",
+      "cond__diluent__dipb",
+      "cond__diluent__hydrogenated_tetrapropene",
+      "cond__diluent__hydrogenated_tetrapropene_with_50_vol_1_octanol",
+      "cond__diluent__hydrogenated_tetrapropene_with_5_vol_1_octanol",
+      "cond__diluent__hydrogenated_tetrapropylene",
+      "cond__diluent__isopar_l_0_7_exxal_13_0_3",
+      "cond__diluent__isopar_l_with_30_vol_exxal_13",
+      "cond__diluent__isoparl",
+      "cond__diluent__kerosene",
+      "cond__diluent__kerosene_0_7_1_octanol_0_3",
+      "cond__diluent__kerosene_0_95_1_octanol_0_05",
+      "cond__diluent__kerosene_with_30_vol_1_octanol",
+      "cond__diluent__kerosene_with_40_vol_1_octanol",
+      "cond__diluent__meta_nitrobenzotrifluoride",
+      "cond__diluent__n_dodecane",
+      "cond__diluent__n_dodecane_with_5_vol_iso_decanol",
+      "cond__diluent__n_hexane",
+      "cond__diluent__n_octane_with_5_1_octanol",
+      "cond__diluent__nitrobenzene",
+      "cond__diluent__other",
+      "cond__diluent__phenyl_trifluoromethyl_sulfone",
+      "cond__diluent__sulfonated_kerosene",
+      "cond__diluent__tbub",
+      "cond__diluent__tert_butylbenzene",
+      "cond__diluent__toluene",
+      "cond__diluent__total_petroleum_hydrocarbons",
+      "cond__diluent__tph",
+      "cond__diluent__tph_0_95_1_octanol_0_05",
+      "cond__diluent__tphkerosene",
+      "cond__extractant_concentration_M",
+      "cond__metal_concentration_mM",
+      "cond__temperature_C"
+    ],
+    "condition_column_count": 64,
+    "molecular_descriptor_count": 10,
+    "ecfp_feature_count": 2048,
+    "candidate_invariant_3d_count": 23,
+    "available_invariant_3d_count": 94,
+    "delta3d_feature_set": "compact-invariant",
+    "excluded_by_delta3d_feature_set": [
+      "feat3d__complex_physical__binding_energy_eV",
+      "feat3d__complex_physical__donor_partial_charge_01",
+      "feat3d__complex_physical__donor_partial_charge_02",
+      "feat3d__complex_physical__donor_partial_charge_03",
+      "feat3d__complex_physical__donor_partial_charge_04",
+      "feat3d__complex_physical__donor_partial_charge_05",
+      "feat3d__complex_physical__donor_partial_charge_06",
+      "feat3d__complex_physical__donor_partial_charge_07",
+      "feat3d__complex_physical__donor_partial_charge_08",
+      "feat3d__complex_physical__donor_partial_charge_09",
+      "feat3d__complex_physical__homo_eV",
+      "feat3d__complex_physical__homo_lumo_gap_eV",
+      "feat3d__complex_physical__lumo_eV",
+      "feat3d__complex_physical__strain_energy_eV",
+      "feat3d__polyhedron__coordination_number",
+      "feat3d__polyhedron__donor_angle_01_02_deg",
+      "feat3d__polyhedron__donor_angle_01_03_deg",
+      "feat3d__polyhedron__donor_angle_01_04_deg",
+      "feat3d__polyhedron__donor_angle_01_05_deg",
+      "feat3d__polyhedron__donor_angle_01_06_deg",
+      "feat3d__polyhedron__donor_angle_01_07_deg",
+      "feat3d__polyhedron__donor_angle_01_08_deg",
+      "feat3d__polyhedron__donor_angle_01_09_deg",
+      "feat3d__polyhedron__donor_angle_02_03_deg",
+      "feat3d__polyhedron__donor_angle_02_04_deg",
+      "feat3d__polyhedron__donor_angle_02_05_deg",
+      "feat3d__polyhedron__donor_angle_02_06_deg",
+      "feat3d__polyhedron__donor_angle_02_07_deg",
+      "feat3d__polyhedron__donor_angle_02_08_deg",
+      "feat3d__polyhedron__donor_angle_02_09_deg",
+      "feat3d__polyhedron__donor_angle_03_04_deg",
+      "feat3d__polyhedron__donor_angle_03_05_deg",
+      "feat3d__polyhedron__donor_angle_03_06_deg",
+      "feat3d__polyhedron__donor_angle_03_07_deg",
+      "feat3d__polyhedron__donor_angle_03_08_deg",
+      "feat3d__polyhedron__donor_angle_03_09_deg",
+      "feat3d__polyhedron__donor_angle_04_05_deg",
+      "feat3d__polyhedron__donor_angle_04_06_deg",
+      "feat3d__polyhedron__donor_angle_04_07_deg",
+      "feat3d__polyhedron__donor_angle_04_08_deg",
+      "feat3d__polyhedron__donor_angle_04_09_deg",
+      "feat3d__polyhedron__donor_angle_05_06_deg",
+      "feat3d__polyhedron__donor_angle_05_07_deg",
+      "feat3d__polyhedron__donor_angle_05_08_deg",
+      "feat3d__polyhedron__donor_angle_05_09_deg",
+      "feat3d__polyhedron__donor_angle_06_07_deg",
+      "feat3d__polyhedron__donor_angle_06_08_deg",
+      "feat3d__polyhedron__donor_angle_06_09_deg",
+      "feat3d__polyhedron__donor_angle_07_08_deg",
+      "feat3d__polyhedron__donor_angle_07_09_deg",
+      "feat3d__polyhedron__donor_angle_08_09_deg",
+      "feat3d__polyhedron__donor_atomic_number_01",
+      "feat3d__polyhedron__donor_atomic_number_02",
+      "feat3d__polyhedron__donor_atomic_number_03",
+      "feat3d__polyhedron__donor_atomic_number_04",
+      "feat3d__polyhedron__donor_atomic_number_05",
+      "feat3d__polyhedron__donor_atomic_number_06",
+      "feat3d__polyhedron__donor_atomic_number_07",
+      "feat3d__polyhedron__donor_atomic_number_08",
+      "feat3d__polyhedron__donor_atomic_number_09",
+      "feat3d__polyhedron__ln_donor_distance_01",
+      "feat3d__polyhedron__ln_donor_distance_02",
+      "feat3d__polyhedron__ln_donor_distance_03",
+      "feat3d__polyhedron__ln_donor_distance_04",
+      "feat3d__polyhedron__ln_donor_distance_05",
+      "feat3d__polyhedron__ln_donor_distance_06",
+      "feat3d__polyhedron__ln_donor_distance_07",
+      "feat3d__polyhedron__ln_donor_distance_08",
+      "feat3d__polyhedron__ln_donor_distance_09",
+      "feat3d__polyhedron_scalars__coreCN_max_donor_dist",
+      "feat3d__polyhedron_scalars__next_donor_dist"
+    ],
+    "usable_invariant_3d_count": 23,
+    "all_nan_3d_columns": [],
+    "excluded_noninvariant_or_noncomparable_3d_columns": [
+      "feat3d__complex_physical__complex_free_energy_eV",
+      "feat3d__complex_physical__complex_total_energy_eV",
+      "feat3d__complex_physical__dipole_x",
+      "feat3d__complex_physical__dipole_y",
+      "feat3d__complex_physical__dipole_z"
+    ],
+    "same_metal_condition_cells": 2520,
+    "replicated_cells": 198,
+    "replicated_cells_with_target_conflict": 197,
+    "maximum_within_cell_target_range": 4.110907673962235,
+    "cells_with_multiple_geometry_keys": 0,
+    "true_adjacent_pairs_before_pair_filters": 1306,
+    "pairs_excluded_missing_geometry": 101,
+    "pairs_excluded_by_replicate_policy": 122,
+    "pairs_excluded_missing_selected_3d": 2,
+    "pairs_with_missing_selected_3d_retained": 0,
+    "require_complete_3d": true,
+    "pair_rows": 1081,
+    "pair_extractants": 32,
+    "pair_ecfp_exact_clusters": 26,
+    "pairs_by_type": {
+      "Ce-Pr": 81,
+      "Dy-Ho": 96,
+      "Er-Tm": 89,
+      "Eu-Gd": 83,
+      "Gd-Tb": 98,
+      "Ho-Er": 96,
+      "La-Ce": 95,
+      "Pr-Nd": 81,
+      "Sm-Eu": 106,
+      "Tb-Dy": 88,
+      "Tm-Yb": 86,
+      "Yb-Lu": 82
+    },
+    "replicate_policy": "unique",
+    "require_geometry": true,
+    "target_definition": "log_D_A - log_D_B; A has lower atomic number; delta_Z == -1"
+  },
+  "benchmark": {
+    "protocol": {
+      "outer_split": "5-fold GroupKFold",
+      "inner_split": "up to 3-fold GroupKFold",
+      "group_column": "ecfp_exact_cluster",
+      "group_overlap_required": 0,
+      "preprocessing_scope": "SimpleImputer fitted inside every inner/outer training fold",
+      "training_weights": "equal total weight per training group",
+      "pair_swap_augmentation": true,
+      "antisymmetric_inference": "(f(A,B) - f(B,A)) / 2",
+      "delta3d_shrinkage": "Inner group CV selects w in {0,.25,.5,.75,1}; prediction = baseline + w * (full_delta3d - baseline)",
+      "matched_2d_ensemble_control": "An independently tuned second 2D forest uses the same seed stream and selection budget as the full Delta3D forest; its blend weight is selected by the same inner-CV rule.",
+      "primary_comparison": "adaptive Delta3D blend minus matched adaptive 2D+2D blend",
+      "model_selection_metric": "inner macro-group MAE",
+      "trees_per_fit": 120,
+      "seed": 7
+    },
+    "feature_counts": {
+      "baseline": 2130,
+      "delta3d_added": 23,
+      "full": 2153
+    },
+    "metrics": {
+      "baseline": {
+        "n_rows": 1081,
+        "n_groups": 26,
+        "r2": 0.022526293086459148,
+        "mae": 0.12669062327786104,
+        "rmse": 0.1819592997540279,
+        "macro_group_mae": 0.12629245018686167,
+        "worst_group_mae": 0.30902338814273145,
+        "spearman": 0.37128683540207014,
+        "sign_accuracy": 0.7067530064754857,
+        "magnitude_mae": 0.0991050787441213
+      },
+      "2d_second_unshrunk": {
+        "n_rows": 1081,
+        "n_groups": 26,
+        "r2": 0.0429315607555647,
+        "mae": 0.12435544662251667,
+        "rmse": 0.18005003587992657,
+        "macro_group_mae": 0.12606322156385358,
+        "worst_group_mae": 0.3130463338987337,
+        "spearman": 0.3885850413882326,
+        "sign_accuracy": 0.7150786308973173,
+        "magnitude_mae": 0.0984294107195947
+      },
+      "2d_ensemble": {
+        "n_rows": 1081,
+        "n_groups": 26,
+        "r2": 0.023207937604954765,
+        "mae": 0.1266627755343987,
+        "rmse": 0.18189584372989828,
+        "macro_group_mae": 0.12590315620461004,
+        "worst_group_mae": 0.31204059745973317,
+        "spearman": 0.37174664720842904,
+        "sign_accuracy": 0.7086031452358927,
+        "magnitude_mae": 0.09920510463930843
+      },
+      "delta3d_unshrunk": {
+        "n_rows": 1081,
+        "n_groups": 26,
+        "r2": 0.046683388037149,
+        "mae": 0.12641583486586105,
+        "rmse": 0.17969678007446765,
+        "macro_group_mae": 0.13720630635670322,
+        "worst_group_mae": 0.29790635123922626,
+        "spearman": 0.3505451280453862,
+        "sign_accuracy": 0.7049028677150786,
+        "magnitude_mae": 0.09879563505674972
+      },
+      "delta3d": {
+        "n_rows": 1081,
+        "n_groups": 26,
+        "r2": 0.03203655610854139,
+        "mae": 0.12702037262825197,
+        "rmse": 0.18107195591153652,
+        "macro_group_mae": 0.1324236737778594,
+        "worst_group_mae": 0.29790635123922626,
+        "spearman": 0.3561397367754452,
+        "sign_accuracy": 0.7123034227567068,
+        "magnitude_mae": 0.09979216248637755
+      }
+    },
+    "improvements": {
+      "primary_delta3d_vs_2d_ensemble": {
+        "r2_gain": 0.008828618503586627,
+        "mae_reduction": -0.00035759709385327354,
+        "macro_group_mae_reduction": -0.006520517573249368,
+        "sign_accuracy_gain": 0.0037002775208140326
+      },
+      "delta3d_unshrunk_vs_2d_second_unshrunk": {
+        "r2_gain": 0.003751827281584297,
+        "mae_reduction": -0.0020603882433443826,
+        "macro_group_mae_reduction": -0.011143084792849645,
+        "sign_accuracy_gain": -0.010175763182238673
+      },
+      "delta3d_vs_baseline": {
+        "r2_gain": 0.009510263022082244,
+        "mae_reduction": -0.0003297493503909288,
+        "macro_group_mae_reduction": -0.006131223590997742,
+        "sign_accuracy_gain": 0.005550416281221104
+      },
+      "2d_ensemble_vs_baseline": {
+        "r2_gain": 0.0006816445184956166,
+        "mae_reduction": 2.7847743462344754e-05,
+        "macro_group_mae_reduction": 0.00038929398225162615,
+        "sign_accuracy_gain": 0.0018501387604070718
+      }
+    },
+    "paired_group_bootstrap": {
+      "method": "paired cluster bootstrap over fixed OOF held-out-group predictions",
+      "scope_limitation": "Does not refit nested CV and therefore excludes split, training, and model-selection variability.",
+      "replicates": 1000,
+      "comparisons": {
+        "delta3d_vs_2d_ensemble": {
+          "r2_gain": {
+            "mean": 0.0037416426189815625,
+            "ci95_low": -0.050065348776761845,
+            "ci95_high": 0.030808656357300426
+          },
+          "mae_reduction": {
+            "mean": -0.0010063549144502428,
+            "ci95_low": -0.005744114116980675,
+            "ci95_high": 0.001614319979263062
+          },
+          "macro_group_mae_reduction": {
+            "mean": -0.006527065073378978,
+            "ci95_low": -0.012695106457711785,
+            "ci95_high": -0.0004671249034236407
+          },
+          "sign_accuracy_gain": {
+            "mean": -0.00010233626932838508,
+            "ci95_low": -0.02615892035826678,
+            "ci95_high": 0.015130934337816463
+          }
+        },
+        "delta3d_unshrunk_vs_2d_second_unshrunk": {
+          "r2_gain": {
+            "mean": -0.0027301159462013794,
+            "ci95_low": -0.08989231299120633,
+            "ci95_high": 0.044793673300826994
+          },
+          "mae_reduction": {
+            "mean": -0.002831443145932551,
+            "ci95_low": -0.009470425978093765,
+            "ci95_high": 0.0006059624836887471
+          },
+          "macro_group_mae_reduction": {
+            "mean": -0.011116772692263637,
+            "ci95_low": -0.02096673790400074,
+            "ci95_high": -0.001417828782041501
+          },
+          "sign_accuracy_gain": {
+            "mean": -0.014784549833289268,
+            "ci95_low": -0.05530843309698929,
+            "ci95_high": 0.006643383560871714
+          }
+        },
+        "delta3d_vs_baseline": {
+          "r2_gain": {
+            "mean": 0.004745900803655245,
+            "ci95_low": -0.04598774509248297,
+            "ci95_high": 0.030928984916699414
+          },
+          "mae_reduction": {
+            "mean": -0.000965248011861165,
+            "ci95_low": -0.00554897855817093,
+            "ci95_high": 0.0015895732886656569
+          },
+          "macro_group_mae_reduction": {
+            "mean": -0.006125970300833669,
+            "ci95_low": -0.011962830988797855,
+            "ci95_high": -0.00012213874591189075
+          },
+          "sign_accuracy_gain": {
+            "mean": 0.00213590269959146,
+            "ci95_low": -0.02005276050499339,
+            "ci95_high": 0.016005918098592708
+          }
+        },
+        "2d_ensemble_vs_baseline": {
+          "r2_gain": {
+            "mean": 0.0010042581846736814,
+            "ci95_low": -0.0015858285583164266,
+            "ci95_high": 0.005911691978810983
+          },
+          "mae_reduction": {
+            "mean": 4.1106902589077896e-05,
+            "ci95_low": -0.0002119474802286317,
+            "ci95_high": 0.000339479425482602
+          },
+          "macro_group_mae_reduction": {
+            "mean": 0.00040109477254530833,
+            "ci95_low": -0.00022043474603862984,
+            "ci95_high": 0.0011005315543914387
+          },
+          "sign_accuracy_gain": {
+            "mean": 0.0022382389689198446,
+            "ci95_low": -0.0021625208758809604,
+            "ci95_high": 0.009221580011629175
+          }
+        }
+      }
+    },
+    "leakage_audit": {
+      "passed": true,
+      "outer_folds": [
+        {
+          "outer_fold": 0,
+          "train_rows": 556,
+          "test_rows": 525,
+          "train_groups": 25,
+          "test_groups": 1,
+          "group_overlap": 0
+        },
+        {
+          "outer_fold": 1,
+          "train_rows": 942,
+          "test_rows": 139,
+          "train_groups": 19,
+          "test_groups": 7,
+          "group_overlap": 0
+        },
+        {
+          "outer_fold": 2,
+          "train_rows": 944,
+          "test_rows": 137,
+          "train_groups": 20,
+          "test_groups": 6,
+          "group_overlap": 0
+        },
+        {
+          "outer_fold": 3,
+          "train_rows": 941,
+          "test_rows": 140,
+          "train_groups": 20,
+          "test_groups": 6,
+          "group_overlap": 0
+        },
+        {
+          "outer_fold": 4,
+          "train_rows": 941,
+          "test_rows": 140,
+          "train_groups": 20,
+          "test_groups": 6,
+          "group_overlap": 0
+        }
+      ]
+    },
+    "selected_hyperparameters_by_outer_fold": {
+      "baseline": [
+        {
+          "outer_fold": 0,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        },
+        {
+          "outer_fold": 1,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        },
+        {
+          "outer_fold": 2,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        },
+        {
+          "outer_fold": 3,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        },
+        {
+          "outer_fold": 4,
+          "max_features": 1.0,
+          "min_samples_leaf": 4
+        }
+      ],
+      "2d_second_unshrunk": [
+        {
+          "outer_fold": 0,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        },
+        {
+          "outer_fold": 1,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        },
+        {
+          "outer_fold": 2,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        },
+        {
+          "outer_fold": 3,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        },
+        {
+          "outer_fold": 4,
+          "max_features": 1.0,
+          "min_samples_leaf": 4
+        }
+      ],
+      "2d_ensemble_weight": [
+        {
+          "outer_fold": 0,
+          "2d_ensemble_weight": 0.0
+        },
+        {
+          "outer_fold": 1,
+          "2d_ensemble_weight": 0.75
+        },
+        {
+          "outer_fold": 2,
+          "2d_ensemble_weight": 0.0
+        },
+        {
+          "outer_fold": 3,
+          "2d_ensemble_weight": 0.0
+        },
+        {
+          "outer_fold": 4,
+          "2d_ensemble_weight": 0.75
+        }
+      ],
+      "delta3d_unshrunk": [
+        {
+          "outer_fold": 0,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        },
+        {
+          "outer_fold": 1,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        },
+        {
+          "outer_fold": 2,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        },
+        {
+          "outer_fold": 3,
+          "max_features": 0.35,
+          "min_samples_leaf": 2
+        },
+        {
+          "outer_fold": 4,
+          "max_features": 1.0,
+          "min_samples_leaf": 4
+        }
+      ],
+      "delta3d_weight": [
+        {
+          "outer_fold": 0,
+          "delta3d_weight": 0.25
+        },
+        {
+          "outer_fold": 1,
+          "delta3d_weight": 0.5
+        },
+        {
+          "outer_fold": 2,
+          "delta3d_weight": 1.0
+        },
+        {
+          "outer_fold": 3,
+          "delta3d_weight": 0.0
+        },
+        {
+          "outer_fold": 4,
+          "delta3d_weight": 0.5
+        }
+      ]
+    },
+    "final_deployment_parameters": {
+      "baseline": {
+        "max_features": 0.35,
+        "min_samples_leaf": 2
+      },
+      "delta3d_unshrunk": {
+        "max_features": 0.35,
+        "min_samples_leaf": 2
+      },
+      "delta3d_weight": 0.75
+    },
+    "interpretation_guardrail": "This exploratory benchmark cannot establish an experimental separation factor without publication/experiment-series identifiers. A robust 3D claim additionally requires positive Delta3D-vs-2D-ensemble and unshrunk matched-control effects across prespecified seeds/splits and prospective data."
+  }
+}

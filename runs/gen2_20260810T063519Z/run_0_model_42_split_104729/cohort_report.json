@@ -1,0 +1,382 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Show which observations each feature arm is actually scored on, so an apparent gain cannot come from evaluating a new model on an easier subset.",
+  "row_level": {
+    "source_rows": 5992,
+    "quarantined_rows": 129,
+    "non_lanthanide_rows_dropped": 0,
+    "non_finite_target_rows_dropped": 0,
+    "incomplete_condition_rows_dropped": 2851,
+    "electronic_source_columns": [
+      "feat3d__complex_physical__metal_partial_charge",
+      "feat3d__complex_physical__donor_partial_charge_mean",
+      "feat3d__complex_physical__donor_partial_charge_std",
+      "feat3d__complex_physical__donor_partial_charge_min",
+      "feat3d__complex_physical__donor_partial_charge_max",
+      "feat3d__complex_physical__dipole_magnitude",
+      "feat3d__complex_physical__complex_total_energy_eV"
+    ],
+    "cohorts": [
+      {
+        "cohort": "full_baseline",
+        "rows": 3012,
+        "extractants": 52,
+        "lanthanides": 14,
+        "target_mean": 0.6225926195391959,
+        "target_sd": 1.4454490616146605
+      },
+      {
+        "cohort": "geometry_available",
+        "rows": 2732,
+        "extractants": 48,
+        "lanthanides": 14,
+        "target_mean": 0.6381879372828303,
+        "target_sd": 1.4434976122003202
+      },
+      {
+        "cohort": "electronic_available",
+        "rows": 2716,
+        "extractants": 48,
+        "lanthanides": 14,
+        "target_mean": 0.6404826926975642,
+        "target_sd": 1.4450128671840798
+      },
+      {
+        "cohort": "geometry_and_electronic",
+        "rows": 2716,
+        "extractants": 48,
+        "lanthanides": 14,
+        "target_mean": 0.6404826926975642,
+        "target_sd": 1.4450128671840798
+      }
+    ],
+    "rows_with_geometry_but_no_electronic": 16,
+    "rows_with_electronic_but_no_geometry": 0
+  },
+  "pair_level": {
+    "pairs_modelled": 6699,
+    "extractants": 34,
+    "ecfp_exact_clusters": 28,
+    "candidate_pairs_before_filters": 8195,
+    "pairs_excluded_missing_geometry": 688,
+    "pairs_excluded_by_replicate_policy": 802,
+    "pairs_excluded_missing_selected_3d": 6,
+    "pairs_with_matched_complex_composition": 3659,
+    "cohort_sha256": "af3d91b718d0497818db52be8d93ecdee8c6c80eb8fc0aeda1c25c2c3f5e5f0e"
+  },
+  "matched_cohort": {
+    "all_arms_share_one_pair_cohort": true,
+    "all_arms_share_one_outer_fold_plan": true,
+    "reason": "Descriptor blocks are emitted as extra columns on the same pairs rather than by filtering pairs, and a pair with an undefined descriptor keeps its row with a fold-local median imputation plus a missing indicator. No arm therefore changes the evaluation population."
+  },
+  "feature_missingness": [
+    {
+      "column": "elec__odd__delta_complex_total_energy_eV",
+      "family": "ELEC_ENERGY",
+      "missing_pairs": 3044,
+      "missing_fraction": 0.4543961785341096
+    }
+  ],
+  "extractant_missingness": [
+    {
+      "extractant_id": "CCCCCCCCN(CCCCCCCC)C(=O)CN(CC(=O)N(CCCCCCCC)CCCCCCCC)CC(=O)N(CCCCCCCC)CCCCCCCC",
+      "pairs": 1,
+      "pairs_with_any_missing_feature": 0,
+      "fraction_with_any_missing_feature": 0.0
+    },
+    {
+      "extractant_id": "CCCCCCCCCCN(CCCCCCCCCC)C(=O)C(C)OC(C)C(=O)N(CCCCCCCCCC)CCCCCCCCCC",
+      "pairs": 140,
+      "pairs_with_any_missing_feature": 60,
+      "fraction_with_any_missing_feature": 0.42857142857142855
+    },
+    {
+      "extractant_id": "CCCCCCCCCCN(CCCCCCCCCC)C(=O)COCC(=O)N(CCCCCC)CCCCCC",
+      "pairs": 298,
+      "pairs_with_any_missing_feature": 178,
+      "fraction_with_any_missing_feature": 0.5973154362416108
+    },
+    {
+      "extractant_id": "CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC",
+      "pairs": 2921,
+      "pairs_with_any_missing_feature": 1340,
+      "fraction_with_any_missing_feature": 0.4587470044505306
+    },
+    {
+      "extractant_id": "CCN(CC)C(=O)COCC(=O)N(CC)CC",
+      "pairs": 258,
+      "pairs_with_any_missing_feature": 42,
+      "fraction_with_any_missing_feature": 0.16279069767441862
+    },
+    {
+      "extractant_id": "CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC",
+      "pairs": 16,
+      "pairs_with_any_missing_feature": 6,
+      "fraction_with_any_missing_feature": 0.375
+    },
+    {
+      "extractant_id": "CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCCOCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC",
+      "pairs": 79,
+      "pairs_with_any_missing_feature": 7,
+      "fraction_with_any_missing_feature": 0.08860759493670886
+    },
+    {
+      "extractant_id": "CC(C)CCCC(C)CCCCN(C)C(=O)COCC(=O)N(C)CCCCC(C)CCCC(C)C",
+      "pairs": 91,
+      "pairs_with_any_missing_feature": 49,
+      "fraction_with_any_missing_feature": 0.5384615384615384
+    },
+    {
+      "extractant_id": "CCCCCCCCN(CCCCCCCC)C(=O)[C@H](C)O[C@H](C)C(=O)N(CCCCCCCC)CCCCCCCC",
+      "pairs": 91,
+      "pairs_with_any_missing_feature": 49,
+      "fraction_with_any_missing_feature": 0.5384615384615384
+    },
+    {
+      "extractant_id": "CCCCCCCCN(CCCCCCCC)C(=O)[C@H](C)O[C@@H](C)C(=O)N(CCCCCCCC)CCCCCCCC",
+      "pairs": 91,
+      "pairs_with_any_missing_feature": 49,
+      "fraction_with_any_missing_feature": 0.5384615384615384
+    },
+    {
+      "extractant_id": "CN(C(=O)COCC(=O)N(C)c1ccccc1)c1ccccc1",
+      "pairs": 243,
+      "pairs_with_any_missing_feature": 50,
+      "fraction_with_any_missing_feature": 0.205761316872428
+    },
+    {
+      "extractant_id": "CCCCCCCCN(C)C(=O)COCC(=O)N(C)CCCCCCCC",
+      "pairs": 507,
+      "pairs_with_any_missing_feature": 249,
+      "fraction_with_any_missing_feature": 0.4911242603550296
+    },
+    {
+      "extractant_id": "CCCCN(CCCC)C(=O)COCC(=O)N(CCCC)CCCC",
+      "pairs": 172,
+      "pairs_with_any_missing_feature": 92,
+      "fraction_with_any_missing_feature": 0.5348837209302325
+    },
+    {
+      "extractant_id": "CCCCC(CC)CN(CC(CC)CCCC)C(=O)COCC(=O)N(CC(CC)CCCC)CC(CC)CCCC",
+      "pairs": 210,
+      "pairs_with_any_missing_feature": 113,
+      "fraction_with_any_missing_feature": 0.5380952380952381
+    },
+    {
+      "extractant_id": "CCCCC(CC)CN(C)C(=O)COCC(=O)N(C)CC(CC)CCCC",
+      "pairs": 91,
+      "pairs_with_any_missing_feature": 49,
+      "fraction_with_any_missing_feature": 0.5384615384615384
+    },
+    {
+      "extractant_id": "CCCCCCC(CCCC)CCCN(C)C(=O)COCC(=O)N(C)CCCC(CCCC)CCCCCC",
+      "pairs": 91,
+      "pairs_with_any_missing_feature": 49,
+      "fraction_with_any_missing_feature": 0.5384615384615384
+    },
+    {
+      "extractant_id": "CCCCCCCCN(CC)C(=O)COCC(=O)N(CC)CCCCCCCC",
+      "pairs": 91,
+      "pairs_with_any_missing_feature": 49,
+      "fraction_with_any_missing_feature": 0.5384615384615384
+    },
+    {
+      "extractant_id": "CCCCCCCCN(CCC)C(=O)COCC(=O)N(CCC)CCCCCCCC",
+      "pairs": 91,
+      "pairs_with_any_missing_feature": 49,
+      "fraction_with_any_missing_feature": 0.5384615384615384
+    },
+    {
+      "extractant_id": "CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(C)C",
+      "pairs": 21,
+      "pairs_with_any_missing_feature": 6,
+      "fraction_with_any_missing_feature": 0.2857142857142857
+    },
+    {
+      "extractant_id": "CCCCCCCCN(C)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC",
+      "pairs": 91,
+      "pairs_with_any_missing_feature": 49,
+      "fraction_with_any_missing_feature": 0.5384615384615384
+    },
+    {
+      "extractant_id": "CCCCCCCCC(C)(C)SCC1CN(C(=O)COCC(=O)N2CC(C)C(CSC(C)(C)CCCCCCCC)C2)CC1C",
+      "pairs": 91,
+      "pairs_with_any_missing_feature": 49,
+      "fraction_with_any_missing_feature": 0.5384615384615384
+    },
+    {
+      "extractant_id": "CCCCCCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCCCCCC",
+      "pairs": 78,
+      "pairs_with_any_missing_feature": 42,
+      "fraction_with_any_missing_feature": 0.5384615384615384
+    },
+    {
+      "extractant_id": "CCCCCCCCN(CCC(C)CC(C)(C)C)C(=O)COCC(=O)N(CCCCCCCC)CCC(C)CC(C)(C)C",
+      "pairs": 91,
+      "pairs_with_any_missing_feature": 49,
+      "fraction_with_any_missing_feature": 0.5384615384615384
+    },
+    {
+      "extractant_id": "CCCCCCCCN(CCCC(CCCC)CCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCC(CCCC)CCCCCC",
+      "pairs": 78,
+      "pairs_with_any_missing_feature": 42,
+      "fraction_with_any_missing_feature": 0.5384615384615384
+    },
+    {
+      "extractant_id": "CCCCCCCCN(CCCCC(C)CCCC(C)C)C(=O)COCC(=O)N(CCCCCCCC)CCCCC(C)CCCC(C)C",
+      "pairs": 91,
+      "pairs_with_any_missing_feature": 49,
+      "fraction_with_any_missing_feature": 0.5384615384615384
+    },
+    {
+      "extractant_id": "O=C(COCC(=O)N1CCCCC1)N1CCCCC1",
+      "pairs": 91,
+      "pairs_with_any_missing_feature": 49,
+      "fraction_with_any_missing_feature": 0.5384615384615384
+    },
+    {
+      "extractant_id": "COCCN(CCOC)C(=O)COCC(=O)N(CCOC)CCOC",
+      "pairs": 78,
+      "pairs_with_any_missing_feature": 48,
+      "fraction_with_any_missing_feature": 0.6153846153846154
+    },
+    {
+      "extractant_id": "CCCN(CCC)C(=O)COCC(=O)N(CCC)CCC",
+      "pairs": 150,
+      "pairs_with_any_missing_feature": 24,
+      "fraction_with_any_missing_feature": 0.16
+    },
+    {
+      "extractant_id": "CN(C(=O)c1cccc(C(=O)N(C)c2ccccc2)n1)c1ccccc1",
+      "pairs": 140,
+      "pairs_with_any_missing_feature": 35,
+      "fraction_with_any_missing_feature": 0.25
+    },
+    {
+      "extractant_id": "CCCCCCC(C)N(CCCC)C(=O)COCC(=O)N(CCCC)C(C)CCCCCC",
+      "pairs": 112,
+      "pairs_with_any_missing_feature": 67,
+      "fraction_with_any_missing_feature": 0.5982142857142857
+    },
+    {
+      "extractant_id": "CCCCCCN(CCCCCC)C(=O)COCC(=O)N(CCCCCC)CCCCCC",
+      "pairs": 21,
+      "pairs_with_any_missing_feature": 10,
+      "fraction_with_any_missing_feature": 0.47619047619047616
+    },
+    {
+      "extractant_id": "CC(C)CN(CC(C)C)C(=O)COCC(=O)N(CC(C)C)CC(C)C",
+      "pairs": 28,
+      "pairs_with_any_missing_feature": 15,
+      "fraction_with_any_missing_feature": 0.5357142857142857
+    },
+    {
+      "extractant_id": "CCCCCCCCN(CC(C)C)C(=O)COCC(=O)N(CCCCCCCC)CC(C)C",
+      "pairs": 28,
+      "pairs_with_any_missing_feature": 15,
+      "fraction_with_any_missing_feature": 0.5357142857142857
+    },
+    {
+      "extractant_id": "CCCCCCCCN(CC(CC)CCCC)C(=O)COCC(=O)N(CCCCCCCC)CC(CC)CCCC",
+      "pairs": 28,
+      "pairs_with_any_missing_feature": 15,
+      "fraction_with_any_missing_feature": 0.5357142857142857
+    }
+  ],
+  "lanthanide_missingness": [
+    {
+      "lanthanide": "Ce",
+      "pair_memberships": 913,
+      "memberships_with_any_missing_feature": 376,
+      "fraction_with_any_missing_feature": 0.411829134720701
+    },
+    {
+      "lanthanide": "Dy",
+      "pair_memberships": 1123,
+      "memberships_with_any_missing_feature": 575,
+      "fraction_with_any_missing_feature": 0.5120213713268033
+    },
+    {
+      "lanthanide": "Er",
+      "pair_memberships": 1045,
+      "memberships_with_any_missing_feature": 500,
+      "fraction_with_any_missing_feature": 0.4784688995215311
+    },
+    {
+      "lanthanide": "Eu",
+      "pair_memberships": 949,
+      "memberships_with_any_missing_feature": 396,
+      "fraction_with_any_missing_feature": 0.4172813487881981
+    },
+    {
+      "lanthanide": "Gd",
+      "pair_memberships": 1144,
+      "memberships_with_any_missing_feature": 657,
+      "fraction_with_any_missing_feature": 0.5743006993006993
+    },
+    {
+      "lanthanide": "Ho",
+      "pair_memberships": 929,
+      "memberships_with_any_missing_feature": 423,
+      "fraction_with_any_missing_feature": 0.45532831001076424
+    },
+    {
+      "lanthanide": "La",
+      "pair_memberships": 923,
+      "memberships_with_any_missing_feature": 383,
+      "fraction_with_any_missing_feature": 0.41495124593716143
+    },
+    {
+      "lanthanide": "Lu",
+      "pair_memberships": 849,
+      "memberships_with_any_missing_feature": 380,
+      "fraction_with_any_missing_feature": 0.44758539458186103
+    },
+    {
+      "lanthanide": "Nd",
+      "pair_memberships": 1095,
+      "memberships_with_any_missing_feature": 464,
+      "fraction_with_any_missing_feature": 0.4237442922374429
+    },
+    {
+      "lanthanide": "Pr",
+      "pair_memberships": 704,
+      "memberships_with_any_missing_feature": 268,
+      "fraction_with_any_missing_feature": 0.3806818181818182
+    },
+    {
+      "lanthanide": "Sm",
+      "pair_memberships": 1120,
+      "memberships_with_any_missing_feature": 494,
+      "fraction_with_any_missing_feature": 0.44107142857142856
+    },
+    {
+      "lanthanide": "Tb",
+      "pair_memberships": 897,
+      "memberships_with_any_missing_feature": 450,
+      "fraction_with_any_missing_feature": 0.5016722408026756
+    },
+    {
+      "lanthanide": "Tm",
+      "pair_memberships": 827,
+      "memberships_with_any_missing_feature": 343,
+      "fraction_with_any_missing_feature": 0.4147521160822249
+    },
+    {
+      "lanthanide": "Yb",
+      "pair_memberships": 880,
+      "memberships_with_any_missing_feature": 379,
+      "fraction_with_any_missing_feature": 0.43068181818181817
+    }
+  ],
+  "missingness_association": {
+    "pairs_with_any_missing_feature": 3044,
+    "pairs_complete": 3655,
+    "mean_abs_target_when_missing": 0.987198626994331,
+    "mean_abs_target_when_complete": 0.38276359474010996,
+    "point_biserial_with_abs_target": 0.4313798884521112,
+    "extractants_entirely_missing": 0,
+    "extractants_entirely_complete": 1,
+    "interpretation": "Missingness here is confined to descriptors that are undefined for some pairs by construction, not to pairs that were dropped: every arm is scored on the identical pair cohort and identical folds, so an arm cannot gain by being evaluated on an easier subset."
+  }
+}
