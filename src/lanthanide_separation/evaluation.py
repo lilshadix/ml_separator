@@ -10,9 +10,11 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import ExtraTreesRegressor
 from sklearn.impute import SimpleImputer
+from sklearn.linear_model import Ridge
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import StratifiedGroupKFold
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
 from .pairs import PAIR_TARGET_COLUMN, PairDataset, reverse_pair_features
 
@@ -50,7 +52,39 @@ class BenchmarkResult:
 
 
 def _as_float_frame(frame: pd.DataFrame, columns: Iterable[str]) -> pd.DataFrame:
-    return frame.loc[:, list(columns)].apply(pd.to_numeric, errors="coerce").astype(float)
+    selected = frame.loc[:, list(columns)]
+    # Fast path: a block that is already numeric needs no per-column coercion.
+    # ``apply(pd.to_numeric)`` walks >2000 columns on every fit and predict and
+    # dominates the runtime; ``astype`` produces identical values here.
+    if all(pd.api.types.is_numeric_dtype(dtype) for dtype in selected.dtypes):
+        return selected.astype(float)
+    return selected.apply(pd.to_numeric, errors="coerce").astype(float)
+
+
+# Columns that ``reverse_pair_features`` exchanges in place.  A reversal applied
+# to a subset of columns is only identical to a reversal of the whole frame if
+# both members of an exchanged pair travel together, so they are pulled in
+# explicitly whenever either one is requested.
+_SWAPPED_COLUMN_PAIRS: tuple[tuple[str, str], ...] = (
+    ("pair__Z_A", "pair__Z_B"),
+    ("pair__ionic_radius_A", "pair__ionic_radius_B"),
+)
+
+
+def _reversal_input(frame: pd.DataFrame, columns: Iterable[str]) -> pd.DataFrame:
+    """Narrow ``frame`` to what the A/B swap actually needs.
+
+    ``reverse_pair_features`` copies whatever it is given; handing it the full
+    >2000-column pair frame for every fit and prediction copies tens of millions
+    of values per call for no benefit.  The returned values for the requested
+    columns are exactly those of a full-frame reversal.
+    """
+
+    needed = set(columns)
+    for left, right in _SWAPPED_COLUMN_PAIRS:
+        if left in needed or right in needed:
+            needed.update((left, right))
+    return frame.loc[:, [c for c in frame.columns if c in needed]]
 
 
 def group_balanced_weights(groups: Iterable[Any]) -> np.ndarray:
@@ -122,7 +156,10 @@ class AntisymmetricExtraTreesRegressor:
             raise ValueError("frame, target and groups must have equal length.")
 
         forward = _as_float_frame(frame, self.feature_columns)
-        reverse = _as_float_frame(reverse_pair_features(frame), self.feature_columns)
+        reverse = _as_float_frame(
+            reverse_pair_features(_reversal_input(frame, self.feature_columns)),
+            self.feature_columns,
+        )
         augmented_x = pd.concat([forward, reverse], ignore_index=True)
         augmented_y = np.concatenate([target_array, -target_array])
         original_weights = group_balanced_weights(group_array)
@@ -136,7 +173,10 @@ class AntisymmetricExtraTreesRegressor:
         if self.pipeline is None:
             raise RuntimeError("Model has not been fitted.")
         forward = _as_float_frame(frame, self.feature_columns)
-        reverse = _as_float_frame(reverse_pair_features(frame), self.feature_columns)
+        reverse = _as_float_frame(
+            reverse_pair_features(_reversal_input(frame, self.feature_columns)),
+            self.feature_columns,
+        )
         pred_forward = self.pipeline.predict(forward)
         pred_reverse = self.pipeline.predict(reverse)
         return (pred_forward - pred_reverse) / 2.0
@@ -151,6 +191,84 @@ class AntisymmetricExtraTreesRegressor:
             {"feature": names, "importance": model.feature_importances_.astype(float)}
         )
         return result.sort_values("importance", ascending=False, ignore_index=True)
+
+
+class AntisymmetricRidgeRegressor(AntisymmetricExtraTreesRegressor):
+    """Regularized linear pair model sharing the ExtraTrees fit/predict contract.
+
+    The brief requires a simple regularized linear reference in every
+    comparison.  Reusing the swap-augmentation machinery keeps the antisymmetry
+    guarantee and the fold-local preprocessing identical to the forest arms, so
+    a difference between the two is a model-family difference and nothing else.
+    Scaling is added because a penalised linear model is not scale-free; it is
+    fitted inside the pipeline and therefore inside the training fold.
+    """
+
+    def __init__(
+        self,
+        feature_columns: Iterable[str],
+        *,
+        alpha: float = 1.0,
+        random_state: int = 42,
+        **_ignored: Any,
+    ) -> None:
+        super().__init__(feature_columns, random_state=random_state)
+        self.alpha = float(alpha)
+
+    def _new_pipeline(self) -> Pipeline:
+        return Pipeline(
+            [
+                ("imputer", SimpleImputer(strategy="median", add_indicator=True)),
+                ("scaler", StandardScaler()),
+                ("model", Ridge(alpha=self.alpha, random_state=self.random_state)),
+            ]
+        )
+
+    def feature_importance_frame(self) -> pd.DataFrame:
+        if self.pipeline is None:
+            raise RuntimeError("Model has not been fitted.")
+        imputer = self.pipeline.named_steps["imputer"]
+        model = self.pipeline.named_steps["model"]
+        names = imputer.get_feature_names_out(self.feature_columns)
+        result = pd.DataFrame(
+            {"feature": names, "importance": np.abs(model.coef_.astype(float))}
+        )
+        return result.sort_values("importance", ascending=False, ignore_index=True)
+
+
+class AntisymmetricMeanRegressor(AntisymmetricExtraTreesRegressor):
+    """Trivial reference: the fold's group-balanced mean target.
+
+    Note that the antisymmetrised form of any constant predictor is exactly
+    zero, because ``(c - c) / 2 = 0``.  That is the honest trivial baseline for
+    an antisymmetric target -- "predict no separation" -- and it is what
+    :meth:`predict` returns.  ``fit`` still records the training mean so the
+    reported constant is auditable.
+    """
+
+    def __init__(self, feature_columns: Iterable[str], **_ignored: Any) -> None:
+        super().__init__(feature_columns)
+        self.training_mean_: float | None = None
+
+    def fit(
+        self,
+        frame: pd.DataFrame,
+        target: Iterable[float],
+        groups: Iterable[Any],
+    ) -> "AntisymmetricMeanRegressor":
+        target_array = np.asarray(list(target), dtype=float)
+        group_array = np.asarray(list(groups), dtype=object)
+        weights = group_balanced_weights(group_array)
+        self.training_mean_ = float(np.average(target_array, weights=weights))
+        return self
+
+    def predict(self, frame: pd.DataFrame) -> np.ndarray:
+        if self.training_mean_ is None:
+            raise RuntimeError("Model has not been fitted.")
+        return np.zeros(len(frame), dtype=float)
+
+    def feature_importance_frame(self) -> pd.DataFrame:
+        return pd.DataFrame({"feature": [], "importance": []})
 
 
 @dataclass

@@ -509,6 +509,31 @@ def _graph_mean(
     return output / counts.clamp_min(1.0)
 
 
+# Declared encoder ladder (STEP 3).  Each mode removes one level of
+# structure from the same network, so a gain can be attributed to the
+# simplicial order that produced it rather than to capacity:
+#
+#   distances             filtration geometry only -- no atom identity and no
+#                         xTB-derived node features; the metal/donor role flags
+#                         survive because the pooled readout is defined by them.
+#   nodes_distances       atom identity plus per-atom features (which include
+#                         the Ln-atom radial distance); no 1- or 2-simplices.
+#   nodes_edges           the above plus 1-simplex (pairwise-distance) messages.
+#   nodes_edges_triangles the full 0/1/2-simplex network.  Default; numerically
+#                         identical to the pre-ladder implementation.
+SIMPLEX_ORDERS: tuple[str, ...] = (
+    "distances",
+    "nodes_distances",
+    "nodes_edges",
+    "nodes_edges_triangles",
+)
+
+# Column indices of continuous_node_features: charge, charge_missing, is_metal,
+# is_donor, radial distance / shell radius.  The distance-only encoder keeps
+# only the last three: the two role flags and the metal-centred distance.
+_GEOMETRY_ONLY_NODE_FEATURES: tuple[int, ...] = (2, 3, 4)
+
+
 class SimplicialEncoder(nn.Module):
     """0/1/2-simplex incidence network with invariant filtration features."""
 
@@ -520,8 +545,22 @@ class SimplicialEncoder(nn.Module):
         dropout: float = 0.10,
         rbf_count: int = 16,
         max_filtration: float = 4.0,
+        simplex_order: str = "nodes_edges_triangles",
     ) -> None:
         super().__init__()
+        if simplex_order not in SIMPLEX_ORDERS:
+            raise ValueError(
+                f"Unknown simplex_order {simplex_order!r}; expected one of "
+                f"{SIMPLEX_ORDERS}."
+            )
+        self.simplex_order = str(simplex_order)
+        self.use_atom_identity = simplex_order != "distances"
+        self.use_edges = simplex_order in {
+            "distances",
+            "nodes_edges",
+            "nodes_edges_triangles",
+        }
+        self.use_triangles = simplex_order == "nodes_edges_triangles"
         if int(hidden_dim) < 4:
             raise ValueError("hidden_dim must be at least 4.")
         if int(layers) < 1 or int(rbf_count) < 2:
@@ -573,13 +612,23 @@ class SimplicialEncoder(nn.Module):
         ):
             raise ValueError("Packed triangle tensors have inconsistent shapes.")
         atomic = self.atomic_embedding(batch.atomic_numbers.clamp(0, 118))
-        node_state = self.node_input(
-            torch.cat((atomic, batch.continuous_node_features), dim=1)
-        )
+        continuous = batch.continuous_node_features
+        if not self.use_atom_identity:
+            # Distance-only arm: strip chemical identity and the xTB-derived
+            # node channels, keep the metal/donor roles the readout is defined
+            # by plus the metal-centred radial distance.  Zeroing rather than
+            # resizing keeps every weight shape -- and so the model capacity --
+            # identical to the full encoder.
+            atomic = torch.zeros_like(atomic)
+            geometry_mask = torch.zeros_like(continuous)
+            for column in _GEOMETRY_ONLY_NODE_FEATURES:
+                geometry_mask[:, column] = 1.0
+            continuous = continuous * geometry_mask
+        node_state = self.node_input(torch.cat((atomic, continuous), dim=1))
         for edge_network, triangle_network, node_update in zip(
             self.edge_networks, self.triangle_networks, self.node_updates, strict=True
         ):
-            if batch.edge_index.shape[1]:
+            if self.use_edges and batch.edge_index.shape[1]:
                 source = node_state[batch.edge_index[0]]
                 target = node_state[batch.edge_index[1]]
                 edge_messages = edge_network(
@@ -598,7 +647,7 @@ class SimplicialEncoder(nn.Module):
                 edge_messages, batch.edge_index, len(node_state)
             )
 
-            if batch.triangle_index.shape[1]:
+            if self.use_triangles and batch.triangle_index.shape[1]:
                 triangle_nodes = node_state[batch.triangle_index.transpose(0, 1)]
                 triangle_sum = triangle_nodes.sum(dim=1)
                 triangle_dispersion = (
@@ -643,7 +692,7 @@ class SimplicialEncoder(nn.Module):
         )
         triangle_batch = (
             batch.node_batch[batch.triangle_index[0]]
-            if n_triangles
+            if n_triangles and self.use_triangles
             else batch.node_batch.new_zeros((0,))
         )
         triangle_mean = _graph_mean(
@@ -670,6 +719,7 @@ class AntisymmetricSimplicialPairRegressor(nn.Module):
         dropout: float = 0.10,
         rbf_count: int = 16,
         max_filtration: float = 4.0,
+        simplex_order: str = "nodes_edges_triangles",
     ) -> None:
         super().__init__()
         if int(context_dim) < 1:
@@ -680,6 +730,7 @@ class AntisymmetricSimplicialPairRegressor(nn.Module):
             dropout=dropout,
             rbf_count=rbf_count,
             max_filtration=max_filtration,
+            simplex_order=simplex_order,
         )
         self.head = nn.Sequential(
             nn.Linear(self.encoder.output_dim + int(context_dim), hidden_dim),

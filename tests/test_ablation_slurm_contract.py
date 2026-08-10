@@ -168,9 +168,27 @@ class AblationSlurmContractTests(unittest.TestCase):
                     "dataset_sha256",
                     "vr_asset_path",
                     "vr_asset_sha256",
+                    # Generation-2 switches. They belong to the immutable
+                    # contract so a resume cannot silently change which arms a
+                    # run root contains.
+                    "include_pair_response_3d",
+                    "include_electronic",
+                    "include_extension_arms",
+                    "include_symmetric_3d",
+                    "include_reference_baselines",
+                    "include_2d_sensitivity",
+                    "extension_shuffle_seeds",
+                    "prespecified_arms",
                 },
             )
             self.assertEqual(rows[0]["descriptor_blocks"], "global_shape,coordination_shape")
+            # An unset environment must still describe the frozen protocol.
+            self.assertEqual(rows[0]["include_pair_response_3d"], "0")
+            self.assertEqual(rows[0]["include_electronic"], "0")
+            self.assertEqual(rows[0]["include_extension_arms"], "0")
+            self.assertEqual(rows[0]["include_2d_sensitivity"], "0")
+            self.assertEqual(rows[0]["extension_shuffle_seeds"], "none")
+            self.assertEqual(rows[0]["prespecified_arms"], "A0-A6")
             self.assertEqual(rows[0]["aggregate_bootstrap_replicates"], "2000")
             self.assertEqual(rows[0]["aggregate_bootstrap_seed"], "8675309")
             self.assertEqual(rows[0]["dataset_path"], str(dataset_path.resolve()))

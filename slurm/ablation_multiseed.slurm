@@ -43,6 +43,16 @@ DESCRIPTOR_BLOCKS=${DESCRIPTOR_BLOCKS:-global_shape,coordination_shape}
 DESCRIPTOR_PROFILE=${DESCRIPTOR_PROFILE:-core}
 SHUFFLE_SEEDS=${SHUFFLE_SEEDS:-1009,2017,3019}
 INCLUDE_BLOCK_ABLATIONS=${INCLUDE_BLOCK_ABLATIONS:-1}
+# Generation-2 switches. All default to off so an unset environment reproduces
+# the frozen A0--A6 protocol bit-for-bit.
+INCLUDE_PAIR_RESPONSE_3D=${INCLUDE_PAIR_RESPONSE_3D:-0}
+INCLUDE_ELECTRONIC=${INCLUDE_ELECTRONIC:-0}
+INCLUDE_EXTENSION_ARMS=${INCLUDE_EXTENSION_ARMS:-0}
+INCLUDE_SYMMETRIC_3D=${INCLUDE_SYMMETRIC_3D:-0}
+INCLUDE_REFERENCE_BASELINES=${INCLUDE_REFERENCE_BASELINES:-0}
+INCLUDE_2D_SENSITIVITY=${INCLUDE_2D_SENSITIVITY:-0}
+EXTENSION_SHUFFLE_SEEDS=${EXTENSION_SHUFFLE_SEEDS:-}
+PRESPECIFIED_ARMS=${PRESPECIFIED_ARMS:-}
 DELTA3D_FEATURE_SET=${DELTA3D_FEATURE_SET:-compact-invariant}
 REPLICATE_POLICY=${REPLICATE_POLICY:-unique}
 INCLUDE_DONOR_COMPOSITION_COUNTS=${INCLUDE_DONOR_COMPOSITION_COUNTS:-1}
@@ -96,7 +106,7 @@ if [[ "$CANONICAL_DESCRIPTOR_BLOCKS" != "$DESCRIPTOR_BLOCKS" ]]; then
   echo "DESCRIPTOR_BLOCKS must be unique and in canonical order: ligand_field,enclosure,global_shape,coordination_shape." >&2
   exit 2
 fi
-for value_name in INCLUDE_BLOCK_ABLATIONS INCLUDE_DONOR_COMPOSITION_COUNTS QUICK RESUME_COMPLETED; do
+for value_name in INCLUDE_BLOCK_ABLATIONS INCLUDE_DONOR_COMPOSITION_COUNTS QUICK RESUME_COMPLETED INCLUDE_2D_SENSITIVITY; do
   value=${!value_name}
   if [[ "$value" != 0 && "$value" != 1 ]]; then
     echo "$value_name must be 0 or 1." >&2
@@ -285,6 +295,10 @@ fieldnames = [
     "replicate_policy", "include_donor_composition_counts",
     "aggregate_bootstrap_replicates", "aggregate_bootstrap_seed",
     "dataset_path", "dataset_sha256", "vr_asset_path", "vr_asset_sha256",
+    "include_pair_response_3d", "include_electronic", "include_extension_arms",
+    "include_symmetric_3d", "include_reference_baselines",
+    "include_2d_sensitivity",
+    "extension_shuffle_seeds", "prespecified_arms",
 ]
 expected = dict(zip(fieldnames, sys.argv[2:]))
 if len(expected) != len(fieldnames) or len(sys.argv[2:]) != len(fieldnames):
@@ -298,13 +312,17 @@ with path.open(newline="", encoding="utf-8") as handle:
     rows = list(reader)
 if len(rows) != 1 or rows[0] != expected:
     raise SystemExit("Array environment disagrees with immutable experiment contract")
-' "$EXPERIMENT_CONTRACT" 1.0 "$PAIR_SCOPE" "$GROUP_MODE" "$SPLIT_SEED" \
+' "$EXPERIMENT_CONTRACT" 2.0 "$PAIR_SCOPE" "$GROUP_MODE" "$SPLIT_SEED" \
   "$OUTER_FOLDS" "$INNER_FOLDS" "$TREES" "$BOOTSTRAP" \
   "$DESCRIPTOR_BLOCKS" "$DESCRIPTOR_PROFILE" "$SHUFFLE_SEEDS" \
   "$INCLUDE_BLOCK_ABLATIONS" "$QUICK" "$DELTA3D_FEATURE_SET" \
   "$REPLICATE_POLICY" "$INCLUDE_DONOR_COMPOSITION_COUNTS" \
   "$AGGREGATE_BOOTSTRAP" "$AGGREGATE_BOOTSTRAP_SEED" "$DATASET_PATH" \
-  "$DATASET_SHA256" "$VR_ASSET_PATH" "$VR_ASSET_SHA256"
+  "$DATASET_SHA256" "$VR_ASSET_PATH" "$VR_ASSET_SHA256" \
+  "$INCLUDE_PAIR_RESPONSE_3D" "$INCLUDE_ELECTRONIC" "$INCLUDE_EXTENSION_ARMS" \
+  "$INCLUDE_SYMMETRIC_3D" "$INCLUDE_REFERENCE_BASELINES" \
+  "$INCLUDE_2D_SENSITIVITY" \
+  "${EXTENSION_SHUFFLE_SEEDS:-none}" "${PRESPECIFIED_ARMS:-A0-A6}"
 
 validate_completion() {
   local directory=$1
@@ -471,6 +489,32 @@ COMMAND=(
 )
 if [[ "$INCLUDE_BLOCK_ABLATIONS" == 0 ]]; then
   COMMAND+=(--no-block-ablations)
+fi
+# Second-generation blocks and arms.  Every one of these defaults to off, so an
+# unset environment reproduces the frozen A0--A6 run exactly.
+if [[ "$INCLUDE_PAIR_RESPONSE_3D" == 1 ]]; then
+  COMMAND+=(--pair-response-3d)
+fi
+if [[ "$INCLUDE_ELECTRONIC" == 1 ]]; then
+  COMMAND+=(--electronic)
+fi
+if [[ "$INCLUDE_EXTENSION_ARMS" == 1 ]]; then
+  COMMAND+=(--extension-arms)
+fi
+if [[ -n "${EXTENSION_SHUFFLE_SEEDS:-}" ]]; then
+  COMMAND+=(--extension-shuffle-seeds "$EXTENSION_SHUFFLE_SEEDS")
+fi
+if [[ "$INCLUDE_SYMMETRIC_3D" == 1 ]]; then
+  COMMAND+=(--symmetric-3d)
+fi
+if [[ "$INCLUDE_REFERENCE_BASELINES" == 1 ]]; then
+  COMMAND+=(--reference-baselines)
+fi
+if [[ "$INCLUDE_2D_SENSITIVITY" == 1 ]]; then
+  COMMAND+=(--two-d-sensitivity)
+fi
+if [[ -n "${PRESPECIFIED_ARMS:-}" ]]; then
+  COMMAND+=(--prespecified-arms "$PRESPECIFIED_ARMS")
 fi
 if [[ "$QUICK" == 1 ]]; then
   COMMAND+=(--quick)

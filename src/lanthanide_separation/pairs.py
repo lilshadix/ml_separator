@@ -21,7 +21,26 @@ from typing import Any, Iterable
 import numpy as np
 import pandas as pd
 
+from .electronic import (
+    COMPLEX_ELECTRONIC_SOURCES,
+    COMPOSITION_MATCH_COLUMNS,
+    DERIVED_COMPLEX_ELECTRONIC_NAME,
+    ELECTRONIC_EVEN_PREFIX,
+    ELECTRONIC_ODD_PREFIX,
+    ELECTRONIC_PREFIX,
+    ENERGY_SOURCE,
+    electronic_source_columns,
+    pair_electronic_features,
+)
 from .geometry_descriptors import BLOCK_PREFIXES, validate_blocks
+from .pair_response import (
+    PAIR_RESPONSE_EVEN_PREFIX,
+    PAIR_RESPONSE_ODD_PREFIX,
+    PAIR_RESPONSE_PREFIX,
+    PAIR_RESPONSE_QUANTITIES,
+    pair_response_features,
+    pair_response_source_columns,
+)
 
 
 LANTHANIDE_Z: dict[str, int] = {
@@ -119,6 +138,9 @@ class PairDataset:
     audit: dict[str, Any]
     quarantine: pd.DataFrame
     descriptor_columns: tuple[str, ...] = ()
+    symmetric3d_columns: tuple[str, ...] = ()
+    pair_response_columns: tuple[str, ...] = ()
+    electronic_columns: tuple[str, ...] = ()
 
     @property
     def full_columns(self) -> tuple[str, ...]:
@@ -131,6 +153,39 @@ class PairDataset:
         """The frozen contract plus the opt-in metal-site descriptor block."""
 
         return self.baseline_columns + self.delta3d_columns + self.descriptor_columns
+
+    @property
+    def symmetric_extended_columns(self) -> tuple[str, ...]:
+        """``extended_columns`` plus the opt-in swap-symmetric 3D block.
+
+        ``sym3d__X = (X_A + X_B) / 2`` is invariant under the A/B swap, exactly
+        like the existing ``pair__Z_mean`` and ``pair__ionic_radius_mean``
+        contrasts, so :func:`reverse_pair_features` leaves it untouched and the
+        antisymmetry of the prediction is preserved.
+        """
+
+        return self.extended_columns + self.symmetric3d_columns
+
+    @property
+    def extension_columns(self) -> tuple[str, ...]:
+        """Every opt-in extension block declared after the frozen contract.
+
+        These are additions only.  When no extension is requested this is empty
+        and ``symmetric_extended_columns`` is the whole model contract, so the
+        A0--A6 arms are bit-for-bit what they were.
+        """
+
+        return (
+            self.symmetric3d_columns
+            + self.pair_response_columns
+            + self.electronic_columns
+        )
+
+    @property
+    def all_model_columns(self) -> tuple[str, ...]:
+        """The frozen contract plus every requested extension block."""
+
+        return self.extended_columns + self.extension_columns
 
 
 def _required_columns() -> set[str]:
@@ -248,6 +303,30 @@ def _stable_id(values: Iterable[Any], length: int = 20) -> str:
 
 def _select_numeric_columns(df: pd.DataFrame, columns: Iterable[str]) -> list[str]:
     return [c for c in columns if c in df.columns and pd.api.types.is_numeric_dtype(df[c])]
+
+
+def _numeric_or_nan(value: Any) -> float:
+    """Coerce one aggregated cell value to a float, mapping any gap to NaN."""
+
+    try:
+        result = float(value)
+    except (TypeError, ValueError):
+        return float("nan")
+    return result if np.isfinite(result) else float("nan")
+
+
+def _electronic_values(row: Any) -> dict[str, float]:
+    """Read one complex's declared electronic quantities from a cell row."""
+
+    values = {
+        source.name: _numeric_or_nan(row[source.column])
+        for source in COMPLEX_ELECTRONIC_SOURCES
+    }
+    values[DERIVED_COMPLEX_ELECTRONIC_NAME] = (
+        values["q_metal"] - values["q_donor_mean"]
+    )
+    values[ENERGY_SOURCE.name] = _numeric_or_nan(row[ENERGY_SOURCE.column])
+    return values
 
 
 def _add_derived_invariant_3d_features(
@@ -472,6 +551,9 @@ def build_lanthanide_pair_dataset(
     require_complete_3d: bool | None = None,
     geometry_descriptor_blocks: Iterable[str] = (),
     include_donor_composition_counts: bool = False,
+    include_symmetric_3d: bool = False,
+    include_pair_response_3d: bool = False,
+    include_electronic: bool = False,
 ) -> PairDataset:
     """Create condition-matched lanthanide pairs for the requested scope.
 
@@ -515,6 +597,21 @@ def build_lanthanide_pair_dataset(
         Add permutation-invariant N/O/P/S/other donor counts derived from the
         ranked donor atomic-number fields. This is enabled by the geometry
         ablation runner and remains off for legacy frozen-contract reproduction.
+    include_symmetric_3d:
+        Additionally emit ``sym3d__X = (X_A + X_B) / 2`` for every selected 3D
+        column. The delta contract cancels the absolute coordination
+        environment; the symmetric partner restores it while staying invariant
+        under the A/B swap, so exact prediction antisymmetry is unaffected.
+        Off by default, which reproduces the frozen contract bit-for-bit.
+    include_pair_response_3d:
+        Emit the declared ``pair3d__`` block: relative, magnitude, ionic-radius
+        normalised and excess forms of the metal-substitution response of the
+        coordination shell. See :mod:`lanthanide_separation.pair_response`.
+    include_electronic:
+        Emit the declared ``elec__`` block of complex-level and pair-response
+        xTB electronic quantities plus the composition-gated total-energy
+        contrast. See :mod:`lanthanide_separation.electronic`. These columns are
+        never added to A0--A6; they form their own arms.
     """
 
     _validate_source(source)
@@ -587,6 +684,36 @@ def build_lanthanide_pair_dataset(
         (~df["extractant_group"].astype(str).eq(df[EXTRACTANT_COLUMN].astype(str))).sum()
     )
 
+    # Extension blocks read source columns directly rather than reusing the
+    # frozen Delta3D selection, because some of them (the total energy) are
+    # deliberately excluded from that selection.  A requested source that is
+    # absent or entirely unobserved fails closed instead of emitting a column of
+    # NaNs that would look like a computed descriptor.
+    extension_source_columns: list[str] = []
+    if include_pair_response_3d:
+        extension_source_columns.extend(pair_response_source_columns())
+    if include_electronic:
+        extension_source_columns.extend(electronic_source_columns())
+    extension_source_columns = list(dict.fromkeys(extension_source_columns))
+    missing_extension_sources = [
+        column
+        for column in extension_source_columns
+        if column not in df.columns or not pd.api.types.is_numeric_dtype(df[column])
+    ]
+    if missing_extension_sources:
+        raise ValueError(
+            "Requested extension blocks need numeric source columns that are "
+            f"absent from the dataset: {missing_extension_sources}"
+        )
+    unobserved_extension_sources = [
+        column for column in extension_source_columns if df[column].isna().all()
+    ]
+    if unobserved_extension_sources:
+        raise ValueError(
+            "Requested extension blocks depend on source columns that are "
+            f"entirely unobserved in this dataset: {unobserved_extension_sources}"
+        )
+
     cell_key = [EXTRACTANT_COLUMN, *condition_cols, "metal"]
     numeric_to_aggregate = [
         "log_D",
@@ -594,6 +721,7 @@ def build_lanthanide_pair_dataset(
         *molecular_cols,
         *ecfp_cols,
         *usable_3d_cols,
+        *extension_source_columns,
     ]
     # Preserve order while removing accidental duplicates.
     numeric_to_aggregate = list(dict.fromkeys(numeric_to_aggregate))
@@ -612,6 +740,22 @@ def build_lanthanide_pair_dataset(
         if column in df.columns
     ]
     metadata_to_aggregate.extend(optional_geometry_metadata)
+    # The total-energy contrast is only interpretable between complexes of the
+    # same composition, so the composition fields have to travel with the cell.
+    composition_columns: list[str] = []
+    if include_electronic:
+        missing_composition = [
+            column
+            for column in COMPOSITION_MATCH_COLUMNS
+            if column not in df.columns
+        ]
+        if missing_composition:
+            raise ValueError(
+                "The electronic block needs the complex composition fields to "
+                f"gate its energy contrast; missing: {missing_composition}"
+            )
+        composition_columns = list(COMPOSITION_MATCH_COLUMNS)
+        metadata_to_aggregate.extend(composition_columns)
 
     selected = list(
         dict.fromkeys(cell_key + ["geometry_ok"] + numeric_to_aggregate + metadata_to_aggregate)
@@ -623,18 +767,36 @@ def build_lanthanide_pair_dataset(
 
     grouped = work.groupby(cell_key, dropna=False, sort=False)
     cells = grouped.agg(aggregate).reset_index()
-    cells["n_replicates"] = grouped.size().to_numpy()
-    cells["target_std"] = grouped["log_D"].std().to_numpy()
-    cells["target_min"] = grouped["log_D"].min().to_numpy()
-    cells["target_max"] = grouped["log_D"].max().to_numpy()
-    cells["n_geometry_keys"] = grouped["geometry_key"].nunique(dropna=False).to_numpy()
-    cells["Z"] = cells["metal"].map(LANTHANIDE_Z).astype(int)
+    # One bulk concat instead of seven single-column assignments.  Repeated
+    # assignment on a >2000-column frame triggers pandas block fragmentation and
+    # copies the whole frame each time; the values below are identical.
+    cell_summaries = pd.DataFrame(
+        {
+            "n_replicates": grouped.size().to_numpy(),
+            "target_std": grouped["log_D"].std().to_numpy(),
+            "target_min": grouped["log_D"].min().to_numpy(),
+            "target_max": grouped["log_D"].max().to_numpy(),
+            "n_geometry_keys": grouped["geometry_key"]
+            .nunique(dropna=False)
+            .to_numpy(),
+            "Z": cells["metal"].map(LANTHANIDE_Z).astype(int).to_numpy(),
+        },
+        index=cells.index,
+    )
+    cells = pd.concat([cells, cell_summaries], axis=1)
+    cells_with_mixed_composition = 0
+    if composition_columns:
+        composition_uniques = grouped[composition_columns].nunique(dropna=False)
+        cells_with_mixed_composition = int(
+            (composition_uniques > 1).any(axis=1).sum()
+        )
 
     pair_rows: list[dict[str, Any]] = []
     candidate_pairs_before_filters = 0
     true_adjacent_before_filters = 0
     excluded_missing_geometry = 0
     excluded_replicates = 0
+    composition_matched_pairs = 0
     condition_group_key = [EXTRACTANT_COLUMN, *condition_cols]
 
     for condition_values, group in cells.groupby(condition_group_key, dropna=False, sort=False):
@@ -728,10 +890,46 @@ def build_lanthanide_pair_dataset(
             for column in usable_3d_cols:
                 value_a = row_a[column]
                 value_b = row_b[column]
+                both_observed = pd.notna(value_a) and pd.notna(value_b)
                 record[f"delta3d__{column}"] = (
-                    float(value_a - value_b)
-                    if pd.notna(value_a) and pd.notna(value_b)
-                    else np.nan
+                    float(value_a - value_b) if both_observed else np.nan
+                )
+                if include_symmetric_3d:
+                    # Swap-symmetric partner of the delta contrast.  It carries
+                    # the absolute coordination environment that the difference
+                    # cancels, without breaking A/B antisymmetry.
+                    record[f"sym3d__{column}"] = (
+                        float((value_a + value_b) / 2.0) if both_observed else np.nan
+                    )
+
+            radius_difference = radius_a - radius_b
+            if include_pair_response_3d:
+                record.update(
+                    pair_response_features(
+                        values_a={
+                            quantity.name: _numeric_or_nan(row_a[quantity.column])
+                            for quantity in PAIR_RESPONSE_QUANTITIES
+                        },
+                        values_b={
+                            quantity.name: _numeric_or_nan(row_b[quantity.column])
+                            for quantity in PAIR_RESPONSE_QUANTITIES
+                        },
+                        radius_difference=radius_difference,
+                    )
+                )
+            if include_electronic:
+                composition_matches = all(
+                    str(row_a[column]) == str(row_b[column])
+                    for column in composition_columns
+                )
+                composition_matched_pairs += int(composition_matches)
+                record.update(
+                    pair_electronic_features(
+                        values_a=_electronic_values(row_a),
+                        values_b=_electronic_values(row_b),
+                        radius_difference=radius_difference,
+                        composition_matches=composition_matches,
+                    )
                 )
             pair_rows.append(record)
 
@@ -769,6 +967,44 @@ def build_lanthanide_pair_dataset(
     )
     if len(delta3d_columns) + len(descriptor_columns) != len(all_delta3d_columns):
         raise AssertionError("Delta3D and descriptor column partition is not exhaustive.")
+    symmetric3d_columns = (
+        tuple(f"sym3d__{c}" for c in usable_3d_cols) if include_symmetric_3d else ()
+    )
+    missing_symmetric = [c for c in symmetric3d_columns if c not in pairs.columns]
+    if missing_symmetric:
+        raise AssertionError(
+            f"Symmetric 3D columns were requested but not emitted: {missing_symmetric[:5]}"
+        )
+    pair_response_columns = (
+        tuple(c for c in pairs.columns if str(c).startswith(PAIR_RESPONSE_PREFIX))
+        if include_pair_response_3d
+        else ()
+    )
+    electronic_columns = (
+        tuple(c for c in pairs.columns if str(c).startswith(ELECTRONIC_PREFIX))
+        if include_electronic
+        else ()
+    )
+    # Parity must be declared, never inferred.  A column under an extension
+    # namespace that announces neither parity would be silently left unchanged
+    # by the A/B swap and would break antisymmetry, so it fails closed here.
+    undeclared_parity = [
+        column
+        for column in pair_response_columns + electronic_columns
+        if not str(column).startswith(
+            (
+                PAIR_RESPONSE_ODD_PREFIX,
+                PAIR_RESPONSE_EVEN_PREFIX,
+                ELECTRONIC_ODD_PREFIX,
+                ELECTRONIC_EVEN_PREFIX,
+            )
+        )
+    ]
+    if undeclared_parity:
+        raise AssertionError(
+            "Extension columns must declare swap parity via their namespace: "
+            f"{undeclared_parity[:5]}"
+        )
     missing_selected_3d = pairs.loc[:, list(all_delta3d_columns)].isna().any(axis=1)
     pairs_excluded_missing_3d_features = int(missing_selected_3d.sum())
     if require_complete_3d:
@@ -789,7 +1025,11 @@ def build_lanthanide_pair_dataset(
     )
     leaked = [
         c
-        for c in baseline_columns + all_delta3d_columns
+        for c in baseline_columns
+        + all_delta3d_columns
+        + symmetric3d_columns
+        + pair_response_columns
+        + electronic_columns
         if any(fragment.lower() in c.lower() for fragment in forbidden_fragments)
     ]
     if leaked:
@@ -847,6 +1087,16 @@ def build_lanthanide_pair_dataset(
         "usable_invariant_3d_count": len(usable_3d_cols),
         "geometry_descriptor_blocks": list(descriptor_blocks),
         "geometry_descriptor_column_count": len(descriptor_columns),
+        "include_symmetric_3d": bool(include_symmetric_3d),
+        "symmetric_3d_column_count": len(symmetric3d_columns),
+        "include_pair_response_3d": bool(include_pair_response_3d),
+        "pair_response_column_count": len(pair_response_columns),
+        "include_electronic": bool(include_electronic),
+        "electronic_column_count": len(electronic_columns),
+        "cells_with_mixed_complex_composition": int(cells_with_mixed_composition),
+        "pairs_with_matched_complex_composition": (
+            int(composition_matched_pairs) if include_electronic else None
+        ),
         "frozen_delta3d_column_count": len(delta3d_columns),
         "all_nan_3d_columns": all_nan_3d_cols,
         "excluded_noninvariant_or_noncomparable_3d_columns": [
@@ -904,6 +1154,9 @@ def build_lanthanide_pair_dataset(
         audit=audit,
         quarantine=quarantine,
         descriptor_columns=descriptor_columns,
+        symmetric3d_columns=symmetric3d_columns,
+        pair_response_columns=pair_response_columns,
+        electronic_columns=electronic_columns,
     )
 
 
@@ -935,8 +1188,48 @@ def build_adjacent_pair_dataset(
     )
 
 
+ODD_FEATURE_PREFIXES: tuple[str, ...] = (
+    "delta3d__",
+    PAIR_RESPONSE_ODD_PREFIX,
+    ELECTRONIC_ODD_PREFIX,
+)
+EVEN_FEATURE_PREFIXES: tuple[str, ...] = (
+    "sym3d__",
+    PAIR_RESPONSE_EVEN_PREFIX,
+    ELECTRONIC_EVEN_PREFIX,
+)
+PARITY_DECLARING_NAMESPACES: tuple[str, ...] = (
+    PAIR_RESPONSE_PREFIX,
+    ELECTRONIC_PREFIX,
+)
+
+
 def reverse_pair_features(frame: pd.DataFrame) -> pd.DataFrame:
-    """Return the B/A representation used for swap augmentation and inference."""
+    """Return the B/A representation used for swap augmentation and inference.
+
+    Columns are handled by declared parity, never by guesswork:
+
+    * ``pair__{Z,ionic_radius}_{A,B}`` are exchanged;
+    * every prefix in :data:`ODD_FEATURE_PREFIXES` is negated;
+    * every prefix in :data:`EVEN_FEATURE_PREFIXES` is left untouched, which is
+      what makes a symmetric feature legal in an antisymmetric model.
+
+    Any column inside an extension namespace that declares neither parity raises
+    rather than being silently treated as even, because that would break the
+    exact ``f(A,B) = -f(B,A)`` guarantee.
+    """
+
+    undeclared = [
+        column
+        for column in frame.columns
+        if str(column).startswith(PARITY_DECLARING_NAMESPACES)
+        and not str(column).startswith(ODD_FEATURE_PREFIXES + EVEN_FEATURE_PREFIXES)
+    ]
+    if undeclared:
+        raise ValueError(
+            "Extension feature(s) declare no swap parity and cannot be reversed "
+            f"safely: {sorted(undeclared)[:5]}"
+        )
 
     reversed_frame = frame.copy()
     swap_pairs = (
@@ -951,7 +1244,9 @@ def reverse_pair_features(frame: pd.DataFrame) -> pd.DataFrame:
     for column in ("pair__delta_Z", "pair__delta_ionic_radius"):
         if column in reversed_frame.columns:
             reversed_frame[column] = -reversed_frame[column]
-    delta_columns = [c for c in reversed_frame.columns if str(c).startswith("delta3d__")]
-    if delta_columns:
-        reversed_frame[delta_columns] = -reversed_frame[delta_columns]
+    odd_columns = [
+        c for c in reversed_frame.columns if str(c).startswith(ODD_FEATURE_PREFIXES)
+    ]
+    if odd_columns:
+        reversed_frame[odd_columns] = -reversed_frame[odd_columns]
     return reversed_frame

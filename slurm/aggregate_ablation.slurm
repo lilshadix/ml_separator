@@ -37,6 +37,16 @@ DESCRIPTOR_BLOCKS=${DESCRIPTOR_BLOCKS:-global_shape,coordination_shape}
 DESCRIPTOR_PROFILE=${DESCRIPTOR_PROFILE:-core}
 SHUFFLE_SEEDS=${SHUFFLE_SEEDS:-1009,2017,3019}
 INCLUDE_BLOCK_ABLATIONS=${INCLUDE_BLOCK_ABLATIONS:-1}
+# Generation-2 switches, mirrored from the worker so the aggregate validates the
+# same immutable contract. All default to off.
+INCLUDE_PAIR_RESPONSE_3D=${INCLUDE_PAIR_RESPONSE_3D:-0}
+INCLUDE_ELECTRONIC=${INCLUDE_ELECTRONIC:-0}
+INCLUDE_EXTENSION_ARMS=${INCLUDE_EXTENSION_ARMS:-0}
+INCLUDE_SYMMETRIC_3D=${INCLUDE_SYMMETRIC_3D:-0}
+INCLUDE_REFERENCE_BASELINES=${INCLUDE_REFERENCE_BASELINES:-0}
+INCLUDE_2D_SENSITIVITY=${INCLUDE_2D_SENSITIVITY:-0}
+EXTENSION_SHUFFLE_SEEDS=${EXTENSION_SHUFFLE_SEEDS:-}
+PRESPECIFIED_ARMS=${PRESPECIFIED_ARMS:-}
 DELTA3D_FEATURE_SET=${DELTA3D_FEATURE_SET:-compact-invariant}
 REPLICATE_POLICY=${REPLICATE_POLICY:-unique}
 INCLUDE_DONOR_COMPOSITION_COUNTS=${INCLUDE_DONOR_COMPOSITION_COUNTS:-1}
@@ -178,6 +188,10 @@ fieldnames = [
     "replicate_policy", "include_donor_composition_counts",
     "aggregate_bootstrap_replicates", "aggregate_bootstrap_seed",
     "dataset_path", "dataset_sha256", "vr_asset_path", "vr_asset_sha256",
+    "include_pair_response_3d", "include_electronic", "include_extension_arms",
+    "include_symmetric_3d", "include_reference_baselines",
+    "include_2d_sensitivity",
+    "extension_shuffle_seeds", "prespecified_arms",
 ]
 expected = dict(zip(fieldnames, sys.argv[2:]))
 if len(expected) != len(fieldnames) or len(sys.argv[2:]) != len(fieldnames):
@@ -191,13 +205,17 @@ with path.open(newline="", encoding="utf-8") as handle:
     rows = list(reader)
 if len(rows) != 1 or rows[0] != expected:
     raise SystemExit("Aggregate environment disagrees with immutable experiment contract")
-' "$EXPERIMENT_CONTRACT" 1.0 "$PAIR_SCOPE" "$GROUP_MODE" "$SPLIT_SEED" \
+' "$EXPERIMENT_CONTRACT" 2.0 "$PAIR_SCOPE" "$GROUP_MODE" "$SPLIT_SEED" \
   "$OUTER_FOLDS" "$INNER_FOLDS" "$TREES" "$BOOTSTRAP" \
   "$DESCRIPTOR_BLOCKS" "$DESCRIPTOR_PROFILE" "$SHUFFLE_SEEDS" \
   "$INCLUDE_BLOCK_ABLATIONS" "$QUICK" "$DELTA3D_FEATURE_SET" \
   "$REPLICATE_POLICY" "$INCLUDE_DONOR_COMPOSITION_COUNTS" \
   "$AGGREGATE_BOOTSTRAP" "$AGGREGATE_BOOTSTRAP_SEED" "$DATASET_PATH" \
-  "$DATASET_SHA256" "$VR_ASSET_PATH" "$VR_ASSET_SHA256"
+  "$DATASET_SHA256" "$VR_ASSET_PATH" "$VR_ASSET_SHA256" \
+  "$INCLUDE_PAIR_RESPONSE_3D" "$INCLUDE_ELECTRONIC" "$INCLUDE_EXTENSION_ARMS" \
+  "$INCLUDE_SYMMETRIC_3D" "$INCLUDE_REFERENCE_BASELINES" \
+  "$INCLUDE_2D_SENSITIVITY" \
+  "${EXTENSION_SHUFFLE_SEEDS:-none}" "${PRESPECIFIED_ARMS:-A0-A6}"
 
 # Do not rely only on cross-run equality: all five summaries must also match
 # the immutable root contract.  This catches a coherent but wrong set copied

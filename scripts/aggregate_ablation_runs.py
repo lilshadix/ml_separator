@@ -446,7 +446,12 @@ def ablation_sort_key(name: str) -> tuple[int, int, str]:
         return (1, 0, name)
     if name.startswith("A2+D"):
         return (2, 0, name)
-    return (3, 0, name)
+    # Generation-2 ladder, then its permutation controls, then the secondary
+    # 2D-representation ladder, then the reference baselines.
+    for position, prefix in enumerate(("G", "E", "C", "S", "B")):
+        if name.startswith(prefix):
+            return (3 + position, int("_SHUFFLED_s" in name), name)
+    return (8, 0, name)
 
 
 def aligned_exact(reference: pd.DataFrame, candidate: pd.DataFrame, label: str) -> None:
@@ -528,7 +533,38 @@ def comparison_contract(ablations: Sequence[str]) -> tuple[tuple[str, str], ...]
         for name in ablations
         if name.startswith("A5_SHUFFLED") or name.startswith("A2+D")
     )
-    return tuple(comparisons)
+    # Second-generation ladder: every declared arm against the 2D baseline, and
+    # every permutation control against the arm it controls.  Without the second
+    # contrast a block that merely adds capacity looks like a real gain.
+    if "A2" in available:
+        comparisons.extend(
+            ("A2", name)
+            for name in ablations
+            if name not in CORE_ABLATIONS
+            and not name.startswith(("A5_SHUFFLED", "A2+D"))
+            and name != "A2"
+        )
+    # Secondary 2D-representation ladder: the blocks re-added on top of the
+    # RDKit-only baseline are scored against that baseline, not against A2.
+    if "S1" in available:
+        comparisons.extend(
+            ("S1", name)
+            for name in ablations
+            if name in {"S3", "S4", "S5"}
+        )
+    for name in ablations:
+        if "_SHUFFLED_s" not in name or name.startswith("A5_SHUFFLED"):
+            continue
+        controlled = name.split("_SHUFFLED_s", 1)[0]
+        if controlled in available:
+            comparisons.append((name, controlled))
+    seen: set[tuple[str, str]] = set()
+    ordered: list[tuple[str, str]] = []
+    for pair in comparisons:
+        if pair not in seen and set(pair) <= available and pair[0] != pair[1]:
+            seen.add(pair)
+            ordered.append(pair)
+    return tuple(ordered)
 
 
 def compute_run_tables(

@@ -48,6 +48,15 @@ class SimplicialTrainingConfig:
     max_simplices_per_batch: int = 60_000
     gate_z: float = 0.50
     strict_determinism: bool = True
+    # Declared encoder ladder; the default is the full 0/1/2-simplex network.
+    simplex_order: str = "nodes_edges_triangles"
+    # 'conditions_only' is the learned-geometry-only arm: no ligand 2D
+    # descriptor reaches the model, so the encoder must carry the ligand signal.
+    context_mode: str = "full"
+    # Permutation seeds for the learned-geometry negative control. Empty runs
+    # no control; each seed adds one arm trained on training-fold-permuted
+    # geometry and evaluated on the untouched test geometry.
+    geometry_null_seeds: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -87,6 +96,82 @@ class SimplicialData:
     simplex_cost: np.ndarray
 
 
+def permuted_geometry_view(
+    data: SimplicialData,
+    train_indices: np.ndarray,
+    *,
+    seed: int,
+) -> tuple[SimplicialData, dict[str, Any]]:
+    """Return a copy of ``data`` whose *training* geometry links are permuted.
+
+    The negative control for the learned-geometry arm (STEP 10). The whole
+    ``(complex_A, complex_B)`` assignment moves between training rows, so a
+    geometry that appears in several rows stays internally consistent and the
+    marginal distribution of structures, the input dimensionality and the model
+    capacity are all preserved -- only the structure-to-target correspondence is
+    destroyed.
+
+    Two isolation rules are enforced here rather than assumed:
+
+    * rows outside ``train_indices`` are never touched, so no held-out complex
+      can reach training and no test row is ever re-labelled;
+    * the permutation runs **within one lanthanide-pair label**, so the control
+      keeps the metal contrast -- which is not the information under test -- and
+      destroys only the ligand-geometry correspondence.
+    """
+
+    train_indices = np.asarray(train_indices, dtype=np.int64)
+    if train_indices.size == 0:
+        raise ValueError("A geometry null control needs a non-empty training set.")
+    if len(np.unique(train_indices)) != len(train_indices):
+        raise ValueError("train_indices must be unique.")
+    build_ids_a = data.build_ids_a.copy()
+    build_ids_b = data.build_ids_b.copy()
+    simplex_cost = data.simplex_cost.copy()
+    labels = data.frame["pair_label"].astype(str).to_numpy()
+    generator = np.random.default_rng(int(seed))
+    moved = 0
+    for label in sorted(set(labels[train_indices].tolist())):
+        block = train_indices[labels[train_indices] == label]
+        if len(block) < 2:
+            continue
+        order = generator.permutation(len(block))
+        source = block[order]
+        build_ids_a[block] = data.build_ids_a[source]
+        build_ids_b[block] = data.build_ids_b[source]
+        simplex_cost[block] = data.simplex_cost[source]
+        moved += int(np.count_nonzero(block != source))
+    held_out = np.setdiff1d(
+        np.arange(len(data.build_ids_a), dtype=np.int64), train_indices
+    )
+    if held_out.size:
+        untouched = np.array_equal(
+            build_ids_a[held_out], data.build_ids_a[held_out]
+        ) and np.array_equal(build_ids_b[held_out], data.build_ids_b[held_out])
+        if not untouched:
+            raise AssertionError("Geometry permutation escaped the training subset.")
+    audit = {
+        "seed": int(seed),
+        "train_rows": int(len(train_indices)),
+        "test_rows_touched": 0,
+        "rows_reassigned": moved,
+        "permutation_unit": "(complex_A, complex_B) pair, within pair_label",
+    }
+    return (
+        SimplicialData(
+            frame=data.frame,
+            store=data.store,
+            context=data.context,
+            target=data.target,
+            groups=data.groups,
+            build_ids_a=build_ids_a,
+            build_ids_b=build_ids_b,
+            simplex_cost=simplex_cost,
+        ),
+        audit,
+    )
+
+
 @dataclass
 class FittedNetwork:
     model: AntisymmetricSimplicialPairRegressor
@@ -107,16 +192,35 @@ class SimplicialBenchmarkResult:
     per_pair_metrics: pd.DataFrame
 
 
-def symmetric_context_columns(pair_data: PairDataset) -> tuple[str, ...]:
-    """Small even context block; ECFP identity remains in the 2D control only."""
+CONTEXT_MODES: tuple[str, ...] = ("full", "conditions_only")
 
+
+def symmetric_context_columns(
+    pair_data: PairDataset, *, context_mode: str = "full"
+) -> tuple[str, ...]:
+    """Small even context block; ECFP identity remains in the 2D control only.
+
+    ``conditions_only`` is the declared *learned-geometry-only* arm: it drops
+    every ligand 2D descriptor and keeps the experimental conditions and the
+    metal identity means, so nothing about the ligand reaches the model except
+    through the encoded structure. Conditions cannot be dropped as well -- the
+    target is a condition-matched difference, so an arm blind to them would be
+    answering a different question, not a purer one.
+    """
+
+    if context_mode not in CONTEXT_MODES:
+        raise ValueError(
+            f"Unknown context_mode {context_mode!r}; expected one of {CONTEXT_MODES}."
+        )
+    metal_means = {"pair__Z_mean", "pair__ionic_radius_mean"}
     columns = [
         column
         for column in pair_data.baseline_columns
-        if column in {"pair__Z_mean", "pair__ionic_radius_mean"}
+        if column in metal_means
         or (
             column.startswith("base__")
             and not column.startswith("base__ecfp_")
+            and (context_mode == "full" or column.startswith("base__cond__"))
         )
     ]
     if not columns:
@@ -179,10 +283,11 @@ def prepare_simplicial_data(
     store: VietorisRipsStore,
     *,
     group_column: str,
+    context_mode: str = "full",
 ) -> tuple[SimplicialData, tuple[str, ...]]:
     frame = pair_data.frame.reset_index(drop=True).copy()
     validate_vr_pair_links(frame, store)
-    context_columns = symmetric_context_columns(pair_data)
+    context_columns = symmetric_context_columns(pair_data, context_mode=context_mode)
     context = frame.loc[:, list(context_columns)].apply(
         pd.to_numeric, errors="coerce"
     ).to_numpy(dtype=np.float32)
@@ -278,6 +383,7 @@ def _new_model(
         dropout=config.dropout,
         rbf_count=config.rbf_count,
         max_filtration=config.max_filtration,
+        simplex_order=config.simplex_order,
     ).to(device)
 
 
@@ -619,7 +725,10 @@ def nested_simplicial_benchmark(
         if int(value) < 0 or int(value) > MAX_BASE_SEED:
             raise ValueError(f"{label} must be between 0 and {MAX_BASE_SEED}.")
     data, context_columns = prepare_simplicial_data(
-        pair_data, store, group_column=group_column
+        pair_data,
+        store,
+        group_column=group_column,
+        context_mode=training_config.context_mode,
     )
     frame = data.frame
     groups = data.groups
@@ -653,7 +762,17 @@ def nested_simplicial_benchmark(
         ]
     ].copy()
     predictions["outer_fold"] = -1
-    for model_name in (
+    geometry_null_seeds = tuple(
+        int(value) for value in training_config.geometry_null_seeds
+    )
+    if len(set(geometry_null_seeds)) != len(geometry_null_seeds):
+        raise ValueError("geometry_null_seeds must be unique.")
+    if any(value < 0 for value in geometry_null_seeds):
+        raise ValueError("geometry_null_seeds must be nonnegative.")
+    null_arm_names = tuple(
+        f"simplicial_shuffled_s{value}" for value in geometry_null_seeds
+    )
+    model_names = (
         "baseline",
         "2d_second_unshrunk",
         "2d_ensemble",
@@ -661,8 +780,10 @@ def nested_simplicial_benchmark(
         "delta3d",
         "simplicial_unshrunk",
         "simplicial",
-    ):
+    ) + null_arm_names
+    for model_name in model_names:
         predictions[f"prediction_{model_name}"] = np.nan
+    geometry_null_audit: list[dict[str, Any]] = []
 
     leakage_rows: list[dict[str, Any]] = []
     all_pair_types = set(frame["pair_label"].astype(str))
@@ -949,6 +1070,54 @@ def nested_simplicial_benchmark(
         guarded_test = delta3d_test + simplicial_weight * (
             simplicial_test - delta3d_test
         )
+
+        # Learned-geometry negative control.  Identical architecture, identical
+        # epochs, identical initialisation count and identical held-out rows;
+        # only the training-fold structure-to-target correspondence is gone.
+        # The comparison that matters is against ``simplicial_unshrunk``, which
+        # is the same quantity without the permutation.
+        null_test: dict[str, np.ndarray] = {}
+        for null_seed, arm_name in zip(
+            geometry_null_seeds, null_arm_names, strict=True
+        ):
+            null_data, null_audit = permuted_geometry_view(
+                data, train_indices, seed=null_seed + outer_fold * 7919
+            )
+            null_predictions: list[np.ndarray] = []
+            for initialization in range(training_config.initializations):
+                network_seed = (
+                    seed
+                    + outer_fold * 1_000_003
+                    + 800_011
+                    + null_seed * 13
+                    + initialization * 101
+                )
+                fitted = _fit_network_fixed_epochs(
+                    null_data,
+                    train_indices,
+                    config=training_config,
+                    epochs=final_epochs,
+                    model_seed=network_seed,
+                    device=device,
+                )
+                # Test rows keep their true geometry in ``null_data``, so this
+                # scores the permuted-training model on the untouched cohort.
+                null_predictions.append(
+                    _predict_network(
+                        fitted,
+                        null_data,
+                        test_indices,
+                        config=training_config,
+                        device=device,
+                    )
+                )
+                del fitted
+                if device.type == "cuda":
+                    torch.cuda.empty_cache()
+            null_test[arm_name] = np.mean(null_predictions, axis=0)
+            geometry_null_audit.append(
+                {"outer_fold": outer_fold, "arm": arm_name, **null_audit}
+            )
         predictions.loc[test_indices, "outer_fold"] = outer_fold
         predictions.loc[test_indices, "prediction_baseline"] = baseline_test
         predictions.loc[test_indices, "prediction_2d_second_unshrunk"] = second_test
@@ -957,16 +1126,10 @@ def nested_simplicial_benchmark(
         predictions.loc[test_indices, "prediction_delta3d"] = delta3d_test
         predictions.loc[test_indices, "prediction_simplicial_unshrunk"] = simplicial_test
         predictions.loc[test_indices, "prediction_simplicial"] = guarded_test
+        for arm_name, values in null_test.items():
+            predictions.loc[test_indices, f"prediction_{arm_name}"] = values
 
-    prediction_columns = [
-        "prediction_baseline",
-        "prediction_2d_second_unshrunk",
-        "prediction_2d_ensemble",
-        "prediction_delta3d_unshrunk",
-        "prediction_delta3d",
-        "prediction_simplicial_unshrunk",
-        "prediction_simplicial",
-    ]
+    prediction_columns = [f"prediction_{name}" for name in model_names]
     prediction_values = predictions[prediction_columns].to_numpy(dtype=float)
     if not np.isfinite(prediction_values).all():
         raise AssertionError("Outer OOF predictions are incomplete or non-finite.")
@@ -977,15 +1140,7 @@ def nested_simplicial_benchmark(
             predictions[f"prediction_{model_name}"].to_numpy(dtype=float),
             groups,
         )
-        for model_name in (
-            "baseline",
-            "2d_second_unshrunk",
-            "2d_ensemble",
-            "delta3d_unshrunk",
-            "delta3d",
-            "simplicial_unshrunk",
-            "simplicial",
-        )
+        for model_name in model_names
     }
 
     def comparison(reference: str, candidate: str) -> dict[str, float]:
@@ -1018,6 +1173,13 @@ def nested_simplicial_benchmark(
         "simplicial_vs_baseline": comparison("baseline", "simplicial"),
         "2d_ensemble_vs_baseline": comparison("baseline", "2d_ensemble"),
     }
+    # Real learned geometry against its own permuted twin, and the twin against
+    # the same 2D reference, so both gains are read on one scale.
+    for arm_name in null_arm_names:
+        improvements[f"simplicial_unshrunk_vs_{arm_name}"] = comparison(
+            arm_name, "simplicial_unshrunk"
+        )
+        improvements[f"{arm_name}_vs_baseline"] = comparison("baseline", arm_name)
     bootstrap = _primary_bootstrap(
         predictions,
         group_column=group_column,
@@ -1070,7 +1232,15 @@ def nested_simplicial_benchmark(
             "fit_final_model": False,
             "device_type": device.type,
             "strict_determinism": training_config.strict_determinism,
+            "simplex_order": training_config.simplex_order,
+            "context_mode": training_config.context_mode,
+            "geometry_null_seeds": list(geometry_null_seeds),
+            "geometry_null_scope": (
+                "training rows only, whole (complex_A, complex_B) assignment "
+                "permuted within one pair_label; test geometry untouched"
+            ),
         },
+        "geometry_null_audit": geometry_null_audit,
         "feature_counts": {
             "baseline": len(pair_data.baseline_columns),
             "tabular_delta3d": len(pair_data.full_columns),

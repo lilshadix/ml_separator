@@ -32,9 +32,18 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
+from lanthanide_separation.cohort import build_cohort_report  # noqa: E402
+from lanthanide_separation.electronic import (  # noqa: E402
+    audit_electronic_sources,
+)
 from lanthanide_separation.feature_registry import (  # noqa: E402
     ABLATION_FAMILIES,
+    EXTENSION_ABLATION_FAMILIES,
+    EXTENSION_SHUFFLE_BLOCKS,
     LOCAL_3D_SUBBLOCKS,
+    SENSITIVITY_2D_ARM_FAMILIES,
+    SENSITIVITY_2D_ARMS,
+    SENSITIVITY_2D_SHUFFLE_BLOCKS,
     build_feature_registry,
 )
 from lanthanide_separation.geometry_descriptors import (  # noqa: E402
@@ -44,8 +53,10 @@ from lanthanide_separation.geometry_descriptors import (  # noqa: E402
     attach_geometry_descriptors,
     validate_blocks,
 )
+from lanthanide_separation.novelty import novelty_report  # noqa: E402
 from lanthanide_separation.pairs import (  # noqa: E402
     PAIR_SCOPES,
+    PAIR_TARGET_COLUMN,
     build_lanthanide_pair_dataset,
 )
 
@@ -198,6 +209,76 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         help="Skip exploratory A2+D1...D5 models; main A0--A6 still run.",
     )
     parser.add_argument(
+        "--reference-baselines",
+        action="store_true",
+        help=(
+            "Add the trivial (antisymmetric constant) and regularized linear "
+            "reference arms B0/B1/B2 on the same folds."
+        ),
+    )
+    parser.add_argument(
+        "--symmetric-3d",
+        action="store_true",
+        help=(
+            "Emit sym3d__X = (X_A + X_B)/2 and evaluate the declared A5s/A6s "
+            "arms in addition to -- never instead of -- A5/A6. The delta-only "
+            "contract cancels the absolute coordination environment; this "
+            "restores it while preserving exact A/B antisymmetry."
+        ),
+    )
+    parser.add_argument(
+        "--pair-response-3d",
+        action="store_true",
+        help=(
+            "Emit the declared pair3d__ block (relative, magnitude, "
+            "ionic-radius normalised and excess forms of the metal-substitution "
+            "response of the coordination shell)."
+        ),
+    )
+    parser.add_argument(
+        "--electronic",
+        action="store_true",
+        help=(
+            "Emit the declared elec__ block of complex-level and pair-response "
+            "xTB quantities. Never added to A0--A6; it forms its own arms."
+        ),
+    )
+    parser.add_argument(
+        "--extension-arms",
+        action="store_true",
+        help=(
+            "Evaluate the second-generation G/E/C ladder on the same folds as "
+            "the pre-specified arms. Requires the matching feature blocks."
+        ),
+    )
+    parser.add_argument(
+        "--two-d-sensitivity",
+        action="store_true",
+        help=(
+            "Evaluate the secondary S1..S5 2D-representation ladder (RDKit-only "
+            "and ECFP-only baselines, and the geometry/electronic blocks re-added "
+            "on top of the RDKit-only baseline) on the same folds. Diagnostic "
+            "for ECFP redundancy; it never modifies A2 or the primary claim."
+        ),
+    )
+    parser.add_argument(
+        "--extension-shuffle-seeds",
+        default="",
+        help=(
+            "Comma-separated seeds for the block-permutation negative controls "
+            "of the extension arms (G2/E2/E3). Empty disables them."
+        ),
+    )
+    parser.add_argument(
+        "--prespecified-arms",
+        default="",
+        help=(
+            "Comma-separated subset of A0..A6 to evaluate; A2 is mandatory. "
+            "Empty runs the whole pre-specified ladder. Subsetting only limits "
+            "which frozen arms this run recomputes; it never changes them."
+        ),
+    )
+    parser.add_argument(
         "--replicate-policy",
         choices=("median", "unique"),
         default="unique",
@@ -242,11 +323,43 @@ def validate_args(args: argparse.Namespace) -> argparse.Namespace:
         args.shuffle_seed_values = _parse_int_list(
             args.shuffle_seeds, flag="--shuffle-seeds"
         )
+        args.extension_shuffle_seed_values = _parse_int_list(
+            args.extension_shuffle_seeds, flag="--extension-shuffle-seeds"
+        )
         args.descriptor_blocks = _parse_descriptor_blocks(
             args.geometry_descriptor_blocks
         )
     except argparse.ArgumentTypeError as error:
         raise SystemExit(str(error)) from error
+    args.prespecified_arm_values = tuple(
+        item.strip()
+        for item in str(args.prespecified_arms).split(",")
+        if item.strip()
+    )
+    if args.prespecified_arm_values:
+        unknown = [
+            arm for arm in args.prespecified_arm_values if arm not in ABLATION_FAMILIES
+        ]
+        if unknown:
+            raise SystemExit(
+                f"--prespecified-arms accepts only {tuple(ABLATION_FAMILIES)}; "
+                f"got {unknown}."
+            )
+        if "A2" not in args.prespecified_arm_values:
+            raise SystemExit("--prespecified-arms must include A2, the reference arm.")
+    if args.extension_arms and not (args.pair_response_3d or args.electronic):
+        raise SystemExit(
+            "--extension-arms requires --pair-response-3d and/or --electronic."
+        )
+    if args.extension_shuffle_seed_values and not args.extension_arms:
+        raise SystemExit("--extension-shuffle-seeds requires --extension-arms.")
+    if args.two_d_sensitivity and args.prespecified_arm_values:
+        # S1..S5 are defined relative to the full A2 column set; subsetting the
+        # frozen ladder would leave the sensitivity contrast without its
+        # reference.
+        raise SystemExit(
+            "--two-d-sensitivity cannot be combined with --prespecified-arms."
+        )
     args.expected_dataset_sha256 = _validate_digest(
         args.expected_dataset_sha256, "--expected-dataset-sha256"
     )
@@ -261,6 +374,7 @@ def validate_args(args: argparse.Namespace) -> argparse.Namespace:
         args.trees = min(args.trees, 48)
         args.bootstrap = min(args.bootstrap, 100)
         args.shuffle_seed_values = args.shuffle_seed_values[:1]
+        args.extension_shuffle_seed_values = args.extension_shuffle_seed_values[:1]
     return args
 
 
@@ -386,6 +500,16 @@ def scientific_protocol_payload(
         "parameter_grid": [dict(item) for item in parameter_grid],
         "bootstrap_replicates": int(args.bootstrap),
         "shuffle_seeds": [int(value) for value in args.shuffle_seed_values],
+        "extension_shuffle_seeds": [
+            int(value) for value in args.extension_shuffle_seed_values
+        ],
+        "prespecified_arms": list(args.prespecified_arm_values) or list(ABLATION_FAMILIES),
+        "include_pair_response_3d": bool(args.pair_response_3d),
+        "include_electronic": bool(args.electronic),
+        "include_extension_arms": bool(args.extension_arms),
+        "include_2d_sensitivity_arms": bool(args.two_d_sensitivity),
+        "include_symmetric_3d": bool(args.symmetric_3d),
+        "include_reference_baselines": bool(args.reference_baselines),
         "delta3d_feature_set": args.delta3d_feature_set,
         "geometry_descriptor_blocks": list(args.descriptor_blocks),
         "descriptor_profile": args.descriptor_profile,
@@ -402,6 +526,30 @@ def scientific_protocol_payload(
         "outer_test_groups_unseen_in_inner_cv": True,
         "model_seed_is_the_only_varying_training_field": True,
     }
+
+
+def _extension_arm_is_buildable(arm: str, args: argparse.Namespace) -> bool:
+    """True when this run emitted every feature family the arm needs."""
+
+    if arm == "G4":
+        return bool(args.descriptor_blocks)
+    families = set(EXTENSION_ABLATION_FAMILIES[arm])
+    if "3D_PAIR_RESPONSE" in families and not args.pair_response_3d:
+        return False
+    if {"ELEC_COMPLEX", "ELEC_PAIR"} & families and not args.electronic:
+        return False
+    return True
+
+
+def _sensitivity_arm_is_buildable(arm: str, args: argparse.Namespace) -> bool:
+    """True when this run emitted every feature family the S-arm needs."""
+
+    families = set(SENSITIVITY_2D_ARM_FAMILIES.get(arm, ()))
+    if "3D_PAIR_RESPONSE" in families and not args.pair_response_3d:
+        return False
+    if "ELEC_PAIR" in families and not args.electronic:
+        return False
+    return True
 
 
 def _as_frame(value: Any, *, field_name: str) -> pd.DataFrame:
@@ -1063,15 +1211,65 @@ def validate_result_contract(
     observed: set[str] = set()
     if ablation_column is not None:
         observed = set(predictions[ablation_column].dropna().astype(str))
-    missing_main = sorted(set(ABLATION_FAMILIES) - observed)
+    # A run may deliberately recompute only a subset of the frozen ladder; what
+    # must always hold is that every arm the run declared was actually produced.
+    expected_main = set(args.prespecified_arm_values or ABLATION_FAMILIES)
+    missing_main = sorted(expected_main - observed)
     checks["all_main_ablations_present"] = not missing_main
     checks["missing_main_ablations"] = missing_main
+    checks["main_ablations_requested"] = sorted(expected_main)
+    checks["full_prespecified_ladder_evaluated"] = not sorted(
+        set(ABLATION_FAMILIES) - observed
+    )
 
     expected_shuffle_count = len(args.shuffle_seed_values)
     observed_shuffle = sorted(name for name in observed if name.startswith("A5_SHUFFLED"))
     checks["shuffle_controls_present"] = len(observed_shuffle) == expected_shuffle_count
     checks["expected_shuffle_control_count"] = expected_shuffle_count
     checks["observed_shuffle_controls"] = observed_shuffle
+
+    expected_extension_arms = (
+        set(EXTENSION_ABLATION_FAMILIES) | {"G4"} if args.extension_arms else set()
+    )
+    missing_extension = sorted(
+        arm
+        for arm in expected_extension_arms
+        if arm not in observed and _extension_arm_is_buildable(arm, args)
+    )
+    checks["extension_arms_present"] = not missing_extension
+    checks["missing_extension_arms"] = missing_extension
+    observed_extension_controls = sorted(
+        name
+        for name in observed
+        if name.endswith(tuple(f"_SHUFFLED_s{s}" for s in args.extension_shuffle_seed_values))
+        and not name.startswith("A5_SHUFFLED")
+    )
+    expected_sensitivity_arms = (
+        set(SENSITIVITY_2D_ARMS) if args.two_d_sensitivity else set()
+    )
+    missing_sensitivity = sorted(
+        arm
+        for arm in expected_sensitivity_arms
+        if arm not in observed and _sensitivity_arm_is_buildable(arm, args)
+    )
+    checks["sensitivity_2d_arms_present"] = not missing_sensitivity
+    checks["missing_2d_sensitivity_arms"] = missing_sensitivity
+
+    # G4 selects its block by namespace rather than by feature family, so it is
+    # not in EXTENSION_SHUFFLE_BLOCKS but does get a control when it is present.
+    # The S-ladder blocks make the same claim as their A2-referenced twins and
+    # are counted the same way.
+    controllable_arms = (
+        set(EXTENSION_SHUFFLE_BLOCKS) | {"G4"} | set(SENSITIVITY_2D_SHUFFLE_BLOCKS)
+    ) & observed
+    checks["expected_extension_control_count"] = len(
+        args.extension_shuffle_seed_values
+    ) * len(controllable_arms)
+    checks["observed_extension_controls"] = observed_extension_controls
+    checks["extension_controls_present"] = bool(
+        len(observed_extension_controls)
+        == checks["expected_extension_control_count"]
+    )
 
     assignments = tables["fold_assignments"]
     pair_key = next(
@@ -1113,6 +1311,11 @@ def validate_result_contract(
             "registry_has_no_target_or_identifier_features",
             "all_main_ablations_present",
             "shuffle_controls_present",
+            # A declared extension arm without its permutation control cannot be
+            # interpreted, so both gate the run.
+            "extension_arms_present",
+            "extension_controls_present",
+            "sensitivity_2d_arms_present",
             "oof_identity_contract_complete",
             "fold_assignments_have_row_and_fold",
             "one_test_fold_per_row",
@@ -1251,9 +1454,23 @@ def main(argv: Sequence[str] | None = None) -> int:
         delta3d_feature_set=args.delta3d_feature_set,
         geometry_descriptor_blocks=args.descriptor_blocks,
         include_donor_composition_counts=True,
+        include_symmetric_3d=args.symmetric_3d,
+        include_pair_response_3d=args.pair_response_3d,
+        include_electronic=args.electronic,
     )
     registry = build_feature_registry(pair_data)
     write_json_atomic(pair_data.audit, output_dir / "pair_build_audit.json")
+    # Provenance and cohort accounting are written before any model is fitted so
+    # they cannot be shaped by a result.
+    write_json_atomic(
+        audit_electronic_sources(source), output_dir / "electronic_provenance.json"
+    )
+    cohort = build_cohort_report(source, pair_data, registry)
+    write_json_atomic(cohort, output_dir / "cohort_report.json")
+    write_csv_atomic(
+        pd.DataFrame(cohort["feature_missingness"]),
+        output_dir / "feature_missingness.csv",
+    )
     write_json_atomic(registry.to_dict(), output_dir / "feature_registry.json")
     if not pair_data.quarantine.empty:
         write_csv_atomic(pair_data.quarantine, output_dir / "quarantined_source_rows.csv")
@@ -1279,6 +1496,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         split_seed=args.split_seed,
         shuffle_seeds=args.shuffle_seed_values,
         include_block_ablations=not args.no_block_ablations,
+        include_reference_baselines=args.reference_baselines,
+        include_symmetric_arms=args.symmetric_3d,
+        include_extension_arms=args.extension_arms,
+        include_2d_sensitivity_arms=args.two_d_sensitivity,
+        extension_shuffle_seeds=args.extension_shuffle_seed_values,
+        prespecified_arms=args.prespecified_arm_values or None,
         parameter_grid=tuple(parameter_grid),
     )
     for fold in result.leakage_audit.get("outer_folds", []):
@@ -1288,6 +1511,35 @@ def main(argv: Sequence[str] | None = None) -> int:
             + ", ".join(str(value) for value in held_out),
             flush=True,
         )
+
+    # Declared secondary analysis: does an arm's advantage survive when the
+    # held-out ligand is genuinely structurally new?  It re-reads the frozen OOF
+    # predictions and never touches the primary split.
+    print("Running the structural-novelty sensitivity analysis...", flush=True)
+    novelty_comparisons = [
+        ("A2", arm)
+        for arm in result.summary["feature_counts"]
+        if arm != "A2" and f"prediction_{arm}" in result.predictions.columns
+    ]
+    novelty = novelty_report(
+        pair_data.frame.reset_index(drop=True),
+        result.predictions,
+        result.fold_assignments,
+        novelty_comparisons,
+        target_column=PAIR_TARGET_COLUMN,
+        group_column="extractant",
+        n_bootstrap=args.bootstrap,
+        seed=args.model_seed + 8_675_309,
+    )
+    write_json_atomic(novelty, output_dir / "structural_novelty.json")
+    write_csv_atomic(
+        pd.DataFrame(novelty["stratified_deltas"]),
+        output_dir / "structural_novelty_deltas.csv",
+    )
+    write_csv_atomic(
+        pd.DataFrame(novelty["per_extractant_novelty"]),
+        output_dir / "structural_novelty_per_extractant.csv",
+    )
 
     tables = prepare_artifact_tables(result, registry)
     write_json_atomic(metrics_payload(result, tables), output_dir / "metrics.json")

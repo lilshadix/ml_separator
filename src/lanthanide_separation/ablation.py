@@ -21,9 +21,21 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from .evaluation import (
     DEFAULT_PARAMETER_GRID,
     AntisymmetricExtraTreesRegressor,
+    AntisymmetricMeanRegressor,
+    AntisymmetricRidgeRegressor,
     _group_folds,
 )
-from .feature_registry import FeatureRegistry, build_feature_registry
+from .feature_registry import (
+    ABLATION_FAMILIES,
+    EXTENSION_ABLATION_FAMILIES,
+    EXTENSION_ARM_ALIASES,
+    EXTENSION_SHUFFLE_BLOCKS,
+    SENSITIVITY_2D_ARM_FAMILIES,
+    SENSITIVITY_2D_SHUFFLE_BLOCKS,
+    UNAVAILABLE_EXTENSION_ARMS,
+    FeatureRegistry,
+    build_feature_registry,
+)
 from .pairs import PAIR_TARGET_COLUMN, PairDataset
 
 
@@ -33,6 +45,45 @@ PRIMARY_COMPARISONS: tuple[tuple[str, str, str], ...] = (
     ("A2_vs_A6", "A2", "A6"),
     ("A3_vs_A2", "A3", "A2"),
 )
+
+# Reference arms required by the brief: a sophisticated 3D model is only useful
+# if it beats the trivial predictor and a simple regularized linear model on
+# unseen extractants, not merely the tuned forest baseline.
+REFERENCE_BASELINE_ARMS: dict[str, tuple[str, str]] = {
+    "B0_trivial": ("mean", "A0"),
+    "B1_ridge_A2": ("ridge", "A2"),
+    "B2_ridge_A5": ("ridge", "A5"),
+}
+
+
+def _build_estimator(
+    kind: str,
+    columns: tuple[str, ...],
+    *,
+    n_estimators: int,
+    max_features: float,
+    min_samples_leaf: int,
+    random_state: int,
+    n_jobs: int,
+):
+    """Return one fitted-model factory for a forest, ridge or trivial arm."""
+
+    if kind == "forest":
+        return AntisymmetricExtraTreesRegressor(
+            columns,
+            n_estimators=n_estimators,
+            max_features=max_features,
+            min_samples_leaf=min_samples_leaf,
+            random_state=random_state,
+            n_jobs=n_jobs,
+        )
+    if kind == "ridge":
+        return AntisymmetricRidgeRegressor(
+            columns, alpha=float(max_features), random_state=random_state
+        )
+    if kind == "mean":
+        return AntisymmetricMeanRegressor(columns)
+    raise ValueError(f"Unknown estimator kind: {kind!r}")
 
 
 @dataclass(frozen=True)
@@ -160,6 +211,12 @@ def _training_shuffle(
     moved_groups = 0
     fixed_groups = 0
     repeated_groups = 0
+    column_list = list(columns)
+    # Work on one dense block and write it back once.  Assigning per group with
+    # ``.loc`` copies a >2000-column frame thousands of times per fold; the
+    # values and the RNG call sequence below are unchanged.
+    block = frame.loc[:, column_list].to_numpy(dtype=float, copy=True)
+    shuffled_block = block.copy()
     for _, pair_frame in frame.groupby("pair_label", sort=True, dropna=False):
         grouped = pair_frame.groupby(list(unit_columns), sort=True, dropna=False)
         group_positions = [np.asarray(value, dtype=int) for value in grouped.indices.values()]
@@ -169,13 +226,18 @@ def _training_shuffle(
         group_positions = [pair_positions[local] for local in group_positions]
         representatives: list[np.ndarray] = []
         for positions in group_positions:
-            values = frame.iloc[positions].loc[:, list(columns)]
-            if any(values[column].nunique(dropna=False) > 1 for column in columns):
-                raise AssertionError(
-                    "Repeated rows for one complex pair have inconsistent 3D vectors."
+            values = block[positions]
+            if len(positions) > 1:
+                first = values[0]
+                consistent = (values == first) | (
+                    np.isnan(values) & np.isnan(first)
                 )
-            representatives.append(values.iloc[0].to_numpy(copy=True))
-            repeated_groups += int(len(positions) > 1)
+                if not consistent.all():
+                    raise AssertionError(
+                        "Repeated rows for one complex pair have inconsistent 3D vectors."
+                    )
+                repeated_groups += 1
+            representatives.append(values[0].copy())
 
         group_count = len(group_positions)
         if group_count <= 1:
@@ -189,14 +251,14 @@ def _training_shuffle(
 
         for recipient_index, positions in enumerate(group_positions):
             donor_index = int(donor_indices[recipient_index])
-            donor_vector = representatives[donor_index]
-            result.loc[result.index[positions], list(columns)] = donor_vector
+            shuffled_block[positions] = representatives[donor_index]
             if donor_index == recipient_index:
                 fixed_groups += 1
                 fixed_rows += int(len(positions))
             else:
                 moved_groups += 1
                 moved_rows += int(len(positions))
+    result[column_list] = shuffled_block
     return result, {
         "training_rows": int(len(frame)),
         "shuffle_unit_columns": ",".join(unit_columns),
@@ -352,8 +414,15 @@ def run_ablation_benchmark(
     split_seed: int = 42,
     shuffle_seeds: Iterable[int] = (),
     include_block_ablations: bool = False,
+    include_reference_baselines: bool = False,
+    include_symmetric_arms: bool = False,
+    include_extension_arms: bool = False,
+    include_2d_sensitivity_arms: bool = False,
+    extension_shuffle_seeds: Iterable[int] = (),
+    prespecified_arms: Iterable[str] | None = None,
     n_bootstrap: int = 1000,
     parameter_grid: tuple[dict[str, Any], ...] = DEFAULT_PARAMETER_GRID,
+    ridge_alpha_grid: tuple[float, ...] = (1.0, 10.0, 100.0),
 ) -> AblationBenchmarkResult:
     """Evaluate A0--A6 and optional controls on identical nested group folds."""
 
@@ -380,6 +449,16 @@ def run_ablation_benchmark(
     )
 
     feature_sets = registry.feature_sets()
+    if prespecified_arms is not None:
+        requested = tuple(dict.fromkeys(str(arm) for arm in prespecified_arms))
+        unknown = [arm for arm in requested if arm not in feature_sets]
+        if unknown:
+            raise ValueError(f"Unknown pre-specified arms requested: {unknown}")
+        if "A2" not in requested:
+            # A2 is the reference of every comparison the runner reports; a run
+            # without it cannot state a delta against the 2D baseline.
+            raise ValueError("A2 must be evaluated whenever arms are subset.")
+        feature_sets = {arm: feature_sets[arm] for arm in requested}
     unavailable_blocks: list[str] = []
     block_aliases: dict[str, str] = {}
     if include_block_ablations:
@@ -396,15 +475,122 @@ def run_ablation_benchmark(
         raise ValueError("shuffle_seeds must be unique.")
     if any(value < 0 for value in shuffle_seed_values):
         raise ValueError("shuffle_seeds must be nonnegative.")
-    shuffle_columns = registry.columns_for_family("3D_LOCAL")
+
+    # ``shuffle_plan`` maps a control arm to the block it destroys and the arm it
+    # controls.  Permutation always happens inside the current training subset,
+    # so the control has the same dimensionality and marginal distributions as
+    # its real twin but no structure-to-target correspondence.
+    shuffle_plan: dict[str, dict[str, Any]] = {}
+    local_3d_columns = registry.columns_for_family("3D_LOCAL")
     for shuffle_seed in shuffle_seed_values:
-        if not shuffle_columns:
+        if not local_3d_columns:
             raise ValueError("A5 shuffled controls require 3D_LOCAL features.")
-        feature_sets[f"A5_SHUFFLED_s{shuffle_seed}"] = registry.ablation_columns("A5")
+        arm = f"A5_SHUFFLED_s{shuffle_seed}"
+        feature_sets[arm] = registry.ablation_columns("A5")
+        shuffle_plan[arm] = {
+            "seed": int(shuffle_seed),
+            "columns": local_3d_columns,
+            "controls": "A5",
+            "block": "3D_LOCAL",
+        }
+
+    # Declared extension arms.  These are additions, never replacements: A5 and
+    # A6 above are still evaluated and reported exactly as pre-specified.
+    symmetric_arms: dict[str, tuple[str, ...]] = {}
+    if include_symmetric_arms:
+        symmetric_arms = dict(registry.symmetric_feature_sets())
+        if not symmetric_arms:
+            raise ValueError(
+                "Symmetric arms were requested but the cohort carries no sym3d block."
+            )
+        feature_sets.update(symmetric_arms)
+
+    # Second-generation G/E/C ladder plus one shuffled twin per block that
+    # claims metal- or complex-specific information.
+    extension_arms: dict[str, tuple[str, ...]] = {}
+    extension_shuffle_seed_values = tuple(
+        int(value) for value in extension_shuffle_seeds
+    )
+    if len(set(extension_shuffle_seed_values)) != len(extension_shuffle_seed_values):
+        raise ValueError("extension_shuffle_seeds must be unique.")
+    if any(value < 0 for value in extension_shuffle_seed_values):
+        raise ValueError("extension_shuffle_seeds must be nonnegative.")
+    if include_extension_arms:
+        extension_arms = dict(registry.extension_feature_sets())
+        if not extension_arms:
+            raise ValueError(
+                "Extension arms were requested but the cohort carries no "
+                "pair-response or electronic block."
+            )
+        feature_sets.update(extension_arms)
+        shuffle_blocks = dict(EXTENSION_SHUFFLE_BLOCKS)
+        if "G4" in extension_arms:
+            shuffle_blocks["G4"] = ("G4", ("METAL_SITE_DESCRIPTORS",))
+        for arm, (controlled, families) in shuffle_blocks.items():
+            if controlled not in extension_arms:
+                continue
+            block_columns = (
+                registry.metal_site_descriptor_columns
+                if families == ("METAL_SITE_DESCRIPTORS",)
+                else registry.columns_for_families(families)
+            )
+            if not block_columns:
+                continue
+            for shuffle_seed in extension_shuffle_seed_values:
+                control_arm = f"{arm}_SHUFFLED_s{shuffle_seed}"
+                feature_sets[control_arm] = extension_arms[controlled]
+                shuffle_plan[control_arm] = {
+                    "seed": int(shuffle_seed),
+                    "columns": block_columns,
+                    "controls": controlled,
+                    "block": "+".join(families),
+                }
+    elif extension_shuffle_seed_values:
+        raise ValueError(
+            "extension_shuffle_seeds require include_extension_arms=True."
+        )
+
+    # 2D-representation sensitivity ladder.  Secondary by construction: it never
+    # touches A2 and is reported as a redundancy diagnostic, not as the primary
+    # claim.  Its added blocks get the same permutation controls as the
+    # A2-referenced ones, so a capacity artefact cannot be read as a gain.
+    sensitivity_arms: dict[str, tuple[str, ...]] = {}
+    if include_2d_sensitivity_arms:
+        sensitivity_arms = dict(registry.sensitivity_2d_feature_sets())
+        if not sensitivity_arms:
+            raise ValueError(
+                "2D sensitivity arms were requested but the cohort does not "
+                "carry both RDKit descriptor and ECFP columns."
+            )
+        feature_sets.update(sensitivity_arms)
+        for arm, (controlled, families) in SENSITIVITY_2D_SHUFFLE_BLOCKS.items():
+            if controlled not in sensitivity_arms:
+                continue
+            block_columns = registry.columns_for_families(families)
+            if not block_columns:
+                continue
+            for shuffle_seed in extension_shuffle_seed_values:
+                control_arm = f"{arm}_SHUFFLED_s{shuffle_seed}"
+                feature_sets[control_arm] = sensitivity_arms[controlled]
+                shuffle_plan[control_arm] = {
+                    "seed": int(shuffle_seed),
+                    "columns": block_columns,
+                    "controls": controlled,
+                    "block": "+".join(families),
+                }
+
+    # Arm -> estimator kind.  Everything defaults to the shared forest family so
+    # the pre-specified comparison stays a pure feature-set contrast.
+    arm_kinds: dict[str, str] = {name: "forest" for name in feature_sets}
+    if include_reference_baselines:
+        for arm, (kind, source_arm) in REFERENCE_BASELINE_ARMS.items():
+            feature_sets[arm] = registry.ablation_columns(source_arm)
+            arm_kinds[arm] = kind
 
     outer_lookup = np.full(len(frame), -1, dtype=int)
-    membership_rows: list[dict[str, Any]] = []
-    inner_assignment_rows: list[dict[str, Any]] = []
+    pair_ids = frame["pair_id"].astype(str).to_numpy()
+    membership_frames: list[pd.DataFrame] = []
+    inner_assignment_frames: list[pd.DataFrame] = []
     leakage_rows: list[dict[str, Any]] = []
     inner_split_by_outer: dict[int, list[tuple[np.ndarray, np.ndarray]]] = {}
     all_pair_types = set(frame["pair_label"].astype(str))
@@ -472,17 +658,22 @@ def run_ablation_benchmark(
             raise AssertionError(f"Outer-fold leakage detected: {leakage}")
         leakage_rows.append(leakage)
 
-        test_positions = set(test_index.tolist())
-        for position, row in frame.iterrows():
-            membership_rows.append(
+        # Vectorised: iterating a >2000-column frame row by row builds one Series
+        # per row and dominates the runtime of an otherwise cheap bookkeeping
+        # table.  The emitted rows are identical.
+        assignment = np.full(len(frame), "train", dtype=object)
+        assignment[test_index] = "test"
+        membership_frames.append(
+            pd.DataFrame(
                 {
-                    "pair_id": str(row["pair_id"]),
-                    "group_id": str(row[group_column]),
+                    "pair_id": pair_ids,
+                    "group_id": groups,
                     "outer_fold": int(outer_fold),
-                    "assignment": "test" if position in test_positions else "train",
+                    "assignment": assignment,
                     "outer_split_seed": int(split_seed),
                 }
             )
+        )
 
         inner_seed = int(split_seed + outer_fold * 10_007)
         inner_splits = _group_folds(
@@ -498,16 +689,17 @@ def run_ablation_benchmark(
             inner_validation_lookup[validation_local] = inner_fold
         if np.any(inner_validation_lookup < 0):
             raise AssertionError("Inner fold plan did not validate every outer-training row.")
-        for local_position, global_position in enumerate(train_index):
-            inner_assignment_rows.append(
+        inner_assignment_frames.append(
+            pd.DataFrame(
                 {
-                    "pair_id": str(frame.iloc[global_position]["pair_id"]),
+                    "pair_id": pair_ids[train_index],
                     "outer_fold": int(outer_fold),
-                    "inner_validation_fold": int(inner_validation_lookup[local_position]),
+                    "inner_validation_fold": inner_validation_lookup.astype(int),
                     "inner_split_seed": inner_seed,
-                    "group_id": str(groups[global_position]),
+                    "group_id": groups[train_index],
                 }
             )
+        )
 
     if np.any(outer_lookup < 0):
         raise AssertionError("Outer fold plan did not test every row exactly once.")
@@ -551,14 +743,30 @@ def run_ablation_benchmark(
         for ablation, columns in feature_sets.items():
             if not columns:
                 raise ValueError(f"Ablation {ablation} has no features.")
+            shuffle_specification = shuffle_plan.get(ablation)
             shuffle_seed = (
-                int(ablation.rsplit("s", 1)[1])
-                if ablation.startswith("A5_SHUFFLED_s")
-                else None
+                None
+                if shuffle_specification is None
+                else int(shuffle_specification["seed"])
             )
+            shuffle_columns = (
+                ()
+                if shuffle_specification is None
+                else tuple(shuffle_specification["columns"])
+            )
+            arm_kind = arm_kinds[ablation]
+            if arm_kind == "forest":
+                arm_grid: tuple[dict[str, Any], ...] = parameter_grid
+            elif arm_kind == "ridge":
+                arm_grid = tuple(
+                    {"max_features": alpha, "min_samples_leaf": 0}
+                    for alpha in ridge_alpha_grid
+                )
+            else:
+                arm_grid = ({"max_features": 0.0, "min_samples_leaf": 0},)
             candidate_predictions: dict[int, np.ndarray] = {}
             candidate_rows: list[dict[str, Any]] = []
-            for candidate_index, parameters in enumerate(parameter_grid):
+            for candidate_index, parameters in enumerate(arm_grid):
                 inner_prediction = np.full(len(train_index), np.nan, dtype=float)
                 for inner_fold, (inner_train_local, validation_local) in enumerate(
                     inner_splits
@@ -577,6 +785,9 @@ def run_ablation_benchmark(
                             shuffle_rows.append(
                                 {
                                     "ablation": ablation,
+                                    "controls_arm": shuffle_specification["controls"],
+                                    "shuffled_block": shuffle_specification["block"],
+                                    "shuffled_column_count": len(shuffle_columns),
                                     "outer_fold": outer_fold,
                                     "inner_fold": inner_fold,
                                     "scope": "inner_training_only",
@@ -585,7 +796,8 @@ def run_ablation_benchmark(
                                     **shuffle_audit,
                                 }
                             )
-                    model = AntisymmetricExtraTreesRegressor(
+                    model = _build_estimator(
+                        arm_kind,
                         columns,
                         n_estimators=n_estimators,
                         max_features=float(parameters["max_features"]),
@@ -609,6 +821,7 @@ def run_ablation_benchmark(
                 )
                 row = {
                     "ablation": ablation,
+                    "estimator_kind": arm_kind,
                     "outer_fold": int(outer_fold),
                     "candidate_index": int(candidate_index),
                     "inner_fold_count": int(len(inner_splits)),
@@ -646,6 +859,9 @@ def run_ablation_benchmark(
                 shuffle_rows.append(
                     {
                         "ablation": ablation,
+                        "controls_arm": shuffle_specification["controls"],
+                        "shuffled_block": shuffle_specification["block"],
+                        "shuffled_column_count": len(shuffle_columns),
                         "outer_fold": outer_fold,
                         "inner_fold": None,
                         "scope": "outer_training_only",
@@ -654,7 +870,8 @@ def run_ablation_benchmark(
                         **shuffle_audit,
                     }
                 )
-            final_model = AntisymmetricExtraTreesRegressor(
+            final_model = _build_estimator(
+                arm_kind,
                 columns,
                 n_estimators=n_estimators,
                 max_features=float(best["max_features"]),
@@ -667,8 +884,34 @@ def run_ablation_benchmark(
                 outer_test
             )
             pipeline = final_model.pipeline
-            if pipeline is None:
+            if pipeline is None and arm_kind != "mean":
                 raise AssertionError("Fitted model did not expose its preprocessing pipeline.")
+            if pipeline is None:
+                # The trivial arm learns one constant and has no preprocessing
+                # state; record that explicitly rather than skipping the row.
+                preprocessing_rows.append(
+                    {
+                        "ablation": ablation,
+                        "estimator_kind": arm_kind,
+                        "outer_fold": int(outer_fold),
+                        "feature_count": int(len(columns)),
+                        "features": json.dumps(list(columns), separators=(",", ":")),
+                        "imputer": "none (constant predictor)",
+                        "fit_rows": int(len(final_fit_frame)),
+                        "outer_test_rows_seen_during_fit": 0,
+                        "missing_training_values": 0,
+                        "imputer_statistics": json.dumps(
+                            [float(final_model.training_mean_)], separators=(",", ":")
+                        ),
+                        "imputer_statistics_sha256": hashlib.sha256(
+                            json.dumps(
+                                [float(final_model.training_mean_)],
+                                separators=(",", ":"),
+                            ).encode("utf-8")
+                        ).hexdigest(),
+                    }
+                )
+                continue
             imputer = pipeline.named_steps["imputer"]
             statistics = np.asarray(imputer.statistics_, dtype=float)
             statistics_payload = json.dumps(
@@ -678,6 +921,7 @@ def run_ablation_benchmark(
             preprocessing_rows.append(
                 {
                     "ablation": ablation,
+                    "estimator_kind": arm_kind,
                     "outer_fold": int(outer_fold),
                     "feature_count": int(len(columns)),
                     "features": json.dumps(list(columns), separators=(",", ":")),
@@ -747,6 +991,53 @@ def run_ablation_benchmark(
         for name in feature_sets
         if name.startswith("A2+D")
     )
+    # Declared extension and reference comparisons.
+    comparisons.extend(
+        (f"A2_vs_{name}", "A2", name) for name in symmetric_arms
+    )
+    if "A5s" in feature_sets:
+        comparisons.append(("A5_vs_A5s", "A5", "A5s"))
+    # Every G/E/C arm is scored against A2, and every shuffled twin is scored
+    # both against A2 (so the two gains are directly comparable) and against the
+    # real arm it controls (so an apparent gain that survives permutation is
+    # exposed as a capacity artefact).
+    comparisons.extend((f"A2_vs_{name}", "A2", name) for name in extension_arms)
+    # 2D sensitivity ladder.  S1/S2 are scored against A2 to price the
+    # representation cut itself; the blocks added on top of S1 are scored
+    # against S1, because the question they answer is whether the same
+    # information becomes useful once fingerprint memorisation is reduced.
+    for name in ("S1", "S2"):
+        if name in sensitivity_arms:
+            comparisons.append((f"A2_vs_{name}", "A2", name))
+    if "S1" in sensitivity_arms:
+        comparisons.extend(
+            (f"S1_vs_{name}", "S1", name)
+            for name in SENSITIVITY_2D_ARM_FAMILIES
+            if name in sensitivity_arms
+        )
+    for control_arm, specification in shuffle_plan.items():
+        if control_arm.startswith("A5_SHUFFLED_s"):
+            continue
+        controlled = str(specification["controls"])
+        comparisons.append((f"A2_vs_{control_arm}", "A2", control_arm))
+        comparisons.append(
+            (f"{control_arm}_vs_{controlled}", control_arm, controlled)
+        )
+    if include_reference_baselines:
+        comparisons.extend(
+            [
+                ("B0_trivial_vs_A2", "B0_trivial", "A2"),
+                ("B1_ridge_A2_vs_A2", "B1_ridge_A2", "A2"),
+                ("B1_ridge_A2_vs_B2_ridge_A5", "B1_ridge_A2", "B2_ridge_A5"),
+            ]
+        )
+    # Drop any comparison whose arms were not evaluated in this run rather than
+    # failing on a missing prediction column.
+    comparisons = [
+        (name, reference, candidate)
+        for name, reference, candidate in comparisons
+        if reference in feature_sets and candidate in feature_sets
+    ]
     delta_rows: list[dict[str, Any]] = []
     for name, reference, candidate in comparisons:
         for outer_fold in range(len(outer_split_list)):
@@ -935,6 +1226,40 @@ def run_ablation_benchmark(
             "shuffle_scope": "only the current inner/outer training subset; test untouched",
         },
         "feature_counts": {name: len(columns) for name, columns in feature_sets.items()},
+        "arm_inventory": {
+            "prespecified": [
+                name for name in ABLATION_FAMILIES if name in feature_sets
+            ],
+            "prespecified_declared": list(ABLATION_FAMILIES),
+            "prespecified_subset_requested": (
+                None if prespecified_arms is None else list(feature_sets)
+            ),
+            "declared_symmetric_extension": list(symmetric_arms),
+            "declared_extension_ladder": list(extension_arms),
+            "extension_arm_aliases": {
+                alias: target
+                for alias, target in EXTENSION_ARM_ALIASES.items()
+                if target in feature_sets
+            },
+            "unavailable_extension_arms": dict(UNAVAILABLE_EXTENSION_ARMS),
+            "declared_2d_sensitivity_ladder": list(sensitivity_arms),
+            "2d_sensitivity_is_secondary": True,
+            "reference_baselines": (
+                list(REFERENCE_BASELINE_ARMS) if include_reference_baselines else []
+            ),
+            "negative_controls": sorted(shuffle_plan),
+            "negative_control_plan": {
+                name: {
+                    "controls_arm": specification["controls"],
+                    "shuffled_block": specification["block"],
+                    "shuffled_column_count": len(specification["columns"]),
+                    "shuffle_seed": specification["seed"],
+                }
+                for name, specification in shuffle_plan.items()
+            },
+            "estimator_kinds": dict(arm_kinds),
+            "degenerate_zero_variance_features": list(registry.degenerate_columns),
+        },
         "metrics": per_ablation_metrics.to_dict(orient="records"),
         "paired_delta_summary": delta_summary,
         "paired_group_bootstrap": bootstrap,
@@ -955,8 +1280,8 @@ def run_ablation_benchmark(
         predictions=predictions,
         fold_metrics=fold_metrics,
         fold_assignments=fold_assignments,
-        fold_memberships=pd.DataFrame(membership_rows),
-        inner_fold_assignments=pd.DataFrame(inner_assignment_rows),
+        fold_memberships=pd.concat(membership_frames, ignore_index=True),
+        inner_fold_assignments=pd.concat(inner_assignment_frames, ignore_index=True),
         tuning_results=pd.DataFrame(tuning_rows),
         preprocessing_audit=pd.DataFrame(preprocessing_rows),
         shuffle_audit=pd.DataFrame(shuffle_rows),

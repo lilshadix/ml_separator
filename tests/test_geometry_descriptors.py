@@ -276,7 +276,27 @@ class CoordinationShapeTests(unittest.TestCase):
 
         self.assertEqual(set(reference), set(candidate))
         for name, value in reference.items():
-            self.assertAlmostEqual(value, candidate[name], places=11, msg=name)
+            # A regular octahedron makes several shape scalars analytically zero,
+            # and they are reached by cancelling terms of order the donor radius.
+            # Comparing those to eleven decimals tests float64 round-off, not
+            # invariance, so the tolerance is scaled to the quantity itself.
+            self.assertAlmostEqual(
+                value,
+                candidate[name],
+                delta=1e-7 + 1e-9 * max(abs(value), abs(candidate[name])),
+                msg=name,
+            )
+
+    def test_degenerate_shape_scalars_stay_at_machine_zero(self) -> None:
+        """A regular octahedron's distortion scalars must not drift off zero."""
+
+        features = coordination_shape_descriptors(octahedron(2.4))
+        for name in (
+            "radial_distortion_coefficient",
+            "coordination_normalized_asphericity",
+            "coordination_eccentricity",
+        ):
+            self.assertLess(abs(features[name]), 1e-6, msg=name)
 
     def test_regular_octahedron_has_known_shape_and_polyhedron_measures(self) -> None:
         scale = 2.4

@@ -26,6 +26,7 @@ if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
 from lanthanide_separation.deep_evaluation import (  # noqa: E402
+    CONTEXT_MODES,
     SimplicialTrainingConfig,
     nested_simplicial_benchmark,
     validate_vr_pair_links,
@@ -35,7 +36,10 @@ from lanthanide_separation.pairs import (  # noqa: E402
     PAIR_SCOPES,
     build_lanthanide_pair_dataset,
 )
-from lanthanide_separation.simplicial import VietorisRipsStore  # noqa: E402
+from lanthanide_separation.simplicial import (  # noqa: E402
+    SIMPLEX_ORDERS,
+    VietorisRipsStore,
+)
 
 
 DEFAULT_BUNDLE = REPO_ROOT / "dataset with 3D structures"
@@ -109,6 +113,38 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-pairs-per-batch", type=int, default=64)
     parser.add_argument("--max-simplices-per-batch", type=int, default=60_000)
     parser.add_argument("--gate-z", type=float, default=0.50)
+    parser.add_argument(
+        "--simplex-order",
+        choices=SIMPLEX_ORDERS,
+        default="nodes_edges_triangles",
+        help=(
+            "Declared encoder ladder: distance-only geometry, nodes+distances, "
+            "nodes+edges, or the full nodes+edges+triangles network (default). "
+            "Every rung keeps the same weight shapes, so a difference is "
+            "attributable to simplicial order rather than to capacity."
+        ),
+    )
+    parser.add_argument(
+        "--context-mode",
+        choices=CONTEXT_MODES,
+        default="full",
+        help=(
+            "'conditions_only' is the learned-geometry-only arm: no ligand 2D "
+            "descriptor reaches the network, so the encoded structure has to "
+            "carry the ligand signal. Conditions and metal identity are kept "
+            "because the target is a condition-matched difference."
+        ),
+    )
+    parser.add_argument(
+        "--geometry-null-seeds",
+        default="",
+        help=(
+            "Comma-separated seeds for the learned-geometry permutation control. "
+            "Each seed trains the same network on training-fold-permuted "
+            "geometry and scores it on the untouched held-out rows. Empty "
+            "disables the control."
+        ),
+    )
     parser.add_argument(
         "--shell-mode",
         choices=("coordination", "radius"),
@@ -199,6 +235,25 @@ def validate_args(args: argparse.Namespace) -> None:
         )
     if not args.evaluation_only:
         raise SystemExit("Deployment fitting is not implemented; use --evaluation-only.")
+    raw_null_seeds = str(args.geometry_null_seeds).strip()
+    seed_values: list[int] = []
+    if raw_null_seeds:
+        for token in raw_null_seeds.split(","):
+            token = token.strip()
+            if not token.isdigit():
+                raise SystemExit(
+                    "--geometry-null-seeds must be comma-separated nonnegative "
+                    f"integers; got {token!r}."
+                )
+            value = int(token)
+            if value > MAX_BASE_SEED:
+                raise SystemExit(
+                    f"--geometry-null-seeds entries must not exceed {MAX_BASE_SEED}."
+                )
+            seed_values.append(value)
+        if len(set(seed_values)) != len(seed_values):
+            raise SystemExit("--geometry-null-seeds must be unique.")
+    args.geometry_null_seed_values = tuple(seed_values)
     for name in ("expected_dataset_sha256", "expected_vr_sha256"):
         value = getattr(args, name)
         if value is None:
@@ -571,6 +626,9 @@ def main() -> int:
         max_simplices_per_batch=args.max_simplices_per_batch,
         gate_z=args.gate_z,
         strict_determinism=args.determinism == "strict",
+        simplex_order=args.simplex_order,
+        context_mode=args.context_mode,
+        geometry_null_seeds=tuple(args.geometry_null_seed_values),
     )
     group_column = "extractant" if args.group_mode == "extractant" else "ecfp_exact_cluster"
     result = nested_simplicial_benchmark(

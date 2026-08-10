@@ -21,6 +21,16 @@ DESCRIPTOR_BLOCKS=${DESCRIPTOR_BLOCKS:-global_shape,coordination_shape}
 DESCRIPTOR_PROFILE=${DESCRIPTOR_PROFILE:-core}
 SHUFFLE_SEEDS=${SHUFFLE_SEEDS:-1009,2017,3019}
 INCLUDE_BLOCK_ABLATIONS=${INCLUDE_BLOCK_ABLATIONS:-1}
+# Generation-2 switches. All default to off, so an unset environment submits the
+# frozen A0--A6 protocol exactly as before.
+INCLUDE_PAIR_RESPONSE_3D=${INCLUDE_PAIR_RESPONSE_3D:-0}
+INCLUDE_ELECTRONIC=${INCLUDE_ELECTRONIC:-0}
+INCLUDE_EXTENSION_ARMS=${INCLUDE_EXTENSION_ARMS:-0}
+INCLUDE_SYMMETRIC_3D=${INCLUDE_SYMMETRIC_3D:-0}
+INCLUDE_REFERENCE_BASELINES=${INCLUDE_REFERENCE_BASELINES:-0}
+INCLUDE_2D_SENSITIVITY=${INCLUDE_2D_SENSITIVITY:-0}
+EXTENSION_SHUFFLE_SEEDS=${EXTENSION_SHUFFLE_SEEDS:-}
+PRESPECIFIED_ARMS=${PRESPECIFIED_ARMS:-}
 DELTA3D_FEATURE_SET=${DELTA3D_FEATURE_SET:-compact-invariant}
 REPLICATE_POLICY=${REPLICATE_POLICY:-unique}
 INCLUDE_DONOR_COMPOSITION_COUNTS=${INCLUDE_DONOR_COMPOSITION_COUNTS:-1}
@@ -54,7 +64,9 @@ if [[ "$RUN_ROOT" != /* || "$RUN_ROOT_CHECK" == *"/../"* || "$RUN_ROOT_CHECK" ==
 fi
 for value_name in \
   DRY_RUN QUICK INCLUDE_BLOCK_ABLATIONS INCLUDE_DONOR_COMPOSITION_COUNTS \
-  RESUME_RUN_ROOT RESUME_COMPLETED RESUME_AGGREGATE; do
+  RESUME_RUN_ROOT RESUME_COMPLETED RESUME_AGGREGATE \
+  INCLUDE_PAIR_RESPONSE_3D INCLUDE_ELECTRONIC INCLUDE_EXTENSION_ARMS \
+  INCLUDE_SYMMETRIC_3D INCLUDE_REFERENCE_BASELINES INCLUDE_2D_SENSITIVITY; do
   value=${!value_name}
   if [[ "$value" != 0 && "$value" != 1 ]]; then
     echo "$value_name must be 0 or 1." >&2
@@ -134,6 +146,30 @@ if [[ "$INCLUDE_DONOR_COMPOSITION_COUNTS" != 1 ]]; then
   echo "The ablation runner currently requires INCLUDE_DONOR_COMPOSITION_COUNTS=1." >&2
   exit 2
 fi
+if [[ "$INCLUDE_EXTENSION_ARMS" == 1 && "$INCLUDE_PAIR_RESPONSE_3D" == 0 && "$INCLUDE_ELECTRONIC" == 0 ]]; then
+  echo "INCLUDE_EXTENSION_ARMS=1 needs INCLUDE_PAIR_RESPONSE_3D=1 and/or INCLUDE_ELECTRONIC=1." >&2
+  exit 2
+fi
+if [[ -n "$EXTENSION_SHUFFLE_SEEDS" ]]; then
+  if [[ "$INCLUDE_EXTENSION_ARMS" != 1 ]]; then
+    echo "EXTENSION_SHUFFLE_SEEDS requires INCLUDE_EXTENSION_ARMS=1." >&2
+    exit 2
+  fi
+  if [[ ! "$EXTENSION_SHUFFLE_SEEDS" =~ ^[0-9]+(,[0-9]+)*$ ]]; then
+    echo "EXTENSION_SHUFFLE_SEEDS must be comma-separated nonnegative integers." >&2
+    exit 2
+  fi
+fi
+if [[ -n "$PRESPECIFIED_ARMS" ]]; then
+  if [[ ! "$PRESPECIFIED_ARMS" =~ ^A[0-6](,A[0-6])*$ ]]; then
+    echo "PRESPECIFIED_ARMS must be a comma-separated subset of A0..A6." >&2
+    exit 2
+  fi
+  if [[ ",$PRESPECIFIED_ARMS," != *",A2,"* ]]; then
+    echo "PRESPECIFIED_ARMS must include A2, the reference arm of every comparison." >&2
+    exit 2
+  fi
+fi
 for digest_name in EXPECTED_DATASET_SHA256 EXPECTED_VR_SHA256; do
   digest_value=${!digest_name:-}
   if [[ -n "$digest_value" && ! "$digest_value" =~ ^[0-9a-f]{64}$ ]]; then
@@ -207,6 +243,9 @@ export PROJECT_DIR PYTHON_BIN MODEL_SEEDS SPLIT_SEED RUN_ROOT PAIR_SCOPE GROUP_M
 export DESCRIPTOR_BLOCKS DESCRIPTOR_PROFILE SHUFFLE_SEEDS INCLUDE_BLOCK_ABLATIONS
 export DELTA3D_FEATURE_SET REPLICATE_POLICY INCLUDE_DONOR_COMPOSITION_COUNTS
 export OUTER_FOLDS INNER_FOLDS TREES BOOTSTRAP QUICK RESUME_COMPLETED
+export INCLUDE_PAIR_RESPONSE_3D INCLUDE_ELECTRONIC INCLUDE_EXTENSION_ARMS
+export INCLUDE_SYMMETRIC_3D INCLUDE_REFERENCE_BASELINES INCLUDE_2D_SENSITIVITY
+export EXTENSION_SHUFFLE_SEEDS PRESPECIFIED_ARMS
 export EXPECTED_RUNS AGGREGATE_BOOTSTRAP AGGREGATE_BOOTSTRAP_SEED RESUME_AGGREGATE
 if [[ -n "${EXPECTED_DATASET_SHA256:-}" ]]; then export EXPECTED_DATASET_SHA256; fi
 if [[ -n "${EXPECTED_VR_SHA256:-}" ]]; then export EXPECTED_VR_SHA256; fi
@@ -267,6 +306,9 @@ echo "Group mode: $GROUP_MODE"
 echo "Descriptor blocks: $DESCRIPTOR_BLOCKS  profile: $DESCRIPTOR_PROFILE"
 echo "Training-only 3D shuffle seeds: $SHUFFLE_SEEDS"
 echo "A2+D1...D5 exploratory arms enabled: $INCLUDE_BLOCK_ABLATIONS"
+echo "Generation-2 blocks: pair_response=$INCLUDE_PAIR_RESPONSE_3D electronic=$INCLUDE_ELECTRONIC arms=$INCLUDE_EXTENSION_ARMS symmetric=$INCLUDE_SYMMETRIC_3D references=$INCLUDE_REFERENCE_BASELINES two_d_sensitivity=$INCLUDE_2D_SENSITIVITY"
+echo "Extension permutation-control seeds: ${EXTENSION_SHUFFLE_SEEDS:-none}"
+echo "Pre-specified arms recomputed: ${PRESPECIFIED_ARMS:-A0..A6}"
 echo "Delta3D feature set: $DELTA3D_FEATURE_SET  replicate policy: $REPLICATE_POLICY"
 echo "Donor-composition counts enabled: $INCLUDE_DONOR_COMPOSITION_COUNTS"
 echo "Dataset path: $DATASET_PATH"
@@ -293,6 +335,14 @@ if [[ "$DRY_RUN" == 1 ]]; then
     "DESCRIPTOR_PROFILE=$DESCRIPTOR_PROFILE"
     "SHUFFLE_SEEDS=$SHUFFLE_SEEDS"
     "INCLUDE_BLOCK_ABLATIONS=$INCLUDE_BLOCK_ABLATIONS"
+    "INCLUDE_PAIR_RESPONSE_3D=$INCLUDE_PAIR_RESPONSE_3D"
+    "INCLUDE_ELECTRONIC=$INCLUDE_ELECTRONIC"
+    "INCLUDE_EXTENSION_ARMS=$INCLUDE_EXTENSION_ARMS"
+    "INCLUDE_SYMMETRIC_3D=$INCLUDE_SYMMETRIC_3D"
+    "INCLUDE_2D_SENSITIVITY=$INCLUDE_2D_SENSITIVITY"
+    "INCLUDE_REFERENCE_BASELINES=$INCLUDE_REFERENCE_BASELINES"
+    "EXTENSION_SHUFFLE_SEEDS=$EXTENSION_SHUFFLE_SEEDS"
+    "PRESPECIFIED_ARMS=$PRESPECIFIED_ARMS"
     "DELTA3D_FEATURE_SET=$DELTA3D_FEATURE_SET"
     "REPLICATE_POLICY=$REPLICATE_POLICY"
     "INCLUDE_DONOR_COMPOSITION_COUNTS=$INCLUDE_DONOR_COMPOSITION_COUNTS"
@@ -434,20 +484,27 @@ else
 fi
 
 {
-  printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+  printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
     schema_version pair_scope group_mode split_seed outer_folds inner_folds trees \
     bootstrap descriptor_blocks descriptor_profile shuffle_seeds \
     include_block_ablations quick_mode delta3d_feature_set replicate_policy \
     include_donor_composition_counts aggregate_bootstrap_replicates \
     aggregate_bootstrap_seed dataset_path dataset_sha256 vr_asset_path \
-    vr_asset_sha256
-  printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
-    1.0 "$PAIR_SCOPE" "$GROUP_MODE" "$SPLIT_SEED" "$OUTER_FOLDS" "$INNER_FOLDS" \
+    vr_asset_sha256 include_pair_response_3d include_electronic \
+    include_extension_arms include_symmetric_3d include_reference_baselines \
+    include_2d_sensitivity \
+    extension_shuffle_seeds prespecified_arms
+  printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+    2.0 "$PAIR_SCOPE" "$GROUP_MODE" "$SPLIT_SEED" "$OUTER_FOLDS" "$INNER_FOLDS" \
     "$TREES" "$BOOTSTRAP" "$DESCRIPTOR_BLOCKS" "$DESCRIPTOR_PROFILE" \
     "$SHUFFLE_SEEDS" "$INCLUDE_BLOCK_ABLATIONS" "$QUICK" \
     "$DELTA3D_FEATURE_SET" "$REPLICATE_POLICY" "$INCLUDE_DONOR_COMPOSITION_COUNTS" \
     "$AGGREGATE_BOOTSTRAP" "$AGGREGATE_BOOTSTRAP_SEED" "$DATASET_PATH" \
-    "$DATASET_SHA256" "$VR_ASSET_PATH" "$VR_ASSET_SHA256"
+    "$DATASET_SHA256" "$VR_ASSET_PATH" "$VR_ASSET_SHA256" \
+    "$INCLUDE_PAIR_RESPONSE_3D" "$INCLUDE_ELECTRONIC" "$INCLUDE_EXTENSION_ARMS" \
+    "$INCLUDE_SYMMETRIC_3D" "$INCLUDE_REFERENCE_BASELINES" \
+    "$INCLUDE_2D_SENSITIVITY" \
+    "${EXTENSION_SHUFFLE_SEEDS:-none}" "${PRESPECIFIED_ARMS:-A0-A6}"
 } > "$EXPERIMENT_CONTRACT_CANDIDATE"
 if [[ -f "$EXPERIMENT_CONTRACT" ]]; then
   if ! cmp -s "$EXPERIMENT_CONTRACT" "$EXPERIMENT_CONTRACT_CANDIDATE"; then
