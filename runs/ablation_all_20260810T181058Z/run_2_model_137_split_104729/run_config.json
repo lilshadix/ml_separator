@@ -1,0 +1,163 @@
+{
+  "schema_version": "1.0",
+  "status": "configured",
+  "started_at_utc": "2026-08-10T18:11:18.971867+00:00",
+  "dataset_path": "/nfs/home/nshank3/ml_separator/dataset with 3D structures/dataset.parquet",
+  "dataset_sha256": "fefbefc6fe993aa9ce9db1a0c338adb9e5f58a8b75bab084cc1df4e024faf5dd",
+  "vr_asset_path": "/nfs/home/nshank3/ml_separator/dataset with 3D structures/features/vietoris_rips_inputs.npz",
+  "vr_asset_sha256": "eb7279b5ea78ecc8994e942c1cc15c7b398c904b60d21c591b8f1b93f761ce37",
+  "arguments": {
+    "dataset": "/nfs/home/nshank3/ml_separator/dataset with 3D structures/dataset.parquet",
+    "output_dir": "/nfs/home/nshank3/ml_separator/runs/ablation_all_20260810T181058Z/attempts/run_2_model_137_split_104729__array_6092653_job_6092657_task_2_restart_0",
+    "pair_scope": "all",
+    "group_mode": "extractant",
+    "outer_folds": 5,
+    "inner_folds": 3,
+    "trees": 200,
+    "bootstrap": 1000,
+    "model_seed": 137,
+    "split_seed": 104729,
+    "shuffle_seeds": "1009,2017,3019",
+    "n_jobs": 13,
+    "delta3d_feature_set": "compact-invariant",
+    "vr_assets": "/nfs/home/nshank3/ml_separator/dataset with 3D structures/features/vietoris_rips_inputs.npz",
+    "geometry_descriptor_blocks": "global_shape,coordination_shape",
+    "descriptor_profile": "core",
+    "no_block_ablations": false,
+    "reference_baselines": true,
+    "symmetric_3d": true,
+    "pair_response_3d": true,
+    "electronic": true,
+    "extension_arms": true,
+    "two_d_sensitivity": true,
+    "extension_shuffle_seeds": "1009,2017,3019",
+    "prespecified_arms": "",
+    "replicate_policy": "unique",
+    "allow_incomplete_conditions": false,
+    "quarantine_known_censored_targets": false,
+    "no_default_quarantine": false,
+    "expected_dataset_sha256": "fefbefc6fe993aa9ce9db1a0c338adb9e5f58a8b75bab084cc1df4e024faf5dd",
+    "expected_vr_sha256": "eb7279b5ea78ecc8994e942c1cc15c7b398c904b60d21c591b8f1b93f761ce37",
+    "quick": false,
+    "shuffle_seed_values": [
+      1009,
+      2017,
+      3019
+    ],
+    "extension_shuffle_seed_values": [
+      1009,
+      2017,
+      3019
+    ],
+    "descriptor_blocks": [
+      "global_shape",
+      "coordination_shape"
+    ],
+    "prespecified_arm_values": []
+  },
+  "parameter_grid": [
+    {
+      "max_features": 0.35,
+      "min_samples_leaf": 2
+    },
+    {
+      "max_features": 0.7,
+      "min_samples_leaf": 2
+    },
+    {
+      "max_features": 1.0,
+      "min_samples_leaf": 4
+    }
+  ],
+  "scientific_protocol": {
+    "schema_version": "1.0",
+    "primary_comparison": "A2_vs_A5",
+    "secondary_comparison": "A2_vs_A6",
+    "substitution_comparison": "A3_vs_A2",
+    "primary_metric": "mae",
+    "primary_inference_statistic": "equal-extractant macro delta MAE",
+    "bootstrap_unit": "held-out extractant",
+    "pair_scope": "all",
+    "group_mode": "extractant",
+    "outer_folds": 5,
+    "inner_folds": 3,
+    "split_seed": 104729,
+    "trees": 200,
+    "parameter_grid": [
+      {
+        "max_features": 0.35,
+        "min_samples_leaf": 2
+      },
+      {
+        "max_features": 0.7,
+        "min_samples_leaf": 2
+      },
+      {
+        "max_features": 1.0,
+        "min_samples_leaf": 4
+      }
+    ],
+    "bootstrap_replicates": 1000,
+    "shuffle_seeds": [
+      1009,
+      2017,
+      3019
+    ],
+    "extension_shuffle_seeds": [
+      1009,
+      2017,
+      3019
+    ],
+    "prespecified_arms": [
+      "A0",
+      "A1",
+      "A2",
+      "A3",
+      "A4",
+      "A5",
+      "A6"
+    ],
+    "include_pair_response_3d": true,
+    "include_electronic": true,
+    "include_extension_arms": true,
+    "include_2d_sensitivity_arms": true,
+    "include_symmetric_3d": true,
+    "include_reference_baselines": true,
+    "delta3d_feature_set": "compact-invariant",
+    "geometry_descriptor_blocks": [
+      "global_shape",
+      "coordination_shape"
+    ],
+    "descriptor_profile": "core",
+    "include_block_ablations": true,
+    "include_donor_composition_counts": true,
+    "replicate_policy": "unique",
+    "require_complete_conditions": true,
+    "quarantine_known_censored_targets": false,
+    "default_quarantine_enabled": true,
+    "quick_mode": false,
+    "outer_split_generated_once": true,
+    "outer_test_groups_unseen_in_inner_cv": true,
+    "model_seed_is_the_only_varying_training_field": true
+  },
+  "scientific_protocol_sha256": "ff8f3e8b7b5624a056d1fe7e80cccccb6edc615a0a32cd0c33d78ea4dbfbda31",
+  "software": {
+    "python": "3.11.11",
+    "numpy": "2.4.6",
+    "pandas": "3.0.5",
+    "scipy": "1.17.1",
+    "scikit_learn": "1.9.0",
+    "platform": "Linux-4.18.0-553.137.1.el8_10.x86_64-x86_64-with-glibc2.28"
+  },
+  "slurm": {
+    "SLURM_JOB_ID": "6092657",
+    "SLURM_ARRAY_JOB_ID": "6092653",
+    "SLURM_ARRAY_TASK_ID": "2",
+    "SLURM_JOB_NAME": "ln-ablation",
+    "SLURM_CLUSTER_NAME": "isaac",
+    "SLURM_CPUS_PER_TASK": "13",
+    "SLURM_MEM_PER_NODE": "49152",
+    "SLURM_SUBMIT_DIR": "/nfs/home/nshank3/ml_separator",
+    "hostname": "ber0726"
+  }
+}
