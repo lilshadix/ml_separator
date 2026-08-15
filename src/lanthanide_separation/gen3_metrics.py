@@ -11,6 +11,21 @@ from sklearn.metrics import mean_absolute_error, r2_score
 from .pairs import PAIR_TARGET_COLUMN
 
 
+# Per-extractant R2 is undefined when the group's target barely varies: with
+# SS_tot near zero the statistic explodes to arbitrarily large negative values
+# (observed: -269 on a 91-row extractant with target sd 0.05) and one such
+# group dominates any average. Groups below these floors report NaN and are
+# excluded from macro/median R2, with the surviving count published alongside.
+R2_MIN_GROUP_ROWS = 8
+R2_MIN_GROUP_TARGET_STD = 0.1
+
+
+def _guarded_r2(truth: np.ndarray, prediction: np.ndarray) -> float:
+    if len(truth) < R2_MIN_GROUP_ROWS or float(np.std(truth)) < R2_MIN_GROUP_TARGET_STD:
+        return float("nan")
+    return float(r2_score(truth, prediction))
+
+
 def equal_group_macro_mae(
     truth: Iterable[float], prediction: Iterable[float], groups: Iterable[Any]
 ) -> float:
@@ -53,6 +68,8 @@ def per_extractant_metric_table(
                     "arm": arm,
                     "n_rows": int(len(group)),
                     "mae": mae,
+                    "r2": _guarded_r2(truth, prediction),
+                    "bias_mean_residual": float(np.mean(truth - prediction)),
                     "sign_accuracy": float(
                         np.mean(np.sign(truth) == np.sign(prediction))
                     ),
@@ -88,6 +105,11 @@ def arm_metric_table(
         group_frame = per_extractant[per_extractant["arm"].eq(arm)].copy()
         sorted_group_mae = np.sort(group_frame["mae"].to_numpy(dtype=float))
         worst_count = max(1, int(np.ceil(0.25 * len(sorted_group_mae))))
+        group_r2 = group_frame["r2"].to_numpy(dtype=float)
+        eligible_r2 = group_r2[np.isfinite(group_r2)]
+        pearson = float(np.corrcoef(truth, prediction)[0, 1])
+        truth_std = float(np.std(truth))
+        prediction_std = float(np.std(prediction))
         rows.append(
             {
                 "arm": arm,
@@ -106,12 +128,34 @@ def arm_metric_table(
                     group_frame["improved_vs_baseline"].sum()
                 ),
                 "pooled_r2": float(r2_score(truth, prediction)),
+                # Equal-extractant R2 view: mean/median of per-extractant R2
+                # over groups above the variance/row floors (degenerate groups
+                # are NaN in the per-extractant table and excluded here).
+                "equal_extractant_macro_r2": float(eligible_r2.mean())
+                if len(eligible_r2)
+                else float("nan"),
+                "median_extractant_r2": float(np.median(eligible_r2))
+                if len(eligible_r2)
+                else float("nan"),
+                "extractants_in_r2_metrics": int(len(eligible_r2)),
+                # Scale-free calibration diagnostics: pooled_r2 can move on
+                # dispersion alone, so any pooled_r2 gain must be read next to
+                # these (a gain that vanishes under pearson_squared is
+                # recalibration, not information).
+                "pearson_squared_scale_free": float(pearson**2),
+                "prediction_dispersion_ratio": (
+                    prediction_std / truth_std if truth_std > 0.0 else float("nan")
+                ),
                 "adjacent_ln_mae": float(
                     mean_absolute_error(truth[adjacent], prediction[adjacent])
-                ),
+                )
+                if bool(adjacent.any())
+                else float("nan"),
                 "nonadjacent_ln_mae": float(
                     mean_absolute_error(truth[~adjacent], prediction[~adjacent])
-                ),
+                )
+                if bool((~adjacent).any())
+                else float("nan"),
                 "sign_accuracy": float(
                     np.mean(np.sign(truth) == np.sign(prediction))
                 ),

@@ -29,6 +29,16 @@ from lanthanide_separation.gen3_protocol import (  # noqa: E402
 BASELINE_ARM = "A2_current_champion"
 
 
+def _normalize_version(value: Any) -> str:
+    """Drop the PEP 440 local version segment before comparison.
+
+    Build tags such as ``2.13.0+cu130`` identify the wheel variant (CUDA
+    toolchain), not the package version; the public release identifier is the
+    reproducibility contract.  Run artifacts keep the full observed string.
+    """
+    return str(value).split("+", 1)[0]
+
+
 def _expected_arms(protocol: Mapping[str, Any]) -> tuple[str, ...]:
     h1 = tuple(
         f"H1_CATBOOST_{weighting.upper()}_{loss.upper()}"
@@ -176,7 +186,9 @@ def _validate_run(
         "torch",
         "catboost",
     ):
-        if str(software.get(key)) != str(environment.get(key)):
+        if _normalize_version(software.get(key)) != _normalize_version(
+            environment.get(key)
+        ):
             raise ValueError(
                 f"software version mismatch for {key}: expected "
                 f"{environment.get(key)!r}, observed {software.get(key)!r}"

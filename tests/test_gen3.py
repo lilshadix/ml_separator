@@ -30,10 +30,40 @@ from lanthanide_separation.pairs import (
     reverse_pair_features,
 )
 from scripts.aggregate_gen3_runs import BASELINE_ARM, _decision_table, _expected_arms
+from scripts.run_gen3_benchmark import _software_contract
 from tests.test_extension_features import make_source_frame
 
 
 class Gen3ProtocolTests(unittest.TestCase):
+    def test_software_contract_ignores_pep440_local_version_segment(self) -> None:
+        protocol = load_gen3_protocol("gen3_protocol.json")
+        expected = protocol["reproducibility_environment"]
+        observed = {
+            key: expected[key]
+            for key in (
+                "python",
+                "numpy",
+                "pandas",
+                "scipy",
+                "scikit_learn",
+                "pyarrow",
+                "joblib",
+                "catboost",
+            )
+        }
+        observed["platform"] = "Linux-5.14.0-x86_64-with-glibc2.34"
+        # The CUDA wheel reports a +local build tag; the public release
+        # identifier still matches the frozen contract.
+        observed["torch"] = f"{expected['torch']}+cu130"
+        contract = _software_contract(observed, protocol)
+        self.assertTrue(contract["passed"], contract["mismatches"])
+
+        # A genuinely different release must still fail closed.
+        observed["torch"] = "2.12.0+cu130"
+        contract = _software_contract(observed, protocol)
+        self.assertFalse(contract["passed"])
+        self.assertIn("torch", contract["mismatches"])
+
     def test_frozen_primary_and_confirmation_seed_plan(self) -> None:
         protocol = load_gen3_protocol("gen3_protocol.json")
         self.assertEqual(
@@ -171,6 +201,45 @@ class Gen3ModelConstraintTests(unittest.TestCase):
         score_a, score_b = fitted.score_shoulders(frame)
         np.testing.assert_allclose(prediction, score_a - score_b, atol=1e-7)
         np.testing.assert_allclose(prediction, -(score_b - score_a), atol=1e-7)
+
+
+class Gen3R2MetricTests(unittest.TestCase):
+    def test_degenerate_extractants_are_excluded_from_macro_r2(self) -> None:
+        from lanthanide_separation.gen3_metrics import arm_metric_table
+
+        rng = np.random.default_rng(7)
+        n = 40
+        healthy_truth = rng.normal(0.0, 1.0, size=n)
+        frame = pd.DataFrame(
+            {
+                # One healthy extractant and one with near-constant target,
+                # whose raw R2 would be a huge negative number.
+                "extractant": ["healthy"] * n + ["flat"] * n,
+                "extractant_family": ["fam"] * (2 * n),
+                PAIR_TARGET_COLUMN: np.concatenate(
+                    [healthy_truth, np.full(n, 0.01)]
+                ),
+                "prediction_A2_current_champion": np.concatenate(
+                    [healthy_truth + rng.normal(0.0, 0.3, size=n), np.full(n, 0.6)]
+                ),
+                "pair__Z_A": [57.0] * (2 * n),
+                "pair__Z_B": [58.0] * (2 * n),
+            }
+        )
+        overall, per_extractant, _ = arm_metric_table(
+            frame, ["A2_current_champion"]
+        )
+        row = overall.iloc[0]
+        self.assertEqual(int(row["extractants_in_r2_metrics"]), 1)
+        self.assertGreater(float(row["equal_extractant_macro_r2"]), 0.0)
+        self.assertLessEqual(float(row["equal_extractant_macro_r2"]), 1.0)
+        flat = per_extractant[per_extractant["extractant"].eq("flat")].iloc[0]
+        self.assertTrue(np.isnan(float(flat["r2"])))
+        healthy = per_extractant[per_extractant["extractant"].eq("healthy")].iloc[0]
+        self.assertTrue(np.isfinite(float(healthy["r2"])))
+        # Scale-free diagnostics exist and are internally consistent.
+        self.assertGreaterEqual(float(row["pearson_squared_scale_free"]), 0.0)
+        self.assertGreater(float(row["prediction_dispersion_ratio"]), 0.0)
 
 
 class Gen3BootstrapTests(unittest.TestCase):

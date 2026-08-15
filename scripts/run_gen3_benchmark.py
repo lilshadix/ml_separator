@@ -252,6 +252,17 @@ def _software() -> dict[str, Any]:
     }
 
 
+def _normalize_version(value: Any) -> str:
+    """Drop the PEP 440 local version segment before comparison.
+
+    Build tags such as ``2.13.0+cu130`` identify the wheel variant (CUDA
+    toolchain), not the package version; the public release identifier is the
+    reproducibility contract.  The full observed string, local segment
+    included, is still persisted verbatim in the run metadata.
+    """
+    return str(value).split("+", 1)[0]
+
+
 def _software_contract(
     observed: dict[str, Any], protocol: dict[str, Any]
 ) -> dict[str, Any]:
@@ -270,7 +281,7 @@ def _software_contract(
     mismatches = {
         key: {"expected": str(expected[key]), "observed": str(observed.get(key))}
         for key in keys
-        if str(observed.get(key)) != str(expected[key])
+        if _normalize_version(observed.get(key)) != _normalize_version(expected[key])
     }
     platform_matches = "Linux" in str(observed.get("platform")) and "x86_64" in str(
         observed.get("platform")
