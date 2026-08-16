@@ -1,0 +1,333 @@
+# Primary leaderboard
+
+Five predeclared leave-extractants-out split seeds; one split seed has one vote. Primary metric is equal-extractant macro MAE (lower is better).
+
+| arm | equal_extractant_macro_mae | equal_extractant_macro_mae_split_sd | pooled_micro_mae | median_extractant_mae | worst_quartile_extractant_mae | fraction_extractants_improved_vs_A2 | pooled_r2 | adjacent_ln_mae | nonadjacent_ln_mae | sign_accuracy | split_seed_count |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| A2_current_champion | 0.319221 | 0.007794 | 0.418910 | 0.278002 | 0.567652 | 0.000000 | 0.323261 | 0.117559 | 0.476895 | 0.847052 | 5 |
+| H2_E3_STABLE_SHUFFLED | 0.324326 | 0.008414 | 0.418424 | 0.288259 | 0.568349 | 0.458824 | 0.337361 | 0.121689 | 0.475521 | 0.834692 | 5 |
+| H2_E3_COMPACT_REAL | 0.324578 | 0.008389 | 0.418109 | 0.287770 | 0.569102 | 0.464706 | 0.338146 | 0.120916 | 0.475294 | 0.833916 | 5 |
+| H2_E3_RAW_REAL | 0.324598 | 0.008382 | 0.418245 | 0.287770 | 0.569175 | 0.464706 | 0.337998 | 0.121741 | 0.475297 | 0.834990 | 5 |
+| H2_E3_STABLE_REAL | 0.324943 | 0.008043 | 0.418645 | 0.287496 | 0.569350 | 0.458824 | 0.336649 | 0.121289 | 0.475862 | 0.834005 | 5 |
+| H2_E3_RAW_SHUFFLED | 0.325321 | 0.008424 | 0.418807 | 0.287921 | 0.570124 | 0.470588 | 0.336544 | 0.121903 | 0.475936 | 0.833677 | 5 |
+| H2_E3_COMPACT_SHUFFLED | 0.325364 | 0.008399 | 0.418755 | 0.287710 | 0.570089 | 0.464706 | 0.336641 | 0.121918 | 0.475871 | 0.834513 | 5 |
+| H1_CATBOOST_NONE_RMSE | 0.328758 | 0.010142 | 0.427225 | 0.292827 | 0.580824 | 0.435294 | 0.301746 | 0.117838 | 0.486757 | 0.827079 | 5 |
+| H1_CATBOOST_NONE_MAE | 0.329794 | 0.012780 | 0.416961 | 0.304295 | 0.570898 | 0.400000 | 0.341005 | 0.116939 | 0.474691 | 0.855053 | 5 |
+| H1_CATBOOST_GROUP_SQRT_HUBER | 0.331038 | 0.020568 | 0.418440 | 0.299064 | 0.568902 | 0.417647 | 0.333198 | 0.122319 | 0.475418 | 0.835886 | 5 |
+| H1_CATBOOST_NONE_HUBER | 0.331386 | 0.011854 | 0.424162 | 0.283762 | 0.586688 | 0.382353 | 0.305763 | 0.120075 | 0.482673 | 0.826541 | 5 |
+| H1_CATBOOST_GROUP_SQRT_RMSE | 0.336061 | 0.008259 | 0.424851 | 0.315562 | 0.567996 | 0.376471 | 0.311145 | 0.117731 | 0.483946 | 0.841439 | 5 |
+| H1_CATBOOST_GROUP_EQUAL_MAE | 0.336867 | 0.015382 | 0.420105 | 0.301855 | 0.574722 | 0.394118 | 0.344472 | 0.122858 | 0.477301 | 0.840663 | 5 |
+| H1_CATBOOST_GROUP_EQUAL_RMSE | 0.337455 | 0.016787 | 0.415756 | 0.322405 | 0.561120 | 0.400000 | 0.353275 | 0.123587 | 0.471974 | 0.827437 | 5 |
+| H1_CATBOOST_GROUP_EQUAL_HUBER | 0.341249 | 0.010574 | 0.418871 | 0.307984 | 0.576764 | 0.388235 | 0.337768 | 0.124903 | 0.475435 | 0.829288 | 5 |
+| H1_CATBOOST_GROUP_SQRT_MAE | 0.341585 | 0.013352 | 0.429174 | 0.325679 | 0.585356 | 0.405882 | 0.308626 | 0.123940 | 0.487907 | 0.846723 | 5 |
+| H3_A2_ELEC | 0.396685 | 0.027028 | 0.461877 | 0.352643 | 0.684200 | 0.294118 | 0.201895 | 0.137771 | 0.524241 | 0.791073 | 5 |
+| H3_A2 | 0.424012 | 0.054602 | 0.458405 | 0.352608 | 0.754814 | 0.311765 | 0.184585 | 0.130753 | 0.521451 | 0.821944 | 5 |
+| H3_A2_ELEC_LABEL_SHUFFLED | 0.429631 | 0.007668 | 0.396056 | 0.370657 | 0.733995 | 0.341176 | 0.433207 | 0.125896 | 0.448039 | 0.851739 | 5 |
+| H3_A2_LABEL_SHUFFLED | 0.443065 | 0.027328 | 0.399025 | 0.403131 | 0.757366 | 0.317647 | 0.420561 | 0.125529 | 0.451650 | 0.853889 | 5 |
+
+Pooled MAE and pooled R2 are row-weighted descriptive statistics. They were not used for hyperparameter, arm, or champion selection.
+
+## Split-seed robustness
+
+| arm | mean_equal_extractant_macro_mae | mean_delta_mae_baseline_minus_candidate | positive_split_seeds | split_seed_count | win_rule_passed | h2_nonzero_lambda_gate | real_beats_shuffled_gate | h3_label_shuffle_gate | eligible_for_champion |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| H1_CATBOOST_NONE_RMSE | 0.328758 | -0.009537 | 0 | 5 | False | True | True | True | False |
+| H1_CATBOOST_NONE_MAE | 0.329794 | -0.010574 | 1 | 5 | False | True | True | True | False |
+| H1_CATBOOST_NONE_HUBER | 0.331386 | -0.012165 | 1 | 5 | False | True | True | True | False |
+| H1_CATBOOST_GROUP_SQRT_RMSE | 0.336061 | -0.016840 | 0 | 5 | False | True | True | True | False |
+| H1_CATBOOST_GROUP_SQRT_MAE | 0.341585 | -0.022365 | 0 | 5 | False | True | True | True | False |
+| H1_CATBOOST_GROUP_SQRT_HUBER | 0.331038 | -0.011817 | 1 | 5 | False | True | True | True | False |
+| H1_CATBOOST_GROUP_EQUAL_RMSE | 0.337455 | -0.018235 | 0 | 5 | False | True | True | True | False |
+| H1_CATBOOST_GROUP_EQUAL_MAE | 0.336867 | -0.017646 | 0 | 5 | False | True | True | True | False |
+| H1_CATBOOST_GROUP_EQUAL_HUBER | 0.341249 | -0.022028 | 0 | 5 | False | True | True | True | False |
+| H2_E3_RAW_REAL | 0.324598 | -0.005378 | 0 | 5 | False | False | True | True | False |
+| H2_E3_RAW_SHUFFLED | 0.325321 | -0.006100 | 0 | 5 | False | False | True | True | False |
+| H2_E3_COMPACT_REAL | 0.324578 | -0.005358 | 0 | 5 | False | False | True | True | False |
+| H2_E3_COMPACT_SHUFFLED | 0.325364 | -0.006144 | 0 | 5 | False | False | True | True | False |
+| H2_E3_STABLE_REAL | 0.324943 | -0.005723 | 0 | 5 | False | False | False | True | False |
+| H2_E3_STABLE_SHUFFLED | 0.324326 | -0.005105 | 0 | 5 | False | False | True | True | False |
+| H3_A2 | 0.424012 | -0.104791 | 0 | 5 | False | True | False | True | False |
+| H3_A2_ELEC | 0.396685 | -0.077464 | 0 | 5 | False | True | True | True | False |
+| H3_A2_LABEL_SHUFFLED | 0.443065 | -0.123844 | 0 | 5 | False | True | True | True | False |
+| H3_A2_ELEC_LABEL_SHUFFLED | 0.429631 | -0.110410 | 0 | 5 | False | True | True | True | False |
+
+## H1 - learner and weighting
+
+| arm | equal_extractant_macro_mae | equal_extractant_macro_mae_split_sd | pooled_micro_mae | median_extractant_mae | worst_quartile_extractant_mae | fraction_extractants_improved_vs_A2 | pooled_r2 | adjacent_ln_mae | nonadjacent_ln_mae | sign_accuracy | split_seed_count |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| H1_CATBOOST_NONE_RMSE | 0.328758 | 0.010142 | 0.427225 | 0.292827 | 0.580824 | 0.435294 | 0.301746 | 0.117838 | 0.486757 | 0.827079 | 5 |
+| H1_CATBOOST_NONE_MAE | 0.329794 | 0.012780 | 0.416961 | 0.304295 | 0.570898 | 0.400000 | 0.341005 | 0.116939 | 0.474691 | 0.855053 | 5 |
+| H1_CATBOOST_GROUP_SQRT_HUBER | 0.331038 | 0.020568 | 0.418440 | 0.299064 | 0.568902 | 0.417647 | 0.333198 | 0.122319 | 0.475418 | 0.835886 | 5 |
+| H1_CATBOOST_NONE_HUBER | 0.331386 | 0.011854 | 0.424162 | 0.283762 | 0.586688 | 0.382353 | 0.305763 | 0.120075 | 0.482673 | 0.826541 | 5 |
+| H1_CATBOOST_GROUP_SQRT_RMSE | 0.336061 | 0.008259 | 0.424851 | 0.315562 | 0.567996 | 0.376471 | 0.311145 | 0.117731 | 0.483946 | 0.841439 | 5 |
+| H1_CATBOOST_GROUP_EQUAL_MAE | 0.336867 | 0.015382 | 0.420105 | 0.301855 | 0.574722 | 0.394118 | 0.344472 | 0.122858 | 0.477301 | 0.840663 | 5 |
+| H1_CATBOOST_GROUP_EQUAL_RMSE | 0.337455 | 0.016787 | 0.415756 | 0.322405 | 0.561120 | 0.400000 | 0.353275 | 0.123587 | 0.471974 | 0.827437 | 5 |
+| H1_CATBOOST_GROUP_EQUAL_HUBER | 0.341249 | 0.010574 | 0.418871 | 0.307984 | 0.576764 | 0.388235 | 0.337768 | 0.124903 | 0.475435 | 0.829288 | 5 |
+| H1_CATBOOST_GROUP_SQRT_MAE | 0.341585 | 0.013352 | 0.429174 | 0.325679 | 0.585356 | 0.405882 | 0.308626 | 0.123940 | 0.487907 | 0.846723 | 5 |
+
+## H2 - E3 residual signal
+
+| arm | equal_extractant_macro_mae | equal_extractant_macro_mae_split_sd | pooled_micro_mae | median_extractant_mae | worst_quartile_extractant_mae | fraction_extractants_improved_vs_A2 | pooled_r2 | adjacent_ln_mae | nonadjacent_ln_mae | sign_accuracy | split_seed_count |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| H2_E3_STABLE_SHUFFLED | 0.324326 | 0.008414 | 0.418424 | 0.288259 | 0.568349 | 0.458824 | 0.337361 | 0.121689 | 0.475521 | 0.834692 | 5 |
+| H2_E3_COMPACT_REAL | 0.324578 | 0.008389 | 0.418109 | 0.287770 | 0.569102 | 0.464706 | 0.338146 | 0.120916 | 0.475294 | 0.833916 | 5 |
+| H2_E3_RAW_REAL | 0.324598 | 0.008382 | 0.418245 | 0.287770 | 0.569175 | 0.464706 | 0.337998 | 0.121741 | 0.475297 | 0.834990 | 5 |
+| H2_E3_STABLE_REAL | 0.324943 | 0.008043 | 0.418645 | 0.287496 | 0.569350 | 0.458824 | 0.336649 | 0.121289 | 0.475862 | 0.834005 | 5 |
+| H2_E3_RAW_SHUFFLED | 0.325321 | 0.008424 | 0.418807 | 0.287921 | 0.570124 | 0.470588 | 0.336544 | 0.121903 | 0.475936 | 0.833677 | 5 |
+| H2_E3_COMPACT_SHUFFLED | 0.325364 | 0.008399 | 0.418755 | 0.287710 | 0.570089 | 0.464706 | 0.336641 | 0.121918 | 0.475871 | 0.834513 | 5 |
+
+Nested stability selection summary:
+
+| feature | selection_frequency | mean_signed_importance_or_coefficient | fold_consistency | split_seed_consistency | selected_outer_fold_fraction |
+| --- | --- | --- | --- | --- | --- |
+| elec__odd__delta_q_metal | 0.893333 | -0.065416 | 0.866667 | 1.000000 | 0.960000 |
+| elec__odd__delta_q_donor_min | 0.866667 | 0.086055 | 0.573333 | 1.000000 | 0.840000 |
+| elec__odd__delta_dipole_magnitude | 0.826667 | 0.041997 | 0.640000 | 1.000000 | 0.800000 |
+| elec__odd__delta_q_donor_std | 0.813333 | 0.277608 | 0.680000 | 1.000000 | 0.800000 |
+| elec__odd__delta_q_donor_mean | 0.760000 | -0.122691 | 0.573333 | 0.800000 | 0.840000 |
+| elec__odd__delta_metal_minus_donor_charge | 0.720000 | 0.045305 | 0.506667 | 0.800000 | 0.720000 |
+| elec__odd__delta_q_donor_max | 0.680000 | -0.125778 | 0.360000 | 0.600000 | 0.720000 |
+| elec__even__absdelta_q_metal | 0.000000 | 0.000000 | 0.000000 | 0.000000 | 0.000000 |
+| elec__even__compliance_q_metal | 0.000000 | 0.000000 | 0.000000 | 0.000000 | 0.000000 |
+| elec__even__absdelta_q_donor_mean | 0.000000 | 0.000000 | 0.000000 | 0.000000 | 0.000000 |
+| elec__even__compliance_q_donor_mean | 0.000000 | 0.000000 | 0.000000 | 0.000000 | 0.000000 |
+| elec__even__absdelta_q_donor_std | 0.000000 | 0.000000 | 0.000000 | 0.000000 | 0.000000 |
+| elec__even__compliance_q_donor_std | 0.000000 | 0.000000 | 0.000000 | 0.000000 | 0.000000 |
+| elec__even__absdelta_q_donor_min | 0.000000 | 0.000000 | 0.000000 | 0.000000 | 0.000000 |
+| elec__even__compliance_q_donor_min | 0.000000 | 0.000000 | 0.000000 | 0.000000 | 0.000000 |
+| elec__even__absdelta_q_donor_max | 0.000000 | 0.000000 | 0.000000 | 0.000000 | 0.000000 |
+| elec__even__compliance_q_donor_max | 0.000000 | 0.000000 | 0.000000 | 0.000000 | 0.000000 |
+| elec__even__absdelta_dipole_magnitude | 0.000000 | 0.000000 | 0.000000 | 0.000000 | 0.000000 |
+| elec__even__compliance_dipole_magnitude | 0.000000 | 0.000000 | 0.000000 | 0.000000 | 0.000000 |
+| elec__even__absdelta_metal_minus_donor_charge | 0.000000 | 0.000000 | 0.000000 | 0.000000 | 0.000000 |
+| elec__even__compliance_metal_minus_donor_charge | 0.000000 | 0.000000 | 0.000000 | 0.000000 | 0.000000 |
+
+## H3 - antisymmetric latent-difference model
+
+| arm | equal_extractant_macro_mae | equal_extractant_macro_mae_split_sd | pooled_micro_mae | median_extractant_mae | worst_quartile_extractant_mae | fraction_extractants_improved_vs_A2 | pooled_r2 | adjacent_ln_mae | nonadjacent_ln_mae | sign_accuracy | split_seed_count |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| H3_A2_ELEC | 0.396685 | 0.027028 | 0.461877 | 0.352643 | 0.684200 | 0.294118 | 0.201895 | 0.137771 | 0.524241 | 0.791073 | 5 |
+| H3_A2 | 0.424012 | 0.054602 | 0.458405 | 0.352608 | 0.754814 | 0.311765 | 0.184585 | 0.130753 | 0.521451 | 0.821944 | 5 |
+| H3_A2_ELEC_LABEL_SHUFFLED | 0.429631 | 0.007668 | 0.396056 | 0.370657 | 0.733995 | 0.341176 | 0.433207 | 0.125896 | 0.448039 | 0.851739 | 5 |
+| H3_A2_LABEL_SHUFFLED | 0.443065 | 0.027328 | 0.399025 | 0.403131 | 0.757366 | 0.317647 | 0.420561 | 0.125529 | 0.451650 | 0.853889 | 5 |
+
+Each H3 arm was run with its predeclared training-only label-shuffle control; a real H3 arm is eligible only when that gate passes.
+
+## Negative controls
+
+| arm | mean_equal_extractant_macro_mae | mean_delta_mae_baseline_minus_candidate | positive_split_seeds | split_seed_count | win_rule_passed | h2_nonzero_lambda_gate | real_beats_shuffled_gate | h3_label_shuffle_gate | eligible_for_champion |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| H2_E3_RAW_SHUFFLED | 0.325321 | -0.006100 | 0 | 5 | False | False | True | True | False |
+| H2_E3_COMPACT_SHUFFLED | 0.325364 | -0.006144 | 0 | 5 | False | False | True | True | False |
+| H2_E3_STABLE_SHUFFLED | 0.324326 | -0.005105 | 0 | 5 | False | False | True | True | False |
+| H3_A2_LABEL_SHUFFLED | 0.443065 | -0.123844 | 0 | 5 | False | True | True | True | False |
+| H3_A2_ELEC_LABEL_SHUFFLED | 0.429631 | -0.110410 | 0 | 5 | False | True | True | True | False |
+
+Paired extractant bootstrap:
+
+| comparison | reference | candidate | point_delta_mae | ci95_low | ci95_high | p_candidate_better | extractants_improved | extractants_total | split_seeds | bootstrap_replicates | bootstrap_seed | bootstrap_unit | split_seed_weighting | multiplicity_preserved |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| A2_current_champion_vs_H1_CATBOOST_NONE_RMSE | A2_current_champion | H1_CATBOOST_NONE_RMSE | -0.009537 | -0.028744 | 0.009665 | 0.166900 | 16 | 34 | 5 | 10000 | 8675309 | extractant | one split seed one vote within extractant | True |
+| A2_current_champion_vs_H1_CATBOOST_NONE_MAE | A2_current_champion | H1_CATBOOST_NONE_MAE | -0.010574 | -0.026633 | 0.005403 | 0.101700 | 12 | 34 | 5 | 10000 | 8675309 | extractant | one split seed one vote within extractant | True |
+| A2_current_champion_vs_H1_CATBOOST_NONE_HUBER | A2_current_champion | H1_CATBOOST_NONE_HUBER | -0.012165 | -0.033384 | 0.008676 | 0.125100 | 15 | 34 | 5 | 10000 | 8675309 | extractant | one split seed one vote within extractant | True |
+| A2_current_champion_vs_H1_CATBOOST_GROUP_SQRT_RMSE | A2_current_champion | H1_CATBOOST_GROUP_SQRT_RMSE | -0.016840 | -0.034972 | 0.000754 | 0.030300 | 12 | 34 | 5 | 10000 | 8675309 | extractant | one split seed one vote within extractant | True |
+| A2_current_champion_vs_H1_CATBOOST_GROUP_SQRT_MAE | A2_current_champion | H1_CATBOOST_GROUP_SQRT_MAE | -0.022365 | -0.044529 | -0.001162 | 0.018900 | 12 | 34 | 5 | 10000 | 8675309 | extractant | one split seed one vote within extractant | True |
+| A2_current_champion_vs_H1_CATBOOST_GROUP_SQRT_HUBER | A2_current_champion | H1_CATBOOST_GROUP_SQRT_HUBER | -0.011817 | -0.029205 | 0.006518 | 0.098300 | 12 | 34 | 5 | 10000 | 8675309 | extractant | one split seed one vote within extractant | True |
+| A2_current_champion_vs_H1_CATBOOST_GROUP_EQUAL_RMSE | A2_current_champion | H1_CATBOOST_GROUP_EQUAL_RMSE | -0.018235 | -0.035732 | 0.000040 | 0.025600 | 12 | 34 | 5 | 10000 | 8675309 | extractant | one split seed one vote within extractant | True |
+| A2_current_champion_vs_H1_CATBOOST_GROUP_EQUAL_MAE | A2_current_champion | H1_CATBOOST_GROUP_EQUAL_MAE | -0.017646 | -0.039405 | 0.003632 | 0.055700 | 13 | 34 | 5 | 10000 | 8675309 | extractant | one split seed one vote within extractant | True |
+| A2_current_champion_vs_H1_CATBOOST_GROUP_EQUAL_HUBER | A2_current_champion | H1_CATBOOST_GROUP_EQUAL_HUBER | -0.022028 | -0.040686 | -0.002319 | 0.014900 | 11 | 34 | 5 | 10000 | 8675309 | extractant | one split seed one vote within extractant | True |
+| A2_current_champion_vs_H2_E3_RAW_REAL | A2_current_champion | H2_E3_RAW_REAL | -0.005378 | -0.020946 | 0.010262 | 0.248400 | 16 | 34 | 5 | 10000 | 8675309 | extractant | one split seed one vote within extractant | True |
+| A2_current_champion_vs_H2_E3_RAW_SHUFFLED | A2_current_champion | H2_E3_RAW_SHUFFLED | -0.006100 | -0.021331 | 0.009264 | 0.216100 | 17 | 34 | 5 | 10000 | 8675309 | extractant | one split seed one vote within extractant | True |
+| A2_current_champion_vs_H2_E3_COMPACT_REAL | A2_current_champion | H2_E3_COMPACT_REAL | -0.005358 | -0.021436 | 0.009925 | 0.248500 | 16 | 34 | 5 | 10000 | 8675309 | extractant | one split seed one vote within extractant | True |
+| A2_current_champion_vs_H2_E3_COMPACT_SHUFFLED | A2_current_champion | H2_E3_COMPACT_SHUFFLED | -0.006144 | -0.021727 | 0.008950 | 0.217800 | 17 | 34 | 5 | 10000 | 8675309 | extractant | one split seed one vote within extractant | True |
+| A2_current_champion_vs_H2_E3_STABLE_REAL | A2_current_champion | H2_E3_STABLE_REAL | -0.005723 | -0.021562 | 0.009442 | 0.226900 | 16 | 34 | 5 | 10000 | 8675309 | extractant | one split seed one vote within extractant | True |
+| A2_current_champion_vs_H2_E3_STABLE_SHUFFLED | A2_current_champion | H2_E3_STABLE_SHUFFLED | -0.005105 | -0.020360 | 0.010097 | 0.259100 | 17 | 34 | 5 | 10000 | 8675309 | extractant | one split seed one vote within extractant | True |
+| A2_current_champion_vs_H3_A2 | A2_current_champion | H3_A2 | -0.104791 | -0.158424 | -0.054730 | 0.000000 | 8 | 34 | 5 | 10000 | 8675309 | extractant | one split seed one vote within extractant | True |
+| A2_current_champion_vs_H3_A2_ELEC | A2_current_champion | H3_A2_ELEC | -0.077464 | -0.123219 | -0.036899 | 0.000000 | 9 | 34 | 5 | 10000 | 8675309 | extractant | one split seed one vote within extractant | True |
+| A2_current_champion_vs_H3_A2_LABEL_SHUFFLED | A2_current_champion | H3_A2_LABEL_SHUFFLED | -0.123844 | -0.179760 | -0.068062 | 0.000000 | 11 | 34 | 5 | 10000 | 8675309 | extractant | one split seed one vote within extractant | True |
+| A2_current_champion_vs_H3_A2_ELEC_LABEL_SHUFFLED | A2_current_champion | H3_A2_ELEC_LABEL_SHUFFLED | -0.110410 | -0.165287 | -0.055582 | 0.000000 | 11 | 34 | 5 | 10000 | 8675309 | extractant | one split seed one vote within extractant | True |
+| H2_E3_RAW_SHUFFLED_vs_H2_E3_RAW_REAL | H2_E3_RAW_SHUFFLED | H2_E3_RAW_REAL | 0.000723 | -0.000460 | 0.001932 | 0.881200 | 16 | 34 | 5 | 10000 | 8675309 | extractant | one split seed one vote within extractant | True |
+| H2_E3_COMPACT_SHUFFLED_vs_H2_E3_COMPACT_REAL | H2_E3_COMPACT_SHUFFLED | H2_E3_COMPACT_REAL | 0.000786 | -0.000411 | 0.002016 | 0.897500 | 18 | 34 | 5 | 10000 | 8675309 | extractant | one split seed one vote within extractant | True |
+| H2_E3_STABLE_SHUFFLED_vs_H2_E3_STABLE_REAL | H2_E3_STABLE_SHUFFLED | H2_E3_STABLE_REAL | -0.000617 | -0.001450 | 0.000107 | 0.049400 | 15 | 34 | 5 | 10000 | 8675309 | extractant | one split seed one vote within extractant | True |
+| H3_A2_LABEL_SHUFFLED_vs_H3_A2 | H3_A2_LABEL_SHUFFLED | H3_A2 | 0.019053 | -0.052259 | 0.083445 | 0.720400 | 21 | 34 | 5 | 10000 | 8675309 | extractant | one split seed one vote within extractant | True |
+| H3_A2_ELEC_LABEL_SHUFFLED_vs_H3_A2_ELEC | H3_A2_ELEC_LABEL_SHUFFLED | H3_A2_ELEC | 0.032946 | -0.023296 | 0.086066 | 0.880400 | 21 | 34 | 5 | 10000 | 8675309 | extractant | one split seed one vote within extractant | True |
+
+## Per-extractant breakdown
+
+| extractant | extractant_family | arm | mean_mae | split_seed_sd_mae | mean_delta_mae_baseline_minus_candidate | split_seeds_improved | split_seed_count |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCCOCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC | CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCCOCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC | A2_current_champion | 0.797328 | 0.011456 | 0.000000 | 0 | 5 |
+| CCCCCCCCCCN(CCCCCCCCCC)C(=O)COCC(=O)N(CCCCCC)CCCCCC | CCCCCCCCCCN(CCCCCCCCCC)C(=O)COCC(=O)N(CCCCCC)CCCCCC | A2_current_champion | 0.632724 | 0.005150 | 0.000000 | 0 | 5 |
+| CCCCCCCCN(CCCCCCCC)C(=O)CN(CC(=O)N(CCCCCCCC)CCCCCCCC)CC(=O)N(CCCCCCCC)CCCCCCCC | CCCCCCCCN(CCCCCCCC)C(=O)CN(CC(=O)N(CCCCCCCC)CCCCCCCC)CC(=O)N(CCCCCCCC)CCCCCCCC | A2_current_champion | 0.617185 | 0.025141 | 0.000000 | 0 | 5 |
+| CCCCCCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCCCCCC | CCCCCCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCCCCCC | A2_current_champion | 0.555651 | 0.029335 | 0.000000 | 0 | 5 |
+| CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC | CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC | A2_current_champion | 0.504750 | 0.000000 | 0.000000 | 0 | 5 |
+| CCCCCCCCN(C)C(=O)COCC(=O)N(C)CCCCCCCC | CCCCCCCCN(C)C(=O)COCC(=O)N(C)CCCCCCCC | A2_current_champion | 0.504513 | 0.006602 | 0.000000 | 0 | 5 |
+| CCCCCCCCN(CCCCCCCC)C(=O)[C@H](C)O[C@@H](C)C(=O)N(CCCCCCCC)CCCCCCCC | CCCCCCCCN(CCCCCCCC)C(=O)[C@H](C)O[C@@H](C)C(=O)N(CCCCCCCC)CCCCCCCC | A2_current_champion | 0.480243 | 0.042589 | 0.000000 | 0 | 5 |
+| O=C(COCC(=O)N1CCCCC1)N1CCCCC1 | O=C(COCC(=O)N1CCCCC1)N1CCCCC1 | A2_current_champion | 0.437109 | 0.175265 | 0.000000 | 0 | 5 |
+| CCCCN(CCCC)C(=O)COCC(=O)N(CCCC)CCCC | CCCCN(CCCC)C(=O)COCC(=O)N(CCCC)CCCC | A2_current_champion | 0.427689 | 0.006301 | 0.000000 | 0 | 5 |
+| CCCCCCCCN(CCCCCCCC)C(=O)[C@H](C)O[C@H](C)C(=O)N(CCCCCCCC)CCCCCCCC | CCCCCCCCN(CCCCCCCC)C(=O)[C@H](C)O[C@H](C)C(=O)N(CCCCCCCC)CCCCCCCC | A2_current_champion | 0.422687 | 0.138511 | 0.000000 | 0 | 5 |
+| COCCN(CCOC)C(=O)COCC(=O)N(CCOC)CCOC | COCCN(CCOC)C(=O)COCC(=O)N(CCOC)CCOC | A2_current_champion | 0.422579 | 0.100877 | 0.000000 | 0 | 5 |
+| CCCCC(CC)CN(CC(CC)CCCC)C(=O)COCC(=O)N(CC(CC)CCCC)CC(CC)CCCC | CCCCC(CC)CN(CC(CC)CCCC)C(=O)COCC(=O)N(CC(CC)CCCC)CC(CC)CCCC | A2_current_champion | 0.412674 | 0.023100 | 0.000000 | 0 | 5 |
+| CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(C)C | CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(C)C | A2_current_champion | 0.388341 | 0.007432 | 0.000000 | 0 | 5 |
+| CN(C(=O)c1cccc(C(=O)N(C)c2ccccc2)n1)c1ccccc1 | CN(C(=O)c1cccc(C(=O)N(C)c2ccccc2)n1)c1ccccc1 | A2_current_champion | 0.338373 | 0.019649 | 0.000000 | 0 | 5 |
+| CCCCCCC(C)N(CCCC)C(=O)COCC(=O)N(CCCC)C(C)CCCCCC | CCCCCCC(C)N(CCCC)C(=O)COCC(=O)N(CCCC)C(C)CCCCCC | A2_current_champion | 0.325058 | 0.013700 | 0.000000 | 0 | 5 |
+| CCCCCCCCN(CCCC(CCCC)CCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCC(CCCC)CCCCCC | CCCCCCCCN(CCCC(CCCC)CCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCC(CCCC)CCCCCC | A2_current_champion | 0.285624 | 0.023724 | 0.000000 | 0 | 5 |
+| CCCCC(CC)CN(C)C(=O)COCC(=O)N(C)CC(CC)CCCC | CCCCC(CC)CN(C)C(=O)COCC(=O)N(C)CC(CC)CCCC | A2_current_champion | 0.269042 | 0.070998 | 0.000000 | 0 | 5 |
+| CN(C(=O)COCC(=O)N(C)c1ccccc1)c1ccccc1 | CN(C(=O)COCC(=O)N(C)c1ccccc1)c1ccccc1 | A2_current_champion | 0.266023 | 0.012436 | 0.000000 | 0 | 5 |
+| CCCCCCC(CCCC)CCCN(C)C(=O)COCC(=O)N(C)CCCC(CCCC)CCCCCC | CCCCCCC(CCCC)CCCN(C)C(=O)COCC(=O)N(C)CCCC(CCCC)CCCCCC | A2_current_champion | 0.257943 | 0.027601 | 0.000000 | 0 | 5 |
+| CCCCCCCCN(CCCCC(C)CCCC(C)C)C(=O)COCC(=O)N(CCCCCCCC)CCCCC(C)CCCC(C)C | CCCCCCCCN(CCCCC(C)CCCC(C)C)C(=O)COCC(=O)N(CCCCCCCC)CCCCC(C)CCCC(C)C | A2_current_champion | 0.247741 | 0.107377 | 0.000000 | 0 | 5 |
+| CCCCCCCCN(CCC(C)CC(C)(C)C)C(=O)COCC(=O)N(CCCCCCCC)CCC(C)CC(C)(C)C | CCCCCCCCN(CCC(C)CC(C)(C)C)C(=O)COCC(=O)N(CCCCCCCC)CCC(C)CC(C)(C)C | A2_current_champion | 0.231154 | 0.012573 | 0.000000 | 0 | 5 |
+| CCN(CC)C(=O)COCC(=O)N(CC)CC | CCN(CC)C(=O)COCC(=O)N(CC)CC | A2_current_champion | 0.217272 | 0.008801 | 0.000000 | 0 | 5 |
+| CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC | CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC | A2_current_champion | 0.216473 | 0.002593 | 0.000000 | 0 | 5 |
+| CC(C)CCCC(C)CCCCN(C)C(=O)COCC(=O)N(C)CCCCC(C)CCCC(C)C | CC(C)CCCC(C)CCCCN(C)C(=O)COCC(=O)N(C)CCCCC(C)CCCC(C)C | A2_current_champion | 0.192781 | 0.046372 | 0.000000 | 0 | 5 |
+| CCCCCCCCC(C)(C)SCC1CN(C(=O)COCC(=O)N2CC(C)C(CSC(C)(C)CCCCCCCC)C2)CC1C | CCCCCCCCC(C)(C)SCC1CN(C(=O)COCC(=O)N2CC(C)C(CSC(C)(C)CCCCCCCC)C2)CC1C | A2_current_champion | 0.192622 | 0.056543 | 0.000000 | 0 | 5 |
+| CC(C)CN(CC(C)C)C(=O)COCC(=O)N(CC(C)C)CC(C)C | CC(C)CN(CC(C)C)C(=O)COCC(=O)N(CC(C)C)CC(C)C | A2_current_champion | 0.182276 | 0.068844 | 0.000000 | 0 | 5 |
+| CCCN(CCC)C(=O)COCC(=O)N(CCC)CCC | CCCN(CCC)C(=O)COCC(=O)N(CCC)CCC | A2_current_champion | 0.179213 | 0.011492 | 0.000000 | 0 | 5 |
+| CCCCCCCCCCN(CCCCCCCCCC)C(=O)C(C)OC(C)C(=O)N(CCCCCCCCCC)CCCCCCCCCC | CCCCCCCCCCN(CCCCCCCCCC)C(=O)C(C)OC(C)C(=O)N(CCCCCCCCCC)CCCCCCCCCC | A2_current_champion | 0.173494 | 0.040987 | 0.000000 | 0 | 5 |
+| CCCCCCCCN(CC)C(=O)COCC(=O)N(CC)CCCCCCCC | CCCCCCCCN(CC)C(=O)COCC(=O)N(CC)CCCCCCCC | A2_current_champion | 0.161338 | 0.083262 | 0.000000 | 0 | 5 |
+| CCCCCCCCN(CCC)C(=O)COCC(=O)N(CCC)CCCCCCCC | CCCCCCCCN(CCC)C(=O)COCC(=O)N(CCC)CCCCCCCC | A2_current_champion | 0.131285 | 0.045066 | 0.000000 | 0 | 5 |
+| CCCCCCCCN(C)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC | CCCCCCCCN(C)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC | A2_current_champion | 0.119050 | 0.033596 | 0.000000 | 0 | 5 |
+| CCCCCCCCN(CC(C)C)C(=O)COCC(=O)N(CCCCCCCC)CC(C)C | CCCCCCCCN(CC(C)C)C(=O)COCC(=O)N(CCCCCCCC)CC(C)C | A2_current_champion | 0.102162 | 0.014066 | 0.000000 | 0 | 5 |
+| CCCCCCN(CCCCCC)C(=O)COCC(=O)N(CCCCCC)CCCCCC | CCCCCCN(CCCCCC)C(=O)COCC(=O)N(CCCCCC)CCCCCC | A2_current_champion | 0.085932 | 0.005269 | 0.000000 | 0 | 5 |
+| CCCCCCCCN(CC(CC)CCCC)C(=O)COCC(=O)N(CCCCCCCC)CC(CC)CCCC | CCCCCCCCN(CC(CC)CCCC)C(=O)COCC(=O)N(CCCCCCCC)CC(CC)CCCC | A2_current_champion | 0.075173 | 0.021023 | 0.000000 | 0 | 5 |
+| CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCCOCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC | CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCCOCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.787342 | 0.039205 | 0.009986 | 3 | 5 |
+| CCCCCCCCN(CCCCCCCC)C(=O)CN(CC(=O)N(CCCCCCCC)CCCCCCCC)CC(=O)N(CCCCCCCC)CCCCCCCC | CCCCCCCCN(CCCCCCCC)C(=O)CN(CC(=O)N(CCCCCCCC)CCCCCCCC)CC(=O)N(CCCCCCCC)CCCCCCCC | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.655385 | 0.051007 | -0.038201 | 1 | 5 |
+| CCCCCCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCCCCCC | CCCCCCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCCCCCC | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.649974 | 0.111905 | -0.094324 | 0 | 5 |
+| O=C(COCC(=O)N1CCCCC1)N1CCCCC1 | O=C(COCC(=O)N1CCCCC1)N1CCCCC1 | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.541542 | 0.092759 | -0.104433 | 2 | 5 |
+| CCCCCCCCCCN(CCCCCCCCCC)C(=O)COCC(=O)N(CCCCCC)CCCCCC | CCCCCCCCCCN(CCCCCCCCCC)C(=O)COCC(=O)N(CCCCCC)CCCCCC | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.528788 | 0.025505 | 0.103936 | 5 | 5 |
+| CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC | CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.513597 | 0.016070 | -0.008848 | 3 | 5 |
+| CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(C)C | CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(C)C | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.485659 | 0.040542 | -0.097318 | 0 | 5 |
+| CCCCCCCCN(CCCCCCCC)C(=O)[C@H](C)O[C@@H](C)C(=O)N(CCCCCCCC)CCCCCCCC | CCCCCCCCN(CCCCCCCC)C(=O)[C@H](C)O[C@@H](C)C(=O)N(CCCCCCCC)CCCCCCCC | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.479219 | 0.048945 | 0.001024 | 2 | 5 |
+| COCCN(CCOC)C(=O)COCC(=O)N(CCOC)CCOC | COCCN(CCOC)C(=O)COCC(=O)N(CCOC)CCOC | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.448059 | 0.085393 | -0.025480 | 4 | 5 |
+| CCCCC(CC)CN(CC(CC)CCCC)C(=O)COCC(=O)N(CC(CC)CCCC)CC(CC)CCCC | CCCCC(CC)CN(CC(CC)CCCC)C(=O)COCC(=O)N(CC(CC)CCCC)CC(CC)CCCC | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.441390 | 0.081166 | -0.028716 | 1 | 5 |
+| CCCCCCCCN(CCCCCCCC)C(=O)[C@H](C)O[C@H](C)C(=O)N(CCCCCCCC)CCCCCCCC | CCCCCCCCN(CCCCCCCC)C(=O)[C@H](C)O[C@H](C)C(=O)N(CCCCCCCC)CCCCCCCC | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.427155 | 0.132861 | -0.004467 | 1 | 5 |
+| CCCCN(CCCC)C(=O)COCC(=O)N(CCCC)CCCC | CCCCN(CCCC)C(=O)COCC(=O)N(CCCC)CCCC | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.424591 | 0.014818 | 0.003099 | 3 | 5 |
+| CN(C(=O)c1cccc(C(=O)N(C)c2ccccc2)n1)c1ccccc1 | CN(C(=O)c1cccc(C(=O)N(C)c2ccccc2)n1)c1ccccc1 | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.402674 | 0.054470 | -0.064300 | 0 | 5 |
+| CCCCCCCCN(C)C(=O)COCC(=O)N(C)CCCCCCCC | CCCCCCCCN(C)C(=O)COCC(=O)N(C)CCCCCCCC | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.375518 | 0.030551 | 0.128996 | 5 | 5 |
+| CCCCCCC(C)N(CCCC)C(=O)COCC(=O)N(CCCC)C(C)CCCCCC | CCCCCCC(C)N(CCCC)C(=O)COCC(=O)N(CCCC)C(C)CCCCCC | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.374714 | 0.039730 | -0.049656 | 1 | 5 |
+| CCCCCCCCN(CCCC(CCCC)CCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCC(CCCC)CCCCCC | CCCCCCCCN(CCCC(CCCC)CCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCC(CCCC)CCCCCC | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.282338 | 0.081186 | 0.003286 | 2 | 5 |
+| CCCCCCCCCCN(CCCCCCCCCC)C(=O)C(C)OC(C)C(=O)N(CCCCCCCCCC)CCCCCCCCCC | CCCCCCCCCCN(CCCCCCCCCC)C(=O)C(C)OC(C)C(=O)N(CCCCCCCCCC)CCCCCCCCCC | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.271863 | 0.124823 | -0.098368 | 1 | 5 |
+| CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC | CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.269273 | 0.033370 | -0.052801 | 0 | 5 |
+| CN(C(=O)COCC(=O)N(C)c1ccccc1)c1ccccc1 | CN(C(=O)COCC(=O)N(C)c1ccccc1)c1ccccc1 | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.267290 | 0.007308 | -0.001266 | 2 | 5 |
+| CCCCCCCCN(CC)C(=O)COCC(=O)N(CC)CCCCCCCC | CCCCCCCCN(CC)C(=O)COCC(=O)N(CC)CCCCCCCC | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.260356 | 0.092717 | -0.099017 | 0 | 5 |
+| CCCCCCCCN(CCC)C(=O)COCC(=O)N(CCC)CCCCCCCC | CCCCCCCCN(CCC)C(=O)COCC(=O)N(CCC)CCCCCCCC | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.254769 | 0.090258 | -0.123485 | 0 | 5 |
+| CCCCCCC(CCCC)CCCN(C)C(=O)COCC(=O)N(C)CCCC(CCCC)CCCCCC | CCCCCCC(CCCC)CCCN(C)C(=O)COCC(=O)N(C)CCCC(CCCC)CCCCCC | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.253877 | 0.086489 | 0.004066 | 3 | 5 |
+| CCCCC(CC)CN(C)C(=O)COCC(=O)N(C)CC(CC)CCCC | CCCCC(CC)CN(C)C(=O)COCC(=O)N(C)CC(CC)CCCC | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.252221 | 0.046942 | 0.016821 | 4 | 5 |
+| CCCCCCCCN(CCCCC(C)CCCC(C)C)C(=O)COCC(=O)N(CCCCCCCC)CCCCC(C)CCCC(C)C | CCCCCCCCN(CCCCC(C)CCCC(C)C)C(=O)COCC(=O)N(CCCCCCCC)CCCCC(C)CCCC(C)C | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.252041 | 0.173809 | -0.004300 | 3 | 5 |
+| CCCCCCCCC(C)(C)SCC1CN(C(=O)COCC(=O)N2CC(C)C(CSC(C)(C)CCCCCCCC)C2)CC1C | CCCCCCCCC(C)(C)SCC1CN(C(=O)COCC(=O)N2CC(C)C(CSC(C)(C)CCCCCCCC)C2)CC1C | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.226876 | 0.140980 | -0.034254 | 2 | 5 |
+| CC(C)CN(CC(C)C)C(=O)COCC(=O)N(CC(C)C)CC(C)C | CC(C)CN(CC(C)C)C(=O)COCC(=O)N(CC(C)C)CC(C)C | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.203167 | 0.041394 | -0.020890 | 1 | 5 |
+| CCCN(CCC)C(=O)COCC(=O)N(CCC)CCC | CCCN(CCC)C(=O)COCC(=O)N(CCC)CCC | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.185560 | 0.021125 | -0.006347 | 1 | 5 |
+| CCCCCCCCN(C)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC | CCCCCCCCN(C)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.184838 | 0.026416 | -0.065788 | 0 | 5 |
+| CCN(CC)C(=O)COCC(=O)N(CC)CC | CCN(CC)C(=O)COCC(=O)N(CC)CC | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.183875 | 0.010055 | 0.033396 | 5 | 5 |
+| CC(C)CCCC(C)CCCCN(C)C(=O)COCC(=O)N(C)CCCCC(C)CCCC(C)C | CC(C)CCCC(C)CCCCN(C)C(=O)COCC(=O)N(C)CCCCC(C)CCCC(C)C | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.181360 | 0.058587 | 0.011421 | 3 | 5 |
+| CCCCCCCCN(CC(C)C)C(=O)COCC(=O)N(CCCCCCCC)CC(C)C | CCCCCCCCN(CC(C)C)C(=O)COCC(=O)N(CCCCCCCC)CC(C)C | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.174509 | 0.071068 | -0.072347 | 0 | 5 |
+| CCCCCCCCN(CCC(C)CC(C)(C)C)C(=O)COCC(=O)N(CCCCCCCC)CCC(C)CC(C)(C)C | CCCCCCCCN(CCC(C)CC(C)(C)C)C(=O)COCC(=O)N(CCCCCCCC)CCC(C)CC(C)(C)C | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.144708 | 0.019330 | 0.086446 | 5 | 5 |
+| CCCCCCN(CCCCCC)C(=O)COCC(=O)N(CCCCCC)CCCCCC | CCCCCCN(CCCCCC)C(=O)COCC(=O)N(CCCCCC)CCCCCC | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.142014 | 0.047266 | -0.056082 | 0 | 5 |
+| CCCCCCCCN(CC(CC)CCCC)C(=O)COCC(=O)N(CCCCCCCC)CC(CC)CCCC | CCCCCCCCN(CC(CC)CCCC)C(=O)COCC(=O)N(CCCCCCCC)CC(CC)CCCC | H1_CATBOOST_GROUP_EQUAL_HUBER | 0.075925 | 0.010165 | -0.000753 | 3 | 5 |
+| CCCCCCCCN(CCCCCCCC)C(=O)CN(CC(=O)N(CCCCCCCC)CCCCCCCC)CC(=O)N(CCCCCCCC)CCCCCCCC | CCCCCCCCN(CCCCCCCC)C(=O)CN(CC(=O)N(CCCCCCCC)CCCCCCCC)CC(=O)N(CCCCCCCC)CCCCCCCC | H1_CATBOOST_GROUP_EQUAL_MAE | 0.709571 | 0.034583 | -0.092386 | 0 | 5 |
+| CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCCOCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC | CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCCOCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC | H1_CATBOOST_GROUP_EQUAL_MAE | 0.676076 | 0.038103 | 0.121253 | 5 | 5 |
+| CCCCCCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCCCCCC | CCCCCCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCCCCCC | H1_CATBOOST_GROUP_EQUAL_MAE | 0.666233 | 0.075169 | -0.110582 | 0 | 5 |
+| CCCCCCCCCCN(CCCCCCCCCC)C(=O)COCC(=O)N(CCCCCC)CCCCCC | CCCCCCCCCCN(CCCCCCCCCC)C(=O)COCC(=O)N(CCCCCC)CCCCCC | H1_CATBOOST_GROUP_EQUAL_MAE | 0.635848 | 0.012125 | -0.003124 | 2 | 5 |
+| CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(C)C | CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(C)C | H1_CATBOOST_GROUP_EQUAL_MAE | 0.519697 | 0.031194 | -0.131356 | 0 | 5 |
+| CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC | CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC | H1_CATBOOST_GROUP_EQUAL_MAE | 0.511284 | 0.000735 | -0.006534 | 0 | 5 |
+| CCCCCCCCN(CCCCCCCC)C(=O)[C@H](C)O[C@@H](C)C(=O)N(CCCCCCCC)CCCCCCCC | CCCCCCCCN(CCCCCCCC)C(=O)[C@H](C)O[C@@H](C)C(=O)N(CCCCCCCC)CCCCCCCC | H1_CATBOOST_GROUP_EQUAL_MAE | 0.484532 | 0.034231 | -0.004289 | 3 | 5 |
+| O=C(COCC(=O)N1CCCCC1)N1CCCCC1 | O=C(COCC(=O)N1CCCCC1)N1CCCCC1 | H1_CATBOOST_GROUP_EQUAL_MAE | 0.440737 | 0.095780 | -0.003628 | 2 | 5 |
+| CCCCCCCCN(CCCCCCCC)C(=O)[C@H](C)O[C@H](C)C(=O)N(CCCCCCCC)CCCCCCCC | CCCCCCCCN(CCCCCCCC)C(=O)[C@H](C)O[C@H](C)C(=O)N(CCCCCCCC)CCCCCCCC | H1_CATBOOST_GROUP_EQUAL_MAE | 0.421097 | 0.151836 | 0.001590 | 1 | 5 |
+| CCCCC(CC)CN(CC(CC)CCCC)C(=O)COCC(=O)N(CC(CC)CCCC)CC(CC)CCCC | CCCCC(CC)CN(CC(CC)CCCC)C(=O)COCC(=O)N(CC(CC)CCCC)CC(CC)CCCC | H1_CATBOOST_GROUP_EQUAL_MAE | 0.414455 | 0.045686 | -0.001781 | 2 | 5 |
+| CCCCCCCCN(C)C(=O)COCC(=O)N(C)CCCCCCCC | CCCCCCCCN(C)C(=O)COCC(=O)N(C)CCCCCCCC | H1_CATBOOST_GROUP_EQUAL_MAE | 0.409346 | 0.029982 | 0.095168 | 5 | 5 |
+| CCCCN(CCCC)C(=O)COCC(=O)N(CCCC)CCCC | CCCCN(CCCC)C(=O)COCC(=O)N(CCCC)CCCC | H1_CATBOOST_GROUP_EQUAL_MAE | 0.408716 | 0.018032 | 0.018973 | 5 | 5 |
+
+Extractant-family macro summaries:
+
+| arm | extractant_family | macro_mae | macro_mae_split_sd | n_extractants | fraction_extractants_improved_vs_A2 | split_seed_count |
+| --- | --- | --- | --- | --- | --- | --- |
+| A2_current_champion | CC(C)CCCC(C)CCCCN(C)C(=O)COCC(=O)N(C)CCCCC(C)CCCC(C)C | 0.192781 | 0.046372 | 1 | 0.000000 | 5 |
+| A2_current_champion | CC(C)CN(CC(C)C)C(=O)COCC(=O)N(CC(C)C)CC(C)C | 0.182276 | 0.068844 | 1 | 0.000000 | 5 |
+| A2_current_champion | CCCCC(CC)CN(C)C(=O)COCC(=O)N(C)CC(CC)CCCC | 0.269042 | 0.070998 | 1 | 0.000000 | 5 |
+| A2_current_champion | CCCCC(CC)CN(CC(CC)CCCC)C(=O)COCC(=O)N(CC(CC)CCCC)CC(CC)CCCC | 0.412674 | 0.023100 | 1 | 0.000000 | 5 |
+| A2_current_champion | CCCCCCC(C)N(CCCC)C(=O)COCC(=O)N(CCCC)C(C)CCCCCC | 0.325058 | 0.013700 | 1 | 0.000000 | 5 |
+| A2_current_champion | CCCCCCC(CCCC)CCCN(C)C(=O)COCC(=O)N(C)CCCC(CCCC)CCCCCC | 0.257943 | 0.027601 | 1 | 0.000000 | 5 |
+| A2_current_champion | CCCCCCCCC(C)(C)SCC1CN(C(=O)COCC(=O)N2CC(C)C(CSC(C)(C)CCCCCCCC)C2)CC1C | 0.192622 | 0.056543 | 1 | 0.000000 | 5 |
+| A2_current_champion | CCCCCCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCCCCCC | 0.555651 | 0.029335 | 1 | 0.000000 | 5 |
+| A2_current_champion | CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC | 0.216473 | 0.002593 | 1 | 0.000000 | 5 |
+| A2_current_champion | CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCCOCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC | 0.797328 | 0.011456 | 1 | 0.000000 | 5 |
+| A2_current_champion | CCCCCCCCCCN(CCCCCCCCCC)C(=O)C(C)OC(C)C(=O)N(CCCCCCCCCC)CCCCCCCCCC | 0.173494 | 0.040987 | 1 | 0.000000 | 5 |
+| A2_current_champion | CCCCCCCCCCN(CCCCCCCCCC)C(=O)COCC(=O)N(CCCCCC)CCCCCC | 0.632724 | 0.005150 | 1 | 0.000000 | 5 |
+| A2_current_champion | CCCCCCCCN(C)C(=O)COCC(=O)N(C)CCCCCCCC | 0.504513 | 0.006602 | 1 | 0.000000 | 5 |
+| A2_current_champion | CCCCCCCCN(C)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC | 0.119050 | 0.033596 | 1 | 0.000000 | 5 |
+| A2_current_champion | CCCCCCCCN(CC(C)C)C(=O)COCC(=O)N(CCCCCCCC)CC(C)C | 0.102162 | 0.014066 | 1 | 0.000000 | 5 |
+| A2_current_champion | CCCCCCCCN(CC(CC)CCCC)C(=O)COCC(=O)N(CCCCCCCC)CC(CC)CCCC | 0.075173 | 0.021023 | 1 | 0.000000 | 5 |
+| A2_current_champion | CCCCCCCCN(CC)C(=O)COCC(=O)N(CC)CCCCCCCC | 0.161338 | 0.083262 | 1 | 0.000000 | 5 |
+| A2_current_champion | CCCCCCCCN(CCC(C)CC(C)(C)C)C(=O)COCC(=O)N(CCCCCCCC)CCC(C)CC(C)(C)C | 0.231154 | 0.012573 | 1 | 0.000000 | 5 |
+| A2_current_champion | CCCCCCCCN(CCC)C(=O)COCC(=O)N(CCC)CCCCCCCC | 0.131285 | 0.045066 | 1 | 0.000000 | 5 |
+| A2_current_champion | CCCCCCCCN(CCCC(CCCC)CCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCC(CCCC)CCCCCC | 0.285624 | 0.023724 | 1 | 0.000000 | 5 |
+| A2_current_champion | CCCCCCCCN(CCCCC(C)CCCC(C)C)C(=O)COCC(=O)N(CCCCCCCC)CCCCC(C)CCCC(C)C | 0.247741 | 0.107377 | 1 | 0.000000 | 5 |
+| A2_current_champion | CCCCCCCCN(CCCCCCCC)C(=O)CN(CC(=O)N(CCCCCCCC)CCCCCCCC)CC(=O)N(CCCCCCCC)CCCCCCCC | 0.617185 | 0.025141 | 1 | 0.000000 | 5 |
+| A2_current_champion | CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(C)C | 0.388341 | 0.007432 | 1 | 0.000000 | 5 |
+| A2_current_champion | CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC | 0.504750 | 0.000000 | 1 | 0.000000 | 5 |
+| A2_current_champion | CCCCCCCCN(CCCCCCCC)C(=O)[C@H](C)O[C@@H](C)C(=O)N(CCCCCCCC)CCCCCCCC | 0.480243 | 0.042589 | 1 | 0.000000 | 5 |
+| A2_current_champion | CCCCCCCCN(CCCCCCCC)C(=O)[C@H](C)O[C@H](C)C(=O)N(CCCCCCCC)CCCCCCCC | 0.422687 | 0.138511 | 1 | 0.000000 | 5 |
+| A2_current_champion | CCCCCCN(CCCCCC)C(=O)COCC(=O)N(CCCCCC)CCCCCC | 0.085932 | 0.005269 | 1 | 0.000000 | 5 |
+| A2_current_champion | CCCCN(CCCC)C(=O)COCC(=O)N(CCCC)CCCC | 0.427689 | 0.006301 | 1 | 0.000000 | 5 |
+| A2_current_champion | CCCN(CCC)C(=O)COCC(=O)N(CCC)CCC | 0.179213 | 0.011492 | 1 | 0.000000 | 5 |
+| A2_current_champion | CCN(CC)C(=O)COCC(=O)N(CC)CC | 0.217272 | 0.008801 | 1 | 0.000000 | 5 |
+| A2_current_champion | CN(C(=O)COCC(=O)N(C)c1ccccc1)c1ccccc1 | 0.266023 | 0.012436 | 1 | 0.000000 | 5 |
+| A2_current_champion | CN(C(=O)c1cccc(C(=O)N(C)c2ccccc2)n1)c1ccccc1 | 0.338373 | 0.019649 | 1 | 0.000000 | 5 |
+| A2_current_champion | COCCN(CCOC)C(=O)COCC(=O)N(CCOC)CCOC | 0.422579 | 0.100877 | 1 | 0.000000 | 5 |
+| A2_current_champion | O=C(COCC(=O)N1CCCCC1)N1CCCCC1 | 0.437109 | 0.175265 | 1 | 0.000000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CC(C)CCCC(C)CCCCN(C)C(=O)COCC(=O)N(C)CCCCC(C)CCCC(C)C | 0.122339 | 0.060205 | 1 | 0.600000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CC(C)CN(CC(C)C)C(=O)COCC(=O)N(CC(C)C)CC(C)C | 0.220584 | 0.063534 | 1 | 0.200000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CCCCC(CC)CN(C)C(=O)COCC(=O)N(C)CC(CC)CCCC | 0.277701 | 0.081777 | 1 | 0.600000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CCCCC(CC)CN(CC(CC)CCCC)C(=O)COCC(=O)N(CC(CC)CCCC)CC(CC)CCCC | 0.426394 | 0.056433 | 1 | 0.400000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CCCCCCC(C)N(CCCC)C(=O)COCC(=O)N(CCCC)C(C)CCCCCC | 0.323947 | 0.013644 | 1 | 0.600000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CCCCCCC(CCCC)CCCN(C)C(=O)COCC(=O)N(C)CCCC(CCCC)CCCCCC | 0.260633 | 0.066080 | 1 | 0.600000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CCCCCCCCC(C)(C)SCC1CN(C(=O)COCC(=O)N2CC(C)C(CSC(C)(C)CCCCCCCC)C2)CC1C | 0.130619 | 0.056297 | 1 | 0.800000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CCCCCCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCCCCCC | 0.553111 | 0.046448 | 1 | 0.600000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC | 0.193869 | 0.018671 | 1 | 1.000000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCCOCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC | 0.896904 | 0.064784 | 1 | 0.000000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CCCCCCCCCCN(CCCCCCCCCC)C(=O)C(C)OC(C)C(=O)N(CCCCCCCCCC)CCCCCCCCCC | 0.318236 | 0.125411 | 1 | 0.000000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CCCCCCCCCCN(CCCCCCCCCC)C(=O)COCC(=O)N(CCCCCC)CCCCCC | 0.622445 | 0.018781 | 1 | 0.800000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CCCCCCCCN(C)C(=O)COCC(=O)N(C)CCCCCCCC | 0.432820 | 0.023513 | 1 | 1.000000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CCCCCCCCN(C)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC | 0.165896 | 0.027524 | 1 | 0.000000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CCCCCCCCN(CC(C)C)C(=O)COCC(=O)N(CCCCCCCC)CC(C)C | 0.193154 | 0.040426 | 1 | 0.000000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CCCCCCCCN(CC(CC)CCCC)C(=O)COCC(=O)N(CCCCCCCC)CC(CC)CCCC | 0.081406 | 0.014238 | 1 | 0.200000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CCCCCCCCN(CC)C(=O)COCC(=O)N(CC)CCCCCCCC | 0.236684 | 0.065350 | 1 | 0.000000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CCCCCCCCN(CCC(C)CC(C)(C)C)C(=O)COCC(=O)N(CCCCCCCC)CCC(C)CC(C)(C)C | 0.175462 | 0.029010 | 1 | 1.000000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CCCCCCCCN(CCC)C(=O)COCC(=O)N(CCC)CCCCCCCC | 0.213927 | 0.048540 | 1 | 0.000000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CCCCCCCCN(CCCC(CCCC)CCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCC(CCCC)CCCCCC | 0.276789 | 0.040184 | 1 | 0.400000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CCCCCCCCN(CCCCC(C)CCCC(C)C)C(=O)COCC(=O)N(CCCCCCCC)CCCCC(C)CCCC(C)C | 0.225017 | 0.083423 | 1 | 0.600000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CCCCCCCCN(CCCCCCCC)C(=O)CN(CC(=O)N(CCCCCCCC)CCCCCCCC)CC(=O)N(CCCCCCCC)CCCCCCCC | 0.706515 | 0.013751 | 1 | 0.000000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(C)C | 0.496047 | 0.020301 | 1 | 0.000000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC | 0.531473 | 0.000000 | 1 | 0.000000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CCCCCCCCN(CCCCCCCC)C(=O)[C@H](C)O[C@@H](C)C(=O)N(CCCCCCCC)CCCCCCCC | 0.466909 | 0.099593 | 1 | 0.200000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CCCCCCCCN(CCCCCCCC)C(=O)[C@H](C)O[C@H](C)C(=O)N(CCCCCCCC)CCCCCCCC | 0.436251 | 0.081355 | 1 | 0.800000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CCCCCCN(CCCCCC)C(=O)COCC(=O)N(CCCCCC)CCCCCC | 0.118390 | 0.023316 | 1 | 0.000000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CCCCN(CCCC)C(=O)COCC(=O)N(CCCC)CCCC | 0.414968 | 0.017916 | 1 | 0.600000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CCCN(CCC)C(=O)COCC(=O)N(CCC)CCC | 0.183668 | 0.019711 | 1 | 0.600000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CCN(CC)C(=O)COCC(=O)N(CC)CC | 0.197215 | 0.004604 | 1 | 1.000000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CN(C(=O)COCC(=O)N(C)c1ccccc1)c1ccccc1 | 0.295960 | 0.009799 | 1 | 0.000000 | 5 |
+| H1_CATBOOST_NONE_RMSE | CN(C(=O)c1cccc(C(=O)N(C)c2ccccc2)n1)c1ccccc1 | 0.296573 | 0.025113 | 1 | 0.800000 | 5 |
+| H1_CATBOOST_NONE_RMSE | COCCN(CCOC)C(=O)COCC(=O)N(CCOC)CCOC | 0.332140 | 0.057347 | 1 | 1.000000 | 5 |
+| H1_CATBOOST_NONE_RMSE | O=C(COCC(=O)N1CCCCC1)N1CCCCC1 | 0.353711 | 0.043583 | 1 | 0.400000 | 5 |
+| H1_CATBOOST_NONE_MAE | CC(C)CCCC(C)CCCCN(C)C(=O)COCC(=O)N(C)CCCCC(C)CCCC(C)C | 0.131547 | 0.074122 | 1 | 0.600000 | 5 |
+| H1_CATBOOST_NONE_MAE | CC(C)CN(CC(C)C)C(=O)COCC(=O)N(CC(C)C)CC(C)C | 0.205347 | 0.069995 | 1 | 0.600000 | 5 |
+| H1_CATBOOST_NONE_MAE | CCCCC(CC)CN(C)C(=O)COCC(=O)N(C)CC(CC)CCCC | 0.275786 | 0.076322 | 1 | 0.400000 | 5 |
+| H1_CATBOOST_NONE_MAE | CCCCC(CC)CN(CC(CC)CCCC)C(=O)COCC(=O)N(CC(CC)CCCC)CC(CC)CCCC | 0.420325 | 0.035239 | 1 | 0.400000 | 5 |
+| H1_CATBOOST_NONE_MAE | CCCCCCC(C)N(CCCC)C(=O)COCC(=O)N(CCCC)C(C)CCCCCC | 0.341730 | 0.007554 | 1 | 0.200000 | 5 |
+| H1_CATBOOST_NONE_MAE | CCCCCCC(CCCC)CCCN(C)C(=O)COCC(=O)N(C)CCCC(CCCC)CCCCCC | 0.232488 | 0.075665 | 1 | 0.800000 | 5 |
+| H1_CATBOOST_NONE_MAE | CCCCCCCCC(C)(C)SCC1CN(C(=O)COCC(=O)N2CC(C)C(CSC(C)(C)CCCCCCCC)C2)CC1C | 0.205245 | 0.103376 | 1 | 0.200000 | 5 |
+| H1_CATBOOST_NONE_MAE | CCCCCCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCCCCCC | 0.599412 | 0.067659 | 1 | 0.000000 | 5 |
+| H1_CATBOOST_NONE_MAE | CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC | 0.207140 | 0.016850 | 1 | 0.600000 | 5 |
+| H1_CATBOOST_NONE_MAE | CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCCOCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC | 0.803365 | 0.013600 | 1 | 0.400000 | 5 |
+| H1_CATBOOST_NONE_MAE | CCCCCCCCCCN(CCCCCCCCCC)C(=O)C(C)OC(C)C(=O)N(CCCCCCCCCC)CCCCCCCCCC | 0.282219 | 0.103385 | 1 | 0.200000 | 5 |
+| H1_CATBOOST_NONE_MAE | CCCCCCCCCCN(CCCCCCCCCC)C(=O)COCC(=O)N(CCCCCC)CCCCCC | 0.633660 | 0.005906 | 1 | 0.400000 | 5 |
+
+## Pooled-vs-macro inversion
+
+Pooled and macro complete rankings differ: `True`.
+
+## Decision
+
+Frozen-protocol champion: **A2_current_champion**.
+
+If no candidate is eligible, retaining A2 is the predeclared valid negative result; no score was optimized by changing the split protocol.

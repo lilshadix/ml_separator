@@ -1,0 +1,208 @@
+{
+  "schema_version": "gen3.1",
+  "status": "frozen_before_experiments",
+  "frozen_at_utc": "2026-08-13T00:00:00Z",
+  "scientific_objective": "Generalization of log_SF_A_over_B to unseen extractants with one extractant vote regardless of pair-row count.",
+  "reproducibility_environment": {
+    "operating_system": "Linux x86_64",
+    "python": "3.11.11",
+    "requirements_file": "requirements-gen3.txt",
+    "numpy": "2.4.6",
+    "pandas": "3.0.5",
+    "scipy": "1.17.1",
+    "scikit_learn": "1.9.0",
+    "pyarrow": "25.0.0",
+    "joblib": "1.5.3",
+    "torch": "2.13.0",
+    "catboost": "1.2.10",
+    "run_validation": "Every run records exact software and implementation SHA-256 contracts; aggregation fails when they differ."
+  },
+  "immutable_inputs": {
+    "dataset_path": "dataset with 3D structures/dataset.parquet",
+    "dataset_sha256": "fefbefc6fe993aa9ce9db1a0c338adb9e5f58a8b75bab084cc1df4e024faf5dd",
+    "pair_cohort_sha256": "af3d91b718d0497818db52be8d93ecdee8c6c80eb8fc0aeda1c25c2c3f5e5f0e",
+    "pair_rows": 6699,
+    "extractants": 34,
+    "pair_scope": "all",
+    "replicate_policy": "unique",
+    "require_geometry": true,
+    "require_complete_conditions": true,
+    "quarantine_known_bad": true,
+    "quarantine_known_censored_targets": false,
+    "delta3d_feature_set": "compact-invariant",
+    "gen2_reference_run": "runs/ablation_all_20260810T181058Z",
+    "gen2_feature_registry_path": "runs/ablation_all_20260810T181058Z/run_0_model_42_split_104729/feature_registry.json",
+    "gen2_feature_registry_file_sha256": "7fd9275cfd230dec5b8432e67f37ad78f70f3573a9560189e5e6958be05e6320",
+    "gen2_feature_contract_sha256": "0d227ca8af201ded1e22ce713582389f0ea42ecdaee0584569095c3ea26ffde4",
+    "a2_feature_count": 2130,
+    "e3_raw_feature_count": 21,
+    "target": "log_D_A - log_D_B"
+  },
+  "splits": {
+    "group_column": "extractant",
+    "outer_splitter": "StratifiedGroupKFold",
+    "outer_folds": 5,
+    "outer_stratum": "pair_label",
+    "inner_splitter": "StratifiedGroupKFold",
+    "inner_folds": 3,
+    "split_seeds": [104729, 130363, 155921, 196613, 262147],
+    "primary_model_seed": 42,
+    "confirmation_model_seeds_on_split_104729": [7, 137],
+    "champion_scoring_runs": "the five split_seeds with primary_model_seed only; confirmation seeds are secondary and never give split 104729 extra leaderboard weight",
+    "invariant": "No extractant may occur in train and validation/test in any inner or outer fold."
+  },
+  "metrics": {
+    "primary": "equal_extractant_macro_mae",
+    "secondary": [
+      "pooled_micro_mae",
+      "median_extractant_mae",
+      "worst_quartile_extractant_mae",
+      "fraction_extractants_improved_vs_A2_current_champion",
+      "pooled_r2",
+      "extractant_family_macro_mae",
+      "per_extractant_mae",
+      "adjacent_ln_mae",
+      "nonadjacent_ln_mae",
+      "sign_accuracy"
+    ],
+    "pooled_guardrail": "Pooled MAE and R2 are row-weighted descriptive statistics and are never used for model or champion selection."
+  },
+  "h1": {
+    "baseline_arm": "A2_current_champion",
+    "baseline_estimator": "the existing antisymmetric ExtraTrees A2 implementation and frozen inner grid",
+    "candidate_family": "antisymmetric CatBoost on the exact A2 columns",
+    "weighting_schemes": {
+      "none": "w_i = 1",
+      "group_sqrt": "w_i = 1 / sqrt(n_extractant)",
+      "group_equal": "w_i = 1 / n_extractant"
+    },
+    "weight_scope": "Counts are computed from the current fit subset only; weights are normalized to mean 1 before pair-swap augmentation.",
+    "losses": {
+      "rmse": "RMSE",
+      "mae": "MAE",
+      "huber": "Huber:delta=1.0"
+    },
+    "search_strategy": "Within each outer-training split, screen all nine weighting-loss arms with two anchor configurations; then evaluate two expanded configurations only for the three best screening arms. All ranking uses the shared inner folds and equal-extractant macro MAE.",
+    "screening_budget_per_weight_loss_arm": 2,
+    "screening_candidates": [
+      {"depth": 4, "learning_rate": 0.1, "l2_leaf_reg": 3.0, "iterations": 500, "random_strength": 0.5, "bagging_temperature": 0.0, "rsm": 1.0},
+      {"depth": 6, "learning_rate": 0.05, "l2_leaf_reg": 3.0, "iterations": 1200, "random_strength": 1.0, "bagging_temperature": 1.0, "rsm": 0.7}
+    ],
+    "expanded_shortlist_weight_loss_arms": 3,
+    "expanded_budget_per_shortlisted_arm": 2,
+    "expanded_candidates": [
+      {"depth": 8, "learning_rate": 0.025, "l2_leaf_reg": 30.0, "iterations": 2000, "random_strength": 2.0, "bagging_temperature": 1.0, "rsm": 0.7},
+      {"depth": 9, "learning_rate": 0.01, "l2_leaf_reg": 30.0, "iterations": 3000, "random_strength": 2.0, "bagging_temperature": 2.0, "rsm": 0.5}
+    ],
+    "inner_candidate_evaluations_per_outer_fold": 24,
+    "inner_catboost_fits_per_outer_fold": 72
+  },
+  "h2": {
+    "stage1": "Best H1 A2 arm selected using outer-training inner-CV equal-extractant macro MAE.",
+    "residual_definition": "r_i = y_i - stage1_oof_i; an in-sample Stage-1 prediction is forbidden.",
+    "feature_views": {
+      "raw": "the existing 21 ELEC_PAIR columns",
+      "compact_physics": "for each of seven available complex electronic quantities: A-B, abs(A-B), and (A+B)/2"
+    },
+    "correction_heads": {
+      "ridge_alpha": [0.01, 0.1, 1.0, 10.0, 100.0],
+      "elasticnet": [
+        {"alpha": 0.001, "l1_ratio": 0.1},
+        {"alpha": 0.01, "l1_ratio": 0.25},
+        {"alpha": 0.1, "l1_ratio": 0.5},
+        {"alpha": 1.0, "l1_ratio": 0.75}
+      ],
+      "catboost": [
+        {"depth": 3, "learning_rate": 0.03, "l2_leaf_reg": 10.0, "iterations": 500},
+        {"depth": 4, "learning_rate": 0.03, "l2_leaf_reg": 30.0, "iterations": 800},
+        {"depth": 5, "learning_rate": 0.02, "l2_leaf_reg": 30.0, "iterations": 1000}
+      ]
+    },
+    "lambda_grid": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+    "full_e3_arms": [
+      "H2_E3_RAW_REAL",
+      "H2_E3_RAW_SHUFFLED",
+      "H2_E3_COMPACT_REAL",
+      "H2_E3_COMPACT_SHUFFLED"
+    ],
+    "shuffle_seed": 40151,
+    "shuffle_scope": "current correction-head training subset only; complete E3 vectors move together within pair_label; validation/test features and labels are untouched",
+    "acceptance_rule": "A residual arm is eligible only when nested CV selects lambda > 0 in at least half of outer folds in at least four of five primary split-seed runs.",
+    "stability_followup": {
+      "runs_after": "all full_e3_arms",
+      "arms": ["H2_E3_STABLE_REAL", "H2_E3_STABLE_SHUFFLED"],
+      "selector": "fold-local ElasticNet nonzero signed coefficient",
+      "selection_frequency_threshold": 0.6,
+      "minimum_features": 1,
+      "artifact": "e3_stability.csv"
+    }
+  },
+  "h3": {
+    "arms": ["H3_A2", "H3_A2_ELEC"],
+    "label_shuffle_control_arms": [
+      "H3_A2_LABEL_SHUFFLED",
+      "H3_A2_ELEC_LABEL_SHUFFLED"
+    ],
+    "architecture": "one shared scalar MLP g; prediction = g(ligand_2D, conditions, Ln_A[, electronic_A]) - g(ligand_2D, conditions, Ln_B[, electronic_B])",
+    "forbidden": ["unconstrained_pair_head", "G2", "G4", "A5", "any_new_geometry_family"],
+    "loss": "weighted pseudo-Huber with group_equal fold-local weights",
+    "lambda_delta": 0.1,
+    "training": {"max_epochs": 80, "early_stopping_patience": 10, "batch_size": 256},
+    "search_candidates": [
+      {"hidden_dims": [64, 32], "dropout": 0.0, "learning_rate": 0.001, "weight_decay": 0.0001},
+      {"hidden_dims": [128, 64], "dropout": 0.2, "learning_rate": 0.0005, "weight_decay": 0.001}
+    ],
+    "mathematical_assertions": [
+      "prediction(B,A) = -prediction(A,B)",
+      "for identical ligand and conditions, prediction(A,B) + prediction(B,C) = prediction(A,C)"
+    ],
+    "label_shuffle_seed": 73277,
+    "label_shuffle_scope": "current outer-training targets only, permuted within pair_label; outer-test labels are untouched and are never used for fitting or selection",
+    "label_shuffle_rule": "Each control reuses the hyperparameters selected by the corresponding real H3 arm and the same final-fit model seed; shuffled labels cannot influence hyperparameter selection. Controls are computed prospectively but become an eligibility gate only if the real H3 arm passes the primary multi-split win rule."
+  },
+  "statistics": {
+    "paired_rows_and_folds_required": true,
+    "delta_definition": "equal_extractant_macro_mae(A2_current_champion) - equal_extractant_macro_mae(candidate)",
+    "positive_delta_means": "candidate improvement",
+    "bootstrap_unit": "extractant",
+    "cluster_bootstrap_replicates": 10000,
+    "bootstrap_seed": 8675309,
+    "bootstrap_multiplicity": "An extractant sampled k times contributes k independent equal-weight group entries; repeated labels must not collapse in groupby.",
+    "reported": ["point_delta", "ci95", "p_candidate_better", "extractants_improved", "extractants_total"]
+  },
+  "decision_rules": {
+    "champion_score": "mean equal_extractant_macro_mae across the five primary split-seed runs, one split seed one vote",
+    "win_rule": "score lower than A2_current_champion and positive paired delta in at least four of five split seeds",
+    "tie_rule": "retain A2_current_champion",
+    "e3_informative_rule": "real candidate passes win_rule, beats its shuffled control, and has positive real-vs-baseline direction in at least four of five split seeds",
+    "negative_result": "If no eligible arm passes win_rule, retain A2_current_champion and report a valid negative result.",
+    "never_select_on": ["pooled_micro_mae", "pooled_r2"]
+  },
+  "required_artifacts": [
+    "gen3_protocol.json",
+    "dataset_hashes.json",
+    "feature_hashes.json",
+    "split_assignments.csv",
+    "inner_fold_assignments.csv",
+    "oof_predictions.csv",
+    "per_extractant_metrics.csv",
+    "per_seed_metrics.csv",
+    "aggregate_metrics.csv",
+    "paired_bootstrap.csv",
+    "e3_stability.csv",
+    "leakage_audit.json",
+    "validation.json",
+    "report.md"
+  ],
+  "report_section_order": [
+    "Primary leaderboard",
+    "Split-seed robustness",
+    "H1 - learner and weighting",
+    "H2 - E3 residual signal",
+    "H3 - antisymmetric latent-difference model",
+    "Negative controls",
+    "Per-extractant breakdown",
+    "Pooled-vs-macro inversion",
+    "Decision"
+  ]
+}
