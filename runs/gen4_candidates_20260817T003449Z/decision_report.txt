@@ -1,0 +1,31 @@
+seeds: [np.int64(104729), np.int64(130363), np.int64(155921), np.int64(196613), np.int64(262147)]; selection seed 104729; confirmation seeds [np.int64(130363), np.int64(155921), np.int64(196613), np.int64(262147)]
+
+per-seed macro MAE:
+seed               104729  130363  155921  196613  262147
+arm                                                      
+A2_refit           0.3164  0.3103  0.3157  0.3231  0.3306
+PRIOR              0.3083  0.3084  0.3195  0.3190  0.3295
+A2_lig2d           0.3163  0.3276  0.3244  0.3187  0.3502
+SCALE_s50          0.3062  0.3464  0.3542  0.3385  0.3767
+A2_refit_TP        0.3162  0.3078  0.3132  0.3218  0.3283
+PRIOR_TP           0.3066  0.3065  0.3167  0.3170  0.3266
+A2_lig2d_TP        0.3145  0.3257  0.3228  0.3167  0.3484
+A2_run             0.3164  0.3103  0.3157  0.3231  0.3306
+A2_run_TP          0.3162  0.3078  0.3132  0.3218  0.3283
+PAIRMEAN_baseline  0.4530  0.4507  0.4438  0.4486  0.4447
+
+decision table (delta = A2_refit - candidate; positive = better):
+                   mean_macro_5seeds  mean_macro_confirm  delta_mean_5seeds  delta_mean_confirm  positive_confirm_seeds  positive_all_seeds  boot_delta_confirm  ci95_low  ci95_high  p_better  extractants_improved  holm_p_two_sided  passes_rule
+arm                                                                                                                                                                                                                                                
+A2_refit                      0.3192              0.3199             0.0000              0.0000                       0                   0                 NaN       NaN        NaN       NaN                  <NA>               NaN        False
+PRIOR                         0.3169              0.3191             0.0023              0.0008                       3                   4              0.0008   -0.0104     0.0111    0.5726                    18            0.8548        False
+A2_lig2d                      0.3275              0.3302            -0.0082             -0.0103                       1                   2             -0.0103   -0.0261     0.0064    0.1049                    13            0.4196        False
+SCALE_s50                     0.3444              0.3540            -0.0252             -0.0340                       0                   1             -0.0340   -0.0631    -0.0064    0.0082                    13            0.0492        False
+A2_refit_TP                   0.3175              0.3178             0.0018              0.0021                       4                   5              0.0021    0.0003     0.0041    0.9884                    22               NaN        False
+PRIOR_TP                      0.3147              0.3167             0.0045              0.0032                       3                   4              0.0032   -0.0079     0.0135    0.7289                    20               NaN        False
+A2_lig2d_TP                   0.3256              0.3284            -0.0064             -0.0085                       1                   2             -0.0085   -0.0241     0.0080    0.1470                    13               NaN        False
+A2_run                        0.3192              0.3199             0.0000              0.0000                       0                   0              0.0000   -0.0000     0.0000    0.6437                     7               NaN        False
+A2_run_TP                     0.3175              0.3178             0.0018              0.0021                       4                   5              0.0021    0.0003     0.0041    0.9884                    22               NaN        False
+PAIRMEAN_baseline             0.4482              0.4470            -0.1290             -0.1271                       0                   0             -0.1271   -0.1916    -0.0626    0.0000                    11               NaN        False
+
+written /nfs/home/nshank3/ml_separator/runs/gen4_candidates_20260817T003449Z/decision_table.csv
