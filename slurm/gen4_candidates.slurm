@@ -2,9 +2,9 @@
 #SBATCH --job-name=ln-gen4
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=16
-#SBATCH --mem=48G
-#SBATCH --time=06:00:00
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=12G
+#SBATCH --time=03:00:00
 #SBATCH --output=slurm-%x-%j.out
 #SBATCH --error=slurm-%x-%j.err
 
@@ -16,7 +16,7 @@
 set -Eeuo pipefail
 umask 027
 
-export SLURM_CPUS_PER_TASK=${SLURM_CPUS_PER_TASK:-16}
+export SLURM_CPUS_PER_TASK=${SLURM_CPUS_PER_TASK:-8}
 export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK}
 
 PROJECT_DIR=${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-}}
