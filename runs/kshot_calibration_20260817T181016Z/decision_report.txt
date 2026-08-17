@@ -1,0 +1,582 @@
+k-shot calibration study — 20260817T181016Z
+oof: runs/gen4_candidates_20260817T003449Z/oof_predictions.csv
+arms ['A2_refit_TP', 'A2_refit', 'PAIRMEAN_baseline', 'ZERO']; 5 split seeds [104729, 130363, 155921, 196613, 262147]; selection 104729; confirmation [130363, 155921, 196613, 262147]
+ks (1, 2, 3, 5, 10); lams (0.03, 0.1, 0.3, 1.0, 3.0, 10.0); forms ('scale', 'offset', 'affine', 'trend'); policies ('random', 'adjacent', 'widest', 'foreign', 'cross_condition'); draws 20; eligibility 20 pairs; decision metric mae_free
+
+READING THIS REPORT
+  * macro MAE is the equal-extractant mean; k=0 is the same model on the same query rows.
+  * macro_mae_free excludes query pairs that are exact arithmetic consequences of the support
+    (within a condition, log_SF is exactly additive), so `free` is the only stratum where a
+    prediction is actually needed.  It is the decision metric by default.
+  * Query rows differ BETWEEN policies (each policy removes different pairs into its support),
+    so compare deltas within a policy, never macro levels across policies.
+  * `foreign` (support from a different extractant) is a control, never gated.
+  * ZERO / PAIRMEAN_baseline are model-free nulls: what the k measurements buy on their own.
+  * The 5 split seeds re-partition the SAME pairs, so per-seed agreement is weak evidence;
+    seed_delta_spread shows how little they differ.
+
+BASELINE DECOMPOSITION (why k=0 here is not the published leaderboard macro)
+              arm  published_all_extractants  eligible_extractants_all_rows  k0_random  k0free_random  k0_adjacent  k0free_adjacent  k0_widest  k0free_widest  k0_foreign  k0free_foreign  k0_cross_condition  k0free_cross_condition
+      A2_refit_TP                     0.3175                         0.3113     0.3116         0.3322       0.3283           0.3761     0.2829         0.3093      0.3116          0.3116              0.3737                  0.3737
+         A2_refit                     0.3192                         0.3131     0.3134         0.3340       0.3298           0.3779     0.2849         0.3111      0.3134          0.3134              0.3749                  0.3749
+PAIRMEAN_baseline                     0.4482                         0.4436     0.4431         0.4421       0.4807           0.5104     0.3796         0.3998      0.4431          0.4431              0.3933                  0.3933
+             ZERO                     0.6360                         0.6440     0.6430         0.6487       0.7046           0.7698     0.5409         0.5845      0.6430          0.6430              0.4051                  0.4051
+excluded 2 extractant(s) with < 20 pairs: CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)CO…(16), CCCCCCCCN(CCCCCCCC)C(=O)CN(CC(=O)N…(1)
+
+HEAD-TO-HEAD vs MODEL-FREE NULLS (decision metric, mean over confirmation seeds)
+         policy  k  A2_refit_TP  A2_refit  PAIRMEAN_baseline   ZERO  A2_refit_TP_vs_ZERO  A2_refit_TP_vs_PAIRMEAN_baseline  A2_refit_vs_ZERO  A2_refit_vs_PAIRMEAN_baseline
+         random  0       0.3322    0.3340             0.4421 0.6487               0.3165                            0.1099            0.3147                         0.1081
+         random  1       0.2789    0.2814             0.3127 0.5321               0.2533                            0.0339            0.2508                         0.0314
+         random  2       0.2460    0.2492             0.2654 0.3710               0.1250                            0.0195            0.1218                         0.0162
+         random  3       0.2200    0.2240             0.2388 0.3232               0.1031                            0.0188            0.0992                         0.0148
+         random  5       0.1942    0.1991             0.2147 0.2984               0.1042                            0.0204            0.0994                         0.0156
+         random 10       0.1743    0.1793             0.1970 0.2808               0.1065                            0.0228            0.1016                         0.0178
+       adjacent  0       0.3761    0.3779             0.5104 0.7698               0.3937                            0.1342            0.3919                         0.1325
+       adjacent  1       0.3593    0.3595             0.4520 0.6860               0.3267                            0.0927            0.3265                         0.0926
+       adjacent  2       0.3413    0.3396             0.4055 0.6713               0.3300                            0.0642            0.3317                         0.0659
+       adjacent  3       0.3276    0.3258             0.3742 0.6662               0.3386                            0.0466            0.3405                         0.0485
+       adjacent  5       0.3041    0.3021             0.3222 0.5990               0.2949                            0.0181            0.2969                         0.0200
+       adjacent 10       0.2363    0.2488             0.2526 0.4368               0.2006                            0.0164            0.1880                         0.0038
+         widest  0       0.3093    0.3111             0.3998 0.5845               0.2752                            0.0905            0.2734                         0.0888
+         widest  1       0.2278    0.2318             0.2438 0.4046               0.1768                            0.0160            0.1728                         0.0121
+         widest  2       0.2079    0.2126             0.2179 0.3381               0.1302                            0.0100            0.1254                         0.0052
+         widest  3       0.2008    0.2058             0.2092 0.3363               0.1355                            0.0084            0.1305                         0.0034
+         widest  5       0.1957    0.2007             0.2027 0.3262               0.1306                            0.0070            0.1255                         0.0020
+         widest 10       0.1849    0.1915             0.1935 0.3180               0.1330                            0.0085            0.1265                         0.0020
+        foreign  0       0.3116    0.3134             0.4431 0.6430               0.3314                            0.1316            0.3297                         0.1298
+        foreign  1       0.3133    0.3150             0.4447 0.6068               0.2935                            0.1314            0.2917                         0.1296
+        foreign  2       0.3154    0.3172             0.4457 0.5613               0.2458                            0.1303            0.2440                         0.1285
+        foreign  3       0.3172    0.3189             0.4475 0.5480               0.2308                            0.1303            0.2291                         0.1285
+        foreign  5       0.3207    0.3225             0.4517 0.5415               0.2208                            0.1310            0.2190                         0.1292
+        foreign 10       0.3295    0.3313             0.4622 0.5375               0.2079                            0.1327            0.2061                         0.1309
+cross_condition  0       0.3737    0.3749             0.3933 0.4051               0.0314                            0.0196            0.0302                         0.0184
+cross_condition  1       0.3254    0.3269             0.3230 0.3586               0.0332                           -0.0024            0.0317                        -0.0039
+cross_condition  2       0.2886    0.2901             0.2874 0.2969               0.0082                           -0.0012            0.0068                        -0.0027
+cross_condition  3       0.2745    0.2753             0.2709 0.2728              -0.0017                           -0.0035           -0.0025                        -0.0044
+cross_condition  5       0.2560    0.2578             0.2504 0.2517              -0.0044                           -0.0056           -0.0062                        -0.0074
+cross_condition 10       0.2430    0.2438             0.2332 0.2418              -0.0012                           -0.0098           -0.0020                        -0.0106
+  (best form/lam per cell — an optimistic view of every arm alike; the gated numbers are below)
+
+
+=== base arm A2_refit_TP ===
+k = 0 (raw predictions), mean over seeds, per policy:
+         policy  macro_mae  macro_mae_free  n_rows  n_rows_free  pooled_mae  pooled_r2  dispersion  sign_acc
+       adjacent     0.3283          0.3761 6362.00      5973.68      0.4332     0.3120      0.7408    0.8500
+cross_condition     0.3737          0.3737  281.14       281.14      0.4012    -0.6663      1.0003    0.7589
+        foreign     0.3116          0.3116 6362.00      6362.00      0.4247     0.3098      0.7340    0.8467
+         oracle     0.3116          0.3322 6362.00      5851.16      0.4247     0.3098      0.7340    0.8467
+         random     0.3116          0.3322 6362.00      5851.16      0.4247     0.3098      0.7340    0.8467
+         widest     0.2829          0.3093 6362.00      5916.62      0.4101     0.2783      0.7074    0.8444
+in-sample least-squares reference (fitted on ALL rows of the extractant — approximate ceiling,
+not a strict MAE upper bound; scored on the random policy's query rows):
+  form  macro_mae  macro_mae_free  pooled_mae  pooled_r2  macro_r2_median  dispersion  sign_acc
+affine     0.1724          0.1763      0.3258     0.5795           0.7768      0.7613    0.8755
+  none     0.3116          0.3322      0.4247     0.3098           0.4873      0.7340    0.8467
+offset     0.2534          0.2676      0.3712     0.5124           0.5952      0.7971    0.8415
+ scale     0.1800          0.1843      0.3318     0.4963           0.7343      0.8574    0.8561
+ trend     0.1484          0.1509      0.2629     0.7086           0.8197      0.8347    0.8816
+best (form, lam) per policy and k by 5-seed-mean macro_mae_free — exploratory, each row carries its own k=0 baseline:
+         policy  k   form   lam  k0_macro_mae_free  macro_mae_free   delta  pooled_mae  pooled_r2  sign_acc  reject_frac
+       adjacent  1 affine  1.00             0.3761          0.3593  0.0168      0.4232     0.3446    0.8399       0.0000
+       adjacent  2  trend  0.30             0.3761          0.3413  0.0348      0.4112     0.3633    0.8494       0.7084
+       adjacent  3  trend  0.30             0.3761          0.3276  0.0485      0.4009     0.3878    0.8497       0.5900
+       adjacent  5  trend  0.30             0.3761          0.3041  0.0721      0.3861     0.4209    0.8508       0.4625
+       adjacent 10  trend  0.03             0.3761          0.2363  0.1399      0.3590     0.4276    0.8519       0.2038
+cross_condition  1  scale  0.10             0.3737          0.3254  0.0483      0.3463    -0.4331    0.7587       0.0000
+cross_condition  2  trend  0.10             0.3737          0.2886  0.0851      0.3049    -0.5031    0.7659       0.1425
+cross_condition  3  trend  0.10             0.3737          0.2745  0.0992      0.2819    -0.2583    0.7808       0.0250
+cross_condition  5  trend  0.10             0.3737          0.2560  0.1177      0.2559     0.2404    0.7913       0.0017
+cross_condition 10  trend  0.30             0.3737          0.2430  0.1307      0.2472     0.2115    0.8015       0.0000
+        foreign  1  scale 10.00             0.3116          0.3133 -0.0017      0.4258     0.3067    0.8467       0.0000
+        foreign  2  scale 10.00             0.3116          0.3154 -0.0039      0.4271     0.3033    0.8467       0.0000
+        foreign  3  scale 10.00             0.3116          0.3172 -0.0056      0.4281     0.3004    0.8467       0.0000
+        foreign  5  scale 10.00             0.3116          0.3207 -0.0091      0.4305     0.2926    0.8467       0.0000
+        foreign 10  scale 10.00             0.3116          0.3295 -0.0179      0.4348     0.2784    0.8467       0.0000
+         random  1  scale  0.10             0.3322          0.2789  0.0533      0.4023     0.2126    0.8336       0.0000
+         random  2  trend  0.10             0.3322          0.2460  0.0862      0.3861     0.2548    0.8119       0.1131
+         random  3  trend  0.10             0.3322          0.2200  0.1121      0.3622     0.3161    0.8312       0.0134
+         random  5  trend  0.03             0.3322          0.1942  0.1379      0.3438     0.3594    0.8482       0.0003
+         random 10  trend  0.03             0.3322          0.1743  0.1579      0.3103     0.4933    0.8659       0.0000
+         widest  1  scale  0.30             0.3093          0.2278  0.0815      0.3747     0.2202    0.8261       0.0000
+         widest  2  trend  0.10             0.3093          0.2079  0.1014      0.3597     0.2619    0.8479       0.2188
+         widest  3  trend  0.10             0.3093          0.2008  0.1085      0.3552     0.2928    0.8496       0.2188
+         widest  5  trend  0.30             0.3093          0.1957  0.1137      0.3498     0.3464    0.8503       0.1562
+         widest 10  trend  0.30             0.3093          0.1849  0.1244      0.3413     0.3952    0.8602       0.0312
+fixed recipe scale lam=1.0 (random policy, macro_mae_free): k=1:0.2911  k=2:0.2694  k=3:0.2527  k=5:0.2327  k=10:0.2108
+fixed recipe trend lam=1.0 (random policy, macro_mae_free): k=1:0.2911  k=2:0.2587  k=3:0.2386  k=5:0.2157  k=10:0.1914
+single-draw risk for those recipes (one chemist gets ONE set of k pairs, not the average):
+         policy  k   form   lam  delta_mean  delta_sd  delta_q10  frac_harmful  delta_free_mean  frac_harmful_free
+       adjacent  1 affine  1.00      0.0095    0.0127    -0.0075          0.23           0.0168               0.10
+       adjacent  2  trend  0.30      0.0151    0.0177    -0.0078          0.17           0.0348               0.03
+       adjacent  3  trend  0.30      0.0268    0.0187     0.0045          0.08           0.0485               0.01
+       adjacent  5  trend  0.30      0.0527    0.0159     0.0313          0.00           0.0721               0.00
+       adjacent 10  trend  0.03      0.1170    0.0139     0.0981          0.00           0.1399               0.00
+cross_condition  1  scale  0.10      0.0483    0.0555    -0.0126          0.15           0.0483               0.15
+cross_condition  2  trend  0.10      0.0851    0.0617     0.0180          0.05           0.0851               0.05
+cross_condition  3  trend  0.10      0.0992    0.0590     0.0275          0.03           0.0992               0.03
+cross_condition  5  trend  0.10      0.1177    0.0614     0.0442          0.03           0.1177               0.03
+cross_condition 10  trend  0.30      0.1307    0.0569     0.0627          0.03           0.1307               0.03
+        foreign  1  scale 10.00     -0.0017    0.0036    -0.0061          0.66          -0.0017               0.66
+        foreign  2  scale 10.00     -0.0039    0.0057    -0.0105          0.75          -0.0039               0.75
+        foreign  3  scale 10.00     -0.0056    0.0074    -0.0149          0.78          -0.0056               0.78
+        foreign  5  scale 10.00     -0.0091    0.0090    -0.0204          0.82          -0.0091               0.82
+        foreign 10  scale 10.00     -0.0179    0.0122    -0.0341          0.92          -0.0179               0.92
+         random  1  scale  0.10      0.0389    0.0229     0.0052          0.03           0.0533               0.02
+         random  2  trend  0.10      0.0716    0.0210     0.0450          0.00           0.0862               0.00
+         random  3  trend  0.10      0.0973    0.0165     0.0770          0.00           0.1121               0.00
+         random  5  trend  0.03      0.1229    0.0110     0.1082          0.00           0.1379               0.00
+         random 10  trend  0.03      0.1433    0.0087     0.1300          0.00           0.1579               0.00
+         widest  1  scale  0.30      0.0690    0.0069     0.0596          0.00           0.0815               0.00
+         widest  2  trend  0.10      0.0884    0.0058     0.0816          0.00           0.1014               0.00
+         widest  3  trend  0.10      0.0951    0.0051     0.0883          0.00           0.1085               0.00
+         widest  5  trend  0.30      0.0990    0.0046     0.0926          0.00           0.1137               0.00
+         widest 10  trend  0.30      0.1080    0.0044     0.1009          0.00           0.1244               0.00
+
+selection on seed 104729:
+         policy  k   form   lam  n_configs_screened  macro_k0_selection  macro_selection  delta_selection
+       adjacent  1 affine  1.00                  24              0.3686           0.3529           0.0157
+       adjacent  2  trend  0.30                  24              0.3686           0.3357           0.0329
+       adjacent  3  trend  0.30                  24              0.3686           0.3246           0.0440
+       adjacent  5  trend  0.30                  24              0.3686           0.3007           0.0679
+       adjacent 10  trend  0.03                  24              0.3686           0.2333           0.1353
+cross_condition  1  scale  0.10                  24              0.3545           0.3170           0.0375
+cross_condition  2  trend  0.30                  24              0.3545           0.2805           0.0740
+cross_condition  3  trend  0.10                  24              0.3545           0.2631           0.0914
+cross_condition  5  trend  0.30                  24              0.3545           0.2544           0.1001
+cross_condition 10  trend  0.30                  24              0.3545           0.2495           0.1050
+        foreign  1  scale 10.00                  24              0.3109           0.3131          -0.0021
+        foreign  2  scale 10.00                  24              0.3109           0.3155          -0.0046
+        foreign  3  scale 10.00                  24              0.3109           0.3152          -0.0043
+        foreign  5  scale 10.00                  24              0.3109           0.3182          -0.0073
+        foreign 10  scale 10.00                  24              0.3109           0.3294          -0.0185
+         random  1  scale  0.10                  24              0.3299           0.2707           0.0592
+         random  2  scale  0.10                  24              0.3299           0.2423           0.0877
+         random  3  trend  0.03                  24              0.3299           0.2162           0.1138
+         random  5  trend  0.03                  24              0.3299           0.1883           0.1417
+         random 10  trend  0.03                  24              0.3299           0.1688           0.1611
+         widest  1  scale  0.30                  24              0.3013           0.2203           0.0810
+         widest  2  trend  0.30                  24              0.3013           0.2054           0.0959
+         widest  3  trend  0.10                  24              0.3013           0.1952           0.1060
+         widest  5  trend  0.10                  24              0.3013           0.1880           0.1132
+         widest 10  trend  0.10                  24              0.3013           0.1750           0.1263
+
+confirmation on [130363, 155921, 196613, 262147] (delta = macro_mae_free(k=0) − macro_mae_free(calibrated), same query rows; positive = better):
+         policy  k   form   lam  is_control  macro_k0_confirm  macro_confirm  delta_mean_confirm  positive_confirm_seeds  seed_delta_spread  pooled_mae_k0_confirm  pooled_mae_confirm  boot_delta_confirm  ci95_low  ci95_high  p_worse_one_sided  extractants_improved  n_extractants  holm_p_one_sided  passes_rule
+       adjacent  1 affine  1.00       False            0.3780         0.3609              0.0171                       4             0.0023                 0.4338              0.4243              0.0171    0.0053     0.0299             0.0018                    20             27            0.0378         True
+       adjacent  2  trend  0.30       False            0.3780         0.3427              0.0353                       4             0.0037                 0.4338              0.4116              0.0353    0.0157     0.0584             0.0002                    22             27            0.0160         True
+       adjacent  3  trend  0.30       False            0.3780         0.3284              0.0496                       4             0.0099                 0.4338              0.4013              0.0496    0.0224     0.0829             0.0002                    23             27            0.0160         True
+       adjacent  5  trend  0.30       False            0.3780         0.3049              0.0731                       4             0.0261                 0.4338              0.3865              0.0731    0.0391     0.1127             0.0002                    23             27            0.0160         True
+       adjacent 10  trend  0.03       False            0.3780         0.2370              0.1410                       4             0.0272                 0.4338              0.3586              0.1410    0.0798     0.2106             0.0002                    22             27            0.0160         True
+cross_condition  1  scale  0.10       False            0.3785         0.3275              0.0510                       4             0.0528                 0.4055              0.3456              0.0510    0.0020     0.1102             0.0196                     8             12            0.1372        False
+cross_condition  2  trend  0.30       False            0.3785         0.2918              0.0867                       4             0.0270                 0.4055              0.3080              0.0867    0.0190     0.1761             0.0002                     9             12            0.0160         True
+cross_condition  3  trend  0.10       False            0.3785         0.2773              0.1012                       4             0.0384                 0.4055              0.2838              0.1012    0.0193     0.2067             0.0018                     8             12            0.0378         True
+cross_condition  5  trend  0.30       False            0.3785         0.2589              0.1196                       4             0.0502                 0.4055              0.2629              0.1196    0.0402     0.2253             0.0002                    11             12            0.0160         True
+cross_condition 10  trend  0.30       False            0.3785         0.2413              0.1372                       4             0.0543                 0.4055              0.2448              0.1372    0.0469     0.2481             0.0002                    12             12            0.0160         True
+        foreign  1  scale 10.00        True            0.3118         0.3133             -0.0016                       0             0.0008                 0.4253              0.4262             -0.0016   -0.0027    -0.0006             0.9994                     8             32               NaN        False
+        foreign  2  scale 10.00        True            0.3118         0.3154             -0.0037                       0             0.0013                 0.4253              0.4273             -0.0037   -0.0060    -0.0016             1.0000                     6             32               NaN        False
+        foreign  3  scale 10.00        True            0.3118         0.3177             -0.0059                       0             0.0021                 0.4253              0.4285             -0.0059   -0.0093    -0.0029             1.0000                     6             32               NaN        False
+        foreign  5  scale 10.00        True            0.3118         0.3213             -0.0096                       0             0.0029                 0.4253              0.4306             -0.0096   -0.0148    -0.0051             1.0000                     7             32               NaN        False
+        foreign 10  scale 10.00        True            0.3118         0.3296             -0.0178                       0             0.0018                 0.4253              0.4345             -0.0178   -0.0270    -0.0098             1.0000                     6             32               NaN        False
+         random  1  scale  0.10       False            0.3327         0.2809              0.0518                       4             0.0110                 0.4253              0.4029              0.0259   -0.0293     0.0708             0.1590                    21             32            0.3139        False
+         random  2  scale  0.10       False            0.3327         0.2517              0.0810                       4             0.0197                 0.4253              0.3928              0.0575    0.0076     0.1051             0.0128                    23             32            0.1280        False
+         random  3  trend  0.03       False            0.3327         0.2232              0.1095                       4             0.0261                 0.4253              0.3797              0.0690   -0.0163     0.1404             0.0508                    24             32            0.1524        False
+         random  5  trend  0.03       False            0.3327         0.1957              0.1370                       4             0.0215                 0.4253              0.3457              0.1000    0.0279     0.1704             0.0058                    25             32            0.0870        False
+         random 10  trend  0.03       False            0.3327         0.1757              0.1571                       4             0.0207                 0.4253              0.3105              0.1232    0.0555     0.1888             0.0002                    29             32            0.0160         True
+         widest  1  scale  0.30       False            0.3113         0.2297              0.0816                       4             0.0158                 0.4109              0.3744              0.0816    0.0433     0.1264             0.0002                    20             27            0.0160         True
+         widest  2  trend  0.30       False            0.3113         0.2094              0.1019                       4             0.0110                 0.4109              0.3566              0.1019    0.0619     0.1494             0.0002                    23             27            0.0160         True
+         widest  3  trend  0.10       False            0.3113         0.2022              0.1091                       4             0.0121                 0.4109              0.3543              0.1091    0.0660     0.1574             0.0002                    22             27            0.0160         True
+         widest  5  trend  0.10       False            0.3113         0.1983              0.1130                       4             0.0132                 0.4109              0.3528              0.1130    0.0698     0.1588             0.0002                    22             27            0.0160         True
+         widest 10  trend  0.10       False            0.3113         0.1881              0.1232                       4             0.0116                 0.4109              0.3439              0.1232    0.0791     0.1714             0.0002                    27             27            0.0160         True
+  WARNING: the selected form breaks within-cell transitivity on a _TP arm (offset/affine); the calibrated field no longer chains La-Ce + Ce-Pr = La-Pr:
+  policy  k   form
+adjacent  1 affine
+
+=== base arm A2_refit ===
+k = 0 (raw predictions), mean over seeds, per policy:
+         policy  macro_mae  macro_mae_free  n_rows  n_rows_free  pooled_mae  pooled_r2  dispersion  sign_acc
+       adjacent     0.3298          0.3779 6362.00      5973.68      0.4333     0.3084      0.7423    0.8514
+cross_condition     0.3749          0.3749  281.14       281.14      0.4012    -0.6744      0.9985    0.7614
+        foreign     0.3134          0.3134 6362.00      6362.00      0.4249     0.3062      0.7354    0.8477
+         oracle     0.3134          0.3340 6362.00      5851.16      0.4249     0.3062      0.7354    0.8477
+         random     0.3134          0.3340 6362.00      5851.16      0.4249     0.3062      0.7354    0.8477
+         widest     0.2849          0.3111 6362.00      5916.62      0.4102     0.2745      0.7096    0.8451
+in-sample least-squares reference (fitted on ALL rows of the extractant — approximate ceiling,
+not a strict MAE upper bound; scored on the random policy's query rows):
+  form  macro_mae  macro_mae_free  pooled_mae  pooled_r2  macro_r2_median  dispersion  sign_acc
+affine     0.1760          0.1797      0.3293     0.5768           0.7662      0.7596    0.8743
+  none     0.3134          0.3340      0.4249     0.3062           0.4812      0.7354    0.8477
+offset     0.2558          0.2699      0.3737     0.5097           0.5801      0.7986    0.8428
+ scale     0.1837          0.1878      0.3340     0.4909           0.7224      0.8563    0.8578
+ trend     0.1533          0.1559      0.2646     0.7066           0.8121      0.8321    0.8811
+best (form, lam) per policy and k by 5-seed-mean macro_mae_free — exploratory, each row carries its own k=0 baseline:
+         policy  k  form  lam  k0_macro_mae_free  macro_mae_free   delta  pooled_mae  pooled_r2  sign_acc  reject_frac
+       adjacent  1 scale  0.3             0.3779          0.3595  0.0184      0.4238     0.3317    0.8514       0.0000
+       adjacent  2 trend  0.3             0.3779          0.3396  0.0383      0.4103     0.3622    0.8508       0.7084
+       adjacent  3 trend  0.3             0.3779          0.3258  0.0521      0.3995     0.3878    0.8511       0.5900
+       adjacent  5 trend  0.3             0.3779          0.3021  0.0757      0.3854     0.4179    0.8518       0.4625
+       adjacent 10 trend  0.1             0.3779          0.2488  0.1291      0.3579     0.4610    0.8550       0.2038
+cross_condition  1 scale  0.1             0.3749          0.3269  0.0480      0.3465    -0.4342    0.7618       0.0000
+cross_condition  2 trend  0.1             0.3749          0.2901  0.0848      0.3049    -0.4053    0.7695       0.1425
+cross_condition  3 trend  0.1             0.3749          0.2753  0.0996      0.2821    -0.2033    0.7828       0.0250
+cross_condition  5 trend  0.1             0.3749          0.2578  0.1171      0.2572     0.2220    0.7938       0.0017
+cross_condition 10 trend  0.3             0.3749          0.2438  0.1311      0.2467     0.2163    0.8050       0.0000
+        foreign  1 scale 10.0             0.3134          0.3150 -0.0017      0.4260     0.3032    0.8477       0.0000
+        foreign  2 scale 10.0             0.3134          0.3172 -0.0039      0.4273     0.2998    0.8477       0.0000
+        foreign  3 scale 10.0             0.3134          0.3189 -0.0056      0.4283     0.2969    0.8477       0.0000
+        foreign  5 scale 10.0             0.3134          0.3225 -0.0092      0.4307     0.2893    0.8477       0.0000
+        foreign 10 scale 10.0             0.3134          0.3313 -0.0180      0.4352     0.2749    0.8477       0.0000
+         random  1 scale  0.1             0.3340          0.2814  0.0526      0.4043     0.2075    0.8345       0.0000
+         random  2 trend  0.1             0.3340          0.2492  0.0847      0.3878     0.2553    0.8145       0.1131
+         random  3 trend  0.1             0.3340          0.2240  0.1100      0.3630     0.3248    0.8321       0.0134
+         random  5 trend  0.1             0.3340          0.1991  0.1349      0.3370     0.4119    0.8482       0.0003
+         random 10 trend  0.1             0.3340          0.1793  0.1547      0.3104     0.5092    0.8640       0.0000
+         widest  1 scale  0.3             0.3111          0.2318  0.0793      0.3763     0.2061    0.8483       0.0000
+         widest  2 trend  0.3             0.3111          0.2126  0.0984      0.3595     0.2754    0.8492       0.2188
+         widest  3 trend  0.3             0.3111          0.2058  0.1052      0.3554     0.2971    0.8502       0.2188
+         widest  5 trend  0.3             0.3111          0.2007  0.1103      0.3522     0.3330    0.8516       0.1562
+         widest 10 trend  0.3             0.3111          0.1915  0.1195      0.3437     0.3863    0.8601       0.0312
+fixed recipe scale lam=1.0 (random policy, macro_mae_free): k=1:0.2934  k=2:0.2721  k=3:0.2556  k=5:0.2359  k=10:0.2140
+fixed recipe trend lam=1.0 (random policy, macro_mae_free): k=1:0.2934  k=2:0.2613  k=3:0.2415  k=5:0.2192  k=10:0.1947
+single-draw risk for those recipes (one chemist gets ONE set of k pairs, not the average):
+         policy  k  form  lam  delta_mean  delta_sd  delta_q10  frac_harmful  delta_free_mean  frac_harmful_free
+       adjacent  1 scale  0.3      0.0064    0.0145    -0.0137          0.36           0.0184               0.07
+       adjacent  2 trend  0.3      0.0170    0.0170    -0.0041          0.14           0.0383               0.02
+       adjacent  3 trend  0.3      0.0292    0.0176     0.0074          0.07           0.0521               0.01
+       adjacent  5 trend  0.3      0.0557    0.0151     0.0356          0.00           0.0757               0.00
+       adjacent 10 trend  0.1      0.1073    0.0131     0.0899          0.00           0.1291               0.00
+cross_condition  1 scale  0.1      0.0480    0.0539    -0.0107          0.12           0.0480               0.12
+cross_condition  2 trend  0.1      0.0848    0.0614     0.0106          0.06           0.0848               0.06
+cross_condition  3 trend  0.1      0.0996    0.0582     0.0296          0.03           0.0996               0.03
+cross_condition  5 trend  0.1      0.1171    0.0616     0.0393          0.03           0.1171               0.03
+cross_condition 10 trend  0.3      0.1311    0.0562     0.0614          0.01           0.1311               0.01
+        foreign  1 scale 10.0     -0.0017    0.0036    -0.0061          0.67          -0.0017               0.67
+        foreign  2 scale 10.0     -0.0039    0.0057    -0.0107          0.75          -0.0039               0.75
+        foreign  3 scale 10.0     -0.0056    0.0073    -0.0148          0.80          -0.0056               0.80
+        foreign  5 scale 10.0     -0.0092    0.0089    -0.0203          0.81          -0.0092               0.81
+        foreign 10 scale 10.0     -0.0180    0.0122    -0.0340          0.90          -0.0180               0.90
+         random  1 scale  0.1      0.0382    0.0232     0.0064          0.07           0.0526               0.02
+         random  2 trend  0.1      0.0701    0.0201     0.0435          0.00           0.0847               0.00
+         random  3 trend  0.1      0.0954    0.0163     0.0768          0.00           0.1100               0.00
+         random  5 trend  0.1      0.1199    0.0110     0.1052          0.00           0.1349               0.00
+         random 10 trend  0.1      0.1398    0.0081     0.1293          0.00           0.1547               0.00
+         widest  1 scale  0.3      0.0671    0.0074     0.0571          0.00           0.0793               0.00
+         widest  2 trend  0.3      0.0847    0.0063     0.0766          0.00           0.0984               0.00
+         widest  3 trend  0.3      0.0912    0.0060     0.0834          0.00           0.1052               0.00
+         widest  5 trend  0.3      0.0962    0.0057     0.0892          0.00           0.1103               0.00
+         widest 10 trend  0.3      0.1043    0.0055     0.0968          0.00           0.1195               0.00
+
+selection on seed 104729:
+         policy  k  form   lam  n_configs_screened  macro_k0_selection  macro_selection  delta_selection
+       adjacent  1 scale  0.30                  24              0.3695           0.3527           0.0168
+       adjacent  2 trend  0.30                  24              0.3695           0.3353           0.0342
+       adjacent  3 trend  0.30                  24              0.3695           0.3240           0.0454
+       adjacent  5 trend  0.30                  24              0.3695           0.3003           0.0692
+       adjacent 10 trend  0.10                  24              0.3695           0.2439           0.1255
+cross_condition  1 scale  0.30                  24              0.3564           0.3192           0.0372
+cross_condition  2 trend  0.30                  24              0.3564           0.2835           0.0728
+cross_condition  3 trend  0.10                  24              0.3564           0.2651           0.0913
+cross_condition  5 trend  0.30                  24              0.3564           0.2563           0.1001
+cross_condition 10 trend  0.30                  24              0.3564           0.2507           0.1057
+        foreign  1 scale 10.00                  24              0.3111           0.3131          -0.0020
+        foreign  2 scale 10.00                  24              0.3111           0.3157          -0.0046
+        foreign  3 scale 10.00                  24              0.3111           0.3155          -0.0044
+        foreign  5 scale 10.00                  24              0.3111           0.3186          -0.0075
+        foreign 10 scale 10.00                  24              0.3111           0.3297          -0.0186
+         random  1 scale  0.10                  24              0.3299           0.2753           0.0546
+         random  2 scale  0.10                  24              0.3299           0.2469           0.0830
+         random  3 trend  0.10                  24              0.3299           0.2206           0.1092
+         random  5 trend  0.03                  24              0.3299           0.1970           0.1329
+         random 10 trend  0.03                  24              0.3299           0.1777           0.1522
+         widest  1 scale  1.00                  24              0.2999           0.2251           0.0747
+         widest  2 trend  0.30                  24              0.2999           0.2096           0.0903
+         widest  3 trend  0.10                  24              0.2999           0.2008           0.0990
+         widest  5 trend  0.10                  24              0.2999           0.1951           0.1048
+         widest 10 trend  0.10                  24              0.2999           0.1831           0.1167
+
+confirmation on [130363, 155921, 196613, 262147] (delta = macro_mae_free(k=0) − macro_mae_free(calibrated), same query rows; positive = better):
+         policy  k  form   lam  is_control  macro_k0_confirm  macro_confirm  delta_mean_confirm  positive_confirm_seeds  seed_delta_spread  pooled_mae_k0_confirm  pooled_mae_confirm  boot_delta_confirm  ci95_low  ci95_high  p_worse_one_sided  extractants_improved  n_extractants  holm_p_one_sided  passes_rule
+       adjacent  1 scale  0.30       False            0.3800         0.3612              0.0188                       4             0.0051                 0.4341              0.4245              0.0188    0.0073     0.0317             0.0006                    20             27            0.0160         True
+       adjacent  2 trend  0.30       False            0.3800         0.3407              0.0393                       4             0.0060                 0.4341              0.4107              0.0393    0.0179     0.0646             0.0002                    22             27            0.0160         True
+       adjacent  3 trend  0.30       False            0.3800         0.3262              0.0538                       4             0.0134                 0.4341              0.4000              0.0538    0.0239     0.0893             0.0002                    21             27            0.0160         True
+       adjacent  5 trend  0.30       False            0.3800         0.3026              0.0774                       4             0.0254                 0.4341              0.3855              0.0774    0.0402     0.1200             0.0002                    22             27            0.0160         True
+       adjacent 10 trend  0.10       False            0.3800         0.2500              0.1299                       4             0.0307                 0.4341              0.3573              0.1299    0.0710     0.1966             0.0002                    21             27            0.0160         True
+cross_condition  1 scale  0.30       False            0.3795         0.3343              0.0452                       4             0.0303                 0.4056              0.3529              0.0452    0.0095     0.0923             0.0026                     8             12            0.0468         True
+cross_condition  2 trend  0.30       False            0.3795         0.2926              0.0869                       4             0.0266                 0.4056              0.3078              0.0869    0.0175     0.1785             0.0004                     9             12            0.0160         True
+cross_condition  3 trend  0.10       False            0.3795         0.2778              0.1017                       4             0.0352                 0.4056              0.2835              0.1017    0.0185     0.2103             0.0024                     8             12            0.0456         True
+cross_condition  5 trend  0.30       False            0.3795         0.2602              0.1194                       4             0.0480                 0.4056              0.2634              0.1194    0.0383     0.2279             0.0002                    10             12            0.0160         True
+cross_condition 10 trend  0.30       False            0.3795         0.2421              0.1375                       4             0.0533                 0.4056              0.2444              0.1375    0.0456     0.2504             0.0002                    12             12            0.0160         True
+        foreign  1 scale 10.00        True            0.3139         0.3155             -0.0016                       0             0.0006                 0.4257              0.4265             -0.0016   -0.0027    -0.0007             0.9998                     9             32               NaN        False
+        foreign  2 scale 10.00        True            0.3139         0.3176             -0.0037                       0             0.0015                 0.4257              0.4277             -0.0037   -0.0060    -0.0016             1.0000                     7             32               NaN        False
+        foreign  3 scale 10.00        True            0.3139         0.3198             -0.0059                       0             0.0023                 0.4257              0.4288             -0.0059   -0.0093    -0.0029             1.0000                     6             32               NaN        False
+        foreign  5 scale 10.00        True            0.3139         0.3235             -0.0096                       0             0.0025                 0.4257              0.4310             -0.0096   -0.0148    -0.0051             1.0000                     7             32               NaN        False
+        foreign 10 scale 10.00        True            0.3139         0.3317             -0.0178                       0             0.0020                 0.4257              0.4350             -0.0178   -0.0271    -0.0097             1.0000                     6             32               NaN        False
+         random  1 scale  0.10       False            0.3350         0.2829              0.0521                       4             0.0043                 0.4257              0.4048              0.0263   -0.0292     0.0721             0.1570                    20             32            0.3139        False
+         random  2 scale  0.10       False            0.3350         0.2550              0.0800                       4             0.0191                 0.4257              0.3943              0.0565    0.0057     0.1059             0.0148                    22             32            0.1332        False
+         random  3 trend  0.10       False            0.3350         0.2248              0.1102                       4             0.0204                 0.4257              0.3626              0.0732   -0.0027     0.1397             0.0304                    23             32            0.1372        False
+         random  5 trend  0.03       False            0.3350         0.2008              0.1342                       4             0.0213                 0.4257              0.3469              0.0947    0.0165     0.1679             0.0108                    26             32            0.1188        False
+         random 10 trend  0.03       False            0.3350         0.1804              0.1546                       4             0.0196                 0.4257              0.3123              0.1225    0.0570     0.1882             0.0002                    30             32            0.0160         True
+         widest  1 scale  1.00       False            0.3139         0.2353              0.0785                       4             0.0163                 0.4112              0.3723              0.0785    0.0423     0.1217             0.0002                    24             27            0.0160         True
+         widest  2 trend  0.30       False            0.3139         0.2134              0.1005                       4             0.0152                 0.4112              0.3586              0.1005    0.0604     0.1473             0.0002                    23             27            0.0160         True
+         widest  3 trend  0.10       False            0.3139         0.2076              0.1063                       4             0.0163                 0.4112              0.3579              0.1063    0.0618     0.1554             0.0002                    22             27            0.0160         True
+         widest  5 trend  0.10       False            0.3139         0.2041              0.1098                       4             0.0176                 0.4112              0.3559              0.1098    0.0656     0.1572             0.0002                    22             27            0.0160         True
+         widest 10 trend  0.10       False            0.3139         0.1945              0.1193                       4             0.0184                 0.4112              0.3466              0.1193    0.0741     0.1686             0.0002                    26             27            0.0160         True
+
+=== base arm PAIRMEAN_baseline ===
+k = 0 (raw predictions), mean over seeds, per policy:
+         policy  macro_mae  macro_mae_free  n_rows  n_rows_free  pooled_mae  pooled_r2  dispersion  sign_acc
+       adjacent     0.4807          0.5104 6362.00      5973.68      0.3925     0.4362      0.6864    0.8562
+cross_condition     0.3933          0.3933  281.14       281.14      0.4095    -0.6667      1.0082    0.7569
+        foreign     0.4431          0.4431 6362.00      6362.00      0.3797     0.4511      0.6932    0.8513
+         oracle     0.4431          0.4421 6362.00      5851.16      0.3797     0.4511      0.6932    0.8513
+         random     0.4431          0.4421 6362.00      5851.16      0.3797     0.4511      0.6932    0.8513
+         widest     0.3796          0.3998 6362.00      5916.62      0.3582     0.4742      0.6985    0.8480
+in-sample least-squares reference (fitted on ALL rows of the extractant — approximate ceiling,
+not a strict MAE upper bound; scored on the random policy's query rows):
+  form  macro_mae  macro_mae_free  pooled_mae  pooled_r2  macro_r2_median  dispersion  sign_acc
+affine     0.1895          0.1876      0.2494     0.7332           0.7701      0.8563    0.8753
+  none     0.4431          0.4421      0.3797     0.4511           0.3231      0.6932    0.8513
+offset     0.3205          0.3216      0.3174     0.6340           0.5651      0.8192    0.8389
+ scale     0.1953          0.1928      0.2530     0.7279           0.7621      0.8790    0.8646
+ trend     0.1741          0.1733      0.2406     0.7456           0.8086      0.8674    0.8802
+best (form, lam) per policy and k by 5-seed-mean macro_mae_free — exploratory, each row carries its own k=0 baseline:
+         policy  k  form   lam  k0_macro_mae_free  macro_mae_free   delta  pooled_mae  pooled_r2  sign_acc  reject_frac
+       adjacent  1 scale  0.03             0.5104          0.4520  0.0583      0.3974     0.3523    0.8401       0.0000
+       adjacent  2 scale  0.03             0.5104          0.4055  0.1049      0.3759     0.4122    0.8379       0.0000
+       adjacent  3 scale  0.03             0.5104          0.3742  0.1361      0.3661     0.4373    0.8403       0.0000
+       adjacent  5 scale  0.03             0.5104          0.3222  0.1882      0.3452     0.5017    0.8415       0.0000
+       adjacent 10 trend  0.03             0.5104          0.2526  0.2577      0.3069     0.6046    0.8561       0.2038
+cross_condition  1 scale  0.10             0.3933          0.3230  0.0702      0.3117    -0.0295    0.7729       0.0000
+cross_condition  2 trend  0.10             0.3933          0.2874  0.1058      0.2690     0.2159    0.7795       0.1425
+cross_condition  3 trend  0.10             0.3933          0.2709  0.1223      0.2462     0.3273    0.7915       0.0250
+cross_condition  5 trend  0.10             0.3933          0.2504  0.1428      0.2260     0.4231    0.8028       0.0017
+cross_condition 10 trend  0.30             0.3933          0.2332  0.1601      0.2123     0.4925    0.8146       0.0000
+        foreign  1 scale 10.00             0.4431          0.4447 -0.0015      0.3818     0.4448    0.8513       0.0000
+        foreign  2 scale 10.00             0.4431          0.4457 -0.0026      0.3836     0.4382    0.8513       0.0000
+        foreign  3 scale 10.00             0.4431          0.4475 -0.0043      0.3861     0.4294    0.8513       0.0000
+        foreign  5 scale 10.00             0.4431          0.4517 -0.0086      0.3916     0.4089    0.8513       0.0000
+        foreign 10 scale 10.00             0.4431          0.4622 -0.0191      0.4023     0.3673    0.8511       0.0000
+         random  1 scale  0.03             0.4421          0.3127  0.1293      0.3664     0.3585    0.8338       0.0000
+         random  2 trend  0.10             0.4421          0.2654  0.1766      0.3363     0.4935    0.8228       0.1131
+         random  3 trend  0.10             0.4421          0.2388  0.2033      0.3221     0.5320    0.8324       0.0134
+         random  5 trend  0.10             0.4421          0.2147  0.2274      0.2965     0.6057    0.8451       0.0003
+         random 10 trend  0.10             0.4421          0.1970  0.2450      0.2730     0.6679    0.8583       0.0000
+         widest  1 scale  1.00             0.3998          0.2438  0.1560      0.3091     0.5634    0.8563       0.0000
+         widest  2 trend  0.30             0.3998          0.2179  0.1819      0.2881     0.6015    0.8507       0.2188
+         widest  3 trend  0.30             0.3998          0.2092  0.1906      0.2775     0.6306    0.8522       0.2188
+         widest  5 trend  0.30             0.3998          0.2027  0.1971      0.2647     0.6625    0.8571       0.1562
+         widest 10 trend  0.30             0.3998          0.1935  0.2063      0.2530     0.6888    0.8674       0.0312
+fixed recipe scale lam=1.0 (random policy, macro_mae_free): k=1:0.3592  k=2:0.3147  k=3:0.2832  k=5:0.2492  k=10:0.2194
+fixed recipe trend lam=1.0 (random policy, macro_mae_free): k=1:0.3592  k=2:0.2936  k=3:0.2616  k=5:0.2307  k=10:0.2059
+single-draw risk for those recipes (one chemist gets ONE set of k pairs, not the average):
+         policy  k  form   lam  delta_mean  delta_sd  delta_q10  frac_harmful  delta_free_mean  frac_harmful_free
+       adjacent  1 scale  0.03      0.0583    0.0432     0.0058          0.08           0.0583               0.13
+       adjacent  2 scale  0.03      0.1018    0.0419     0.0457          0.01           0.1049               0.03
+       adjacent  3 scale  0.03      0.1317    0.0394     0.0878          0.00           0.1361               0.01
+       adjacent  5 scale  0.03      0.1838    0.0272     0.1474          0.00           0.1882               0.00
+       adjacent 10 trend  0.03      0.2463    0.0121     0.2313          0.00           0.2577               0.00
+cross_condition  1 scale  0.10      0.0702    0.0545     0.0130          0.08           0.0702               0.08
+cross_condition  2 trend  0.10      0.1058    0.0561     0.0485          0.03           0.1058               0.03
+cross_condition  3 trend  0.10      0.1223    0.0537     0.0573          0.02           0.1223               0.02
+cross_condition  5 trend  0.10      0.1428    0.0485     0.0875          0.01           0.1428               0.01
+cross_condition 10 trend  0.30      0.1601    0.0445     0.0971          0.00           0.1601               0.00
+        foreign  1 scale 10.00     -0.0015    0.0062    -0.0096          0.55          -0.0015               0.55
+        foreign  2 scale 10.00     -0.0026    0.0101    -0.0149          0.59          -0.0026               0.59
+        foreign  3 scale 10.00     -0.0043    0.0132    -0.0188          0.67          -0.0043               0.67
+        foreign  5 scale 10.00     -0.0086    0.0184    -0.0329          0.66          -0.0086               0.66
+        foreign 10 scale 10.00     -0.0191    0.0261    -0.0536          0.74          -0.0191               0.74
+         random  1 scale  0.03      0.1282    0.0341     0.0839          0.00           0.1293               0.00
+         random  2 trend  0.10      0.1754    0.0204     0.1498          0.00           0.1766               0.00
+         random  3 trend  0.10      0.2022    0.0179     0.1810          0.00           0.2033               0.00
+         random  5 trend  0.10      0.2274    0.0119     0.2148          0.00           0.2274               0.00
+         random 10 trend  0.10      0.2463    0.0089     0.2361          0.00           0.2450               0.00
+         widest  1 scale  1.00      0.1401    0.0063     0.1318          0.00           0.1560               0.00
+         widest  2 trend  0.30      0.1648    0.0058     0.1560          0.00           0.1819               0.00
+         widest  3 trend  0.30      0.1730    0.0047     0.1668          0.00           0.1906               0.00
+         widest  5 trend  0.30      0.1801    0.0048     0.1728          0.00           0.1971               0.00
+         widest 10 trend  0.30      0.1893    0.0050     0.1817          0.00           0.2063               0.00
+
+selection on seed 104729:
+         policy  k  form   lam  n_configs_screened  macro_k0_selection  macro_selection  delta_selection
+       adjacent  1 scale  0.03                  24              0.5181           0.4558           0.0623
+       adjacent  2 scale  0.03                  24              0.5181           0.4012           0.1169
+       adjacent  3 scale  0.03                  24              0.5181           0.3683           0.1498
+       adjacent  5 scale  0.03                  24              0.5181           0.3249           0.1932
+       adjacent 10 trend  0.03                  24              0.5181           0.2541           0.2640
+cross_condition  1 scale  0.10                  24              0.3928           0.3174           0.0753
+cross_condition  2 trend  0.30                  24              0.3928           0.2731           0.1197
+cross_condition  3 trend  0.10                  24              0.3928           0.2546           0.1381
+cross_condition  5 trend  0.30                  24              0.3928           0.2511           0.1417
+cross_condition 10 trend  0.30                  24              0.3928           0.2369           0.1558
+        foreign  1 scale 10.00                  24              0.4502           0.4520          -0.0018
+        foreign  2 scale 10.00                  24              0.4502           0.4534          -0.0032
+        foreign  3 scale 10.00                  24              0.4502           0.4549          -0.0047
+        foreign  5 scale 10.00                  24              0.4502           0.4596          -0.0094
+        foreign 10 scale 10.00                  24              0.4502           0.4708          -0.0206
+         random  1 scale  0.10                  24              0.4504           0.3173           0.1331
+         random  2 trend  0.10                  24              0.4504           0.2703           0.1801
+         random  3 trend  0.10                  24              0.4504           0.2405           0.2099
+         random  5 trend  0.10                  24              0.4504           0.2137           0.2367
+         random 10 trend  0.10                  24              0.4504           0.1980           0.2524
+         widest  1 scale  1.00                  24              0.4044           0.2426           0.1618
+         widest  2 trend  0.30                  24              0.4044           0.2179           0.1865
+         widest  3 trend  0.30                  24              0.4044           0.2085           0.1959
+         widest  5 trend  0.30                  24              0.4044           0.2018           0.2026
+         widest 10 trend  0.30                  24              0.4044           0.1916           0.2127
+
+confirmation on [130363, 155921, 196613, 262147] (delta = macro_mae_free(k=0) − macro_mae_free(calibrated), same query rows; positive = better):
+         policy  k  form   lam  is_control  macro_k0_confirm  macro_confirm  delta_mean_confirm  positive_confirm_seeds  seed_delta_spread  pooled_mae_k0_confirm  pooled_mae_confirm  boot_delta_confirm  ci95_low  ci95_high  p_worse_one_sided  extractants_improved  n_extractants  holm_p_one_sided  passes_rule
+       adjacent  1 scale  0.03       False            0.5084         0.4511              0.0573                       4             0.0379                 0.3915              0.3978              0.0573    0.0031     0.1131             0.0162                    16             27            0.1332        False
+       adjacent  2 scale  0.03       False            0.5084         0.4066              0.1018                       4             0.0435                 0.3915              0.3794              0.1018    0.0279     0.1810             0.0040                    16             27            0.0640        False
+       adjacent  3 scale  0.03       False            0.5084         0.3757              0.1327                       4             0.0327                 0.3915              0.3711              0.1327    0.0441     0.2285             0.0016                    18             27            0.0352         True
+       adjacent  5 scale  0.03       False            0.5084         0.3215              0.1870                       4             0.0391                 0.3915              0.3462              0.1870    0.0867     0.2949             0.0002                    18             27            0.0160         True
+       adjacent 10 trend  0.03       False            0.5084         0.2522              0.2562                       4             0.0123                 0.3915              0.3085              0.2562    0.1436     0.3795             0.0002                    21             27            0.0160         True
+cross_condition  1 scale  0.10       False            0.3934         0.3244              0.0690                       4             0.0462                 0.4124              0.3147              0.0690   -0.0009     0.1435             0.0270                     7             12            0.1372        False
+cross_condition  2 trend  0.30       False            0.3934         0.2928              0.1006                       4             0.0308                 0.4124              0.2768              0.1006    0.0139     0.1979             0.0084                     8             12            0.1092        False
+cross_condition  3 trend  0.10       False            0.3934         0.2750              0.1184                       4             0.0320                 0.4124              0.2487              0.1184    0.0158     0.2361             0.0098                     6             12            0.1176        False
+cross_condition  5 trend  0.30       False            0.3934         0.2526              0.1407                       4             0.0461                 0.4124              0.2276              0.1407    0.0462     0.2544             0.0006                     7             12            0.0160         True
+cross_condition 10 trend  0.30       False            0.3934         0.2322              0.1612                       4             0.0400                 0.4124              0.2099              0.1612    0.0591     0.2724             0.0002                     9             12            0.0160         True
+        foreign  1 scale 10.00        True            0.4414         0.4429             -0.0015                       1             0.0038                 0.3788              0.3801             -0.0015   -0.0031     0.0001             0.9652                    14             32               NaN        False
+        foreign  2 scale 10.00        True            0.4414         0.4438             -0.0024                       1             0.0078                 0.3788              0.3814             -0.0024   -0.0051     0.0003             0.9578                    13             32               NaN        False
+        foreign  3 scale 10.00        True            0.4414         0.4456             -0.0042                       1             0.0091                 0.3788              0.3835             -0.0042   -0.0080    -0.0003             0.9816                    12             32               NaN        False
+        foreign  5 scale 10.00        True            0.4414         0.4498             -0.0084                       0             0.0117                 0.3788              0.3883             -0.0084   -0.0141    -0.0024             0.9974                    13             32               NaN        False
+        foreign 10 scale 10.00        True            0.4414         0.4601             -0.0187                       0             0.0160                 0.3788              0.3988             -0.0187   -0.0286    -0.0088             1.0000                     8             32               NaN        False
+         random  1 scale  0.10       False            0.4400         0.3118              0.1282                       4             0.0255                 0.3788              0.3453              0.0989    0.0053     0.1774             0.0196                    23             32            0.1372        False
+         random  2 trend  0.10       False            0.4400         0.2642              0.1758                       4             0.0257                 0.3788              0.3352              0.1413    0.0380     0.2299             0.0066                    23             32            0.0924        False
+         random  3 trend  0.10       False            0.4400         0.2384              0.2016                       4             0.0269                 0.3788              0.3213              0.1666    0.0560     0.2665             0.0026                    24             32            0.0468         True
+         random  5 trend  0.10       False            0.4400         0.2149              0.2251                       4             0.0281                 0.3788              0.2963              0.1939    0.0920     0.2904             0.0004                    26             32            0.0160         True
+         random 10 trend  0.10       False            0.4400         0.1968              0.2432                       4             0.0232                 0.3788              0.2730              0.2207    0.1342     0.3114             0.0002                    28             32            0.0160         True
+         widest  1 scale  1.00       False            0.3987         0.2441              0.1546                       4             0.0136                 0.3574              0.3102              0.1546    0.0924     0.2214             0.0002                    22             27            0.0160         True
+         widest  2 trend  0.30       False            0.3987         0.2179              0.1808                       4             0.0168                 0.3574              0.2893              0.1808    0.1099     0.2555             0.0002                    20             27            0.0160         True
+         widest  3 trend  0.30       False            0.3987         0.2094              0.1893                       4             0.0162                 0.3574              0.2792              0.1893    0.1176     0.2677             0.0002                    23             27            0.0160         True
+         widest  5 trend  0.30       False            0.3987         0.2029              0.1958                       4             0.0178                 0.3574              0.2655              0.1958    0.1249     0.2730             0.0002                    22             27            0.0160         True
+         widest 10 trend  0.30       False            0.3987         0.1939              0.2047                       4             0.0193                 0.3574              0.2536              0.2047    0.1323     0.2819             0.0002                    26             27            0.0160         True
+
+=== base arm ZERO ===
+k = 0 (raw predictions), mean over seeds, per policy:
+         policy  macro_mae  macro_mae_free  n_rows  n_rows_free  pooled_mae  pooled_r2  dispersion  sign_acc
+       adjacent     0.7046          0.7698 6362.00      5973.68      0.6799    -0.7169         0.0    0.0153
+cross_condition     0.4051          0.4051  281.14       281.14      0.4046    -0.3688         0.0    0.0249
+        foreign     0.6430          0.6430 6362.00      6362.00      0.6589    -0.6890         0.0    0.0156
+         oracle     0.6430          0.6487 6362.00      5851.16      0.6589    -0.6890         0.0    0.0156
+         random     0.6430          0.6487 6362.00      5851.16      0.6589    -0.6890         0.0    0.0156
+         widest     0.5409          0.5845 6362.00      5916.62      0.6234    -0.6870         0.0    0.0160
+in-sample least-squares reference (fitted on ALL rows of the extractant — approximate ceiling,
+not a strict MAE upper bound; scored on the random policy's query rows):
+  form  macro_mae  macro_mae_free  pooled_mae  pooled_r2  macro_r2_median  dispersion  sign_acc
+affine     0.4420          0.4555      0.4978     0.2128          -0.0004      0.4620    0.8673
+  none     0.6430          0.6487      0.6589    -0.6890          -1.3878      0.0000    0.0156
+offset     0.4420          0.4555      0.4978     0.2128          -0.0004      0.4620    0.8673
+ scale     0.6430          0.6487      0.6589    -0.6890          -1.3878      0.0000    0.0156
+ trend     0.5064          0.5414      0.6082    -0.5718           0.1519      0.3222    0.2688
+best (form, lam) per policy and k by 5-seed-mean macro_mae_free — exploratory, each row carries its own k=0 baseline:
+         policy  k   form  lam  k0_macro_mae_free  macro_mae_free  delta  pooled_mae  pooled_r2  sign_acc  reject_frac
+       adjacent  1 affine 0.03             0.7698          0.6860 0.0838      0.6128    -0.4316    0.7261       0.0000
+       adjacent  2 affine 0.03             0.7698          0.6713 0.0985      0.5978    -0.3897    0.7925       0.0000
+       adjacent  3 affine 0.03             0.7698          0.6662 0.1036      0.5917    -0.3734    0.8158       0.0000
+       adjacent  5  trend 0.30             0.7698          0.5990 0.1708      0.5631    -0.2597    0.3605       0.4625
+       adjacent 10  trend 0.30             0.7698          0.4368 0.3330      0.4772     0.0739    0.5509       0.2038
+cross_condition  1 affine 3.00             0.4051          0.3586 0.0465      0.3580    -0.1007    0.7381       0.0000
+cross_condition  2  trend 0.30             0.4051          0.2969 0.1083      0.2798     0.2541    0.6797       0.1425
+cross_condition  3  trend 0.30             0.4051          0.2728 0.1323      0.2514     0.4167    0.7687       0.0250
+cross_condition  5  trend 0.10             0.4051          0.2517 0.1535      0.2349     0.4622    0.7923       0.0017
+cross_condition 10  trend 0.03             0.4051          0.2418 0.1633      0.2248     0.5085    0.7981       0.0000
+        foreign  1 affine 3.00             0.6430          0.6068 0.0363      0.6128    -0.4581    0.7363       0.0000
+        foreign  2  trend 1.00             0.6430          0.5613 0.0818      0.5441    -0.1759    0.6962       0.1053
+        foreign  3  trend 1.00             0.6430          0.5480 0.0950      0.5264    -0.0984    0.7719       0.0147
+        foreign  5  trend 1.00             0.6430          0.5415 0.1016      0.5219    -0.0780    0.7914       0.0000
+        foreign 10  trend 1.00             0.6430          0.5375 0.1056      0.5185    -0.0657    0.7922       0.0000
+         random  1 affine 1.00             0.6487          0.5321 0.1165      0.5749    -0.2508    0.7751       0.0000
+         random  2  trend 0.10             0.6487          0.3710 0.2777      0.4315     0.2265    0.7393       0.1131
+         random  3  trend 0.10             0.6487          0.3232 0.3255      0.3871     0.3947    0.8197       0.0134
+         random  5  trend 0.03             0.6487          0.2984 0.3502      0.3568     0.5035    0.8562       0.0003
+         random 10  trend 0.03             0.6487          0.2808 0.3678      0.3322     0.5815    0.8636       0.0000
+         widest  1 affine 3.00             0.5845          0.4046 0.1799      0.4845     0.0234    0.8375       0.0000
+         widest  2  trend 0.03             0.5845          0.3381 0.2464      0.4970    -0.1274    0.3464       0.2188
+         widest  3  trend 0.03             0.5845          0.3363 0.2482      0.4951    -0.1211    0.3450       0.2188
+         widest  5  trend 0.03             0.5845          0.3262 0.2583      0.4864    -0.1039    0.3882       0.1562
+         widest 10  trend 0.30             0.5845          0.3180 0.2665      0.4874    -0.1203    0.4532       0.0312
+fixed recipe scale lam=1.0 (random policy, macro_mae_free): k=1:0.6487  k=2:0.6487  k=3:0.6487  k=5:0.6487  k=10:0.6487
+fixed recipe trend lam=1.0 (random policy, macro_mae_free): k=1:0.6487  k=2:0.4315  k=3:0.4057  k=5:0.3963  k=10:0.3932
+single-draw risk for those recipes (one chemist gets ONE set of k pairs, not the average):
+         policy  k   form  lam  delta_mean  delta_sd  delta_q10  frac_harmful  delta_free_mean  frac_harmful_free
+       adjacent  1 affine 0.03      0.0889    0.0306     0.0511          0.01           0.0838               0.01
+       adjacent  2 affine 0.03      0.1042    0.0216     0.0772          0.00           0.0985               0.00
+       adjacent  3 affine 0.03      0.1094    0.0156     0.0896          0.00           0.1036               0.00
+       adjacent  5  trend 0.30      0.1762    0.0429     0.1240          0.00           0.1708               0.00
+       adjacent 10  trend 0.30      0.3092    0.0327     0.2675          0.00           0.3330               0.00
+cross_condition  1 affine 3.00      0.0465    0.0321     0.0067          0.09           0.0465               0.09
+cross_condition  2  trend 0.30      0.1083    0.0638     0.0267          0.02           0.1083               0.02
+cross_condition  3  trend 0.30      0.1323    0.0619     0.0506          0.01           0.1323               0.01
+cross_condition  5  trend 0.10      0.1535    0.0714     0.0686          0.01           0.1535               0.01
+cross_condition 10  trend 0.03      0.1633    0.0744     0.0788          0.02           0.1633               0.02
+        foreign  1 affine 3.00      0.0363    0.0200     0.0130          0.05           0.0363               0.05
+        foreign  2  trend 1.00      0.0818    0.0330     0.0414          0.01           0.0818               0.01
+        foreign  3  trend 1.00      0.0950    0.0324     0.0572          0.00           0.0950               0.00
+        foreign  5  trend 1.00      0.1016    0.0314     0.0603          0.00           0.1016               0.00
+        foreign 10  trend 1.00      0.1056    0.0300     0.0715          0.00           0.1056               0.00
+         random  1 affine 1.00      0.1233    0.0173     0.0997          0.00           0.1165               0.00
+         random  2  trend 0.10      0.2745    0.0288     0.2320          0.00           0.2777               0.00
+         random  3  trend 0.10      0.3213    0.0161     0.2987          0.00           0.3255               0.00
+         random  5  trend 0.03      0.3466    0.0110     0.3347          0.00           0.3502               0.00
+         random 10  trend 0.03      0.3645    0.0085     0.3538          0.00           0.3678               0.00
+         widest  1 affine 3.00      0.1543    0.0026     0.1513          0.00           0.1799               0.00
+         widest  2  trend 0.03      0.2300    0.0018     0.2276          0.00           0.2464               0.00
+         widest  3  trend 0.03      0.2317    0.0012     0.2301          0.00           0.2482               0.00
+         widest  5  trend 0.03      0.2404    0.0007     0.2395          0.00           0.2583               0.00
+         widest 10  trend 0.30      0.2425    0.0004     0.2420          0.00           0.2665               0.00
+
+selection on seed 104729:
+         policy  k   form  lam  n_configs_screened  macro_k0_selection  macro_selection  delta_selection
+       adjacent  1 affine 0.03                  24              0.7745           0.6871           0.0874
+       adjacent  2 affine 0.03                  24              0.7745           0.6766           0.0979
+       adjacent  3 affine 0.03                  24              0.7745           0.6729           0.1016
+       adjacent  5  trend 0.30                  24              0.7745           0.6230           0.1515
+       adjacent 10  trend 0.10                  24              0.7745           0.4476           0.3269
+cross_condition  1 affine 3.00                  24              0.4206           0.3766           0.0440
+cross_condition  2  trend 0.30                  24              0.4206           0.3088           0.1118
+cross_condition  3  trend 0.10                  24              0.4206           0.2764           0.1441
+cross_condition  5  trend 0.10                  24              0.4206           0.2609           0.1597
+cross_condition 10  trend 0.03                  24              0.4206           0.2511           0.1695
+        foreign  1 affine 3.00                  24              0.6439           0.6154           0.0285
+        foreign  2  trend 1.00                  24              0.6439           0.5692           0.0747
+        foreign  3  trend 1.00                  24              0.6439           0.5569           0.0870
+        foreign  5  trend 1.00                  24              0.6439           0.5490           0.0950
+        foreign 10  trend 1.00                  24              0.6439           0.5439           0.1000
+         random  1 affine 1.00                  24              0.6500           0.5309           0.1191
+         random  2  trend 0.10                  24              0.6500           0.3779           0.2721
+         random  3  trend 0.10                  24              0.6500           0.3236           0.3264
+         random  5  trend 0.03                  24              0.6500           0.2971           0.3529
+         random 10  trend 0.03                  24              0.6500           0.2793           0.3707
+         widest  1 affine 3.00                  24              0.5845           0.4049           0.1796
+         widest  2  trend 0.03                  24              0.5845           0.3383           0.2462
+         widest  3  trend 0.03                  24              0.5845           0.3363           0.2482
+         widest  5  trend 0.03                  24              0.5845           0.3262           0.2583
+         widest 10  trend 0.30                  24              0.5845           0.3179           0.2666
+
+confirmation on [130363, 155921, 196613, 262147] (delta = macro_mae_free(k=0) − macro_mae_free(calibrated), same query rows; positive = better):
+         policy  k   form  lam  is_control  macro_k0_confirm  macro_confirm  delta_mean_confirm  positive_confirm_seeds  seed_delta_spread  pooled_mae_k0_confirm  pooled_mae_confirm  boot_delta_confirm  ci95_low  ci95_high  p_worse_one_sided  extractants_improved  n_extractants  holm_p_one_sided  passes_rule
+       adjacent  1 affine 0.03       False            0.7686         0.6857              0.0829                       4             0.0089                 0.6798              0.6144              0.0829    0.0533     0.1145             0.0002                    21             27             0.016         True
+       adjacent  2 affine 0.03       False            0.7686         0.6700              0.0986                       4             0.0109                 0.6798              0.5994              0.0986    0.0666     0.1320             0.0002                    22             27             0.016         True
+       adjacent  3 affine 0.03       False            0.7686         0.6646              0.1041                       4             0.0092                 0.6798              0.5934              0.1041    0.0720     0.1397             0.0002                    23             27             0.016         True
+       adjacent  5  trend 0.30       False            0.7686         0.5930              0.1756                       4             0.0344                 0.6798              0.5610              0.1756    0.1062     0.2594             0.0002                    21             27             0.016         True
+       adjacent 10  trend 0.10       False            0.7686         0.4354              0.3332                       4             0.0259                 0.6798              0.4775              0.3332    0.2014     0.4779             0.0002                    22             27             0.016         True
+cross_condition  1 affine 3.00       False            0.4013         0.3541              0.0471                       4             0.0194                 0.4001              0.3553              0.0471    0.0225     0.0733             0.0002                    10             12             0.016         True
+cross_condition  2  trend 0.30       False            0.4013         0.2939              0.1074                       4             0.0524                 0.4001              0.2779              0.1074    0.0477     0.1652             0.0004                    10             12             0.016         True
+cross_condition  3  trend 0.10       False            0.4013         0.2719              0.1294                       4             0.0469                 0.4001              0.2491              0.1294    0.0547     0.1994             0.0004                     9             12             0.016         True
+cross_condition  5  trend 0.10       False            0.4013         0.2493              0.1519                       4             0.0540                 0.4001              0.2318              0.1519    0.0733     0.2307             0.0002                    10             12             0.016         True
+cross_condition 10  trend 0.03       False            0.4013         0.2395              0.1618                       4             0.0595                 0.4001              0.2229              0.1618    0.0837     0.2435             0.0002                    10             12             0.016         True
+        foreign  1 affine 3.00        True            0.6428         0.6046              0.0382                       4             0.0137                 0.6590              0.6113              0.0382    0.0117     0.0618             0.0032                    24             32               NaN        False
+        foreign  2  trend 1.00        True            0.6428         0.5593              0.0836                       4             0.0209                 0.6590              0.5422              0.0836    0.0297     0.1328             0.0018                    25             32               NaN        False
+        foreign  3  trend 1.00        True            0.6428         0.5458              0.0970                       4             0.0174                 0.6590              0.5216              0.0970    0.0335     0.1527             0.0004                    25             32               NaN        False
+        foreign  5  trend 1.00        True            0.6428         0.5396              0.1032                       4             0.0161                 0.6590              0.5166              0.1032    0.0398     0.1613             0.0004                    25             32               NaN        False
+        foreign 10  trend 1.00        True            0.6428         0.5358              0.1070                       4             0.0177                 0.6590              0.5146              0.1070    0.0450     0.1618             0.0008                    25             32               NaN        False
+         random  1 affine 1.00       False            0.6483         0.5325              0.1159                       4             0.0065                 0.6590              0.5751              0.1212    0.0813     0.1657             0.0002                    25             32             0.016         True
+         random  2  trend 0.10       False            0.6483         0.3693              0.2790                       4             0.0273                 0.6590              0.4300              0.2403    0.1375     0.3420             0.0002                    26             32             0.016         True
+         random  3  trend 0.10       False            0.6483         0.3231              0.3252                       4             0.0199                 0.6590              0.3856              0.2822    0.1683     0.3972             0.0002                    27             32             0.016         True
+         random  5  trend 0.03       False            0.6483         0.2988              0.3496                       4             0.0135                 0.6590              0.3584              0.3062    0.1920     0.4236             0.0002                    27             32             0.016         True
+         random 10  trend 0.03       False            0.6483         0.2812              0.3671                       4             0.0111                 0.6590              0.3327              0.3326    0.2290     0.4438             0.0002                    27             32             0.016         True
+         widest  1 affine 3.00       False            0.5845         0.4045              0.1800                       4             0.0029                 0.6235              0.4851              0.1800    0.1133     0.2554             0.0002                    22             27             0.016         True
+         widest  2  trend 0.03       False            0.5845         0.3380              0.2465                       4             0.0008                 0.6235              0.4970              0.2465    0.1431     0.3573             0.0002                    22             27             0.016         True
+         widest  3  trend 0.03       False            0.5845         0.3363              0.2482                       4             0.0006                 0.6235              0.4952              0.2482    0.1498     0.3653             0.0002                    22             27             0.016         True
+         widest  5  trend 0.03       False            0.5845         0.3262              0.2582                       4             0.0003                 0.6235              0.4864              0.2582    0.1588     0.3709             0.0002                    24             27             0.016         True
+         widest 10  trend 0.30       False            0.5845         0.3180              0.2665                       4             0.0001                 0.6235              0.4875              0.2665    0.1742     0.3639             0.0002                    24             27             0.016         True
