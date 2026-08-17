@@ -130,7 +130,7 @@ comparison to the pair model's SF numbers.
 
 Local smoke: `.venv/bin/python scripts/run_gen5_levels.py --quick` (~3 min).
 Full run ≈ 1.5 h on 8 CPUs (18 arms + 6 learner variants + 4 twins × 4 regimes × 25 folds;
-HGB is the slow part). SLURM defaults 24 G / 6 h:
+HGB is the slow part). SLURM defaults 8 G / 3 h (quick-run peak RSS 2.5 GB; full run est. 5–6 GB):
 
 ```bash
 DRY_RUN=0 slurm/submit_gen5_levels.sh
