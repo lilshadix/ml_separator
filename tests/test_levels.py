@@ -480,3 +480,41 @@ def test_within_ligand_r2_separates_deployable_from_shape():
     row2 = over2.iloc[0]
     assert row2["within_ligand_r2_shape"] == pytest.approx(0.0, abs=1e-12)
     assert row2["within_ligand_r2"] < 0.0
+
+
+def test_mass_action_block_is_built_and_is_the_log_of_the_raw_column():
+    """The block must be additive (raw COND untouched), log10 of positive values,
+    NaN where the raw value is missing or non-positive, and carry the n*log[L] product."""
+    import numpy as np
+    from lanthanide_separation.levels import _attach_mass_action
+
+    frame = pd.DataFrame({
+        "cond__acid_concentration_M": [1.0, 0.1, np.nan, 3.0],
+        "cond__extractant_concentration_M": [0.1, 0.01, 1.0, 0.0],
+        "cond__temperature_C": [25.0, 25.0, 25.0, 25.0],
+        "DENTATE": [3.0, 3.0, 2.0, 2.0],
+        "coreCN": [9.0, 9.0, 8.0, 8.0],
+    })
+    out = _attach_mass_action(frame)
+    # raw columns unchanged
+    for c in frame.columns:
+        assert out[c].equals(frame[c])
+    la = out["massact__log10_cond__acid_concentration_M"].to_numpy()
+    ll = out["massact__log10_cond__extractant_concentration_M"].to_numpy()
+    assert la[0] == pytest.approx(0.0) and la[1] == pytest.approx(-1.0) and np.isnan(la[2])
+    assert ll[0] == pytest.approx(-1.0) and ll[1] == pytest.approx(-2.0)
+    assert np.isnan(ll[3])                                   # log of 0 is not a number
+    assert out["massact__logL_x_DENTATE"].iloc[0] == pytest.approx(-3.0)   # 3 * log10(0.1)
+    assert out["massact__logL_x_coreCN"].iloc[1] == pytest.approx(-18.0)  # 9 * log10(0.01)
+    assert out["massact__logL_x_logH"].iloc[1] == pytest.approx(2.0)      # (-2) * (-1)
+
+
+def test_mass_action_arms_and_block_are_registered():
+    from lanthanide_separation.levels import LEVEL_ARMS, LEVEL_BLOCK_PREFIXES
+    assert LEVEL_BLOCK_PREFIXES["MASSACTION"] == ("massact__",)
+    for arm in ("MC_massaction", "MC_ecfp_massaction", "MC_lig2d_ext_massaction",
+                "MC_all2d_massaction", "MC_everything_massaction"):
+        assert "MASSACTION" in LEVEL_ARMS[arm]
+        # every mass-action arm is its base arm plus the block, nothing else
+        base = LEVEL_ARMS[arm.replace("_massaction", "")]
+        assert LEVEL_ARMS[arm] == base + ("MASSACTION",)

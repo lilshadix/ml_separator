@@ -370,6 +370,99 @@ below Tanimoto 0.4 from their nearest neighbour.** No amount of re-splitting fix
 
 ---
 
+## 9a. One change that improves the target metric: encode the mass-action law
+
+**Post-hoc, not pre-registered — exploratory.** Added 2026-08-18, checked on this cohort before
+use, evaluated with the full harness (5 seeds × 5 folds, 400 trees, four regimes, paired block
+bootstrap 5,000 replicates, shuffle twin).
+
+### The chemistry
+
+For a neutral extractant L pulling Ln(III) out of a nitrate medium:
+
+```
+Ln³⁺ + 3 NO₃⁻ + n L(org)  ⇌  Ln(NO₃)₃·Lₙ(org)          log D = log K_ex + n·log[L] + 3·log[NO₃⁻]
+```
+
+The target is **linear in the logarithms** of the two concentrations that are actually varied;
+`n` is the solvation number (2–4 for most extractants), `log K_ex` a per-ligand offset. The raw
+`cond__*` columns feed the tree molarity spanning **4–9 orders of magnitude** (acid 2.6×10⁻⁷ – 9 M,
+metal 10⁻⁶ – 2,180 mM), so an axis-aligned tree approximates a logarithm with a staircase of
+splits — which is what produces the shrunken predictions and unreachable tails.
+
+**The law was tested on the data before being used.** On the 15 metal-series with a clean
+extractant titration, the slope of log D vs log[L] is **2.64, IQR [2.36, 2.88]** — 100 % inside the
+admissible 1.5–4.5, median linear R² **0.985**. The acid slope is 1.93 over 146 series. It holds.
+
+### The block
+
+`MASSACTION`, 8 columns: `log10` of the five continuous conditions, plus the products the law asks
+for — `log[L]·DENTATE`, `log[L]·coreCN` (a tree cannot form a product from its factors) and
+`log[L]·log[H⁺]`. Additive: raw `COND` stays, so the contribution is a clean ablation.
+
+### The result — macro MAE, gain = MAE(without) − MAE(with)
+
+| regime | added to | without | with | gain | CI95 | seeds |
+|---|---|---|---|---|---|---|
+| **unseen_conditions** | MC | 1.0252 | 0.9666 | **+0.0585** | [+0.020, +0.099] | 5/5 |
+| | MC_ecfp | 0.7992 | 0.7373 | **+0.0619** | [+0.032, +0.092] | 5/5 |
+| | MC_lig2d_ext | 0.7875 | **0.7295** | **+0.0580** | [+0.032, +0.086] | 5/5 |
+| | MC_all2d | 0.7936 | 0.7337 | **+0.0600** | [+0.032, +0.089] | 5/5 |
+| **unseen_series** | MC | 0.9236 | 0.8796 | +0.0440 | [−0.004, +0.092] | 5/5 |
+| | MC_ecfp | 0.8394 | 0.8027 | **+0.0367** | [+0.017, +0.057] | 5/5 |
+| | MC_lig2d_ext | 0.8218 | **0.7939** | **+0.0278** | [+0.010, +0.047] | 5/5 |
+| | MC_all2d | 0.8366 | 0.8067 | **+0.0299** | [+0.011, +0.050] | 5/5 |
+| **unseen_ligand** | MC | 0.9589 | 0.9142 | **+0.0447** | [+0.011, +0.083] | 5/5 |
+| | MC_ecfp | 0.9106 | 0.8748 | **+0.0358** | [+0.011, +0.064] | 5/5 |
+| | MC_lig2d_ext | 0.8358 | **0.8079** | **+0.0279** | [+0.010, +0.047] | 5/5 |
+| | MC_all2d | 0.8748 | 0.8456 | **+0.0292** | [+0.009, +0.050] | 5/5 |
+| unseen_chemotype | MC | 1.1459 | 1.1303 | +0.0157 | [−0.023, +0.055] | 4/5 |
+| | MC_lig2d_ext | 1.0363 | 1.0328 | +0.0035 | [−0.017, +0.027] | 3/5 |
+
+**11 of 12 contrasts have CI95 entirely above zero, and every one is 5/5 seeds** in the three
+regimes where the ligand or a homologue is known. Under `unseen_chemotype` the effect is nil — as
+it should be: the law is about *conditions*, not about the *chemistry of a new scaffold*.
+
+**New champion in all four regimes: `MC_lig2d_ext_massaction`.** Full metrics:
+
+| regime | macro MAE | pooled MAE | pooled R² | within-lig R² | dispersion | ±0.5 | ±1.0 |
+|---|---|---|---|---|---|---|---|
+| unseen_conditions | **0.7295** (was 0.7649) | 0.4973 | **0.7775** | 0.5801 | 0.888 | **66.5 %** | 85.9 % |
+| unseen_series | **0.7939** | 0.8556 | 0.5151 | 0.0846 | 0.724 | 41.3 % | 67.7 % |
+| unseen_ligand | **0.8079** (was 0.8358) | 0.9749 | 0.4253 | −0.085 | 0.634 | 34.5 % | 59.4 % |
+| unseen_chemotype | 1.0328 | 1.1280 | 0.2583 | −0.400 | 0.598 | 27.8 % | 52.9 % |
+
+### Where the gain lands — exactly where the chemistry says
+
+MAE by true log D bin, `unseen_conditions`, `MC_lig2d_ext` → `+massaction`:
+
+| true log D | n | without | with | gain |
+|---|---|---|---|---|
+| < −3 | 178 | 0.672 | 0.598 | +0.074 |
+| −3 … −2 | 273 | 1.163 | 1.040 | +0.123 |
+| −2 … −1 | 527 | 0.707 | 0.573 | +0.134 |
+| 0 … 1 | 1,224 | 0.450 | 0.396 | +0.054 |
+| 1 … 2 | 944 | 0.539 | 0.445 | +0.094 |
+| **> 2** | 816 | 0.624 | **0.467** | **+0.158** |
+
+The largest gain is at strong extraction (log D > 2) and at weak (−3…−2) — the two tails that
+sit furthest from a titration's mid-point and that a staircase reaches last. Recall of "log D > 2"
+rose **54.7 % → 66.8 %** (`unseen_conditions`) and 10.3 % → 15.9 % (`unseen_ligand`).
+
+### The control
+
+`MC_massaction_SHUF` (block permuted in training) falls back to `MC` or below in every regime
+(`unseen_ligand`: MC 0.9589, +massaction 0.9142, SHUF 1.0138). The signal is carried by the
+logarithms, not by column count.
+
+### What it does not do
+
+It does not help genuinely new chemistry (`unseen_chemotype` gain ≈ 0), and it does not lift the
+new-ligand within-ligand R² above zero (−0.085). Those are ligand-representation problems, and the
+answer to them is §10, not another feature.
+
+---
+
 ## 10. The cohort filter is where the chemistry was lost
 
 `min_rows_per_extractant = 10` keeps 91 of the 190 extractants in the source table. The 99 dropped

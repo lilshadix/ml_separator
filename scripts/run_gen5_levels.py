@@ -75,13 +75,15 @@ LIGAND_REGIMES = ("unseen_chemotype", "unseen_ligand")
 #: is defined against a specific reference, and a CI exists only for the pairs
 #: that were actually resampled:  H1 -> MC;  H4 -> MC_all2d;  H3/leaderboard -> MC_ecfp;
 #: the conditions-family row -> A_metal.
-BOOTSTRAP_REFERENCES: tuple[str, ...] = (LEVEL_BASELINE_ARM, "MC", "MC_all2d", "A_metal")
+BOOTSTRAP_REFERENCES: tuple[str, ...] = (LEVEL_BASELINE_ARM, "MC", "MC_all2d", "A_metal",
+                                         "MC_lig2d_ext")
 #: Blocks whose shuffled twin is worth running: if an arm keeps its advantage
 #: after its own block is permuted, the block was never carrying signal.
 SHUFFLE_ARMS = {"MC_ecfp_SHUF": ("MC_ecfp", "ECFP"),
                 "MC_lig2d_ext_SHUF": ("MC_lig2d_ext", "LIG2D_EXT"),
                 "MC_donors_SHUF": ("MC_donors", "DONORS"),
-                "MC_cond_SHUF": ("MC", "COND")}
+                "MC_cond_SHUF": ("MC", "COND"),
+                "MC_massaction_SHUF": ("MC_massaction", "MASSACTION")}
 
 
 def parse_args(argv=None) -> argparse.Namespace:
@@ -598,6 +600,10 @@ def main(argv=None) -> int:
                 ("complex_phys", "A_complex_phys", "MC", "MC_complex_phys"),
                 ("polyhedron", "A_polyhedron", "MC", "MC_polyhedron"),
                 ("cond (added to metal)", "A_cond", "A_metal", "MC"),
+                ("massaction (log-conc law)", None, "MC", "MC_massaction"),
+                ("massaction on ecfp", None, "MC_ecfp", "MC_ecfp_massaction"),
+                ("massaction on lig2d_ext", None, "MC_lig2d_ext", "MC_lig2d_ext_massaction"),
+                ("massaction on all2d", None, "MC_all2d", "MC_all2d_massaction"),
                 ("all2d", None, "MC", "MC_all2d"), ("all3d", None, "MC", "MC_all3d"),
                 ("everything", None, "MC", "MC_everything"),
                 ("all3d vs all2d", None, "MC_all2d", "MC_all3d"),

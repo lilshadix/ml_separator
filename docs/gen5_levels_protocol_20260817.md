@@ -164,6 +164,37 @@ Outputs under `runs/gen5_levels_<stamp>/`: `oof_predictions.csv` (with `nn_train
 `leaderboard.csv`, `property_families.csv`, `per_seed_metrics.csv`, `per_cluster_metrics.csv`,
 `paired_bootstrap.csv`, `kshot_levels.csv`, `decision_report.txt`, `summary.json`.
 
+## 6a. Post-hoc addition (2026-08-18, NOT pre-registered): the mass-action block
+
+Added after the first run, so this is **exploratory** and every number from it must be labelled
+so. The idea is chemistry, not tuning. For a neutral extractant L pulling Ln(III) out of a
+nitrate medium,
+
+```
+Ln³⁺ + 3 NO₃⁻ + n L(org)  ⇌  Ln(NO₃)₃·Lₙ(org)        log D = log K_ex + n·log[L] + 3·log[NO₃⁻]
+```
+
+— **linear in the logarithms** of the concentrations that are actually varied. The raw `cond__*`
+columns carry molarity spanning 4–9 orders of magnitude, so a tree has to approximate a
+logarithm with a staircase of axis splits, which is exactly what produces the shrunken predictions
+and unreachable tails seen in the first run.
+
+The law was **checked on this cohort before being used**: on the 15 metal-series with a clean
+extractant titration, the slope of log D vs log[L] is **2.64, IQR [2.36, 2.88]** — 100 % inside
+the chemically admissible 1.5–4.5 (it is the solvation number) — with median linear R² 0.985; the
+acid slope is 1.93 over 146 series.
+
+Block `MASSACTION` (8 columns, prefix `massact__`): `log10` of the five continuous conditions,
+plus the products the law asks for — `log[L]·DENTATE`, `log[L]·coreCN` (a tree cannot form a
+product from its factors), and `log[L]·log[H⁺]`. It is **additive**: raw `COND` stays, so the
+contribution is a clean ablation. Arms `MC_massaction`, `MC_ecfp_massaction`,
+`MC_lig2d_ext_massaction`, `MC_all2d_massaction`, `MC_everything_massaction`; shuffle twin
+`MC_massaction_SHUF`; the family table carries one row per pairing with CI and per-seed count.
+
+Pilot (3 seeds, 300 trees, before it was wired in): every one of the 18 (seed × arm × regime)
+comparisons improved; macro MAE −0.031 to −0.069. See the results doc for the full-harness
+numbers.
+
 ## 7. Follow-ups this unlocks (not part of this run)
 
 * **Expanded pair cohort.** Dropping "all 64 conditions recorded" takes the pair cohort from

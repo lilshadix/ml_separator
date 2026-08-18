@@ -75,6 +75,7 @@ LEVEL_BLOCK_PREFIXES: Mapping[str, tuple[str, ...]] = {
     "COMPLEX_PHYS": ("feat3d__complex_physical__",),      # xTB binding energy, dipole, donor charges
     "POLYHEDRON": ("feat3d__polyhedron",),                # coordination-polyhedron geometry
     "GEOM_COND": ("geom_cond__",),                        # geometry-environment condition bins
+    "MASSACTION": ("massact__",),                         # log-concentrations + n*log[L] (mass-action law)
 }
 LEVEL_METAL_COLUMNS: tuple[str, ...] = ("Atomic Number_metal", "lanthanide_index", "Ionic Radius_metal")
 LEVEL_LIGAND_SCALAR_COLUMNS: tuple[str, ...] = (
@@ -115,10 +116,16 @@ LEVEL_ARMS: Mapping[str, tuple[str, ...]] = {
     "MC_complex_phys": ("METAL", "COND", "COMPLEX_PHYS"),
     "MC_polyhedron": ("METAL", "COND", "POLYHEDRON"),
     # C. combinations
+    "MC_massaction": ("METAL", "COND", "MASSACTION"),
+    "MC_ecfp_massaction": ("METAL", "COND", "ECFP", "MASSACTION"),
+    "MC_lig2d_ext_massaction": ("METAL", "COND", "LIG2D_EXT", "MASSACTION"),
     "MC_all2d": ("METAL", "COND", "PHYSCHEM", "ECFP", "LIG2D_EXT", "DONORS"),
+    "MC_all2d_massaction": ("METAL", "COND", "PHYSCHEM", "ECFP", "LIG2D_EXT", "DONORS", "MASSACTION"),
     "MC_all3d": ("METAL", "COND", "COMPLEX_PHYS", "POLYHEDRON", "GEOM_COND"),
     "MC_everything": ("METAL", "COND", "PHYSCHEM", "ECFP", "LIG2D_EXT", "DONORS",
                       "COMPLEX_PHYS", "POLYHEDRON", "GEOM_COND"),
+    "MC_everything_massaction": ("METAL", "COND", "PHYSCHEM", "ECFP", "LIG2D_EXT", "DONORS",
+                                 "COMPLEX_PHYS", "POLYHEDRON", "GEOM_COND", "MASSACTION"),
     # legacy names used by the first gen5 draft (kept so old commands still run)
     "L0_metal": ("METAL",),
     "L1_metal_cond": ("METAL", "COND"),
@@ -289,6 +296,66 @@ def _attach_donor_census(frame: pd.DataFrame) -> pd.DataFrame:
     return pd.concat([frame, census_frame], axis=1)
 
 
+def _attach_mass_action(frame: pd.DataFrame) -> pd.DataFrame:
+    """Encode the solvent-extraction mass-action law as features.
+
+    For a neutral extractant ``L`` pulling ``Ln(III)`` out of a nitrate medium the
+    extraction equilibrium is
+
+        Ln(3+) + 3 NO3(-) + n L(org)  <->  Ln(NO3)3 . Ln(org)
+
+    whose mass-action expression is **linear in the LOGARITHM** of the two
+    concentrations that are actually varied:
+
+        log D = log K_ex + n log[L] + 3 log[NO3-]
+
+    ``n`` is the solvation number (2-4 for most extractants) and ``log K_ex`` is a
+    per-ligand offset.  Fitted on this cohort where an extractant titration exists
+    (15 metal-series with a clean fit) the measured slope is 2.64, IQR
+    [2.36, 2.88], 100 % inside the chemically admissible 1.5-4.5, median linear
+    R2 0.985; the acid slope is 1.93 over 146 series.  The law holds here.
+
+    The raw ``cond__*`` columns carry molarity, spanning 4-9 orders of magnitude,
+    so an axis-aligned tree has to approximate a logarithm with a staircase of
+    splits — which is exactly what produces the shrunken predictions and the
+    unreachable tails seen in gen5 (dispersion 0.605 on a new ligand).  Supplying
+    the logarithms, and the ``n log[L]`` product the law asks for, lets one split
+    do what many were doing badly.
+
+    The block never replaces the raw columns; it is additive, so ``COND``-only
+    arms stay exactly as they were and the contribution is measurable as an
+    ablation.
+    """
+    out = frame
+    new: dict[str, np.ndarray] = {}
+    logs: dict[str, pd.Series] = {}
+    for col in CONTINUOUS_CONDITION_COLUMNS:
+        if col not in out.columns:
+            continue
+        values = pd.to_numeric(out[col], errors="coerce")
+        positive = values.where(values > 0)
+        if positive.notna().sum() == 0:
+            continue
+        series = np.log10(positive)
+        logs[col] = series
+        new[f"massact__log10_{col}"] = series.to_numpy(dtype=float)
+    log_l = logs.get("cond__extractant_concentration_M")
+    log_h = logs.get("cond__acid_concentration_M")
+    # n * log[L]: the solvation number multiplies the extractant term, and n tracks
+    # the ligand's denticity / the metal's coordination number.  Trees cannot form a
+    # product from its factors, so hand it over directly.
+    if log_l is not None:
+        for col in ("DENTATE", "coreCN"):
+            if col in out.columns:
+                new[f"massact__logL_x_{col}"] = (
+                    log_l * pd.to_numeric(out[col], errors="coerce")).to_numpy(dtype=float)
+        if log_h is not None:
+            new["massact__logL_x_logH"] = (log_l * log_h).to_numpy(dtype=float)
+    if not new:
+        return out
+    return out.assign(**new)
+
+
 def build_level_dataset(
     source: pd.DataFrame,
     *,
@@ -357,6 +424,7 @@ def build_level_dataset(
         audit["ligand_descriptor_coverage"] = float(
             frame[[c for c in desc.columns if c.startswith("lig2d__")][:1]].notna().mean().iloc[0]) if desc.shape[1] > 1 else 0.0
     frame = _attach_donor_census(frame)
+    frame = _attach_mass_action(frame)
 
     # Eligibility counts unique (condition, metal) cells, not raw replicate rows,
     # so a ligand measured 8× at one point does not enter as an 8-row cluster.
