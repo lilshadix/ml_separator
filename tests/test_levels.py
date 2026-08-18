@@ -387,3 +387,96 @@ def test_drop_all_nan_columns_is_a_noop_without_empty_columns():
     out = DropAllNaNColumns().fit_transform(x)
     assert out.shape == (50, 3)
     assert np.isnan(out).sum() == 10
+
+
+def test_bootstrap_ci_does_not_depend_on_comparison_order():
+    """One shared index matrix, so a pair's CI is not a function of its position."""
+    import numpy as np
+    from lanthanide_separation.levels import paired_group_bootstrap
+
+    rng = np.random.default_rng(3)
+    n = 240
+    frame = pd.DataFrame({
+        "ecfp_cluster": np.repeat([f"c{i}" for i in range(12)], n // 12),
+        "log_D": rng.normal(size=n),
+    })
+    for arm in ("A", "B", "C"):
+        frame[f"prediction_{arm}"] = frame["log_D"] + rng.normal(scale=0.5, size=n)
+    comps = {"ab": ("A", "B"), "ac": ("A", "C"), "bc": ("B", "C")}
+    first = paired_group_bootstrap(frame, comps, replicates=500).set_index("comparison")
+    reordered = {k: comps[k] for k in ("bc", "ac", "ab")}
+    second = paired_group_bootstrap(frame, reordered, replicates=500).set_index("comparison")
+    for key in comps:
+        assert first.loc[key, "ci95_low"] == pytest.approx(second.loc[key, "ci95_low"])
+        assert first.loc[key, "ci95_high"] == pytest.approx(second.loc[key, "ci95_high"])
+
+
+def test_bootstrap_resamples_the_held_out_block_and_keeps_the_point_estimate():
+    """Scoring stays per ECFP cluster; resampling follows the coarser held-out unit."""
+    import numpy as np
+    from lanthanide_separation.levels import paired_group_bootstrap
+
+    rng = np.random.default_rng(4)
+    n = 480
+    clusters = np.repeat([f"c{i}" for i in range(24)], n // 24)
+    frame = pd.DataFrame({
+        "ecfp_cluster": clusters,
+        # every 3 ECFP clusters nest inside one super-cluster
+        "tanimoto_cluster": [f"t{int(c[1:]) // 3}" for c in clusters],
+        "log_D": rng.normal(size=n),
+    })
+    frame["prediction_A"] = frame["log_D"] + rng.normal(scale=0.6, size=n)
+    frame["prediction_B"] = frame["log_D"] + rng.normal(scale=0.5, size=n)
+    comps = {"ab": ("A", "B")}
+    fine = paired_group_bootstrap(frame, comps, replicates=800).iloc[0]
+    coarse = paired_group_bootstrap(frame, comps, resample_column="tanimoto_cluster",
+                                    replicates=800).iloc[0]
+    assert fine["point_delta_mae"] == pytest.approx(coarse["point_delta_mae"])
+    assert coarse["bootstrap_blocks"] == 8 and fine["bootstrap_blocks"] == 24
+    # fewer independent units must not give a tighter interval
+    assert (coarse["ci95_high"] - coarse["ci95_low"]) > (fine["ci95_high"] - fine["ci95_low"])
+
+
+def test_bootstrap_rejects_a_scoring_group_that_straddles_two_blocks():
+    import numpy as np
+    from lanthanide_separation.levels import paired_group_bootstrap
+
+    frame = pd.DataFrame({
+        "ecfp_cluster": ["a", "a", "b", "b"],
+        "series_id": ["s1", "s2", "s1", "s2"],   # cuts across the cluster
+        "log_D": [0.0, 1.0, 2.0, 3.0],
+        "prediction_A": [0.1, 1.1, 2.1, 3.1],
+        "prediction_B": [0.2, 1.2, 2.2, 3.2],
+    })
+    with pytest.raises(ValueError, match="must nest inside"):
+        paired_group_bootstrap(frame, {"ab": ("A", "B")}, resample_column="series_id", replicates=10)
+
+
+def test_within_ligand_r2_separates_deployable_from_shape():
+    """Both are 0 for the ORACLE per-ligand mean; the deployable one goes negative
+    as soon as the offset is anything the model did not get for free — which is the
+    real deployment case, where only a training mean is available."""
+    import numpy as np
+    from lanthanide_separation.levels import level_metric_table
+
+    rng = np.random.default_rng(5)
+    ext = np.repeat(["e1", "e2", "e3"], 40)
+    offsets = {"e1": -2.0, "e2": 0.0, "e3": 3.0}
+    y = np.array([offsets[e] for e in ext]) + rng.normal(size=len(ext))
+    oracle = pd.Series(y).groupby(ext).transform("mean").to_numpy()
+
+    base = {"extractant": ext, "ecfp_cluster": ext, "log_D": y}
+    over, _ = level_metric_table(
+        pd.DataFrame({**base, "prediction_MC_ecfp": oracle}), ["MC_ecfp"], baseline_arm="MC_ecfp")
+    row = over.iloc[0]
+    # the oracle offset is exactly what the shape metric hands out for free
+    assert row["within_ligand_r2_shape"] == pytest.approx(0.0, abs=1e-12)
+    assert row["within_ligand_r2"] == pytest.approx(0.0, abs=1e-12)
+
+    # a per-ligand constant that is NOT the held-out mean (i.e. a training mean)
+    drifted = oracle + np.array([0.4 if e == "e1" else -0.3 for e in ext])
+    over2, _ = level_metric_table(
+        pd.DataFrame({**base, "prediction_MC_ecfp": drifted}), ["MC_ecfp"], baseline_arm="MC_ecfp")
+    row2 = over2.iloc[0]
+    assert row2["within_ligand_r2_shape"] == pytest.approx(0.0, abs=1e-12)
+    assert row2["within_ligand_r2"] < 0.0

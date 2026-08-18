@@ -362,9 +362,18 @@ def build_level_dataset(
     # so a ligand measured 8× at one point does not enter as an 8-row cluster.
     counts = frame.drop_duplicates(["extractant", "condition_id", "metal_symbol"]).groupby("extractant").size()
     keep = counts[counts >= int(min_rows_per_extractant)].index
+    n_ext_before = int(counts.size)
+    cells_before = int(counts.sum())
     frame = frame[frame["extractant"].isin(keep)]
     audit["min_rows_per_extractant"] = int(min_rows_per_extractant)
     audit["after_min_rows"] = int(len(frame))
+    # Recorded because this filter is where chemical diversity is lost: the rarely
+    # measured extractants are disproportionately the unusual chemotypes.
+    audit["extractants_dropped_by_min_rows"] = n_ext_before - int(len(keep))
+    # In CELLS (unique extractant x condition x metal), the same unit the filter uses
+    # and the same unit the final cohort is counted in -- not raw replicate rows.
+    audit["cells_dropped_by_min_rows"] = cells_before - int(counts[keep].sum())
+    audit["extractants_before_min_rows"] = n_ext_before
 
     cell = ["extractant", "condition_id", "metal_symbol"]
     if replicate_policy == "all":
@@ -434,6 +443,9 @@ def build_level_dataset(
         "block_sizes": {k: len(v) for k, v in blocks.items()},
         "target_sd": float(frame[LEVEL_TARGET_COLUMN].std()),
         "replicated_cells": int((frame["n_replicates"] > 1).sum()),
+        "largest_extractant_share": float(frame["extractant"].value_counts(normalize=True).iloc[0]),
+        "largest_ecfp_cluster_share": float(frame["ecfp_cluster"].value_counts(normalize=True).iloc[0]),
+        "largest_tanimoto_cluster_share": float(frame["tanimoto_cluster"].value_counts(normalize=True).iloc[0]),
     })
     return LevelData(frame=frame, blocks=blocks, audit=audit)
 
@@ -665,9 +677,22 @@ def level_metric_table(
     Returns ``(overall, per_group)``.  ``macro`` weights each ligand cluster
     equally; ``pooled`` is row-weighted and therefore dominated by the largest
     ligand — both are reported because they can disagree.  ``pooled_r2`` mostly
-    measures *between*-ligand ranking (ligand identity is 44 % of variance);
-    ``within_ligand_r2`` is the variance explained *inside* each ligand, which is
-    what a chemist choosing conditions for a known ligand actually needs.
+    measures *between*-ligand ranking (ligand identity is 44 % of variance).
+
+    Two within-ligand R² are reported, and they answer different questions:
+
+    * ``within_ligand_r2`` — **deployable**: ``1 - SSE / SST_within`` where SSE is
+      the raw squared error and SST_within is the variance of the truth around
+      each ligand's own mean.  Positive means the model beats "predict this
+      ligand's mean" without being told that mean.  This is what a chemist
+      choosing conditions for a *new* ligand gets.
+    * ``within_ligand_r2_shape`` — **oracle-offset**: both prediction and truth
+      are centred on their own per-ligand means first.  It scores only the shape
+      of the condition response and grants the model a free per-ligand offset it
+      does not have at deployment.  A constant-per-ligand predictor scores 0
+      here and negative on the deployable version.  Report both; never call the
+      shape one "within-ligand R²" on its own.
+
     Rows with a missing prediction raise — silent partial scoring is a bug.
     """
     arms = list(arms)
@@ -695,18 +720,23 @@ def level_metric_table(
         sse = float(((p - y) ** 2).sum())
         sst = float(((y - y.mean()) ** 2).sum())
         within = np.nan
+        within_shape = np.nan
         if ext is not None:
-            # centre y and p on their per-extractant means; R2 of the residuals
             d = pd.DataFrame({"e": ext, "y": y, "p": p})
             yc = d["y"] - d.groupby("e")["y"].transform("mean")
-            pc = d["p"] - d.groupby("e")["p"].transform("mean")
             sst_w = float((yc ** 2).sum())
-            within = 1.0 - float(((yc - pc) ** 2).sum()) / sst_w if sst_w > 0 else np.nan
+            if sst_w > 0:
+                # deployable: raw error against the within-ligand variance — no free offset
+                within = 1.0 - sse / sst_w
+                # shape-only: both sides centred on their own per-ligand means (oracle offset)
+                pc = d["p"] - d.groupby("e")["p"].transform("mean")
+                within_shape = 1.0 - float(((yc - pc) ** 2).sum()) / sst_w
         overall.append({
             "arm": arm, "n_rows": int(len(y)), "n_groups": int(sub["group"].nunique()),
             "macro_mae": macro, "pooled_mae": float(err.mean()),
             "pooled_r2": 1.0 - sse / sst if sst > 0 else np.nan,
             "within_ligand_r2": within,
+            "within_ligand_r2_shape": within_shape,
             "pooled_rmse": float(np.sqrt(np.mean((p - y) ** 2))),
             "prediction_dispersion_ratio": float(np.std(p) / np.std(y)) if np.std(y) > 0 else np.nan,
             "median_abs_error": float(np.median(err)),
@@ -729,29 +759,67 @@ def paired_group_bootstrap(
     comparisons: Mapping[str, tuple[str, str]],
     *,
     group_column: str = "ecfp_cluster",
+    resample_column: str | None = None,
     replicates: int = 5000,
     seed: int = 8675309,
 ) -> pd.DataFrame:
-    """Bootstrap the per-group MAE delta over ligand clusters (the cluster is the unit)."""
+    """Bootstrap the per-group MAE delta, resampling whole held-out blocks.
+
+    ``group_column`` defines the *scoring* unit: the point estimate is the mean
+    over those groups of the per-group MAE difference, so it equals the macro
+    delta exactly.  ``resample_column`` defines the *independence* unit that is
+    actually resampled, and it must be the unit the folds held out — otherwise
+    the interval treats correlated groups as independent and comes out too
+    narrow.  Under ``unseen_chemotype`` the folds hold out Tanimoto super-clusters
+    while the metric is still per ECFP cluster, and resampling ECFP clusters
+    there understates the width by ~1.35x.  Defaults to ``group_column``, which
+    is the right choice whenever the two coincide.
+
+    One index matrix is drawn and shared by every comparison, so the intervals
+    are mutually comparable and do not depend on the order of ``comparisons``
+    (a per-comparison draw off one shared RNG stream made a pair's CI a function
+    of its position in the dict).
+    """
+    resample_column = resample_column or group_column
     y = predictions[LEVEL_TARGET_COLUMN].to_numpy(dtype=float)
     groups = predictions[group_column].astype(str).to_numpy()
     names = np.unique(groups)
-    rows = []
+    idx_by_group = [np.flatnonzero(groups == g) for g in names]
+    # Which resampling block does each scoring group belong to?  A group must sit
+    # in exactly one block for the block bootstrap to be well defined.
+    blocks = predictions[resample_column].astype(str).to_numpy()
+    block_of = []
+    for idx in idx_by_group:
+        b = np.unique(blocks[idx])
+        if b.size != 1:
+            raise ValueError(
+                f"scoring group spans {b.size} {resample_column!r} blocks; "
+                f"{group_column!r} must nest inside {resample_column!r}")
+        block_of.append(b[0])
+    block_of = np.asarray(block_of)
+    block_names = np.unique(block_of)
+    members = [np.flatnonzero(block_of == b) for b in block_names]
+
     rng = np.random.default_rng(seed)
-    idx_by_group = {g: np.flatnonzero(groups == g) for g in names}
+    picks = rng.integers(0, len(block_names), size=(replicates, len(block_names)))
+    # Precompute, per replicate, the scoring-group indices implied by the drawn blocks.
+    take = [np.concatenate([members[j] for j in row]) for row in picks]
+
+    rows = []
     for label, (reference, candidate) in comparisons.items():
         pr = predictions[f"prediction_{reference}"].to_numpy(dtype=float)
         pc = predictions[f"prediction_{candidate}"].to_numpy(dtype=float)
         deltas = np.array([
-            np.abs(pr[i] - y[i]).mean() - np.abs(pc[i] - y[i]).mean() for i in idx_by_group.values()
+            np.abs(pr[i] - y[i]).mean() - np.abs(pc[i] - y[i]).mean() for i in idx_by_group
         ])
-        draws = deltas[rng.integers(0, deltas.size, size=(replicates, deltas.size))].mean(axis=1)
+        draws = np.array([deltas[t].mean() for t in take])
         rows.append({
             "comparison": label, "reference": reference, "candidate": candidate,
             "point_delta_mae": float(deltas.mean()),
             "ci95_low": float(np.quantile(draws, 0.025)), "ci95_high": float(np.quantile(draws, 0.975)),
             "p_worse_one_sided": float((1 + np.sum(draws <= 0)) / (1 + replicates)),
             "groups_improved": int(np.sum(deltas > 0)), "groups_total": int(deltas.size),
-            "bootstrap_unit": group_column, "bootstrap_replicates": int(replicates),
+            "bootstrap_unit": group_column, "bootstrap_resample_unit": resample_column,
+            "bootstrap_blocks": int(len(block_names)), "bootstrap_replicates": int(replicates),
         })
     return pd.DataFrame(rows)

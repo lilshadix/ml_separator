@@ -3,8 +3,8 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
-#SBATCH --mem=8G
-#SBATCH --time=03:00:00
+#SBATCH --mem=16G
+#SBATCH --time=08:00:00
 #SBATCH --output=slurm-%x-%j.out
 #SBATCH --error=slurm-%x-%j.err
 
@@ -23,7 +23,7 @@ PROJECT_DIR=${PROJECT_DIR:-${SLURM_SUBMIT_DIR:-}}
 RUN_ROOT=${RUN_ROOT:-}
 PYTHON_BIN=${PYTHON_BIN:-$PROJECT_DIR/.venv/bin/python}
 ARMS=${ARMS:-A_metal A_cond A_physchem A_ecfp A_lig2d_ext A_donors A_complex_phys A_polyhedron MC MC_physchem MC_ecfp MC_lig2d_ext MC_donors MC_complex_phys MC_polyhedron MC_all2d MC_all3d MC_everything}
-REGIMES=${REGIMES:-unseen_ligand unseen_conditions}
+REGIMES=${REGIMES:-unseen_chemotype unseen_ligand unseen_series unseen_conditions}
 SPLIT_SEEDS=${SPLIT_SEEDS:-104729 130363 155921 196613 262147}
 FOLDS=${FOLDS:-5}
 N_ESTIMATORS=${N_ESTIMATORS:-400}

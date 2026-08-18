@@ -4,7 +4,7 @@
 #
 #   DRY_RUN=0 slurm/submit_gen5_levels.sh
 #
-# Override ARMS / SPLIT_SEEDS / CPUS / MEMORY / WALLTIME / RUN_TAG as needed.
+# Override ARMS / REGIMES / MIN_ROWS / SPLIT_SEEDS / CPUS / MEMORY / WALLTIME / RUN_TAG as needed.
 
 set -Eeuo pipefail
 umask 027
@@ -17,10 +17,11 @@ DRY_RUN=${DRY_RUN:-1}
 PARTITION=${PARTITION:-campus}
 ACCOUNT=${ACCOUNT:-acf-utk0011}
 CPUS=${CPUS:-8}
-MEMORY=${MEMORY:-8G}
-WALLTIME=${WALLTIME:-03:00:00}
+MEMORY=${MEMORY:-16G}
+WALLTIME=${WALLTIME:-08:00:00}
 ARMS=${ARMS:-A_metal A_cond A_physchem A_ecfp A_lig2d_ext A_donors A_complex_phys A_polyhedron MC MC_physchem MC_ecfp MC_lig2d_ext MC_donors MC_complex_phys MC_polyhedron MC_all2d MC_all3d MC_everything}
-REGIMES=${REGIMES:-unseen_ligand unseen_conditions}
+REGIMES=${REGIMES:-unseen_chemotype unseen_ligand unseen_series unseen_conditions}
+MIN_ROWS=${MIN_ROWS:-10}
 SPLIT_SEEDS=${SPLIT_SEEDS:-104729 130363 155921 196613 262147}
 RUN_TAG=${RUN_TAG:-gen5_levels_$(date -u +%Y%m%dT%H%M%SZ)}
 RUN_ROOT=${RUN_ROOT:-$PROJECT_DIR/runs/$RUN_TAG}
@@ -45,6 +46,7 @@ echo "RUN_ROOT=$RUN_ROOT"
 echo "PARTITION=$PARTITION ACCOUNT=$ACCOUNT cpus=$CPUS mem=$MEMORY time=$WALLTIME"
 echo "ARMS=$ARMS"
 echo "REGIMES=$REGIMES"
+echo "MIN_ROWS=$MIN_ROWS"
 echo "SPLIT_SEEDS=$SPLIT_SEEDS"
 
 if [[ "$DRY_RUN" == 1 ]]; then
@@ -64,7 +66,7 @@ job=$(
     --time="$WALLTIME" \
     --output="$RUN_ROOT/logs/gen5-%j.out" \
     --error="$RUN_ROOT/logs/gen5-%j.err" \
-    --export="ALL,PROJECT_DIR=$PROJECT_DIR,RUN_ROOT=$RUN_ROOT,PYTHON_BIN=$PYTHON_BIN,ARMS=$ARMS,REGIMES=$REGIMES,SPLIT_SEEDS=$SPLIT_SEEDS" \
+    --export="ALL,PROJECT_DIR=$PROJECT_DIR,RUN_ROOT=$RUN_ROOT,PYTHON_BIN=$PYTHON_BIN,ARMS=$ARMS,REGIMES=$REGIMES,MIN_ROWS=$MIN_ROWS,SPLIT_SEEDS=$SPLIT_SEEDS" \
     "$PROJECT_DIR/slurm/gen5_levels.slurm"
 )
 printf '%s\n' "$job" > "$RUN_ROOT/job.id"

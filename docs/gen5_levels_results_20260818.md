@@ -232,10 +232,12 @@ biases it toward heavily measured ligands.
 
 ---
 
-## 7. Defects to fix before the next run
+## 7. Defects found — all fixed 2026-08-18
 
-Ordered by how badly they mislead a reader. None of these change the fitted models — all four are
-in the reporting layer, and the underlying predictions are sound.
+Ordered by how badly they mislead a reader. None of these change the fitted models — all are in
+the reporting layer, and the underlying predictions are sound. **Every item below is now fixed in
+the harness** (see §7a); the numbers quoted here are what the *published* run reports, and are
+what a reader of `runs/gen5_levels_20260817T195411Z/decision_report.txt` still sees.
 
 1. **`within_ligand_r2` is oracle-calibrated** (`levels.py`, metric block). It re-centres the
    prediction on the model's *own per-ligand mean computed from the held-out data*, granting the
@@ -284,6 +286,42 @@ against an observed maximum of +4.21.
 
 ---
 
+## 7a. What was changed in the harness (2026-08-18)
+
+All fixes were verified three ways: unit tests (26 pass), a full four-regime run of the fixed
+script, and an independent four-lens adversarial audit that recomputed every claim.
+
+| # | Fix | Verification |
+|---|---|---|
+| **C1** | **`HGB` crashed on an all-NaN training column**, killing the `unseen_chemotype` run (job 6115512). `DropAllNaNColumns` now drops only columns with no observed value, inside the fold, leaving partial NaN intact. | The fatal fold (seed 130363 / fold 0, train 1,277) now fits. An all-NaN column occurs in exactly **6 of 400** (regime × seed × fold × HGB-arm) combinations, all under `unseen_chemotype`; refitting published folds gives **bit-identical** predictions (max diff 0.0). |
+| **C2** | **`within_ligand_r2` was oracle-calibrated.** Now the deployable `1 − SSE/SST_within`; the old quantity is kept as `within_ligand_r2_shape`. | Old published value == new `_shape` to 0.0 on all 340 rows. `MC_ecfp`/unseen_ligand: **+0.2564 → −0.0938**. |
+| **C3** | **Bootstrap anchored only on `MC_ecfp`.** References are now `MC_ecfp, MC, MC_all2d, A_metal`, so every pre-registered contrast has a CI. | 132 comparisons vs 33. All of H1, H4, the `cond` row and MC-vs-nulls now covered; published `MC_ecfp` rows reproduce to 0.0. |
+| **C4** | **Bootstrap resampled ECFP clusters in every regime**, including `unseen_chemotype` where folds hold out Tanimoto super-clusters — CIs were ~1.35× too narrow. Scoring stays per cluster (so the point estimate is still the macro delta); resampling now follows the held-out block. | Point estimate unchanged (+0.122875 = macro delta exactly); CI width **0.211 → 0.256** on 40 blocks vs 74. H1 still passes: [+0.016, +0.272]. |
+| **C5** | **CI depended on a comparison's position** in the dict (one shared RNG stream). One index matrix is now drawn and shared. | Re-ordering the comparisons changes the CI by exactly **0.0**. |
+| **C6** | **The `cond` family row compared `MC` against `MC`**, printing the study's largest effect as `0.0000`. Each row now names an explicit reference and carries CI95 + per-seed count. | Now **+0.2960 / +0.3342**. Family table: 0 NaN gains, 0 missing CIs, reference match 24/24, `gain == point_delta_mae` to 0.0000. |
+| **C7** | **k-shot `mae_free`/`mae_all` averaged over different draw sets**; the free mask used the `k_max` pool at every k. Added `mae_series_free` (different measurement series, the transfer number), a matched `none_at_k` baseline, and per-k common-draw aggregation. | k=0 sign inversion gone; within each k all forms share the same draws; masks shrink with k as they must. `series_id` is now **required** rather than silently degrading. |
+| **C8** | Report now names **which regimes ran and which did not**, per-regime fold grouping, min-rows drop counts in cells, the largest *cluster* share (40.8 %, not the 30 % extractant share), that the three nulls collapse under a ligand-held-out regime, and that both within-ligand R² are row-weighted. | Generated report inspected end to end. |
+| **C9** | SLURM ran **two of four regimes** by hard-coded default. All four are now the default in both files; `MIN_ROWS` is plumbed through; walltime 3 h → 8 h, memory 8 G → 16 G. | `bash -n` passes; defaults byte-identical across both files; `DRY_RUN=1 MIN_ROWS=3` prints the override. Measured cost: 4 regimes ≈ **1.9 h**, peak RSS ≈ 1.6 GB. |
+
+Two changes deliberately **preserve** comparability rather than improve on it: the k-shot
+admission gate stays at `n_query ≥ 10` (it is now the `--kshot-min-query` flag), and the primary
+metric stays macro-MAE over ECFP clusters in every regime.
+
+### Known limits that remain
+
+* The k-shot table must be read **across** a k, never **down** it: each k keeps only the draws where
+  a series-free row exists, so `n_draws`/`n_extractants` shrink with k and the k=1 and k=5 rows
+  describe different ligand populations. **46 of 91** admitted extractants have a single measurement
+  series and can never contribute a series-free row at any k. The report now says so.
+* Under `min_rows = 3`, clusters below 8 rows would take **35 %** of the equal-vote macro metric for
+  **7 %** of the rows, the guarded per-cluster R² would cover 41 % of clusters instead of 73 %, and
+  `group_balanced_weights` would hand a 3-row cluster 664× the per-row weight of the 1,992-row one.
+  Measured, the *ranking* is robust to this (Kendall τ 0.957 under subsampling; `MC_lig2d_ext` still
+  wins 96 % of the time) — but the recovered chemistry's difficulty is unmeasured, which is the
+  whole point of recovering it.
+
+---
+
 ## 8. What is usable today
 
 For a chemist choosing conditions for a **known** ligand (`unseen_conditions`, `MC_everything`):
@@ -308,11 +346,17 @@ k-shot closes, and it explains why k-shot works so much better here than on the 
 
 ## 9. Recommended next run
 
-**Run the two missing regimes.** They are pre-registered, they cost nothing extra, and they carry
-four of the seven hypotheses:
+**Run all four regimes.** They are pre-registered, they cost ~1.9 h in total, and the two that
+were skipped carry four of the seven hypotheses. All four are now the default, so:
 
 ```bash
-REGIMES="unseen_chemotype unseen_series" DRY_RUN=0 slurm/submit_gen5_levels.sh
+DRY_RUN=0 slurm/submit_gen5_levels.sh
+```
+
+Then, as a second run, recover the chemistry the cohort filter discarded (see §10):
+
+```bash
+MIN_ROWS=3 RUN_TAG=gen5_levels_minrows3 DRY_RUN=0 slurm/submit_gen5_levels.sh
 ```
 
 Two warnings for `unseen_chemotype`: the largest Tanimoto-0.7 super-cluster is 3,293 rows (67.5 %
@@ -322,11 +366,44 @@ macro metric accordingly. Given §4, expect H1′ to **fail**: the effect H1 cer
 near-neighbour effect, and `unseen_chemotype` is designed to remove exactly that.
 
 The higher-value scientific question is the one §4 raises: **the cohort has only 10 ECFP clusters
-below Tanimoto 0.4 from their nearest neighbour.** No amount of re-splitting fixes that. The
-protocol's own follow-up list (§7) names the expanded pair cohort — dropping the "all 64 conditions
-recorded" requirement takes the pair cohort from 8,195 pairs / 28 clusters to 14,173 / 77 — and the
-same relaxation should be measured for the level cohort. Chemical *diversity*, not more rows of
-diglycolamides, is the binding constraint on everything in §4.
+below Tanimoto 0.4 from their nearest neighbour.** No amount of re-splitting fixes that.
 
-Before either, fix the seven reporting defects in §7 — items 1, 2 and 4 change what the report
-says, not just how it says it.
+---
+
+## 10. The cohort filter is where the chemistry was lost
+
+`min_rows_per_extractant = 10` keeps 91 of the 190 extractants in the source table. The 99 dropped
+carry only **7.9 %** of the cells — but they are not a random 7.9 %:
+
+| | kept (91) | dropped (99) |
+|---|---|---|
+| nearest neighbour among the kept set (Tanimoto, median) | 0.773 | **0.561** |
+| share with nearest neighbour < 0.4 | 7 % | **37 %** |
+| diglycolamides | 41 of 91 — and **74 % of all cells** | 22 of 99 |
+
+**37 of the dropped extractants resemble nothing that was kept** (Tanimoto < 0.4). The current
+cohort has 10 such clusters in total. The filter systematically removed the crown ethers,
+flavonoids, pyrazolyl-pyrazines, dithiophosphinates and furandicarboxamides — precisely the
+chemistry §4 shows the model cannot handle.
+
+Lowering the gate is cheap in rows and enormous in diversity:
+
+| `min_rows` | rows | extractants | ECFP clusters | Tanimoto super-clusters |
+|---|---|---|---|---|
+| 10 (current) | 4,881 | 91 | 74 | 40 |
+| 5 | 5,209 | 140 | 119 | 69 |
+| **3** | **5,248** | **152** | **131** | **79** |
+| 1 | 5,299 | 190 | 164 | 98 |
+
+`min_rows = 3` buys **+77 % ECFP clusters and +97 % super-clusters for +7.5 % rows**, recovering 61
+of the 99 dropped extractants including 25 at Tanimoto < 0.4.
+
+The cost is real and quantified in §7a: small clusters take a large share of the equal-vote macro
+metric, and half of them fall below the per-cluster R² gate. Measured, the arm *ranking* survives
+this (Kendall τ 0.957 under subsampling), so the risk is interpretive rather than fatal — read the
+`min_rows = 3` run as a test of *whether the model generalises*, not as a new leaderboard.
+
+**This is the answer to "how do we improve the model".** Not new arms, not new descriptors, not 3D
+(five studies, zero gain). More chemical classes. And §6 shows the complement: 2–3 measurements on
+a genuinely new ligand already buy +0.2–0.3 log — so measuring a few points on many *different*
+scaffolds beats measuring many points on more diglycolamides.

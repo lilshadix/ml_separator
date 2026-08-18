@@ -5,6 +5,25 @@ Status: **pre-registration**. Written before the full run; only `--quick` smoke 
 commit that adds this file. The harness was adversarially reviewed before freezing (five lenses,
 ~38 findings; the design changes they forced are marked ★ below).
 
+> **Results and errata — read alongside this file.**
+> [`gen5_levels_results_20260818.md`](gen5_levels_results_20260818.md) analyses the first run
+> (`runs/gen5_levels_20260817T195411Z`) and records nine harness defects found afterwards, all
+> fixed on 2026-08-18. Three of them affect how this protocol must be read:
+> * The first run executed **two of the four regimes below** — `unseen_chemotype` and
+>   `unseen_series` were hard-coded out of the SLURM defaults — so **H1′, H2, H3 and H5 were
+>   unevaluable**. All four regimes are now the default.
+> * H1's and H4's pass conditions are defined against `MC` and `MC_all2d`, but the shipped
+>   bootstrap only ever anchored on `MC_ecfp`, so **the required CIs did not exist**. The
+>   bootstrap now anchors on `MC_ecfp`, `MC`, `MC_all2d` and `A_metal`, and it resamples the
+>   regime's *held-out* unit rather than always the ECFP cluster.
+> * `within_ligand_r2` as originally implemented granted a free per-ligand offset taken from
+>   held-out data. It is now the deployable `1 − SSE/SST_within`; the old quantity survives as
+>   `within_ligand_r2_shape`. **Any `within_lig_r2` figure from the first run is the shape one.**
+>
+> Adjudicated outcomes: **H1 passes** (on `LIG2D_EXT`, not the expected `ECFP`), **H4 passes**
+> strongly (3D is *worse* than 2D), **H6 passes**. The headline caveat is that the model's edge
+> over a constant is ~0 below Tanimoto 0.4.
+
 Code: `src/lanthanide_separation/levels.py`, `scripts/run_gen5_levels.py`,
 `tests/test_levels.py` (20 tests), `slurm/gen5_levels.slurm`, `slurm/submit_gen5_levels.sh`.
 
@@ -129,12 +148,17 @@ comparison to the pair model's SF numbers.
 ## 6. Running it
 
 Local smoke: `.venv/bin/python scripts/run_gen5_levels.py --quick` (~3 min).
-Full run ≈ 1.5 h on 8 CPUs (18 arms + 6 learner variants + 4 twins × 4 regimes × 25 folds;
-HGB is the slow part). SLURM defaults 8 G / 3 h (quick-run peak RSS 2.5 GB; full run est. 5–6 GB):
+Full run ≈ **1.9 h** on 8 CPUs for all four regimes (18 arms + 8 learner variants + 4 twins + 4
+nulls × 4 regimes × 25 folds; HGB is the slow part). Measured peak RSS ≈ 1.6 GB. SLURM defaults
+are now **all four regimes**, 16 G / 8 h:
 
 ```bash
 DRY_RUN=0 slurm/submit_gen5_levels.sh
 ```
+
+Useful overrides: `REGIMES=...` to narrow the run (it will be recorded in the report header),
+`MIN_ROWS=3` to widen the cohort from 91 to 152 extractants, `KSHOT_MIN_QUERY` via
+`--kshot-min-query` (keep it fixed when comparing k-shot tables across runs).
 
 Outputs under `runs/gen5_levels_<stamp>/`: `oof_predictions.csv` (with `nn_train_tanimoto`),
 `leaderboard.csv`, `property_families.csv`, `per_seed_metrics.csv`, `per_cluster_metrics.csv`,
