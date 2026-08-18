@@ -1,0 +1,94 @@
+/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['lig2d__hc__assigned_cip_homochiral']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['lig2d__hc__assigned_cip_homochiral']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['lig2d__hc__assigned_cip_homochiral']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['lig2d__hc__assigned_cip_homochiral']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['lig2d__hc__assigned_cip_homochiral']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['lig2d__hc__assigned_cip_homochiral']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['lig2d__hc__assigned_cip_homochiral']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/sklearn/impute/_base.py:647: UserWarning: Skipping features without any observed values: ['lig2d__hc__assigned_cip_homochiral']. At least one non-missing value is needed for imputation with strategy='median'.
+  warnings.warn(
+joblib.externals.loky.process_executor._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/joblib/_utils.py", line 109, in __call__
+    return self.func(**kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/joblib/parallel.py", line 607, in __call__
+    return [func(*args, **kwargs) for func, args, kwargs in self.items]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/joblib/parallel.py", line 607, in <listcomp>
+    return [func(*args, **kwargs) for func, args, kwargs in self.items]
+            ^^^^^^^^^^^^^^^^^^^^^
+  File "/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/sklearn/utils/parallel.py", line 184, in __call__
+    return self.function(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/sklearn/ensemble/_hist_gradient_boosting/binning.py", line 82, in _find_binning_thresholds
+    bin_thresholds = sliding_window_view(distinct_values, 2).mean(axis=1)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/numpy/lib/_stride_tricks_impl.py", line 365, in sliding_window_view
+    raise ValueError(
+ValueError: window shape cannot be larger than input array shape
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/nfs/home/nshank3/ml_separator/scripts/run_gen5_levels.py", line 506, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/nfs/home/nshank3/ml_separator/scripts/run_gen5_levels.py", line 378, in main
+    oof_parts.append(evaluate_regime(
+                     ^^^^^^^^^^^^^^^^
+  File "/nfs/home/nshank3/ml_separator/scripts/run_gen5_levels.py", line 245, in evaluate_regime
+    model = LevelRegressor(data.arm_columns(arm), vp).fit(train, y_tr, groups=train["ecfp_cluster"])
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nfs/home/nshank3/ml_separator/src/lanthanide_separation/levels.py", line 547, in fit
+    self.pipeline.fit(x, y, model__sample_weight=weights)
+  File "/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/sklearn/base.py", line 1403, in wrapper
+    return fit_method(estimator, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/sklearn/pipeline.py", line 649, in fit
+    self._final_estimator.fit(Xt, y, **last_step_params["fit"])
+  File "/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/sklearn/base.py", line 1403, in wrapper
+    return fit_method(estimator, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py", line 603, in fit
+    X_binned_train = self._bin_data(
+                     ^^^^^^^^^^^^^^^
+  File "/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py", line 1122, in _bin_data
+    X_binned = self._bin_mapper.fit_transform(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/sklearn/utils/_set_output.py", line 319, in wrapped
+    data_to_wrap = f(self, X, *args, **kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/sklearn/base.py", line 969, in fit_transform
+    return self.fit(X, **fit_params).transform(X)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/sklearn/ensemble/_hist_gradient_boosting/binning.py", line 287, in fit
+    non_cat_thresholds = Parallel(n_jobs=self.n_threads, backend="threading")(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/sklearn/utils/parallel.py", line 91, in __call__
+    return super().__call__(iterable_with_config_and_warning_filters)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/joblib/parallel.py", line 2072, in __call__
+    return output if self.return_generator else list(output)
+                                                ^^^^^^^^^^^^
+  File "/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/joblib/parallel.py", line 1682, in _get_outputs
+    yield from self._retrieve()
+  File "/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/joblib/parallel.py", line 1784, in _retrieve
+    self._raise_error_fast()
+  File "/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/joblib/parallel.py", line 1859, in _raise_error_fast
+    error_job.get_result(self.timeout)
+  File "/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/joblib/parallel.py", line 758, in get_result
+    return self._return_or_raise()
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nfs/home/nshank3/ml_separator/.venv/lib/python3.11/site-packages/joblib/parallel.py", line 773, in _return_or_raise
+    raise self._result
+ValueError: window shape cannot be larger than input array shape
