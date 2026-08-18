@@ -41,6 +41,7 @@ from typing import Iterable, Mapping, Sequence
 
 import numpy as np
 import pandas as pd
+from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.ensemble import ExtraTreesRegressor, HistGradientBoostingRegressor
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import Ridge
@@ -500,6 +501,28 @@ class LevelForestParameters:
     ridge_alpha: float = 10.0
 
 
+class DropAllNaNColumns(BaseEstimator, TransformerMixin):
+    """Drop columns that hold no observed value at all in the training fold.
+
+    Keeps every other NaN intact, so a learner with native missing-value support
+    still sees (and learns from) partial missingness.  Fitted inside the fold.
+    """
+
+    def fit(self, X, y=None):
+        arr = np.asarray(X, dtype=float)
+        self.keep_ = ~np.all(np.isnan(arr), axis=0)
+        self.n_features_in_ = arr.shape[1]
+        if not self.keep_.any():
+            raise ValueError("every feature column is empty in this training fold")
+        return self
+
+    def transform(self, X):
+        arr = np.asarray(X, dtype=float)
+        if arr.shape[1] != self.n_features_in_:
+            raise ValueError(f"expected {self.n_features_in_} columns, got {arr.shape[1]}")
+        return arr[:, self.keep_]
+
+
 class LevelRegressor:
     """ExtraTrees on a level row, with median imputation and missing indicators.
 
@@ -517,6 +540,13 @@ class LevelRegressor:
 
     def _new_pipeline(self) -> Pipeline:
         p = self.parameters
+        # HGB keeps NaN (it learns a default split direction), so it gets no imputer —
+        # but its binner cannot handle a column that is *entirely* NaN in training, and
+        # raises "window shape cannot be larger than input array shape".  That happens
+        # under unseen_chemotype, where holding out the 67.5%-of-rows super-cluster can
+        # leave a descriptor with no observed value at all.  The imputer-bearing learners
+        # survive it because SimpleImputer drops such columns (with a UserWarning); this
+        # step gives HGB the same protection and nothing more.
         if p.learner == "extratrees":
             model = ExtraTreesRegressor(
                 n_estimators=p.n_estimators, max_features=p.max_features,
@@ -528,7 +558,7 @@ class LevelRegressor:
                 max_iter=p.n_estimators, learning_rate=p.learning_rate, min_samples_leaf=max(5, p.min_samples_leaf),
                 loss="absolute_error", random_state=p.random_state,
             )
-            return Pipeline([("model", model)])  # HGB handles NaN natively
+            return Pipeline([("drop_empty", DropAllNaNColumns()), ("model", model)])
         if p.learner == "ridge":
             return Pipeline([
                 ("imputer", SimpleImputer(strategy="median", add_indicator=True)),

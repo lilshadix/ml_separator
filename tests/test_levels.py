@@ -350,3 +350,40 @@ def test_nearest_condition_null_copies_from_the_same_ligand_and_metal():
     for (e, m), val in zip(zip(test.extractant, test.metal_symbol), pred):
         pool = train[(train.extractant == e) & (train.metal_symbol == m)][LEVEL_TARGET_COLUMN]
         assert np.isclose(pool, val).any()
+
+
+def test_hgb_survives_an_all_nan_column_in_the_training_fold():
+    """unseen_chemotype can leave a descriptor with no observed value at all.
+
+    HGB has no imputer (it keeps NaN on purpose), and its binner used to die with
+    "window shape cannot be larger than input array shape".  Regression test for
+    the crash that killed run gen5_levels_20260818T180930Z.
+    """
+    import numpy as np
+    from lanthanide_separation.levels import LevelRegressor, LevelForestParameters
+
+    rng = np.random.default_rng(0)
+    frame = pd.DataFrame({
+        "a": rng.normal(size=120),
+        "empty": np.full(120, np.nan),      # no observed value at all
+        "partial": np.where(rng.random(120) < 0.25, np.nan, rng.normal(size=120)),
+    })
+    y = frame["a"] * 2.0 + rng.normal(scale=0.1, size=120)
+
+    model = LevelRegressor(("a", "empty", "partial"),
+                           LevelForestParameters(learner="hgb", n_estimators=10, n_jobs=1))
+    model.fit(frame, y)
+    assert model.predict(frame).shape == (120,)
+    assert int((~model.pipeline.named_steps["drop_empty"].keep_).sum()) == 1
+
+
+def test_drop_all_nan_columns_is_a_noop_without_empty_columns():
+    import numpy as np
+    from lanthanide_separation.levels import DropAllNaNColumns
+
+    rng = np.random.default_rng(1)
+    x = rng.normal(size=(50, 3))
+    x[:10, 1] = np.nan                      # partial missingness must survive
+    out = DropAllNaNColumns().fit_transform(x)
+    assert out.shape == (50, 3)
+    assert np.isnan(out).sum() == 10
