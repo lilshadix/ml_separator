@@ -1,0 +1,199 @@
+gen5 level (log D) study — 20260817T195642Z
+cohort: 4881 rows, 91 extractants, 74 ECFP clusters, 1932 conditions, 14 metals; target sd 1.643
+filters: min_rows_per_extractant=10, replicate_policy=mean, log_D floor -6.0
+seeds [104729, 130363, 155921, 196613, 262147]; 5 folds; 400 trees; arms ['A_metal', 'A_cond', 'A_physchem', 'A_ecfp', 'A_lig2d_ext', 'A_donors', 'A_complex_phys', 'A_polyhedron', 'MC', 'MC_physchem', 'MC_ecfp', 'MC_lig2d_ext', 'MC_donors', 'MC_complex_phys', 'MC_polyhedron', 'MC_all2d', 'MC_all3d', 'MC_everything']
+replicate reproducibility over 313 replicated cells: median within-cell sd 0.237 (pooled 0.776; 36 cells with sd > 1 are probably not true repeats). Implied MAE floor vs a single new measurement ≈ 0.19 (median) / 0.62 (pooled).
+
+READING THIS REPORT
+  * macro_mae weights each ECFP cluster equally (one ligand = one vote); pooled_mae is
+    row-weighted and is dominated by the largest ligand. They can disagree — the macro is primary.
+  * folds are grouped on ECFP CLUSTER, not extractant: 92 extractants collapse to 75 clusters,
+    and grouping on the extractant would put bit-identical fingerprints on both sides of a fold.
+  * *_SHUF arms are the same arm with its own feature block permuted. An arm that does not beat
+    its shuffled twin is not using that block.
+  * NULL_metal_mean / NULL_global_mean use no ligand information at all.
+
+LEADERBOARD (mean over seeds; lower macro_mae is better)
+           regime                    arm  macro_mae  macro_mae_sd  pooled_mae  pooled_r2  within_lig_r2  dispersion  within_0_5  within_1_0  n_rows  n_groups
+unseen_conditions          MC_everything     0.7649        0.0214      0.5949     0.7276         0.6125      0.8766      0.5755      0.8152    4881        74
+unseen_conditions            MC_physchem     0.7854        0.0126      0.5984     0.7396         0.6466      0.8303      0.5572      0.8222    4881        74
+unseen_conditions           MC_lig2d_ext     0.7913        0.0272      0.5937     0.7346         0.6414      0.8521      0.5721      0.8207    4881        74
+unseen_conditions               MC_all2d     0.7953        0.0271      0.6064     0.7212         0.6220      0.8533      0.5677      0.8111    4881        74
+unseen_conditions                MC_ecfp     0.7996        0.0298      0.5920     0.7341         0.6496      0.8560      0.5735      0.8172    4881        74
+unseen_conditions        MC_complex_phys     0.8026        0.0089      0.6447     0.7019         0.5807      0.8098      0.5314      0.7898    4881        74
+unseen_conditions               MC_all3d     0.8044        0.0132      0.6351     0.7010         0.5875      0.8410      0.5400      0.8012    4881        74
+unseen_conditions           MC_all2d@hgb     0.8047        0.0286      0.7692     0.6096         0.4445      0.7926      0.4373      0.7057    4881        74
+unseen_conditions       MC_lig2d_ext@hgb     0.8071        0.0423      0.7638     0.6181         0.4516      0.7923      0.4416      0.7074    4881        74
+unseen_conditions          MC_polyhedron     0.8369        0.0093      0.6739     0.6811         0.5415      0.7989      0.5071      0.7718    4881        74
+unseen_conditions            MC_ecfp@hgb     0.8641        0.0407      0.7800     0.6012         0.4652      0.7943      0.4262      0.7059    4881        74
+unseen_conditions NULL_nearest_condition     0.8682        0.0106      0.7242     0.5824         0.3684      0.9740      0.5009      0.7637    4881        74
+unseen_conditions              MC_donors     0.9019        0.0091      0.6691     0.6617         0.5871      0.8410      0.5299      0.7857    4881        74
+unseen_conditions                 MC@hgb     0.9323        0.0170      0.8532     0.4980         0.3661      0.7676      0.4387      0.6717    4881        74
+unseen_conditions         A_complex_phys     0.9899        0.0196      0.9745     0.4348         0.0705      0.6984      0.3190      0.5949    4881        74
+unseen_conditions           A_polyhedron     1.0245        0.0214      0.9872     0.4254         0.0673      0.6943      0.3144      0.5873    4881        74
+unseen_conditions                     MC     1.0246        0.0241      0.7054     0.6328         0.5653      0.8016      0.5142      0.7604    4881        74
+unseen_conditions         MC_donors_SHUF     1.0360        0.0288      0.7444     0.6142         0.5268      0.7745      0.4703      0.7409    4881        74
+unseen_conditions                 A_cond     1.0373        0.0144      0.7942     0.5701         0.4498      0.8032      0.4438      0.6966    4881        74
+unseen_conditions   NULL_extractant_mean     1.0513        0.0213      1.0624     0.3629        -0.0848      0.6710      0.2765      0.5363    4881        74
+unseen_conditions           MC_ecfp_SHUF     1.0557        0.0240      0.7600     0.5979         0.4972      0.7665      0.4602      0.7334    4881        74
+unseen_conditions      MC_lig2d_ext_SHUF     1.0641        0.0207      0.7905     0.5809         0.4617      0.7462      0.4352      0.7159    4881        74
+unseen_conditions             A_physchem     1.0709        0.0191      1.1233     0.2988        -0.0778      0.6388      0.2674      0.4953    4881        74
+unseen_conditions         MC_all2d@ridge     1.0739        0.0438      0.9680     0.4566         0.2483      0.7386      0.2997      0.5909    4881        74
+unseen_conditions            A_lig2d_ext     1.0775        0.0428      1.0757     0.3485        -0.0848      0.6910      0.2665      0.5312    4881        74
+unseen_conditions               A_donors     1.0913        0.0158      1.1117     0.2886         0.0144      0.4774      0.2871      0.5189    4881        74
+unseen_conditions                 A_ecfp     1.1151        0.0494      1.1150     0.3028        -0.0845      0.6722      0.2607      0.5084    4881        74
+unseen_conditions          MC_ecfp@ridge     1.1177        0.0383      0.9779     0.4424         0.2397      0.7289      0.2956      0.5834    4881        74
+unseen_conditions     MC_lig2d_ext@ridge     1.1270        0.0143      1.0086     0.3850         0.2455      0.7366      0.2957      0.5810    4881        74
+unseen_conditions               MC@ridge     1.1948        0.0087      1.1614     0.2156         0.1201      0.5848      0.2772      0.5114    4881        74
+unseen_conditions        NULL_metal_mean     1.3198        0.0040      1.2775     0.0453         0.0629      0.2275      0.2612      0.4574    4881        74
+unseen_conditions                A_metal     1.3206        0.0106      1.3564    -0.0305         0.0466      0.2143      0.2324      0.4301    4881        74
+unseen_conditions       NULL_global_mean     1.3410        0.0038      1.3120    -0.0028        -0.0011      0.0171      0.2606      0.4478    4881        74
+unseen_conditions           MC_cond_SHUF     1.4376        0.0223      1.4514    -0.2107        -0.3335      0.4960      0.2218      0.4127    4881        74
+    unseen_ligand           MC_lig2d_ext     0.8358        0.0350      0.9867     0.4294         0.2506      0.6033      0.3218      0.5808    4881        74
+    unseen_ligand           MC_all2d@hgb     0.8543        0.0348      0.9826     0.4264         0.3051      0.6890      0.3303      0.5803    4881        74
+    unseen_ligand       MC_lig2d_ext@hgb     0.8604        0.0231      1.0047     0.3949         0.2677      0.7014      0.3285      0.5761    4881        74
+    unseen_ligand               MC_all2d     0.8741        0.0355      0.9946     0.4214         0.2370      0.6185      0.3175      0.5696    4881        74
+    unseen_ligand              MC_donors     0.8746        0.0303      1.0082     0.3961         0.2485      0.6112      0.3257      0.5679    4881        74
+    unseen_ligand            MC_ecfp@hgb     0.8868        0.0402      0.9511     0.4583         0.3049      0.7002      0.3403      0.6025    4881        74
+    unseen_ligand          MC_everything     0.8872        0.0350      0.9918     0.4240         0.2509      0.6262      0.3218      0.5730    4881        74
+    unseen_ligand            MC_physchem     0.8995        0.0243      1.0333     0.3831         0.2468      0.5824      0.3016      0.5551    4881        74
+    unseen_ligand                MC_ecfp     0.9105        0.0343      0.9945     0.4205         0.2564      0.6401      0.3249      0.5705    4881        74
+    unseen_ligand                 MC@hgb     0.9352        0.0365      1.1548     0.1857         0.1090      0.6950      0.3089      0.5217    4881        74
+    unseen_ligand                     MC     0.9587        0.0350      1.1512     0.1998         0.1411      0.6056      0.3097      0.5226    4881        74
+    unseen_ligand        MC_complex_phys     0.9722        0.0317      1.0722     0.3256         0.1862      0.5003      0.3036      0.5462    4881        74
+    unseen_ligand               MC_all3d     0.9758        0.0341      1.0710     0.3339         0.2235      0.5487      0.2994      0.5435    4881        74
+    unseen_ligand         MC_donors_SHUF     0.9950        0.0320      1.1583     0.1988         0.1368      0.5805      0.2998      0.5168    4881        74
+    unseen_ligand          MC_polyhedron     0.9997        0.0246      1.1018     0.2998         0.1727      0.4568      0.2934      0.5236    4881        74
+    unseen_ligand                 A_cond     1.0025        0.0282      1.2100     0.1279         0.0717      0.5828      0.2935      0.4951    4881        74
+    unseen_ligand           MC_ecfp_SHUF     1.0157        0.0286      1.1643     0.1937         0.1245      0.5679      0.2934      0.5138    4881        74
+    unseen_ligand      MC_lig2d_ext_SHUF     1.0271        0.0410      1.1735     0.1866         0.1260      0.5390      0.2907      0.5062    4881        74
+    unseen_ligand            A_lig2d_ext     1.0396        0.0284      1.1447     0.2710         0.0000      0.4858      0.2629      0.4942    4881        74
+    unseen_ligand         MC_all2d@ridge     1.0721        0.0210      1.1031     0.2975         0.1844      0.6652      0.2656      0.5214    4881        74
+    unseen_ligand          MC_ecfp@ridge     1.0767        0.0189      1.0762     0.3375         0.1794      0.6306      0.2674      0.5234    4881        74
+    unseen_ligand             A_physchem     1.0862        0.0272      1.2611     0.1165         0.0000      0.5257      0.2387      0.4534    4881        74
+    unseen_ligand               A_donors     1.0881        0.0149      1.1166     0.2823         0.0419      0.4409      0.2802      0.5197    4881        74
+    unseen_ligand               MC@ridge     1.0989        0.0221      1.3169    -0.0270        -0.1465      0.6373      0.2546      0.4624    4881        74
+    unseen_ligand         A_complex_phys     1.1121        0.0202      1.1779     0.1932        -0.0430      0.4396      0.2826      0.5012    4881        74
+    unseen_ligand                 A_ecfp     1.1147        0.0310      1.2066     0.2037         0.0000      0.4267      0.2474      0.4578    4881        74
+    unseen_ligand           A_polyhedron     1.1448        0.0096      1.2065     0.1725        -0.0270      0.3643      0.2641      0.4871    4881        74
+    unseen_ligand     MC_lig2d_ext@ridge     1.2689        0.1214      1.1802     0.1191         0.1661      0.7880      0.2695      0.5017    4881        74
+    unseen_ligand                A_metal     1.2929        0.0043      1.3484    -0.0209         0.0625      0.1948      0.2350      0.4344    4881        74
+    unseen_ligand        NULL_metal_mean     1.3249        0.0149      1.3709    -0.0875         0.0522      0.2718      0.2369      0.4408    4881        74
+    unseen_ligand       NULL_global_mean     1.3438        0.0125      1.3870    -0.1194         0.0000      0.1432      0.2456      0.4344    4881        74
+    unseen_ligand   NULL_extractant_mean     1.3438        0.0125      1.3870    -0.1194         0.0000      0.1432      0.2456      0.4344    4881        74
+    unseen_ligand NULL_nearest_condition     1.3438        0.0125      1.3870    -0.1194         0.0000      0.1432      0.2456      0.4344    4881        74
+    unseen_ligand           MC_cond_SHUF     1.4326        0.0571      1.4554    -0.2168        -0.1871      0.4349      0.2202      0.4127    4881        74
+
+PROPERTY FAMILIES — alone (A_*) and added to metal+conditions (MC_*), macro MAE by regime
+           regime               family  alone     MC  MC_plus_family  gain_over_MC
+unseen_conditions             physchem 1.0709 1.0246          0.7854        0.2391
+unseen_conditions                 ecfp 1.1151 1.0246          0.7996        0.2250
+unseen_conditions            lig2d_ext 1.0775 1.0246          0.7913        0.2333
+unseen_conditions               donors 1.0913 1.0246          0.9019        0.1227
+unseen_conditions         complex_phys 0.9899 1.0246          0.8026        0.2220
+unseen_conditions           polyhedron 1.0245 1.0246          0.8369        0.1877
+unseen_conditions cond (vs metal-only) 1.0373 1.0246          1.0246        0.0000
+unseen_conditions                all2d    NaN 1.0246          0.7953        0.2292
+unseen_conditions                all3d    NaN 1.0246          0.8044        0.2201
+unseen_conditions           everything    NaN 1.0246          0.7649        0.2597
+    unseen_ligand             physchem 1.0862 0.9587          0.8995        0.0592
+    unseen_ligand                 ecfp 1.1147 0.9587          0.9105        0.0482
+    unseen_ligand            lig2d_ext 1.0396 0.9587          0.8358        0.1229
+    unseen_ligand               donors 1.0881 0.9587          0.8746        0.0842
+    unseen_ligand         complex_phys 1.1121 0.9587          0.9722       -0.0135
+    unseen_ligand           polyhedron 1.1448 0.9587          0.9997       -0.0409
+    unseen_ligand cond (vs metal-only) 1.0025 0.9587          0.9587        0.0000
+    unseen_ligand                all2d    NaN 0.9587          0.8741        0.0846
+    unseen_ligand                all3d    NaN 0.9587          0.9758       -0.0171
+    unseen_ligand           everything    NaN 0.9587          0.8872        0.0715
+
+PAIRED CLUSTER BOOTSTRAP vs MC_ecfp (positive delta = candidate better)
+           regime              candidate  point_delta_mae  ci95_low  ci95_high  p_worse_one_sided  groups_improved  groups_total
+unseen_conditions                A_metal          -0.5210   -0.6923    -0.3520             1.0000               18            74
+unseen_conditions                 A_cond          -0.2377   -0.3546    -0.1211             1.0000               23            74
+unseen_conditions             A_physchem          -0.2714   -0.4036    -0.1388             1.0000               18            74
+unseen_conditions                 A_ecfp          -0.3155   -0.4036    -0.2244             1.0000               18            74
+unseen_conditions            A_lig2d_ext          -0.2779   -0.4120    -0.1428             1.0000               16            74
+unseen_conditions               A_donors          -0.2918   -0.4200    -0.1627             1.0000               17            74
+unseen_conditions         A_complex_phys          -0.1903   -0.2994    -0.0688             0.9986               22            74
+unseen_conditions           A_polyhedron          -0.2249   -0.3322    -0.1146             1.0000               22            74
+unseen_conditions                     MC          -0.2250   -0.3450    -0.1071             1.0000               23            74
+unseen_conditions            MC_physchem           0.0141   -0.0614     0.1005             0.3643               39            74
+unseen_conditions           MC_lig2d_ext           0.0083   -0.0954     0.1175             0.4403               31            74
+unseen_conditions              MC_donors          -0.1023   -0.2047    -0.0035             0.9782               31            74
+unseen_conditions        MC_complex_phys          -0.0030   -0.0798     0.0819             0.5419               26            74
+unseen_conditions          MC_polyhedron          -0.0373   -0.1111     0.0407             0.8260               26            74
+unseen_conditions               MC_all2d           0.0042   -0.0846     0.0922             0.4799               28            74
+unseen_conditions               MC_all3d          -0.0049   -0.0873     0.0850             0.5583               32            74
+unseen_conditions          MC_everything           0.0347   -0.0438     0.1183             0.1862               38            74
+unseen_conditions                 MC@hgb          -0.1327   -0.2409    -0.0254             0.9934               34            74
+unseen_conditions               MC@ridge          -0.3952   -0.5162    -0.2713             1.0000               17            74
+unseen_conditions            MC_ecfp@hgb          -0.0645   -0.1485     0.0223             0.9278               36            74
+unseen_conditions          MC_ecfp@ridge          -0.3182   -0.4312    -0.2085             1.0000               14            74
+unseen_conditions       MC_lig2d_ext@hgb          -0.0076   -0.1049     0.0888             0.5695               39            74
+unseen_conditions     MC_lig2d_ext@ridge          -0.3274   -0.4707    -0.1938             1.0000               13            74
+unseen_conditions           MC_all2d@hgb          -0.0051   -0.0955     0.0831             0.5523               38            74
+unseen_conditions         MC_all2d@ridge          -0.2743   -0.3862    -0.1674             1.0000               15            74
+unseen_conditions           MC_ecfp_SHUF          -0.2562   -0.3645    -0.1480             1.0000               18            74
+unseen_conditions      MC_lig2d_ext_SHUF          -0.2646   -0.3691    -0.1587             1.0000               14            74
+unseen_conditions         MC_donors_SHUF          -0.2364   -0.3474    -0.1308             1.0000               19            74
+unseen_conditions           MC_cond_SHUF          -0.6381   -0.8123    -0.4685             1.0000               15            74
+unseen_conditions        NULL_metal_mean          -0.5202   -0.7002    -0.3456             1.0000               16            74
+unseen_conditions       NULL_global_mean          -0.5414   -0.7273    -0.3544             1.0000               18            74
+unseen_conditions   NULL_extractant_mean          -0.2517   -0.3885    -0.1205             0.9998               19            74
+unseen_conditions NULL_nearest_condition          -0.0686   -0.2009     0.0567             0.8594               34            74
+    unseen_ligand                A_metal          -0.3825   -0.5260    -0.2415             1.0000               20            74
+    unseen_ligand                 A_cond          -0.0920   -0.1925     0.0148             0.9574               35            74
+    unseen_ligand             A_physchem          -0.1758   -0.2831    -0.0660             0.9984               27            74
+    unseen_ligand                 A_ecfp          -0.2042   -0.2884    -0.1179             1.0000               20            74
+    unseen_ligand            A_lig2d_ext          -0.1292   -0.2221    -0.0315             0.9950               26            74
+    unseen_ligand               A_donors          -0.1777   -0.2880    -0.0664             0.9992               23            74
+    unseen_ligand         A_complex_phys          -0.2016   -0.3108    -0.0908             0.9998               22            74
+    unseen_ligand           A_polyhedron          -0.2344   -0.3506    -0.1212             1.0000               23            74
+    unseen_ligand                     MC          -0.0482   -0.1444     0.0497             0.8326               36            74
+    unseen_ligand            MC_physchem           0.0110   -0.0633     0.0860             0.3775               38            74
+    unseen_ligand           MC_lig2d_ext           0.0746    0.0031     0.1494             0.0204               46            74
+    unseen_ligand              MC_donors           0.0359   -0.0414     0.1153             0.1864               41            74
+    unseen_ligand        MC_complex_phys          -0.0617   -0.1337     0.0117             0.9528               30            74
+    unseen_ligand          MC_polyhedron          -0.0892   -0.1605    -0.0153             0.9914               23            74
+    unseen_ligand               MC_all2d           0.0364   -0.0144     0.0908             0.0862               43            74
+    unseen_ligand               MC_all3d          -0.0653   -0.1403     0.0126             0.9522               31            74
+    unseen_ligand          MC_everything           0.0233   -0.0309     0.0822             0.2066               43            74
+    unseen_ligand                 MC@hgb          -0.0248   -0.1208     0.0705             0.7039               36            74
+    unseen_ligand               MC@ridge          -0.1885   -0.2709    -0.1054             1.0000               18            74
+    unseen_ligand            MC_ecfp@hgb           0.0237   -0.0377     0.0861             0.2244               40            74
+    unseen_ligand          MC_ecfp@ridge          -0.1663   -0.2532    -0.0770             1.0000               21            74
+    unseen_ligand       MC_lig2d_ext@hgb           0.0501   -0.0314     0.1309             0.1120               47            74
+    unseen_ligand     MC_lig2d_ext@ridge          -0.3584   -0.5428    -0.1935             1.0000               20            74
+    unseen_ligand           MC_all2d@hgb           0.0562   -0.0236     0.1359             0.0808               48            74
+    unseen_ligand         MC_all2d@ridge          -0.1616   -0.2515    -0.0688             0.9996               22            74
+    unseen_ligand           MC_ecfp_SHUF          -0.1052   -0.1920    -0.0181             0.9896               30            74
+    unseen_ligand      MC_lig2d_ext_SHUF          -0.1166   -0.1995    -0.0363             0.9982               26            74
+    unseen_ligand         MC_donors_SHUF          -0.0845   -0.1730     0.0013             0.9730               31            74
+    unseen_ligand           MC_cond_SHUF          -0.5222   -0.6595    -0.3901             1.0000               14            74
+    unseen_ligand        NULL_metal_mean          -0.4144   -0.5661    -0.2715             1.0000               20            74
+    unseen_ligand       NULL_global_mean          -0.4334   -0.5847    -0.2752             1.0000               19            74
+    unseen_ligand   NULL_extractant_mean          -0.4334   -0.5962    -0.2820             1.0000               19            74
+    unseen_ligand NULL_nearest_condition          -0.4334   -0.5914    -0.2783             1.0000               19            74
+
+K-SHOT ON LEVELS (unseen ligand). mae_free = query rows whose condition is NOT in the support
+  (the honest number); mae = all query rows (same-experiment contaminated). NULL_kmean = mean of the
+  k measured values, no model — the model must beat this, not k=0.
+    arm       form  k  mae_free  mae_all  n_extractants  n_ext_with_free  reject
+MC_ecfp NULL_kmean  1    1.2369   1.1553             40                1     0.0
+MC_ecfp NULL_kmean  2    1.0913   1.0243             40                1     0.0
+MC_ecfp NULL_kmean  3    1.0404   0.9747             40                1     0.0
+MC_ecfp NULL_kmean  5    0.9992   0.9342             40                1     0.0
+MC_ecfp     affine  1    0.8927   0.8615             40                1     0.0
+MC_ecfp     affine  2    0.8501   0.8118             40                1     0.0
+MC_ecfp     affine  3    0.8216   0.7796             40                1     0.0
+MC_ecfp     affine  5    0.7908   0.7443             40                1     0.0
+MC_ecfp       none  0    0.9420   0.9517             40                1     0.0
+MC_ecfp     offset  1    0.8946   0.8679             40                1     0.0
+MC_ecfp     offset  2    0.8609   0.8277             40                1     0.0
+MC_ecfp     offset  3    0.8381   0.8031             40                1     0.0
+MC_ecfp     offset  5    0.8188   0.7804             40                1     0.0
+MC_ecfp      scale  1    0.8997   0.8904             40                1     0.0
+MC_ecfp      scale  2    0.8750   0.8613             40                1     0.0
+MC_ecfp      scale  3    0.8567   0.8399             40                1     0.0
+MC_ecfp      scale  5    0.8352   0.8157             40                1     0.0
