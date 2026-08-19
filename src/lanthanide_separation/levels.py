@@ -632,7 +632,9 @@ class LevelRegressor:
                 n_estimators=p.n_estimators, max_features=p.max_features,
                 min_samples_leaf=p.min_samples_leaf, random_state=p.random_state, n_jobs=p.n_jobs,
             )
-            return Pipeline([("imputer", SimpleImputer(strategy="median", add_indicator=True)), ("model", model)])
+            return Pipeline([("drop_empty", DropAllNaNColumns()),
+                             ("imputer", SimpleImputer(strategy="median", add_indicator=True)),
+                             ("model", model)])
         if p.learner == "hgb":
             model = HistGradientBoostingRegressor(
                 max_iter=p.n_estimators, learning_rate=p.learning_rate, min_samples_leaf=max(5, p.min_samples_leaf),
@@ -641,6 +643,7 @@ class LevelRegressor:
             return Pipeline([("drop_empty", DropAllNaNColumns()), ("model", model)])
         if p.learner == "ridge":
             return Pipeline([
+                ("drop_empty", DropAllNaNColumns()),
                 ("imputer", SimpleImputer(strategy="median", add_indicator=True)),
                 ("scaler", StandardScaler()),
                 ("model", Ridge(alpha=p.ridge_alpha)),

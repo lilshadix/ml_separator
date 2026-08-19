@@ -40,17 +40,8 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-import warnings
-
 import numpy as np
 import pandas as pd
-
-# SimpleImputer warns once per fit for every column that has no observed value in
-# the training fold ("Skipping features without any observed values").  That is
-# expected here (see levels.DropAllNaNColumns) and, repeated across ~4,000 fits,
-# it produced a 220 MB stderr file that GitHub refused.  The dropped columns are
-# already recorded in summary.json's cohort_audit.
-warnings.filterwarnings("ignore", message="Skipping features without any observed values")
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT / "src") not in sys.path:
