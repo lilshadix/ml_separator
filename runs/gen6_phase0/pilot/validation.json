@@ -1,0 +1,121 @@
+{
+  "validated_utc": "2026-08-19T10:48:06.219227+00:00",
+  "output_dir": "runs/gen6_phase0/pilot",
+  "missing_manifest_keys": [],
+  "artifacts": {
+    "oof_predictions.parquet": {
+      "exists": true,
+      "bytes": 448612
+    },
+    "per_ligand_metrics.csv": {
+      "exists": true,
+      "bytes": 197363
+    },
+    "ood_metrics.csv": {
+      "exists": true,
+      "bytes": 2112
+    },
+    "cohort_comparison.json": {
+      "exists": true,
+      "bytes": 11965
+    },
+    "split_manifest.json": {
+      "exists": true,
+      "bytes": 194612
+    },
+    "decision_report.md": {
+      "exists": true,
+      "bytes": 29782
+    },
+    "summary.json": {
+      "exists": true,
+      "bytes": 74761
+    },
+    "arm_metrics.csv": {
+      "exists": true,
+      "bytes": 1818
+    },
+    "hard_chemistry_metrics.csv": {
+      "exists": true,
+      "bytes": 4161
+    },
+    "contrasts.csv": {
+      "exists": true,
+      "bytes": 21656
+    },
+    "contrast_summary.csv": {
+      "exists": true,
+      "bytes": 24363
+    },
+    "training_budgets.csv": {
+      "exists": true,
+      "bytes": 1251
+    },
+    "bin_migration.csv": {
+      "exists": true,
+      "bytes": 229
+    },
+    "manifest.json": {
+      "exists": true,
+      "bytes": 214056
+    }
+  },
+  "missing_artifacts": [],
+  "empty_artifacts": [],
+  "checks": {
+    "split_integrity": {
+      "ok": true,
+      "per_run": [
+        {
+          "feature_set": "MC_lig2d_ext_massaction",
+          "split_seed": 104729,
+          "ok": true,
+          "all_rows_tested_once": true
+        }
+      ]
+    },
+    "identical_test_rows_by_construction": {
+      "ok": true,
+      "detail": {
+        "MC_lig2d_ext_massaction|104729": {
+          "n_rows": 5248,
+          "scored_rows_by_arm": {
+            "BASE": 5248,
+            "EXPANDED": 5248,
+            "EXPANDED_ROWMATCHED": 5248,
+            "EXPANDED_SHUFFLED": 5248
+          },
+          "identical": true
+        }
+      },
+      "note": "structural invariant of the one-frame OOF layout, not an independent test; the load-bearing check is split_integrity"
+    },
+    "hard_chemistry_bins_arm_invariant_by_construction": {
+      "ok": true,
+      "detail": {
+        "MC_lig2d_ext_massaction|104729|all": [
+          5248
+        ],
+        "MC_lig2d_ext_massaction|104729|nn<0.4": [
+          494
+        ],
+        "MC_lig2d_ext_massaction|104729|nn<0.6": [
+          1942
+        ]
+      },
+      "note": "the same similarity column is passed for every arm, so equality here is structural; bin_migration.csv measures how many rows would move under an arm-specific reference, and that number is what makes the choice matter"
+    },
+    "no_missing_predictions": {
+      "ok": true
+    },
+    "similarity_column_complete": {
+      "ok": true,
+      "n_missing": 0
+    },
+    "chemistry_map_covers_cohort": {
+      "ok": true
+    }
+  },
+  "failed_checks": [],
+  "ok": true
+}

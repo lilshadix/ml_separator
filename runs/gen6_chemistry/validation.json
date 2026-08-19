@@ -1,0 +1,99 @@
+{
+  "validated_utc": "2026-08-19T10:28:21.034807+00:00",
+  "output_dir": "runs/gen6_chemistry",
+  "missing_manifest_keys": [],
+  "artifacts": {
+    "chemistry_map.parquet": {
+      "exists": true,
+      "bytes": 50306
+    },
+    "chemistry_map.parquet.similarity.npz": {
+      "exists": true,
+      "bytes": 63035
+    },
+    "chemistry_cluster_manifest.json": {
+      "exists": true,
+      "bytes": 31405
+    },
+    "nearest_neighbor_matrix.npz": {
+      "exists": true,
+      "bytes": 62608
+    },
+    "chemistry_report.md": {
+      "exists": true,
+      "bytes": 15494
+    },
+    "cohort_entrants.csv": {
+      "exists": true,
+      "bytes": 10615
+    },
+    "summary.json": {
+      "exists": true,
+      "bytes": 10286
+    },
+    "manifest.json": {
+      "exists": true,
+      "bytes": 44661
+    }
+  },
+  "missing_artifacts": [],
+  "empty_artifacts": [],
+  "checks": {
+    "map_covers_every_source_extractant": {
+      "ok": true,
+      "n_map": 190,
+      "n_source": 190
+    },
+    "similarity_matrix_square_and_symmetric": {
+      "ok": true,
+      "shape": [
+        190,
+        190
+      ]
+    },
+    "map_round_trips": {
+      "ok": true,
+      "n_extractants": 190
+    },
+    "partition_stability_min_cells_10": {
+      "n_extractants": 91,
+      "unmapped_extractants": 0,
+      "ok": true,
+      "ecfp": {
+        "n_local": 74,
+        "n_frozen_restricted": 74,
+        "local_groups_spanning_multiple_frozen": 0,
+        "frozen_groups_spanning_multiple_local": 0,
+        "identical_partition": true
+      },
+      "supercluster": {
+        "n_local": 40,
+        "n_frozen_restricted": 40,
+        "local_groups_spanning_multiple_frozen": 0,
+        "frozen_groups_spanning_multiple_local": 0,
+        "identical_partition": true
+      }
+    },
+    "partition_stability_min_cells_3": {
+      "n_extractants": 152,
+      "unmapped_extractants": 0,
+      "ok": true,
+      "ecfp": {
+        "n_local": 131,
+        "n_frozen_restricted": 131,
+        "local_groups_spanning_multiple_frozen": 0,
+        "frozen_groups_spanning_multiple_local": 0,
+        "identical_partition": true
+      },
+      "supercluster": {
+        "n_local": 79,
+        "n_frozen_restricted": 79,
+        "local_groups_spanning_multiple_frozen": 0,
+        "frozen_groups_spanning_multiple_local": 0,
+        "identical_partition": true
+      }
+    }
+  },
+  "failed_checks": [],
+  "ok": true
+}

@@ -1,0 +1,89 @@
+{
+  "validated_utc": "2026-08-19T10:48:12.426150+00:00",
+  "output_dir": "runs/gen6_phase0",
+  "missing_manifest_keys": [],
+  "artifacts": {
+    "gen6_phase0_report.md": {
+      "exists": true,
+      "bytes": 42416
+    },
+    "summary.json": {
+      "exists": true,
+      "bytes": 189124
+    },
+    "chemistry_map.parquet": {
+      "exists": true,
+      "bytes": 50306
+    },
+    "chemistry_cluster_manifest.json": {
+      "exists": true,
+      "bytes": 31405
+    },
+    "nearest_neighbor_matrix.npz": {
+      "exists": true,
+      "bytes": 62608
+    },
+    "provenance_audit.json": {
+      "exists": true,
+      "bytes": 7857
+    },
+    "split_manifest.json": {
+      "exists": true,
+      "bytes": 23066
+    },
+    "cohort_comparison.json": {
+      "exists": true,
+      "bytes": 1243
+    }
+  },
+  "missing_artifacts": [],
+  "empty_artifacts": [],
+  "checks": {
+    "provenance_audited": {
+      "ok": true,
+      "verdict": "PASS",
+      "evaluated": true,
+      "evidence": "publication_id reconstructed"
+    },
+    "chemistry_freeze_is_conservative": {
+      "ok": true,
+      "verdict": "PASS",
+      "evaluated": true,
+      "evidence": "re-clustering each cohort from scratch: the frozen map splits no local group"
+    },
+    "identical_test_rows_/_no_leakage": {
+      "ok": true,
+      "verdict": "PASS",
+      "evaluated": true,
+      "evidence": "5 seeds x 5 folds checked"
+    },
+    "cohort_reproduces": {
+      "ok": true,
+      "verdict": "PASS",
+      "evaluated": true,
+      "evidence": "4881 rows"
+    },
+    "split_reproduces": {
+      "ok": true,
+      "verdict": "PASS",
+      "evaluated": true,
+      "evidence": "0 rows differ"
+    },
+    "published_metrics_are_arithmetically_consistent_with_the_published_OOF": {
+      "ok": true,
+      "verdict": "PASS",
+      "evaluated": true,
+      "evidence": "max |diff| 4.440892098500626e-16"
+    },
+    "refit_within_measured_tolerance": {
+      "ok": true,
+      "verdict": "PASS",
+      "evaluated": true,
+      "evidence": "max |diff| 0.0101 over 40 cells"
+    }
+  },
+  "failed_checks": [],
+  "ok": true,
+  "skipped_gates": [],
+  "gates_evaluated": 7
+}

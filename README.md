@@ -286,3 +286,39 @@ moments. Модель использует exact antisymmetry, group-balanced tr
 одной экспериментальной серии. Текущий `log_SF` остаётся condition-matched
 proxy. Публикационный claim требует восстановления series provenance и
 prospectively frozen проверки новых экстрагентов.
+
+**Обновление 2026-08-19 (gen6).** Provenance восстановлена — но не из bundle.
+`safe_exp_id` раскладывается как `{stem}_SAFE:{exp_id}` и соединяется 5 992/5 992
+с upstream-таблицами `lanthanide_dataset_builder/raw_data/*_SAFE.csv`, где есть
+`DOI`, `entry_author`, `addition_date`. Измерено (`scripts/reconstruct_provenance.py`):
+**109 публикаций**; ячейка `экстрагент × условия × металл`, которую gen5 усредняет,
+пересекает границу публикации только в **0.57 %** строк, а pair-ключ — в 1.49 %;
+но CV-группа режима `unseen_series` — в **27.1 %** строк. Кроме того, 287 из 313
+«реплицированных» ячеек различаются экспериментальной переменной, которой нет в
+bundle, так что опубликованный noise floor — это в основном missing-feature error,
+а не предел воспроизводимости.
+
+## gen6 — генерация разнообразия
+
+`gen6` проверяет не «какая модель», а «какой информации не хватает». Основная
+гипотеза: ограничивающая переменная для zero-shot предсказания на новой химии —
+**химическое разнообразие обучающей выборки**, а не ёмкость модели.
+
+* протокол (pre-registration): [`docs/gen6_diversity_protocol_20260819.md`](docs/gen6_diversity_protocol_20260819.md)
+* результаты Phase 0 и Phase 1: [`docs/gen6_phase0_and_phase1_results_20260819.md`](docs/gen6_phase0_and_phase1_results_20260819.md)
+* код: `src/lanthanide_separation/gen6/` (chemistry / cohorts / metrics / manifest / provenance)
+
+Эксперимент A сравнивает BASE91 (`min_cells >= 10`, текущее правило отбора) и
+EXPANDED152 (`>= 3`) **на побайтово одинаковых тестовых строках**: одна общая
+когорта, folds по Tanimoto-0.7 хемотипам, различается только маска обучающих
+строк. Обязательные контроли — арм с совпадающим числом строк и арм с
+перемешанной целевой переменной именно у добавленных строк.
+
+```bash
+.venv/bin/python scripts/gen6_phase0.py                      # семь проверок Phase 0
+.venv/bin/python scripts/run_diversity_causal.py             # эксперимент A
+.venv/bin/python scripts/run_diversity_learning_curve.py     # эксперимент B
+```
+
+Всё считается локально за минуты; `slurm/submit_gen6_diversity.sh` (DRY_RUN=1 по
+умолчанию) нужен только для более крупных свипов.

@@ -1,0 +1,197 @@
+{
+  "layer": "gen6",
+  "run_id": "gen6_aggregate_20260819T105104Z",
+  "created_utc": "2026-08-19T10:51:04.700738+00:00",
+  "dataset_path": [
+    "/Users/lilshadix/PycharmProjects/ml_separator/dataset with 3D structures/dataset.parquet"
+  ],
+  "dataset_file_sha256": "fefbefc6fe993aa9ce9db1a0c338adb9e5f58a8b75bab084cc1df4e024faf5dd",
+  "source_table_sha256": "406aabcd1c4a67d7e0793e07ce9dd1b89c3337e7188f3dc73e67ff0949315ec8",
+  "feature_registry_sha256": "0769624bbbc9345ebab9ed44787b6ba7de8e1ba6d937369080db5bda3a895324",
+  "code_modified_after_start": [],
+  "code_sha256": {
+    "/Users/lilshadix/PycharmProjects/ml_separator/scripts/aggregate_gen6.py": "d2b79c332b60e1a58530770393eb6af7eac277462b27af1b102518334793ab25",
+    "/Users/lilshadix/PycharmProjects/ml_separator/src/lanthanide_separation/gen6/__init__.py": "f3d1dfcb354222b54b3fff5dde61ee53871355cea7f071919e1c0d91c15520e5",
+    "/Users/lilshadix/PycharmProjects/ml_separator/src/lanthanide_separation/gen6/chemistry.py": "332cc92b3a122b132336adf2bd157982b9d3e24b4136f570be19a5bf47f82b19",
+    "/Users/lilshadix/PycharmProjects/ml_separator/src/lanthanide_separation/gen6/cohorts.py": "e5f57b162ecba86dd9e46a0416bf14270884caaf5eeba7149797082be7fe0503",
+    "/Users/lilshadix/PycharmProjects/ml_separator/src/lanthanide_separation/gen6/manifest.py": "fa1a8f9661e28a58a7c882257d5a07d46cb87ed9aa0e3dad3afe467332dad298",
+    "/Users/lilshadix/PycharmProjects/ml_separator/src/lanthanide_separation/gen6/metrics.py": "a5a61e1011afa891a00292d251da452a9d7b281adadb3dbb12e0e1a04e684f9a",
+    "/Users/lilshadix/PycharmProjects/ml_separator/src/lanthanide_separation/gen6/provenance.py": "295184b057f9a91a7d14a7ec7eb90a5ca71e95ed0b350f4df55e1aac02308543"
+  },
+  "code_sha256_combined": "05722b5c44ffc032a98c1ab51844bd27c3d2f8603ecd5ecabaff9f716e8b6505",
+  "git": {
+    "commit": "00fd643b8e1caedc58ce6033e6bc98e1a2b3f7e9",
+    "branch": "descriptor-arm-metal-site",
+    "dirty": true,
+    "dirty_files": [
+      "EADME.md",
+      "docs/gen6_diversity_protocol_20260819.md",
+      "docs/gen6_phase0_and_phase1_results_20260819.md",
+      "runs/gen6_aggregate/",
+      "runs/gen6_chemistry/",
+      "runs/gen6_expA_5seed/",
+      "runs/gen6_expA_5seed_rowweight/",
+      "runs/gen6_expB_5seed/",
+      "runs/gen6_phase0/",
+      "runs/gen6_provenance/",
+      "scripts/aggregate_gen6.py",
+      "scripts/build_chemistry_map.py",
+      "scripts/gen6_phase0.py",
+      "scripts/reconstruct_provenance.py",
+      "scripts/run_diversity_causal.py",
+      "scripts/run_diversity_learning_curve.py",
+      "slurm/gen6_diversity.slurm",
+      "slurm/submit_gen6_diversity.sh",
+      "src/lanthanide_separation/gen6/",
+      "tests/test_gen6_chemistry.py",
+      "tests/test_gen6_cohorts.py",
+      "tests/test_gen6_diversity_causal.py",
+      "tests/test_gen6_learning_curve.py",
+      "tests/test_gen6_manifest.py",
+      "tests/test_gen6_metrics.py",
+      "tests/test_gen6_provenance.py",
+      "tests/test_gen6_scripts.py"
+    ]
+  },
+  "python": {
+    "version": "3.13.0",
+    "platform": "macOS-26.5.2-arm64-arm-64bit-Mach-O"
+  },
+  "chemistry_cluster_definition": {
+    "inherited_from_runs": [
+      "gen6_diversity_causal_20260819T102822Z"
+    ],
+    "agrees_across_runs": true,
+    "definition": {
+      "identity": "canonical_smiles",
+      "fingerprint": "precomputed 2048-bit ECFP columns from the source table",
+      "ecfp_cluster": "sha1 of the bit vector (bit-identical fingerprints)",
+      "supercluster": "single-linkage agglomeration at Tanimoto >= 0.7",
+      "target_independent": true,
+      "source": "rebuilt from the source table in this run",
+      "chemistry_table_sha256": "f84ff1a0ed21745647efb038f242f4a507744a16b1b20a6eab5b2e006cc46b38",
+      "n_extractants": 190,
+      "audit": {
+        "n_extractants": 190,
+        "n_ecfp_clusters": 164,
+        "n_superclusters": 98,
+        "supercluster_threshold": 0.7,
+        "n_fingerprint_columns": 2048,
+        "rdkit_available": false,
+        "rdkit_version": null,
+        "family_counts": {
+          "diglycolamide": 81,
+          "n_heterocyclic_polydentate": 41,
+          "amide_other": 28,
+          "phosphoryl": 11,
+          "malonamide": 11,
+          "sulfur_donor": 8,
+          "podand_ether": 4,
+          "other": 3,
+          "hydroxyl_acid": 3
+        },
+        "family_source_counts": {
+          "lig2d_hc_motifs": 179,
+          "donor_census_fallback": 8,
+          "smiles_heuristic": 3
+        },
+        "similarity_quantiles": {
+          "0.05": 0.01639344262295082,
+          "0.25": 0.09836065573770492,
+          "0.5": 0.19047619047619047,
+          "0.75": 0.34146341463414637,
+          "0.95": 0.6
+        },
+        "nn_within_all_quantiles": {
+          "0.05": 0.375,
+          "0.25": 0.6477941176470589,
+          "0.5": 0.7285012285012284,
+          "0.75": 0.9535984848484849,
+          "0.95": 1.0
+        },
+        "largest_supercluster_extractants": 51,
+        "descriptor_table_supplied": true,
+        "extractants_with_multiple_names": 17,
+        "max_names_on_one_extractant": 21
+      }
+    }
+  },
+  "provenance_state": {
+    "inherited_from_runs": [
+      {
+        "publication_status": "reconstructed",
+        "series_status": "reconstructed",
+        "replicate_status": "surrogate",
+        "upstream_directory": "/Users/lilshadix/PycharmProjects/lanthanide_dataset_builder/raw_data",
+        "n_publications": 105,
+        "fraction_ambiguous_provenance": 0.0,
+        "provenance_strict_is_legacy": false
+      }
+    ]
+  },
+  "split_definition": {
+    "kind": "aggregate",
+    "reason": "an aggregate draws no split of its own; it inherits its inputs'",
+    "input_split_sha256": {
+      "gen6_diversity_causal_20260819T102822Z": "842e850902e1c8716f2d737dda5a0e909be1a5596e66d462f2dda528de3c9ebb"
+    },
+    "input_fold_counts": {
+      "gen6_diversity_causal_20260819T102822Z": 50
+    }
+  },
+  "folds": [],
+  "split_sha256": "2d85969fd1fe148ca32024325e50fd380dd03c32b761c27e3a63e916b0f7111c",
+  "preprocessing": [
+    {
+      "step": "load run manifests",
+      "runs": [
+        "runs/gen6_expA_5seed"
+      ]
+    },
+    {
+      "step": "compatibility gate",
+      "keys": [
+        "dataset_file_sha256",
+        "source_table_sha256",
+        "feature_registry_sha256",
+        "chemistry_cluster_definition",
+        "cohort_definition"
+      ],
+      "strict_keys": false
+    },
+    {
+      "step": "concatenate leaderboard / bootstrap CSVs",
+      "leaderboard_files": {
+        "gen6_diversity_causal_20260819T102822Z": "arm_metrics.csv"
+      },
+      "bootstrap_files": {
+        "gen6_diversity_causal_20260819T102822Z": "contrast_summary.csv"
+      }
+    }
+  ],
+  "model_seed": [
+    42
+  ],
+  "split_seeds": [
+    [
+      104729,
+      130363,
+      155921,
+      196613,
+      262147
+    ]
+  ],
+  "cohort_definition": {
+    "agrees_across_runs": true,
+    "per_run": {
+      "gen6_diversity_causal_20260819T102822Z": null
+    }
+  },
+  "input_runs": [
+    {
+      "run_id": "gen6_diversity_causal_20260819T102822Z",
+      "path": "runs/gen6_expA_5seed",
+      "validated_ok": true
+    }
+  ]
+}

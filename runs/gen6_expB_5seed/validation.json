@@ -1,0 +1,80 @@
+{
+  "validated_utc": "2026-08-19T10:45:33.180827+00:00",
+  "output_dir": "runs/gen6_expB_5seed",
+  "missing_manifest_keys": [],
+  "artifacts": {
+    "diversity_learning_curve.csv": {
+      "exists": true,
+      "bytes": 282867
+    },
+    "acquisition_audit.csv": {
+      "exists": true,
+      "bytes": 250815
+    },
+    "oof_predictions.parquet": {
+      "exists": true,
+      "bytes": 17559555
+    },
+    "acquisition_selections.json": {
+      "exists": true,
+      "bytes": 162703
+    },
+    "decision_report.md": {
+      "exists": true,
+      "bytes": 27221
+    },
+    "summary.json": {
+      "exists": true,
+      "bytes": 1270654
+    },
+    "manifest.json": {
+      "exists": true,
+      "bytes": 485937
+    },
+    "learning_curve_bootstrap.csv": {
+      "exists": true,
+      "bytes": 46042
+    }
+  },
+  "missing_artifacts": [],
+  "empty_artifacts": [],
+  "checks": {
+    "curve_shape": {
+      "ok": true,
+      "n_rows": 360,
+      "expected": 360,
+      "note": "one row per (split seed, policy, budget, draw), folds aggregated"
+    },
+    "budgets_met_exactly": {
+      "ok": true,
+      "n_point_folds_short": 120,
+      "note": "a shortfall is only legitimate when the fold's whole training pool is smaller than the budget; then the selection must equal the pool"
+    },
+    "all_budget_points_identical": {
+      "ok": true,
+      "note": "at budget 'all' every policy and draw trains on the fold's whole pool, so their metrics must coincide exactly"
+    },
+    "no_missing_predictions": {
+      "ok": true
+    },
+    "label_free_selection": {
+      "ok": true,
+      "n_points_checked": 72,
+      "points_that_moved": [],
+      "fold": 0,
+      "split_seed": 104729
+    },
+    "split_integrity": {
+      "ok": true,
+      "per_seed": {
+        "104729": true,
+        "130363": true,
+        "155921": true,
+        "196613": true,
+        "262147": true
+      }
+    }
+  },
+  "failed_checks": [],
+  "ok": true
+}
