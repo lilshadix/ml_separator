@@ -322,3 +322,11 @@ EXPANDED152 (`>= 3`) **на побайтово одинаковых тестов
 
 Всё считается локально за минуты; `slurm/submit_gen6_diversity.sh` (DRY_RUN=1 по
 умолчанию) нужен только для более крупных свипов.
+
+Phase 2 (после исхода «case A»): эксперимент C — иерархическая декомпозиция уровня
+(`scripts/run_hierarchical_levels.py`, модуль `gen6/hierarchical.py`) отвечает, *какая
+компонента* не переносится на новый хемотип (уровень ячейки «лиганд × условия», а не
+отклик по металлам); эксперимент F — ретроспективный выбор следующего лиганда
+(`scripts/run_ligand_acquisition_sim.py`, модуль `gen6/acquisition.py`). Протокол:
+[`docs/gen6_phase2_protocol_20260819.md`](docs/gen6_phase2_protocol_20260819.md); результаты:
+[`docs/gen6_phase2_results_20260819.md`](docs/gen6_phase2_results_20260819.md).
