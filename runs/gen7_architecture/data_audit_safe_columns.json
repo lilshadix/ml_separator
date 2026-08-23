@@ -1,0 +1,7131 @@
+{
+  "generated_utc": "2026-08-19T15:42:53.982150+00:00",
+  "upstream_dir": "/Users/lilshadix/PycharmProjects/lanthanide_dataset_builder/raw_data",
+  "upstream_files": 31,
+  "upstream_rows_total": 48138,
+  "downstream_dataset": "/Users/lilshadix/PycharmProjects/ml_separator/dataset with 3D structures/dataset.parquet",
+  "downstream_rows": 5992,
+  "downstream_columns": 2261,
+  "join": {
+    "key": "safe_exp_id = {source_file_stem}_SAFE:{exp_id}",
+    "matched_rows": 5992,
+    "matched_fraction": 1.0,
+    "upstream_key_duplicates": 0,
+    "cross_checks": {
+      "D == obsDvaluesValue": "5992/5992 to 1e-6",
+      "metal_symbol == Metal_Name": "5992/5992",
+      "LIGAND_SMILES == Extractant_SMILES": "5992/5992",
+      "extractant_name == Extractant_Name": "5992/5992"
+    }
+  },
+  "repeated_cell_baseline": {
+    "cell_definition": "extractant_name + metal_symbol + every cond__* column",
+    "cells": 304,
+    "rows": 962,
+    "within_cell_SS_log_D": 336.49,
+    "within_cell_rms_log_D": 0.5914
+  },
+  "within_repeated_cell_SS_explained_pct": {
+    "Complexant_Name": 55.96,
+    "Complexant_Concentration_M": 56.67,
+    "Solvent_Name": 4.95,
+    "Shaking_Time_min": 0.27,
+    "Phase_Modifier_Concentration_M": 0.04,
+    "No_of_Metals": 0.02,
+    "Additional_Comments": 0.17,
+    "Metal_Oxidation_state": 0.27,
+    "Data_Location": 10.63,
+    "DOI": 0.32,
+    "addition_date": 83.1,
+    "entry_author": 0.0,
+    "Publication_Year": 0.0,
+    "Acid_Concentration_Organic_M": 0.0,
+    "volValue": 0.0
+  },
+  "group_mean_R2_on_log_D_all_rows": {
+    "DOI": 0.4171,
+    "DOI+Data Location": 0.5001,
+    "addition_date": 0.6474,
+    "addition_date_day": 0.1258,
+    "entry_author": 0.1232,
+    "Publication_Year": 0.1398,
+    "Title": 0.1856,
+    "exp_id_block_1000": 0.3595
+  },
+  "truly_missing_downstream": [
+    "Acid_Concentration_Organic_M",
+    "DOI",
+    "Extractant_inchi",
+    "Phase_Modifier_Concentration_M",
+    "Shaking_Time_min",
+    "Solvent_Name",
+    "addition_date",
+    "comments_description",
+    "comments_description::Additional_Comments",
+    "comments_description::Aqueous_Phase_Metals",
+    "comments_description::Authors",
+    "comments_description::Complexant_Concentration_M",
+    "comments_description::Complexant_Name",
+    "comments_description::Complexant_SMILES",
+    "comments_description::Data_Location",
+    "comments_description::No_of_Extractants",
+    "comments_description::No_of_Metals",
+    "comments_description::Publication_Year",
+    "comments_description::Title",
+    "entry_author",
+    "upstream_source_file",
+    "upstream_stem",
+    "volType",
+    "volValue"
+  ],
+  "columns": {
+    "exp_id": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 5992,
+      "top20": [
+        [
+          "10321",
+          1
+        ],
+        [
+          "10343",
+          1
+        ],
+        [
+          "10344",
+          1
+        ],
+        [
+          "10345",
+          1
+        ],
+        [
+          "10346",
+          1
+        ],
+        [
+          "10348",
+          1
+        ],
+        [
+          "10391",
+          1
+        ],
+        [
+          "10392",
+          1
+        ],
+        [
+          "10393",
+          1
+        ],
+        [
+          "10394",
+          1
+        ],
+        [
+          "10395",
+          1
+        ],
+        [
+          "10396",
+          1
+        ],
+        [
+          "10397",
+          1
+        ],
+        [
+          "10398",
+          1
+        ],
+        [
+          "10488",
+          1
+        ],
+        [
+          "11538",
+          1
+        ],
+        [
+          "11539",
+          1
+        ],
+        [
+          "11540",
+          1
+        ],
+        [
+          "11541",
+          1
+        ],
+        [
+          "11542",
+          1
+        ]
+      ],
+      "upstream_column": "exp_id",
+      "downstream_equivalent": "safe_exp_id (embedded)",
+      "equivalence": "exact",
+      "truly_missing_downstream": false,
+      "physical_interpretation": "Upstream primary key of the measurement row.",
+      "safe_at_inference_for_new_extractant": "no",
+      "publication_specific": "yes",
+      "target_leak_risk": "high",
+      "notes": "safe_exp_id = {file stem}_SAFE:{exp_id}; monotone within a curation batch, so numeric blocks act as a study/figure surrogate.",
+      "recommendation": "keep as a join key and grouping key only; never a feature."
+    },
+    "upstream_source_file": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 25,
+      "top20": [
+        [
+          "Ca_SAFE.csv",
+          1825
+        ],
+        [
+          "Er_SAFE.csv",
+          1107
+        ],
+        [
+          "Eu_SAFE.csv",
+          780
+        ],
+        [
+          "Am_SAFE.csv",
+          642
+        ],
+        [
+          "Lu_SAFE.csv",
+          281
+        ],
+        [
+          "Dy_SAFE.csv",
+          237
+        ],
+        [
+          "La_SAFE.csv",
+          181
+        ],
+        [
+          "Ce_SAFE.csv",
+          176
+        ],
+        [
+          "Gd_SAFE.csv",
+          153
+        ],
+        [
+          "Pa_SAFE.csv",
+          123
+        ],
+        [
+          "Pr_SAFE.csv",
+          92
+        ],
+        [
+          "Ho_SAFE.csv",
+          87
+        ],
+        [
+          "Nd_SAFE.csv",
+          82
+        ],
+        [
+          "Pd_SAFE.csv",
+          50
+        ],
+        [
+          "Bi_SAFE.csv",
+          46
+        ],
+        [
+          "Cm_SAFE.csv",
+          23
+        ],
+        [
+          "Pb_SAFE.csv",
+          22
+        ],
+        [
+          "Tb_SAFE.csv",
+          22
+        ],
+        [
+          "Sm_SAFE.csv",
+          18
+        ],
+        [
+          "Cd_SAFE.csv",
+          14
+        ]
+      ],
+      "upstream_column": "upstream_source_file",
+      "downstream_equivalent": "none",
+      "equivalence": "none",
+      "truly_missing_downstream": true,
+      "physical_interpretation": "Which per-metal SAFE export the row was pulled from; 66% of rows have a stem different from their own metal (co-reported measurements).",
+      "safe_at_inference_for_new_extractant": "no",
+      "publication_specific": "yes",
+      "target_leak_risk": "medium",
+      "notes": "already implicit in safe_exp_id.",
+      "recommendation": "grouping/diagnostics only."
+    },
+    "upstream_stem": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 25,
+      "top20": [
+        [
+          "Ca",
+          1825
+        ],
+        [
+          "Er",
+          1107
+        ],
+        [
+          "Eu",
+          780
+        ],
+        [
+          "Am",
+          642
+        ],
+        [
+          "Lu",
+          281
+        ],
+        [
+          "Dy",
+          237
+        ],
+        [
+          "La",
+          181
+        ],
+        [
+          "Ce",
+          176
+        ],
+        [
+          "Gd",
+          153
+        ],
+        [
+          "Pa",
+          123
+        ],
+        [
+          "Pr",
+          92
+        ],
+        [
+          "Ho",
+          87
+        ],
+        [
+          "Nd",
+          82
+        ],
+        [
+          "Pd",
+          50
+        ],
+        [
+          "Bi",
+          46
+        ],
+        [
+          "Cm",
+          23
+        ],
+        [
+          "Pb",
+          22
+        ],
+        [
+          "Tb",
+          22
+        ],
+        [
+          "Sm",
+          18
+        ],
+        [
+          "Cd",
+          14
+        ]
+      ],
+      "upstream_column": "upstream_stem",
+      "downstream_equivalent": "none",
+      "equivalence": "none",
+      "truly_missing_downstream": true,
+      "physical_interpretation": "Same as upstream_source_file without the suffix.",
+      "safe_at_inference_for_new_extractant": "no",
+      "publication_specific": "yes",
+      "target_leak_risk": "medium",
+      "notes": "",
+      "recommendation": "grouping/diagnostics only."
+    },
+    "Extractant_Name": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 228,
+      "top20": [
+        [
+          "TODGA",
+          1585
+        ],
+        [
+          "DMDODGA",
+          379
+        ],
+        [
+          "TDdDGA",
+          267
+        ],
+        [
+          "TBDGA",
+          240
+        ],
+        [
+          "C5BTBP",
+          237
+        ],
+        [
+          "DHD2DGA",
+          215
+        ],
+        [
+          "DOODA (C12)",
+          202
+        ],
+        [
+          "TEHDGA",
+          146
+        ],
+        [
+          "DBD1MHDGA",
+          134
+        ],
+        [
+          "TEDGA",
+          84
+        ],
+        [
+          "DMDPDGA",
+          78
+        ],
+        [
+          "DMDO-HPyranDGA",
+          72
+        ],
+        [
+          "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide",
+          70
+        ],
+        [
+          "N-methyl-2-[2-[methyl(octyl)amino]-2-oxoethoxy]-N-octylacetamide",
+          70
+        ],
+        [
+          "DOODA (C8)",
+          70
+        ],
+        [
+          "DMDPhPDA",
+          70
+        ],
+        [
+          "TPrDGA",
+          61
+        ],
+        [
+          "TDDGA",
+          59
+        ],
+        [
+          "mTDDGA",
+          45
+        ],
+        [
+          "THDGA",
+          43
+        ]
+      ],
+      "upstream_column": "Extractant_Name",
+      "downstream_equivalent": "extractant_name",
+      "equivalence": "exact (5992/5992 identical, 228 uniq both sides)",
+      "truly_missing_downstream": false,
+      "physical_interpretation": "Extractant trivial/short name.",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "18 rows carry TWO names ('TODGA,DHOA'): a synergistic mixture kept as one composite label downstream.",
+      "recommendation": "already present."
+    },
+    "Extractant_SMILES": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 192,
+      "top20": [
+        [
+          "CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC",
+          1696
+        ],
+        [
+          "CCCCCCCCN(C)C(=O)COCC(=O)N(C)CCCCCCCC",
+          449
+        ],
+        [
+          "CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC",
+          267
+        ],
+        [
+          "CCCCCc1nnc(-c2cccc(-c3cccc(-c4nnc(CCCCC)c(CCCCC)n4)n3)n2)nc1CCCCC",
+          250
+        ],
+        [
+          "CCCCN(CCCC)C(=O)COCC(=O)N(CCCC)CCCC",
+          240
+        ],
+        [
+          "CCCCCCCCCCN(CCCCCCCCCC)C(=O)COCC(=O)N(CCCCCC)CCCCCC",
+          215
+        ],
+        [
+          "CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCCOCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC",
+          202
+        ],
+        [
+          "CCCCC(CC)CN(CC(CC)CCCC)C(=O)COCC(=O)N(CC(CC)CCCC)CC(CC)CCCC",
+          185
+        ],
+        [
+          "CCCCCCC(C)N(CCCC)C(=O)COCC(=O)N(CCCC)C(C)CCCCCC",
+          134
+        ],
+        [
+          "CCN(CC)C(=O)COCC(=O)N(CC)CC",
+          84
+        ],
+        [
+          "CN(C(=O)COCC(=O)N(C)c1ccccc1)c2ccccc2",
+          78
+        ],
+        [
+          "CCCCCCCCCCCCN(C)C(=O)C1CC(OC)CC(C(=O)N(C)CCCCCCCCCCCC)O1",
+          72
+        ],
+        [
+          "CN(C(=O)c1cccc(C(=O)N(C)c2ccccc2)n1)c1ccccc1",
+          70
+        ],
+        [
+          "CCCCCCCCN(CCCCCCCC)C(=O)COCCOCC(=O)N(CCCCCCCC)CCCCCCCC",
+          70
+        ],
+        [
+          "CN(C(=O)c2cccc(C(=O)N(C)c1ccccc1)n2)c3ccccc3",
+          70
+        ],
+        [
+          "CCCN(CCC)C(=O)COCC(=O)N(CCC)CCC",
+          61
+        ],
+        [
+          "CCCCCCCCCCN(CCCCCCCCCC)C(=O)COCC(=O)N(CCCCCCCCCC)CCCCCCCCCC",
+          59
+        ],
+        [
+          "CCCCCCCCN(C)C(=O)C(CCOCCCCCC)C(=O)N(C)CCCCCCCC",
+          52
+        ],
+        [
+          "CCCCCCCCN(CCCCCCCC)C(=O)C(C)OC(C)C(=O)N(CCCCCCCC)CCCCCCCC",
+          46
+        ],
+        [
+          "CCCCCCCCCCN(CCCCCCCCCC)C(=O)C(C)OC(C)C(=O)N(CCCCCCCCCC)CCCCCCCCCC",
+          45
+        ]
+      ],
+      "upstream_column": "Extractant_SMILES",
+      "downstream_equivalent": "LIGAND_SMILES",
+      "equivalence": "exact (5992/5992 identical, 192 uniq both sides)",
+      "truly_missing_downstream": false,
+      "physical_interpretation": "Extractant structure.",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "downstream canonical_smiles collapses 192 -> 190.",
+      "recommendation": "already present."
+    },
+    "Extractant_inchi": {
+      "rows_present": 18,
+      "coverage": 0.003004,
+      "missing": 5974,
+      "missing_frac": 0.996996,
+      "n_unique": 1,
+      "top20": [
+        [
+          "-,-",
+          18
+        ]
+      ],
+      "upstream_column": "Extractant_inchi",
+      "downstream_equivalent": "none",
+      "equivalence": "none",
+      "truly_missing_downstream": true,
+      "physical_interpretation": "InChI of the extractant.",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "populated on only 18 rows and the sole value is the placeholder '-,-'. Zero information.",
+      "recommendation": "drop."
+    },
+    "Extractant_Concentration_M": {
+      "rows_present": 5991,
+      "coverage": 0.999833,
+      "missing": 1,
+      "missing_frac": 0.000167,
+      "n_unique": 423,
+      "top20": [
+        [
+          "0.1 M",
+          1943
+        ],
+        [
+          "0.2 M",
+          1256
+        ],
+        [
+          "0.05 M",
+          382
+        ],
+        [
+          "0.01 M",
+          228
+        ],
+        [
+          "0.024 M",
+          218
+        ],
+        [
+          "0.5 M",
+          210
+        ],
+        [
+          "0.04 M",
+          180
+        ],
+        [
+          "0.005 M",
+          175
+        ],
+        [
+          "0.02 M",
+          122
+        ],
+        [
+          "0.075 M",
+          89
+        ],
+        [
+          "0.015 M",
+          72
+        ],
+        [
+          "0.6 M",
+          70
+        ],
+        [
+          "0.025 M",
+          52
+        ],
+        [
+          "0.007 M",
+          51
+        ],
+        [
+          "0.03 M",
+          36
+        ],
+        [
+          "0.3 M",
+          30
+        ],
+        [
+          "0.08 M",
+          29
+        ],
+        [
+          "0.0005 M",
+          27
+        ],
+        [
+          "0.001 M",
+          22
+        ],
+        [
+          "0.15 M",
+          21
+        ]
+      ],
+      "upstream_column": "Extractant_Concentration_M",
+      "downstream_equivalent": "cond__extractant_concentration_M",
+      "equivalence": "exact where parseable (5973/5973 agree)",
+      "truly_missing_downstream": false,
+      "physical_interpretation": "Organic-phase extractant molarity.",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "the 18 mixture rows carry '0.1 M,0.5 M'; downstream keeps only the first (0.1) and drops the 0.5 M DHOA co-extractant.",
+      "recommendation": "recover the second concentration for the 18 mixture rows."
+    },
+    "Acid_Name": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 9,
+      "top20": [
+        [
+          "HNO3",
+          4891
+        ],
+        [
+          "Hcl",
+          769
+        ],
+        [
+          "malonic acid",
+          110
+        ],
+        [
+          "H2SO4",
+          68
+        ],
+        [
+          "lactic acid",
+          52
+        ],
+        [
+          "tartaric acid",
+          52
+        ],
+        [
+          "citric acid",
+          39
+        ],
+        [
+          "HNO3; oxalic acid",
+          10
+        ],
+        [
+          "HClO4",
+          1
+        ]
+      ],
+      "upstream_column": "Acid_Name",
+      "downstream_equivalent": "cond__acid__* one-hots",
+      "equivalence": "exact 1:1 (9 values -> 9 one-hots, 0 rows unassigned)",
+      "truly_missing_downstream": false,
+      "physical_interpretation": "Aqueous acid identity.",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "",
+      "recommendation": "already present."
+    },
+    "Acid_Concentration_M": {
+      "rows_present": 5981,
+      "coverage": 0.998164,
+      "missing": 11,
+      "missing_frac": 0.001836,
+      "n_unique": 691,
+      "top20": [
+        [
+          "3 M",
+          1432
+        ],
+        [
+          "1 M",
+          961
+        ],
+        [
+          "2 M",
+          329
+        ],
+        [
+          "0.5 M",
+          263
+        ],
+        [
+          "5 M",
+          227
+        ],
+        [
+          "0.1 M",
+          221
+        ],
+        [
+          "4 M",
+          192
+        ],
+        [
+          "1.5 M",
+          149
+        ],
+        [
+          "0.95 M",
+          84
+        ],
+        [
+          "0.016 M",
+          82
+        ],
+        [
+          "0.01 M",
+          80
+        ],
+        [
+          "2.9 M",
+          62
+        ],
+        [
+          "4.3 M",
+          56
+        ],
+        [
+          "0.3 M",
+          55
+        ],
+        [
+          "7.4 M",
+          54
+        ],
+        [
+          "0.001 M",
+          53
+        ],
+        [
+          "0.9 M",
+          51
+        ],
+        [
+          "0.2 M",
+          47
+        ],
+        [
+          "6 M",
+          39
+        ],
+        [
+          "2.5 M",
+          34
+        ]
+      ],
+      "upstream_column": "Acid_Concentration_M",
+      "downstream_equivalent": "cond__acid_concentration_M",
+      "equivalence": "exact (5981/5981 agree, same 11 missing)",
+      "truly_missing_downstream": false,
+      "physical_interpretation": "Aqueous acid molarity.",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "",
+      "recommendation": "already present."
+    },
+    "Solvent_Name": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 83,
+      "top20": [
+        [
+          "n-Dodecane",
+          1744
+        ],
+        [
+          "toluene",
+          611
+        ],
+        [
+          "Isopar L with 30 vol% Exxal 13",
+          350
+        ],
+        [
+          "kerosene",
+          237
+        ],
+        [
+          "1-octanol",
+          221
+        ],
+        [
+          "kerosene 0.7, 1-octanol 0.3",
+          194
+        ],
+        [
+          "Chloroform",
+          186
+        ],
+        [
+          "kerosene with 40 vol% 1-octanol",
+          171
+        ],
+        [
+          "kerosene with 30 vol% 1-octanol",
+          167
+        ],
+        [
+          "tert-butylbenzene",
+          120
+        ],
+        [
+          "TPH",
+          118
+        ],
+        [
+          "nitrobenzene",
+          115
+        ],
+        [
+          "1,4-diisopropylbenzene",
+          102
+        ],
+        [
+          "tBuB",
+          89
+        ],
+        [
+          "DIPB",
+          88
+        ],
+        [
+          "CH3Cl",
+          84
+        ],
+        [
+          "meta-nitrobenzotrifluoride",
+          76
+        ],
+        [
+          "1-octanol 0.5, kerosene 0.5",
+          70
+        ],
+        [
+          "n-octane with 5% 1-octanol",
+          67
+        ],
+        [
+          "CHCl3",
+          61
+        ]
+      ],
+      "upstream_column": "Solvent_Name",
+      "downstream_equivalent": "cond__diluent__* one-hots + geom_cond__diluent_family",
+      "equivalence": "lossy",
+      "truly_missing_downstream": true,
+      "physical_interpretation": "Organic diluent, including modifier volume fractions written into the name.",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "83 upstream values -> 41 one-hot categories; 305 rows (43 distinct solvents) are swallowed by cond__diluent__other. 1357 rows (22.65%) state a modifier volume fraction in the name (30%,40%,5%,50%,10%,20%,25%,12.5%,15%) that exists downstream only as unordered one-hot identity, never as a number. Explains 4.95% of the within-repeated-cell log_D SS.",
+      "recommendation": "PARTIALLY MISSING: extract (base diluent, modifier identity, modifier volume fraction) as three features.",
+      "pct_within_repeated_cell_SS_explained": 4.95
+    },
+    "f_Solvent_Name": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 83,
+      "top20": [
+        [
+          "n-Dodecane",
+          1744
+        ],
+        [
+          "toluene",
+          611
+        ],
+        [
+          "Isopar L with 30 vol% Exxal 13",
+          350
+        ],
+        [
+          "kerosene",
+          237
+        ],
+        [
+          "1-octanol",
+          221
+        ],
+        [
+          "kerosene 0.7, 1-octanol 0.3",
+          194
+        ],
+        [
+          "Chloroform",
+          186
+        ],
+        [
+          "kerosene with 40 vol% 1-octanol",
+          171
+        ],
+        [
+          "kerosene with 30 vol% 1-octanol",
+          167
+        ],
+        [
+          "tert-butylbenzene",
+          120
+        ],
+        [
+          "TPH",
+          118
+        ],
+        [
+          "nitrobenzene",
+          115
+        ],
+        [
+          "1,4-diisopropylbenzene",
+          102
+        ],
+        [
+          "tBuB",
+          89
+        ],
+        [
+          "DIPB",
+          88
+        ],
+        [
+          "CH3Cl",
+          84
+        ],
+        [
+          "meta-nitrobenzotrifluoride",
+          76
+        ],
+        [
+          "1-octanol 0.5, kerosene 0.5",
+          70
+        ],
+        [
+          "n-octane with 5% 1-octanol",
+          67
+        ],
+        [
+          "CHCl3",
+          61
+        ]
+      ],
+      "upstream_column": "f_Solvent_Name",
+      "downstream_equivalent": "cond__diluent__*",
+      "equivalence": "exact duplicate of Solvent_Name (5992/5992 identical)",
+      "truly_missing_downstream": false,
+      "physical_interpretation": "Final/organic solvent name.",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "byte-identical to Solvent_Name on every row.",
+      "recommendation": "drop as redundant."
+    },
+    "Metal_Name": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 14,
+      "top20": [
+        [
+          "Eu",
+          1566
+        ],
+        [
+          "Nd",
+          635
+        ],
+        [
+          "La",
+          418
+        ],
+        [
+          "Dy",
+          409
+        ],
+        [
+          "Gd",
+          397
+        ],
+        [
+          "Pr",
+          355
+        ],
+        [
+          "Sm",
+          347
+        ],
+        [
+          "Er",
+          322
+        ],
+        [
+          "Ce",
+          305
+        ],
+        [
+          "Ho",
+          281
+        ],
+        [
+          "Tb",
+          259
+        ],
+        [
+          "Lu",
+          255
+        ],
+        [
+          "Yb",
+          241
+        ],
+        [
+          "Tm",
+          202
+        ]
+      ],
+      "upstream_column": "Metal_Name",
+      "downstream_equivalent": "metal_symbol / metal",
+      "equivalence": "exact (0 mismatches, 14 values)",
+      "truly_missing_downstream": false,
+      "physical_interpretation": "Extracted metal.",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "",
+      "recommendation": "already present."
+    },
+    "Metal_Oxidation_state": {
+      "rows_present": 5195,
+      "coverage": 0.866989,
+      "missing": 797,
+      "missing_frac": 0.133011,
+      "n_unique": 1,
+      "top20": [
+        [
+          "III",
+          5195
+        ]
+      ],
+      "upstream_column": "Metal_Oxidation_state",
+      "downstream_equivalent": "metal_ox",
+      "equivalence": "constant-imputed",
+      "truly_missing_downstream": false,
+      "physical_interpretation": "Metal oxidation state.",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "only value present is 'III' (5195 rows); the 797 missing rows are all set to metal_ox=3 downstream. The missingness flag itself explains 0.27% of within-cell SS (it is a curation-batch marker, not chemistry).",
+      "recommendation": "already present; do NOT re-add the missingness indicator (batch proxy).",
+      "pct_within_repeated_cell_SS_explained": 0.27
+    },
+    "Metal_Concentration_mM": {
+      "rows_present": 4460,
+      "coverage": 0.744326,
+      "missing": 1532,
+      "missing_frac": 0.255674,
+      "n_unique": 141,
+      "top20": [
+        [
+          "0.01 mM",
+          593
+        ],
+        [
+          "5 mM",
+          549
+        ],
+        [
+          "0.5 mM",
+          472
+        ],
+        [
+          "3 mM",
+          367
+        ],
+        [
+          "0.07 mM",
+          315
+        ],
+        [
+          "0.06 mM",
+          272
+        ],
+        [
+          "0.002 mM",
+          215
+        ],
+        [
+          "0.0001 mM",
+          179
+        ],
+        [
+          "4 mM",
+          174
+        ],
+        [
+          "0.0006 mM",
+          155
+        ],
+        [
+          "1 mM",
+          142
+        ],
+        [
+          "0.0007 mM",
+          124
+        ],
+        [
+          "0.1 mM",
+          123
+        ],
+        [
+          "0.08 mM",
+          105
+        ],
+        [
+          "0.6 mM",
+          40
+        ],
+        [
+          "1.3 mM",
+          39
+        ],
+        [
+          "2 mM",
+          39
+        ],
+        [
+          "0.00256 mM",
+          36
+        ],
+        [
+          "1.316 mM",
+          32
+        ],
+        [
+          "0.05 mM",
+          28
+        ]
+      ],
+      "upstream_column": "Metal_Concentration_mM",
+      "downstream_equivalent": "cond__metal_concentration_mM",
+      "equivalence": "exact (4460/4460 agree, same 1532 missing)",
+      "truly_missing_downstream": false,
+      "physical_interpretation": "Aqueous metal loading.",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "",
+      "recommendation": "already present."
+    },
+    "ini_comp": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 1832,
+      "top20": [
+        [
+          "HNO3, TODGA, Eu, n-Dodecane",
+          81
+        ],
+        [
+          "HNO3, DMDODGA, Nd, 1-octanol, kerosene",
+          67
+        ],
+        [
+          "HNO3, TODGA, Nd, n-Dodecane",
+          60
+        ],
+        [
+          "HNO3, TEHDGA, Eu, n-Dodecane",
+          58
+        ],
+        [
+          "HNO3, DMDOHEMA, Eu, tphkerosene",
+          36
+        ],
+        [
+          "HNO3, D3DODGA, Nd, n-Dodecane",
+          35
+        ],
+        [
+          "HNO3, TODGA, La, n-Dodecane",
+          33
+        ],
+        [
+          "HNO3, TODGA, Lu, n-Dodecane",
+          32
+        ],
+        [
+          "HNO3, TODGA, Eu, kerosene",
+          31
+        ],
+        [
+          "Hcl, DBD1MHDGA, Dy, kerosene with 30 vol% 1-octanol",
+          30
+        ],
+        [
+          "HNO3, TBDGA, Nd, toluene",
+          30
+        ],
+        [
+          "HNO3, TDdDGA, La, toluene",
+          29
+        ],
+        [
+          "HNO3, TBDGA, Eu, toluene",
+          28
+        ],
+        [
+          "HNO3, TODGA, Ce, n-Hexane",
+          27
+        ],
+        [
+          "HNO3, TBDGA, Sm, toluene",
+          27
+        ],
+        [
+          "HNO3, TBDGA, Dy, toluene",
+          25
+        ],
+        [
+          "HNO3, TBDGA, La, toluene",
+          25
+        ],
+        [
+          "HNO3, TDdDGA, Nd, toluene",
+          25
+        ],
+        [
+          "HNO3, DHD2DGA, Ho, n-Dodecane",
+          24
+        ],
+        [
+          "HNO3, DMDO-HPyranDGA, Eu, kerosene with 30 vol% 1-octanol",
+          24
+        ]
+      ],
+      "upstream_column": "ini_comp",
+      "downstream_equivalent": "implicit",
+      "equivalence": "derived duplicate",
+      "truly_missing_downstream": false,
+      "physical_interpretation": "Comma-joined initial composition string (acid, extractant, metal, solvent[, modifier]).",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "reconstructs exactly from Acid_Name+Extractant_Name+Metal_Name+Solvent_Name on 5709/5992 rows; the 283 differences are the phase-modifier token, already captured by cond__additive__*.",
+      "recommendation": "drop as redundant."
+    },
+    "Phase_Modifier_Name": {
+      "rows_present": 265,
+      "coverage": 0.044226,
+      "missing": 5727,
+      "missing_frac": 0.955774,
+      "n_unique": 9,
+      "top20": [
+        [
+          "1-octanol",
+          187
+        ],
+        [
+          "TBP",
+          20
+        ],
+        [
+          "isododecanol",
+          16
+        ],
+        [
+          "octanol",
+          14
+        ],
+        [
+          "HDEHP",
+          9
+        ],
+        [
+          "DHOA",
+          8
+        ],
+        [
+          "isodecanol",
+          8
+        ],
+        [
+          "isodecyl",
+          2
+        ],
+        [
+          "DOHyA",
+          1
+        ]
+      ],
+      "upstream_column": "Phase_Modifier_Name",
+      "downstream_equivalent": "cond__additive__* + geom_cond__modifier_class",
+      "equivalence": "exact 1:1 (9 values -> 9 one-hots)",
+      "truly_missing_downstream": false,
+      "physical_interpretation": "Phase modifier / synergist added to the diluent (1-octanol, TBP, HDEHP, ...).",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "only 265 rows (4.42%) carry one at all.",
+      "recommendation": "already present."
+    },
+    "Phase_Modifier_Concentration_M": {
+      "rows_present": 265,
+      "coverage": 0.044226,
+      "missing": 5727,
+      "missing_frac": 0.955774,
+      "n_unique": 15,
+      "top20": [
+        [
+          "2.537 M",
+          102
+        ],
+        [
+          "1.9 M",
+          60
+        ],
+        [
+          "1.58 M",
+          39
+        ],
+        [
+          "0.5 M",
+          16
+        ],
+        [
+          "1.36 M",
+          16
+        ],
+        [
+          "1.57 M",
+          8
+        ],
+        [
+          "0.3 M",
+          6
+        ],
+        [
+          "0.25 M",
+          5
+        ],
+        [
+          "0.75 M",
+          4
+        ],
+        [
+          "0.1 M",
+          3
+        ],
+        [
+          "2.12 M",
+          2
+        ],
+        [
+          "1.11 M",
+          1
+        ],
+        [
+          "0.71 M",
+          1
+        ],
+        [
+          "0.91 M",
+          1
+        ],
+        [
+          "0.2 M",
+          1
+        ]
+      ],
+      "upstream_column": "Phase_Modifier_Concentration_M",
+      "downstream_equivalent": "none (only geom_cond__modifier_class, a 4-way identity bin)",
+      "equivalence": "none",
+      "truly_missing_downstream": true,
+      "physical_interpretation": "Molarity of the phase modifier / synergist in the organic phase.",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "265 rows, 15 distinct values 0.1-2.537 M. Downstream keeps the modifier IDENTITY but not HOW MUCH. Splits only 6 repeated cells and explains 0.04% of within-cell SS, so it is a small-n feature, not a replicate explainer. Physically real: 2.537 M 1-octanol vs 0.1 M changes the organic-phase activity and the extracted stoichiometry.",
+      "recommendation": "TRULY MISSING - add as a numeric with 0.0 for 'no modifier' (a genuine zero, not a NaN).",
+      "pct_within_repeated_cell_SS_explained": 0.04
+    },
+    "Holdback_Agent_Name": {
+      "rows_present": 0,
+      "coverage": 0.0,
+      "missing": 5992,
+      "missing_frac": 1.0,
+      "n_unique": 0,
+      "top20": [],
+      "upstream_column": "Holdback_Agent_Name",
+      "downstream_equivalent": "none",
+      "equivalence": "n/a - column is 100% empty",
+      "truly_missing_downstream": false,
+      "physical_interpretation": "Aqueous masking/holdback agent (the dedicated column for it).",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "0 of 5992 rows populated. The information IS present but was typed into comments_description as 'Complexant_Name' instead.",
+      "recommendation": "read the complexant out of comments_description (see below), not this column."
+    },
+    "Holdback_Agent_Concentration_M": {
+      "rows_present": 0,
+      "coverage": 0.0,
+      "missing": 5992,
+      "missing_frac": 1.0,
+      "n_unique": 0,
+      "top20": [],
+      "upstream_column": "Holdback_Agent_Concentration_M",
+      "downstream_equivalent": "none",
+      "equivalence": "n/a - column is 100% empty",
+      "truly_missing_downstream": false,
+      "physical_interpretation": "Concentration of the holdback agent.",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "0 of 5992 rows populated.",
+      "recommendation": "read Complexant_Concentration_M out of comments_description."
+    },
+    "Acid_Concentration_Organic_M": {
+      "rows_present": 36,
+      "coverage": 0.006008,
+      "missing": 5956,
+      "missing_frac": 0.993992,
+      "n_unique": 35,
+      "top20": [
+        [
+          "0.008 M",
+          2
+        ],
+        [
+          "0.002 M",
+          1
+        ],
+        [
+          "0.014 M",
+          1
+        ],
+        [
+          "0.032 M",
+          1
+        ],
+        [
+          "0.055 M",
+          1
+        ],
+        [
+          "0.099 M",
+          1
+        ],
+        [
+          "0.274 M",
+          1
+        ],
+        [
+          "0.154 M",
+          1
+        ],
+        [
+          "1.55 M",
+          1
+        ],
+        [
+          "0.456 M",
+          1
+        ],
+        [
+          "0.609 M",
+          1
+        ],
+        [
+          "0.813 M",
+          1
+        ],
+        [
+          "1.04 M",
+          1
+        ],
+        [
+          "1.3 M",
+          1
+        ],
+        [
+          "1.02 M",
+          1
+        ],
+        [
+          "0.777 M",
+          1
+        ],
+        [
+          "0.569 M",
+          1
+        ],
+        [
+          "0.361 M",
+          1
+        ],
+        [
+          "0.213 M",
+          1
+        ],
+        [
+          "0.143 M",
+          1
+        ]
+      ],
+      "upstream_column": "Acid_Concentration_Organic_M",
+      "downstream_equivalent": "none",
+      "equivalence": "none",
+      "truly_missing_downstream": true,
+      "physical_interpretation": "Acid co-extracted INTO the organic phase, measured after equilibration.",
+      "safe_at_inference_for_new_extractant": "no",
+      "publication_specific": "yes",
+      "target_leak_risk": "HIGH",
+      "notes": "36 rows (0.60%) only, all from ONE DOI, ONE extractant (DMDOHEMA), ONE metal (Eu). corr(org_acid, log_D)=0.85, corr(org_acid, aq_acid)=0.95. This is a post-equilibration OBSERVABLE, not a set condition: it is a second measurement on the same tube as D. Splits 0 repeated cells.",
+      "recommendation": "DO NOT USE AS A FEATURE. Outcome variable, unavailable at inference, and single-study.",
+      "pct_within_repeated_cell_SS_explained": 0.0
+    },
+    "f_Metal_Concentration_mM": {
+      "rows_present": 0,
+      "coverage": 0.0,
+      "missing": 5992,
+      "missing_frac": 1.0,
+      "n_unique": 0,
+      "top20": [],
+      "upstream_column": "f_Metal_Concentration_mM",
+      "downstream_equivalent": "none",
+      "equivalence": "n/a - column is 100% empty",
+      "truly_missing_downstream": false,
+      "physical_interpretation": "Final (organic-phase) metal concentration - the numerator of D.",
+      "safe_at_inference_for_new_extractant": "no",
+      "publication_specific": "yes",
+      "target_leak_risk": "CATASTROPHIC",
+      "notes": "0 of 5992 rows populated on this subset. If it ever becomes populated it is D itself: D = f_Metal / (Metal - f_Metal).",
+      "recommendation": "BLACKLIST permanently. Never join this column."
+    },
+    "Contact_Time_min": {
+      "rows_present": 3776,
+      "coverage": 0.630174,
+      "missing": 2216,
+      "missing_frac": 0.369826,
+      "n_unique": 43,
+      "top20": [
+        [
+          "30.0 min",
+          1281
+        ],
+        [
+          "60.0 min",
+          968
+        ],
+        [
+          "20.0 min",
+          495
+        ],
+        [
+          "15.0 min",
+          309
+        ],
+        [
+          "50.0 min",
+          279
+        ],
+        [
+          "120.0 min",
+          219
+        ],
+        [
+          "10.0 min",
+          72
+        ],
+        [
+          "360.0 min",
+          44
+        ],
+        [
+          "45.0 min",
+          36
+        ],
+        [
+          "240.0 min",
+          31
+        ],
+        [
+          "19.9999999999999 min",
+          2
+        ],
+        [
+          "0.6635921086343833 min",
+          2
+        ],
+        [
+          "0.995388162951575 min",
+          2
+        ],
+        [
+          "1.995260056366883 min",
+          2
+        ],
+        [
+          "2.995131949782217 min",
+          2
+        ],
+        [
+          "3.995003843197533 min",
+          2
+        ],
+        [
+          "4.99487573661285 min",
+          2
+        ],
+        [
+          "1080.0 min",
+          2
+        ],
+        [
+          "1800.0 min",
+          2
+        ],
+        [
+          "90.0 min",
+          1
+        ]
+      ],
+      "upstream_column": "Contact_Time_min",
+      "downstream_equivalent": "cond__contact_time_min + geom_cond__contact_time_bin",
+      "equivalence": "exact (3776/3776 agree, same 2216 missing)",
+      "truly_missing_downstream": false,
+      "physical_interpretation": "Phase contact time.",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "",
+      "recommendation": "already present."
+    },
+    "Shaking_Time_min": {
+      "rows_present": 1067,
+      "coverage": 0.178071,
+      "missing": 4925,
+      "missing_frac": 0.821929,
+      "n_unique": 11,
+      "top20": [
+        [
+          "30.0 min",
+          452
+        ],
+        [
+          "60.0 min",
+          286
+        ],
+        [
+          "10.0 min",
+          92
+        ],
+        [
+          "45.0 min",
+          57
+        ],
+        [
+          "50.0 min",
+          51
+        ],
+        [
+          "120.0 min",
+          42
+        ],
+        [
+          "25.0 min",
+          39
+        ],
+        [
+          "2.0 min",
+          26
+        ],
+        [
+          "15.0 min",
+          18
+        ],
+        [
+          "32.0 min",
+          2
+        ],
+        [
+          "31.0 min",
+          2
+        ]
+      ],
+      "upstream_column": "Shaking_Time_min",
+      "downstream_equivalent": "geom_cond__shaking_time_bin only (4 coarse bins)",
+      "equivalence": "binned, numeric dropped",
+      "truly_missing_downstream": true,
+      "physical_interpretation": "Agitation time - the SAME physical quantity as contact time, recorded under a different column by a different curator.",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "1067 rows (17.81%), 11 distinct values 2-120 min. Perfectly DISJOINT from Contact_Time_min (0 rows have both; 1149 rows have neither). Downstream cond__contact_time_min is NaN on all 1067 of them, so a unifiable 'equilibration time' is null on 2216 rows when it is really null on only 1149. geom_cond__shaking_time_bin exists but crushes 30/31/32/45/50/60/120 min into one 'medium' bin. Explains 0.27% of within-cell SS.",
+      "recommendation": "TRULY MISSING as a number - build cond__equilibration_time_min = coalesce(Contact_Time_min, Shaking_Time_min) plus a binary flag for which one it was; raises coverage 63.0% -> 80.8%.",
+      "pct_within_repeated_cell_SS_explained": 0.27
+    },
+    "Radiolytic_Dosage_kGy": {
+      "rows_present": 0,
+      "coverage": 0.0,
+      "missing": 5992,
+      "missing_frac": 1.0,
+      "n_unique": 0,
+      "top20": [],
+      "upstream_column": "Radiolytic_Dosage_kGy",
+      "downstream_equivalent": "none",
+      "equivalence": "n/a - column is 100% empty",
+      "truly_missing_downstream": false,
+      "physical_interpretation": "Absorbed gamma dose on the solvent (degradation studies).",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "0 of 5992 rows populated.",
+      "recommendation": "drop for this subset."
+    },
+    "obsTemp": {
+      "rows_present": 5909,
+      "coverage": 0.986148,
+      "missing": 83,
+      "missing_frac": 0.013852,
+      "n_unique": 1,
+      "top20": [
+        [
+          "Temperature",
+          5909
+        ]
+      ],
+      "upstream_column": "obsTemp",
+      "downstream_equivalent": "cond__temperature_C (label only)",
+      "equivalence": "constant label",
+      "truly_missing_downstream": false,
+      "physical_interpretation": "Literal string 'Temperature' - a field label, not a value.",
+      "safe_at_inference_for_new_extractant": "n/a",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "1 unique value.",
+      "recommendation": "drop."
+    },
+    "obsTempsValue": {
+      "rows_present": 5909,
+      "coverage": 0.986148,
+      "missing": 83,
+      "missing_frac": 0.013852,
+      "n_unique": 22,
+      "top20": [
+        [
+          "25.0",
+          4026
+        ],
+        [
+          "22.0",
+          876
+        ],
+        [
+          "20.0",
+          684
+        ],
+        [
+          "23.0",
+          71
+        ],
+        [
+          "21.0",
+          45
+        ],
+        [
+          "30.0",
+          39
+        ],
+        [
+          "21.85000000000002",
+          38
+        ],
+        [
+          "15.0",
+          22
+        ],
+        [
+          "35.0",
+          21
+        ],
+        [
+          "45.0",
+          21
+        ],
+        [
+          "55.0",
+          16
+        ],
+        [
+          "50.0",
+          11
+        ],
+        [
+          "20.0156985871271",
+          9
+        ],
+        [
+          "43.0",
+          7
+        ],
+        [
+          "40.0156985871271",
+          7
+        ],
+        [
+          "5.0",
+          4
+        ],
+        [
+          "10.0",
+          4
+        ],
+        [
+          "40.0",
+          3
+        ],
+        [
+          "39.9843014128728",
+          2
+        ],
+        [
+          "30.0313971742543",
+          1
+        ]
+      ],
+      "upstream_column": "obsTempsValue",
+      "downstream_equivalent": "cond__temperature_C",
+      "equivalence": "exact (5909/5909 agree, same 83 missing)",
+      "truly_missing_downstream": false,
+      "physical_interpretation": "Temperature in C.",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "",
+      "recommendation": "already present."
+    },
+    "obsTempUnit": {
+      "rows_present": 5909,
+      "coverage": 0.986148,
+      "missing": 83,
+      "missing_frac": 0.013852,
+      "n_unique": 1,
+      "top20": [
+        [
+          "C",
+          5909
+        ]
+      ],
+      "upstream_column": "obsTempUnit",
+      "downstream_equivalent": "none",
+      "equivalence": "constant label",
+      "truly_missing_downstream": false,
+      "physical_interpretation": "Literal 'C'.",
+      "safe_at_inference_for_new_extractant": "n/a",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "1 unique value.",
+      "recommendation": "drop."
+    },
+    "volType": {
+      "rows_present": 3388,
+      "coverage": 0.565421,
+      "missing": 2604,
+      "missing_frac": 0.434579,
+      "n_unique": 1,
+      "top20": [
+        [
+          "Volume Ratio",
+          3388
+        ]
+      ],
+      "upstream_column": "volType",
+      "downstream_equivalent": "geom_cond__phase_ratio_bin (all 'missing')",
+      "equivalence": "dropped entirely",
+      "truly_missing_downstream": true,
+      "physical_interpretation": "Literal 'Volume Ratio' - marks that an O:A phase ratio was recorded.",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "medium",
+      "notes": "present on exactly the 3388 rows curated by Thomas Summers; 0 on the other 2604. It is a CURATOR-BATCH marker, not a physical variable. geom_cond__phase_ratio_bin is 'missing' for all 5992 rows.",
+      "recommendation": "do not use: it is a perfect proxy for entry_author=='Thomas Summers'."
+    },
+    "volValue": {
+      "rows_present": 3388,
+      "coverage": 0.565421,
+      "missing": 2604,
+      "missing_frac": 0.434579,
+      "n_unique": 1,
+      "top20": [
+        [
+          "1.0",
+          3388
+        ]
+      ],
+      "upstream_column": "volValue",
+      "downstream_equivalent": "geom_cond__phase_ratio_bin (all 'missing')",
+      "equivalence": "dropped entirely",
+      "truly_missing_downstream": true,
+      "physical_interpretation": "Organic:aqueous phase volume ratio.",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "medium",
+      "notes": "3388 rows, and the ONLY value is 1.0. Zero variance -> the number carries no information; only its presence/absence does, and that is the curator-batch marker above. Explains 0.00% of within-cell SS.",
+      "recommendation": "do not add. Record in the manifest that O:A ratio is unrecoverable (assumed 1:1 everywhere it is stated).",
+      "pct_within_repeated_cell_SS_explained": 0.0
+    },
+    "thirdType": {
+      "rows_present": 0,
+      "coverage": 0.0,
+      "missing": 5992,
+      "missing_frac": 1.0,
+      "n_unique": 0,
+      "top20": [],
+      "upstream_column": "thirdType",
+      "downstream_equivalent": "none",
+      "equivalence": "n/a - column is 100% empty",
+      "truly_missing_downstream": false,
+      "physical_interpretation": "Third-phase observation label.",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "0 rows.",
+      "recommendation": "drop."
+    },
+    "thirdValue": {
+      "rows_present": 0,
+      "coverage": 0.0,
+      "missing": 5992,
+      "missing_frac": 1.0,
+      "n_unique": 0,
+      "top20": [],
+      "upstream_column": "thirdValue",
+      "downstream_equivalent": "none",
+      "equivalence": "n/a - column is 100% empty",
+      "truly_missing_downstream": false,
+      "physical_interpretation": "Third-phase formation observation.",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "0 rows.",
+      "recommendation": "drop."
+    },
+    "obsDvalues": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 1,
+      "top20": [
+        [
+          "Distribution Ratio",
+          5992
+        ]
+      ],
+      "upstream_column": "obsDvalues",
+      "downstream_equivalent": "D (label only)",
+      "equivalence": "constant label",
+      "truly_missing_downstream": false,
+      "physical_interpretation": "Literal 'Distribution Ratio'.",
+      "safe_at_inference_for_new_extractant": "n/a",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "1 unique value.",
+      "recommendation": "drop."
+    },
+    "obsDvaluesValue": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 4691,
+      "top20": [
+        [
+          "0.001000000000000023",
+          48
+        ],
+        [
+          "0.1",
+          44
+        ],
+        [
+          "1.0",
+          26
+        ],
+        [
+          "0.003000000000000053",
+          25
+        ],
+        [
+          "0.0001000000000000023",
+          21
+        ],
+        [
+          "0.8000000000148405",
+          18
+        ],
+        [
+          "0.01",
+          18
+        ],
+        [
+          "0.01000000000000023",
+          18
+        ],
+        [
+          "3.000000001936503",
+          17
+        ],
+        [
+          "0.04",
+          16
+        ],
+        [
+          "0.002000000000000041",
+          15
+        ],
+        [
+          "0.001",
+          15
+        ],
+        [
+          "1.099999999599241",
+          12
+        ],
+        [
+          "2.000000001547424",
+          11
+        ],
+        [
+          "1.499999999807684",
+          10
+        ],
+        [
+          "0.5999999994699767",
+          10
+        ],
+        [
+          "0.002",
+          10
+        ],
+        [
+          "0.02",
+          10
+        ],
+        [
+          "0.06",
+          10
+        ],
+        [
+          "20.00000001547424",
+          9
+        ]
+      ],
+      "upstream_column": "obsDvaluesValue",
+      "downstream_equivalent": "D / log_D",
+      "equivalence": "exact - IT IS THE TARGET (5992/5992 agree to 1e-6)",
+      "truly_missing_downstream": false,
+      "physical_interpretation": "The distribution ratio D itself.",
+      "safe_at_inference_for_new_extractant": "no",
+      "publication_specific": "n/a",
+      "target_leak_risk": "CATASTROPHIC",
+      "notes": "This proves any wholesale join of the upstream tables imports the label. reconstruct_provenance.py already guards this by excluding raw upstream columns from provenance_table.parquet unless --include-upstream-columns is passed.",
+      "recommendation": "BLACKLIST permanently."
+    },
+    "obsTotalEnergiesUnit": {
+      "rows_present": 0,
+      "coverage": 0.0,
+      "missing": 5992,
+      "missing_frac": 1.0,
+      "n_unique": 0,
+      "top20": [],
+      "upstream_column": "obsTotalEnergiesUnit",
+      "downstream_equivalent": "none",
+      "equivalence": "n/a - column is 100% empty",
+      "truly_missing_downstream": false,
+      "physical_interpretation": "Unit label for an energy observation.",
+      "safe_at_inference_for_new_extractant": "n/a",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "0 rows.",
+      "recommendation": "drop."
+    },
+    "comments_obsType": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 1,
+      "top20": [
+        [
+          "Comments",
+          5992
+        ]
+      ],
+      "upstream_column": "comments_obsType",
+      "downstream_equivalent": "none",
+      "equivalence": "constant label",
+      "truly_missing_downstream": false,
+      "physical_interpretation": "Literal 'Comments'.",
+      "safe_at_inference_for_new_extractant": "n/a",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "1 unique value.",
+      "recommendation": "drop."
+    },
+    "DOI": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 115,
+      "top20": [
+        [
+          "https://doi.org/10.15261/serdj.18.93, https://doi.org/10.1021/jacs.5c19738",
+          459
+        ],
+        [
+          "https://cordis.europa.eu/project/id/211267, https://doi.org/10.1021/jacs.5c19738",
+          403
+        ],
+        [
+          "https://doi.org/10.1080/07366299.2015.1087209 , https://doi.org/10.1021/jacs.5c19738",
+          279
+        ],
+        [
+          "https://doi.org/10.1246/cl.200431, https://doi.org/10.1021/jacs.5c19738",
+          253
+        ],
+        [
+          "https://doi.org/10.1007/s10967-020-07242-1, https://doi.org/10.1021/jacs.5c19738",
+          238
+        ],
+        [
+          "https://doi.org/10.1080/01496395.2016.1274760, https://doi.org/10.1021/jacs.5c19738",
+          215
+        ],
+        [
+          "https://doi.org/10.1016/j.hydromet.2020.105248, https://doi.org/10.1021/jacs.5c19738",
+          215
+        ],
+        [
+          "https://doi.org/10.1021/acs.inorgchem.0c02861, https://doi.org/10.1021/jacs.5c19738",
+          203
+        ],
+        [
+          "https://doi.org/10.1080/07366290600646947, https://doi.org/10.1021/jacs.5c19738",
+          194
+        ],
+        [
+          "https://doi.org/10.1081/SEI-200037727, https://doi.org/10.1021/jacs.5c19738",
+          179
+        ],
+        [
+          "https://doi.org/10.1039/D4GC01146E, https://doi.org/10.1021/jacs.5c19738",
+          178
+        ],
+        [
+          "https://doi.org/10.1016/j.hydromet.2020.105248",
+          177
+        ],
+        [
+          "https://doi.org/10.1016/j.seppur.2014.03.005, https://doi.org/10.1021/jacs.5c19738",
+          164
+        ],
+        [
+          "https://doi.org/10.1081/SEI-120030392, https://doi.org/10.1021/jacs.5c19738",
+          140
+        ],
+        [
+          "https://doi.org/10.1007/s41365-016-0055-0 , https://doi.org/10.1021/jacs.5c19738",
+          134
+        ],
+        [
+          "https://doi.org/10.1007/s41365-017-0229-4 , https://doi.org/10.1021/jacs.5c19738",
+          129
+        ],
+        [
+          "https://doi.org/10.2298/JSC171109043H, https://doi.org/10.1021/jacs.5c19738",
+          96
+        ],
+        [
+          "https://doi.org/10.1080/07366290802672212, https://doi.org/10.1021/jacs.5c19738",
+          94
+        ],
+        [
+          "https://doi.org/10.1080/07366299.2017.1415670, https://doi.org/10.1021/jacs.5c19738",
+          93
+        ],
+        [
+          "https://doi.org/10.1007/s10967-020-07368-2, https://doi.org/10.1021/jacs.5c19738",
+          75
+        ]
+      ],
+      "upstream_column": "DOI",
+      "downstream_equivalent": "none (bundle 'reference' columns are 100% empty)",
+      "equivalence": "none",
+      "truly_missing_downstream": true,
+      "physical_interpretation": "Comma-separated citation list; always includes the SAFE compilation self-citation 10.1021/jacs.5c19738.",
+      "safe_at_inference_for_new_extractant": "no",
+      "publication_specific": "yes",
+      "target_leak_risk": "HIGH",
+      "notes": "115 raw strings -> the canonicaliser in gen6/provenance.py folds notation variants. Group-mean of log_D by DOI alone reaches R2 = 0.4171; DOI x Data-Location reaches R2 = 0.5001. Splits 17 repeated cells (0.32% of within-cell SS).",
+      "recommendation": "GROUPING VARIABLE ONLY - use for study-aware splits and for auditing cross-study averaging. Never a feature.",
+      "pct_within_repeated_cell_SS_explained": 0.32
+    },
+    "entry_author": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 3,
+      "top20": [
+        [
+          "Thomas Summers",
+          3388
+        ],
+        [
+          "Baosen Zhang",
+          1423
+        ],
+        [
+          "Aurora Clark",
+          1181
+        ]
+      ],
+      "upstream_column": "entry_author",
+      "downstream_equivalent": "none",
+      "equivalence": "none",
+      "truly_missing_downstream": true,
+      "physical_interpretation": "Curator who entered the row (3 people).",
+      "safe_at_inference_for_new_extractant": "no",
+      "publication_specific": "yes",
+      "target_leak_risk": "medium",
+      "notes": "Thomas Summers 3388 / Baosen Zhang 1423 / Aurora Clark 1181. Group-mean R2 = 0.1232. Determines which comment schema, whether volType is present, and whether Metal_Oxidation_state was filled in - i.e. it explains missingness patterns, not chemistry.",
+      "recommendation": "diagnostic only; use to check that fold structure is not curator-confounded.",
+      "pct_within_repeated_cell_SS_explained": 0.0
+    },
+    "addition_date": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 543,
+      "top20": [
+        [
+          "2024-12-16 21:51:11",
+          18
+        ],
+        [
+          "2024-12-16 21:52:36",
+          18
+        ],
+        [
+          "2024-12-16 21:53:20",
+          18
+        ],
+        [
+          "2024-12-16 21:53:31",
+          18
+        ],
+        [
+          "2024-12-16 21:52:45",
+          18
+        ],
+        [
+          "2024-12-16 21:53:40",
+          18
+        ],
+        [
+          "2024-12-16 21:53:21",
+          18
+        ],
+        [
+          "2024-12-16 21:53:02",
+          17
+        ],
+        [
+          "2024-12-16 21:53:45",
+          17
+        ],
+        [
+          "2024-12-16 21:54:32",
+          17
+        ],
+        [
+          "2024-12-16 21:53:41",
+          17
+        ],
+        [
+          "2024-12-16 21:52:38",
+          17
+        ],
+        [
+          "2024-12-16 21:52:41",
+          17
+        ],
+        [
+          "2024-12-16 21:52:42",
+          17
+        ],
+        [
+          "2026-01-20 20:37:37",
+          16
+        ],
+        [
+          "2026-01-20 20:37:38",
+          16
+        ],
+        [
+          "2026-01-20 20:39:36",
+          16
+        ],
+        [
+          "2026-01-20 20:39:38",
+          16
+        ],
+        [
+          "2026-01-20 20:39:43",
+          16
+        ],
+        [
+          "2026-01-20 20:39:47",
+          16
+        ]
+      ],
+      "upstream_column": "addition_date",
+      "downstream_equivalent": "none",
+      "equivalence": "none",
+      "truly_missing_downstream": true,
+      "physical_interpretation": "Timestamp the row was typed into the database (543 distinct, only 4 distinct DAYS).",
+      "safe_at_inference_for_new_extractant": "no",
+      "publication_specific": "yes",
+      "target_leak_risk": "EXTREME",
+      "notes": "Group-mean R2 by full timestamp = 0.6474 (by day only 0.1258). Inside repeated condition cells it explains 83.1% of the log_D sum of squares - more than any physical variable - because consecutive seconds of typing correspond to consecutive points of ONE figure curve. It is a near-perfect experiment-series surrogate.",
+      "recommendation": "GROUPING VARIABLE ONLY. Using it as a feature would be the single worst leak available in this dataset.",
+      "pct_within_repeated_cell_SS_explained": 83.1
+    },
+    "comments_description": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 634,
+      "top20": [
+        [
+          "updated ORNL",
+          714
+        ],
+        [
+          "IDEaL",
+          306
+        ],
+        [
+          "Data Location: Table SI1; Additional Comments: nan; Complexant_Name: nan; Complexant_SMILES: nan; Complexant_Concentration_M: nan; Publication_Year: 2020; Title: Structure Activity Relationship Approach toward the Improved Separation of Rare-Earth Elements Using Diglycolamides; Authors: Diana Stamberga, Mary R. Healy, Vyacheslav S. Bryantsev, Camille Albisser, Yana Karslyan, Benjamin Reinhart, Alena Paulenova, Mac Foster, Ilja Popovs, Kevin Lyon, Bruce A. Moyer, and Santa Jansone-Popova; No. of Extractants: 1; Aqueous Phase Metals: nan; Metal_Concentration_mM: 0.5; No. of Metals: 1",
+          200
+        ],
+        [
+          "Data Location: Figure 8; Additional Comments: nan; Complexant_Name: nan; Complexant_SMILES: nan; Complexant_Concentration_M: nan; Publication_Year: 2015; Title: The Effect of Alkyl Substituents on Actinide and Lanthanide Extraction by Diglycolamide Compounds; Authors: Y Sasaki, Y Sugo, K Morita, KL Nash; No. of Extractants: 1; Aqueous Phase Metals: nan; Metal_Concentration_mM: 0.0006; No. of Metals: 1",
+          155
+        ],
+        [
+          "Data Location: Figure 8; Additional Comments: nan; Complexant_Name: nan; Complexant_SMILES: nan; Complexant_Concentration_M: nan; Publication_Year: 2015; Title: The Effect of Alkyl Substituents on Actinide and Lanthanide Extraction by Diglycolamide Compounds; Authors: Y Sasaki, Y Sugo, K Morita, KL Nash; No. of Extractants: 1; Aqueous Phase Metals: nan; Metal_Concentration_mM: 0.0007; No. of Metals: 1",
+          124
+        ],
+        [
+          "Data Location: Figure 2; Additional Comments: nan; Complexant_Name: nan; Complexant_SMILES: nan; Complexant_Concentration_M: nan; Publication_Year: 2020; Title: Extraction and stripping behaviors of 14 lanthanides from nitric acid medium by N,N\u2019-dimethyl-N,N\u2019-dioctyl diglycolamide; Authors:     Yaoyang Liu, Chuang Zhao, Zhibin Liu, Yu Zhou, Caishan Jiao, Meng Zhang, Hongguo Hou, Yang Gao, Hui He & Guoxin Tian ; No. of Extractants: 1; Aqueous Phase Metals: nan; Metal_Concentration_mM: 3; No. of Metals: 1",
+          98
+        ],
+        [
+          "fig3 nan nan extraction:nan",
+          95
+        ],
+        [
+          "fig4 nan nan extraction:nan",
+          80
+        ],
+        [
+          "Data Location: Table 1; Additional Comments: nan; Complexant_Name: nan; Complexant_SMILES: nan; Complexant_Concentration_M: nan; Publication_Year: 2014; Title: Extraction behavior of trivalent lanthanides from nitric acid medium by selected structurally related diglycolamides as novel extractants; Authors: E.A. Mowafy, D. Mohamed; No. of Extractants: 1; Aqueous Phase Metals: nan; Metal_Concentration_mM: 5; No. of Metals: 1",
+          80
+        ],
+        [
+          "Data Location: Figure 7; Additional Comments: nan; Complexant_Name: nan; Complexant_SMILES: nan; Complexant_Concentration_M: nan; Publication_Year: 2017; Title: Extraction of rare earth elements from nitrate solution using novel unsymmetrical diglycolamide; Authors: EA Mowafy, D Mohamed; No. of Extractants: 1; Aqueous Phase Metals: nan; Metal_Concentration_mM: 0.002; No. of Metals: 1",
+          75
+        ],
+        [
+          "Data Location: Figure 3; Additional Comments: nan; Complexant_Name: nan; Complexant_SMILES: nan; Complexant_Concentration_M: nan; Publication_Year: 2020; Title: Extraction and stripping behaviors of 14 lanthanides from nitric acid medium by N,N\u2019-dimethyl-N,N\u2019-dioctyl diglycolamide; Authors:     Yaoyang Liu, Chuang Zhao, Zhibin Liu, Yu Zhou, Caishan Jiao, Meng Zhang, Hongguo Hou, Yang Gao, Hui He & Guoxin Tian ; No. of Extractants: 1; Aqueous Phase Metals: nan; Metal_Concentration_mM: 3; No. of Metals: 1",
+          70
+        ],
+        [
+          "Data Location: Table 1; Additional Comments: nan; Complexant_Name: nan; Complexant_SMILES: nan; Complexant_Concentration_M: nan; Publication_Year: 2003; Title: Extraction Studies of Lanthanide(III) Ions with N,N\u2032\u2010Dimethyl\u2010N,N\u2032\u2010diphenylpyridine\u20102,6\u2010dicarboxyamide (DMDPhPDA) from Nitric Acid Solutions; Authors: A. Shimada, T. Yaita, H. Narita, S. Tachimori, K. Okuno; No. of Extractants: 1; Aqueous Phase Metals: nan; Metal_Concentration_mM: 0.01; No. of Metals: 1",
+          67
+        ],
+        [
+          "fig3 there are more metals, kerosene nan extraction:nan",
+          60
+        ],
+        [
+          "Data Location: Figure 2; Additional Comments: nan; Complexant_Name: DTPA; NaNO3; Complexant_SMILES: C(CN(CC(=O)O)CC(=O)O)N(CCN(CC(=O)O)CC(=O)O)CC(=O)O.[N+](=O)([O-])[O-]; Complexant_Concentration_M: 0.01; 1; Publication_Year: 2007; Title: Effect of DTPA on the Extractions of Actinides(III) and Lanthanides(III) from Nitrate Solution into Todga/n\u2010Dodecane; Authors: A Apichaibukol, Y Sasaki, Y Morita; No. of Extractants: 1; Aqueous Phase Metals: nan; Metal_Concentration_mM: 0.0001; No. of Metals: 1",
+          56
+        ],
+        [
+          "Data Location: Figure 5; Additional Comments: Metal conc. may be 2 or 200 ppm; Complexant_Name: nan; Complexant_SMILES: nan; Complexant_Concentration_M: nan; Publication_Year: 2020; Title: Extraction and Separation between Light and Heavy Lanthanides by N,N,N\u2032,N\u2032-Tetraoctyl-diglycolamide from Organic Acid ; Authors: Y. Sasaki, M. Matsumiya, M. Nakase, K. Takeshita; No. of Extractants: 1; Aqueous Phase Metals: nan; Metal_Concentration_mM: 0.0100000000000001; No. of Metals: 1",
+          56
+        ],
+        [
+          "Data Location: Figure 3; Additional Comments: nan; Complexant_Name: nan; Complexant_SMILES: nan; Complexant_Concentration_M: nan; Publication_Year: 2017; Title: Extraction of lanthanide ions with N,N,N\u2032,N\u2032-tetrabutyl-3-oxa-diglycolamide from nitric acid media; Authors: X.-J. Peng, Y. Cui, J.-F. Ma, Y. Li, G.-X. Sun; No. of Extractants: 1; Aqueous Phase Metals: nan; Metal_Concentration_mM: 5; No. of Metals: 1",
+          56
+        ],
+        [
+          "figS4-B nan nan extraction:nan",
+          56
+        ],
+        [
+          "Data Location: Figure 3; Additional Comments: Metal conc. may be 2 or 200 ppm; Complexant_Name: nan; Complexant_SMILES: nan; Complexant_Concentration_M: nan; Publication_Year: 2020; Title: Extraction and Separation between Light and Heavy Lanthanides by N,N,N\u2032,N\u2032-Tetraoctyl-diglycolamide from Organic Acid ; Authors: Y. Sasaki, M. Matsumiya, M. Nakase, K. Takeshita; No. of Extractants: 1; Aqueous Phase Metals: nan; Metal_Concentration_mM: 0.0100000000000001; No. of Metals: 1",
+          54
+        ],
+        [
+          "Data Location: Figure 4; Additional Comments: nan; Complexant_Name: nan; Complexant_SMILES: nan; Complexant_Concentration_M: nan; Publication_Year: 2023; Title: Synthesis and evaluation of new modified diglycolamides with different stereochemistry for extraction of tri- and tetravalent metal ions; Authors: Laura Diaz Gomez, Andreas Wilden, Dimitri Schneider, Zaina Paparigas, Giuseppe Modolo, Maria Chiara Gullo, Jurriaan Huskens, Willem Verboom; No. of Extractants: 1; Aqueous Phase Metals: Am(III); La(III); Ce(III); Pr(III); Nd(III); Sm(III); Eu(III); Gd(III); Tb(III); Dy(III); Ho(III); Er(III); Tm(III); Yb(III); Lu(III); Yb(III); Sr; Zr; Mo; Pd; Fe; Ru; Pu(IV); Cm(III); Metal_Concentration_mM: Trace; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; Trace; Trace; No. of Metals: 24",
+          54
+        ],
+        [
+          "Data Location: Figure 4; Additional Comments: Metal conc. may be 2 or 200 ppm; Complexant_Name: nan; Complexant_SMILES: nan; Complexant_Concentration_M: nan; Publication_Year: 2020; Title: Extraction and Separation between Light and Heavy Lanthanides by N,N,N\u2032,N\u2032-Tetraoctyl-diglycolamide from Organic Acid ; Authors: Y. Sasaki, M. Matsumiya, M. Nakase, K. Takeshita; No. of Extractants: 1; Aqueous Phase Metals: nan; Metal_Concentration_mM: 0.0100000000000001; No. of Metals: 1",
+          52
+        ]
+      ],
+      "upstream_column": "comments_description",
+      "downstream_equivalent": "none",
+      "equivalence": "none",
+      "truly_missing_downstream": true,
+      "physical_interpretation": "One free-text field carrying two different schemas: a semi-structured 'Data Location: ...; Complexant_Name: ...; ...' blob on 3388 rows (exactly the Thomas Summers batch) and a figure caption ('fig3 ... extraction:nan', 'updated ORNL', 'IDEaL') on the other 2604.",
+      "safe_at_inference_for_new_extractant": "no",
+      "publication_specific": "yes",
+      "target_leak_risk": "HIGH",
+      "notes": "634 distinct strings. Contains at least 12 parseable sub-fields, listed separately below. Splits 104 repeated cells.",
+      "recommendation": "PARSE IT, then drop the raw text. Some sub-fields are real chemistry; the rest are publication bookkeeping."
+    },
+    "comments_description::Complexant_Name": {
+      "rows_present": 557,
+      "coverage": 0.092957,
+      "missing": 5435,
+      "missing_frac": 0.907043,
+      "n_unique": 9,
+      "top20": [
+        [
+          "DTPA; NaNO3",
+          165
+        ],
+        [
+          "TEDGA",
+          88
+        ],
+        [
+          "DOODA(C2)",
+          88
+        ],
+        [
+          "NaNO3",
+          70
+        ],
+        [
+          "Amicacid",
+          69
+        ],
+        [
+          "malonamide",
+          56
+        ],
+        [
+          "HEDTA",
+          10
+        ],
+        [
+          "BTP-4Me",
+          10
+        ],
+        [
+          "CDTA",
+          1
+        ]
+      ],
+      "upstream_column": "comments_description::Complexant_Name",
+      "downstream_equivalent": "none",
+      "equivalence": "none",
+      "truly_missing_downstream": true,
+      "physical_interpretation": "AQUEOUS-PHASE COMPLEXANT / HOLDBACK AGENT. DTPA, HEDTA, CDTA (aminopolycarboxylate holdbacks), TEDGA and DOODA(C2) (hydrophilic diglycolamide strippers), BTP-4Me, malonamide, amic acid, and NaNO3 (salting-out salt). These are added precisely to SUPPRESS extraction of the metal.",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "557 rows (9.30%), 9 distinct agents. THE SINGLE LARGEST RECOVERABLE PHYSICAL VARIABLE: it explains 55.96% of the within-repeated-cell log_D sum of squares (962 rows in 304 cells, rms spread 0.591 log units) and splits 51 of those cells. Within the 40 (extractant, metal, [acid], [extractant conc]) cells that contain both, adding a complexant shifts log_D by a mean of -0.918 (median -1.071). Every metal (14) and 2-3 extractants per agent, so it is not a single-study artefact for the big agents.",
+      "recommendation": "TRULY MISSING - top-priority recovery. Encode as complexant identity one-hot + complexant present flag (+ SMILES-derived descriptors, which are already available in the blob).",
+      "pct_within_repeated_cell_SS_explained": 55.96
+    },
+    "comments_description::Complexant_Concentration_M": {
+      "rows_present": 557,
+      "coverage": 0.092957,
+      "missing": 5435,
+      "missing_frac": 0.907043,
+      "n_unique": 25,
+      "top20": [
+        [
+          "0.5",
+          84
+        ],
+        [
+          "0.05",
+          58
+        ],
+        [
+          "1",
+          56
+        ],
+        [
+          "0.01; 1",
+          56
+        ],
+        [
+          "0.01",
+          38
+        ],
+        [
+          "0.2",
+          32
+        ],
+        [
+          "0.02",
+          28
+        ],
+        [
+          "0.005",
+          22
+        ],
+        [
+          "0.1",
+          15
+        ],
+        [
+          "0.02;0.54",
+          14
+        ],
+        [
+          "0.02;1.73",
+          14
+        ],
+        [
+          "0.001",
+          14
+        ],
+        [
+          "0.002",
+          14
+        ],
+        [
+          "3",
+          14
+        ],
+        [
+          "5",
+          14
+        ],
+        [
+          "0.05; 3",
+          14
+        ],
+        [
+          "0.05; 5",
+          14
+        ],
+        [
+          "0.05;1",
+          13
+        ],
+        [
+          "0.02;0.88",
+          12
+        ],
+        [
+          "0.01;1",
+          11
+        ]
+      ],
+      "upstream_column": "comments_description::Complexant_Concentration_M",
+      "downstream_equivalent": "none",
+      "equivalence": "none",
+      "truly_missing_downstream": true,
+      "physical_interpretation": "Molarity of each aqueous complexant (semicolon-separated when there are two, e.g. '0.01; 1' = 0.01 M DTPA + 1 M NaNO3).",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "557 rows, 25 distinct strings. Explains 56.67% of within-repeated-cell SS and splits 106 cells - the best single explainer measured. Must be split on ';' and aligned positionally with Complexant_Name.",
+      "recommendation": "TRULY MISSING - recover as log10 concentration per agent class; this is the natural partner of the MASSACTION block.",
+      "pct_within_repeated_cell_SS_explained": 56.67
+    },
+    "comments_description::Complexant_SMILES": {
+      "rows_present": 557,
+      "coverage": 0.092957,
+      "missing": 5435,
+      "missing_frac": 0.907043,
+      "n_unique": 9,
+      "top20": [
+        [
+          "C(CN(CC(=O)O)CC(=O)O)N(CCN(CC(=O)O)CC(=O)O)CC(=O)O.[N+](=O)([O-])[O-]",
+          165
+        ],
+        [
+          "CCN(CC)C(=O)COCC(=O)N(CC)CC",
+          88
+        ],
+        [
+          "CCN(CC)C(=O)COCCOCC(=O)N(CC)CC",
+          88
+        ],
+        [
+          "[N+](=O)([O-])[O-]",
+          70
+        ],
+        [
+          "CCN(CC)C(=O)COCC(=O)O",
+          69
+        ],
+        [
+          "NC(=O)CC(N)=O",
+          56
+        ],
+        [
+          "OCCN(CCN(CC([O-])=O)CC([O-])=O)CC([O-])=O",
+          10
+        ],
+        [
+          "CC1=C(N=NC(=N1)C2=NC(=CC=C2)C3=NC(=C(N=N3)C)C)C",
+          10
+        ],
+        [
+          "OC(=O)CN(CC(O)=O)[C@@H]1CCCC[C@H]1N(CC(O)=O)CC(O)=O",
+          1
+        ]
+      ],
+      "upstream_column": "comments_description::Complexant_SMILES",
+      "downstream_equivalent": "none",
+      "equivalence": "none",
+      "truly_missing_downstream": true,
+      "physical_interpretation": "Structure of each aqueous complexant (9 distinct, incl. the DTPA.nitrate salt written as a dot-disconnected SMILES).",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "557 rows. Lets the complexant be described by the same 2D/3D descriptor machinery already built for the extractant, so a NEW holdback agent generalises instead of being a one-hot.",
+      "recommendation": "TRULY MISSING - recover; feed through the existing ligand-descriptor path."
+    },
+    "comments_description::No_of_Metals": {
+      "rows_present": 3388,
+      "coverage": 0.565421,
+      "missing": 2604,
+      "missing_frac": 0.434579,
+      "n_unique": 8,
+      "top20": [
+        [
+          "1",
+          3061
+        ],
+        [
+          "2",
+          189
+        ],
+        [
+          "9",
+          65
+        ],
+        [
+          "24",
+          54
+        ],
+        [
+          "32",
+          10
+        ],
+        [
+          "33",
+          6
+        ],
+        [
+          "31",
+          2
+        ],
+        [
+          "23",
+          1
+        ]
+      ],
+      "upstream_column": "comments_description::No_of_Metals",
+      "downstream_equivalent": "none",
+      "equivalence": "none",
+      "truly_missing_downstream": true,
+      "physical_interpretation": "How many metals were present in the same aqueous phase - i.e. single-metal vs competitive/loaded extraction.",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "3388 rows carry it (3061 = 1 metal, 327 = 2..33 metals). Explains only 0.02% of within-cell SS (the mixtures rarely coincide with repeated cells) but it is a real regime flag: mean log_D 0.618 (single) vs 0.778 (mixture). Coverage is capped at 56.5% because the other curator batch never recorded it.",
+      "recommendation": "TRULY MISSING - recover as n_metals plus an is_mixture flag, with an explicit 'unknown' level for the 2604 uncovered rows.",
+      "pct_within_repeated_cell_SS_explained": 0.02
+    },
+    "comments_description::Aqueous_Phase_Metals": {
+      "rows_present": 327,
+      "coverage": 0.054573,
+      "missing": 5665,
+      "missing_frac": 0.945427,
+      "n_unique": 17,
+      "top20": [
+        [
+          "Am(III); Eu(III)",
+          144
+        ],
+        [
+          "Am(III); La(III); Ce(III); Pr(III); Nd(III); Sm(III); Eu(III); Gd(III); Tb(III); Dy(III); Ho(III); Er(III); Tm(III); Yb(III); Lu(III); Yb(III); Sr; Zr; Mo; Pd; Fe; Ru; Pu(IV); Cm(III)",
+          54
+        ],
+        [
+          "Am(III); Eu(III); Y; La(III); Ce(III); Pr(III); Nd(III); Sm(III); Gd(III)",
+          51
+        ],
+        [
+          "Am(III); Eu(III); Gd(III); Sm(III); Y; Nd(III); Pr(III); La(III); Ce(III)",
+          14
+        ],
+        [
+          "Am(III); Cm(III); Cf(III); Y; La(III); Ce(III); Pr(III); Nd(III); Sm(III); Eu(III); Gd(III); Ag; Al; Ba; Cd; Cr; Cs; Cu; Fe; Mo; Na; Ni; Pd; Rb; Rh; Ru; Sb; Se; Sn; Sr; Te; Zr",
+          10
+        ],
+        [
+          "Am(III); Pu(IV); Y; La(III); Ce(III); Pr(III); Nd(III); Sm(III); Eu(III); Gd(III); Ag; Ba; Cd; Cr; Cs; Fe; Mo; Na; Ni; Pd; Rb; Ru; Sb; Se; Sn; Sr; Te; Zr; U(VI); Co; Mn; Tb(III); Dy(III)",
+          6
+        ],
+        [
+          "La(III); Pu(IV)",
+          5
+        ],
+        [
+          "Ce(III); Pu(IV)",
+          5
+        ],
+        [
+          "Pr(III); Pu(IV)",
+          5
+        ],
+        [
+          "Nd(III); Pu(IV)",
+          5
+        ],
+        [
+          "Sm(III); Pu(IV)",
+          5
+        ],
+        [
+          "Eu(III); Pu(IV)",
+          5
+        ],
+        [
+          "Gd(III); Pu(IV)",
+          5
+        ],
+        [
+          "Tb(III); Pu(IV)",
+          5
+        ],
+        [
+          "Dy(III); Pu(IV)",
+          5
+        ],
+        [
+          "Am(III); Pu(IV); Y; La(III); Ce(III); Pr(III); Nd(III); Sm(III); Eu(III); Gd(III); Ag; Al; Ba; Cd; Cr; Cs; Cu; Fe; Mo; Na; Ni; Pd; Rb; Rh; Ru; Sb; Se; Sn; Sr; Te; Zr",
+          2
+        ],
+        [
+          "Am(III); Pu(IV); Eu(III); Tc; Na; K; Cr; Mn; Fe; Ni; Sr; Y; Zr; Mo; Cs; Ba; La(III); Ce(III); Pr(III); Nd(III); Sm(III); U(VI); Pd",
+          1
+        ]
+      ],
+      "upstream_column": "comments_description::Aqueous_Phase_Metals",
+      "downstream_equivalent": "none",
+      "equivalence": "none",
+      "truly_missing_downstream": true,
+      "physical_interpretation": "The full list of co-present metals (Am(III); Eu(III); ... Zr; Mo; Pd; Fe ...), including tetravalent Pu and non-lanthanides that compete for the extractant.",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "327 rows (5.46%), 17 distinct lists. Populated exactly where No. of Metals > 1. Gives total competing-metal loading, which is what actually saturates the organic phase.",
+      "recommendation": "TRULY MISSING - recover as n_competing_metals and flags for competitive tetravalent (Pu(IV)/Th) / trivalent actinide presence."
+    },
+    "comments_description::Additional_Comments": {
+      "rows_present": 421,
+      "coverage": 0.07026,
+      "missing": 5571,
+      "missing_frac": 0.92974,
+      "n_unique": 12,
+      "top20": [
+        [
+          "Metal conc. may be 2 or 200 ppm",
+          253
+        ],
+        [
+          "Ln conc. between 10-100 ppm. 50 ppm reported here.",
+          28
+        ],
+        [
+          "Manual Extraction",
+          28
+        ],
+        [
+          "High-throughput Automated Extraction",
+          25
+        ],
+        [
+          "Discrepancy in HNO3 acid conc. reported in text (2M) and Figure (3M)",
+          24
+        ],
+        [
+          "Direct Sampling Method",
+          14
+        ],
+        [
+          "Simulated UOX1 Purex Raffinate solution",
+          14
+        ],
+        [
+          "Sequential Sampling Method",
+          13
+        ],
+        [
+          "Simulated Highly Active Raffinate solution",
+          12
+        ],
+        [
+          "Simulated High Level Waste solution",
+          6
+        ],
+        [
+          "Value in Table 1 off from value shown in Figure 5 by factor of 10^-1. Value adjusted to match Figure 5",
+          3
+        ],
+        [
+          "Simulated Pressurized Heavy Water Reactor High Level Waste solution; Pd concentration not reported",
+          1
+        ]
+      ],
+      "upstream_column": "comments_description::Additional_Comments",
+      "downstream_equivalent": "none",
+      "equivalence": "none",
+      "truly_missing_downstream": true,
+      "physical_interpretation": "Curator caveats. Two kinds mixed together: (a) METHOD flags - 'Manual Extraction', 'High-throughput Automated Extraction', 'Direct Sampling Method', 'Sequential Sampling Method'; (b) DATA-QUALITY / matrix flags - 'Metal conc. may be 2 or 200 ppm', 'Simulated UOX1 Purex Raffinate solution', 'Discrepancy in HNO3 acid conc...', 'Value ... adjusted to match Figure 5'.",
+      "safe_at_inference_for_new_extractant": "no",
+      "publication_specific": "yes",
+      "target_leak_risk": "medium",
+      "notes": "421 rows (7.03%), 12 distinct strings. Explains 0.17% of within-cell SS. The 'Simulated ... Raffinate/HLW solution' values (33 rows) are the ONLY marker that the aqueous phase was a full fission-product matrix rather than a clean nitrate solution - a real condition. The rest are provenance/uncertainty notes.",
+      "recommendation": "PARTIALLY RECOVERABLE - extract only two derived flags: is_simulated_waste_matrix and measurement_uncertainty_flagged. The latter belongs in sample weighting, not in X.",
+      "pct_within_repeated_cell_SS_explained": 0.17
+    },
+    "comments_description::Data_Location": {
+      "rows_present": 3388,
+      "coverage": 0.565421,
+      "missing": 2604,
+      "missing_frac": 0.434579,
+      "n_unique": 39,
+      "top20": [
+        [
+          "Figure 3",
+          550
+        ],
+        [
+          "Figure 4",
+          444
+        ],
+        [
+          "Figure 2",
+          409
+        ],
+        [
+          "Figure 8",
+          380
+        ],
+        [
+          "Table SI1",
+          200
+        ],
+        [
+          "Figure 5",
+          198
+        ],
+        [
+          "Table 1",
+          193
+        ],
+        [
+          "Figure 6",
+          152
+        ],
+        [
+          "Figure 7",
+          136
+        ],
+        [
+          "Figure 1",
+          110
+        ],
+        [
+          "Figure S4B",
+          57
+        ],
+        [
+          "Figure S4C",
+          57
+        ],
+        [
+          "Figure S4A",
+          56
+        ],
+        [
+          "Table S15",
+          53
+        ],
+        [
+          "Table 3",
+          51
+        ],
+        [
+          "Table S20",
+          42
+        ],
+        [
+          "Figure S6",
+          39
+        ],
+        [
+          "Table 4",
+          30
+        ],
+        [
+          "Table S17",
+          28
+        ],
+        [
+          "Table S18",
+          28
+        ]
+      ],
+      "upstream_column": "comments_description::Data_Location",
+      "downstream_equivalent": "none",
+      "equivalence": "none",
+      "truly_missing_downstream": true,
+      "physical_interpretation": "Which figure or table of the source paper the point was digitised from ('Figure 3', 'Table SI1', 'Figure S4B').",
+      "safe_at_inference_for_new_extractant": "no",
+      "publication_specific": "yes",
+      "target_leak_risk": "EXTREME",
+      "notes": "3388 rows (56.5%), 39 distinct labels; combined with DOI it gives 197 distinct (paper, figure) series. Group-mean R2 = 0.5001 and it splits 104 repeated cells (10.63% of within-cell SS). A further ~1124 of the 2604 free-text rows carry the same information in the 'fig3'/'table1' prefix, so a unified data-location field would cover ~4512 rows (75.3%).",
+      "recommendation": "GROUPING VARIABLE ONLY - this is the true experiment_series_id the gen5 unseen_series folds were trying to approximate. Never a feature.",
+      "pct_within_repeated_cell_SS_explained": 10.63
+    },
+    "comments_description::Publication_Year": {
+      "rows_present": 3388,
+      "coverage": 0.565421,
+      "missing": 2604,
+      "missing_frac": 0.434579,
+      "n_unique": 19,
+      "top20": [
+        [
+          "2020",
+          911
+        ],
+        [
+          "2011",
+          459
+        ],
+        [
+          "2017",
+          457
+        ],
+        [
+          "2015",
+          279
+        ],
+        [
+          "2014",
+          192
+        ],
+        [
+          "2007",
+          189
+        ],
+        [
+          "2018",
+          189
+        ],
+        [
+          "2024",
+          178
+        ],
+        [
+          "2016",
+          134
+        ],
+        [
+          "2009",
+          95
+        ],
+        [
+          "2003",
+          70
+        ],
+        [
+          "2023",
+          54
+        ],
+        [
+          "2010",
+          49
+        ],
+        [
+          "2001",
+          49
+        ],
+        [
+          "2019",
+          28
+        ],
+        [
+          "2013",
+          21
+        ],
+        [
+          "2006",
+          18
+        ],
+        [
+          "1999",
+          14
+        ],
+        [
+          "2012",
+          2
+        ]
+      ],
+      "upstream_column": "comments_description::Publication_Year",
+      "downstream_equivalent": "none",
+      "equivalence": "none",
+      "truly_missing_downstream": true,
+      "physical_interpretation": "Year of the source publication (1999-2024).",
+      "safe_at_inference_for_new_extractant": "no",
+      "publication_specific": "yes",
+      "target_leak_risk": "medium",
+      "notes": "3388 rows, 19 values. Group-mean R2 = 0.1398. It is a proxy for which extractant families were fashionable, so it will look predictive on a random split and collapse on a chemotype hold-out.",
+      "recommendation": "do not use as a feature; useful for a temporal (train-on-old, test-on-new) split, which is a stronger generalisation test.",
+      "pct_within_repeated_cell_SS_explained": 0.0
+    },
+    "comments_description::Title": {
+      "rows_present": 3388,
+      "coverage": 0.565421,
+      "missing": 2604,
+      "missing_frac": 0.434579,
+      "n_unique": 34,
+      "top20": [
+        [
+          "Separation of Am, Cm and Lanthanides by Solvent Extraction with Hydrophilic and Lipophilic Organic Ligands",
+          459
+        ],
+        [
+          "The Effect of Alkyl Substituents on Actinide and Lanthanide Extraction by Diglycolamide Compounds",
+          279
+        ],
+        [
+          "Extraction and Separation between Light and Heavy Lanthanides by N,N,N\u2032,N\u2032-Tetraoctyl-diglycolamide from Organic Acid",
+          253
+        ],
+        [
+          "Extraction of rare earth elements from nitrate solution using novel unsymmetrical diglycolamide",
+          215
+        ],
+        [
+          "Solvent extraction of An(III) and Ln(III) using TODGA in aromatic diluents to suppress third phase formation",
+          215
+        ],
+        [
+          "Structure Activity Relationship Approach toward the Improved Separation of Rare-Earth Elements Using Diglycolamides",
+          200
+        ],
+        [
+          "Effect of DTPA on the Extractions of Actinides(III) and Lanthanides(III) from Nitrate Solution into Todga/n\u2010Dodecane",
+          179
+        ],
+        [
+          "Agile synthesis and automated, high-throughput evaluation of diglycolamides for liquid\u2013liquid extraction of rare-earth elements",
+          178
+        ],
+        [
+          "Extraction and stripping behaviors of 14 lanthanides from nitric acid medium by N,N\u2019-dimethyl-N,N\u2019-dioctyl diglycolamide",
+          168
+        ],
+        [
+          "Extraction behavior of trivalent lanthanides from nitric acid medium by selected structurally related diglycolamides as novel extractants",
+          164
+        ],
+        [
+          "Extraction study of rare earth elements with N,N\u2032-dibutyl\u2013N,N\u2032-di(1-methylheptyl)-diglycolamide from hydrochloric acid",
+          134
+        ],
+        [
+          "Extraction of lanthanide ions with N,N,N\u2032,N\u2032-tetrabutyl-3-oxa-diglycolamide from nitric acid media",
+          132
+        ],
+        [
+          "Effect of structure on extraction behavior of praseodymium with a series of unsymmetrical diglycolamides from hydrochloric acid",
+          96
+        ],
+        [
+          "Synthesis of Pre-Organized Bisdiglycolamides (BisDGA) and Study of their Extraction Properties for Actinides(III) and Lanthanides(III)",
+          94
+        ],
+        [
+          "Actinide\u2013lanthanide co-extraction by rigidified diglycolamides",
+          93
+        ],
+        [
+          "Synthesis and characterization of new unsymmetrical diglycolamide extractants for lanthanide ion partitioning: part one\u2014straight-chain alkyl derivatives",
+          75
+        ],
+        [
+          "Extraction Studies of Lanthanide(III) Ions with N,N\u2032\u2010Dimethyl\u2010N,N\u2032\u2010diphenylpyridine\u20102,6\u2010dicarboxyamide (DMDPhPDA) from Nitric Acid Solutions",
+          70
+        ],
+        [
+          "Synthesis and evaluation of new modified diglycolamides with different stereochemistry for extraction of tri- and tetravalent metal ions",
+          54
+        ],
+        [
+          "The novel extractants, diglycolamides, for the extraction of lanthanides and actinides in HNO3-n-dodecane system",
+          49
+        ],
+        [
+          "Synthesis and Am/Eu extraction of novel TODGA derivatives",
+          47
+        ]
+      ],
+      "upstream_column": "comments_description::Title",
+      "downstream_equivalent": "none",
+      "equivalence": "none",
+      "truly_missing_downstream": true,
+      "physical_interpretation": "Title of the source publication (34 distinct).",
+      "safe_at_inference_for_new_extractant": "no",
+      "publication_specific": "yes",
+      "target_leak_risk": "HIGH",
+      "notes": "3388 rows. Group-mean R2 = 0.1856. Equivalent to a coarse DOI.",
+      "recommendation": "GROUPING VARIABLE ONLY."
+    },
+    "comments_description::Authors": {
+      "rows_present": 3388,
+      "coverage": 0.565421,
+      "missing": 2604,
+      "missing_frac": 0.434579,
+      "n_unique": 34,
+      "top20": [
+        [
+          "Y Sasaki, Y Kitatsuji, Y Tsubata, Y Sugo, Y Morita",
+          459
+        ],
+        [
+          "Y Sasaki, Y Sugo, K Morita, KL Nash",
+          279
+        ],
+        [
+          "Y. Sasaki, M. Matsumiya, M. Nakase, K. Takeshita",
+          253
+        ],
+        [
+          "EA Mowafy, D Mohamed",
+          215
+        ],
+        [
+          "P We\u00dfling, U M\u00fcllich, E Guerinoni, A Geist, PJ Panak",
+          215
+        ],
+        [
+          "Diana Stamberga, Mary R. Healy, Vyacheslav S. Bryantsev, Camille Albisser, Yana Karslyan, Benjamin Reinhart, Alena Paulenova, Mac Foster, Ilja Popovs, Kevin Lyon, Bruce A. Moyer, and Santa Jansone-Popova",
+          200
+        ],
+        [
+          "A Apichaibukol, Y Sasaki, Y Morita",
+          179
+        ],
+        [
+          "L An, Y Yao, TB Hall, F Zhao, L Qi",
+          178
+        ],
+        [
+          "Yaoyang Liu, Chuang Zhao, Zhibin Liu, Yu Zhou, Caishan Jiao, Meng Zhang, Hongguo Hou, Yang Gao, Hui He & Guoxin Tian",
+          168
+        ],
+        [
+          "E.A. Mowafy, D. Mohamed",
+          164
+        ],
+        [
+          "Guo-Jing Sun, Jin-Hong Yang, Hong-Xiao Yang, Guo-Xin Sun & Yu Cui",
+          134
+        ],
+        [
+          "X.-J. Peng, Y. Cui, J.-F. Ma, Y. Li, G.-X. Sun",
+          132
+        ],
+        [
+          "J. Han, X. Cai, G. Sun, Y. Cui",
+          96
+        ],
+        [
+          "MT Murillo, AG Espartero, J S\u00e1nchez\u2010Quesada, J de Mendoza, P Prados",
+          94
+        ],
+        [
+          "E Macerata, A Ossola, W Panzeri, M Giola, F Faroldi, DA Tinonin, A Mele, A Casnati, M Mariani",
+          93
+        ],
+        [
+          "B. G. Tokheim, S. S. Kelly, R. C. Ronald, K. L. Nash",
+          75
+        ],
+        [
+          "A. Shimada, T. Yaita, H. Narita, S. Tachimori, K. Okuno",
+          70
+        ],
+        [
+          "Laura Diaz Gomez, Andreas Wilden, Dimitri Schneider, Zaina Paparigas, Giuseppe Modolo, Maria Chiara Gullo, Jurriaan Huskens, Willem Verboom",
+          54
+        ],
+        [
+          "Y Sasaki, Y Sugo, S Suzuki, S Tachimori",
+          49
+        ],
+        [
+          "M Iqbal, J Huskens, W Verboom, M Sypula, G Modolo",
+          47
+        ]
+      ],
+      "upstream_column": "comments_description::Authors",
+      "downstream_equivalent": "none",
+      "equivalence": "none",
+      "truly_missing_downstream": true,
+      "physical_interpretation": "Author list of the source publication (34 distinct).",
+      "safe_at_inference_for_new_extractant": "no",
+      "publication_specific": "yes",
+      "target_leak_risk": "HIGH",
+      "notes": "3388 rows; 1:1 with Title.",
+      "recommendation": "GROUPING VARIABLE ONLY - useful for a research-group-disjoint split, the hardest realistic split."
+    },
+    "comments_description::No_of_Extractants": {
+      "rows_present": 3388,
+      "coverage": 0.565421,
+      "missing": 2604,
+      "missing_frac": 0.434579,
+      "n_unique": 2,
+      "top20": [
+        [
+          "1",
+          3370
+        ],
+        [
+          "2",
+          18
+        ]
+      ],
+      "upstream_column": "comments_description::No_of_Extractants",
+      "downstream_equivalent": "extractant_name (composite string)",
+      "equivalence": "partially",
+      "truly_missing_downstream": true,
+      "physical_interpretation": "Whether the organic phase held one extractant or a synergistic pair.",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "3388 rows: 3370 with 1, 18 with 2 (the TODGA+DHOA rows). Downstream keeps them as the composite name 'TODGA,DHOA', and cond__additive__dhoa is 0 on all 18 (it is 1 on only 8 unrelated rows), so the second extractant is invisible to the model.",
+      "recommendation": "TRULY MISSING for those 18 rows - either encode the synergist explicitly or exclude the mixture rows from single-ligand arms."
+    },
+    "comments_description::Metal_Concentration_mM": {
+      "rows_present": 3383,
+      "coverage": 0.564586,
+      "missing": 2609,
+      "missing_frac": 0.435414,
+      "n_unique": 45,
+      "top20": [
+        [
+          "0.5",
+          378
+        ],
+        [
+          "0.07",
+          315
+        ],
+        [
+          "5",
+          306
+        ],
+        [
+          "0.01",
+          275
+        ],
+        [
+          "0.06",
+          272
+        ],
+        [
+          "0.002",
+          215
+        ],
+        [
+          "0.0001",
+          179
+        ],
+        [
+          "3",
+          168
+        ],
+        [
+          "0.0100000000000001",
+          164
+        ],
+        [
+          "0.0006",
+          155
+        ],
+        [
+          "Trace; Trace",
+          144
+        ],
+        [
+          "4",
+          134
+        ],
+        [
+          "0.0007",
+          124
+        ],
+        [
+          "1",
+          98
+        ],
+        [
+          "Trace",
+          97
+        ],
+        [
+          "Trace; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; Trace; Trace",
+          54
+        ],
+        [
+          "Trace; 0.24; 0.96; 2.3; 5.04; 1.91; 6.27; 1.26; 0.40",
+          51
+        ],
+        [
+          "0.08",
+          42
+        ],
+        [
+          "0.6; 127",
+          40
+        ],
+        [
+          "0.0800000000000004",
+          21
+        ]
+      ],
+      "upstream_column": "comments_description::Metal_Concentration_mM",
+      "downstream_equivalent": "cond__metal_concentration_mM",
+      "equivalence": "duplicate of the column",
+      "truly_missing_downstream": false,
+      "physical_interpretation": "Restatement of the metal loading inside the comment blob.",
+      "safe_at_inference_for_new_extractant": "yes",
+      "publication_specific": "no",
+      "target_leak_risk": "low",
+      "notes": "3383 rows; redundant with the Metal_Concentration_mM column, except that it also carries per-metal lists for mixtures.",
+      "recommendation": "use only to fill mixture-row metal loadings."
+    }
+  },
+  "all_upstream_column_stats": {
+    "metal_symbol": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 14,
+      "top20": [
+        [
+          "Eu",
+          1566
+        ],
+        [
+          "Nd",
+          635
+        ],
+        [
+          "La",
+          418
+        ],
+        [
+          "Dy",
+          409
+        ],
+        [
+          "Gd",
+          397
+        ],
+        [
+          "Pr",
+          355
+        ],
+        [
+          "Sm",
+          347
+        ],
+        [
+          "Er",
+          322
+        ],
+        [
+          "Ce",
+          305
+        ],
+        [
+          "Ho",
+          281
+        ],
+        [
+          "Tb",
+          259
+        ],
+        [
+          "Lu",
+          255
+        ],
+        [
+          "Yb",
+          241
+        ],
+        [
+          "Tm",
+          202
+        ]
+      ]
+    },
+    "extractant_name": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 228,
+      "top20": [
+        [
+          "TODGA",
+          1585
+        ],
+        [
+          "DMDODGA",
+          379
+        ],
+        [
+          "TDdDGA",
+          267
+        ],
+        [
+          "TBDGA",
+          240
+        ],
+        [
+          "C5BTBP",
+          237
+        ],
+        [
+          "DHD2DGA",
+          215
+        ],
+        [
+          "DOODA (C12)",
+          202
+        ],
+        [
+          "TEHDGA",
+          146
+        ],
+        [
+          "DBD1MHDGA",
+          134
+        ],
+        [
+          "TEDGA",
+          84
+        ],
+        [
+          "DMDPDGA",
+          78
+        ],
+        [
+          "DMDO-HPyranDGA",
+          72
+        ],
+        [
+          "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide",
+          70
+        ],
+        [
+          "N-methyl-2-[2-[methyl(octyl)amino]-2-oxoethoxy]-N-octylacetamide",
+          70
+        ],
+        [
+          "DOODA (C8)",
+          70
+        ],
+        [
+          "DMDPhPDA",
+          70
+        ],
+        [
+          "TPrDGA",
+          61
+        ],
+        [
+          "TDDGA",
+          59
+        ],
+        [
+          "mTDDGA",
+          45
+        ],
+        [
+          "THDGA",
+          43
+        ]
+      ]
+    },
+    "D": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 4660,
+      "top20": [
+        [
+          "0.001",
+          63
+        ],
+        [
+          "0.1",
+          44
+        ],
+        [
+          "1.0",
+          28
+        ],
+        [
+          "0.0001",
+          26
+        ],
+        [
+          "0.003",
+          26
+        ],
+        [
+          "0.002",
+          25
+        ],
+        [
+          "0.8000000000148405",
+          18
+        ],
+        [
+          "0.01",
+          18
+        ],
+        [
+          "0.0100000000000002",
+          18
+        ],
+        [
+          "3.000000001936503",
+          17
+        ],
+        [
+          "0.04",
+          16
+        ],
+        [
+          "1.099999999599241",
+          12
+        ],
+        [
+          "10.0",
+          12
+        ],
+        [
+          "2.000000001547424",
+          11
+        ],
+        [
+          "1.499999999807684",
+          10
+        ],
+        [
+          "0.5999999994699767",
+          10
+        ],
+        [
+          "0.0003",
+          10
+        ],
+        [
+          "0.02",
+          10
+        ],
+        [
+          "0.06",
+          10
+        ],
+        [
+          "20.00000001547424",
+          9
+        ]
+      ]
+    },
+    "log_D": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 4660,
+      "top20": [
+        [
+          "-3.0",
+          63
+        ],
+        [
+          "-1.0",
+          44
+        ],
+        [
+          "0.0",
+          28
+        ],
+        [
+          "-4.0",
+          26
+        ],
+        [
+          "-2.5228787452803374",
+          26
+        ],
+        [
+          "-2.6989700043360187",
+          25
+        ],
+        [
+          "-0.09691001299999998",
+          18
+        ],
+        [
+          "-2.0",
+          18
+        ],
+        [
+          "-1.9999999999999913",
+          18
+        ],
+        [
+          "0.47712125499999997",
+          17
+        ],
+        [
+          "-1.3979400086720375",
+          16
+        ],
+        [
+          "0.04139268500000015",
+          12
+        ],
+        [
+          "1.0",
+          12
+        ],
+        [
+          "0.301029996",
+          11
+        ],
+        [
+          "0.17609125900000008",
+          10
+        ],
+        [
+          "-0.22184875",
+          10
+        ],
+        [
+          "-3.5228787452803374",
+          10
+        ],
+        [
+          "-1.6989700043360187",
+          10
+        ],
+        [
+          "-1.2218487496163564",
+          10
+        ],
+        [
+          "1.301029996",
+          9
+        ]
+      ]
+    },
+    "cond__acid_concentration_M": {
+      "rows_present": 5981,
+      "coverage": 0.998164,
+      "missing": 11,
+      "missing_frac": 0.001836,
+      "n_unique": 691,
+      "top20": [
+        [
+          "3.0",
+          1432
+        ],
+        [
+          "1.0",
+          961
+        ],
+        [
+          "2.0",
+          329
+        ],
+        [
+          "0.5",
+          263
+        ],
+        [
+          "5.0",
+          227
+        ],
+        [
+          "0.1",
+          221
+        ],
+        [
+          "4.0",
+          192
+        ],
+        [
+          "1.5",
+          149
+        ],
+        [
+          "0.95",
+          84
+        ],
+        [
+          "0.016",
+          82
+        ],
+        [
+          "0.01",
+          80
+        ],
+        [
+          "2.9",
+          62
+        ],
+        [
+          "4.3",
+          56
+        ],
+        [
+          "0.3",
+          55
+        ],
+        [
+          "7.4",
+          54
+        ],
+        [
+          "0.001",
+          53
+        ],
+        [
+          "0.9",
+          51
+        ],
+        [
+          "0.2",
+          47
+        ],
+        [
+          "6.0",
+          39
+        ],
+        [
+          "2.5",
+          34
+        ]
+      ]
+    },
+    "cond__extractant_concentration_M": {
+      "rows_present": 5991,
+      "coverage": 0.999833,
+      "missing": 1,
+      "missing_frac": 0.000167,
+      "n_unique": 422,
+      "top20": [
+        [
+          "0.1",
+          1961
+        ],
+        [
+          "0.2",
+          1256
+        ],
+        [
+          "0.05",
+          382
+        ],
+        [
+          "0.01",
+          228
+        ],
+        [
+          "0.024",
+          218
+        ],
+        [
+          "0.5",
+          210
+        ],
+        [
+          "0.04",
+          180
+        ],
+        [
+          "0.005",
+          175
+        ],
+        [
+          "0.02",
+          122
+        ],
+        [
+          "0.075",
+          89
+        ],
+        [
+          "0.015",
+          72
+        ],
+        [
+          "0.6",
+          70
+        ],
+        [
+          "0.025",
+          52
+        ],
+        [
+          "0.007",
+          51
+        ],
+        [
+          "0.03",
+          36
+        ],
+        [
+          "0.3",
+          30
+        ],
+        [
+          "0.08",
+          29
+        ],
+        [
+          "0.0005",
+          27
+        ],
+        [
+          "0.001",
+          22
+        ],
+        [
+          "0.15",
+          21
+        ]
+      ]
+    },
+    "cond__metal_concentration_mM": {
+      "rows_present": 4460,
+      "coverage": 0.744326,
+      "missing": 1532,
+      "missing_frac": 0.255674,
+      "n_unique": 141,
+      "top20": [
+        [
+          "0.01",
+          593
+        ],
+        [
+          "5.0",
+          549
+        ],
+        [
+          "0.5",
+          472
+        ],
+        [
+          "3.0",
+          367
+        ],
+        [
+          "0.07",
+          315
+        ],
+        [
+          "0.06",
+          272
+        ],
+        [
+          "0.002",
+          215
+        ],
+        [
+          "0.0001",
+          179
+        ],
+        [
+          "4.0",
+          174
+        ],
+        [
+          "0.0006",
+          155
+        ],
+        [
+          "1.0",
+          142
+        ],
+        [
+          "0.0007",
+          124
+        ],
+        [
+          "0.1",
+          123
+        ],
+        [
+          "0.08",
+          105
+        ],
+        [
+          "0.6",
+          40
+        ],
+        [
+          "1.3",
+          39
+        ],
+        [
+          "2.0",
+          39
+        ],
+        [
+          "0.00256",
+          36
+        ],
+        [
+          "1.316",
+          32
+        ],
+        [
+          "0.05",
+          28
+        ]
+      ]
+    },
+    "cond__temperature_C": {
+      "rows_present": 5909,
+      "coverage": 0.986148,
+      "missing": 83,
+      "missing_frac": 0.013852,
+      "n_unique": 22,
+      "top20": [
+        [
+          "25.0",
+          4026
+        ],
+        [
+          "22.0",
+          876
+        ],
+        [
+          "20.0",
+          684
+        ],
+        [
+          "23.0",
+          71
+        ],
+        [
+          "21.0",
+          45
+        ],
+        [
+          "30.0",
+          39
+        ],
+        [
+          "21.85000000000002",
+          38
+        ],
+        [
+          "15.0",
+          22
+        ],
+        [
+          "35.0",
+          21
+        ],
+        [
+          "45.0",
+          21
+        ],
+        [
+          "55.0",
+          16
+        ],
+        [
+          "50.0",
+          11
+        ],
+        [
+          "20.0156985871271",
+          9
+        ],
+        [
+          "43.0",
+          7
+        ],
+        [
+          "40.0156985871271",
+          7
+        ],
+        [
+          "5.0",
+          4
+        ],
+        [
+          "10.0",
+          4
+        ],
+        [
+          "40.0",
+          3
+        ],
+        [
+          "39.9843014128728",
+          2
+        ],
+        [
+          "30.0313971742543",
+          1
+        ]
+      ]
+    },
+    "cond__contact_time_min": {
+      "rows_present": 3776,
+      "coverage": 0.630174,
+      "missing": 2216,
+      "missing_frac": 0.369826,
+      "n_unique": 43,
+      "top20": [
+        [
+          "30.0",
+          1281
+        ],
+        [
+          "60.0",
+          968
+        ],
+        [
+          "20.0",
+          495
+        ],
+        [
+          "15.0",
+          309
+        ],
+        [
+          "50.0",
+          279
+        ],
+        [
+          "120.0",
+          219
+        ],
+        [
+          "10.0",
+          72
+        ],
+        [
+          "360.0",
+          44
+        ],
+        [
+          "45.0",
+          36
+        ],
+        [
+          "240.0",
+          31
+        ],
+        [
+          "19.9999999999999",
+          2
+        ],
+        [
+          "0.6635921086343833",
+          2
+        ],
+        [
+          "0.995388162951575",
+          2
+        ],
+        [
+          "1.995260056366883",
+          2
+        ],
+        [
+          "2.995131949782217",
+          2
+        ],
+        [
+          "3.995003843197533",
+          2
+        ],
+        [
+          "4.99487573661285",
+          2
+        ],
+        [
+          "1080.0",
+          2
+        ],
+        [
+          "1800.0",
+          2
+        ],
+        [
+          "90.0",
+          1
+        ]
+      ]
+    },
+    "exp_id": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 5992,
+      "top20": [
+        [
+          "10321",
+          1
+        ],
+        [
+          "10343",
+          1
+        ],
+        [
+          "10344",
+          1
+        ],
+        [
+          "10345",
+          1
+        ],
+        [
+          "10346",
+          1
+        ],
+        [
+          "10348",
+          1
+        ],
+        [
+          "10391",
+          1
+        ],
+        [
+          "10392",
+          1
+        ],
+        [
+          "10393",
+          1
+        ],
+        [
+          "10394",
+          1
+        ],
+        [
+          "10395",
+          1
+        ],
+        [
+          "10396",
+          1
+        ],
+        [
+          "10397",
+          1
+        ],
+        [
+          "10398",
+          1
+        ],
+        [
+          "10488",
+          1
+        ],
+        [
+          "11538",
+          1
+        ],
+        [
+          "11539",
+          1
+        ],
+        [
+          "11540",
+          1
+        ],
+        [
+          "11541",
+          1
+        ],
+        [
+          "11542",
+          1
+        ]
+      ]
+    },
+    "Extractant_Name": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 228,
+      "top20": [
+        [
+          "TODGA",
+          1585
+        ],
+        [
+          "DMDODGA",
+          379
+        ],
+        [
+          "TDdDGA",
+          267
+        ],
+        [
+          "TBDGA",
+          240
+        ],
+        [
+          "C5BTBP",
+          237
+        ],
+        [
+          "DHD2DGA",
+          215
+        ],
+        [
+          "DOODA (C12)",
+          202
+        ],
+        [
+          "TEHDGA",
+          146
+        ],
+        [
+          "DBD1MHDGA",
+          134
+        ],
+        [
+          "TEDGA",
+          84
+        ],
+        [
+          "DMDPDGA",
+          78
+        ],
+        [
+          "DMDO-HPyranDGA",
+          72
+        ],
+        [
+          "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide",
+          70
+        ],
+        [
+          "N-methyl-2-[2-[methyl(octyl)amino]-2-oxoethoxy]-N-octylacetamide",
+          70
+        ],
+        [
+          "DOODA (C8)",
+          70
+        ],
+        [
+          "DMDPhPDA",
+          70
+        ],
+        [
+          "TPrDGA",
+          61
+        ],
+        [
+          "TDDGA",
+          59
+        ],
+        [
+          "mTDDGA",
+          45
+        ],
+        [
+          "THDGA",
+          43
+        ]
+      ]
+    },
+    "Extractant_Concentration_M": {
+      "rows_present": 5991,
+      "coverage": 0.999833,
+      "missing": 1,
+      "missing_frac": 0.000167,
+      "n_unique": 423,
+      "top20": [
+        [
+          "0.1 M",
+          1943
+        ],
+        [
+          "0.2 M",
+          1256
+        ],
+        [
+          "0.05 M",
+          382
+        ],
+        [
+          "0.01 M",
+          228
+        ],
+        [
+          "0.024 M",
+          218
+        ],
+        [
+          "0.5 M",
+          210
+        ],
+        [
+          "0.04 M",
+          180
+        ],
+        [
+          "0.005 M",
+          175
+        ],
+        [
+          "0.02 M",
+          122
+        ],
+        [
+          "0.075 M",
+          89
+        ],
+        [
+          "0.015 M",
+          72
+        ],
+        [
+          "0.6 M",
+          70
+        ],
+        [
+          "0.025 M",
+          52
+        ],
+        [
+          "0.007 M",
+          51
+        ],
+        [
+          "0.03 M",
+          36
+        ],
+        [
+          "0.3 M",
+          30
+        ],
+        [
+          "0.08 M",
+          29
+        ],
+        [
+          "0.0005 M",
+          27
+        ],
+        [
+          "0.001 M",
+          22
+        ],
+        [
+          "0.15 M",
+          21
+        ]
+      ]
+    },
+    "Acid_Name": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 9,
+      "top20": [
+        [
+          "HNO3",
+          4891
+        ],
+        [
+          "Hcl",
+          769
+        ],
+        [
+          "malonic acid",
+          110
+        ],
+        [
+          "H2SO4",
+          68
+        ],
+        [
+          "lactic acid",
+          52
+        ],
+        [
+          "tartaric acid",
+          52
+        ],
+        [
+          "citric acid",
+          39
+        ],
+        [
+          "HNO3; oxalic acid",
+          10
+        ],
+        [
+          "HClO4",
+          1
+        ]
+      ]
+    },
+    "Acid_Concentration_M": {
+      "rows_present": 5981,
+      "coverage": 0.998164,
+      "missing": 11,
+      "missing_frac": 0.001836,
+      "n_unique": 691,
+      "top20": [
+        [
+          "3 M",
+          1432
+        ],
+        [
+          "1 M",
+          961
+        ],
+        [
+          "2 M",
+          329
+        ],
+        [
+          "0.5 M",
+          263
+        ],
+        [
+          "5 M",
+          227
+        ],
+        [
+          "0.1 M",
+          221
+        ],
+        [
+          "4 M",
+          192
+        ],
+        [
+          "1.5 M",
+          149
+        ],
+        [
+          "0.95 M",
+          84
+        ],
+        [
+          "0.016 M",
+          82
+        ],
+        [
+          "0.01 M",
+          80
+        ],
+        [
+          "2.9 M",
+          62
+        ],
+        [
+          "4.3 M",
+          56
+        ],
+        [
+          "0.3 M",
+          55
+        ],
+        [
+          "7.4 M",
+          54
+        ],
+        [
+          "0.001 M",
+          53
+        ],
+        [
+          "0.9 M",
+          51
+        ],
+        [
+          "0.2 M",
+          47
+        ],
+        [
+          "6 M",
+          39
+        ],
+        [
+          "2.5 M",
+          34
+        ]
+      ]
+    },
+    "Solvent_Name": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 83,
+      "top20": [
+        [
+          "n-Dodecane",
+          1744
+        ],
+        [
+          "toluene",
+          611
+        ],
+        [
+          "Isopar L with 30 vol% Exxal 13",
+          350
+        ],
+        [
+          "kerosene",
+          237
+        ],
+        [
+          "1-octanol",
+          221
+        ],
+        [
+          "kerosene 0.7, 1-octanol 0.3",
+          194
+        ],
+        [
+          "Chloroform",
+          186
+        ],
+        [
+          "kerosene with 40 vol% 1-octanol",
+          171
+        ],
+        [
+          "kerosene with 30 vol% 1-octanol",
+          167
+        ],
+        [
+          "tert-butylbenzene",
+          120
+        ],
+        [
+          "TPH",
+          118
+        ],
+        [
+          "nitrobenzene",
+          115
+        ],
+        [
+          "1,4-diisopropylbenzene",
+          102
+        ],
+        [
+          "tBuB",
+          89
+        ],
+        [
+          "DIPB",
+          88
+        ],
+        [
+          "CH3Cl",
+          84
+        ],
+        [
+          "meta-nitrobenzotrifluoride",
+          76
+        ],
+        [
+          "1-octanol 0.5, kerosene 0.5",
+          70
+        ],
+        [
+          "n-octane with 5% 1-octanol",
+          67
+        ],
+        [
+          "CHCl3",
+          61
+        ]
+      ]
+    },
+    "Metal_Name": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 14,
+      "top20": [
+        [
+          "Eu",
+          1566
+        ],
+        [
+          "Nd",
+          635
+        ],
+        [
+          "La",
+          418
+        ],
+        [
+          "Dy",
+          409
+        ],
+        [
+          "Gd",
+          397
+        ],
+        [
+          "Pr",
+          355
+        ],
+        [
+          "Sm",
+          347
+        ],
+        [
+          "Er",
+          322
+        ],
+        [
+          "Ce",
+          305
+        ],
+        [
+          "Ho",
+          281
+        ],
+        [
+          "Tb",
+          259
+        ],
+        [
+          "Lu",
+          255
+        ],
+        [
+          "Yb",
+          241
+        ],
+        [
+          "Tm",
+          202
+        ]
+      ]
+    },
+    "Metal_Oxidation_state": {
+      "rows_present": 5195,
+      "coverage": 0.866989,
+      "missing": 797,
+      "missing_frac": 0.133011,
+      "n_unique": 1,
+      "top20": [
+        [
+          "III",
+          5195
+        ]
+      ]
+    },
+    "Metal_Concentration_mM": {
+      "rows_present": 4460,
+      "coverage": 0.744326,
+      "missing": 1532,
+      "missing_frac": 0.255674,
+      "n_unique": 141,
+      "top20": [
+        [
+          "0.01 mM",
+          593
+        ],
+        [
+          "5 mM",
+          549
+        ],
+        [
+          "0.5 mM",
+          472
+        ],
+        [
+          "3 mM",
+          367
+        ],
+        [
+          "0.07 mM",
+          315
+        ],
+        [
+          "0.06 mM",
+          272
+        ],
+        [
+          "0.002 mM",
+          215
+        ],
+        [
+          "0.0001 mM",
+          179
+        ],
+        [
+          "4 mM",
+          174
+        ],
+        [
+          "0.0006 mM",
+          155
+        ],
+        [
+          "1 mM",
+          142
+        ],
+        [
+          "0.0007 mM",
+          124
+        ],
+        [
+          "0.1 mM",
+          123
+        ],
+        [
+          "0.08 mM",
+          105
+        ],
+        [
+          "0.6 mM",
+          40
+        ],
+        [
+          "1.3 mM",
+          39
+        ],
+        [
+          "2 mM",
+          39
+        ],
+        [
+          "0.00256 mM",
+          36
+        ],
+        [
+          "1.316 mM",
+          32
+        ],
+        [
+          "0.05 mM",
+          28
+        ]
+      ]
+    },
+    "Phase_Modifier_Name": {
+      "rows_present": 265,
+      "coverage": 0.044226,
+      "missing": 5727,
+      "missing_frac": 0.955774,
+      "n_unique": 9,
+      "top20": [
+        [
+          "1-octanol",
+          187
+        ],
+        [
+          "TBP",
+          20
+        ],
+        [
+          "isododecanol",
+          16
+        ],
+        [
+          "octanol",
+          14
+        ],
+        [
+          "HDEHP",
+          9
+        ],
+        [
+          "DHOA",
+          8
+        ],
+        [
+          "isodecanol",
+          8
+        ],
+        [
+          "isodecyl",
+          2
+        ],
+        [
+          "DOHyA",
+          1
+        ]
+      ]
+    },
+    "Phase_Modifier_Concentration_M": {
+      "rows_present": 265,
+      "coverage": 0.044226,
+      "missing": 5727,
+      "missing_frac": 0.955774,
+      "n_unique": 15,
+      "top20": [
+        [
+          "2.537 M",
+          102
+        ],
+        [
+          "1.9 M",
+          60
+        ],
+        [
+          "1.58 M",
+          39
+        ],
+        [
+          "0.5 M",
+          16
+        ],
+        [
+          "1.36 M",
+          16
+        ],
+        [
+          "1.57 M",
+          8
+        ],
+        [
+          "0.3 M",
+          6
+        ],
+        [
+          "0.25 M",
+          5
+        ],
+        [
+          "0.75 M",
+          4
+        ],
+        [
+          "0.1 M",
+          3
+        ],
+        [
+          "2.12 M",
+          2
+        ],
+        [
+          "1.11 M",
+          1
+        ],
+        [
+          "0.71 M",
+          1
+        ],
+        [
+          "0.91 M",
+          1
+        ],
+        [
+          "0.2 M",
+          1
+        ]
+      ]
+    },
+    "Holdback_Agent_Name": {
+      "rows_present": 0,
+      "coverage": 0.0,
+      "missing": 5992,
+      "missing_frac": 1.0,
+      "n_unique": 0,
+      "top20": []
+    },
+    "Holdback_Agent_Concentration_M": {
+      "rows_present": 0,
+      "coverage": 0.0,
+      "missing": 5992,
+      "missing_frac": 1.0,
+      "n_unique": 0,
+      "top20": []
+    },
+    "Extractant_SMILES": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 192,
+      "top20": [
+        [
+          "CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC",
+          1696
+        ],
+        [
+          "CCCCCCCCN(C)C(=O)COCC(=O)N(C)CCCCCCCC",
+          449
+        ],
+        [
+          "CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC",
+          267
+        ],
+        [
+          "CCCCCc1nnc(-c2cccc(-c3cccc(-c4nnc(CCCCC)c(CCCCC)n4)n3)n2)nc1CCCCC",
+          250
+        ],
+        [
+          "CCCCN(CCCC)C(=O)COCC(=O)N(CCCC)CCCC",
+          240
+        ],
+        [
+          "CCCCCCCCCCN(CCCCCCCCCC)C(=O)COCC(=O)N(CCCCCC)CCCCCC",
+          215
+        ],
+        [
+          "CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCCOCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC",
+          202
+        ],
+        [
+          "CCCCC(CC)CN(CC(CC)CCCC)C(=O)COCC(=O)N(CC(CC)CCCC)CC(CC)CCCC",
+          185
+        ],
+        [
+          "CCCCCCC(C)N(CCCC)C(=O)COCC(=O)N(CCCC)C(C)CCCCCC",
+          134
+        ],
+        [
+          "CCN(CC)C(=O)COCC(=O)N(CC)CC",
+          84
+        ],
+        [
+          "CN(C(=O)COCC(=O)N(C)c1ccccc1)c2ccccc2",
+          78
+        ],
+        [
+          "CCCCCCCCCCCCN(C)C(=O)C1CC(OC)CC(C(=O)N(C)CCCCCCCCCCCC)O1",
+          72
+        ],
+        [
+          "CN(C(=O)c1cccc(C(=O)N(C)c2ccccc2)n1)c1ccccc1",
+          70
+        ],
+        [
+          "CCCCCCCCN(CCCCCCCC)C(=O)COCCOCC(=O)N(CCCCCCCC)CCCCCCCC",
+          70
+        ],
+        [
+          "CN(C(=O)c2cccc(C(=O)N(C)c1ccccc1)n2)c3ccccc3",
+          70
+        ],
+        [
+          "CCCN(CCC)C(=O)COCC(=O)N(CCC)CCC",
+          61
+        ],
+        [
+          "CCCCCCCCCCN(CCCCCCCCCC)C(=O)COCC(=O)N(CCCCCCCCCC)CCCCCCCCCC",
+          59
+        ],
+        [
+          "CCCCCCCCN(C)C(=O)C(CCOCCCCCC)C(=O)N(C)CCCCCCCC",
+          52
+        ],
+        [
+          "CCCCCCCCN(CCCCCCCC)C(=O)C(C)OC(C)C(=O)N(CCCCCCCC)CCCCCCCC",
+          46
+        ],
+        [
+          "CCCCCCCCCCN(CCCCCCCCCC)C(=O)C(C)OC(C)C(=O)N(CCCCCCCCCC)CCCCCCCCCC",
+          45
+        ]
+      ]
+    },
+    "Extractant_inchi": {
+      "rows_present": 18,
+      "coverage": 0.003004,
+      "missing": 5974,
+      "missing_frac": 0.996996,
+      "n_unique": 1,
+      "top20": [
+        [
+          "-,-",
+          18
+        ]
+      ]
+    },
+    "ini_comp": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 1832,
+      "top20": [
+        [
+          "HNO3, TODGA, Eu, n-Dodecane",
+          81
+        ],
+        [
+          "HNO3, DMDODGA, Nd, 1-octanol, kerosene",
+          67
+        ],
+        [
+          "HNO3, TODGA, Nd, n-Dodecane",
+          60
+        ],
+        [
+          "HNO3, TEHDGA, Eu, n-Dodecane",
+          58
+        ],
+        [
+          "HNO3, DMDOHEMA, Eu, tphkerosene",
+          36
+        ],
+        [
+          "HNO3, D3DODGA, Nd, n-Dodecane",
+          35
+        ],
+        [
+          "HNO3, TODGA, La, n-Dodecane",
+          33
+        ],
+        [
+          "HNO3, TODGA, Lu, n-Dodecane",
+          32
+        ],
+        [
+          "HNO3, TODGA, Eu, kerosene",
+          31
+        ],
+        [
+          "Hcl, DBD1MHDGA, Dy, kerosene with 30 vol% 1-octanol",
+          30
+        ],
+        [
+          "HNO3, TBDGA, Nd, toluene",
+          30
+        ],
+        [
+          "HNO3, TDdDGA, La, toluene",
+          29
+        ],
+        [
+          "HNO3, TBDGA, Eu, toluene",
+          28
+        ],
+        [
+          "HNO3, TODGA, Ce, n-Hexane",
+          27
+        ],
+        [
+          "HNO3, TBDGA, Sm, toluene",
+          27
+        ],
+        [
+          "HNO3, TBDGA, Dy, toluene",
+          25
+        ],
+        [
+          "HNO3, TBDGA, La, toluene",
+          25
+        ],
+        [
+          "HNO3, TDdDGA, Nd, toluene",
+          25
+        ],
+        [
+          "HNO3, DHD2DGA, Ho, n-Dodecane",
+          24
+        ],
+        [
+          "HNO3, DMDO-HPyranDGA, Eu, kerosene with 30 vol% 1-octanol",
+          24
+        ]
+      ]
+    },
+    "Acid_Concentration_Organic_M": {
+      "rows_present": 36,
+      "coverage": 0.006008,
+      "missing": 5956,
+      "missing_frac": 0.993992,
+      "n_unique": 35,
+      "top20": [
+        [
+          "0.008 M",
+          2
+        ],
+        [
+          "0.002 M",
+          1
+        ],
+        [
+          "0.014 M",
+          1
+        ],
+        [
+          "0.032 M",
+          1
+        ],
+        [
+          "0.055 M",
+          1
+        ],
+        [
+          "0.099 M",
+          1
+        ],
+        [
+          "0.274 M",
+          1
+        ],
+        [
+          "0.154 M",
+          1
+        ],
+        [
+          "1.55 M",
+          1
+        ],
+        [
+          "0.456 M",
+          1
+        ],
+        [
+          "0.609 M",
+          1
+        ],
+        [
+          "0.813 M",
+          1
+        ],
+        [
+          "1.04 M",
+          1
+        ],
+        [
+          "1.3 M",
+          1
+        ],
+        [
+          "1.02 M",
+          1
+        ],
+        [
+          "0.777 M",
+          1
+        ],
+        [
+          "0.569 M",
+          1
+        ],
+        [
+          "0.361 M",
+          1
+        ],
+        [
+          "0.213 M",
+          1
+        ],
+        [
+          "0.143 M",
+          1
+        ]
+      ]
+    },
+    "f_Solvent_Name": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 83,
+      "top20": [
+        [
+          "n-Dodecane",
+          1744
+        ],
+        [
+          "toluene",
+          611
+        ],
+        [
+          "Isopar L with 30 vol% Exxal 13",
+          350
+        ],
+        [
+          "kerosene",
+          237
+        ],
+        [
+          "1-octanol",
+          221
+        ],
+        [
+          "kerosene 0.7, 1-octanol 0.3",
+          194
+        ],
+        [
+          "Chloroform",
+          186
+        ],
+        [
+          "kerosene with 40 vol% 1-octanol",
+          171
+        ],
+        [
+          "kerosene with 30 vol% 1-octanol",
+          167
+        ],
+        [
+          "tert-butylbenzene",
+          120
+        ],
+        [
+          "TPH",
+          118
+        ],
+        [
+          "nitrobenzene",
+          115
+        ],
+        [
+          "1,4-diisopropylbenzene",
+          102
+        ],
+        [
+          "tBuB",
+          89
+        ],
+        [
+          "DIPB",
+          88
+        ],
+        [
+          "CH3Cl",
+          84
+        ],
+        [
+          "meta-nitrobenzotrifluoride",
+          76
+        ],
+        [
+          "1-octanol 0.5, kerosene 0.5",
+          70
+        ],
+        [
+          "n-octane with 5% 1-octanol",
+          67
+        ],
+        [
+          "CHCl3",
+          61
+        ]
+      ]
+    },
+    "f_Metal_Concentration_mM": {
+      "rows_present": 0,
+      "coverage": 0.0,
+      "missing": 5992,
+      "missing_frac": 1.0,
+      "n_unique": 0,
+      "top20": []
+    },
+    "DOI": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 115,
+      "top20": [
+        [
+          "https://doi.org/10.15261/serdj.18.93, https://doi.org/10.1021/jacs.5c19738",
+          459
+        ],
+        [
+          "https://cordis.europa.eu/project/id/211267, https://doi.org/10.1021/jacs.5c19738",
+          403
+        ],
+        [
+          "https://doi.org/10.1080/07366299.2015.1087209 , https://doi.org/10.1021/jacs.5c19738",
+          279
+        ],
+        [
+          "https://doi.org/10.1246/cl.200431, https://doi.org/10.1021/jacs.5c19738",
+          253
+        ],
+        [
+          "https://doi.org/10.1007/s10967-020-07242-1, https://doi.org/10.1021/jacs.5c19738",
+          238
+        ],
+        [
+          "https://doi.org/10.1080/01496395.2016.1274760, https://doi.org/10.1021/jacs.5c19738",
+          215
+        ],
+        [
+          "https://doi.org/10.1016/j.hydromet.2020.105248, https://doi.org/10.1021/jacs.5c19738",
+          215
+        ],
+        [
+          "https://doi.org/10.1021/acs.inorgchem.0c02861, https://doi.org/10.1021/jacs.5c19738",
+          203
+        ],
+        [
+          "https://doi.org/10.1080/07366290600646947, https://doi.org/10.1021/jacs.5c19738",
+          194
+        ],
+        [
+          "https://doi.org/10.1081/SEI-200037727, https://doi.org/10.1021/jacs.5c19738",
+          179
+        ],
+        [
+          "https://doi.org/10.1039/D4GC01146E, https://doi.org/10.1021/jacs.5c19738",
+          178
+        ],
+        [
+          "https://doi.org/10.1016/j.hydromet.2020.105248",
+          177
+        ],
+        [
+          "https://doi.org/10.1016/j.seppur.2014.03.005, https://doi.org/10.1021/jacs.5c19738",
+          164
+        ],
+        [
+          "https://doi.org/10.1081/SEI-120030392, https://doi.org/10.1021/jacs.5c19738",
+          140
+        ],
+        [
+          "https://doi.org/10.1007/s41365-016-0055-0 , https://doi.org/10.1021/jacs.5c19738",
+          134
+        ],
+        [
+          "https://doi.org/10.1007/s41365-017-0229-4 , https://doi.org/10.1021/jacs.5c19738",
+          129
+        ],
+        [
+          "https://doi.org/10.2298/JSC171109043H, https://doi.org/10.1021/jacs.5c19738",
+          96
+        ],
+        [
+          "https://doi.org/10.1080/07366290802672212, https://doi.org/10.1021/jacs.5c19738",
+          94
+        ],
+        [
+          "https://doi.org/10.1080/07366299.2017.1415670, https://doi.org/10.1021/jacs.5c19738",
+          93
+        ],
+        [
+          "https://doi.org/10.1007/s10967-020-07368-2, https://doi.org/10.1021/jacs.5c19738",
+          75
+        ]
+      ]
+    },
+    "entry_author": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 3,
+      "top20": [
+        [
+          "Thomas Summers",
+          3388
+        ],
+        [
+          "Baosen Zhang",
+          1423
+        ],
+        [
+          "Aurora Clark",
+          1181
+        ]
+      ]
+    },
+    "addition_date": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 543,
+      "top20": [
+        [
+          "2024-12-16 21:51:11",
+          18
+        ],
+        [
+          "2024-12-16 21:52:36",
+          18
+        ],
+        [
+          "2024-12-16 21:53:20",
+          18
+        ],
+        [
+          "2024-12-16 21:53:31",
+          18
+        ],
+        [
+          "2024-12-16 21:52:45",
+          18
+        ],
+        [
+          "2024-12-16 21:53:40",
+          18
+        ],
+        [
+          "2024-12-16 21:53:21",
+          18
+        ],
+        [
+          "2024-12-16 21:53:02",
+          17
+        ],
+        [
+          "2024-12-16 21:53:45",
+          17
+        ],
+        [
+          "2024-12-16 21:54:32",
+          17
+        ],
+        [
+          "2024-12-16 21:53:41",
+          17
+        ],
+        [
+          "2024-12-16 21:52:38",
+          17
+        ],
+        [
+          "2024-12-16 21:52:41",
+          17
+        ],
+        [
+          "2024-12-16 21:52:42",
+          17
+        ],
+        [
+          "2026-01-20 20:37:37",
+          16
+        ],
+        [
+          "2026-01-20 20:37:38",
+          16
+        ],
+        [
+          "2026-01-20 20:39:36",
+          16
+        ],
+        [
+          "2026-01-20 20:39:38",
+          16
+        ],
+        [
+          "2026-01-20 20:39:43",
+          16
+        ],
+        [
+          "2026-01-20 20:39:47",
+          16
+        ]
+      ]
+    },
+    "obsDvalues": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 1,
+      "top20": [
+        [
+          "Distribution Ratio",
+          5992
+        ]
+      ]
+    },
+    "obsDvaluesValue": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 4691,
+      "top20": [
+        [
+          "0.001000000000000023",
+          48
+        ],
+        [
+          "0.1",
+          44
+        ],
+        [
+          "1.0",
+          26
+        ],
+        [
+          "0.003000000000000053",
+          25
+        ],
+        [
+          "0.0001000000000000023",
+          21
+        ],
+        [
+          "0.8000000000148405",
+          18
+        ],
+        [
+          "0.01",
+          18
+        ],
+        [
+          "0.01000000000000023",
+          18
+        ],
+        [
+          "3.000000001936503",
+          17
+        ],
+        [
+          "0.04",
+          16
+        ],
+        [
+          "0.002000000000000041",
+          15
+        ],
+        [
+          "0.001",
+          15
+        ],
+        [
+          "1.099999999599241",
+          12
+        ],
+        [
+          "2.000000001547424",
+          11
+        ],
+        [
+          "1.499999999807684",
+          10
+        ],
+        [
+          "0.5999999994699767",
+          10
+        ],
+        [
+          "0.002",
+          10
+        ],
+        [
+          "0.02",
+          10
+        ],
+        [
+          "0.06",
+          10
+        ],
+        [
+          "20.00000001547424",
+          9
+        ]
+      ]
+    },
+    "obsTotalEnergiesUnit": {
+      "rows_present": 0,
+      "coverage": 0.0,
+      "missing": 5992,
+      "missing_frac": 1.0,
+      "n_unique": 0,
+      "top20": []
+    },
+    "obsTemp": {
+      "rows_present": 5909,
+      "coverage": 0.986148,
+      "missing": 83,
+      "missing_frac": 0.013852,
+      "n_unique": 1,
+      "top20": [
+        [
+          "Temperature",
+          5909
+        ]
+      ]
+    },
+    "obsTempsValue": {
+      "rows_present": 5909,
+      "coverage": 0.986148,
+      "missing": 83,
+      "missing_frac": 0.013852,
+      "n_unique": 22,
+      "top20": [
+        [
+          "25.0",
+          4026
+        ],
+        [
+          "22.0",
+          876
+        ],
+        [
+          "20.0",
+          684
+        ],
+        [
+          "23.0",
+          71
+        ],
+        [
+          "21.0",
+          45
+        ],
+        [
+          "30.0",
+          39
+        ],
+        [
+          "21.85000000000002",
+          38
+        ],
+        [
+          "15.0",
+          22
+        ],
+        [
+          "35.0",
+          21
+        ],
+        [
+          "45.0",
+          21
+        ],
+        [
+          "55.0",
+          16
+        ],
+        [
+          "50.0",
+          11
+        ],
+        [
+          "20.0156985871271",
+          9
+        ],
+        [
+          "43.0",
+          7
+        ],
+        [
+          "40.0156985871271",
+          7
+        ],
+        [
+          "5.0",
+          4
+        ],
+        [
+          "10.0",
+          4
+        ],
+        [
+          "40.0",
+          3
+        ],
+        [
+          "39.9843014128728",
+          2
+        ],
+        [
+          "30.0313971742543",
+          1
+        ]
+      ]
+    },
+    "obsTempUnit": {
+      "rows_present": 5909,
+      "coverage": 0.986148,
+      "missing": 83,
+      "missing_frac": 0.013852,
+      "n_unique": 1,
+      "top20": [
+        [
+          "C",
+          5909
+        ]
+      ]
+    },
+    "Contact_Time_min": {
+      "rows_present": 3776,
+      "coverage": 0.630174,
+      "missing": 2216,
+      "missing_frac": 0.369826,
+      "n_unique": 43,
+      "top20": [
+        [
+          "30.0 min",
+          1281
+        ],
+        [
+          "60.0 min",
+          968
+        ],
+        [
+          "20.0 min",
+          495
+        ],
+        [
+          "15.0 min",
+          309
+        ],
+        [
+          "50.0 min",
+          279
+        ],
+        [
+          "120.0 min",
+          219
+        ],
+        [
+          "10.0 min",
+          72
+        ],
+        [
+          "360.0 min",
+          44
+        ],
+        [
+          "45.0 min",
+          36
+        ],
+        [
+          "240.0 min",
+          31
+        ],
+        [
+          "19.9999999999999 min",
+          2
+        ],
+        [
+          "0.6635921086343833 min",
+          2
+        ],
+        [
+          "0.995388162951575 min",
+          2
+        ],
+        [
+          "1.995260056366883 min",
+          2
+        ],
+        [
+          "2.995131949782217 min",
+          2
+        ],
+        [
+          "3.995003843197533 min",
+          2
+        ],
+        [
+          "4.99487573661285 min",
+          2
+        ],
+        [
+          "1080.0 min",
+          2
+        ],
+        [
+          "1800.0 min",
+          2
+        ],
+        [
+          "90.0 min",
+          1
+        ]
+      ]
+    },
+    "Shaking_Time_min": {
+      "rows_present": 1067,
+      "coverage": 0.178071,
+      "missing": 4925,
+      "missing_frac": 0.821929,
+      "n_unique": 11,
+      "top20": [
+        [
+          "30.0 min",
+          452
+        ],
+        [
+          "60.0 min",
+          286
+        ],
+        [
+          "10.0 min",
+          92
+        ],
+        [
+          "45.0 min",
+          57
+        ],
+        [
+          "50.0 min",
+          51
+        ],
+        [
+          "120.0 min",
+          42
+        ],
+        [
+          "25.0 min",
+          39
+        ],
+        [
+          "2.0 min",
+          26
+        ],
+        [
+          "15.0 min",
+          18
+        ],
+        [
+          "32.0 min",
+          2
+        ],
+        [
+          "31.0 min",
+          2
+        ]
+      ]
+    },
+    "Radiolytic_Dosage_kGy": {
+      "rows_present": 0,
+      "coverage": 0.0,
+      "missing": 5992,
+      "missing_frac": 1.0,
+      "n_unique": 0,
+      "top20": []
+    },
+    "comments_obsType": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 1,
+      "top20": [
+        [
+          "Comments",
+          5992
+        ]
+      ]
+    },
+    "comments_description": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 634,
+      "top20": [
+        [
+          "updated ORNL",
+          714
+        ],
+        [
+          "IDEaL",
+          306
+        ],
+        [
+          "Data Location: Table SI1; Additional Comments: nan; Complexant_Name: nan; Complexant_SMILES: nan; Complexant_Concentration_M: nan; Publication_Year: 2020; Title: Structure Activity Relationship Approach toward the Improved Separation of Rare-Earth Elements Using Diglycolamides; Authors: Diana Stamberga, Mary R. Healy, Vyacheslav S. Bryantsev, Camille Albisser, Yana Karslyan, Benjamin Reinhart, Alena Paulenova, Mac Foster, Ilja Popovs, Kevin Lyon, Bruce A. Moyer, and Santa Jansone-Popova; No. of Extractants: 1; Aqueous Phase Metals: nan; Metal_Concentration_mM: 0.5; No. of Metals: 1",
+          200
+        ],
+        [
+          "Data Location: Figure 8; Additional Comments: nan; Complexant_Name: nan; Complexant_SMILES: nan; Complexant_Concentration_M: nan; Publication_Year: 2015; Title: The Effect of Alkyl Substituents on Actinide and Lanthanide Extraction by Diglycolamide Compounds; Authors: Y Sasaki, Y Sugo, K Morita, KL Nash; No. of Extractants: 1; Aqueous Phase Metals: nan; Metal_Concentration_mM: 0.0006; No. of Metals: 1",
+          155
+        ],
+        [
+          "Data Location: Figure 8; Additional Comments: nan; Complexant_Name: nan; Complexant_SMILES: nan; Complexant_Concentration_M: nan; Publication_Year: 2015; Title: The Effect of Alkyl Substituents on Actinide and Lanthanide Extraction by Diglycolamide Compounds; Authors: Y Sasaki, Y Sugo, K Morita, KL Nash; No. of Extractants: 1; Aqueous Phase Metals: nan; Metal_Concentration_mM: 0.0007; No. of Metals: 1",
+          124
+        ],
+        [
+          "Data Location: Figure 2; Additional Comments: nan; Complexant_Name: nan; Complexant_SMILES: nan; Complexant_Concentration_M: nan; Publication_Year: 2020; Title: Extraction and stripping behaviors of 14 lanthanides from nitric acid medium by N,N\u2019-dimethyl-N,N\u2019-dioctyl diglycolamide; Authors:     Yaoyang Liu, Chuang Zhao, Zhibin Liu, Yu Zhou, Caishan Jiao, Meng Zhang, Hongguo Hou, Yang Gao, Hui He & Guoxin Tian ; No. of Extractants: 1; Aqueous Phase Metals: nan; Metal_Concentration_mM: 3; No. of Metals: 1",
+          98
+        ],
+        [
+          "fig3 nan nan extraction:nan",
+          95
+        ],
+        [
+          "fig4 nan nan extraction:nan",
+          80
+        ],
+        [
+          "Data Location: Table 1; Additional Comments: nan; Complexant_Name: nan; Complexant_SMILES: nan; Complexant_Concentration_M: nan; Publication_Year: 2014; Title: Extraction behavior of trivalent lanthanides from nitric acid medium by selected structurally related diglycolamides as novel extractants; Authors: E.A. Mowafy, D. Mohamed; No. of Extractants: 1; Aqueous Phase Metals: nan; Metal_Concentration_mM: 5; No. of Metals: 1",
+          80
+        ],
+        [
+          "Data Location: Figure 7; Additional Comments: nan; Complexant_Name: nan; Complexant_SMILES: nan; Complexant_Concentration_M: nan; Publication_Year: 2017; Title: Extraction of rare earth elements from nitrate solution using novel unsymmetrical diglycolamide; Authors: EA Mowafy, D Mohamed; No. of Extractants: 1; Aqueous Phase Metals: nan; Metal_Concentration_mM: 0.002; No. of Metals: 1",
+          75
+        ],
+        [
+          "Data Location: Figure 3; Additional Comments: nan; Complexant_Name: nan; Complexant_SMILES: nan; Complexant_Concentration_M: nan; Publication_Year: 2020; Title: Extraction and stripping behaviors of 14 lanthanides from nitric acid medium by N,N\u2019-dimethyl-N,N\u2019-dioctyl diglycolamide; Authors:     Yaoyang Liu, Chuang Zhao, Zhibin Liu, Yu Zhou, Caishan Jiao, Meng Zhang, Hongguo Hou, Yang Gao, Hui He & Guoxin Tian ; No. of Extractants: 1; Aqueous Phase Metals: nan; Metal_Concentration_mM: 3; No. of Metals: 1",
+          70
+        ],
+        [
+          "Data Location: Table 1; Additional Comments: nan; Complexant_Name: nan; Complexant_SMILES: nan; Complexant_Concentration_M: nan; Publication_Year: 2003; Title: Extraction Studies of Lanthanide(III) Ions with N,N\u2032\u2010Dimethyl\u2010N,N\u2032\u2010diphenylpyridine\u20102,6\u2010dicarboxyamide (DMDPhPDA) from Nitric Acid Solutions; Authors: A. Shimada, T. Yaita, H. Narita, S. Tachimori, K. Okuno; No. of Extractants: 1; Aqueous Phase Metals: nan; Metal_Concentration_mM: 0.01; No. of Metals: 1",
+          67
+        ],
+        [
+          "fig3 there are more metals, kerosene nan extraction:nan",
+          60
+        ],
+        [
+          "Data Location: Figure 2; Additional Comments: nan; Complexant_Name: DTPA; NaNO3; Complexant_SMILES: C(CN(CC(=O)O)CC(=O)O)N(CCN(CC(=O)O)CC(=O)O)CC(=O)O.[N+](=O)([O-])[O-]; Complexant_Concentration_M: 0.01; 1; Publication_Year: 2007; Title: Effect of DTPA on the Extractions of Actinides(III) and Lanthanides(III) from Nitrate Solution into Todga/n\u2010Dodecane; Authors: A Apichaibukol, Y Sasaki, Y Morita; No. of Extractants: 1; Aqueous Phase Metals: nan; Metal_Concentration_mM: 0.0001; No. of Metals: 1",
+          56
+        ],
+        [
+          "Data Location: Figure 5; Additional Comments: Metal conc. may be 2 or 200 ppm; Complexant_Name: nan; Complexant_SMILES: nan; Complexant_Concentration_M: nan; Publication_Year: 2020; Title: Extraction and Separation between Light and Heavy Lanthanides by N,N,N\u2032,N\u2032-Tetraoctyl-diglycolamide from Organic Acid ; Authors: Y. Sasaki, M. Matsumiya, M. Nakase, K. Takeshita; No. of Extractants: 1; Aqueous Phase Metals: nan; Metal_Concentration_mM: 0.0100000000000001; No. of Metals: 1",
+          56
+        ],
+        [
+          "Data Location: Figure 3; Additional Comments: nan; Complexant_Name: nan; Complexant_SMILES: nan; Complexant_Concentration_M: nan; Publication_Year: 2017; Title: Extraction of lanthanide ions with N,N,N\u2032,N\u2032-tetrabutyl-3-oxa-diglycolamide from nitric acid media; Authors: X.-J. Peng, Y. Cui, J.-F. Ma, Y. Li, G.-X. Sun; No. of Extractants: 1; Aqueous Phase Metals: nan; Metal_Concentration_mM: 5; No. of Metals: 1",
+          56
+        ],
+        [
+          "figS4-B nan nan extraction:nan",
+          56
+        ],
+        [
+          "Data Location: Figure 3; Additional Comments: Metal conc. may be 2 or 200 ppm; Complexant_Name: nan; Complexant_SMILES: nan; Complexant_Concentration_M: nan; Publication_Year: 2020; Title: Extraction and Separation between Light and Heavy Lanthanides by N,N,N\u2032,N\u2032-Tetraoctyl-diglycolamide from Organic Acid ; Authors: Y. Sasaki, M. Matsumiya, M. Nakase, K. Takeshita; No. of Extractants: 1; Aqueous Phase Metals: nan; Metal_Concentration_mM: 0.0100000000000001; No. of Metals: 1",
+          54
+        ],
+        [
+          "Data Location: Figure 4; Additional Comments: nan; Complexant_Name: nan; Complexant_SMILES: nan; Complexant_Concentration_M: nan; Publication_Year: 2023; Title: Synthesis and evaluation of new modified diglycolamides with different stereochemistry for extraction of tri- and tetravalent metal ions; Authors: Laura Diaz Gomez, Andreas Wilden, Dimitri Schneider, Zaina Paparigas, Giuseppe Modolo, Maria Chiara Gullo, Jurriaan Huskens, Willem Verboom; No. of Extractants: 1; Aqueous Phase Metals: Am(III); La(III); Ce(III); Pr(III); Nd(III); Sm(III); Eu(III); Gd(III); Tb(III); Dy(III); Ho(III); Er(III); Tm(III); Yb(III); Lu(III); Yb(III); Sr; Zr; Mo; Pd; Fe; Ru; Pu(IV); Cm(III); Metal_Concentration_mM: Trace; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; Trace; Trace; No. of Metals: 24",
+          54
+        ],
+        [
+          "Data Location: Figure 4; Additional Comments: Metal conc. may be 2 or 200 ppm; Complexant_Name: nan; Complexant_SMILES: nan; Complexant_Concentration_M: nan; Publication_Year: 2020; Title: Extraction and Separation between Light and Heavy Lanthanides by N,N,N\u2032,N\u2032-Tetraoctyl-diglycolamide from Organic Acid ; Authors: Y. Sasaki, M. Matsumiya, M. Nakase, K. Takeshita; No. of Extractants: 1; Aqueous Phase Metals: nan; Metal_Concentration_mM: 0.0100000000000001; No. of Metals: 1",
+          52
+        ]
+      ]
+    },
+    "volType": {
+      "rows_present": 3388,
+      "coverage": 0.565421,
+      "missing": 2604,
+      "missing_frac": 0.434579,
+      "n_unique": 1,
+      "top20": [
+        [
+          "Volume Ratio",
+          3388
+        ]
+      ]
+    },
+    "volValue": {
+      "rows_present": 3388,
+      "coverage": 0.565421,
+      "missing": 2604,
+      "missing_frac": 0.434579,
+      "n_unique": 1,
+      "top20": [
+        [
+          "1.0",
+          3388
+        ]
+      ]
+    },
+    "thirdType": {
+      "rows_present": 0,
+      "coverage": 0.0,
+      "missing": 5992,
+      "missing_frac": 1.0,
+      "n_unique": 0,
+      "top20": []
+    },
+    "thirdValue": {
+      "rows_present": 0,
+      "coverage": 0.0,
+      "missing": 5992,
+      "missing_frac": 1.0,
+      "n_unique": 0,
+      "top20": []
+    },
+    "upstream_source_file": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 25,
+      "top20": [
+        [
+          "Ca_SAFE.csv",
+          1825
+        ],
+        [
+          "Er_SAFE.csv",
+          1107
+        ],
+        [
+          "Eu_SAFE.csv",
+          780
+        ],
+        [
+          "Am_SAFE.csv",
+          642
+        ],
+        [
+          "Lu_SAFE.csv",
+          281
+        ],
+        [
+          "Dy_SAFE.csv",
+          237
+        ],
+        [
+          "La_SAFE.csv",
+          181
+        ],
+        [
+          "Ce_SAFE.csv",
+          176
+        ],
+        [
+          "Gd_SAFE.csv",
+          153
+        ],
+        [
+          "Pa_SAFE.csv",
+          123
+        ],
+        [
+          "Pr_SAFE.csv",
+          92
+        ],
+        [
+          "Ho_SAFE.csv",
+          87
+        ],
+        [
+          "Nd_SAFE.csv",
+          82
+        ],
+        [
+          "Pd_SAFE.csv",
+          50
+        ],
+        [
+          "Bi_SAFE.csv",
+          46
+        ],
+        [
+          "Cm_SAFE.csv",
+          23
+        ],
+        [
+          "Pb_SAFE.csv",
+          22
+        ],
+        [
+          "Tb_SAFE.csv",
+          22
+        ],
+        [
+          "Sm_SAFE.csv",
+          18
+        ],
+        [
+          "Cd_SAFE.csv",
+          14
+        ]
+      ]
+    },
+    "upstream_stem": {
+      "rows_present": 5992,
+      "coverage": 1.0,
+      "missing": 0,
+      "missing_frac": 0.0,
+      "n_unique": 25,
+      "top20": [
+        [
+          "Ca",
+          1825
+        ],
+        [
+          "Er",
+          1107
+        ],
+        [
+          "Eu",
+          780
+        ],
+        [
+          "Am",
+          642
+        ],
+        [
+          "Lu",
+          281
+        ],
+        [
+          "Dy",
+          237
+        ],
+        [
+          "La",
+          181
+        ],
+        [
+          "Ce",
+          176
+        ],
+        [
+          "Gd",
+          153
+        ],
+        [
+          "Pa",
+          123
+        ],
+        [
+          "Pr",
+          92
+        ],
+        [
+          "Ho",
+          87
+        ],
+        [
+          "Nd",
+          82
+        ],
+        [
+          "Pd",
+          50
+        ],
+        [
+          "Bi",
+          46
+        ],
+        [
+          "Cm",
+          23
+        ],
+        [
+          "Pb",
+          22
+        ],
+        [
+          "Tb",
+          22
+        ],
+        [
+          "Sm",
+          18
+        ],
+        [
+          "Cd",
+          14
+        ]
+      ]
+    },
+    "comments_description::Data_Location": {
+      "rows_present": 3388,
+      "coverage": 0.565421,
+      "missing": 2604,
+      "missing_frac": 0.434579,
+      "n_unique": 39,
+      "top20": [
+        [
+          "Figure 3",
+          550
+        ],
+        [
+          "Figure 4",
+          444
+        ],
+        [
+          "Figure 2",
+          409
+        ],
+        [
+          "Figure 8",
+          380
+        ],
+        [
+          "Table SI1",
+          200
+        ],
+        [
+          "Figure 5",
+          198
+        ],
+        [
+          "Table 1",
+          193
+        ],
+        [
+          "Figure 6",
+          152
+        ],
+        [
+          "Figure 7",
+          136
+        ],
+        [
+          "Figure 1",
+          110
+        ],
+        [
+          "Figure S4B",
+          57
+        ],
+        [
+          "Figure S4C",
+          57
+        ],
+        [
+          "Figure S4A",
+          56
+        ],
+        [
+          "Table S15",
+          53
+        ],
+        [
+          "Table 3",
+          51
+        ],
+        [
+          "Table S20",
+          42
+        ],
+        [
+          "Figure S6",
+          39
+        ],
+        [
+          "Table 4",
+          30
+        ],
+        [
+          "Table S17",
+          28
+        ],
+        [
+          "Table S18",
+          28
+        ]
+      ]
+    },
+    "comments_description::Additional_Comments": {
+      "rows_present": 421,
+      "coverage": 0.07026,
+      "missing": 5571,
+      "missing_frac": 0.92974,
+      "n_unique": 12,
+      "top20": [
+        [
+          "Metal conc. may be 2 or 200 ppm",
+          253
+        ],
+        [
+          "Ln conc. between 10-100 ppm. 50 ppm reported here.",
+          28
+        ],
+        [
+          "Manual Extraction",
+          28
+        ],
+        [
+          "High-throughput Automated Extraction",
+          25
+        ],
+        [
+          "Discrepancy in HNO3 acid conc. reported in text (2M) and Figure (3M)",
+          24
+        ],
+        [
+          "Direct Sampling Method",
+          14
+        ],
+        [
+          "Simulated UOX1 Purex Raffinate solution",
+          14
+        ],
+        [
+          "Sequential Sampling Method",
+          13
+        ],
+        [
+          "Simulated Highly Active Raffinate solution",
+          12
+        ],
+        [
+          "Simulated High Level Waste solution",
+          6
+        ],
+        [
+          "Value in Table 1 off from value shown in Figure 5 by factor of 10^-1. Value adjusted to match Figure 5",
+          3
+        ],
+        [
+          "Simulated Pressurized Heavy Water Reactor High Level Waste solution; Pd concentration not reported",
+          1
+        ]
+      ]
+    },
+    "comments_description::Complexant_Name": {
+      "rows_present": 557,
+      "coverage": 0.092957,
+      "missing": 5435,
+      "missing_frac": 0.907043,
+      "n_unique": 9,
+      "top20": [
+        [
+          "DTPA; NaNO3",
+          165
+        ],
+        [
+          "TEDGA",
+          88
+        ],
+        [
+          "DOODA(C2)",
+          88
+        ],
+        [
+          "NaNO3",
+          70
+        ],
+        [
+          "Amicacid",
+          69
+        ],
+        [
+          "malonamide",
+          56
+        ],
+        [
+          "HEDTA",
+          10
+        ],
+        [
+          "BTP-4Me",
+          10
+        ],
+        [
+          "CDTA",
+          1
+        ]
+      ]
+    },
+    "comments_description::Complexant_SMILES": {
+      "rows_present": 557,
+      "coverage": 0.092957,
+      "missing": 5435,
+      "missing_frac": 0.907043,
+      "n_unique": 9,
+      "top20": [
+        [
+          "C(CN(CC(=O)O)CC(=O)O)N(CCN(CC(=O)O)CC(=O)O)CC(=O)O.[N+](=O)([O-])[O-]",
+          165
+        ],
+        [
+          "CCN(CC)C(=O)COCC(=O)N(CC)CC",
+          88
+        ],
+        [
+          "CCN(CC)C(=O)COCCOCC(=O)N(CC)CC",
+          88
+        ],
+        [
+          "[N+](=O)([O-])[O-]",
+          70
+        ],
+        [
+          "CCN(CC)C(=O)COCC(=O)O",
+          69
+        ],
+        [
+          "NC(=O)CC(N)=O",
+          56
+        ],
+        [
+          "OCCN(CCN(CC([O-])=O)CC([O-])=O)CC([O-])=O",
+          10
+        ],
+        [
+          "CC1=C(N=NC(=N1)C2=NC(=CC=C2)C3=NC(=C(N=N3)C)C)C",
+          10
+        ],
+        [
+          "OC(=O)CN(CC(O)=O)[C@@H]1CCCC[C@H]1N(CC(O)=O)CC(O)=O",
+          1
+        ]
+      ]
+    },
+    "comments_description::Complexant_Concentration_M": {
+      "rows_present": 557,
+      "coverage": 0.092957,
+      "missing": 5435,
+      "missing_frac": 0.907043,
+      "n_unique": 25,
+      "top20": [
+        [
+          "0.5",
+          84
+        ],
+        [
+          "0.05",
+          58
+        ],
+        [
+          "1",
+          56
+        ],
+        [
+          "0.01; 1",
+          56
+        ],
+        [
+          "0.01",
+          38
+        ],
+        [
+          "0.2",
+          32
+        ],
+        [
+          "0.02",
+          28
+        ],
+        [
+          "0.005",
+          22
+        ],
+        [
+          "0.1",
+          15
+        ],
+        [
+          "0.02;0.54",
+          14
+        ],
+        [
+          "0.02;1.73",
+          14
+        ],
+        [
+          "0.001",
+          14
+        ],
+        [
+          "0.002",
+          14
+        ],
+        [
+          "3",
+          14
+        ],
+        [
+          "5",
+          14
+        ],
+        [
+          "0.05; 3",
+          14
+        ],
+        [
+          "0.05; 5",
+          14
+        ],
+        [
+          "0.05;1",
+          13
+        ],
+        [
+          "0.02;0.88",
+          12
+        ],
+        [
+          "0.01;1",
+          11
+        ]
+      ]
+    },
+    "comments_description::Publication_Year": {
+      "rows_present": 3388,
+      "coverage": 0.565421,
+      "missing": 2604,
+      "missing_frac": 0.434579,
+      "n_unique": 19,
+      "top20": [
+        [
+          "2020",
+          911
+        ],
+        [
+          "2011",
+          459
+        ],
+        [
+          "2017",
+          457
+        ],
+        [
+          "2015",
+          279
+        ],
+        [
+          "2014",
+          192
+        ],
+        [
+          "2007",
+          189
+        ],
+        [
+          "2018",
+          189
+        ],
+        [
+          "2024",
+          178
+        ],
+        [
+          "2016",
+          134
+        ],
+        [
+          "2009",
+          95
+        ],
+        [
+          "2003",
+          70
+        ],
+        [
+          "2023",
+          54
+        ],
+        [
+          "2010",
+          49
+        ],
+        [
+          "2001",
+          49
+        ],
+        [
+          "2019",
+          28
+        ],
+        [
+          "2013",
+          21
+        ],
+        [
+          "2006",
+          18
+        ],
+        [
+          "1999",
+          14
+        ],
+        [
+          "2012",
+          2
+        ]
+      ]
+    },
+    "comments_description::Title": {
+      "rows_present": 3388,
+      "coverage": 0.565421,
+      "missing": 2604,
+      "missing_frac": 0.434579,
+      "n_unique": 34,
+      "top20": [
+        [
+          "Separation of Am, Cm and Lanthanides by Solvent Extraction with Hydrophilic and Lipophilic Organic Ligands",
+          459
+        ],
+        [
+          "The Effect of Alkyl Substituents on Actinide and Lanthanide Extraction by Diglycolamide Compounds",
+          279
+        ],
+        [
+          "Extraction and Separation between Light and Heavy Lanthanides by N,N,N\u2032,N\u2032-Tetraoctyl-diglycolamide from Organic Acid",
+          253
+        ],
+        [
+          "Extraction of rare earth elements from nitrate solution using novel unsymmetrical diglycolamide",
+          215
+        ],
+        [
+          "Solvent extraction of An(III) and Ln(III) using TODGA in aromatic diluents to suppress third phase formation",
+          215
+        ],
+        [
+          "Structure Activity Relationship Approach toward the Improved Separation of Rare-Earth Elements Using Diglycolamides",
+          200
+        ],
+        [
+          "Effect of DTPA on the Extractions of Actinides(III) and Lanthanides(III) from Nitrate Solution into Todga/n\u2010Dodecane",
+          179
+        ],
+        [
+          "Agile synthesis and automated, high-throughput evaluation of diglycolamides for liquid\u2013liquid extraction of rare-earth elements",
+          178
+        ],
+        [
+          "Extraction and stripping behaviors of 14 lanthanides from nitric acid medium by N,N\u2019-dimethyl-N,N\u2019-dioctyl diglycolamide",
+          168
+        ],
+        [
+          "Extraction behavior of trivalent lanthanides from nitric acid medium by selected structurally related diglycolamides as novel extractants",
+          164
+        ],
+        [
+          "Extraction study of rare earth elements with N,N\u2032-dibutyl\u2013N,N\u2032-di(1-methylheptyl)-diglycolamide from hydrochloric acid",
+          134
+        ],
+        [
+          "Extraction of lanthanide ions with N,N,N\u2032,N\u2032-tetrabutyl-3-oxa-diglycolamide from nitric acid media",
+          132
+        ],
+        [
+          "Effect of structure on extraction behavior of praseodymium with a series of unsymmetrical diglycolamides from hydrochloric acid",
+          96
+        ],
+        [
+          "Synthesis of Pre-Organized Bisdiglycolamides (BisDGA) and Study of their Extraction Properties for Actinides(III) and Lanthanides(III)",
+          94
+        ],
+        [
+          "Actinide\u2013lanthanide co-extraction by rigidified diglycolamides",
+          93
+        ],
+        [
+          "Synthesis and characterization of new unsymmetrical diglycolamide extractants for lanthanide ion partitioning: part one\u2014straight-chain alkyl derivatives",
+          75
+        ],
+        [
+          "Extraction Studies of Lanthanide(III) Ions with N,N\u2032\u2010Dimethyl\u2010N,N\u2032\u2010diphenylpyridine\u20102,6\u2010dicarboxyamide (DMDPhPDA) from Nitric Acid Solutions",
+          70
+        ],
+        [
+          "Synthesis and evaluation of new modified diglycolamides with different stereochemistry for extraction of tri- and tetravalent metal ions",
+          54
+        ],
+        [
+          "The novel extractants, diglycolamides, for the extraction of lanthanides and actinides in HNO3-n-dodecane system",
+          49
+        ],
+        [
+          "Synthesis and Am/Eu extraction of novel TODGA derivatives",
+          47
+        ]
+      ]
+    },
+    "comments_description::Authors": {
+      "rows_present": 3388,
+      "coverage": 0.565421,
+      "missing": 2604,
+      "missing_frac": 0.434579,
+      "n_unique": 34,
+      "top20": [
+        [
+          "Y Sasaki, Y Kitatsuji, Y Tsubata, Y Sugo, Y Morita",
+          459
+        ],
+        [
+          "Y Sasaki, Y Sugo, K Morita, KL Nash",
+          279
+        ],
+        [
+          "Y. Sasaki, M. Matsumiya, M. Nakase, K. Takeshita",
+          253
+        ],
+        [
+          "EA Mowafy, D Mohamed",
+          215
+        ],
+        [
+          "P We\u00dfling, U M\u00fcllich, E Guerinoni, A Geist, PJ Panak",
+          215
+        ],
+        [
+          "Diana Stamberga, Mary R. Healy, Vyacheslav S. Bryantsev, Camille Albisser, Yana Karslyan, Benjamin Reinhart, Alena Paulenova, Mac Foster, Ilja Popovs, Kevin Lyon, Bruce A. Moyer, and Santa Jansone-Popova",
+          200
+        ],
+        [
+          "A Apichaibukol, Y Sasaki, Y Morita",
+          179
+        ],
+        [
+          "L An, Y Yao, TB Hall, F Zhao, L Qi",
+          178
+        ],
+        [
+          "Yaoyang Liu, Chuang Zhao, Zhibin Liu, Yu Zhou, Caishan Jiao, Meng Zhang, Hongguo Hou, Yang Gao, Hui He & Guoxin Tian",
+          168
+        ],
+        [
+          "E.A. Mowafy, D. Mohamed",
+          164
+        ],
+        [
+          "Guo-Jing Sun, Jin-Hong Yang, Hong-Xiao Yang, Guo-Xin Sun & Yu Cui",
+          134
+        ],
+        [
+          "X.-J. Peng, Y. Cui, J.-F. Ma, Y. Li, G.-X. Sun",
+          132
+        ],
+        [
+          "J. Han, X. Cai, G. Sun, Y. Cui",
+          96
+        ],
+        [
+          "MT Murillo, AG Espartero, J S\u00e1nchez\u2010Quesada, J de Mendoza, P Prados",
+          94
+        ],
+        [
+          "E Macerata, A Ossola, W Panzeri, M Giola, F Faroldi, DA Tinonin, A Mele, A Casnati, M Mariani",
+          93
+        ],
+        [
+          "B. G. Tokheim, S. S. Kelly, R. C. Ronald, K. L. Nash",
+          75
+        ],
+        [
+          "A. Shimada, T. Yaita, H. Narita, S. Tachimori, K. Okuno",
+          70
+        ],
+        [
+          "Laura Diaz Gomez, Andreas Wilden, Dimitri Schneider, Zaina Paparigas, Giuseppe Modolo, Maria Chiara Gullo, Jurriaan Huskens, Willem Verboom",
+          54
+        ],
+        [
+          "Y Sasaki, Y Sugo, S Suzuki, S Tachimori",
+          49
+        ],
+        [
+          "M Iqbal, J Huskens, W Verboom, M Sypula, G Modolo",
+          47
+        ]
+      ]
+    },
+    "comments_description::No_of_Extractants": {
+      "rows_present": 3388,
+      "coverage": 0.565421,
+      "missing": 2604,
+      "missing_frac": 0.434579,
+      "n_unique": 2,
+      "top20": [
+        [
+          "1",
+          3370
+        ],
+        [
+          "2",
+          18
+        ]
+      ]
+    },
+    "comments_description::Aqueous_Phase_Metals": {
+      "rows_present": 327,
+      "coverage": 0.054573,
+      "missing": 5665,
+      "missing_frac": 0.945427,
+      "n_unique": 17,
+      "top20": [
+        [
+          "Am(III); Eu(III)",
+          144
+        ],
+        [
+          "Am(III); La(III); Ce(III); Pr(III); Nd(III); Sm(III); Eu(III); Gd(III); Tb(III); Dy(III); Ho(III); Er(III); Tm(III); Yb(III); Lu(III); Yb(III); Sr; Zr; Mo; Pd; Fe; Ru; Pu(IV); Cm(III)",
+          54
+        ],
+        [
+          "Am(III); Eu(III); Y; La(III); Ce(III); Pr(III); Nd(III); Sm(III); Gd(III)",
+          51
+        ],
+        [
+          "Am(III); Eu(III); Gd(III); Sm(III); Y; Nd(III); Pr(III); La(III); Ce(III)",
+          14
+        ],
+        [
+          "Am(III); Cm(III); Cf(III); Y; La(III); Ce(III); Pr(III); Nd(III); Sm(III); Eu(III); Gd(III); Ag; Al; Ba; Cd; Cr; Cs; Cu; Fe; Mo; Na; Ni; Pd; Rb; Rh; Ru; Sb; Se; Sn; Sr; Te; Zr",
+          10
+        ],
+        [
+          "Am(III); Pu(IV); Y; La(III); Ce(III); Pr(III); Nd(III); Sm(III); Eu(III); Gd(III); Ag; Ba; Cd; Cr; Cs; Fe; Mo; Na; Ni; Pd; Rb; Ru; Sb; Se; Sn; Sr; Te; Zr; U(VI); Co; Mn; Tb(III); Dy(III)",
+          6
+        ],
+        [
+          "La(III); Pu(IV)",
+          5
+        ],
+        [
+          "Ce(III); Pu(IV)",
+          5
+        ],
+        [
+          "Pr(III); Pu(IV)",
+          5
+        ],
+        [
+          "Nd(III); Pu(IV)",
+          5
+        ],
+        [
+          "Sm(III); Pu(IV)",
+          5
+        ],
+        [
+          "Eu(III); Pu(IV)",
+          5
+        ],
+        [
+          "Gd(III); Pu(IV)",
+          5
+        ],
+        [
+          "Tb(III); Pu(IV)",
+          5
+        ],
+        [
+          "Dy(III); Pu(IV)",
+          5
+        ],
+        [
+          "Am(III); Pu(IV); Y; La(III); Ce(III); Pr(III); Nd(III); Sm(III); Eu(III); Gd(III); Ag; Al; Ba; Cd; Cr; Cs; Cu; Fe; Mo; Na; Ni; Pd; Rb; Rh; Ru; Sb; Se; Sn; Sr; Te; Zr",
+          2
+        ],
+        [
+          "Am(III); Pu(IV); Eu(III); Tc; Na; K; Cr; Mn; Fe; Ni; Sr; Y; Zr; Mo; Cs; Ba; La(III); Ce(III); Pr(III); Nd(III); Sm(III); U(VI); Pd",
+          1
+        ]
+      ]
+    },
+    "comments_description::Metal_Concentration_mM": {
+      "rows_present": 3383,
+      "coverage": 0.564586,
+      "missing": 2609,
+      "missing_frac": 0.435414,
+      "n_unique": 45,
+      "top20": [
+        [
+          "0.5",
+          378
+        ],
+        [
+          "0.07",
+          315
+        ],
+        [
+          "5",
+          306
+        ],
+        [
+          "0.01",
+          275
+        ],
+        [
+          "0.06",
+          272
+        ],
+        [
+          "0.002",
+          215
+        ],
+        [
+          "0.0001",
+          179
+        ],
+        [
+          "3",
+          168
+        ],
+        [
+          "0.0100000000000001",
+          164
+        ],
+        [
+          "0.0006",
+          155
+        ],
+        [
+          "Trace; Trace",
+          144
+        ],
+        [
+          "4",
+          134
+        ],
+        [
+          "0.0007",
+          124
+        ],
+        [
+          "1",
+          98
+        ],
+        [
+          "Trace",
+          97
+        ],
+        [
+          "Trace; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; 0.01; Trace; Trace",
+          54
+        ],
+        [
+          "Trace; 0.24; 0.96; 2.3; 5.04; 1.91; 6.27; 1.26; 0.40",
+          51
+        ],
+        [
+          "0.08",
+          42
+        ],
+        [
+          "0.6; 127",
+          40
+        ],
+        [
+          "0.0800000000000004",
+          21
+        ]
+      ]
+    },
+    "comments_description::No_of_Metals": {
+      "rows_present": 3388,
+      "coverage": 0.565421,
+      "missing": 2604,
+      "missing_frac": 0.434579,
+      "n_unique": 8,
+      "top20": [
+        [
+          "1",
+          3061
+        ],
+        [
+          "2",
+          189
+        ],
+        [
+          "9",
+          65
+        ],
+        [
+          "24",
+          54
+        ],
+        [
+          "32",
+          10
+        ],
+        [
+          "33",
+          6
+        ],
+        [
+          "31",
+          2
+        ],
+        [
+          "23",
+          1
+        ]
+      ]
+    }
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "created_utc": "2026-08-21T04:10:34.410149+00:00",
+  "platform": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+  "machine": "arm64",
+  "library_versions": {
+    "python": "3.13.0",
+    "numpy": "2.5.1",
+    "pandas": "3.0.5",
+    "scipy": "1.18.0",
+    "scikit-learn": "1.9.0",
+    "torch": "2.13.0",
+    "rdkit": "2026.03.5",
+    "matplotlib": "3.11.1"
+  },
+  "git_commit": "fc39facb4f80153bae07b200784979987a6d64e3",
+  "git_dirty": true,
+  "cohort_path": "runs/gen7_architecture/cache/cohort.parquet",
+  "cohort_fingerprint": "bed178ec1a7a82b0",
+  "cohort_rows": 5248,
+  "cohort_extractants": 152,
+  "cohort_chemotypes": 79,
+  "frozen_global_model": "REC_ecfp_plus_recovered",
+  "frozen_oof": "runs/gen7_architecture/finalists/oof_predictions.parquet",
+  "split_seeds": [
+    104729,
+    130363,
+    155921,
+    196613,
+    262147
+  ],
+  "model_seed_formula": "42 + fold*1009 + 9999991",
+  "gen9_learner_config": {
+    "config": {
+      "n_stages": 10,
+      "trees_per_stage": 120,
+      "learning_rate": 0.3,
+      "max_features": 0.3,
+      "min_samples_leaf": 2,
+      "max_depth": null,
+      "subsample": 1.0,
+      "row_delta": 1.0,
+      "pair_delta": 0.5,
+      "span_delta": 0.5,
+      "clip_to_training_range": true,
+      "n_jobs": -1
+    },
+    "label": "s10x120_lr0.3_d1_leaf2",
+    "selected_by": {
+      "protocol": "inner seeded_group_kfold over tanimoto_cluster inside the outer training partition; no outer test row is used",
+      "objective": "ROW_ONLY (lambda_delta = lambda_span = 0)",
+      "split_seed": 104729,
+      "outer_folds": [
+        0,
+        2
+      ],
+      "inner_splits": 3,
+      "inner_macro_mae": 1.0017783838988998,
+      "frozen_equivalent_inner_macro_mae": 1.0183667375331018,
+      "n_configurations": 12
+    }
+  },
+  "drift_vs_gen8": {
+    "matplotlib": {
+      "gen8": null,
+      "gen9": "3.11.1"
+    }
+  },
+  "drift_note": "Empty means gen9's numbers and gen8's are comparable without qualification. The project has lost a sweep to library drift before, so this is checked rather than assumed.",
+  "known_nondeterminism": {
+    "source": "ExtraTreesRegressor with n_jobs=-1 sums a forest's trees in thread-completion order",
+    "magnitude": "last bit, ~1e-16 per prediction",
+    "why it does not matter": "every comparison is paired on identical rows and the bootstrap resamples chemotypes; a serial configuration is bit-identical and is tested"
+  }
+}

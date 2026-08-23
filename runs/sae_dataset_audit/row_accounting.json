@@ -1,0 +1,60 @@
+{
+  "archive_records": 16770,
+  "balance_check": "ok",
+  "duplicate_groups": 13828,
+  "ledger": [
+    {
+      "note": "41 immutable per-metal CSV files",
+      "rows": 48471,
+      "step": "0_raw_csv_rows"
+    },
+    {
+      "note": "one archive record appears once per metal file whose metal was present in the system; all 37 raw columns were verified identical within each exp_id group before collapsing",
+      "rows_remaining": 16770,
+      "rows_removed": 31701,
+      "step": "1_export_fanout_collapsed"
+    },
+    {
+      "breakdown": {
+        "A_EXACT_DATABASE_DUPLICATE": 2609,
+        "B_SAME_MEASUREMENT_DIFF_PROV": 20,
+        "C_POSSIBLE_INDEPENDENT_REPLICATE": 20,
+        "E_VALUE_CONFLICT": 1040,
+        "F_INSUFFICIENT_INFORMATION": 2377,
+        "UNIQUE": 10704
+      },
+      "note": "no rows removed; every record keeps its own row",
+      "rows_remaining": 16770,
+      "step": "2_duplicate_classification"
+    },
+    {
+      "note": "only classes A and B collapse; C/D/E/F keep every member",
+      "rows_marked_non_canonical": 1904,
+      "rows_remaining_canonical": 14866,
+      "step": "3_redundant_duplicates_marked"
+    },
+    {
+      "breakdown": {
+        "A_model_ready": 11026,
+        "B_usable_with_caveats": 1385,
+        "C_not_modelable": 2455,
+        "D_redundant_duplicate": 1904
+      },
+      "note": "tiers are labels, not filters -- no row is dropped",
+      "step": "4_model_readiness_tiers"
+    }
+  ],
+  "raw_row_disposition": {
+    "A_model_ready": 33862,
+    "B_usable_with_caveats": 4113,
+    "C_not_modelable": 4517,
+    "D_redundant_duplicate": 5979
+  },
+  "raw_rows": 48471,
+  "record_disposition": {
+    "canonical_measurement": 11026,
+    "canonical_with_caveats": 1385,
+    "redundant_duplicate_member": 1904,
+    "unresolved_or_manual_review": 2455
+  }
+}

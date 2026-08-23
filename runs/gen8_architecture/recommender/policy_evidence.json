@@ -1,0 +1,748 @@
+{
+  "available": true,
+  "source": "runs/gen8_architecture/active_acquisition/primary_detail.parquet",
+  "model": "REC_ecfp_plus_recovered",
+  "uncertainty_policies_at_k1": {
+    "RANDOM": 0.7231899498047505,
+    "MAX_ENSEMBLE_SD": 0.7072802621720822,
+    "MIN_ENSEMBLE_SD": 0.7149934285782809,
+    "MAX_MODEL_DISAGREEMENT": 0.7395340382653754,
+    "MAX_PREDICTIVE_VARIANCE": 0.7444429820632232
+  },
+  "uncertainty_policies_at_k1_paired": {
+    "MAX_ENSEMBLE_SD_vs_RANDOM": {
+      "point": 0.01590968763266829,
+      "ci95_low": -0.01770508318743653,
+      "ci95_high": 0.04004172772962109,
+      "bca_low": -0.010973638065869873,
+      "bca_high": 0.047436737917852495,
+      "block_macro": 0.004181411546493471,
+      "n_units": 143,
+      "units_improved": 68,
+      "seeds_positive": 5,
+      "n_seeds": 5
+    },
+    "MIN_ENSEMBLE_SD_vs_RANDOM": {
+      "point": 0.008196521226469715,
+      "ci95_low": -0.024886546415873873,
+      "ci95_high": 0.03023963205214878,
+      "bca_low": -0.01842034619479367,
+      "bca_high": 0.034258832115492945,
+      "block_macro": -0.0011797568303058906,
+      "n_units": 143,
+      "units_improved": 77,
+      "seeds_positive": 5,
+      "n_seeds": 5
+    },
+    "MAX_MODEL_DISAGREEMENT_vs_RANDOM": {
+      "point": -0.01634408846062499,
+      "ci95_low": -0.04979820075856508,
+      "ci95_high": 0.010840273358699887,
+      "bca_low": -0.051818838121559574,
+      "bca_high": 0.008977116377441745,
+      "block_macro": -0.01705549764309395,
+      "n_units": 143,
+      "units_improved": 75,
+      "seeds_positive": 1,
+      "n_seeds": 5
+    },
+    "MAX_PREDICTIVE_VARIANCE_vs_RANDOM": {
+      "point": -0.02125303225847271,
+      "ci95_low": -0.07328179322561598,
+      "ci95_high": 0.012640882640821194,
+      "bca_low": -0.06469016748757953,
+      "bca_high": 0.020985839789033338,
+      "block_macro": -0.056388394270361575,
+      "n_units": 143,
+      "units_improved": 65,
+      "seeds_positive": 0,
+      "n_seeds": 5
+    },
+    "RECOMMENDED_vs_MAX_ENSEMBLE_SD": {
+      "point": 0.05882622257214314,
+      "ci95_low": 0.02246725924776775,
+      "ci95_high": 0.08296381128373316,
+      "bca_low": 0.029101770672858088,
+      "bca_high": 0.08777563588149172,
+      "block_macro": 0.0401053182122048,
+      "n_units": 143,
+      "units_improved": 101,
+      "seeds_positive": 5,
+      "n_seeds": 5
+    },
+    "RECOMMENDED_vs_MIN_ENSEMBLE_SD": {
+      "point": 0.06653938897834172,
+      "ci95_low": 0.03203190077577171,
+      "ci95_high": 0.092437408874612,
+      "bca_low": 0.039531853625125755,
+      "bca_high": 0.09872156011748795,
+      "block_macro": 0.04546648658900417,
+      "n_units": 143,
+      "units_improved": 106,
+      "seeds_positive": 5,
+      "n_seeds": 5
+    },
+    "RECOMMENDED_vs_MAX_MODEL_DISAGREEMENT": {
+      "point": 0.09107999866543644,
+      "ci95_low": 0.03723918804245586,
+      "ci95_high": 0.12941068333645253,
+      "bca_low": 0.04659941530122268,
+      "bca_high": 0.1404336386026117,
+      "block_macro": 0.06134222740179223,
+      "n_units": 143,
+      "units_improved": 91,
+      "seeds_positive": 5,
+      "n_seeds": 5
+    },
+    "RECOMMENDED_vs_MAX_PREDICTIVE_VARIANCE": {
+      "point": 0.09598894246328414,
+      "ci95_low": 0.05042414052821699,
+      "ci95_high": 0.1324457934179703,
+      "bca_low": 0.05011471887851743,
+      "bca_high": 0.13231010286256753,
+      "block_macro": 0.10067512402905986,
+      "n_units": 143,
+      "units_improved": 86,
+      "seeds_positive": 5,
+      "n_seeds": 5
+    }
+  },
+  "protocol": "P2 (disjoint candidate pool / evaluation set), 143 held-out ligands x 5 split seeds, macro = one ligand one vote",
+  "zero_shot": 0.9949877940412077,
+  "deployable_policy_leaderboard": {
+    "1": [
+      {
+        "rank": 1,
+        "policy": "CENTRAL_THEN_SPREAD",
+        "macro_mae": 0.6484540395999391,
+        "is_recommended": true
+      },
+      {
+        "rank": 2,
+        "policy": "MEDOID",
+        "macro_mae": 0.6484540395999391,
+        "is_recommended": false
+      },
+      {
+        "rank": 3,
+        "policy": "CENTRAL",
+        "macro_mae": 0.6506975940360309,
+        "is_recommended": false
+      },
+      {
+        "rank": 4,
+        "policy": "MAX_CONDITION_COVERAGE",
+        "macro_mae": 0.6652062164751299,
+        "is_recommended": false
+      },
+      {
+        "rank": 5,
+        "policy": "MAX_EXPECTED_VARIANCE_REDUCTION",
+        "macro_mae": 0.6653877763822498,
+        "is_recommended": false
+      },
+      {
+        "rank": 6,
+        "policy": "MEDIAN_PREDICTION",
+        "macro_mae": 0.6756355242226508,
+        "is_recommended": false
+      },
+      {
+        "rank": 7,
+        "policy": "MAX_ENSEMBLE_SD",
+        "macro_mae": 0.7072802621720822,
+        "is_recommended": false
+      },
+      {
+        "rank": 8,
+        "policy": "MID_ACID",
+        "macro_mae": 0.7087898542877734,
+        "is_recommended": false
+      },
+      {
+        "rank": 9,
+        "policy": "MIN_ENSEMBLE_SD",
+        "macro_mae": 0.7149934285782809,
+        "is_recommended": false
+      },
+      {
+        "rank": 10,
+        "policy": "RANDOM",
+        "macro_mae": 0.7231899498047505,
+        "is_recommended": false
+      },
+      {
+        "rank": 11,
+        "policy": "MAX_MODEL_DISAGREEMENT",
+        "macro_mae": 0.7395340382653754,
+        "is_recommended": false
+      },
+      {
+        "rank": 12,
+        "policy": "MAX_PREDICTIVE_VARIANCE",
+        "macro_mae": 0.7444429820632232,
+        "is_recommended": false
+      },
+      {
+        "rank": 13,
+        "policy": "FARTHEST_FROM_EXISTING",
+        "macro_mae": 0.8066992577833274,
+        "is_recommended": false
+      },
+      {
+        "rank": 14,
+        "policy": "D_OPTIMAL",
+        "macro_mae": 0.9000376697725198,
+        "is_recommended": false
+      }
+    ],
+    "2": [
+      {
+        "rank": 1,
+        "policy": "MAX_PREDICTIVE_VARIANCE",
+        "macro_mae": 0.5434530952068636,
+        "is_recommended": false
+      },
+      {
+        "rank": 2,
+        "policy": "FARTHEST_FROM_EXISTING",
+        "macro_mae": 0.5526024191249878,
+        "is_recommended": false
+      },
+      {
+        "rank": 3,
+        "policy": "MAX_EXPECTED_VARIANCE_REDUCTION",
+        "macro_mae": 0.5550995026682426,
+        "is_recommended": false
+      },
+      {
+        "rank": 4,
+        "policy": "CENTRAL_THEN_SPREAD",
+        "macro_mae": 0.5578818260760579,
+        "is_recommended": true
+      },
+      {
+        "rank": 5,
+        "policy": "D_OPTIMAL",
+        "macro_mae": 0.5724188501420645,
+        "is_recommended": false
+      },
+      {
+        "rank": 6,
+        "policy": "MAX_CONDITION_COVERAGE",
+        "macro_mae": 0.5776590793916064,
+        "is_recommended": false
+      },
+      {
+        "rank": 7,
+        "policy": "MIN_ENSEMBLE_SD",
+        "macro_mae": 0.5837432247695885,
+        "is_recommended": false
+      },
+      {
+        "rank": 8,
+        "policy": "MAX_ENSEMBLE_SD",
+        "macro_mae": 0.5918561510340709,
+        "is_recommended": false
+      },
+      {
+        "rank": 9,
+        "policy": "RANDOM",
+        "macro_mae": 0.5983510778120482,
+        "is_recommended": false
+      },
+      {
+        "rank": 10,
+        "policy": "CENTRAL",
+        "macro_mae": 0.6111923639170663,
+        "is_recommended": false
+      },
+      {
+        "rank": 11,
+        "policy": "MEDIAN_PREDICTION",
+        "macro_mae": 0.6142893043303659,
+        "is_recommended": false
+      },
+      {
+        "rank": 12,
+        "policy": "MEDOID",
+        "macro_mae": 0.6174107974547156,
+        "is_recommended": false
+      },
+      {
+        "rank": 13,
+        "policy": "MID_ACID",
+        "macro_mae": 0.6286413577980967,
+        "is_recommended": false
+      },
+      {
+        "rank": 14,
+        "policy": "MAX_MODEL_DISAGREEMENT",
+        "macro_mae": 0.6470162213422667,
+        "is_recommended": false
+      }
+    ],
+    "3": [
+      {
+        "rank": 1,
+        "policy": "MAX_EXPECTED_VARIANCE_REDUCTION",
+        "macro_mae": 0.5019327537456796,
+        "is_recommended": false
+      },
+      {
+        "rank": 2,
+        "policy": "CENTRAL_THEN_SPREAD",
+        "macro_mae": 0.5019368147100371,
+        "is_recommended": true
+      },
+      {
+        "rank": 3,
+        "policy": "MAX_PREDICTIVE_VARIANCE",
+        "macro_mae": 0.5047260484275106,
+        "is_recommended": false
+      },
+      {
+        "rank": 4,
+        "policy": "FARTHEST_FROM_EXISTING",
+        "macro_mae": 0.5094117183173198,
+        "is_recommended": false
+      },
+      {
+        "rank": 5,
+        "policy": "D_OPTIMAL",
+        "macro_mae": 0.5185627516358109,
+        "is_recommended": false
+      },
+      {
+        "rank": 6,
+        "policy": "MAX_CONDITION_COVERAGE",
+        "macro_mae": 0.5190334449036896,
+        "is_recommended": false
+      },
+      {
+        "rank": 7,
+        "policy": "MIN_ENSEMBLE_SD",
+        "macro_mae": 0.5329964579461327,
+        "is_recommended": false
+      },
+      {
+        "rank": 8,
+        "policy": "MAX_ENSEMBLE_SD",
+        "macro_mae": 0.5363087431982595,
+        "is_recommended": false
+      },
+      {
+        "rank": 9,
+        "policy": "RANDOM",
+        "macro_mae": 0.540822440086064,
+        "is_recommended": false
+      },
+      {
+        "rank": 10,
+        "policy": "CENTRAL",
+        "macro_mae": 0.5658221698286849,
+        "is_recommended": false
+      },
+      {
+        "rank": 11,
+        "policy": "MID_ACID",
+        "macro_mae": 0.5667793889903325,
+        "is_recommended": false
+      },
+      {
+        "rank": 12,
+        "policy": "MEDOID",
+        "macro_mae": 0.5726333716459437,
+        "is_recommended": false
+      },
+      {
+        "rank": 13,
+        "policy": "MEDIAN_PREDICTION",
+        "macro_mae": 0.576390312229784,
+        "is_recommended": false
+      },
+      {
+        "rank": 14,
+        "policy": "MAX_MODEL_DISAGREEMENT",
+        "macro_mae": 0.5922848668308356,
+        "is_recommended": false
+      }
+    ],
+    "5": [
+      {
+        "rank": 1,
+        "policy": "D_OPTIMAL",
+        "macro_mae": 0.4865291963234963,
+        "is_recommended": false
+      },
+      {
+        "rank": 2,
+        "policy": "MAX_PREDICTIVE_VARIANCE",
+        "macro_mae": 0.4887761613568232,
+        "is_recommended": false
+      },
+      {
+        "rank": 3,
+        "policy": "CENTRAL_THEN_SPREAD",
+        "macro_mae": 0.4903840661580898,
+        "is_recommended": true
+      },
+      {
+        "rank": 4,
+        "policy": "FARTHEST_FROM_EXISTING",
+        "macro_mae": 0.4908860883240843,
+        "is_recommended": false
+      },
+      {
+        "rank": 5,
+        "policy": "MAX_EXPECTED_VARIANCE_REDUCTION",
+        "macro_mae": 0.4927071299234579,
+        "is_recommended": false
+      },
+      {
+        "rank": 6,
+        "policy": "MAX_CONDITION_COVERAGE",
+        "macro_mae": 0.5036664918234164,
+        "is_recommended": false
+      },
+      {
+        "rank": 7,
+        "policy": "MAX_ENSEMBLE_SD",
+        "macro_mae": 0.5101937492618525,
+        "is_recommended": false
+      },
+      {
+        "rank": 8,
+        "policy": "MIN_ENSEMBLE_SD",
+        "macro_mae": 0.512990575985095,
+        "is_recommended": false
+      },
+      {
+        "rank": 9,
+        "policy": "RANDOM",
+        "macro_mae": 0.5135614760035455,
+        "is_recommended": false
+      },
+      {
+        "rank": 10,
+        "policy": "MID_ACID",
+        "macro_mae": 0.5441164252283134,
+        "is_recommended": false
+      },
+      {
+        "rank": 11,
+        "policy": "CENTRAL",
+        "macro_mae": 0.5583063255986472,
+        "is_recommended": false
+      },
+      {
+        "rank": 12,
+        "policy": "MEDIAN_PREDICTION",
+        "macro_mae": 0.5631047815660825,
+        "is_recommended": false
+      },
+      {
+        "rank": 13,
+        "policy": "MEDOID",
+        "macro_mae": 0.5664847580064397,
+        "is_recommended": false
+      },
+      {
+        "rank": 14,
+        "policy": "MAX_MODEL_DISAGREEMENT",
+        "macro_mae": 0.5693479443309253,
+        "is_recommended": false
+      }
+    ]
+  },
+  "by_k": {
+    "1": {
+      "adapter": "OFFSET_K1",
+      "policy": "MEDOID then FARTHEST_FROM_EXISTING (CENTRAL_THEN_SPREAD)",
+      "recommended_macro_mae": 0.6484540395999391,
+      "random_macro_mae": 0.7231899498047505,
+      "central_only_macro_mae": 0.6506975940360309,
+      "recommended_macro_mae_offset_only": 0.6484540395999391,
+      "recommended_rank_among_deployable_policies": 1,
+      "n_deployable_policies": 14,
+      "policies_scoring_identically": [
+        "MEDOID"
+      ],
+      "best_alternative_policy": "CENTRAL",
+      "best_alternative_macro_mae": 0.6506975940360309,
+      "oracle_policy": "ORACLE[OFFSET_K1] \u2014 points chosen with the target visible, to minimise the OFFSET_K1 error",
+      "oracle_macro_mae": 0.4836906798403177,
+      "oracle_macro_mae_under_its_own_adapter": 0.4836906798403177,
+      "oracle_is_a_valid_lower_bound": true,
+      "oracle_caveat": "valid: this oracle's choices, scored under the adapter the recommender deploys, beat the deployed policy",
+      "paired": {
+        "recommended_vs_random": {
+          "point": 0.07473591020481142,
+          "ci95_low": 0.025718986524146354,
+          "ci95_high": 0.11484722877478877,
+          "bca_low": 0.034503122221249224,
+          "bca_high": 0.12993711108984354,
+          "block_macro": 0.04428672975869827,
+          "n_units": 143,
+          "units_improved": 101,
+          "seeds_positive": 5,
+          "n_seeds": 5
+        },
+        "recommended_vs_best_alternative": {
+          "point": 0.002243554436091985,
+          "ci95_low": -0.010331921486013052,
+          "ci95_high": 0.010624280908704804,
+          "bca_low": -0.010783043397649883,
+          "bca_high": 0.010469001649110023,
+          "block_macro": 0.003414191810067034,
+          "n_units": 143,
+          "units_improved": 47,
+          "seeds_positive": 5,
+          "n_seeds": 5
+        }
+      }
+    },
+    "2": {
+      "adapter": "OFFSET_K3",
+      "policy": "MEDOID then FARTHEST_FROM_EXISTING (CENTRAL_THEN_SPREAD)",
+      "recommended_macro_mae": 0.5578818260760579,
+      "random_macro_mae": 0.5983510778120482,
+      "central_only_macro_mae": 0.6111923639170663,
+      "recommended_macro_mae_offset_only": 0.6234941062004374,
+      "recommended_rank_among_deployable_policies": 4,
+      "n_deployable_policies": 14,
+      "policies_scoring_identically": [],
+      "best_alternative_policy": "MAX_PREDICTIVE_VARIANCE",
+      "best_alternative_macro_mae": 0.5434530952068636,
+      "oracle_policy": "ORACLE[OFFSET_K1] \u2014 points chosen with the target visible, to minimise the OFFSET_K1 error",
+      "oracle_macro_mae": 0.47411187479727623,
+      "oracle_macro_mae_under_its_own_adapter": 0.48824034365213187,
+      "oracle_is_a_valid_lower_bound": true,
+      "oracle_caveat": "valid: this oracle's choices, scored under the adapter the recommender deploys, beat the deployed policy",
+      "paired": {
+        "recommended_vs_random": {
+          "point": 0.040469251735990516,
+          "ci95_low": 0.022271500609078922,
+          "ci95_high": 0.05475088786858778,
+          "bca_low": 0.025148401386790618,
+          "bca_high": 0.0578723183858797,
+          "block_macro": 0.0367469047990165,
+          "n_units": 143,
+          "units_improved": 98,
+          "seeds_positive": 5,
+          "n_seeds": 5
+        },
+        "K3_vs_K1_adapter": {
+          "point": 0.06561228012437959,
+          "ci95_low": 0.04408119876404618,
+          "ci95_high": 0.08157976394933641,
+          "bca_low": 0.04657647128310893,
+          "bca_high": 0.08394247040361245,
+          "block_macro": 0.06523243267661696,
+          "n_units": 143,
+          "units_improved": 115,
+          "seeds_positive": 5,
+          "n_seeds": 5
+        },
+        "recommended_vs_best_alternative": {
+          "point": -0.014428730869194197,
+          "ci95_low": -0.03153035950680821,
+          "ci95_high": -0.0007101449852037627,
+          "bca_low": -0.02999412969538121,
+          "bca_high": 0.002241016892623572,
+          "block_macro": -0.017082945392077147,
+          "n_units": 143,
+          "units_improved": 52,
+          "seeds_positive": 0,
+          "n_seeds": 5
+        }
+      }
+    },
+    "3": {
+      "adapter": "OFFSET_K3",
+      "policy": "MEDOID then FARTHEST_FROM_EXISTING (CENTRAL_THEN_SPREAD)",
+      "recommended_macro_mae": 0.5019368147100371,
+      "random_macro_mae": 0.540822440086064,
+      "central_only_macro_mae": 0.5658221698286849,
+      "recommended_macro_mae_offset_only": 0.6082263913514401,
+      "recommended_rank_among_deployable_policies": 2,
+      "n_deployable_policies": 14,
+      "policies_scoring_identically": [],
+      "best_alternative_policy": "MAX_EXPECTED_VARIANCE_REDUCTION",
+      "best_alternative_macro_mae": 0.5019327537456796,
+      "oracle_policy": "ORACLE[OFFSET_K1] \u2014 points chosen with the target visible, to minimise the OFFSET_K1 error",
+      "oracle_macro_mae": 0.48099403306161514,
+      "oracle_macro_mae_under_its_own_adapter": 0.5172792320503135,
+      "oracle_is_a_valid_lower_bound": true,
+      "oracle_caveat": "valid: this oracle's choices, scored under the adapter the recommender deploys, beat the deployed policy",
+      "paired": {
+        "recommended_vs_random": {
+          "point": 0.03888562537602691,
+          "ci95_low": 0.021255490555341604,
+          "ci95_high": 0.049808815454929246,
+          "bca_low": 0.025418405326310803,
+          "bca_high": 0.053002855698081254,
+          "block_macro": 0.02378821873522589,
+          "n_units": 140,
+          "units_improved": 90,
+          "seeds_positive": 5,
+          "n_seeds": 5
+        },
+        "K3_vs_K1_adapter": {
+          "point": 0.10628957664140301,
+          "ci95_low": 0.07727234110350668,
+          "ci95_high": 0.12916078926518249,
+          "bca_low": 0.08023539884690278,
+          "bca_high": 0.13146816450898982,
+          "block_macro": 0.10852672392767902,
+          "n_units": 140,
+          "units_improved": 115,
+          "seeds_positive": 5,
+          "n_seeds": 5
+        },
+        "recommended_vs_best_alternative": {
+          "point": -4.060964357425042e-06,
+          "ci95_low": -0.01073603669456452,
+          "ci95_high": 0.008723420587235922,
+          "bca_low": -0.009815911941653509,
+          "bca_high": 0.009437883261679695,
+          "block_macro": -0.0037463741269243597,
+          "n_units": 140,
+          "units_improved": 53,
+          "seeds_positive": 2,
+          "n_seeds": 5
+        }
+      }
+    },
+    "5": {
+      "adapter": "OFFSET_K3",
+      "policy": "MEDOID then FARTHEST_FROM_EXISTING (CENTRAL_THEN_SPREAD)",
+      "recommended_macro_mae": 0.4903840661580898,
+      "random_macro_mae": 0.5135614760035455,
+      "central_only_macro_mae": 0.5583063255986472,
+      "recommended_macro_mae_offset_only": 0.6291681975021587,
+      "recommended_rank_among_deployable_policies": 3,
+      "n_deployable_policies": 14,
+      "policies_scoring_identically": [],
+      "best_alternative_policy": "D_OPTIMAL",
+      "best_alternative_macro_mae": 0.4865291963234963,
+      "oracle_policy": "ORACLE[OFFSET_K1] \u2014 points chosen with the target visible, to minimise the OFFSET_K1 error",
+      "oracle_macro_mae": 0.4944549136855924,
+      "oracle_macro_mae_under_its_own_adapter": 0.5526913056319799,
+      "oracle_is_a_valid_lower_bound": false,
+      "oracle_caveat": "NOT a lower bound at this k: the oracle selected its points to minimise OFFSET_K1 error and scores 0.4945 under OFFSET_K3, which the deployable policy already beats. Treat it as a reference arm, not a ceiling.",
+      "paired": {
+        "recommended_vs_random": {
+          "point": 0.023177409845455632,
+          "ci95_low": 0.011255936249363892,
+          "ci95_high": 0.032119887286086383,
+          "bca_low": 0.011796613355814405,
+          "bca_high": 0.03233610369902808,
+          "block_macro": 0.02565868999473207,
+          "n_units": 99,
+          "units_improved": 74,
+          "seeds_positive": 5,
+          "n_seeds": 5
+        },
+        "K3_vs_K1_adapter": {
+          "point": 0.13878413134406886,
+          "ci95_low": 0.10216083245449326,
+          "ci95_high": 0.1683130241611126,
+          "bca_low": 0.10377463929875949,
+          "bca_high": 0.17010345212498088,
+          "block_macro": 0.15071232532307208,
+          "n_units": 99,
+          "units_improved": 84,
+          "seeds_positive": 5,
+          "n_seeds": 5
+        },
+        "recommended_vs_best_alternative": {
+          "point": -0.0038548698345935053,
+          "ci95_low": -0.009918680391075874,
+          "ci95_high": 0.004521278365667556,
+          "bca_low": -0.011338949571586326,
+          "bca_high": 0.0033901166709515936,
+          "block_macro": -0.0012333093116303772,
+          "n_units": 99,
+          "units_improved": 47,
+          "seeds_positive": 0,
+          "n_seeds": 5
+        }
+      }
+    }
+  },
+  "policy_selection_note": "CENTRAL_THEN_SPREAD was selected from the 14 deployable policies in this table.  Its gain over RANDOM at k = 1 is large enough to survive that multiplicity; at k = 2 it is NOT the best point estimate in the field (see deployable_policy_leaderboard and paired.recommended_vs_best_alternative), and it is deployed at every k because it is the only rule whose k = 1 behaviour is measured to be best and whose later behaviour is never measurably worse.",
+  "geography": [
+    {
+      "comparison": "acid_position: low minus mid",
+      "cost_of_the_worse_stratum": 0.243546337203246,
+      "bca_low": 0.1751910625762752,
+      "bca_high": 0.3227589032153392,
+      "n_ligands": 72,
+      "ligands_improved": 53,
+      "seeds_positive": 5,
+      "n_seeds": 5
+    },
+    {
+      "comparison": "acid_position: high minus mid",
+      "cost_of_the_worse_stratum": 0.0570010068468109,
+      "bca_low": 0.0056460489649799,
+      "bca_high": 0.1132623645701899,
+      "n_ligands": 76,
+      "ligands_improved": 47,
+      "seeds_positive": 5,
+      "n_seeds": 5
+    },
+    {
+      "comparison": "extractant_position: low minus mid",
+      "cost_of_the_worse_stratum": 0.0829061943147261,
+      "bca_low": -0.0020765199001325,
+      "bca_high": 0.1515448877839264,
+      "n_ligands": 26,
+      "ligands_improved": 17,
+      "seeds_positive": 5,
+      "n_seeds": 5
+    },
+    {
+      "comparison": "extractant_position: high minus mid",
+      "cost_of_the_worse_stratum": 0.1110198447912771,
+      "bca_low": 0.035244357226081,
+      "bca_high": 0.3590733246934731,
+      "n_ligands": 29,
+      "ligands_improved": 21,
+      "seeds_positive": 5,
+      "n_seeds": 5
+    },
+    {
+      "comparison": "metal_position: extreme minus central",
+      "cost_of_the_worse_stratum": 0.0949133207096647,
+      "bca_low": 0.0597800211930367,
+      "bca_high": 0.1375349038134192,
+      "n_ligands": 85,
+      "ligands_improved": 68,
+      "seeds_positive": 5,
+      "n_seeds": 5
+    },
+    {
+      "comparison": "prediction_position: low minus mid",
+      "cost_of_the_worse_stratum": 0.1428387607228349,
+      "bca_low": 0.0957203246503915,
+      "bca_high": 0.1973191459102737,
+      "n_ligands": 143,
+      "ligands_improved": 107,
+      "seeds_positive": 5,
+      "n_seeds": 5
+    },
+    {
+      "comparison": "prediction_position: high minus mid",
+      "cost_of_the_worse_stratum": 0.0395974130568268,
+      "bca_low": 0.0090381759721668,
+      "bca_high": 0.0749242422331665,
+      "n_ligands": 142,
+      "ligands_improved": 85,
+      "seeds_positive": 5,
+      "n_seeds": 5
+    }
+  ],
+  "geography_source": "runs/gen8_architecture/cross_series/stratum_paired_bootstrap.csv"
+}

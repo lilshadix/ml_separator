@@ -1,0 +1,125 @@
+REC_ecfp_plus_recovered: 26,240 OOF rows, 152 ligands
+
+--- oracle identity under the gen9 pool/evaluation split ---
+{
+  "n_blocks": 5720,
+  "exact_share": 0.5919580419580419,
+  "max_gap": 0.970664303961711,
+  "median_gap": 0.0,
+  "mean_gap": 0.019383934992659935,
+  "q95_gap": 0.1127036562519194,
+  "median_spearman": 0.942857142857143,
+  "q05_spearman": 0.3
+}
+
+building the fold-local acquisition training sets
+  dataset seed 104729 fold 0: 10,368 candidates over 124 ligands, identity exact 0.572
+  dataset seed 104729 fold 1: 5,232 candidates over 75 ligands, identity exact 0.610
+  dataset seed 104729 fold 2: 10,704 candidates over 125 ligands, identity exact 0.586
+  dataset seed 104729 fold 3: 10,568 candidates over 127 ligands, identity exact 0.578
+  dataset seed 104729 fold 4: 10,552 candidates over 121 ligands, identity exact 0.593
+  dataset seed 130363 fold 0: 5,552 candidates over 91 ligands, identity exact 0.624
+  dataset seed 130363 fold 1: 10,640 candidates over 124 ligands, identity exact 0.566
+  dataset seed 130363 fold 2: 10,088 candidates over 117 ligands, identity exact 0.576
+  dataset seed 130363 fold 3: 10,232 candidates over 119 ligands, identity exact 0.588
+  dataset seed 130363 fold 4: 10,912 candidates over 121 ligands, identity exact 0.564
+  dataset seed 155921 fold 0: 5,480 candidates over 89 ligands, identity exact 0.607
+  dataset seed 155921 fold 1: 10,192 candidates over 123 ligands, identity exact 0.616
+  dataset seed 155921 fold 2: 10,896 candidates over 124 ligands, identity exact 0.593
+  dataset seed 155921 fold 3: 10,496 candidates over 126 ligands, identity exact 0.577
+  dataset seed 155921 fold 4: 10,360 candidates over 110 ligands, identity exact 0.582
+  dataset seed 196613 fold 0: 5,264 candidates over 83 ligands, identity exact 0.589
+  dataset seed 196613 fold 1: 10,560 candidates over 123 ligands, identity exact 0.564
+  dataset seed 196613 fold 2: 10,664 candidates over 128 ligands, identity exact 0.584
+  dataset seed 196613 fold 3: 11,216 candidates over 124 ligands, identity exact 0.551
+  dataset seed 196613 fold 4: 9,720 candidates over 114 ligands, identity exact 0.562
+  dataset seed 262147 fold 0: 10,560 candidates over 124 ligands, identity exact 0.593
+  dataset seed 262147 fold 1: 4,792 candidates over 81 ligands, identity exact 0.610
+  dataset seed 262147 fold 2: 10,792 candidates over 121 ligands, identity exact 0.591
+  dataset seed 262147 fold 3: 11,096 candidates over 128 ligands, identity exact 0.589
+  dataset seed 262147 fold 4: 10,184 candidates over 118 ligands, identity exact 0.587
+  [geometry] 97,240 records in 728s
+  [geometry+prediction] 28,600 records in 1007s
+  [full] 28,600 records in 1033s
+  [full_shuffled] 28,600 records in 833s
+
+--- one-shot policy comparison (macro over ligands) ---
+                             policy      mae   regret  gap_recovered  rank_percentile  frac_harmed  matches_surrogate  n_ligands
+                             ORACLE 0.481218 0.000000       1.000000         0.000307     0.080944           1.000000        143
+                   SURROGATE_ORACLE 0.500602 0.019384       0.532648         0.115415     0.125524           1.000000        143
+                             MEDOID 0.645285 0.164067      -5.030571         0.431887     0.303671           0.252972        143
+                            CENTRAL 0.649202 0.167984      -3.319258         0.430237     0.311888           0.245629        143
+            LEARNED_BLEND[geometry] 0.650525 0.169307      -3.540227         0.429852     0.312762           0.249301        143
+                LEARNED_BLEND[full] 0.652555 0.171336      -4.160119         0.430556     0.306818           0.250000        143
+           LEARNED_SCALAR[geometry] 0.653323 0.172105      -5.671404         0.439112     0.314860           0.246154        143
+ LEARNED_BLEND[geometry+prediction] 0.653403 0.172184      -6.114940         0.432040     0.310490           0.241434        143
+       LEARNED_BLEND[full_shuffled] 0.655252 0.174034      -4.233001         0.437248     0.312937           0.245105        143
+               LEARNED_SCALAR[full] 0.657349 0.176131      -6.402361         0.431077     0.313636           0.235839        143
+             MAX_CONDITION_COVERAGE 0.661187 0.179968      -5.216418         0.432977     0.320804           0.250175        143
+        LEARNED_RANK[full_shuffled] 0.661319 0.180101      -7.095947         0.442633     0.319406           0.230944        143
+  LEARNED_RANK[geometry+prediction] 0.663369 0.182150      -6.891562         0.440018     0.316608           0.228322        143
+             LEARNED_RANK[geometry] 0.663703 0.182485      -5.625826         0.435758     0.314161           0.246329        143
+      LEARNED_SCALAR[full_shuffled] 0.664730 0.183512      -6.702759         0.447737     0.316084           0.216259        143
+LEARNED_SCALAR[geometry+prediction] 0.664737 0.183518      -6.520893         0.442800     0.311538           0.210839        143
+                 LEARNED_RANK[full] 0.666999 0.185781      -7.929458         0.439653     0.319406           0.237587        143
+                  MIN_GP_DESIGN_VAR 0.672159 0.190941      -5.230926         0.470855     0.324825           0.203671        143
+                  MEDIAN_PREDICTION 0.673158 0.191940      -5.025673         0.458074     0.326399           0.229895        143
+                     MAX_PREDICTION 0.681544 0.200326      -9.216789         0.498691     0.348601           0.165734        143
+                           MID_ACID 0.692675 0.211457      -5.643058         0.492912     0.332867           0.181993        143
+                    MAX_ENSEMBLE_SD 0.712384 0.231166      -8.476538         0.505164     0.353846           0.176573        143
+                             RANDOM 0.720471 0.239253      -9.353987         0.498776     0.357168           0.211713        143
+                    MIN_ENSEMBLE_SD 0.722696 0.241478      -6.028315         0.505095     0.340385           0.188287        143
+             FARTHEST_FROM_EXISTING 0.794577 0.313359     -10.678474         0.557588     0.406294           0.141783        143
+                     MIN_PREDICTION 0.817473 0.336255     -10.609524         0.590216     0.393531           0.134965        143
+
+--- paired chemotype-blocked intervals (positive = candidate better) ---
+                                              comparison     point  ci95_low  ci95_high  n_units  units_improved  seeds_positive
+                       LEARNED_BLEND[geometry] vs MEDOID -0.005240 -0.017766   0.014164      143              53               0
+                      LEARNED_BLEND[geometry] vs CENTRAL -0.001323 -0.004940   0.003591      143              17               3
+                       LEARNED_BLEND[geometry] vs RANDOM  0.069946  0.028414   0.098940      143              99               5
+            LEARNED_BLEND[geometry] vs MIN_GP_DESIGN_VAR  0.021634 -0.005880   0.038586      143              75               5
+                           LEARNED_BLEND[full] vs MEDOID -0.007270 -0.019796   0.010890      143              61               0
+                          LEARNED_BLEND[full] vs CENTRAL -0.003353 -0.008421   0.004216      143              44               1
+                           LEARNED_BLEND[full] vs RANDOM  0.067916  0.028743   0.095779      143              97               5
+                LEARNED_BLEND[full] vs MIN_GP_DESIGN_VAR  0.019604 -0.004381   0.034949      143              78               5
+                      LEARNED_SCALAR[geometry] vs MEDOID -0.008038 -0.028443   0.023664      143              75               1
+                     LEARNED_SCALAR[geometry] vs CENTRAL -0.004121 -0.019453   0.021869      143              81               1
+                      LEARNED_SCALAR[geometry] vs RANDOM  0.067148  0.027937   0.094549      143              94               5
+           LEARNED_SCALAR[geometry] vs MIN_GP_DESIGN_VAR  0.018836 -0.003244   0.038091      143              90               5
+            LEARNED_BLEND[geometry+prediction] vs MEDOID -0.008118 -0.023372   0.014215      143              57               0
+           LEARNED_BLEND[geometry+prediction] vs CENTRAL -0.004200 -0.010937   0.003190      143              48               1
+            LEARNED_BLEND[geometry+prediction] vs RANDOM  0.067069  0.028411   0.093478      143              98               5
+ LEARNED_BLEND[geometry+prediction] vs MIN_GP_DESIGN_VAR  0.018757 -0.005682   0.035074      143              74               5
+                  LEARNED_BLEND[full_shuffled] vs MEDOID -0.009967 -0.024544   0.011183      143              58               0
+                 LEARNED_BLEND[full_shuffled] vs CENTRAL -0.006050 -0.012293   0.002229      143              53               2
+                  LEARNED_BLEND[full_shuffled] vs RANDOM  0.065219  0.026607   0.092146      143              96               5
+       LEARNED_BLEND[full_shuffled] vs MIN_GP_DESIGN_VAR  0.016907 -0.007552   0.033332      143              77               5
+                          LEARNED_SCALAR[full] vs MEDOID -0.012065 -0.035538   0.024039      143              77               1
+                         LEARNED_SCALAR[full] vs CENTRAL -0.008147 -0.026346   0.019303      143              76               1
+                          LEARNED_SCALAR[full] vs RANDOM  0.063122  0.023702   0.089434      143              98               5
+               LEARNED_SCALAR[full] vs MIN_GP_DESIGN_VAR  0.014810 -0.010523   0.036574      143              89               4
+                   LEARNED_RANK[full_shuffled] vs MEDOID -0.016034 -0.037310   0.012451      143              68               0
+                  LEARNED_RANK[full_shuffled] vs CENTRAL -0.012117 -0.027271   0.010675      143              61               1
+                   LEARNED_RANK[full_shuffled] vs RANDOM  0.059152  0.025657   0.081036      143              98               5
+        LEARNED_RANK[full_shuffled] vs MIN_GP_DESIGN_VAR  0.010840 -0.007418   0.027636      143              81               5
+             LEARNED_RANK[geometry+prediction] vs MEDOID -0.018084 -0.039167   0.010878      143              66               0
+            LEARNED_RANK[geometry+prediction] vs CENTRAL -0.014167 -0.029243   0.008567      143              61               0
+             LEARNED_RANK[geometry+prediction] vs RANDOM  0.057102  0.022571   0.079769      143              95               5
+  LEARNED_RANK[geometry+prediction] vs MIN_GP_DESIGN_VAR  0.008790 -0.011247   0.026264      143              79               5
+                        LEARNED_RANK[geometry] vs MEDOID -0.018418 -0.044390   0.015404      143              72               0
+                       LEARNED_RANK[geometry] vs CENTRAL -0.014501 -0.033676   0.010980      143              68               0
+                        LEARNED_RANK[geometry] vs RANDOM  0.056768  0.026043   0.076867      143              98               5
+             LEARNED_RANK[geometry] vs MIN_GP_DESIGN_VAR  0.008456 -0.011176   0.030822      143              81               4
+                 LEARNED_SCALAR[full_shuffled] vs MEDOID -0.019445 -0.045017   0.019350      143              65               0
+                LEARNED_SCALAR[full_shuffled] vs CENTRAL -0.015528 -0.035376   0.016555      143              65               0
+                 LEARNED_SCALAR[full_shuffled] vs RANDOM  0.055741  0.020677   0.080484      143              93               5
+      LEARNED_SCALAR[full_shuffled] vs MIN_GP_DESIGN_VAR  0.007429 -0.013404   0.030580      143              82               4
+           LEARNED_SCALAR[geometry+prediction] vs MEDOID -0.019452 -0.042265   0.015168      143              66               0
+          LEARNED_SCALAR[geometry+prediction] vs CENTRAL -0.015534 -0.032468   0.011806      143              64               0
+           LEARNED_SCALAR[geometry+prediction] vs RANDOM  0.055735  0.020066   0.080201      143              91               5
+LEARNED_SCALAR[geometry+prediction] vs MIN_GP_DESIGN_VAR  0.007423 -0.014312   0.028181      143              78               3
+                            LEARNED_RANK[full] vs MEDOID -0.021715 -0.045963   0.008072      143              67               0
+                           LEARNED_RANK[full] vs CENTRAL -0.017797 -0.035544   0.007258      143              65               1
+                            LEARNED_RANK[full] vs RANDOM  0.053472  0.025090   0.072051      143              93               5
+                 LEARNED_RANK[full] vs MIN_GP_DESIGN_VAR  0.005160 -0.010128   0.022306      143              77               3
+                       ORACLE vs LEARNED_BLEND[geometry]  0.169307  0.131005   0.200978      143             143               5

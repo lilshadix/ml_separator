@@ -1,0 +1,1419 @@
+{
+  "schema_version": "gen8-recommend-1.0",
+  "generated_at": "2026-08-20T06:51:36Z",
+  "query": {
+    "ligand_smiles": "CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCCOCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC",
+    "ligand_as_given": "CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCCOCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC",
+    "ligand_in_cohort": true,
+    "n_candidates": 40,
+    "nearest_training_ligand": "CCCCCCCCN(CCCCCCCC)C(=O)COCP(=O)(OCCCC)OCCCC",
+    "nearest_training_tanimoto": 0.666667,
+    "chemotype_status": "novel chemotype (nn < 0.7 \u2014 the regime every quoted number was measured in)",
+    "candidate_conditions_file": "/Users/lilshadix/PycharmProjects/ml_separator/runs/gen8_architecture/recommender/demo_candidate_conditions.csv"
+  },
+  "model": {
+    "arm": "REC_ecfp_plus_recovered",
+    "blocks": [
+      "METAL",
+      "COND",
+      "ECFP",
+      "MASSACTION",
+      "RECOVERED"
+    ],
+    "recipe": "ExtraTrees(n_estimators=400, max_features=0.30, min_samples_leaf=2), median imputation with missingness indicators, ECFP-cluster-balanced sample weights, predictions clipped to the training range",
+    "is_frozen_recipe": true,
+    "n_train_rows": 1908,
+    "n_train_ligands": 114,
+    "n_train_chemotypes": 78,
+    "excluded_chemotype": "tan055",
+    "model_seed": 10000033,
+    "zero_shot_macro_mae_on_held_out_chemotypes": 0.994988
+  },
+  "stage": {
+    "k_observed": 0,
+    "adapter": "ZERO_SHOT",
+    "adapter_reason": "no measurement yet, so the frozen global model stands as it is (macro MAE 0.995 on held-out chemotypes)",
+    "next_rule": "MEDOID"
+  },
+  "recommendation": {
+    "candidate_id": "C005",
+    "rule": "MEDOID",
+    "rule_description": "measure the candidate closest to the centre of the candidate pool in standardised condition space (log acid, log extractant, lanthanide index, temperature).  One measurement can only move the ligand's overall level, so it should be taken where the level is most representative \u2014 not at an extreme.",
+    "conditions": {
+      "metal": "Tb",
+      "acid": "hno3",
+      "acid_concentration_M": 3.0,
+      "extractant_concentration_M": 0.2,
+      "diluent": "n_dodecane",
+      "additive": null,
+      "temperature_C": 25.0,
+      "metal_concentration_mM": 0.06,
+      "contact_time_min": 20.0
+    },
+    "predicted_log_D": 0.800557,
+    "zero_shot_log_D": 0.800557,
+    "ensemble_sd": 1.094513,
+    "uncertainty_68": 1.439171,
+    "uncertainty_90": 2.277756,
+    "why": {
+      "rule_fired": "MEDOID",
+      "rule_description": "measure the candidate closest to the centre of the candidate pool in standardised condition space (log acid, log extractant, lanthanide index, temperature).  One measurement can only move the ligand's overall level, so it should be taken where the level is most representative \u2014 not at an extreme.",
+      "expected_improvement": {
+        "available": true,
+        "k_after_this_measurement": 1,
+        "recommended_macro_mae": 0.648454,
+        "random_macro_mae": 0.72319,
+        "oracle_macro_mae": 0.483691,
+        "zero_shot_macro_mae": 0.994988,
+        "gain_over_random": 0.074736,
+        "gain_bca_low": 0.034503,
+        "gain_bca_high": 0.129937,
+        "ligands_improved": 101,
+        "n_ligands": 143,
+        "seeds_positive": 5,
+        "n_seeds": 5,
+        "units": "macro MAE in log D units, one held-out ligand one vote"
+      },
+      "geography_of_this_point": {
+        "acid_position": "mid",
+        "extractant_position": "mid",
+        "metal_position": "central",
+        "prediction_position": "mid"
+      },
+      "geography_evidence": [
+        {
+          "comparison": "acid_position: low minus mid",
+          "cost_of_the_worse_stratum": 0.243546337203246,
+          "bca_low": 0.1751910625762752,
+          "bca_high": 0.3227589032153392,
+          "n_ligands": 72,
+          "ligands_improved": 53,
+          "seeds_positive": 5,
+          "n_seeds": 5
+        },
+        {
+          "comparison": "acid_position: high minus mid",
+          "cost_of_the_worse_stratum": 0.0570010068468109,
+          "bca_low": 0.0056460489649799,
+          "bca_high": 0.1132623645701899,
+          "n_ligands": 76,
+          "ligands_improved": 47,
+          "seeds_positive": 5,
+          "n_seeds": 5
+        },
+        {
+          "comparison": "extractant_position: low minus mid",
+          "cost_of_the_worse_stratum": 0.0829061943147261,
+          "bca_low": -0.0020765199001325,
+          "bca_high": 0.1515448877839264,
+          "n_ligands": 26,
+          "ligands_improved": 17,
+          "seeds_positive": 5,
+          "n_seeds": 5
+        },
+        {
+          "comparison": "extractant_position: high minus mid",
+          "cost_of_the_worse_stratum": 0.1110198447912771,
+          "bca_low": 0.035244357226081,
+          "bca_high": 0.3590733246934731,
+          "n_ligands": 29,
+          "ligands_improved": 21,
+          "seeds_positive": 5,
+          "n_seeds": 5
+        },
+        {
+          "comparison": "metal_position: extreme minus central",
+          "cost_of_the_worse_stratum": 0.0949133207096647,
+          "bca_low": 0.0597800211930367,
+          "bca_high": 0.1375349038134192,
+          "n_ligands": 85,
+          "ligands_improved": 68,
+          "seeds_positive": 5,
+          "n_seeds": 5
+        },
+        {
+          "comparison": "prediction_position: low minus mid",
+          "cost_of_the_worse_stratum": 0.1428387607228349,
+          "bca_low": 0.0957203246503915,
+          "bca_high": 0.1973191459102737,
+          "n_ligands": 143,
+          "ligands_improved": 107,
+          "seeds_positive": 5,
+          "n_seeds": 5
+        },
+        {
+          "comparison": "prediction_position: high minus mid",
+          "cost_of_the_worse_stratum": 0.0395974130568268,
+          "bca_low": 0.0090381759721668,
+          "bca_high": 0.0749242422331665,
+          "n_ligands": 142,
+          "ligands_improved": 85,
+          "seeds_positive": 5,
+          "n_seeds": 5
+        }
+      ],
+      "not_used": "the model's own uncertainty.  gen8 measured every uncertainty-driven acquisition policy against random and none of them beat it; the per-candidate ensemble_sd is reported as a diagnostic and never ranked on.  The measured comparison is in evidence.acquisition.uncertainty_policies_at_k1.",
+      "uncertainty_policies_at_k1": {
+        "RANDOM": 0.72319,
+        "MAX_ENSEMBLE_SD": 0.70728,
+        "MIN_ENSEMBLE_SD": 0.714993,
+        "MAX_MODEL_DISAGREEMENT": 0.739534,
+        "MAX_PREDICTIVE_VARIANCE": 0.744443
+      }
+    }
+  },
+  "observations": [],
+  "predictions": [
+    {
+      "candidate_id": "C001",
+      "conditions": {
+        "metal": "La",
+        "acid": "hno3",
+        "acid_concentration_M": 3.0,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.07,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": -0.000142,
+      "predicted_log_D": -0.000142,
+      "ensemble_sd": 0.937846,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 106.840778,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C002",
+      "conditions": {
+        "metal": "Pr",
+        "acid": "hno3",
+        "acid_concentration_M": 3.0,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.07,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": 0.149842,
+      "predicted_log_D": 0.149842,
+      "ensemble_sd": 0.907424,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 90.630762,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C003",
+      "conditions": {
+        "metal": "Sm",
+        "acid": "hno3",
+        "acid_concentration_M": 3.0,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.07,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": 0.559572,
+      "predicted_log_D": 0.559572,
+      "ensemble_sd": 1.01829,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 74.420747,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C004",
+      "conditions": {
+        "metal": "Gd",
+        "acid": "hno3",
+        "acid_concentration_M": 3.0,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.06,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": 0.660164,
+      "predicted_log_D": 0.660164,
+      "ensemble_sd": 1.048448,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 69.17633,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C005",
+      "conditions": {
+        "metal": "Tb",
+        "acid": "hno3",
+        "acid_concentration_M": 3.0,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.06,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": 0.800557,
+      "predicted_log_D": 0.800557,
+      "ensemble_sd": 1.094513,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": true,
+      "distance_to_pool_centre": 68.699565,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C006",
+      "conditions": {
+        "metal": "Dy",
+        "acid": "hno3",
+        "acid_concentration_M": 3.0,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.06,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": 0.878366,
+      "predicted_log_D": 0.878366,
+      "ensemble_sd": 1.093946,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 69.653096,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C007",
+      "conditions": {
+        "metal": "Ho",
+        "acid": "hno3",
+        "acid_concentration_M": 3.0,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.06,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": 0.900984,
+      "predicted_log_D": 0.900984,
+      "ensemble_sd": 1.118917,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 72.036921,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C008",
+      "conditions": {
+        "metal": "Er",
+        "acid": "hno3",
+        "acid_concentration_M": 3.0,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.06,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": 0.874729,
+      "predicted_log_D": 0.874729,
+      "ensemble_sd": 1.11768,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 76.327808,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C009",
+      "conditions": {
+        "metal": "Yb",
+        "acid": "hno3",
+        "acid_concentration_M": 3.0,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.06,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": 0.829359,
+      "predicted_log_D": 0.829359,
+      "ensemble_sd": 1.21254,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 87.770172,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C010",
+      "conditions": {
+        "metal": "Lu",
+        "acid": "hno3",
+        "acid_concentration_M": 3.0,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.06,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": 0.811652,
+      "predicted_log_D": 0.811652,
+      "ensemble_sd": 1.214223,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 96.351944,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C011",
+      "conditions": {
+        "metal": "Ce",
+        "acid": "hno3",
+        "acid_concentration_M": 4.0,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.07,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": 0.158169,
+      "predicted_log_D": 0.158169,
+      "ensemble_sd": 0.934086,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 98.748845,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C012",
+      "conditions": {
+        "metal": "Pr",
+        "acid": "hno3",
+        "acid_concentration_M": 4.0,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.07,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": 0.234268,
+      "predicted_log_D": 0.234268,
+      "ensemble_sd": 0.942044,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 91.120602,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C013",
+      "conditions": {
+        "metal": "Sm",
+        "acid": "hno3",
+        "acid_concentration_M": 4.0,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.07,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": 0.679719,
+      "predicted_log_D": 0.679719,
+      "ensemble_sd": 1.047519,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 74.910587,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C014",
+      "conditions": {
+        "metal": "Tb",
+        "acid": "hno3",
+        "acid_concentration_M": 4.0,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.06,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": 0.929824,
+      "predicted_log_D": 0.929824,
+      "ensemble_sd": 1.128685,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 69.189405,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C015",
+      "conditions": {
+        "metal": "Er",
+        "acid": "hno3",
+        "acid_concentration_M": 4.0,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.06,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": 1.015874,
+      "predicted_log_D": 1.015874,
+      "ensemble_sd": 1.162965,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 76.817647,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C016",
+      "conditions": {
+        "metal": "Tm",
+        "acid": "hno3",
+        "acid_concentration_M": 4.0,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.06,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": 0.999107,
+      "predicted_log_D": 0.999107,
+      "ensemble_sd": 1.221141,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 82.062064,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C017",
+      "conditions": {
+        "metal": "Yb",
+        "acid": "hno3",
+        "acid_concentration_M": 4.0,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.06,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": 0.983591,
+      "predicted_log_D": 0.983591,
+      "ensemble_sd": 1.273103,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 88.260011,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C018",
+      "conditions": {
+        "metal": "Lu",
+        "acid": "hno3",
+        "acid_concentration_M": 4.0,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.06,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": 0.964284,
+      "predicted_log_D": 0.964284,
+      "ensemble_sd": 1.277212,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 96.841784,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C019",
+      "conditions": {
+        "metal": "Pr",
+        "acid": "hno3",
+        "acid_concentration_M": 5.0,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.07,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": 0.273502,
+      "predicted_log_D": 0.273502,
+      "ensemble_sd": 0.970415,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 92.513749,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C020",
+      "conditions": {
+        "metal": "Nd",
+        "acid": "hno3",
+        "acid_concentration_M": 5.0,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.07,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": 0.368601,
+      "predicted_log_D": 0.368601,
+      "ensemble_sd": 1.022831,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 86.792567,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C021",
+      "conditions": {
+        "metal": "Sm",
+        "acid": "hno3",
+        "acid_concentration_M": 5.0,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.07,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": 0.726887,
+      "predicted_log_D": 0.726887,
+      "ensemble_sd": 1.07474,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 76.303734,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C022",
+      "conditions": {
+        "metal": "Eu",
+        "acid": "hno3",
+        "acid_concentration_M": 5.0,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.07,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": 0.811813,
+      "predicted_log_D": 0.811813,
+      "ensemble_sd": 1.112161,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 72.966377,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C023",
+      "conditions": {
+        "metal": "Tb",
+        "acid": "hno3",
+        "acid_concentration_M": 5.0,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.06,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": 0.979227,
+      "predicted_log_D": 0.979227,
+      "ensemble_sd": 1.150571,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 70.582552,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C024",
+      "conditions": {
+        "metal": "Dy",
+        "acid": "hno3",
+        "acid_concentration_M": 5.0,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.06,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": 1.071497,
+      "predicted_log_D": 1.071497,
+      "ensemble_sd": 1.150459,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 71.536082,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C025",
+      "conditions": {
+        "metal": "Ho",
+        "acid": "hno3",
+        "acid_concentration_M": 5.0,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.06,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": 1.086418,
+      "predicted_log_D": 1.086418,
+      "ensemble_sd": 1.176992,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 73.919908,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C026",
+      "conditions": {
+        "metal": "Yb",
+        "acid": "hno3",
+        "acid_concentration_M": 5.0,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.06,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": 1.039252,
+      "predicted_log_D": 1.039252,
+      "ensemble_sd": 1.290648,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 89.653158,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C027",
+      "conditions": {
+        "metal": "Ce",
+        "acid": "hno3",
+        "acid_concentration_M": 0.001,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.07,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": -0.454384,
+      "predicted_log_D": -0.454384,
+      "ensemble_sd": 1.027209,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 136.169954,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C028",
+      "conditions": {
+        "metal": "Sm",
+        "acid": "hno3",
+        "acid_concentration_M": 0.001,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.07,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": -0.286417,
+      "predicted_log_D": -0.286417,
+      "ensemble_sd": 1.088084,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 112.331696,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C029",
+      "conditions": {
+        "metal": "Eu",
+        "acid": "hno3",
+        "acid_concentration_M": 0.001,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.07,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": -0.304322,
+      "predicted_log_D": -0.304322,
+      "ensemble_sd": 1.066991,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 108.99434,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C030",
+      "conditions": {
+        "metal": "Dy",
+        "acid": "hno3",
+        "acid_concentration_M": 0.001,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.06,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": -0.078705,
+      "predicted_log_D": -0.078705,
+      "ensemble_sd": 1.219605,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 107.564044,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C031",
+      "conditions": {
+        "metal": "Ho",
+        "acid": "hno3",
+        "acid_concentration_M": 0.001,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.06,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": -0.066737,
+      "predicted_log_D": -0.066737,
+      "ensemble_sd": 1.230279,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 109.94787,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C032",
+      "conditions": {
+        "metal": "Tm",
+        "acid": "hno3",
+        "acid_concentration_M": 0.001,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.06,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": -0.095773,
+      "predicted_log_D": -0.095773,
+      "ensemble_sd": 1.258717,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 119.483173,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C033",
+      "conditions": {
+        "metal": "Yb",
+        "acid": "hno3",
+        "acid_concentration_M": 0.001,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.06,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": -0.105149,
+      "predicted_log_D": -0.105149,
+      "ensemble_sd": 1.275416,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 125.68112,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C034",
+      "conditions": {
+        "metal": "La",
+        "acid": "hno3",
+        "acid_concentration_M": 0.006,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.07,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": -0.48996,
+      "predicted_log_D": -0.48996,
+      "ensemble_sd": 1.034717,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 131.531378,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C035",
+      "conditions": {
+        "metal": "Pr",
+        "acid": "hno3",
+        "acid_concentration_M": 0.006,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.07,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": -0.428981,
+      "predicted_log_D": -0.428981,
+      "ensemble_sd": 1.020529,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 115.321362,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C036",
+      "conditions": {
+        "metal": "Eu",
+        "acid": "hno3",
+        "acid_concentration_M": 0.006,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.07,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": -0.278145,
+      "predicted_log_D": -0.278145,
+      "ensemble_sd": 1.077193,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 95.773991,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C037",
+      "conditions": {
+        "metal": "Gd",
+        "acid": "hno3",
+        "acid_concentration_M": 0.006,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.06,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": -0.230066,
+      "predicted_log_D": -0.230066,
+      "ensemble_sd": 1.100981,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 93.86693,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C038",
+      "conditions": {
+        "metal": "Ho",
+        "acid": "hno3",
+        "acid_concentration_M": 0.006,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.06,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": -0.03647,
+      "predicted_log_D": -0.03647,
+      "ensemble_sd": 1.236057,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 96.727521,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C039",
+      "conditions": {
+        "metal": "Yb",
+        "acid": "hno3",
+        "acid_concentration_M": 0.006,
+        "extractant_concentration_M": 0.2,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.06,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": -0.075165,
+      "predicted_log_D": -0.075165,
+      "ensemble_sd": 1.28181,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 112.460771,
+      "distance_to_measured": null
+    },
+    {
+      "candidate_id": "C040",
+      "conditions": {
+        "metal": "Gd",
+        "acid": "hno3",
+        "acid_concentration_M": 5.0,
+        "extractant_concentration_M": 0.3,
+        "diluent": "n_dodecane",
+        "additive": null,
+        "temperature_C": 25.0,
+        "metal_concentration_mM": 0.06,
+        "contact_time_min": 20.0
+      },
+      "zero_shot_log_D": 0.92478,
+      "predicted_log_D": 0.92478,
+      "ensemble_sd": 1.170335,
+      "uncertainty_68": 1.439171,
+      "uncertainty_90": 2.277756,
+      "is_observed": false,
+      "is_recommended": false,
+      "distance_to_pool_centre": 314.454111,
+      "distance_to_measured": null
+    }
+  ],
+  "uncertainty": {
+    "available": 1,
+    "q68": 1.439171,
+    "q90": 2.277756,
+    "median": 0.962442,
+    "n_reference_rows": 19298,
+    "similarity_bin": [
+      0.6,
+      1.01
+    ],
+    "extrapolated_similarity": 0,
+    "extrapolated_k": 0,
+    "basis": "empirical quantiles of |log D error| over held-out chemotypes; constant across candidates because gen8 measured the model's per-row uncertainty to carry no usable ranking signal",
+    "source": "runs/gen7_architecture/finalists/oof_predictions.parquet",
+    "policy_replayed": "MEDOID then FARTHEST_FROM_EXISTING; OFFSET_K1 then OFFSET_K3"
+  },
+  "evidence": {
+    "acquisition": {
+      "available": 1,
+      "source": "runs/gen8_architecture/active_acquisition/primary_detail.parquet",
+      "model": "REC_ecfp_plus_recovered",
+      "uncertainty_policies_at_k1": {
+        "RANDOM": 0.72319,
+        "MAX_ENSEMBLE_SD": 0.70728,
+        "MIN_ENSEMBLE_SD": 0.714993,
+        "MAX_MODEL_DISAGREEMENT": 0.739534,
+        "MAX_PREDICTIVE_VARIANCE": 0.744443
+      },
+      "protocol": "P2 (disjoint candidate pool / evaluation set), 143 held-out ligands x 5 split seeds, macro = one ligand one vote",
+      "zero_shot": 0.994988,
+      "by_k": {
+        "1": {
+          "adapter": "OFFSET_K1",
+          "policy": "MEDOID then FARTHEST_FROM_EXISTING (CENTRAL_THEN_SPREAD)",
+          "recommended_macro_mae": 0.648454,
+          "random_macro_mae": 0.72319,
+          "central_only_macro_mae": 0.650698,
+          "oracle_macro_mae": 0.483691,
+          "recommended_macro_mae_offset_only": 0.648454,
+          "paired": {
+            "recommended_vs_random": {
+              "point": 0.074736,
+              "ci95_low": 0.025719,
+              "ci95_high": 0.114847,
+              "bca_low": 0.034503,
+              "bca_high": 0.129937,
+              "block_macro": 0.044287,
+              "n_units": 143,
+              "units_improved": 101,
+              "seeds_positive": 5,
+              "n_seeds": 5
+            }
+          }
+        },
+        "2": {
+          "adapter": "OFFSET_K3",
+          "policy": "MEDOID then FARTHEST_FROM_EXISTING (CENTRAL_THEN_SPREAD)",
+          "recommended_macro_mae": 0.557882,
+          "random_macro_mae": 0.598351,
+          "central_only_macro_mae": 0.611192,
+          "oracle_macro_mae": 0.474112,
+          "recommended_macro_mae_offset_only": 0.623494,
+          "paired": {
+            "recommended_vs_random": {
+              "point": 0.040469,
+              "ci95_low": 0.022272,
+              "ci95_high": 0.054751,
+              "bca_low": 0.025148,
+              "bca_high": 0.057872,
+              "block_macro": 0.036747,
+              "n_units": 143,
+              "units_improved": 98,
+              "seeds_positive": 5,
+              "n_seeds": 5
+            },
+            "K3_vs_K1_adapter": {
+              "point": 0.065612,
+              "ci95_low": 0.044081,
+              "ci95_high": 0.08158,
+              "bca_low": 0.046576,
+              "bca_high": 0.083942,
+              "block_macro": 0.065232,
+              "n_units": 143,
+              "units_improved": 115,
+              "seeds_positive": 5,
+              "n_seeds": 5
+            }
+          }
+        },
+        "3": {
+          "adapter": "OFFSET_K3",
+          "policy": "MEDOID then FARTHEST_FROM_EXISTING (CENTRAL_THEN_SPREAD)",
+          "recommended_macro_mae": 0.501937,
+          "random_macro_mae": 0.540822,
+          "central_only_macro_mae": 0.565822,
+          "oracle_macro_mae": 0.480994,
+          "recommended_macro_mae_offset_only": 0.608226,
+          "paired": {
+            "recommended_vs_random": {
+              "point": 0.038886,
+              "ci95_low": 0.021255,
+              "ci95_high": 0.049809,
+              "bca_low": 0.025418,
+              "bca_high": 0.053003,
+              "block_macro": 0.023788,
+              "n_units": 140,
+              "units_improved": 90,
+              "seeds_positive": 5,
+              "n_seeds": 5
+            },
+            "K3_vs_K1_adapter": {
+              "point": 0.10629,
+              "ci95_low": 0.077272,
+              "ci95_high": 0.129161,
+              "bca_low": 0.080235,
+              "bca_high": 0.131468,
+              "block_macro": 0.108527,
+              "n_units": 140,
+              "units_improved": 115,
+              "seeds_positive": 5,
+              "n_seeds": 5
+            }
+          }
+        },
+        "5": {
+          "adapter": "OFFSET_K3",
+          "policy": "MEDOID then FARTHEST_FROM_EXISTING (CENTRAL_THEN_SPREAD)",
+          "recommended_macro_mae": 0.490384,
+          "random_macro_mae": 0.513561,
+          "central_only_macro_mae": 0.558306,
+          "oracle_macro_mae": 0.494455,
+          "recommended_macro_mae_offset_only": 0.629168,
+          "paired": {
+            "recommended_vs_random": {
+              "point": 0.023177,
+              "ci95_low": 0.011256,
+              "ci95_high": 0.03212,
+              "bca_low": 0.011797,
+              "bca_high": 0.032336,
+              "block_macro": 0.025659,
+              "n_units": 99,
+              "units_improved": 74,
+              "seeds_positive": 5,
+              "n_seeds": 5
+            },
+            "K3_vs_K1_adapter": {
+              "point": 0.138784,
+              "ci95_low": 0.102161,
+              "ci95_high": 0.168313,
+              "bca_low": 0.103775,
+              "bca_high": 0.170103,
+              "block_macro": 0.150712,
+              "n_units": 99,
+              "units_improved": 84,
+              "seeds_positive": 5,
+              "n_seeds": 5
+            }
+          }
+        }
+      },
+      "geography": [
+        {
+          "comparison": "acid_position: low minus mid",
+          "cost_of_the_worse_stratum": 0.243546,
+          "bca_low": 0.175191,
+          "bca_high": 0.322759,
+          "n_ligands": 72,
+          "ligands_improved": 53,
+          "seeds_positive": 5,
+          "n_seeds": 5
+        },
+        {
+          "comparison": "acid_position: high minus mid",
+          "cost_of_the_worse_stratum": 0.057001,
+          "bca_low": 0.005646,
+          "bca_high": 0.113262,
+          "n_ligands": 76,
+          "ligands_improved": 47,
+          "seeds_positive": 5,
+          "n_seeds": 5
+        },
+        {
+          "comparison": "extractant_position: low minus mid",
+          "cost_of_the_worse_stratum": 0.082906,
+          "bca_low": -0.002077,
+          "bca_high": 0.151545,
+          "n_ligands": 26,
+          "ligands_improved": 17,
+          "seeds_positive": 5,
+          "n_seeds": 5
+        },
+        {
+          "comparison": "extractant_position: high minus mid",
+          "cost_of_the_worse_stratum": 0.11102,
+          "bca_low": 0.035244,
+          "bca_high": 0.359073,
+          "n_ligands": 29,
+          "ligands_improved": 21,
+          "seeds_positive": 5,
+          "n_seeds": 5
+        },
+        {
+          "comparison": "metal_position: extreme minus central",
+          "cost_of_the_worse_stratum": 0.094913,
+          "bca_low": 0.05978,
+          "bca_high": 0.137535,
+          "n_ligands": 85,
+          "ligands_improved": 68,
+          "seeds_positive": 5,
+          "n_seeds": 5
+        },
+        {
+          "comparison": "prediction_position: low minus mid",
+          "cost_of_the_worse_stratum": 0.142839,
+          "bca_low": 0.09572,
+          "bca_high": 0.197319,
+          "n_ligands": 143,
+          "ligands_improved": 107,
+          "seeds_positive": 5,
+          "n_seeds": 5
+        },
+        {
+          "comparison": "prediction_position: high minus mid",
+          "cost_of_the_worse_stratum": 0.039597,
+          "bca_low": 0.009038,
+          "bca_high": 0.074924,
+          "n_ligands": 142,
+          "ligands_improved": 85,
+          "seeds_positive": 5,
+          "n_seeds": 5
+        }
+      ],
+      "geography_source": "runs/gen8_architecture/cross_series/stratum_paired_bootstrap.csv"
+    },
+    "interval_calibration": {
+      "available": 1,
+      "model": "REC_ecfp_plus_recovered",
+      "source": "runs/gen7_architecture/finalists/oof_predictions.parquet",
+      "weighting": "row-weighted absolute error on held-out chemotypes",
+      "weighting_note": "these are per-ROW intervals and they shrink far less with k than the headline macro MAE does (row-weighted mean 1.16 -> 1.00 -> 0.98 for k = 0, 1, 2, against a ligand-macro 1.00 -> 0.61 -> 0.56 on the very same replay).  The macro weights every ligand equally, so it is carried by the small-surface ligands where one measurement covers most of the surface; one row of a long titration series benefits much less.  Quote the macro when comparing methods, the row interval when quoting a prediction.",
+      "ligand_macro_cross_check": {
+        "k0": 0.995152,
+        "k1": 0.614871,
+        "k2": 0.56013
+      },
+      "ligand_macro_reference_p2": {
+        "k0": 0.998,
+        "k1": 0.646,
+        "k2": 0.548
+      },
+      "policy_replayed": "MEDOID then FARTHEST_FROM_EXISTING; OFFSET_K1 then OFFSET_K3",
+      "max_measurable_similarity": 0.697674,
+      "overall": {
+        "k0": {
+          "n": 26105,
+          "median": 1.005877,
+          "q68": 1.493978,
+          "q90": 2.374352,
+          "mean": 1.15966
+        },
+        "k1": {
+          "n": 25390,
+          "median": 0.716289,
+          "q68": 1.205424,
+          "q90": 2.353707,
+          "mean": 1.000861
+        },
+        "k2": {
+          "n": 24675,
+          "median": 0.710789,
+          "q68": 1.181339,
+          "q90": 2.296432,
+          "mean": 0.978111
+        }
+      }
+    }
+  },
+  "assumptions": {
+    "DENTATE": "cohort record for this ligand, per metal",
+    "coreCN": "cohort record for this ligand, per metal"
+  },
+  "warnings": [
+    "4 of the 23 RECOVERED columns are literature-provenance artefacts (rec__acid_concentration_organic_M, rec__name_mismatch, rec__n_names_for_structure, rec__aqueous_complexant) and cannot exist for a prospective experiment; the arm's imputer fills them with the training median",
+    "the queried ligand is in the cohort; its entire Tanimoto chemotype (tan055) was removed from the training set before fitting (64% of the cohort's rows)",
+    "that chemotype is unusually large, so this model saw only 1908 of 5248 rows \u2014 a harder training set than the average cross-validation fold, and the predictions here are correspondingly weaker than the headline macro MAE"
+  ],
+  "section_documentation": {
+    "query": "the ligand, its nearest training chemistry, and whether it counts as a novel chemotype (Tanimoto < 0.7 to every training ligand)",
+    "model": "the frozen arm, its feature blocks, the rows it was refitted on, its seed, and whether the recipe was left frozen",
+    "stage": "how many measurements are in hand and which calibration adapter that selects",
+    "recommendation": "the single next experiment, with the rule that chose it and the measured improvement that rule buys over choosing at random",
+    "observations": "the measurements supplied so far, in the order they were taken",
+    "predictions": "one entry per candidate condition; see field_documentation",
+    "uncertainty": "how the prediction intervals were calibrated and whether this query falls inside the range they were measured over",
+    "evidence": "the run artefacts the policy and the intervals rest on, re-derived at run time rather than quoted from memory",
+    "assumptions": "values the run had to assume because the candidate table did not supply them",
+    "warnings": "every assumption and caveat, in plain language",
+    "demo": "present only for --demo: which cohort ligand was used and whether the features built here reproduce that ligand's own cohort feature row"
+  },
+  "field_documentation": {
+    "candidate_id": "your label for this candidate experiment",
+    "conditions": "the experiment, echoed back after normalisation",
+    "zero_shot_log_D": "the frozen global model's prediction, before any calibration",
+    "predicted_log_D": "the prediction after calibrating on the measurements supplied",
+    "ensemble_sd": "spread of the 400 ExtraTrees over this row; a diagnostic only \u2014 gen8 measured that ranking candidates by it is no better than random",
+    "uncertainty_68": "half-width of a 68 % interval, from the empirical error distribution on held-out chemotypes at this ligand's similarity and this k",
+    "uncertainty_90": "the same at 90 %",
+    "is_observed": "true if this candidate's value was supplied with --observed",
+    "is_recommended": "true for the single next experiment",
+    "distance_to_pool_centre": "L1 medoid cost in standardised condition space; the first rule minimises it",
+    "distance_to_measured": "Euclidean distance to the nearest measured candidate; the second and later rules maximise it"
+  },
+  "runtime_seconds": 3.05,
+  "demo": {
+    "ligand": "CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCCOCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC",
+    "conditions_csv": "/Users/lilshadix/PycharmProjects/ml_separator/runs/gen8_architecture/recommender/demo_candidate_conditions.csv",
+    "reconstruction_check": {
+      "n_columns": 2146,
+      "n_reproduced_exactly": 2142,
+      "n_mismatched": 4,
+      "mismatched_columns": [
+        "rec__has_shaking_time",
+        "rec__name_mismatch",
+        "rec__n_names_for_structure",
+        "rec__aqueous_complexant"
+      ],
+      "max_abs_difference_over_reproduced_columns": 0.0,
+      "note": "the RECOVERED literature-provenance columns cannot be reconstructed prospectively and are the expected mismatches; everything else must agree to 1e-9 or the deployed features are not the trained features"
+    },
+    "note": "the ligand's whole Tanimoto chemotype was removed from the training set, so this demonstration is under the same hold-out contract as the measured numbers quoted above"
+  }
+}

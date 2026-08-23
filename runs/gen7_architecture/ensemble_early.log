@@ -1,0 +1,22 @@
+ensembling 6 models: ['LP_everything', 'MET_physical', 'MET_all', 'MET_continuous_physical', 'LP_ecfp_ligphys', 'MET_continuous']
+                    arm  macro_mae  offset_mae  shape_mae  pooled_mae  nn_lt_0_4__macro_mae
+               ENS_nnls   0.978557    0.827765   0.497775    1.141094              0.854881
+        ENS_inverse_mae   0.988956    0.837058   0.499835    1.133453              0.849670
+               ENS_mean   0.989055    0.837125   0.499862    1.133445              0.849666
+          LP_everything   0.990919    0.838390   0.496951    1.136094              0.888255
+           MET_physical   0.993161    0.836561   0.502552    1.137707              0.853154
+                MET_all   0.994660    0.838106   0.503547    1.140677              0.838886
+MET_continuous_physical   0.997578    0.840607   0.504523    1.140580              0.848097
+        LP_ecfp_ligphys   0.997611    0.847264   0.504211    1.138697              0.852437
+         MET_continuous   0.997634    0.846803   0.504532    1.143144              0.840868
+
+mean residual correlation:
+                         LP_everything  MET_physical  MET_all  MET_continuous_physical  LP_ecfp_ligphys  MET_continuous
+LP_ecfp_ligphys                  0.972         0.995    0.994                    0.995            1.000           0.995
+LP_everything                    1.000         0.966    0.965                    0.965            0.972           0.967
+MET_all                          0.965         0.998    1.000                    0.998            0.994           0.996
+MET_continuous                   0.967         0.997    0.996                    0.997            0.995           1.000
+MET_continuous_physical          0.965         0.998    0.998                    1.000            0.995           0.997
+MET_physical                     0.966         1.000    0.998                    0.998            0.995           0.997
+
+artifacts -> runs/gen7_architecture/ensemble_early

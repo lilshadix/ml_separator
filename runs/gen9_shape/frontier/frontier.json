@@ -1,0 +1,60 @@
+{
+  "sources": [
+    "runs/gen9_shape/kshot/frozen_detail.parquet",
+    "runs/gen9_shape/kshot/new_detail.parquet",
+    "runs/gen9_shape/kshot/recomposed_detail.parquet",
+    "runs/gen9_shape/kshot/restA_detail.parquet",
+    "runs/gen9_shape/kshot/restB_detail.parquet",
+    "runs/gen9_shape/kshot/restC_detail.parquet"
+  ],
+  "models": [
+    "GEN9_A0_ROW_ONLY",
+    "GEN9_A1_ADJ_d05",
+    "GEN9_A2_END_d05",
+    "GEN9_A3_RAND_d05",
+    "GEN9_A4_MULTI_d05",
+    "GEN9_REL_MONOLITH",
+    "GEN9_SHAPE_RECOMPOSED",
+    "GEN9_X_MULTI_d2",
+    "GEN9_X_MULTI_d8c",
+    "REC_ecfp_plus_recovered"
+  ],
+  "new_model": "GEN9_SHAPE_RECOMPOSED",
+  "common_cohort_size": 99,
+  "n_records": 25033800,
+  "gen8_reference": {
+    "0": 1.0605,
+    "1": 0.6674,
+    "2": 0.5879,
+    "3": 0.523,
+    "5": 0.4743
+  },
+  "chain": [
+    {
+      "step": "OLD GLOBAL + CENTRAL + OLD ADAPTER",
+      "model": "REC_ecfp_plus_recovered",
+      "arm": "OFFSET_K1@CENTRAL"
+    },
+    {
+      "step": "NEW GLOBAL + CENTRAL + OLD ADAPTER",
+      "model": "GEN9_SHAPE_RECOMPOSED",
+      "arm": "OFFSET_K1@CENTRAL"
+    },
+    {
+      "step": "OLD GLOBAL + LEARNED ACQ + OLD ADAPTER",
+      "model": "REC_ecfp_plus_recovered",
+      "arm": "OFFSET_K1@LEARNED_BLEND"
+    },
+    {
+      "step": "NEW GLOBAL + LEARNED ACQ + OLD ADAPTER",
+      "model": "GEN9_SHAPE_RECOMPOSED",
+      "arm": "OFFSET_K1@LEARNED_BLEND"
+    },
+    {
+      "step": "NEW GLOBAL + LEARNED ACQ + NEW ADAPTER",
+      "model": "GEN9_SHAPE_RECOMPOSED",
+      "arm": "SERIES_MAP@LEARNED_BLEND"
+    }
+  ],
+  "replicates": 5000
+}

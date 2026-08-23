@@ -1,0 +1,56 @@
+environment drift vs gen8: {}
+
+--- flattening pathology ---
+               axis  n_curves  slope_true_median  slope_pred_median  slope_mae  span_ratio_median
+               acid      2105           1.655776       3.552364e-01   1.566691           0.218366
+       contact_time        40           0.000143       4.096098e-17   0.001763           0.049749
+         extractant       775           2.573675       1.164284e-01   2.432927           0.050718
+metal_concentration        45          -1.122619      -2.629864e-16   0.848026           0.011045
+       metal_series      1605           0.084435       3.950583e-02   0.093894           0.378998
+        temperature       160          -0.040327       1.637113e-18   0.038958           0.063718
+  PASS  extractant_true_median     expected +2.574  got +2.574
+  PASS  extractant_pred_median     expected +0.116  got +0.116
+  PASS  acid_true_median           expected +1.656  got +1.656
+  PASS  acid_pred_median           expected +0.355  got +0.355
+  PASS  extractant_span_ratio      expected +0.051  got +0.051
+
+--- k-shot frontier ---
+  seed 104729 fold 0: 8.9s (44,580 records)
+  seed 104729 fold 1: 43.4s (217,428 records)
+  seed 104729 fold 2: 8.0s (260,652 records)
+  seed 104729 fold 3: 7.8s (297,804 records)
+  seed 104729 fold 4: 10.4s (354,516 records)
+  seed 130363 fold 0: 32.6s (488,868 records)
+  seed 130363 fold 1: 8.1s (534,120 records)
+  seed 130363 fold 2: 11.4s (597,600 records)
+  seed 130363 fold 3: 11.2s (657,696 records)
+  seed 130363 fold 4: 8.9s (709,032 records)
+  seed 155921 fold 0: 31.4s (846,096 records)
+  seed 155921 fold 1: 9.8s (898,080 records)
+  seed 155921 fold 2: 7.7s (941,988 records)
+  seed 155921 fold 3: 8.8s (982,512 records)
+  seed 155921 fold 4: 14.2s (1,063,548 records)
+  seed 196613 fold 0: 36.3s (1,216,812 records)
+  seed 196613 fold 1: 11.6s (1,266,780 records)
+  seed 196613 fold 2: 7.6s (1,303,920 records)
+  seed 196613 fold 3: 7.5s (1,347,156 records)
+  seed 196613 fold 4: 14.8s (1,418,064 records)
+  seed 262147 fold 0: 9.3s (1,465,332 records)
+  seed 262147 fold 1: 41.7s (1,623,324 records)
+  seed 262147 fold 2: 10.4s (1,677,348 records)
+  seed 262147 fold 3: 6.5s (1,711,800 records)
+  seed 262147 fold 4: 11.8s (1,772,580 records)
+  evaluate_fewshot: 1,772,580 records in 384s
+  common cohort: 99 ligands
+  PASS  zero_shot_k0           ZERO_SHOT                              k=0 expected 1.0605  got 1.0605
+  PASS  random_1shot           OFFSET_K1@RANDOM                       k=1 expected 0.7927  got 0.7927
+  PASS  central_1shot          OFFSET_K1@CENTRAL                      k=1 expected 0.6964  got 0.6964
+  PASS  medoid_1shot           OFFSET_K1@MEDOID                       k=1 expected 0.6916  got 0.6916
+  PASS  oracle_1shot           OFFSET_K1@ORACLE[OFFSET_K1]            k=1 expected 0.5326  got 0.5326
+  PASS  slope_medoid_1shot     SLOPE_L_s1_K1@MEDOID                   k=1 expected 0.6752  got 0.6752
+  PASS  best_2shot             SLOPE_L_s1_K3@MAX_PREDICTIVE_VARIANCE  k=2 expected 0.5879  got 0.5879
+  PASS  best_3shot             SLOPE_L_s1_K3@CENTRAL_THEN_SPREAD      k=3 expected 0.5230  got 0.5230
+  PASS  best_5shot             SLOPE_L_s1_K3@D_OPTIMAL                k=5 expected 0.4743  got 0.4743
+  PASS  random_2shot           OFFSET_K1@RANDOM                       k=2 expected 0.7018  got 0.7018
+
+15/15 checks passed

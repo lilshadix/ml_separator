@@ -1,0 +1,77 @@
+25,033,800 records; global models ['GEN9_A0_ROW_ONLY', 'GEN9_A1_ADJ_d05', 'GEN9_A2_END_d05', 'GEN9_A3_RAND_d05', 'GEN9_A4_MULTI_d05', 'GEN9_REL_MONOLITH', 'GEN9_SHAPE_RECOMPOSED', 'GEN9_X_MULTI_d2', 'GEN9_X_MULTI_d8c', 'REC_ecfp_plus_recovered']; new = GEN9_SHAPE_RECOMPOSED
+row audit: 802 arms, 2 distinct unit counts (NOT uniform — see row_audit.csv)
+common cohort: 99 ligands
+
+--- best deployable arms per k, common cohort ---
+k=0  gen8 1.0605
+                           full_arm      mae  n_ligands
+  GEN9_SHAPE_RECOMPOSED | ZERO_SHOT 1.035799         99
+       GEN9_A0_ROW_ONLY | ZERO_SHOT 1.059867         99
+REC_ecfp_plus_recovered | ZERO_SHOT 1.060530         99
+        GEN9_A1_ADJ_d05 | ZERO_SHOT 1.061305         99
+k=1  gen8 0.6674
+                                                 full_arm      mae  n_ligands
+GEN9_SHAPE_RECOMPOSED | SLOPE_L_s1_K1@CENTRAL_THEN_SPREAD 0.653873         99
+             GEN9_SHAPE_RECOMPOSED | SLOPE_L_s1_K1@MEDOID 0.653873         99
+GEN9_SHAPE_RECOMPOSED | SLOPE_L_s1_K3@CENTRAL_THEN_SPREAD 0.653873         99
+             GEN9_SHAPE_RECOMPOSED | SLOPE_L_s1_K3@MEDOID 0.653873         99
+k=2  gen8 0.5879
+                                                     full_arm      mae  n_ligands
+         GEN9_SHAPE_RECOMPOSED | SLOPE_L_s1_K3@LEARNED_SCALAR 0.574615         99
+        GEN9_REL_MONOLITH | SLOPE_L_s1_K3@CENTRAL_THEN_SPREAD 0.575808         99
+    GEN9_SHAPE_RECOMPOSED | SLOPE_L_s1_K3@CENTRAL_THEN_SPREAD 0.576083         99
+GEN9_SHAPE_RECOMPOSED | SLOPE_L_s1_K3@MAX_PREDICTIVE_VARIANCE 0.579633         99
+k=3  gen8 0.5230
+                                                     full_arm      mae  n_ligands
+        GEN9_REL_MONOLITH | SLOPE_L_s1_K3@CENTRAL_THEN_SPREAD 0.510860         99
+    GEN9_SHAPE_RECOMPOSED | SLOPE_L_s1_K3@CENTRAL_THEN_SPREAD 0.512725         99
+         GEN9_SHAPE_RECOMPOSED | SLOPE_L_s1_K3@LEARNED_SCALAR 0.513800         99
+GEN9_SHAPE_RECOMPOSED | SLOPE_L_s1_K3@MAX_PREDICTIVE_VARIANCE 0.517260         99
+k=5  gen8 0.4743
+                                                     full_arm      mae  n_ligands
+                  GEN9_REL_MONOLITH | SLOPE_L_s1_K3@D_OPTIMAL 0.467499         99
+        GEN9_REL_MONOLITH | SLOPE_L_s1_K3@CENTRAL_THEN_SPREAD 0.467744         99
+GEN9_SHAPE_RECOMPOSED | SLOPE_L_s1_K3@MAX_PREDICTIVE_VARIANCE 0.471318         99
+    GEN9_SHAPE_RECOMPOSED | SLOPE_L_s1_K3@CENTRAL_THEN_SPREAD 0.471417         99
+
+--- attribution chain (common cohort) ---
+                                  step                                          full_arm  k      mae  n_ligands  delta_from_previous
+    OLD GLOBAL + CENTRAL + OLD ADAPTER       REC_ecfp_plus_recovered | OFFSET_K1@CENTRAL  1 0.696399         99                  NaN
+    NEW GLOBAL + CENTRAL + OLD ADAPTER         GEN9_SHAPE_RECOMPOSED | OFFSET_K1@CENTRAL  1 0.665672         99             0.030726
+OLD GLOBAL + LEARNED ACQ + OLD ADAPTER REC_ecfp_plus_recovered | OFFSET_K1@LEARNED_BLEND  1 0.740261         99            -0.074589
+NEW GLOBAL + LEARNED ACQ + OLD ADAPTER   GEN9_SHAPE_RECOMPOSED | OFFSET_K1@LEARNED_BLEND  1 0.719052         99             0.021210
+NEW GLOBAL + LEARNED ACQ + NEW ADAPTER  GEN9_SHAPE_RECOMPOSED | SERIES_MAP@LEARNED_BLEND  1 0.719052         99             0.000000
+    OLD GLOBAL + CENTRAL + OLD ADAPTER       REC_ecfp_plus_recovered | OFFSET_K1@CENTRAL  2 0.656717         99                  NaN
+    NEW GLOBAL + CENTRAL + OLD ADAPTER         GEN9_SHAPE_RECOMPOSED | OFFSET_K1@CENTRAL  2 0.624855         99             0.031862
+OLD GLOBAL + LEARNED ACQ + OLD ADAPTER REC_ecfp_plus_recovered | OFFSET_K1@LEARNED_BLEND  2 0.686521         99            -0.061666
+NEW GLOBAL + LEARNED ACQ + OLD ADAPTER   GEN9_SHAPE_RECOMPOSED | OFFSET_K1@LEARNED_BLEND  2 0.661539         99             0.024982
+NEW GLOBAL + LEARNED ACQ + NEW ADAPTER  GEN9_SHAPE_RECOMPOSED | SERIES_MAP@LEARNED_BLEND  2 0.647896         99             0.013644
+
+--- paired chemotype-blocked intervals (positive = candidate better) ---
+ k                                                                       comparison         point      ci95_low     ci95_high  n_units  units_improved  seeds_positive
+ 1         NEW GLOBAL + CENTRAL + OLD ADAPTER vs OLD GLOBAL + CENTRAL + OLD ADAPTER  3.072650e-02  1.178561e-02  5.611047e-02       99              67               5
+ 1     OLD GLOBAL + LEARNED ACQ + OLD ADAPTER vs NEW GLOBAL + CENTRAL + OLD ADAPTER -7.458899e-02 -1.132111e-01 -4.020303e-02       99              32               0
+ 1 NEW GLOBAL + LEARNED ACQ + OLD ADAPTER vs OLD GLOBAL + LEARNED ACQ + OLD ADAPTER  2.120961e-02 -1.176814e-02  6.495932e-02       99              62               5
+ 1 NEW GLOBAL + LEARNED ACQ + NEW ADAPTER vs NEW GLOBAL + LEARNED ACQ + OLD ADAPTER  2.523234e-18 -1.609610e-18  6.608470e-18       99               4               0
+ 1                                                                FINAL vs BASELINE -2.265288e-02 -6.025957e-02  2.947607e-02       99              52               1
+ 2         NEW GLOBAL + CENTRAL + OLD ADAPTER vs OLD GLOBAL + CENTRAL + OLD ADAPTER  3.186179e-02  1.370167e-02  5.349527e-02       99              64               5
+ 2     OLD GLOBAL + LEARNED ACQ + OLD ADAPTER vs NEW GLOBAL + CENTRAL + OLD ADAPTER -6.166581e-02 -8.615021e-02 -2.033096e-02       99              30               0
+ 2 NEW GLOBAL + LEARNED ACQ + OLD ADAPTER vs OLD GLOBAL + LEARNED ACQ + OLD ADAPTER  2.498153e-02  5.940159e-03  4.898183e-02       99              63               5
+ 2 NEW GLOBAL + LEARNED ACQ + NEW ADAPTER vs NEW GLOBAL + LEARNED ACQ + OLD ADAPTER  1.364381e-02 -9.682096e-05  2.192001e-02       99              81               5
+ 2                                                                FINAL vs BASELINE  8.821326e-03 -2.118199e-02  5.677601e-02       99              52               3
+ 5         NEW GLOBAL + CENTRAL + OLD ADAPTER vs OLD GLOBAL + CENTRAL + OLD ADAPTER  3.139886e-02  1.459657e-02  5.350479e-02       99              68               5
+ 5     OLD GLOBAL + LEARNED ACQ + OLD ADAPTER vs NEW GLOBAL + CENTRAL + OLD ADAPTER -3.610717e-02 -5.685071e-02 -1.206438e-02       99              37               0
+ 5 NEW GLOBAL + LEARNED ACQ + OLD ADAPTER vs OLD GLOBAL + LEARNED ACQ + OLD ADAPTER  3.190358e-02  1.320847e-02  5.065857e-02       99              68               5
+ 5 NEW GLOBAL + LEARNED ACQ + NEW ADAPTER vs NEW GLOBAL + LEARNED ACQ + OLD ADAPTER  3.792260e-02  1.171537e-02  5.492123e-02       99              82               5
+ 5                                                                FINAL vs BASELINE  6.511788e-02  3.714634e-02  8.751127e-02       99              70               5
+
+pairing audit: 10 pairs, 0 not identical
+
+--- by gen8 failure class (locked strata) ---
+failure_class                                        ALREADY_GOOD  PARTIAL_LEVEL  PURE_LEVEL  RESIDUAL_SHAPE
+full_arm                                          k                                                         
+GEN9_SHAPE_RECOMPOSED | OFFSET_K1@CENTRAL         1      0.500098       0.699035    0.439797        1.221976
+GEN9_SHAPE_RECOMPOSED | OFFSET_K1@LEARNED_BLEND   1      0.568059       0.855540    0.453175        1.255387
+GEN9_SHAPE_RECOMPOSED | SERIES_MAP@LEARNED_BLEND  1      0.568059       0.855540    0.453175        1.255387
+REC_ecfp_plus_recovered | OFFSET_K1@CENTRAL       1      0.525416       0.714511    0.453820        1.282534
+REC_ecfp_plus_recovered | OFFSET_K1@LEARNED_BLEND 1      0.565932       0.822851    0.478180        1.336759

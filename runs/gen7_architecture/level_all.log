@@ -1,0 +1,130 @@
+===== level bench split=chemotype  =====
+
+=== level target: raw | seeds [104729, 130363, 155921] ===
+                   features       model  level_mae  level_mae_sd_over_folds  level_mae_nn_lt_0_4  n_hard  n_ligand_evals
+                     donors       ridge   0.926882                 0.211296             0.897181      54             456
+                     donors        pls3   0.928544                 0.202331             0.998908      54             456
+                     donors  bayesridge   0.929457                 0.207382             0.898340      54             456
+                       ecfp  extratrees   0.940578                 0.149671             0.934616      54             456
+            donors_physchem        pls3   0.947848                 0.168812             1.003471      54             456
+                     donors     svr_rbf   0.950415                 0.142802             1.020138      54             456
+                  chemberta     svr_rbf   0.954001                 0.175348             1.076686      54             456
+            donors_physchem  bayesridge   0.958664                 0.201427             0.932561      54             456
+            donors_physchem       ridge   0.959696                 0.198086             0.944708      54             456
+                     donors  extratrees   0.967351                 0.172977             1.115832      54             456
+                     donors gbdt_depth2   0.967465                 0.166597             1.040415      54             456
+      donors_physchem_lig2d  extratrees   0.979595                 0.192158             1.198622      54             456
+      donors_physchem_lig2d     svr_rbf   0.980952                 0.145229             1.140145      54             456
+            donors_physchem gbdt_depth2   0.989779                 0.189205             1.069395      54             456
+                      lig2d     svr_rbf   0.991853                 0.141001             1.131468      54             456
+                      lig2d  extratrees   0.998572                 0.195202             1.166306      54             456
+      donors_physchem_pca16 gbdt_depth2   0.998582                 0.200446             1.047005      54             456
+            chemberta_pca16     svr_rbf   1.001666                 0.141160             1.112040      54             456
+      donors_physchem_pca16        pls3   1.006136                 0.194280             0.995339      54             456
+      donors_physchem_pca16       ridge   1.007224                 0.213344             0.961432      54             456
+      donors_physchem_pca16  bayesridge   1.009005                 0.211509             0.955170      54             456
+      donors_physchem_pca16  extratrees   1.010198                 0.191510             1.022254      54             456
+           molformer_donors     svr_rbf   1.010962                 0.174683             1.184977      54             456
+      donors_physchem_lig2d gbdt_depth2   1.011321                 0.214287             1.172231      54             456
+                  molformer     svr_rbf   1.015458                 0.175229             1.191013      54             456
+            molformer_pca16     svr_rbf   1.016758                 0.214300             1.148719      54             456
+     molformer_donors_pca16     svr_rbf   1.017649                 0.215509             1.155442      54             456
+donors_physchem_lig2d_pca16     svr_rbf   1.017832                 0.159361             1.123336      54             456
+                  chemberta  extratrees   1.023894                 0.166786             1.128709      54             456
+            donors_physchem  extratrees   1.025496                 0.193482             1.092465      54             456
+
+nulls:
+features            model  level_mae  level_mae_sd_over_folds  level_mae_nn_lt_0_4  n_hard  n_ligand_evals
+       - NULL_nn_tanimoto   1.062632                 0.226497             1.077008      54             456
+       -      NULL_median   1.309163                 0.303922             1.629952      54             456
+       -        NULL_mean   1.312595                 0.258961             1.553643      54             456
+
+artifacts -> /Users/lilshadix/PycharmProjects/ml_separator/runs/gen7_architecture/level_benchmark
+===== level bench split=ligand  =====
+
+=== level target: raw_ligandsplit | seeds [104729, 130363, 155921] ===
+                   features       model  level_mae  level_mae_sd_over_folds  level_mae_nn_lt_0_4  n_hard  n_ligand_evals
+                      lig2d  extratrees   0.776029                 0.128962             1.378626      51             456
+      donors_physchem_lig2d  extratrees   0.780791                 0.130498             1.421187      51             456
+                  chemberta     svr_rbf   0.817737                 0.139154             1.267093      51             456
+      donors_physchem_pca16 gbdt_depth2   0.826389                 0.122194             1.135767      51             456
+            chemberta_pca16     svr_rbf   0.829879                 0.126050             1.321787      51             456
+                       ecfp  bayesridge   0.833253                 0.120623             1.398311      51             456
+donors_physchem_lig2d_pca16     svr_rbf   0.833257                 0.138398             1.372375      51             456
+           molformer_donors     svr_rbf   0.836576                 0.117259             1.333232      51             456
+                 ecfp_pca16     svr_rbf   0.837726                 0.152036             1.241083      51             456
+      donors_physchem_pca16  extratrees   0.837920                 0.130327             1.159264      51             456
+                       ecfp       ridge   0.838939                 0.120579             1.405911      51             456
+                  molformer     svr_rbf   0.842171                 0.116767             1.335339      51             456
+     molformer_donors_pca16     svr_rbf   0.844858                 0.129447             1.248763      51             456
+      donors_physchem_pca16     svr_rbf   0.847476                 0.133136             1.210602      51             456
+            donors_physchem     svr_rbf   0.850252                 0.116810             1.182559      51             456
+                  chemberta  extratrees   0.851433                 0.130923             1.316426      51             456
+                       ecfp        pls3   0.851435                 0.110076             1.414588      51             456
+      donors_physchem_lig2d     svr_rbf   0.852076                 0.124701             1.348052      51             456
+            molformer_pca16     svr_rbf   0.853434                 0.126593             1.251586      51             456
+                      lig2d     svr_rbf   0.856694                 0.130109             1.350810      51             456
+donors_physchem_lig2d_pca16  extratrees   0.858202                 0.141782             1.443154      51             456
+            molformer_pca16  extratrees   0.866438                 0.095911             1.353693      51             456
+     molformer_donors_pca16  extratrees   0.866976                 0.102439             1.364400      51             456
+                lig2d_pca16     svr_rbf   0.868845                 0.136887             1.422596      51             456
+           molformer_donors  extratrees   0.868902                 0.115773             1.375495      51             456
+      donors_physchem_lig2d gbdt_depth2   0.869371                 0.158124             1.394388      51             456
+                       ecfp  extratrees   0.873053                 0.136689             1.293651      51             456
+                       ecfp gbdt_depth2   0.873122                 0.131884             1.320740      51             456
+                      lig2d gbdt_depth2   0.873528                 0.158380             1.404817      51             456
+                     donors  bayesridge   0.874105                 0.115048             1.046532      51             456
+
+nulls:
+features            model  level_mae  level_mae_sd_over_folds  level_mae_nn_lt_0_4  n_hard  n_ligand_evals
+       - NULL_nn_tanimoto   0.944699                 0.183681             1.306657      51             456
+       -      NULL_median   1.198246                 0.132250             1.661894      51             456
+       -        NULL_mean   1.204174                 0.112423             1.579022      51             456
+
+artifacts -> /Users/lilshadix/PycharmProjects/ml_separator/runs/gen7_architecture/level_benchmark
+===== level bench split=chemotype --adjust-conditions =====
+
+=== level target: adjusted | seeds [104729, 130363, 155921] ===
+              features            model  level_mae  level_mae_sd_over_folds  level_mae_nn_lt_0_4  n_hard  n_ligand_evals
+                     - NULL_nn_tanimoto   0.963536                 0.216227             1.206892      54             456
+       chemberta_pca16          svr_rbf   0.990199                 0.232610             1.155184      54             456
+             chemberta          svr_rbf   1.002736                 0.233806             1.145017      54             456
+molformer_donors_pca16          svr_rbf   1.003806                 0.207513             1.158197      54             456
+ donors_physchem_pca16      gbdt_depth2   1.005078                 0.207452             1.097136      54             456
+       molformer_pca16          svr_rbf   1.005920                 0.210422             1.146567      54             456
+       donors_physchem          svr_rbf   1.006015                 0.217310             1.089764      54             456
+      molformer_donors          svr_rbf   1.006580                 0.218865             1.170063      54             456
+             molformer          svr_rbf   1.006831                 0.220284             1.167277      54             456
+                donors             pls3   1.011905                 0.231213             1.178808      54             456
+                donors          svr_rbf   1.011928                 0.229795             1.121431      54             456
+       chemberta_pca16       extratrees   1.012067                 0.230497             1.160773      54             456
+ donors_physchem_lig2d          svr_rbf   1.013167                 0.200470             1.103628      54             456
+                donors      gbdt_depth2   1.015275                 0.223272             1.170897      54             456
+                donors       extratrees   1.016755                 0.235146             1.180317      54             456
+                 lig2d          svr_rbf   1.018017                 0.203568             1.101886      54             456
+       molformer_pca16       extratrees   1.020561                 0.208757             1.201454      54             456
+molformer_donors_pca16       extratrees   1.022672                 0.206572             1.210736      54             456
+       chemberta_pca16      gbdt_depth2   1.025253                 0.229652             1.163446      54             456
+ donors_physchem_pca16          svr_rbf   1.026033                 0.205891             1.146115      54             456
+      molformer_donors       extratrees   1.027826                 0.227251             1.237774      54             456
+molformer_donors_pca16      gbdt_depth2   1.028543                 0.213986             1.207025      54             456
+             molformer       extratrees   1.028736                 0.226331             1.231063      54             456
+             chemberta             pls3   1.031861                 0.237925             1.129176      54             456
+       chemberta_pca16             pls3   1.032247                 0.240646             1.135962      54             456
+             chemberta       extratrees   1.033006                 0.221289             1.159244      54             456
+ donors_physchem_pca16       extratrees   1.033024                 0.216829             1.143023      54             456
+       molformer_pca16      gbdt_depth2   1.033776                 0.191722             1.225774      54             456
+      molformer_donors      gbdt_depth2   1.034094                 0.229922             1.234741      54             456
+       donors_physchem             pls3   1.034427                 0.233488             1.169551      54             456
+
+nulls:
+features            model  level_mae  level_mae_sd_over_folds  level_mae_nn_lt_0_4  n_hard  n_ligand_evals
+       - NULL_nn_tanimoto   0.963536                 0.216227             1.206892      54             456
+       -        NULL_mean   1.058131                 0.242496             1.179413      54             456
+       -      NULL_median   1.060814                 0.248117             1.184034      54             456
+
+artifacts -> /Users/lilshadix/PycharmProjects/ml_separator/runs/gen7_architecture/level_benchmark
+===== level bench split=ligand --adjust-conditions =====
+/tmp/gen7_levels.sh: line 4: 83153 Terminated: 15          .venv/bin/python -W ignore scripts/gen7_level_benchmark.py --seeds 3 --split $sp $a
+FAILED
+LEVEL_ALL_DONE

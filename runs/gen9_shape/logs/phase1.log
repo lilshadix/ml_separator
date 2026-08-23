@@ -1,0 +1,48 @@
+cohort (5248, 5642)  fingerprint bed178ec1a7a82b0
+boost config: {'n_stages': 10, 'trees_per_stage': 120, 'learning_rate': 0.3, 'max_features': 0.3, 'min_samples_leaf': 2, 'max_depth': None, 'subsample': 1.0, 'row_delta': 1.0, 'pair_delta': 0.5, 'span_delta': 0.5, 'clip_to_training_range': True, 'n_jobs': -1}
+fold audit clean; curves straddling a fold boundary: 0
+  [REC_ecfp_plus_recovered] seed 104729: pooled MAE 1.2016 (12.0s)
+  [REC_ecfp_plus_recovered] seed 130363: pooled MAE 1.1375 (12.4s)
+  [REC_ecfp_plus_recovered] seed 155921: pooled MAE 1.1246 (11.7s)
+  [REC_ecfp_plus_recovered] 36s total
+
+=== A0_ROW_ONLY  (ROW_ONLY, lambda_delta=0.0, lambda_span=0.0, axes=LHM, balance=curve) ===
+  [GEN9_A0_ROW_ONLY] seed 104729: pooled MAE 1.2469 (125.8s)
+  [GEN9_A0_ROW_ONLY] seed 130363: pooled MAE 1.1341 (123.2s)
+  [GEN9_A0_ROW_ONLY] seed 155921: pooled MAE 1.1378 (121.8s)
+  [GEN9_A0_ROW_ONLY] 371s total
+
+=== A1_ROW_ADJACENT  (ROW_ADJACENT, lambda_delta=0.5, lambda_span=0.0, axes=LHM, balance=curve) ===
+  [GEN9_A1_ROW_ADJACENT] seed 104729: pooled MAE 1.2408 (135.1s)
+  [GEN9_A1_ROW_ADJACENT] seed 130363: pooled MAE 1.1376 (136.6s)
+  [GEN9_A1_ROW_ADJACENT] seed 155921: pooled MAE 1.1440 (132.1s)
+  [GEN9_A1_ROW_ADJACENT] 404s total
+
+=== A2_ROW_ENDPOINT  (ROW_ENDPOINT, lambda_delta=0.5, lambda_span=0.0, axes=LHM, balance=curve) ===
+  [GEN9_A2_ROW_ENDPOINT] seed 104729: pooled MAE 1.3154 (126.8s)
+  [GEN9_A2_ROW_ENDPOINT] seed 130363: pooled MAE 1.2535 (128.6s)
+  [GEN9_A2_ROW_ENDPOINT] seed 155921: pooled MAE 1.1667 (130.3s)
+  [GEN9_A2_ROW_ENDPOINT] 386s total
+
+=== A3_ROW_RANDOM_PAIR  (ROW_RANDOM_PAIR, lambda_delta=0.5, lambda_span=0.0, axes=LHM, balance=curve) ===
+  [GEN9_A3_ROW_RANDOM_PAIR] seed 104729: pooled MAE 1.2449 (132.6s)
+  [GEN9_A3_ROW_RANDOM_PAIR] seed 130363: pooled MAE 1.1834 (128.1s)
+  [GEN9_A3_ROW_RANDOM_PAIR] seed 155921: pooled MAE 1.1516 (126.1s)
+  [GEN9_A3_ROW_RANDOM_PAIR] 387s total
+
+=== A4_ROW_MULTISCALE  (ROW_MULTISCALE, lambda_delta=0.5, lambda_span=0.0, axes=LHM, balance=curve) ===
+  [GEN9_A4_ROW_MULTISCALE] seed 104729: pooled MAE 1.2418 (133.6s)
+  [GEN9_A4_ROW_MULTISCALE] seed 130363: pooled MAE 1.1592 (130.9s)
+  [GEN9_A4_ROW_MULTISCALE] seed 155921: pooled MAE 1.1430 (131.0s)
+  [GEN9_A4_ROW_MULTISCALE] 396s total
+
+row accounting clean — no arm lost or duplicated a row
+
+                         macro_mae  offset_mae  shape_mae  pooled_mae  macro_sd
+model                                                                          
+REC_ecfp_plus_recovered   0.970077    0.809667   0.502398    1.154568  0.023935
+GEN9_A0_ROW_ONLY          0.982314    0.826404   0.500952    1.172914  0.026890
+GEN9_A1_ROW_ADJACENT      0.993638    0.829124   0.519220    1.174138  0.021583
+GEN9_A3_ROW_RANDOM_PAIR   0.998641    0.834394   0.539177    1.193280  0.014364
+GEN9_A4_ROW_MULTISCALE    1.003791    0.845751   0.531563    1.181330  0.030143
+GEN9_A2_ROW_ENDPOINT      1.076346    0.898599   0.578167    1.245185  0.066748
