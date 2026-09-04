@@ -1,0 +1,274 @@
+{
+ "figure": "figure_04_error_decomposition",
+ "verification": {
+  "tolerance": 5e-09,
+  "all_pass": true,
+  "checks": [
+   {
+    "stage": "current",
+    "metric": "pooled_mae",
+    "published": 1.1217506325100335,
+    "reproduced": 1.1217506325100335,
+    "abs_delta": 0.0,
+    "pass": true
+   },
+   {
+    "stage": "current",
+    "metric": "macro_mae",
+    "published": 0.9694845437352134,
+    "reproduced": 0.9694845437352134,
+    "abs_delta": 0.0,
+    "pass": true
+   },
+   {
+    "stage": "after_ligand_level_oracle",
+    "metric": "pooled_mae",
+    "published": 0.7459852474648963,
+    "reproduced": 0.7459852474648963,
+    "abs_delta": 0.0,
+    "pass": true
+   },
+   {
+    "stage": "after_ligand_level_oracle",
+    "metric": "macro_mae",
+    "published": 0.44947602078357235,
+    "reproduced": 0.44947602078357235,
+    "abs_delta": 0.0,
+    "pass": true
+   },
+   {
+    "stage": "after_series_level_oracle",
+    "metric": "pooled_mae",
+    "published": 0.5865653289465088,
+    "reproduced": 0.5865653289465088,
+    "abs_delta": 0.0,
+    "pass": true
+   },
+   {
+    "stage": "after_series_level_oracle",
+    "metric": "macro_mae",
+    "published": 0.3928120575777729,
+    "reproduced": 0.3928120575777729,
+    "abs_delta": 0.0,
+    "pass": true
+   },
+   {
+    "stage": "after_curve_level_oracle",
+    "metric": "pooled_mae",
+    "published": 0.4357644141260664,
+    "reproduced": 0.4357644141260664,
+    "abs_delta": 0.0,
+    "pass": true
+   },
+   {
+    "stage": "after_curve_level_oracle",
+    "metric": "macro_mae",
+    "published": 0.3860053586260319,
+    "reproduced": 0.3860053586260319,
+    "abs_delta": 0.0,
+    "pass": true
+   },
+   {
+    "stage": "after_curve_level_and_slope_oracle",
+    "metric": "pooled_mae",
+    "published": 0.18891249696675075,
+    "reproduced": 0.18891249696675075,
+    "abs_delta": 0.0,
+    "pass": true
+   },
+   {
+    "stage": "after_curve_level_and_slope_oracle",
+    "metric": "macro_mae",
+    "published": 0.19405899438380983,
+    "reproduced": 0.19405899438380983,
+    "abs_delta": 0.0,
+    "pass": true
+   }
+  ]
+ },
+ "panelA": [
+  {
+   "stage": "k = 0 zero-shot",
+   "macro_mae": 1.0357994416277343,
+   "oracle": false
+  },
+  {
+   "stage": "k = 1",
+   "macro_mae": 0.653872837772772,
+   "oracle": false
+  },
+  {
+   "stage": "k = 3",
+   "macro_mae": 0.4928089826231498,
+   "oracle": false
+  },
+  {
+   "stage": "k = 5",
+   "macro_mae": 0.4405418081356232,
+   "oracle": false
+  },
+  {
+   "stage": "k = 1 best point",
+   "macro_mae": 0.5042242850540751,
+   "oracle": true
+  },
+  {
+   "stage": "level per extractant",
+   "macro_mae": 0.5065118152060452,
+   "oracle": true
+  },
+  {
+   "stage": "level per series",
+   "macro_mae": 0.4299580541646896,
+   "oracle": true
+  },
+  {
+   "stage": "level per curve",
+   "macro_mae": 0.38442436506711003,
+   "oracle": true
+  },
+  {
+   "stage": "level + slope per curve",
+   "macro_mae": 0.18112932877058197,
+   "oracle": true
+  }
+ ],
+ "panelA_cohort": "99 extractants of the k-shot common cohort, macro = one vote per extractant, 5 seeds",
+ "panelB": [
+  {
+   "current_contribution": -0.001721,
+   "oracle_removable": 0.0,
+   "realistically_removable": 0.0,
+   "required_intervention": "record the second species / represent the mixture (data work, not modelling)",
+   "basis": "Phase 7 cohort B vs A",
+   "short": "system identity"
+  },
+  {
+   "current_contribution": 0.037269,
+   "oracle_removable": 0.037269,
+   "realistically_removable": 0.0,
+   "required_intervention": "primary-source check of TWE-24 and the decade duplicates",
+   "basis": "Phase 7 cohorts C, D, E vs A",
+   "short": "data quality"
+  },
+  {
+   "current_contribution": 0.056664,
+   "oracle_removable": 0.056664,
+   "realistically_removable": 0.139547,
+   "required_intervention": "measure inside each series; OFFSET_K3 / corrected SERIES adapter at k>=3",
+   "basis": "per-series oracle offset vs per-ligand; OFFSET_K1@k1 vs OFFSET_K3@k3",
+   "short": "series-local level"
+  },
+  {
+   "current_contribution": 0.060288,
+   "oracle_removable": 0.060288,
+   "realistically_removable": 0.0,
+   "required_intervention": "measure new chemotypes (Phase 9: one point on a far ligand is worth 0.49)",
+   "basis": "far tercile of Tanimoto distance errored like the rest",
+   "short": "distant chemistry"
+  },
+  {
+   "current_contribution": 0.103309,
+   "oracle_removable": 0.0,
+   "realistically_removable": 0.0,
+   "required_intervention": "none identified",
+   "basis": "current macro MAE minus the sum of oracle-removable components (components overlap; this is a floor, not an exact remainder)",
+   "short": "unexplained"
+  },
+  {
+   "current_contribution": 0.191946,
+   "oracle_removable": 0.191946,
+   "realistically_removable": 0.007982,
+   "required_intervention": "gen8 slope repair; gen9 recomposition is already in the model",
+   "basis": "oracle per-curve slope vs SLOPE_L_s1_K1@k1",
+   "short": "within-curve shape"
+  },
+  {
+   "current_contribution": 0.520009,
+   "oracle_removable": 0.520009,
+   "realistically_removable": 0.349391,
+   "required_intervention": "one measurement per ligand (central), OFFSET_K1",
+   "basis": "ORACLE_level vs OFFSET_K1@CENTRAL_THEN_SPREAD, k=1",
+   "short": "per-extractant level"
+  }
+ ],
+ "panelB_cohort": "152 extractants, macro = one vote per ECFP cluster (131), 5 seeds",
+ "panelC_model_stages": [
+  {
+   "key": "no_ligand",
+   "stage": "no ligand information",
+   "model": "NULL_metal_cond",
+   "n_seeds": 5,
+   "n_ligands": 99,
+   "mae": 1.114869,
+   "offset_mae": 0.908208,
+   "shape_mae": 0.602733
+  },
+  {
+   "key": "baseline",
+   "stage": "baseline model",
+   "model": "REC_ecfp_plus_recovered",
+   "n_seeds": 5,
+   "n_ligands": 99,
+   "mae": 1.055278,
+   "offset_mae": 0.846767,
+   "shape_mae": 0.558999
+  },
+  {
+   "key": "relpos",
+   "stage": "+ relative position",
+   "model": "GEN9_REL_MONOLITH",
+   "n_seeds": 5,
+   "n_ligands": 99,
+   "mae": 1.060579,
+   "offset_mae": 0.862539,
+   "shape_mae": 0.539998
+  },
+  {
+   "key": "recomposed",
+   "stage": "+ recomposition",
+   "model": "GEN9_SHAPE_RECOMPOSED",
+   "n_seeds": 5,
+   "n_ligands": 99,
+   "mae": 1.032377,
+   "offset_mae": 0.846767,
+   "shape_mae": 0.527291
+  }
+ ],
+ "panelC_kshot_stages": [
+  {
+   "k": 0,
+   "offset_mae": 0.86105,
+   "shape_mae": 0.514401,
+   "mae": 1.035799
+  },
+  {
+   "k": 1,
+   "offset_mae": 0.458869,
+   "shape_mae": 0.507401,
+   "mae": 0.653873
+  },
+  {
+   "k": 2,
+   "offset_mae": 0.363403,
+   "shape_mae": 0.45971,
+   "mae": 0.559299
+  },
+  {
+   "k": 3,
+   "offset_mae": 0.292658,
+   "shape_mae": 0.423671,
+   "mae": 0.492809
+  },
+  {
+   "k": 5,
+   "offset_mae": 0.230928,
+   "shape_mae": 0.394605,
+   "mae": 0.440542
+  }
+ ],
+ "lint": {
+  "ok": true,
+  "violations": []
+ }
+}

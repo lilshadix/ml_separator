@@ -1,0 +1,1535 @@
+{
+ "figure": "figure_08_level_representations",
+ "role": "supplementary",
+ "source": {
+  "raw ligand mean, chemotype hold-out": "runs/gen7_architecture/level_benchmark/level_leaderboard_raw.csv",
+  "condition-adjusted level, chemotype hold-out": "runs/gen7_architecture/level_benchmark/level_leaderboard_adjusted.csv",
+  "raw ligand mean, ligand hold-out (not plotted)": "runs/gen7_architecture/level_benchmark/level_leaderboard_raw_ligandsplit.csv",
+  "producer": "scripts/gen7_level_benchmark.py"
+ },
+ "protocol": {
+  "n_ligands": 152,
+  "n_seeds": 3,
+  "n_folds": 15,
+  "n_ligand_evaluations": 456,
+  "n_hard_evaluations_nn_tanimoto_below_0_4": 54,
+  "x_quantity": "100 * (MAE_null - MAE_model) / MAE_null, MAE in log10 D units",
+  "null": "predict the training-set mean level",
+  "selection": "best of six regressor recipes per feature block (idxmin, no penalty)"
+ },
+ "panelA": {
+  "rows_top_to_bottom": [
+   "ChemBERTa embedding; 16 principal components",
+   "Donor-atom census; 13 features",
+   "Donors + physicochemical + 2D descriptors; 229 features",
+   "Extended 2D descriptors; 206 features",
+   "ECFP4 fingerprint; 2,048 bits"
+  ],
+  "raw ligand mean": {
+   "null_mae": 1.312595,
+   "null_sd_over_folds": 0.258961,
+   "nn_lookup_mae": 1.062632,
+   "nn_lookup_reduction_pct": 19.0435,
+   "nn_lookup_sd_points": 17.256,
+   "hard_subset_nn_tanimoto_below_0_4": {
+    "n_evaluations": 54,
+    "null_mae": 1.553643,
+    "nn_lookup_mae": 1.077008,
+    "nn_lookup_reduction_pct": 30.6786,
+    "n_fits_better_than_null": 120,
+    "best_fit_reduction_pct": 42.2531
+   },
+   "best_per_representation": {
+    "ChemBERTa embedding; 384 dimensions": {
+     "feature_key": "chemberta",
+     "winning_recipe": "support-vector regression, RBF kernel",
+     "recipe_key": "svr_rbf",
+     "level_mae": 0.954001,
+     "sd_over_folds": 0.175348,
+     "reduction_pct": 27.3195,
+     "sd_points": 13.359,
+     "hard_subset_reduction_pct": 30.6993
+    },
+    "ChemBERTa embedding; 16 principal components": {
+     "feature_key": "chemberta_pca16",
+     "winning_recipe": "support-vector regression, RBF kernel",
+     "recipe_key": "svr_rbf",
+     "level_mae": 1.001666,
+     "sd_over_folds": 0.14116,
+     "reduction_pct": 23.6881,
+     "sd_points": 10.754,
+     "hard_subset_reduction_pct": 28.4237
+    },
+    "Donor-atom census; 13 features": {
+     "feature_key": "donors",
+     "winning_recipe": "ridge regression",
+     "recipe_key": "ridge",
+     "level_mae": 0.926882,
+     "sd_over_folds": 0.211296,
+     "reduction_pct": 29.3855,
+     "sd_points": 16.098,
+     "hard_subset_reduction_pct": 42.2531
+    },
+    "Donors + physicochemical + xTB complex properties (3D)": {
+     "feature_key": "donors_3d",
+     "winning_recipe": "extremely randomised trees",
+     "recipe_key": "extratrees",
+     "level_mae": 1.077984,
+     "sd_over_folds": 0.186203,
+     "reduction_pct": 17.8738,
+     "sd_points": 14.186,
+     "hard_subset_reduction_pct": 30.1315
+    },
+    "Donors + physicochemical + 3D; 16 principal components": {
+     "feature_key": "donors_3d_pca16",
+     "winning_recipe": "support-vector regression, RBF kernel",
+     "recipe_key": "svr_rbf",
+     "level_mae": 1.092447,
+     "sd_over_folds": 0.175699,
+     "reduction_pct": 16.7719,
+     "sd_points": 13.386,
+     "hard_subset_reduction_pct": 25.3402
+    },
+    "Donor census + physicochemical; 23 features": {
+     "feature_key": "donors_physchem",
+     "winning_recipe": "partial least squares, 3 components",
+     "recipe_key": "pls3",
+     "level_mae": 0.947848,
+     "sd_over_folds": 0.168812,
+     "reduction_pct": 27.7882,
+     "sd_points": 12.861,
+     "hard_subset_reduction_pct": 35.4117
+    },
+    "Donors + physicochemical + 2D descriptors; 229 features": {
+     "feature_key": "donors_physchem_lig2d",
+     "winning_recipe": "extremely randomised trees",
+     "recipe_key": "extratrees",
+     "level_mae": 0.979595,
+     "sd_over_folds": 0.192158,
+     "reduction_pct": 25.3696,
+     "sd_points": 14.64,
+     "hard_subset_reduction_pct": 22.8509
+    },
+    "Donors + physicochemical + 2D descriptors; 16 principal components": {
+     "feature_key": "donors_physchem_lig2d_pca16",
+     "winning_recipe": "support-vector regression, RBF kernel",
+     "recipe_key": "svr_rbf",
+     "level_mae": 1.017832,
+     "sd_over_folds": 0.159361,
+     "reduction_pct": 22.4565,
+     "sd_points": 12.141,
+     "hard_subset_reduction_pct": 27.6966
+    },
+    "Donor census + physicochemical; 16 principal components": {
+     "feature_key": "donors_physchem_pca16",
+     "winning_recipe": "gradient boosting, depth 2",
+     "recipe_key": "gbdt_depth2",
+     "level_mae": 0.998582,
+     "sd_over_folds": 0.200446,
+     "reduction_pct": 23.923,
+     "sd_points": 15.271,
+     "hard_subset_reduction_pct": 32.6097
+    },
+    "ECFP4 fingerprint; 2,048 bits": {
+     "feature_key": "ecfp",
+     "winning_recipe": "extremely randomised trees",
+     "recipe_key": "extratrees",
+     "level_mae": 0.940578,
+     "sd_over_folds": 0.149671,
+     "reduction_pct": 28.3421,
+     "sd_points": 11.403,
+     "hard_subset_reduction_pct": 39.8436
+    },
+    "ECFP4 fingerprint; 16 principal components": {
+     "feature_key": "ecfp_pca16",
+     "winning_recipe": "partial least squares, 3 components",
+     "recipe_key": "pls3",
+     "level_mae": 1.048195,
+     "sd_over_folds": 0.187365,
+     "reduction_pct": 20.1433,
+     "sd_points": 14.274,
+     "hard_subset_reduction_pct": 19.9785
+    },
+    "Extended 2D descriptors; 206 features": {
+     "feature_key": "lig2d",
+     "winning_recipe": "support-vector regression, RBF kernel",
+     "recipe_key": "svr_rbf",
+     "level_mae": 0.991853,
+     "sd_over_folds": 0.141001,
+     "reduction_pct": 24.4357,
+     "sd_points": 10.742,
+     "hard_subset_reduction_pct": 27.1733
+    },
+    "Extended 2D descriptors; 16 principal components": {
+     "feature_key": "lig2d_pca16",
+     "winning_recipe": "support-vector regression, RBF kernel",
+     "recipe_key": "svr_rbf",
+     "level_mae": 1.044944,
+     "sd_over_folds": 0.166893,
+     "reduction_pct": 20.391,
+     "sd_points": 12.715,
+     "hard_subset_reduction_pct": 26.7858
+    },
+    "MoLFormer embedding; 768 dimensions": {
+     "feature_key": "molformer",
+     "winning_recipe": "support-vector regression, RBF kernel",
+     "recipe_key": "svr_rbf",
+     "level_mae": 1.015458,
+     "sd_over_folds": 0.175229,
+     "reduction_pct": 22.6374,
+     "sd_points": 13.35,
+     "hard_subset_reduction_pct": 23.3406
+    },
+    "MoLFormer embedding + donor census + physicochemical": {
+     "feature_key": "molformer_donors",
+     "winning_recipe": "support-vector regression, RBF kernel",
+     "recipe_key": "svr_rbf",
+     "level_mae": 1.010962,
+     "sd_over_folds": 0.174683,
+     "reduction_pct": 22.9799,
+     "sd_points": 13.308,
+     "hard_subset_reduction_pct": 23.7291
+    },
+    "MoLFormer embedding + donor census; 16 principal components": {
+     "feature_key": "molformer_donors_pca16",
+     "winning_recipe": "support-vector regression, RBF kernel",
+     "recipe_key": "svr_rbf",
+     "level_mae": 1.017649,
+     "sd_over_folds": 0.215509,
+     "reduction_pct": 22.4704,
+     "sd_points": 16.419,
+     "hard_subset_reduction_pct": 25.6302
+    },
+    "MoLFormer embedding; 16 principal components": {
+     "feature_key": "molformer_pca16",
+     "winning_recipe": "support-vector regression, RBF kernel",
+     "recipe_key": "svr_rbf",
+     "level_mae": 1.016758,
+     "sd_over_folds": 0.2143,
+     "reduction_pct": 22.5383,
+     "sd_points": 16.326,
+     "hard_subset_reduction_pct": 26.0629
+    },
+    "Physicochemical scalars; 10 features": {
+     "feature_key": "physchem",
+     "winning_recipe": "extremely randomised trees",
+     "recipe_key": "extratrees",
+     "level_mae": 1.085895,
+     "sd_over_folds": 0.143472,
+     "reduction_pct": 17.2711,
+     "sd_points": 10.93,
+     "hard_subset_reduction_pct": 19.0951
+    },
+    "Coordination-polyhedron geometry (3D); 58 features": {
+     "feature_key": "polyhedron3d",
+     "winning_recipe": "extremely randomised trees",
+     "recipe_key": "extratrees",
+     "level_mae": 1.168314,
+     "sd_over_folds": 0.207189,
+     "reduction_pct": 10.9921,
+     "sd_points": 15.785,
+     "hard_subset_reduction_pct": 30.7123
+    },
+    "Coordination-polyhedron geometry (3D); 16 principal components": {
+     "feature_key": "polyhedron3d_pca16",
+     "winning_recipe": "support-vector regression, RBF kernel",
+     "recipe_key": "svr_rbf",
+     "level_mae": 1.251132,
+     "sd_over_folds": 0.213588,
+     "reduction_pct": 4.6825,
+     "sd_points": 16.272,
+     "hard_subset_reduction_pct": 6.3184
+    }
+   }
+  },
+  "condition-adjusted level": {
+   "null_mae": 1.058131,
+   "null_sd_over_folds": 0.242496,
+   "nn_lookup_mae": 0.963536,
+   "nn_lookup_reduction_pct": 8.9399,
+   "nn_lookup_sd_points": 20.435,
+   "hard_subset_nn_tanimoto_below_0_4": {
+    "n_evaluations": 54,
+    "null_mae": 1.179413,
+    "nn_lookup_mae": 1.206892,
+    "nn_lookup_reduction_pct": -2.3298,
+    "n_fits_better_than_null": 64,
+    "best_fit_reduction_pct": 7.6012
+   },
+   "best_per_representation": {
+    "ChemBERTa embedding; 384 dimensions": {
+     "feature_key": "chemberta",
+     "winning_recipe": "support-vector regression, RBF kernel",
+     "recipe_key": "svr_rbf",
+     "level_mae": 1.002736,
+     "sd_over_folds": 0.233806,
+     "reduction_pct": 5.2352,
+     "sd_points": 22.096,
+     "hard_subset_reduction_pct": 2.9164
+    },
+    "ChemBERTa embedding; 16 principal components": {
+     "feature_key": "chemberta_pca16",
+     "winning_recipe": "support-vector regression, RBF kernel",
+     "recipe_key": "svr_rbf",
+     "level_mae": 0.990199,
+     "sd_over_folds": 0.23261,
+     "reduction_pct": 6.42,
+     "sd_points": 21.983,
+     "hard_subset_reduction_pct": 2.0544
+    },
+    "Donor-atom census; 13 features": {
+     "feature_key": "donors",
+     "winning_recipe": "partial least squares, 3 components",
+     "recipe_key": "pls3",
+     "level_mae": 1.011905,
+     "sd_over_folds": 0.231213,
+     "reduction_pct": 4.3687,
+     "sd_points": 21.851,
+     "hard_subset_reduction_pct": 0.0513
+    },
+    "Donors + physicochemical + xTB complex properties (3D)": {
+     "feature_key": "donors_3d",
+     "winning_recipe": "Bayesian ridge",
+     "recipe_key": "bayesridge",
+     "level_mae": 1.058412,
+     "sd_over_folds": 0.241941,
+     "reduction_pct": -0.0265,
+     "sd_points": 22.865,
+     "hard_subset_reduction_pct": -0.0189
+    },
+    "Donors + physicochemical + 3D; 16 principal components": {
+     "feature_key": "donors_3d_pca16",
+     "winning_recipe": "gradient boosting, depth 2",
+     "recipe_key": "gbdt_depth2",
+     "level_mae": 1.056483,
+     "sd_over_folds": 0.236123,
+     "reduction_pct": 0.1558,
+     "sd_points": 22.315,
+     "hard_subset_reduction_pct": 4.9999
+    },
+    "Donor census + physicochemical; 23 features": {
+     "feature_key": "donors_physchem",
+     "winning_recipe": "support-vector regression, RBF kernel",
+     "recipe_key": "svr_rbf",
+     "level_mae": 1.006015,
+     "sd_over_folds": 0.21731,
+     "reduction_pct": 4.9253,
+     "sd_points": 20.537,
+     "hard_subset_reduction_pct": 7.6012
+    },
+    "Donors + physicochemical + 2D descriptors; 229 features": {
+     "feature_key": "donors_physchem_lig2d",
+     "winning_recipe": "support-vector regression, RBF kernel",
+     "recipe_key": "svr_rbf",
+     "level_mae": 1.013167,
+     "sd_over_folds": 0.20047,
+     "reduction_pct": 4.2494,
+     "sd_points": 18.946,
+     "hard_subset_reduction_pct": 6.4257
+    },
+    "Donors + physicochemical + 2D descriptors; 16 principal components": {
+     "feature_key": "donors_physchem_lig2d_pca16",
+     "winning_recipe": "extremely randomised trees",
+     "recipe_key": "extratrees",
+     "level_mae": 1.036678,
+     "sd_over_folds": 0.214839,
+     "reduction_pct": 2.0274,
+     "sd_points": 20.304,
+     "hard_subset_reduction_pct": 0.2253
+    },
+    "Donor census + physicochemical; 16 principal components": {
+     "feature_key": "donors_physchem_pca16",
+     "winning_recipe": "gradient boosting, depth 2",
+     "recipe_key": "gbdt_depth2",
+     "level_mae": 1.005078,
+     "sd_over_folds": 0.207452,
+     "reduction_pct": 5.0139,
+     "sd_points": 19.605,
+     "hard_subset_reduction_pct": 6.9762
+    },
+    "ECFP4 fingerprint; 2,048 bits": {
+     "feature_key": "ecfp",
+     "winning_recipe": "Bayesian ridge",
+     "recipe_key": "bayesridge",
+     "level_mae": 1.062439,
+     "sd_over_folds": 0.260912,
+     "reduction_pct": -0.4071,
+     "sd_points": 24.658,
+     "hard_subset_reduction_pct": -2.2098
+    },
+    "ECFP4 fingerprint; 16 principal components": {
+     "feature_key": "ecfp_pca16",
+     "winning_recipe": "extremely randomised trees",
+     "recipe_key": "extratrees",
+     "level_mae": 1.041921,
+     "sd_over_folds": 0.261505,
+     "reduction_pct": 1.532,
+     "sd_points": 24.714,
+     "hard_subset_reduction_pct": 0.3523
+    },
+    "Extended 2D descriptors; 206 features": {
+     "feature_key": "lig2d",
+     "winning_recipe": "support-vector regression, RBF kernel",
+     "recipe_key": "svr_rbf",
+     "level_mae": 1.018017,
+     "sd_over_folds": 0.203568,
+     "reduction_pct": 3.7911,
+     "sd_points": 19.238,
+     "hard_subset_reduction_pct": 6.5734
+    },
+    "Extended 2D descriptors; 16 principal components": {
+     "feature_key": "lig2d_pca16",
+     "winning_recipe": "extremely randomised trees",
+     "recipe_key": "extratrees",
+     "level_mae": 1.041247,
+     "sd_over_folds": 0.219096,
+     "reduction_pct": 1.5957,
+     "sd_points": 20.706,
+     "hard_subset_reduction_pct": -0.3361
+    },
+    "MoLFormer embedding; 768 dimensions": {
+     "feature_key": "molformer",
+     "winning_recipe": "support-vector regression, RBF kernel",
+     "recipe_key": "svr_rbf",
+     "level_mae": 1.006831,
+     "sd_over_folds": 0.220284,
+     "reduction_pct": 4.8482,
+     "sd_points": 20.818,
+     "hard_subset_reduction_pct": 1.029
+    },
+    "MoLFormer embedding + donor census + physicochemical": {
+     "feature_key": "molformer_donors",
+     "winning_recipe": "support-vector regression, RBF kernel",
+     "recipe_key": "svr_rbf",
+     "level_mae": 1.00658,
+     "sd_over_folds": 0.218865,
+     "reduction_pct": 4.8719,
+     "sd_points": 20.684,
+     "hard_subset_reduction_pct": 0.7928
+    },
+    "MoLFormer embedding + donor census; 16 principal components": {
+     "feature_key": "molformer_donors_pca16",
+     "winning_recipe": "support-vector regression, RBF kernel",
+     "recipe_key": "svr_rbf",
+     "level_mae": 1.003806,
+     "sd_over_folds": 0.207513,
+     "reduction_pct": 5.1341,
+     "sd_points": 19.611,
+     "hard_subset_reduction_pct": 1.7989
+    },
+    "MoLFormer embedding; 16 principal components": {
+     "feature_key": "molformer_pca16",
+     "winning_recipe": "support-vector regression, RBF kernel",
+     "recipe_key": "svr_rbf",
+     "level_mae": 1.00592,
+     "sd_over_folds": 0.210422,
+     "reduction_pct": 4.9343,
+     "sd_points": 19.886,
+     "hard_subset_reduction_pct": 2.785
+    },
+    "Physicochemical scalars; 10 features": {
+     "feature_key": "physchem",
+     "winning_recipe": "support-vector regression, RBF kernel",
+     "recipe_key": "svr_rbf",
+     "level_mae": 1.055237,
+     "sd_over_folds": 0.213528,
+     "reduction_pct": 0.2735,
+     "sd_points": 20.18,
+     "hard_subset_reduction_pct": -3.2331
+    },
+    "Coordination-polyhedron geometry (3D); 58 features": {
+     "feature_key": "polyhedron3d",
+     "winning_recipe": "Bayesian ridge",
+     "recipe_key": "bayesridge",
+     "level_mae": 1.058313,
+     "sd_over_folds": 0.242373,
+     "reduction_pct": -0.0171,
+     "sd_points": 22.906,
+     "hard_subset_reduction_pct": 0.0094
+    },
+    "Coordination-polyhedron geometry (3D); 16 principal components": {
+     "feature_key": "polyhedron3d_pca16",
+     "winning_recipe": "Bayesian ridge",
+     "recipe_key": "bayesridge",
+     "level_mae": 1.058155,
+     "sd_over_folds": 0.242469,
+     "reduction_pct": -0.0022,
+     "sd_points": 22.915,
+     "hard_subset_reduction_pct": 0.0329
+    }
+   }
+  }
+ },
+ "panelB": {
+  "n_fits": 120,
+  "bin_width_points": 0.4,
+  "min_reduction_pct": -6.1349,
+  "max_reduction_pct": 6.42,
+  "median_reduction_pct": 0.1781,
+  "n_fits_above_nn_lookup": 0,
+  "mean_sd_points": 21.516,
+  "all_fits": [
+   {
+    "representation": "ChemBERTa embedding; 16 principal components",
+    "recipe": "support-vector regression, RBF kernel",
+    "level_mae": 0.990199,
+    "reduction_pct": 6.42,
+    "sd_points": 21.983
+   },
+   {
+    "representation": "ChemBERTa embedding; 384 dimensions",
+    "recipe": "support-vector regression, RBF kernel",
+    "level_mae": 1.002736,
+    "reduction_pct": 5.2352,
+    "sd_points": 22.096
+   },
+   {
+    "representation": "MoLFormer embedding + donor census; 16 principal components",
+    "recipe": "support-vector regression, RBF kernel",
+    "level_mae": 1.003806,
+    "reduction_pct": 5.1341,
+    "sd_points": 19.611
+   },
+   {
+    "representation": "Donor census + physicochemical; 16 principal components",
+    "recipe": "gradient boosting, depth 2",
+    "level_mae": 1.005078,
+    "reduction_pct": 5.0139,
+    "sd_points": 19.605
+   },
+   {
+    "representation": "MoLFormer embedding; 16 principal components",
+    "recipe": "support-vector regression, RBF kernel",
+    "level_mae": 1.00592,
+    "reduction_pct": 4.9343,
+    "sd_points": 19.886
+   },
+   {
+    "representation": "Donor census + physicochemical; 23 features",
+    "recipe": "support-vector regression, RBF kernel",
+    "level_mae": 1.006015,
+    "reduction_pct": 4.9253,
+    "sd_points": 20.537
+   },
+   {
+    "representation": "MoLFormer embedding + donor census + physicochemical",
+    "recipe": "support-vector regression, RBF kernel",
+    "level_mae": 1.00658,
+    "reduction_pct": 4.8719,
+    "sd_points": 20.684
+   },
+   {
+    "representation": "MoLFormer embedding; 768 dimensions",
+    "recipe": "support-vector regression, RBF kernel",
+    "level_mae": 1.006831,
+    "reduction_pct": 4.8482,
+    "sd_points": 20.818
+   },
+   {
+    "representation": "Donor-atom census; 13 features",
+    "recipe": "partial least squares, 3 components",
+    "level_mae": 1.011905,
+    "reduction_pct": 4.3687,
+    "sd_points": 21.851
+   },
+   {
+    "representation": "Donor-atom census; 13 features",
+    "recipe": "support-vector regression, RBF kernel",
+    "level_mae": 1.011928,
+    "reduction_pct": 4.3665,
+    "sd_points": 21.717
+   },
+   {
+    "representation": "ChemBERTa embedding; 16 principal components",
+    "recipe": "extremely randomised trees",
+    "level_mae": 1.012067,
+    "reduction_pct": 4.3533,
+    "sd_points": 21.783
+   },
+   {
+    "representation": "Donors + physicochemical + 2D descriptors; 229 features",
+    "recipe": "support-vector regression, RBF kernel",
+    "level_mae": 1.013167,
+    "reduction_pct": 4.2494,
+    "sd_points": 18.946
+   },
+   {
+    "representation": "Donor-atom census; 13 features",
+    "recipe": "gradient boosting, depth 2",
+    "level_mae": 1.015275,
+    "reduction_pct": 4.0502,
+    "sd_points": 21.101
+   },
+   {
+    "representation": "Donor-atom census; 13 features",
+    "recipe": "extremely randomised trees",
+    "level_mae": 1.016755,
+    "reduction_pct": 3.9103,
+    "sd_points": 22.223
+   },
+   {
+    "representation": "Extended 2D descriptors; 206 features",
+    "recipe": "support-vector regression, RBF kernel",
+    "level_mae": 1.018017,
+    "reduction_pct": 3.7911,
+    "sd_points": 19.238
+   },
+   {
+    "representation": "MoLFormer embedding; 16 principal components",
+    "recipe": "extremely randomised trees",
+    "level_mae": 1.020561,
+    "reduction_pct": 3.5506,
+    "sd_points": 19.729
+   },
+   {
+    "representation": "MoLFormer embedding + donor census; 16 principal components",
+    "recipe": "extremely randomised trees",
+    "level_mae": 1.022672,
+    "reduction_pct": 3.3511,
+    "sd_points": 19.522
+   },
+   {
+    "representation": "ChemBERTa embedding; 16 principal components",
+    "recipe": "gradient boosting, depth 2",
+    "level_mae": 1.025253,
+    "reduction_pct": 3.1072,
+    "sd_points": 21.704
+   },
+   {
+    "representation": "Donor census + physicochemical; 16 principal components",
+    "recipe": "support-vector regression, RBF kernel",
+    "level_mae": 1.026033,
+    "reduction_pct": 3.0335,
+    "sd_points": 19.458
+   },
+   {
+    "representation": "MoLFormer embedding + donor census + physicochemical",
+    "recipe": "extremely randomised trees",
+    "level_mae": 1.027826,
+    "reduction_pct": 2.8641,
+    "sd_points": 21.477
+   },
+   {
+    "representation": "MoLFormer embedding + donor census; 16 principal components",
+    "recipe": "gradient boosting, depth 2",
+    "level_mae": 1.028543,
+    "reduction_pct": 2.7963,
+    "sd_points": 20.223
+   },
+   {
+    "representation": "MoLFormer embedding; 768 dimensions",
+    "recipe": "extremely randomised trees",
+    "level_mae": 1.028736,
+    "reduction_pct": 2.7781,
+    "sd_points": 21.39
+   },
+   {
+    "representation": "ChemBERTa embedding; 384 dimensions",
+    "recipe": "partial least squares, 3 components",
+    "level_mae": 1.031861,
+    "reduction_pct": 2.4827,
+    "sd_points": 22.485
+   },
+   {
+    "representation": "ChemBERTa embedding; 16 principal components",
+    "recipe": "partial least squares, 3 components",
+    "level_mae": 1.032247,
+    "reduction_pct": 2.4462,
+    "sd_points": 22.743
+   },
+   {
+    "representation": "ChemBERTa embedding; 384 dimensions",
+    "recipe": "extremely randomised trees",
+    "level_mae": 1.033006,
+    "reduction_pct": 2.3745,
+    "sd_points": 20.913
+   },
+   {
+    "representation": "Donor census + physicochemical; 16 principal components",
+    "recipe": "extremely randomised trees",
+    "level_mae": 1.033024,
+    "reduction_pct": 2.3728,
+    "sd_points": 20.492
+   },
+   {
+    "representation": "MoLFormer embedding; 16 principal components",
+    "recipe": "gradient boosting, depth 2",
+    "level_mae": 1.033776,
+    "reduction_pct": 2.3017,
+    "sd_points": 18.119
+   },
+   {
+    "representation": "MoLFormer embedding + donor census + physicochemical",
+    "recipe": "gradient boosting, depth 2",
+    "level_mae": 1.034094,
+    "reduction_pct": 2.2716,
+    "sd_points": 21.729
+   },
+   {
+    "representation": "Donor census + physicochemical; 23 features",
+    "recipe": "partial least squares, 3 components",
+    "level_mae": 1.034427,
+    "reduction_pct": 2.2402,
+    "sd_points": 22.066
+   },
+   {
+    "representation": "MoLFormer embedding; 768 dimensions",
+    "recipe": "gradient boosting, depth 2",
+    "level_mae": 1.035915,
+    "reduction_pct": 2.0996,
+    "sd_points": 21.646
+   },
+   {
+    "representation": "Donor-atom census; 13 features",
+    "recipe": "Bayesian ridge",
+    "level_mae": 1.036236,
+    "reduction_pct": 2.0693,
+    "sd_points": 22.329
+   },
+   {
+    "representation": "Donors + physicochemical + 2D descriptors; 229 features",
+    "recipe": "Bayesian ridge",
+    "level_mae": 1.036389,
+    "reduction_pct": 2.0548,
+    "sd_points": 19.58
+   },
+   {
+    "representation": "Donor census + physicochemical; 23 features",
+    "recipe": "gradient boosting, depth 2",
+    "level_mae": 1.036476,
+    "reduction_pct": 2.0466,
+    "sd_points": 21.386
+   },
+   {
+    "representation": "Donors + physicochemical + 2D descriptors; 16 principal components",
+    "recipe": "extremely randomised trees",
+    "level_mae": 1.036678,
+    "reduction_pct": 2.0274,
+    "sd_points": 20.304
+   },
+   {
+    "representation": "ChemBERTa embedding; 384 dimensions",
+    "recipe": "gradient boosting, depth 2",
+    "level_mae": 1.0384,
+    "reduction_pct": 1.8647,
+    "sd_points": 21.724
+   },
+   {
+    "representation": "Donor-atom census; 13 features",
+    "recipe": "ridge regression",
+    "level_mae": 1.038826,
+    "reduction_pct": 1.8245,
+    "sd_points": 21.329
+   },
+   {
+    "representation": "Donors + physicochemical + 2D descriptors; 229 features",
+    "recipe": "partial least squares, 3 components",
+    "level_mae": 1.039787,
+    "reduction_pct": 1.7337,
+    "sd_points": 19.298
+   },
+   {
+    "representation": "MoLFormer embedding + donor census + physicochemical",
+    "recipe": "Bayesian ridge",
+    "level_mae": 1.040622,
+    "reduction_pct": 1.6547,
+    "sd_points": 20.794
+   },
+   {
+    "representation": "Extended 2D descriptors; 16 principal components",
+    "recipe": "extremely randomised trees",
+    "level_mae": 1.041247,
+    "reduction_pct": 1.5957,
+    "sd_points": 20.706
+   },
+   {
+    "representation": "Donors + physicochemical + 2D descriptors; 16 principal components",
+    "recipe": "support-vector regression, RBF kernel",
+    "level_mae": 1.0419,
+    "reduction_pct": 1.5339,
+    "sd_points": 21.238
+   },
+   {
+    "representation": "Extended 2D descriptors; 206 features",
+    "recipe": "Bayesian ridge",
+    "level_mae": 1.041906,
+    "reduction_pct": 1.5334,
+    "sd_points": 19.51
+   },
+   {
+    "representation": "ECFP4 fingerprint; 16 principal components",
+    "recipe": "extremely randomised trees",
+    "level_mae": 1.041921,
+    "reduction_pct": 1.532,
+    "sd_points": 24.714
+   },
+   {
+    "representation": "Donors + physicochemical + 2D descriptors; 229 features",
+    "recipe": "gradient boosting, depth 2",
+    "level_mae": 1.044991,
+    "reduction_pct": 1.2419,
+    "sd_points": 19.053
+   },
+   {
+    "representation": "Donor census + physicochemical; 16 principal components",
+    "recipe": "Bayesian ridge",
+    "level_mae": 1.047042,
+    "reduction_pct": 1.048,
+    "sd_points": 22.061
+   },
+   {
+    "representation": "Extended 2D descriptors; 16 principal components",
+    "recipe": "support-vector regression, RBF kernel",
+    "level_mae": 1.047761,
+    "reduction_pct": 0.9801,
+    "sd_points": 21.489
+   },
+   {
+    "representation": "Donor census + physicochemical; 16 principal components",
+    "recipe": "partial least squares, 3 components",
+    "level_mae": 1.048391,
+    "reduction_pct": 0.9206,
+    "sd_points": 21.3
+   },
+   {
+    "representation": "MoLFormer embedding; 768 dimensions",
+    "recipe": "Bayesian ridge",
+    "level_mae": 1.049974,
+    "reduction_pct": 0.7709,
+    "sd_points": 21.386
+   },
+   {
+    "representation": "Donor census + physicochemical; 23 features",
+    "recipe": "Bayesian ridge",
+    "level_mae": 1.050147,
+    "reduction_pct": 0.7545,
+    "sd_points": 21.828
+   },
+   {
+    "representation": "ChemBERTa embedding; 16 principal components",
+    "recipe": "Bayesian ridge",
+    "level_mae": 1.051392,
+    "reduction_pct": 0.6369,
+    "sd_points": 22.909
+   },
+   {
+    "representation": "Donor census + physicochemical; 16 principal components",
+    "recipe": "ridge regression",
+    "level_mae": 1.052062,
+    "reduction_pct": 0.5736,
+    "sd_points": 21.585
+   },
+   {
+    "representation": "ChemBERTa embedding; 384 dimensions",
+    "recipe": "Bayesian ridge",
+    "level_mae": 1.052239,
+    "reduction_pct": 0.5569,
+    "sd_points": 21.868
+   },
+   {
+    "representation": "Extended 2D descriptors; 16 principal components",
+    "recipe": "gradient boosting, depth 2",
+    "level_mae": 1.052699,
+    "reduction_pct": 0.5134,
+    "sd_points": 21.208
+   },
+   {
+    "representation": "ChemBERTa embedding; 16 principal components",
+    "recipe": "ridge regression",
+    "level_mae": 1.052966,
+    "reduction_pct": 0.4882,
+    "sd_points": 22.953
+   },
+   {
+    "representation": "Extended 2D descriptors; 206 features",
+    "recipe": "partial least squares, 3 components",
+    "level_mae": 1.053312,
+    "reduction_pct": 0.4554,
+    "sd_points": 18.917
+   },
+   {
+    "representation": "ChemBERTa embedding; 384 dimensions",
+    "recipe": "ridge regression",
+    "level_mae": 1.053826,
+    "reduction_pct": 0.4069,
+    "sd_points": 21.584
+   },
+   {
+    "representation": "ECFP4 fingerprint; 16 principal components",
+    "recipe": "support-vector regression, RBF kernel",
+    "level_mae": 1.054044,
+    "reduction_pct": 0.3862,
+    "sd_points": 23.248
+   },
+   {
+    "representation": "Extended 2D descriptors; 16 principal components",
+    "recipe": "ridge regression",
+    "level_mae": 1.055075,
+    "reduction_pct": 0.2889,
+    "sd_points": 22.114
+   },
+   {
+    "representation": "Physicochemical scalars; 10 features",
+    "recipe": "support-vector regression, RBF kernel",
+    "level_mae": 1.055237,
+    "reduction_pct": 0.2735,
+    "sd_points": 20.18
+   },
+   {
+    "representation": "Extended 2D descriptors; 206 features",
+    "recipe": "gradient boosting, depth 2",
+    "level_mae": 1.055613,
+    "reduction_pct": 0.238,
+    "sd_points": 18.863
+   },
+   {
+    "representation": "Extended 2D descriptors; 16 principal components",
+    "recipe": "Bayesian ridge",
+    "level_mae": 1.05601,
+    "reduction_pct": 0.2005,
+    "sd_points": 22.178
+   },
+   {
+    "representation": "Donors + physicochemical + 3D; 16 principal components",
+    "recipe": "gradient boosting, depth 2",
+    "level_mae": 1.056483,
+    "reduction_pct": 0.1558,
+    "sd_points": 22.315
+   },
+   {
+    "representation": "Donor census + physicochemical; 23 features",
+    "recipe": "extremely randomised trees",
+    "level_mae": 1.057353,
+    "reduction_pct": 0.0735,
+    "sd_points": 20.794
+   },
+   {
+    "representation": "ECFP4 fingerprint; 16 principal components",
+    "recipe": "Bayesian ridge",
+    "level_mae": 1.057831,
+    "reduction_pct": 0.0284,
+    "sd_points": 22.403
+   },
+   {
+    "representation": "Donors + physicochemical + 3D; 16 principal components",
+    "recipe": "Bayesian ridge",
+    "level_mae": 1.058022,
+    "reduction_pct": 0.0104,
+    "sd_points": 22.867
+   },
+   {
+    "representation": "Donors + physicochemical + 2D descriptors; 16 principal components",
+    "recipe": "ridge regression",
+    "level_mae": 1.058069,
+    "reduction_pct": 0.0059,
+    "sd_points": 21.9
+   },
+   {
+    "representation": "Donors + physicochemical + 3D; 16 principal components",
+    "recipe": "ridge regression",
+    "level_mae": 1.058105,
+    "reduction_pct": 0.0025,
+    "sd_points": 22.595
+   },
+   {
+    "representation": "Coordination-polyhedron geometry (3D); 16 principal components",
+    "recipe": "Bayesian ridge",
+    "level_mae": 1.058155,
+    "reduction_pct": -0.0022,
+    "sd_points": 22.915
+   },
+   {
+    "representation": "Coordination-polyhedron geometry (3D); 58 features",
+    "recipe": "Bayesian ridge",
+    "level_mae": 1.058313,
+    "reduction_pct": -0.0171,
+    "sd_points": 22.906
+   },
+   {
+    "representation": "Donors + physicochemical + xTB complex properties (3D)",
+    "recipe": "Bayesian ridge",
+    "level_mae": 1.058412,
+    "reduction_pct": -0.0265,
+    "sd_points": 22.865
+   },
+   {
+    "representation": "Physicochemical scalars; 10 features",
+    "recipe": "ridge regression",
+    "level_mae": 1.05857,
+    "reduction_pct": -0.0414,
+    "sd_points": 22.89
+   },
+   {
+    "representation": "MoLFormer embedding + donor census; 16 principal components",
+    "recipe": "ridge regression",
+    "level_mae": 1.058572,
+    "reduction_pct": -0.0416,
+    "sd_points": 22.693
+   },
+   {
+    "representation": "MoLFormer embedding; 16 principal components",
+    "recipe": "ridge regression",
+    "level_mae": 1.058626,
+    "reduction_pct": -0.0468,
+    "sd_points": 22.692
+   },
+   {
+    "representation": "Physicochemical scalars; 10 features",
+    "recipe": "Bayesian ridge",
+    "level_mae": 1.058687,
+    "reduction_pct": -0.0525,
+    "sd_points": 22.887
+   },
+   {
+    "representation": "Donor census + physicochemical; 23 features",
+    "recipe": "ridge regression",
+    "level_mae": 1.058749,
+    "reduction_pct": -0.0583,
+    "sd_points": 21.451
+   },
+   {
+    "representation": "MoLFormer embedding + donor census + physicochemical",
+    "recipe": "ridge regression",
+    "level_mae": 1.058866,
+    "reduction_pct": -0.0694,
+    "sd_points": 20.84
+   },
+   {
+    "representation": "Coordination-polyhedron geometry (3D); 16 principal components",
+    "recipe": "ridge regression",
+    "level_mae": 1.058871,
+    "reduction_pct": -0.0699,
+    "sd_points": 22.881
+   },
+   {
+    "representation": "Donors + physicochemical + 2D descriptors; 16 principal components",
+    "recipe": "Bayesian ridge",
+    "level_mae": 1.059058,
+    "reduction_pct": -0.0876,
+    "sd_points": 21.726
+   },
+   {
+    "representation": "MoLFormer embedding; 16 principal components",
+    "recipe": "Bayesian ridge",
+    "level_mae": 1.059072,
+    "reduction_pct": -0.0889,
+    "sd_points": 22.667
+   },
+   {
+    "representation": "MoLFormer embedding + donor census; 16 principal components",
+    "recipe": "Bayesian ridge",
+    "level_mae": 1.05912,
+    "reduction_pct": -0.0935,
+    "sd_points": 22.656
+   },
+   {
+    "representation": "Coordination-polyhedron geometry (3D); 58 features",
+    "recipe": "ridge regression",
+    "level_mae": 1.059262,
+    "reduction_pct": -0.1069,
+    "sd_points": 22.763
+   },
+   {
+    "representation": "Donors + physicochemical + 2D descriptors; 16 principal components",
+    "recipe": "gradient boosting, depth 2",
+    "level_mae": 1.060208,
+    "reduction_pct": -0.1963,
+    "sd_points": 18.971
+   },
+   {
+    "representation": "ECFP4 fingerprint; 16 principal components",
+    "recipe": "partial least squares, 3 components",
+    "level_mae": 1.060311,
+    "reduction_pct": -0.206,
+    "sd_points": 21.748
+   },
+   {
+    "representation": "Donors + physicochemical + xTB complex properties (3D)",
+    "recipe": "ridge regression",
+    "level_mae": 1.060851,
+    "reduction_pct": -0.257,
+    "sd_points": 22.354
+   },
+   {
+    "representation": "ECFP4 fingerprint; 16 principal components",
+    "recipe": "ridge regression",
+    "level_mae": 1.061203,
+    "reduction_pct": -0.2902,
+    "sd_points": 22.33
+   },
+   {
+    "representation": "Donors + physicochemical + 2D descriptors; 229 features",
+    "recipe": "extremely randomised trees",
+    "level_mae": 1.062259,
+    "reduction_pct": -0.39,
+    "sd_points": 19.504
+   },
+   {
+    "representation": "Donors + physicochemical + 3D; 16 principal components",
+    "recipe": "extremely randomised trees",
+    "level_mae": 1.062357,
+    "reduction_pct": -0.3994,
+    "sd_points": 21.469
+   },
+   {
+    "representation": "ECFP4 fingerprint; 2,048 bits",
+    "recipe": "Bayesian ridge",
+    "level_mae": 1.062439,
+    "reduction_pct": -0.4071,
+    "sd_points": 24.658
+   },
+   {
+    "representation": "MoLFormer embedding; 768 dimensions",
+    "recipe": "ridge regression",
+    "level_mae": 1.062442,
+    "reduction_pct": -0.4074,
+    "sd_points": 21.325
+   },
+   {
+    "representation": "Coordination-polyhedron geometry (3D); 16 principal components",
+    "recipe": "partial least squares, 3 components",
+    "level_mae": 1.063065,
+    "reduction_pct": -0.4663,
+    "sd_points": 22.866
+   },
+   {
+    "representation": "Donors + physicochemical + xTB complex properties (3D)",
+    "recipe": "extremely randomised trees",
+    "level_mae": 1.063399,
+    "reduction_pct": -0.4979,
+    "sd_points": 22.418
+   },
+   {
+    "representation": "Donors + physicochemical + 3D; 16 principal components",
+    "recipe": "partial least squares, 3 components",
+    "level_mae": 1.064541,
+    "reduction_pct": -0.6057,
+    "sd_points": 21.335
+   },
+   {
+    "representation": "MoLFormer embedding + donor census; 16 principal components",
+    "recipe": "partial least squares, 3 components",
+    "level_mae": 1.064745,
+    "reduction_pct": -0.625,
+    "sd_points": 21.033
+   },
+   {
+    "representation": "MoLFormer embedding; 16 principal components",
+    "recipe": "partial least squares, 3 components",
+    "level_mae": 1.065712,
+    "reduction_pct": -0.7165,
+    "sd_points": 21.103
+   },
+   {
+    "representation": "MoLFormer embedding + donor census + physicochemical",
+    "recipe": "partial least squares, 3 components",
+    "level_mae": 1.066699,
+    "reduction_pct": -0.8097,
+    "sd_points": 20.971
+   },
+   {
+    "representation": "MoLFormer embedding; 768 dimensions",
+    "recipe": "partial least squares, 3 components",
+    "level_mae": 1.066873,
+    "reduction_pct": -0.8261,
+    "sd_points": 20.916
+   },
+   {
+    "representation": "Donors + physicochemical + xTB complex properties (3D)",
+    "recipe": "gradient boosting, depth 2",
+    "level_mae": 1.067561,
+    "reduction_pct": -0.8912,
+    "sd_points": 21.439
+   },
+   {
+    "representation": "Donors + physicochemical + 2D descriptors; 16 principal components",
+    "recipe": "partial least squares, 3 components",
+    "level_mae": 1.068068,
+    "reduction_pct": -0.9391,
+    "sd_points": 19.985
+   },
+   {
+    "representation": "ECFP4 fingerprint; 2,048 bits",
+    "recipe": "gradient boosting, depth 2",
+    "level_mae": 1.068629,
+    "reduction_pct": -0.9921,
+    "sd_points": 24.825
+   },
+   {
+    "representation": "Extended 2D descriptors; 16 principal components",
+    "recipe": "partial least squares, 3 components",
+    "level_mae": 1.069785,
+    "reduction_pct": -1.1014,
+    "sd_points": 20.018
+   },
+   {
+    "representation": "Donors + physicochemical + 2D descriptors; 229 features",
+    "recipe": "ridge regression",
+    "level_mae": 1.070373,
+    "reduction_pct": -1.157,
+    "sd_points": 19.789
+   },
+   {
+    "representation": "ECFP4 fingerprint; 16 principal components",
+    "recipe": "gradient boosting, depth 2",
+    "level_mae": 1.070939,
+    "reduction_pct": -1.2104,
+    "sd_points": 23.222
+   },
+   {
+    "representation": "Donors + physicochemical + xTB complex properties (3D)",
+    "recipe": "support-vector regression, RBF kernel",
+    "level_mae": 1.072283,
+    "reduction_pct": -1.3374,
+    "sd_points": 20.791
+   },
+   {
+    "representation": "ECFP4 fingerprint; 2,048 bits",
+    "recipe": "support-vector regression, RBF kernel",
+    "level_mae": 1.07251,
+    "reduction_pct": -1.3589,
+    "sd_points": 23.371
+   },
+   {
+    "representation": "Donors + physicochemical + 3D; 16 principal components",
+    "recipe": "support-vector regression, RBF kernel",
+    "level_mae": 1.074867,
+    "reduction_pct": -1.5816,
+    "sd_points": 19.144
+   },
+   {
+    "representation": "ECFP4 fingerprint; 2,048 bits",
+    "recipe": "partial least squares, 3 components",
+    "level_mae": 1.075302,
+    "reduction_pct": -1.6227,
+    "sd_points": 25.707
+   },
+   {
+    "representation": "Extended 2D descriptors; 206 features",
+    "recipe": "extremely randomised trees",
+    "level_mae": 1.076127,
+    "reduction_pct": -1.7007,
+    "sd_points": 19.591
+   },
+   {
+    "representation": "ECFP4 fingerprint; 2,048 bits",
+    "recipe": "ridge regression",
+    "level_mae": 1.07617,
+    "reduction_pct": -1.7048,
+    "sd_points": 24.649
+   },
+   {
+    "representation": "Extended 2D descriptors; 206 features",
+    "recipe": "ridge regression",
+    "level_mae": 1.078255,
+    "reduction_pct": -1.9018,
+    "sd_points": 19.896
+   },
+   {
+    "representation": "Coordination-polyhedron geometry (3D); 58 features",
+    "recipe": "support-vector regression, RBF kernel",
+    "level_mae": 1.078381,
+    "reduction_pct": -1.9137,
+    "sd_points": 21.611
+   },
+   {
+    "representation": "Donors + physicochemical + xTB complex properties (3D)",
+    "recipe": "partial least squares, 3 components",
+    "level_mae": 1.080498,
+    "reduction_pct": -2.1138,
+    "sd_points": 20.259
+   },
+   {
+    "representation": "Coordination-polyhedron geometry (3D); 16 principal components",
+    "recipe": "extremely randomised trees",
+    "level_mae": 1.080759,
+    "reduction_pct": -2.1385,
+    "sd_points": 22.72
+   },
+   {
+    "representation": "Coordination-polyhedron geometry (3D); 58 features",
+    "recipe": "extremely randomised trees",
+    "level_mae": 1.081704,
+    "reduction_pct": -2.2278,
+    "sd_points": 21.84
+   },
+   {
+    "representation": "Coordination-polyhedron geometry (3D); 16 principal components",
+    "recipe": "gradient boosting, depth 2",
+    "level_mae": 1.081857,
+    "reduction_pct": -2.2422,
+    "sd_points": 22.644
+   },
+   {
+    "representation": "Physicochemical scalars; 10 features",
+    "recipe": "partial least squares, 3 components",
+    "level_mae": 1.085697,
+    "reduction_pct": -2.6051,
+    "sd_points": 21.422
+   },
+   {
+    "representation": "Coordination-polyhedron geometry (3D); 16 principal components",
+    "recipe": "support-vector regression, RBF kernel",
+    "level_mae": 1.087013,
+    "reduction_pct": -2.7295,
+    "sd_points": 21.173
+   },
+   {
+    "representation": "Coordination-polyhedron geometry (3D); 58 features",
+    "recipe": "partial least squares, 3 components",
+    "level_mae": 1.089929,
+    "reduction_pct": -3.0051,
+    "sd_points": 22.249
+   },
+   {
+    "representation": "ECFP4 fingerprint; 2,048 bits",
+    "recipe": "extremely randomised trees",
+    "level_mae": 1.090373,
+    "reduction_pct": -3.0471,
+    "sd_points": 25.898
+   },
+   {
+    "representation": "Coordination-polyhedron geometry (3D); 58 features",
+    "recipe": "gradient boosting, depth 2",
+    "level_mae": 1.098561,
+    "reduction_pct": -3.8208,
+    "sd_points": 21.641
+   },
+   {
+    "representation": "Physicochemical scalars; 10 features",
+    "recipe": "extremely randomised trees",
+    "level_mae": 1.109839,
+    "reduction_pct": -4.8867,
+    "sd_points": 22.234
+   },
+   {
+    "representation": "Physicochemical scalars; 10 features",
+    "recipe": "gradient boosting, depth 2",
+    "level_mae": 1.123047,
+    "reduction_pct": -6.1349,
+    "sd_points": 21.724
+   }
+  ]
+ },
+ "not_plotted_ligand_holdout": {
+  "null_mae": 1.204174,
+  "null_sd_over_folds": 0.112423,
+  "nn_lookup_mae": 0.944699,
+  "nn_lookup_reduction_pct": 21.5479,
+  "nn_lookup_sd_points": 15.254,
+  "hard_subset_nn_tanimoto_below_0_4": {
+   "n_evaluations": 51,
+   "null_mae": 1.579022,
+   "nn_lookup_mae": 1.306657,
+   "nn_lookup_reduction_pct": 17.249,
+   "n_fits_better_than_null": 110,
+   "best_fit_reduction_pct": 33.7228
+  },
+  "best_per_representation": {
+   "ChemBERTa embedding; 384 dimensions": {
+    "feature_key": "chemberta",
+    "winning_recipe": "support-vector regression, RBF kernel",
+    "recipe_key": "svr_rbf",
+    "level_mae": 0.817737,
+    "sd_over_folds": 0.139154,
+    "reduction_pct": 32.0915,
+    "sd_points": 11.556,
+    "hard_subset_reduction_pct": 19.7546
+   },
+   "ChemBERTa embedding; 16 principal components": {
+    "feature_key": "chemberta_pca16",
+    "winning_recipe": "support-vector regression, RBF kernel",
+    "recipe_key": "svr_rbf",
+    "level_mae": 0.829879,
+    "sd_over_folds": 0.12605,
+    "reduction_pct": 31.0831,
+    "sd_points": 10.468,
+    "hard_subset_reduction_pct": 16.2908
+   },
+   "Donor-atom census; 13 features": {
+    "feature_key": "donors",
+    "winning_recipe": "Bayesian ridge",
+    "recipe_key": "bayesridge",
+    "level_mae": 0.874105,
+    "sd_over_folds": 0.115048,
+    "reduction_pct": 27.4104,
+    "sd_points": 9.554,
+    "hard_subset_reduction_pct": 33.7228
+   },
+   "Donors + physicochemical + xTB complex properties (3D)": {
+    "feature_key": "donors_3d",
+    "winning_recipe": "extremely randomised trees",
+    "recipe_key": "extratrees",
+    "level_mae": 0.935526,
+    "sd_over_folds": 0.142932,
+    "reduction_pct": 22.3098,
+    "sd_points": 11.87,
+    "hard_subset_reduction_pct": 17.6139
+   },
+   "Donors + physicochemical + 3D; 16 principal components": {
+    "feature_key": "donors_3d_pca16",
+    "winning_recipe": "support-vector regression, RBF kernel",
+    "recipe_key": "svr_rbf",
+    "level_mae": 0.983609,
+    "sd_over_folds": 0.120311,
+    "reduction_pct": 18.3167,
+    "sd_points": 9.991,
+    "hard_subset_reduction_pct": 18.9803
+   },
+   "Donor census + physicochemical; 23 features": {
+    "feature_key": "donors_physchem",
+    "winning_recipe": "support-vector regression, RBF kernel",
+    "recipe_key": "svr_rbf",
+    "level_mae": 0.850252,
+    "sd_over_folds": 0.11681,
+    "reduction_pct": 29.3913,
+    "sd_points": 9.7,
+    "hard_subset_reduction_pct": 25.1082
+   },
+   "Donors + physicochemical + 2D descriptors; 229 features": {
+    "feature_key": "donors_physchem_lig2d",
+    "winning_recipe": "extremely randomised trees",
+    "recipe_key": "extratrees",
+    "level_mae": 0.780791,
+    "sd_over_folds": 0.130498,
+    "reduction_pct": 35.1596,
+    "sd_points": 10.837,
+    "hard_subset_reduction_pct": 9.9958
+   },
+   "Donors + physicochemical + 2D descriptors; 16 principal components": {
+    "feature_key": "donors_physchem_lig2d_pca16",
+    "winning_recipe": "support-vector regression, RBF kernel",
+    "recipe_key": "svr_rbf",
+    "level_mae": 0.833257,
+    "sd_over_folds": 0.138398,
+    "reduction_pct": 30.8026,
+    "sd_points": 11.493,
+    "hard_subset_reduction_pct": 13.087
+   },
+   "Donor census + physicochemical; 16 principal components": {
+    "feature_key": "donors_physchem_pca16",
+    "winning_recipe": "gradient boosting, depth 2",
+    "recipe_key": "gbdt_depth2",
+    "level_mae": 0.826389,
+    "sd_over_folds": 0.122194,
+    "reduction_pct": 31.373,
+    "sd_points": 10.148,
+    "hard_subset_reduction_pct": 28.0715
+   },
+   "ECFP4 fingerprint; 2,048 bits": {
+    "feature_key": "ecfp",
+    "winning_recipe": "Bayesian ridge",
+    "recipe_key": "bayesridge",
+    "level_mae": 0.833253,
+    "sd_over_folds": 0.120623,
+    "reduction_pct": 30.8029,
+    "sd_points": 10.017,
+    "hard_subset_reduction_pct": 11.4445
+   },
+   "ECFP4 fingerprint; 16 principal components": {
+    "feature_key": "ecfp_pca16",
+    "winning_recipe": "support-vector regression, RBF kernel",
+    "recipe_key": "svr_rbf",
+    "level_mae": 0.837726,
+    "sd_over_folds": 0.152036,
+    "reduction_pct": 30.4315,
+    "sd_points": 12.626,
+    "hard_subset_reduction_pct": 21.4018
+   },
+   "Extended 2D descriptors; 206 features": {
+    "feature_key": "lig2d",
+    "winning_recipe": "extremely randomised trees",
+    "recipe_key": "extratrees",
+    "level_mae": 0.776029,
+    "sd_over_folds": 0.128962,
+    "reduction_pct": 35.5551,
+    "sd_points": 10.71,
+    "hard_subset_reduction_pct": 12.6912
+   },
+   "Extended 2D descriptors; 16 principal components": {
+    "feature_key": "lig2d_pca16",
+    "winning_recipe": "support-vector regression, RBF kernel",
+    "recipe_key": "svr_rbf",
+    "level_mae": 0.868845,
+    "sd_over_folds": 0.136887,
+    "reduction_pct": 27.8473,
+    "sd_points": 11.368,
+    "hard_subset_reduction_pct": 9.9065
+   },
+   "MoLFormer embedding; 768 dimensions": {
+    "feature_key": "molformer",
+    "winning_recipe": "support-vector regression, RBF kernel",
+    "recipe_key": "svr_rbf",
+    "level_mae": 0.842171,
+    "sd_over_folds": 0.116767,
+    "reduction_pct": 30.0624,
+    "sd_points": 9.697,
+    "hard_subset_reduction_pct": 15.4325
+   },
+   "MoLFormer embedding + donor census + physicochemical": {
+    "feature_key": "molformer_donors",
+    "winning_recipe": "support-vector regression, RBF kernel",
+    "recipe_key": "svr_rbf",
+    "level_mae": 0.836576,
+    "sd_over_folds": 0.117259,
+    "reduction_pct": 30.527,
+    "sd_points": 9.738,
+    "hard_subset_reduction_pct": 15.566
+   },
+   "MoLFormer embedding + donor census; 16 principal components": {
+    "feature_key": "molformer_donors_pca16",
+    "winning_recipe": "support-vector regression, RBF kernel",
+    "recipe_key": "svr_rbf",
+    "level_mae": 0.844858,
+    "sd_over_folds": 0.129447,
+    "reduction_pct": 29.8393,
+    "sd_points": 10.75,
+    "hard_subset_reduction_pct": 20.9154
+   },
+   "MoLFormer embedding; 16 principal components": {
+    "feature_key": "molformer_pca16",
+    "winning_recipe": "support-vector regression, RBF kernel",
+    "recipe_key": "svr_rbf",
+    "level_mae": 0.853434,
+    "sd_over_folds": 0.126593,
+    "reduction_pct": 29.127,
+    "sd_points": 10.513,
+    "hard_subset_reduction_pct": 20.7366
+   },
+   "Physicochemical scalars; 10 features": {
+    "feature_key": "physchem",
+    "winning_recipe": "gradient boosting, depth 2",
+    "recipe_key": "gbdt_depth2",
+    "level_mae": 0.912016,
+    "sd_over_folds": 0.127565,
+    "reduction_pct": 24.2621,
+    "sd_points": 10.594,
+    "hard_subset_reduction_pct": 19.09
+   },
+   "Coordination-polyhedron geometry (3D); 58 features": {
+    "feature_key": "polyhedron3d",
+    "winning_recipe": "extremely randomised trees",
+    "recipe_key": "extratrees",
+    "level_mae": 1.075499,
+    "sd_over_folds": 0.152334,
+    "reduction_pct": 10.6858,
+    "sd_points": 12.65,
+    "hard_subset_reduction_pct": 15.6693
+   },
+   "Coordination-polyhedron geometry (3D); 16 principal components": {
+    "feature_key": "polyhedron3d_pca16",
+    "winning_recipe": "extremely randomised trees",
+    "recipe_key": "extratrees",
+    "level_mae": 1.156616,
+    "sd_over_folds": 0.119466,
+    "reduction_pct": 3.9495,
+    "sd_points": 9.921,
+    "hard_subset_reduction_pct": 5.9166
+   }
+  }
+ },
+ "lint": {
+  "ok": true,
+  "violations": []
+ }
+}

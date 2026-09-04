@@ -1,0 +1,126 @@
+{
+ "quantity": "per-descriptor R2 of a straight-line fit against the Shannon ionic radius, inside one ligand+anion family (automl.dataset.add_series_smoothed, block g13__fitr2)",
+ "source_tables": [
+  "noise_by_block.csv",
+  "noise_by_feature.csv"
+ ],
+ "provenance": {
+  "source_repository": "https://github.com/mironovb/lanthanidestrain",
+  "branch": "main",
+  "commit": "1cdeac39d0b018529a735f967d3c83120d04c714",
+  "commit_date": "2026-08-24T20:14:10-04:00",
+  "vendored": "automl/reports/*.csv and automl/reports/*.json",
+  "n_files": 115,
+  "why": "The result tables are small and committed upstream; vendoring them makes every refined figure_script.py in this tree runnable without re-cloning a 111 MB repository. The model artefacts under automl/artifacts/ are NOT committed upstream and are therefore absent here too - see REPRODUCIBILITY.md."
+ },
+ "n_descriptors_plotted": 290,
+ "n_descriptors_undefined": 3,
+ "pooled": {
+  "median": 0.22242852291550413,
+  "mean": 0.24240177176213407,
+  "n_above_0.5": 25,
+  "n_above_0.4": 43,
+  "n_above_0.25": 123
+ },
+ "blocks": [
+  {
+   "block": "contraction",
+   "label": "Shell minus the ionic radius",
+   "median": 0.1939106526076212,
+   "mean": 0.2771189058752125,
+   "n_descriptors": 11,
+   "min": 0.0034628958822104,
+   "max": 1.0
+  },
+  {
+   "block": "chelate",
+   "label": "Chelate rings and bite angles",
+   "median": 0.2048908785467497,
+   "mean": 0.2041841434798266,
+   "n_descriptors": 13,
+   "min": 0.0,
+   "max": 0.4516183553863025
+  },
+  {
+   "block": "steric",
+   "label": "Steric bulk at the metal",
+   "median": 0.2097919376164354,
+   "mean": 0.2279965620842111,
+   "n_descriptors": 18,
+   "min": 0.0521964305278928,
+   "max": 0.5282282773599813
+  },
+  {
+   "block": "rdf",
+   "label": "Metal-centred radial distribution",
+   "median": 0.2104014953997532,
+   "mean": 0.2009888943258056,
+   "n_descriptors": 128,
+   "min": 0.0,
+   "max": 0.5610024724288108
+  },
+  {
+   "block": "first_shell",
+   "label": "First coordination shell",
+   "median": 0.2217801210155611,
+   "mean": 0.2329805191354305,
+   "n_descriptors": 23,
+   "min": 0.0,
+   "max": 0.5901699679215322
+  },
+  {
+   "block": "polyhedron",
+   "label": "Donor polyhedron shape",
+   "median": 0.2544975724477734,
+   "mean": 0.2833688493200986,
+   "n_descriptors": 28,
+   "min": 0.1123368553731558,
+   "max": 0.6787778295871061
+  },
+  {
+   "block": "topology",
+   "label": "Persistent topology",
+   "median": 0.257833984668968,
+   "mean": 0.2909704942779718,
+   "n_descriptors": 22,
+   "min": 0.1126608368098622,
+   "max": 0.6245954938321837
+  },
+  {
+   "block": "global_shape",
+   "label": "Whole-complex shape and surface",
+   "median": 0.2580702019843382,
+   "mean": 0.270059408951566,
+   "n_descriptors": 24,
+   "min": 0.1282610007203783,
+   "max": 0.4522620760951751
+  },
+  {
+   "block": "electronic",
+   "label": "xTB charges, dipole and forces",
+   "median": 0.3695849645275325,
+   "mean": 0.3733756078219247,
+   "n_descriptors": 23,
+   "min": 0.0936306381245154,
+   "max": 0.6395937906260871
+  }
+ ],
+ "self_fit_descriptor": {
+  "feature": "g13__fitr2__g2__contraction__ionic_radius",
+  "fit_r2": 1.0,
+  "block": "contraction",
+  "note": "the fit's own predictor; R2 = 1 by construction, retained in the published block mean (0.277) and median (0.194) unchanged"
+ },
+ "block_label_map": {
+  "first_shell": "First coordination shell",
+  "contraction": "Shell minus the ionic radius",
+  "polyhedron": "Donor polyhedron shape",
+  "steric": "Steric bulk at the metal",
+  "electronic": "xTB charges, dipole and forces",
+  "rdf": "Metal-centred radial distribution",
+  "global_shape": "Whole-complex shape and surface",
+  "chelate": "Chelate rings and bite angles",
+  "topology": "Persistent topology"
+ },
+ "lint_ok": true
+}

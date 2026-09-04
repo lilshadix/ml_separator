@@ -1,0 +1,371 @@
+{
+ "figure": "figure_02_few_shot_frontier",
+ "cohort": {
+  "source": ".claude/worktrees/lanthanide-separation-finalize-81154b/runs/gen10_final/final_locked/kshot_detail.parquet",
+  "source_rows": 12834720,
+  "seeds": [
+   104729,
+   130363,
+   155921,
+   196613,
+   262147
+  ],
+  "repeats_per_seed": 12,
+  "common_cohort_rule": "n_pool >= 5 and n_eval >= 2 in every arm",
+  "n_ligands_all": 143,
+  "n_ligands_common": 99,
+  "n_chemotypes_common": 41,
+  "k_values": [
+   0,
+   1,
+   2,
+   3,
+   5
+  ],
+  "adapters": [
+   "NEAREST_OBSERVED",
+   "NO_MODEL",
+   "OFFSET_K1",
+   "OFFSET_K2",
+   "OFFSET_K3",
+   "SERIES_ML",
+   "SLOPE_L_s1_K1",
+   "SLOPE_L_s1_K3",
+   "ZERO_SHOT",
+   "ZERO_SHOT_REF"
+  ],
+  "policies": [
+   "CENTRAL_THEN_SPREAD",
+   "D_OPTIMAL",
+   "MEDOID",
+   "NONE",
+   "ORACLE[OFFSET_K1]",
+   "RANDOM"
+  ],
+  "global_models": [
+   "GEN10_LEVEL_SHAPE",
+   "GEN10_REC_ALL",
+   "GEN10_REC_GEN9_PLUS",
+   "GEN10_REC_HYBRID",
+   "GEN10_REC_RANK",
+   "GEN9_A0_ROW_ONLY",
+   "GEN9_REL_MONOLITH",
+   "GEN9_SHAPE_RECOMPOSED",
+   "REC_ecfp_plus_recovered"
+  ]
+ },
+ "panelA": {
+  "no_model": [
+   {
+    "k": 1,
+    "macro_mae": 0.825297,
+    "lo": 0.628114,
+    "hi": 0.950186,
+    "n": 99
+   },
+   {
+    "k": 2,
+    "macro_mae": 0.817257,
+    "lo": 0.606623,
+    "hi": 0.949978,
+    "n": 99
+   },
+   {
+    "k": 3,
+    "macro_mae": 0.78791,
+    "lo": 0.590926,
+    "hi": 0.91215,
+    "n": 99
+   },
+   {
+    "k": 5,
+    "macro_mae": 0.761585,
+    "lo": 0.566798,
+    "hi": 0.88557,
+    "n": 99
+   }
+  ],
+  "baseline": [
+   {
+    "k": 0,
+    "macro_mae": 1.06053,
+    "lo": 0.865343,
+    "hi": 1.197294,
+    "n": 99
+   },
+   {
+    "k": 1,
+    "macro_mae": 0.675183,
+    "lo": 0.533252,
+    "hi": 0.760753,
+    "n": 99
+   },
+   {
+    "k": 2,
+    "macro_mae": 0.590884,
+    "lo": 0.44697,
+    "hi": 0.678711,
+    "n": 99
+   },
+   {
+    "k": 3,
+    "macro_mae": 0.522994,
+    "lo": 0.394587,
+    "hi": 0.601505,
+    "n": 99
+   },
+   {
+    "k": 5,
+    "macro_mae": 0.477241,
+    "lo": 0.350663,
+    "hi": 0.554551,
+    "n": 99
+   }
+  ],
+  "recomposed": [
+   {
+    "k": 0,
+    "macro_mae": 1.035799,
+    "lo": 0.841858,
+    "hi": 1.170906,
+    "n": 99
+   },
+   {
+    "k": 1,
+    "macro_mae": 0.653873,
+    "lo": 0.506355,
+    "hi": 0.743143,
+    "n": 99
+   },
+   {
+    "k": 2,
+    "macro_mae": 0.576083,
+    "lo": 0.430357,
+    "hi": 0.667535,
+    "n": 99
+   },
+   {
+    "k": 3,
+    "macro_mae": 0.512725,
+    "lo": 0.3818,
+    "hi": 0.592489,
+    "n": 99
+   },
+   {
+    "k": 5,
+    "macro_mae": 0.471417,
+    "lo": 0.345882,
+    "hi": 0.548853,
+    "n": 99
+   }
+  ],
+  "pipeline": [
+   {
+    "k": 0,
+    "macro_mae": 1.035799,
+    "lo": 0.841858,
+    "hi": 1.170906,
+    "n": 99
+   },
+   {
+    "k": 1,
+    "macro_mae": 0.653873,
+    "lo": 0.506355,
+    "hi": 0.743143,
+    "n": 99
+   },
+   {
+    "k": 2,
+    "macro_mae": 0.559299,
+    "lo": 0.40896,
+    "hi": 0.651721,
+    "n": 99
+   },
+   {
+    "k": 3,
+    "macro_mae": 0.492809,
+    "lo": 0.357945,
+    "hi": 0.575219,
+    "n": 99
+   },
+   {
+    "k": 5,
+    "macro_mae": 0.440542,
+    "lo": 0.316546,
+    "hi": 0.516947,
+    "n": 99
+   }
+  ],
+  "oracle": [
+   {
+    "k": 1,
+    "macro_mae": 0.504224,
+    "lo": 0.384191,
+    "hi": 0.578038,
+    "n": 99
+   },
+   {
+    "k": 2,
+    "macro_mae": 0.487474,
+    "lo": 0.369975,
+    "hi": 0.56001,
+    "n": 99
+   },
+   {
+    "k": 3,
+    "macro_mae": 0.474059,
+    "lo": 0.356207,
+    "hi": 0.54668,
+    "n": 99
+   },
+   {
+    "k": 5,
+    "macro_mae": 0.452989,
+    "lo": 0.333219,
+    "hi": 0.526892,
+    "n": 99
+   }
+  ]
+ },
+ "panelB": [
+  {
+   "step": "1st",
+   "gain_per_measurement": 0.381926603854962,
+   "bca_low": 0.2641812128206409,
+   "bca_high": 0.5647994609556329,
+   "frac_improved": 0.6666666666666666
+  },
+  {
+   "step": "2nd",
+   "gain_per_measurement": 0.09457402329866456,
+   "bca_low": 0.07415026093455546,
+   "bca_high": 0.1266536922950165,
+   "frac_improved": 0.8080808080808081
+  },
+  {
+   "step": "3rd",
+   "gain_per_measurement": 0.0664898318509577,
+   "bca_low": 0.046745471953654485,
+   "bca_high": 0.08463633182052042,
+   "frac_improved": 0.8181818181818182
+  },
+  {
+   "step": "4th\u20135th",
+   "gain_per_measurement": 0.02613358724376333,
+   "bca_low": 0.019455890723759257,
+   "bca_high": 0.03384193001023651,
+   "frac_improved": 0.8585858585858586
+  }
+ ],
+ "panelC": [
+  {
+   "component": "shape recomposition",
+   "style": "recomposed",
+   "k": 0,
+   "point": 0.024731,
+   "lo": 0.015745,
+   "hi": 0.037541,
+   "improved": 68,
+   "n": 99
+  },
+  {
+   "component": "shape recomposition",
+   "style": "recomposed",
+   "k": 1,
+   "point": 0.02131,
+   "lo": 0.001978,
+   "hi": 0.043813,
+   "improved": 63,
+   "n": 99
+  },
+  {
+   "component": "shape recomposition",
+   "style": "recomposed",
+   "k": 2,
+   "point": 0.014801,
+   "lo": -0.000167,
+   "hi": 0.031794,
+   "improved": 63,
+   "n": 99
+  },
+  {
+   "component": "shape recomposition",
+   "style": "recomposed",
+   "k": 3,
+   "point": 0.010269,
+   "lo": -0.001178,
+   "hi": 0.024014,
+   "improved": 58,
+   "n": 99
+  },
+  {
+   "component": "shape recomposition",
+   "style": "recomposed",
+   "k": 5,
+   "point": 0.005824,
+   "lo": -0.003332,
+   "hi": 0.017661,
+   "improved": 51,
+   "n": 99
+  },
+  {
+   "component": "series adaptation",
+   "style": "pipeline",
+   "k": 0,
+   "point": 0.0,
+   "lo": 0.0,
+   "hi": 0.0,
+   "improved": 0,
+   "n": 99
+  },
+  {
+   "component": "series adaptation",
+   "style": "pipeline",
+   "k": 1,
+   "point": 0.0,
+   "lo": 0.0,
+   "hi": 0.0,
+   "improved": 0,
+   "n": 99
+  },
+  {
+   "component": "series adaptation",
+   "style": "pipeline",
+   "k": 2,
+   "point": 0.016784,
+   "lo": 0.002982,
+   "hi": 0.027878,
+   "improved": 59,
+   "n": 99
+  },
+  {
+   "component": "series adaptation",
+   "style": "pipeline",
+   "k": 3,
+   "point": 0.019916,
+   "lo": 0.00259,
+   "hi": 0.034094,
+   "improved": 59,
+   "n": 99
+  },
+  {
+   "component": "series adaptation",
+   "style": "pipeline",
+   "k": 5,
+   "point": 0.030875,
+   "lo": 0.009314,
+   "hi": 0.047626,
+   "improved": 62,
+   "n": 99
+  }
+ ],
+ "panelD": {
+  "n": 99,
+  "improved": 66,
+  "median_delta": 0.16643537957310417
+ },
+ "lint": {
+  "ok": true,
+  "violations": []
+ }
+}

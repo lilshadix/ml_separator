@@ -1,0 +1,208 @@
+{
+ "model": "GEN9_SHAPE_RECOMPOSED",
+ "verification": {
+  "tolerance": 5e-09,
+  "checks": [
+   {
+    "stage": "current",
+    "metric": "pooled_mae",
+    "published": 1.1217506325100335,
+    "reproduced": 1.1217506325100335,
+    "abs_delta": 0.0,
+    "pass": true
+   },
+   {
+    "stage": "current",
+    "metric": "macro_mae",
+    "published": 0.9694845437352134,
+    "reproduced": 0.9694845437352134,
+    "abs_delta": 0.0,
+    "pass": true
+   },
+   {
+    "stage": "after_ligand_level_oracle",
+    "metric": "pooled_mae",
+    "published": 0.7459852474648963,
+    "reproduced": 0.7459852474648963,
+    "abs_delta": 0.0,
+    "pass": true
+   },
+   {
+    "stage": "after_ligand_level_oracle",
+    "metric": "macro_mae",
+    "published": 0.44947602078357235,
+    "reproduced": 0.44947602078357235,
+    "abs_delta": 0.0,
+    "pass": true
+   },
+   {
+    "stage": "after_series_level_oracle",
+    "metric": "pooled_mae",
+    "published": 0.5865653289465088,
+    "reproduced": 0.5865653289465088,
+    "abs_delta": 0.0,
+    "pass": true
+   },
+   {
+    "stage": "after_series_level_oracle",
+    "metric": "macro_mae",
+    "published": 0.3928120575777729,
+    "reproduced": 0.3928120575777729,
+    "abs_delta": 0.0,
+    "pass": true
+   },
+   {
+    "stage": "after_curve_level_oracle",
+    "metric": "pooled_mae",
+    "published": 0.4357644141260664,
+    "reproduced": 0.4357644141260664,
+    "abs_delta": 0.0,
+    "pass": true
+   },
+   {
+    "stage": "after_curve_level_oracle",
+    "metric": "macro_mae",
+    "published": 0.3860053586260319,
+    "reproduced": 0.3860053586260319,
+    "abs_delta": 0.0,
+    "pass": true
+   },
+   {
+    "stage": "after_curve_level_and_slope_oracle",
+    "metric": "pooled_mae",
+    "published": 0.18891249696675075,
+    "reproduced": 0.18891249696675075,
+    "abs_delta": 0.0,
+    "pass": true
+   },
+   {
+    "stage": "after_curve_level_and_slope_oracle",
+    "metric": "macro_mae",
+    "published": 0.19405899438380983,
+    "reproduced": 0.19405899438380983,
+    "abs_delta": 0.0,
+    "pass": true
+   }
+  ],
+  "all_pass": true
+ },
+ "published_study_cohort": {
+  "description": "152 extractants, macro = one vote per ECFP cluster (131), 5 seeds",
+  "stages": {
+   "current": {
+    "pooled_mae": 1.1217506325100335,
+    "macro_mae": 0.9694845437352134
+   },
+   "after_ligand_level_oracle": {
+    "pooled_mae": 0.7459852474648963,
+    "macro_mae": 0.44947602078357235
+   },
+   "after_series_level_oracle": {
+    "pooled_mae": 0.5865653289465088,
+    "macro_mae": 0.3928120575777729
+   },
+   "after_curve_level_oracle": {
+    "pooled_mae": 0.4357644141260664,
+    "macro_mae": 0.3860053586260319
+   },
+   "after_curve_level_and_slope_oracle": {
+    "pooled_mae": 0.18891249696675075,
+    "macro_mae": 0.19405899438380983
+   }
+  }
+ },
+ "common_cohort": {
+  "description": "99 extractants of the k-shot common cohort, macro = one vote per extractant, 5 seeds",
+  "n_extractants": 99,
+  "n_chemotypes": 41,
+  "stages": {
+   "current": {
+    "pooled_mae": 1.1364655384385831,
+    "macro_mae": 1.0323771635805994
+   },
+   "after_ligand_level_oracle": {
+    "pooled_mae": 0.7685563615775102,
+    "macro_mae": 0.5065118152060452
+   },
+   "after_series_level_oracle": {
+    "pooled_mae": 0.600589240656022,
+    "macro_mae": 0.4299580541646896
+   },
+   "after_curve_level_oracle": {
+    "pooled_mae": 0.43882997509576355,
+    "macro_mae": 0.38442436506711003
+   },
+   "after_curve_level_and_slope_oracle": {
+    "pooled_mae": 0.18831782942288158,
+    "macro_mae": 0.18112932877058197
+   }
+  },
+  "achieved": {
+   "zero_shot": 1.0357994416277343,
+   "k1_offset_central": 0.6628685958387509,
+   "k1_slope_repair_central": 0.653872837772772,
+   "k2_series_ml_central": 0.5592988144741076,
+   "k3_series_ml_central": 0.4928089826231498,
+   "k5_series_ml_central": 0.4405418081356232,
+   "k1_oracle_point": 0.5042242850540751
+  }
+ },
+ "components": [
+  {
+   "component": "1 predictable level (per-ligand constant)",
+   "current_contribution": 0.5200085229516411,
+   "oracle_removable": 0.5200085229516411,
+   "realistically_removable": 0.349391070150424,
+   "required_intervention": "one measurement per ligand (central), OFFSET_K1",
+   "basis": "ORACLE_level vs OFFSET_K1@CENTRAL_THEN_SPREAD, k=1"
+  },
+  {
+   "component": "3 series-local level (beyond the ligand constant)",
+   "current_contribution": 0.0566639632057994,
+   "oracle_removable": 0.0566639632057994,
+   "realistically_removable": 0.1395471006027284,
+   "required_intervention": "measure inside each series; OFFSET_K3 / corrected SERIES adapter at k>=3",
+   "basis": "per-series oracle offset vs per-ligand; OFFSET_K1@k1 vs OFFSET_K3@k3"
+  },
+  {
+   "component": "2 curve shape (within-curve, after the curve's level)",
+   "current_contribution": 0.191946364242222,
+   "oracle_removable": 0.191946364242222,
+   "realistically_removable": 0.0079819602681677,
+   "required_intervention": "gen8 slope repair; gen9 recomposition is already in the model",
+   "basis": "oracle per-curve slope vs SLOPE_L_s1_K1@k1"
+  },
+  {
+   "component": "4 system identity (name/structure mismatch rows)",
+   "current_contribution": -0.0017213201282183,
+   "oracle_removable": 0.0,
+   "realistically_removable": 0.0,
+   "required_intervention": "record the second species / represent the mixture (data work, not modelling)",
+   "basis": "Phase 7 cohort B vs A"
+  },
+  {
+   "component": "5 sparse support / distant chemotype",
+   "current_contribution": 0.0602876834392762,
+   "oracle_removable": 0.0602876834392762,
+   "realistically_removable": 0.0,
+   "required_intervention": "measure new chemotypes (Phase 9: one point on a far ligand is worth 0.49)",
+   "basis": "far tercile of Tanimoto distance errored like the rest"
+  },
+  {
+   "component": "6 suspected data quality (duplicates, TWE-24, flagged)",
+   "current_contribution": 0.0372689465225615,
+   "oracle_removable": 0.0372689465225615,
+   "realistically_removable": 0.0,
+   "required_intervention": "primary-source check of TWE-24 and the decade duplicates",
+   "basis": "Phase 7 cohorts C, D, E vs A"
+  },
+  {
+   "component": "7 residual unexplained",
+   "current_contribution": 0.1033090633737129,
+   "oracle_removable": 0.0,
+   "realistically_removable": 0.0,
+   "required_intervention": "none identified",
+   "basis": "current macro MAE minus the sum of oracle-removable components (components overlap; this is a floor, not an exact remainder)"
+  }
+ ]
+}

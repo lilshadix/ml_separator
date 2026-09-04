@@ -1,0 +1,85 @@
+{
+ "figure": "figure_02_preregistered_controls",
+ "source": {
+  "repository": "https://github.com/mironovb/lanthanidestrain",
+  "commit": "1cdeac39d0b018529a735f967d3c83120d04c714",
+  "script": "automl/figures_pi_email.py::fig_control",
+  "table": "automl/reports/stack_test.csv",
+  "pre_registration": "automl/reports/STACK_PREREGISTRATION.md",
+  "results": "automl/reports/STACK_RESULTS.md"
+ },
+ "metric": "adjacent-pair separation R\u00b2 = R\u00b2 of the log10 separation factor between neighbouring lanthanides within one extractant and condition block (sel_adj_logSF_r2); positive delta favours the tested system",
+ "name_map": {
+  "repaired": "fingerprint network",
+  "S0": "3D encoder",
+  "T0w": "matched no-3D model",
+  "(absent second model)": "nothing added"
+ },
+ "cohort": {
+  "n_extractants": 149,
+  "n_bootstrap_draws": 400,
+  "n_extractants_source": "STACK_PREREGISTRATION.md sec. 3 and the nested_blend docstring; stack_test.csv carries no per-contrast n"
+ },
+ "contrasts": [
+  {
+   "contrast": "1_primary",
+   "role": "PRIMARY",
+   "question_in_figure": "does the 3D encoder add at all?",
+   "reference_system": "fingerprint network",
+   "tested_system": "fingerprint network + 3D encoder",
+   "delta": 0.0350940465370892,
+   "lo_90": 0.0167131399684663,
+   "hi_90": 0.0645506487364922,
+   "lo_corrected": 0.0041516810206516,
+   "hi_corrected": 0.0660364120535269,
+   "p_better": 1.0,
+   "verdict_90": "ADDS",
+   "verdict_corrected": "ADDS"
+  },
+  {
+   "contrast": "2_control",
+   "role": "CONTROL",
+   "question_in_figure": "does any second model add?",
+   "reference_system": "fingerprint network",
+   "tested_system": "fingerprint network + matched no-3D model",
+   "delta": 0.0055171483264074,
+   "lo_90": -0.0173556458180195,
+   "hi_90": 0.0184380887571164,
+   "lo_corrected": -0.0176350359521032,
+   "hi_corrected": 0.0286693326049182,
+   "p_better": 0.745,
+   "verdict_90": "not distinguishable",
+   "verdict_corrected": "not distinguishable"
+  },
+  {
+   "contrast": "3_decisive",
+   "role": "DECISIVE",
+   "question_in_figure": "is it the 3D encoder specifically?",
+   "reference_system": "fingerprint network + matched no-3D model",
+   "tested_system": "fingerprint network + 3D encoder",
+   "delta": 0.0295768982106817,
+   "lo_90": 0.0050243758308136,
+   "hi_90": 0.0654419017542653,
+   "lo_corrected": -0.0095025024284213,
+   "hi_corrected": 0.0686562988497848,
+   "p_better": 0.9975,
+   "verdict_90": "ADDS",
+   "verdict_corrected": "not distinguishable"
+  }
+ ],
+ "not_plotted": {
+  "desc_S2": "the descriptive fourth row of stack_test.csv; not a pre-registered contrast and not drawn upstream either"
+ },
+ "levels_are_elsewhere": {
+  "note": "levels are deliberately absent: the paired bootstrap delta is not the difference of two whole-set scores",
+  "example": {
+   "contrast": "1_primary",
+   "delta": 0.0350940465370892,
+   "arm_obs_minus_baseline_obs": 0.030577061485059925
+  }
+ },
+ "lint": {
+  "ok": true,
+  "violations": []
+ }
+}

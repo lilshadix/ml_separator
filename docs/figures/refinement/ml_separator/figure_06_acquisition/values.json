@@ -1,0 +1,385 @@
+{
+ "figure": "figure_06_acquisition",
+ "source": "runs/gen10_final/acquisition/realised_detail.parquet",
+ "feature_set": "geometry",
+ "cohort": {
+  "name": "C-KSHOT",
+  "n_extractants": 143,
+  "n_seeds": 5,
+  "n_repeats": 8,
+  "zero_shot_macro_mae": 0.9795839299577422,
+  "k": 1
+ },
+ "reproduces_realised_summary": true,
+ "policy_label_map": {
+  "ORACLE": "best in hindsight (not deployable)",
+  "SURROGATE_ORACLE": "best on ranker's target (not deployable)",
+  "MEDOID": "medoid candidate",
+  "CENTRAL": "nearest the mean condition",
+  "LEARNED_BLEND[geometry]": "learned ranker (blended with centrality)",
+  "LEARNED_SCALAR[geometry]": "learned ranker (regression)",
+  "MEDIAN_PREDICTION": "median predicted extraction",
+  "LEARNED_RANK[geometry]": "learned ranker (pairwise)",
+  "MAX_CONDITION_COVERAGE": "smallest covering radius",
+  "MIN_GP_DESIGN_VAR": "lowest design variance",
+  "MID_ACID": "median acidity",
+  "MAX_PREDICTION": "strongest predicted extraction",
+  "MAX_ENSEMBLE_SD": "most uncertain candidate",
+  "RANDOM": "random choice",
+  "MIN_ENSEMBLE_SD": "least uncertain candidate",
+  "FARTHEST_FROM_EXISTING": "farthest from the pool centre",
+  "MIN_PREDICTION": "weakest predicted extraction"
+ },
+ "panelA_panelC": [
+  {
+   "policy": "ORACLE",
+   "label": "best in hindsight (not deployable)",
+   "family": "oracle",
+   "macro_mae": 0.462774,
+   "frac_harmed": 0.077098,
+   "n_extractants": 143
+  },
+  {
+   "policy": "SURROGATE_ORACLE",
+   "label": "best on ranker's target (not deployable)",
+   "family": "oracle",
+   "macro_mae": 0.480359,
+   "frac_harmed": 0.121678,
+   "n_extractants": 143
+  },
+  {
+   "policy": "MEDOID",
+   "label": "medoid candidate",
+   "family": "centrality",
+   "macro_mae": 0.628553,
+   "frac_harmed": 0.284965,
+   "n_extractants": 143
+  },
+  {
+   "policy": "CENTRAL",
+   "label": "nearest the mean condition",
+   "family": "centrality",
+   "macro_mae": 0.631689,
+   "frac_harmed": 0.294755,
+   "n_extractants": 143
+  },
+  {
+   "policy": "LEARNED_BLEND[geometry]",
+   "label": "learned ranker (blended with centrality)",
+   "family": "learned",
+   "macro_mae": 0.634236,
+   "frac_harmed": 0.299301,
+   "n_extractants": 143
+  },
+  {
+   "policy": "LEARNED_SCALAR[geometry]",
+   "label": "learned ranker (regression)",
+   "family": "learned",
+   "macro_mae": 0.640411,
+   "frac_harmed": 0.306643,
+   "n_extractants": 143
+  },
+  {
+   "policy": "MEDIAN_PREDICTION",
+   "label": "median predicted extraction",
+   "family": "centrality",
+   "macro_mae": 0.644674,
+   "frac_harmed": 0.295804,
+   "n_extractants": 143
+  },
+  {
+   "policy": "LEARNED_RANK[geometry]",
+   "label": "learned ranker (pairwise)",
+   "family": "learned",
+   "macro_mae": 0.647834,
+   "frac_harmed": 0.310315,
+   "n_extractants": 143
+  },
+  {
+   "policy": "MAX_CONDITION_COVERAGE",
+   "label": "smallest covering radius",
+   "family": "centrality",
+   "macro_mae": 0.652672,
+   "frac_harmed": 0.306294,
+   "n_extractants": 143
+  },
+  {
+   "policy": "MIN_GP_DESIGN_VAR",
+   "label": "lowest design variance",
+   "family": "centrality",
+   "macro_mae": 0.655617,
+   "frac_harmed": 0.311014,
+   "n_extractants": 143
+  },
+  {
+   "policy": "MID_ACID",
+   "label": "median acidity",
+   "family": "centrality",
+   "macro_mae": 0.672256,
+   "frac_harmed": 0.309965,
+   "n_extractants": 143
+  },
+  {
+   "policy": "MAX_PREDICTION",
+   "label": "strongest predicted extraction",
+   "family": "extreme",
+   "macro_mae": 0.678915,
+   "frac_harmed": 0.373077,
+   "n_extractants": 143
+  },
+  {
+   "policy": "MAX_ENSEMBLE_SD",
+   "label": "most uncertain candidate",
+   "family": "uncertainty",
+   "macro_mae": 0.687511,
+   "frac_harmed": 0.343357,
+   "n_extractants": 143
+  },
+  {
+   "policy": "RANDOM",
+   "label": "random choice",
+   "family": "random",
+   "macro_mae": 0.691659,
+   "frac_harmed": 0.341958,
+   "n_extractants": 143
+  },
+  {
+   "policy": "MIN_ENSEMBLE_SD",
+   "label": "least uncertain candidate",
+   "family": "uncertainty",
+   "macro_mae": 0.695001,
+   "frac_harmed": 0.332692,
+   "n_extractants": 143
+  },
+  {
+   "policy": "FARTHEST_FROM_EXISTING",
+   "label": "farthest from the pool centre",
+   "family": "extreme",
+   "macro_mae": 0.754005,
+   "frac_harmed": 0.396678,
+   "n_extractants": 143
+  },
+  {
+   "policy": "MIN_PREDICTION",
+   "label": "weakest predicted extraction",
+   "family": "extreme",
+   "macro_mae": 0.781436,
+   "frac_harmed": 0.377098,
+   "n_extractants": 143
+  }
+ ],
+ "panelB_paired_vs_random": [
+  {
+   "comparison": "CENTRAL",
+   "point": 0.05997,
+   "ci95_low": 0.019213,
+   "ci95_high": 0.089045,
+   "bca_low": 0.027144,
+   "bca_high": 0.097413,
+   "block_macro": 0.036836,
+   "n_units": 143,
+   "units_improved": 94,
+   "seeds_positive": 0,
+   "n_seeds": 0
+  },
+  {
+   "comparison": "FARTHEST_FROM_EXISTING",
+   "point": -0.062345,
+   "ci95_low": -0.113267,
+   "ci95_high": -0.021575,
+   "bca_low": -0.111739,
+   "bca_high": -0.020555,
+   "block_macro": -0.079015,
+   "n_units": 143,
+   "units_improved": 51,
+   "seeds_positive": 0,
+   "n_seeds": 0
+  },
+  {
+   "comparison": "LEARNED_BLEND[geometry]",
+   "point": 0.057423,
+   "ci95_low": 0.017919,
+   "ci95_high": 0.085624,
+   "bca_low": 0.025749,
+   "bca_high": 0.093672,
+   "block_macro": 0.034669,
+   "n_units": 143,
+   "units_improved": 90,
+   "seeds_positive": 0,
+   "n_seeds": 0
+  },
+  {
+   "comparison": "LEARNED_RANK[geometry]",
+   "point": 0.043825,
+   "ci95_low": 0.003948,
+   "ci95_high": 0.069512,
+   "bca_low": 0.010943,
+   "bca_high": 0.074807,
+   "block_macro": 0.020938,
+   "n_units": 143,
+   "units_improved": 90,
+   "seeds_positive": 0,
+   "n_seeds": 0
+  },
+  {
+   "comparison": "LEARNED_SCALAR[geometry]",
+   "point": 0.051248,
+   "ci95_low": 0.015181,
+   "ci95_high": 0.076701,
+   "bca_low": 0.021844,
+   "bca_high": 0.083335,
+   "block_macro": 0.047145,
+   "n_units": 143,
+   "units_improved": 97,
+   "seeds_positive": 0,
+   "n_seeds": 0
+  },
+  {
+   "comparison": "MAX_CONDITION_COVERAGE",
+   "point": 0.038987,
+   "ci95_low": -0.005823,
+   "ci95_high": 0.067248,
+   "bca_low": 0.002634,
+   "bca_high": 0.072477,
+   "block_macro": 0.021609,
+   "n_units": 143,
+   "units_improved": 95,
+   "seeds_positive": 0,
+   "n_seeds": 0
+  },
+  {
+   "comparison": "MAX_ENSEMBLE_SD",
+   "point": 0.004148,
+   "ci95_low": -0.02959,
+   "ci95_high": 0.028568,
+   "bca_low": -0.022824,
+   "bca_high": 0.036038,
+   "block_macro": -0.005154,
+   "n_units": 143,
+   "units_improved": 64,
+   "seeds_positive": 0,
+   "n_seeds": 0
+  },
+  {
+   "comparison": "MAX_PREDICTION",
+   "point": 0.012745,
+   "ci95_low": -0.042054,
+   "ci95_high": 0.050444,
+   "bca_low": -0.032153,
+   "bca_high": 0.057254,
+   "block_macro": -0.003661,
+   "n_units": 143,
+   "units_improved": 83,
+   "seeds_positive": 0,
+   "n_seeds": 0
+  },
+  {
+   "comparison": "MEDIAN_PREDICTION",
+   "point": 0.046986,
+   "ci95_low": 0.006729,
+   "ci95_high": 0.074486,
+   "bca_low": 0.015862,
+   "bca_high": 0.083647,
+   "block_macro": 0.018959,
+   "n_units": 143,
+   "units_improved": 98,
+   "seeds_positive": 0,
+   "n_seeds": 0
+  },
+  {
+   "comparison": "MEDOID",
+   "point": 0.063106,
+   "ci95_low": 0.019233,
+   "ci95_high": 0.095349,
+   "bca_low": 0.028034,
+   "bca_high": 0.105001,
+   "block_macro": 0.043975,
+   "n_units": 143,
+   "units_improved": 98,
+   "seeds_positive": 0,
+   "n_seeds": 0
+  },
+  {
+   "comparison": "MID_ACID",
+   "point": 0.019403,
+   "ci95_low": -0.02368,
+   "ci95_high": 0.048516,
+   "bca_low": -0.015112,
+   "bca_high": 0.055107,
+   "block_macro": 0.007246,
+   "n_units": 143,
+   "units_improved": 76,
+   "seeds_positive": 0,
+   "n_seeds": 0
+  },
+  {
+   "comparison": "MIN_ENSEMBLE_SD",
+   "point": -0.003342,
+   "ci95_low": -0.03459,
+   "ci95_high": 0.016679,
+   "bca_low": -0.030341,
+   "bca_high": 0.019557,
+   "block_macro": -0.013486,
+   "n_units": 143,
+   "units_improved": 73,
+   "seeds_positive": 0,
+   "n_seeds": 0
+  },
+  {
+   "comparison": "MIN_GP_DESIGN_VAR",
+   "point": 0.036043,
+   "ci95_low": 0.008134,
+   "ci95_high": 0.055837,
+   "bca_low": 0.011068,
+   "bca_high": 0.057491,
+   "block_macro": 0.028194,
+   "n_units": 143,
+   "units_improved": 88,
+   "seeds_positive": 0,
+   "n_seeds": 0
+  },
+  {
+   "comparison": "MIN_PREDICTION",
+   "point": -0.089777,
+   "ci95_low": -0.129132,
+   "ci95_high": -0.035795,
+   "bca_low": -0.136285,
+   "bca_high": -0.043419,
+   "block_macro": -0.067551,
+   "n_units": 143,
+   "units_improved": 49,
+   "seeds_positive": 0,
+   "n_seeds": 0
+  },
+  {
+   "comparison": "ORACLE",
+   "point": 0.228885,
+   "ci95_low": 0.169043,
+   "ci95_high": 0.272567,
+   "bca_low": 0.180984,
+   "bca_high": 0.288809,
+   "block_macro": 0.20324,
+   "n_units": 143,
+   "units_improved": 143,
+   "seeds_positive": 0,
+   "n_seeds": 0
+  },
+  {
+   "comparison": "SURROGATE_ORACLE",
+   "point": 0.2113,
+   "ci95_low": 0.151621,
+   "ci95_high": 0.255169,
+   "bca_low": 0.163619,
+   "bca_high": 0.271705,
+   "block_macro": 0.184425,
+   "n_units": 143,
+   "units_improved": 142,
+   "seeds_positive": 0,
+   "n_seeds": 0
+  }
+ ],
+ "lint": {
+  "ok": true,
+  "violations": []
+ }
+}

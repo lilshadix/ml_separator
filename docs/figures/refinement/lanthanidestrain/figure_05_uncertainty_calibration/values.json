@@ -1,0 +1,136 @@
+{
+ "figure": "Figure 5 \u2014 uncertainty and magnitude calibration",
+ "source_repository": "https://github.com/mironovb/lanthanidestrain",
+ "source_commit": "1cdeac39d0b018529a735f967d3c83120d04c714",
+ "supersedes": [
+  "automl/reports/figures/fig6_uncertainty_calibration.png",
+  "automl/reports/figures/re_fig4_calibration.png"
+ ],
+ "panel_A": {
+  "question": "does the model's quoted uncertainty match the errors it makes?",
+  "table": "uncertainty_calibration.csv",
+  "model": "out-of-fold ensemble stack (non-negative least squares combiner)",
+  "units": "log D (absolute prediction, not a difference)",
+  "quintile": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "realised_mean_abs_error_logD": [
+   0.7784305727087127,
+   0.8222902047042224,
+   0.895190918572362,
+   0.8677051372113045,
+   1.0623863820980164
+  ],
+  "quoted_ensemble_disagreement_sd_logD": [
+   0.1456869407942798,
+   0.1951487017238851,
+   0.2352683571733644,
+   0.2841554700771969,
+   0.4037359472828899
+  ],
+  "ratio_realised_over_quoted": [
+   5.343173303418537,
+   4.213659621818426,
+   3.804977980582039,
+   3.0536281317251217,
+   2.631389127591413
+  ],
+  "n_out_of_fold_rows": 5946,
+  "n_rows_per_quintile": 1189
+ },
+ "panel_B": {
+  "question": "how wide are the predicted adjacent-lanthanide separations?",
+  "tables": [
+   "calibration_test_binned.csv",
+   "calibration_test_strict.csv"
+  ],
+  "model": "full (CatBoost+repaired+S0)",
+  "quantity": "span_ratio = SD(predicted difference) / SD(measured difference)",
+  "binned": {
+   "n_pairs": 905,
+   "span_ratio": {
+    "raw": 0.4229991292962637,
+    "scale": 0.5250392198609581,
+    "affine": 0.5461934418686863,
+    "isotonic": 0.4938754745529935
+   }
+  },
+  "strict": {
+   "n_pairs": 1417,
+   "span_ratio": {
+    "raw": 0.384659429825567,
+    "scale": 0.4557367748678295,
+    "affine": 0.465113412618455,
+    "isotonic": 0.5200193940979816
+   }
+  }
+ },
+ "panel_C": {
+  "question": "does recalibration buy adjacent-pair accuracy?",
+  "quantity": "adjacent-pair log SF R2 of the transform minus that of the model as measured; positive favours recalibration",
+  "binned": {
+   "n_pairs": 905,
+   "adjacent_pair_logSF_r2": {
+    "raw": 0.2671708021544878,
+    "scale": 0.2758330973487786,
+    "affine": 0.2744636792639582,
+    "isotonic": 0.2220862943112603
+   },
+   "delta_r2_vs_as_measured": {
+    "raw": 0.0,
+    "scale": 0.008662295194290792,
+    "affine": 0.007292877109470408,
+    "isotonic": -0.045084507843227484
+   },
+   "bootstrap_on_one_factor_rescale": {
+    "transform": "scale",
+    "delta_r2": 0.0086622951942907,
+    "lo_90": 0.0002838385697746,
+    "hi_90": 0.0200325094462984,
+    "p_positive": 0.9525,
+    "n_draws": 400,
+    "level": "90 % cluster bootstrap over extractants"
+   }
+  },
+  "strict": {
+   "n_pairs": 1417,
+   "adjacent_pair_logSF_r2": {
+    "raw": 0.1917946489730615,
+    "scale": 0.1913744886449638,
+    "affine": 0.185224452204982,
+    "isotonic": 0.1874205965583575
+   },
+   "delta_r2_vs_as_measured": {
+    "raw": 0.0,
+    "scale": -0.00042016032809769066,
+    "affine": -0.006570196768079517,
+    "isotonic": -0.0043740524147040105
+   },
+   "bootstrap_on_one_factor_rescale": {
+    "transform": "scale",
+    "delta_r2": -0.0004201603280976,
+    "lo_90": -0.0136715192775987,
+    "hi_90": 0.0119019142052162,
+    "p_positive": 0.535,
+    "n_draws": 400,
+    "level": "90 % cluster bootstrap over extractants"
+   }
+  }
+ },
+ "label_map": {
+  "full (CatBoost+repaired+S0)": "deployed three-model stack (gradient-boosted trees + repaired neural network + 3D encoder)",
+  "composition_key (binned)": "conditions matched in bins",
+  "strict_composition_key (strict)": "conditions matched exactly",
+  "raw": "as measured",
+  "scale": "one-factor rescale",
+  "affine": "linear rescale (factor + offset)",
+  "isotonic": "any monotone map",
+  "span_ratio": "SD of predicted separation / SD of measured separation",
+  "mae": "errors actually made (mean |error| of the stack)",
+  "spread": "error bar the model quotes (SD across the base models)"
+ }
+}

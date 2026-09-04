@@ -1,0 +1,136 @@
+{
+ "figure": "Fig3_shape_recovery",
+ "axis": "extractant",
+ "example_seed": 104729,
+ "selected_curves": {
+  "median": "45d32f69aed37aee",
+  "improved": "e10df887ab66e002",
+  "residual": "0bf12a4391a4e25b"
+ },
+ "selection_rule": "FIGURE_PLAN.md \u00a79",
+ "stage_summary": [
+  {
+   "stage": "Baseline model",
+   "model": "REC_ecfp_plus_recovered",
+   "n_curves_x_seeds": 775,
+   "n_distinct_curves": 155,
+   "n_extractants": 25,
+   "slope_true_median": 2.573675226299942,
+   "slope_pred_median": 0.11642844967037402,
+   "span_recovery_median": 0.05071765852937553,
+   "shape_mae_mean": 0.6648148953790014,
+   "spearman_mean": 0.5823711919570708
+  },
+  {
+   "stage": "+ relative position",
+   "model": "GEN9_REL_MONOLITH",
+   "n_curves_x_seeds": 775,
+   "n_distinct_curves": 155,
+   "n_extractants": 25,
+   "slope_true_median": 2.573675226299942,
+   "slope_pred_median": 0.5210451780818858,
+   "span_recovery_median": 0.20953012760778428,
+   "shape_mae_mean": 0.5671798109102415,
+   "spearman_mean": 0.8402100686058442
+  },
+  {
+   "stage": "+ recomposition",
+   "model": "GEN9_SHAPE_RECOMPOSED",
+   "n_curves_x_seeds": 775,
+   "n_distinct_curves": 155,
+   "n_extractants": 25,
+   "slope_true_median": 2.573675226299942,
+   "slope_pred_median": 1.0240136832686502,
+   "span_recovery_median": 0.4232912084165291,
+   "shape_mae_mean": 0.469194113387331,
+   "spearman_mean": 0.8856282679685347
+  }
+ ],
+ "examples": [
+  {
+   "role": "median",
+   "curve_id": "45d32f69aed37aee",
+   "extractant": "CCCCCCCCCCN(CCCCCCCCCC)C(=O)COCC(=O)N(CCCCCC)CCCCCC",
+   "n_points": 5,
+   "measured_span": 2.0217391304347814,
+   "level_error_recomposed": -1.9534578073970785,
+   "level_error_frozen": -1.9780092806178833
+  },
+  {
+   "role": "improved",
+   "curve_id": "e10df887ab66e002",
+   "extractant": "CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC",
+   "n_points": 5,
+   "measured_span": 3.500562766084608,
+   "level_error_recomposed": 0.004668821174295235,
+   "level_error_frozen": 0.004668821174295346
+  },
+  {
+   "role": "residual",
+   "curve_id": "0bf12a4391a4e25b",
+   "extractant": "CCCCN(CCCC)C(=O)COCC(=O)N(CCCC)CCCC",
+   "n_points": 6,
+   "measured_span": 2.9329776793578004,
+   "level_error_recomposed": -0.8981206387617252,
+   "level_error_frozen": -0.9003932043556904
+  }
+ ],
+ "panelE": [
+  {
+   "stage": "Baseline model",
+   "metric": "span_recovery",
+   "statistic": "median",
+   "point": 0.05071765852937553,
+   "ci95_low": 0.04510685784154182,
+   "ci95_high": 0.08628872082642422,
+   "n_curve_seed": 775
+  },
+  {
+   "stage": "+ relative position",
+   "metric": "span_recovery",
+   "statistic": "median",
+   "point": 0.20953012760778428,
+   "ci95_low": 0.11643548351824565,
+   "ci95_high": 0.2886862040800198,
+   "n_curve_seed": 775
+  },
+  {
+   "stage": "+ recomposition",
+   "metric": "span_recovery",
+   "statistic": "median",
+   "point": 0.4232912084165291,
+   "ci95_low": 0.326984716309168,
+   "ci95_high": 0.5439488960063017,
+   "n_curve_seed": 775
+  }
+ ],
+ "panelF": [
+  {
+   "stage": "Baseline model",
+   "metric": "spearman",
+   "statistic": "mean",
+   "point": 0.5823711919570708,
+   "ci95_low": 0.26391524832803587,
+   "ci95_high": 0.7080749751158489,
+   "n_curve_seed": 775
+  },
+  {
+   "stage": "+ relative position",
+   "metric": "spearman",
+   "statistic": "mean",
+   "point": 0.8402100686058442,
+   "ci95_low": 0.44419759933703434,
+   "ci95_high": 0.880338156838563,
+   "n_curve_seed": 775
+  },
+  {
+   "stage": "+ recomposition",
+   "metric": "spearman",
+   "statistic": "mean",
+   "point": 0.8856282679685347,
+   "ci95_low": 0.6738431502110316,
+   "ci95_high": 0.9139770718835114,
+   "n_curve_seed": 775
+  }
+ ]
+}

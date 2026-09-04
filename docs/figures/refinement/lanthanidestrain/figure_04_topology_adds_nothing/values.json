@@ -1,0 +1,214 @@
+{
+ "figure": "figure_04_topology_adds_nothing",
+ "source_repository": {
+  "source_repository": "https://github.com/mironovb/lanthanidestrain",
+  "branch": "main",
+  "commit": "1cdeac39d0b018529a735f967d3c83120d04c714",
+  "commit_date": "2026-08-24T20:14:10-04:00",
+  "vendored": "automl/reports/*.csv and automl/reports/*.json",
+  "n_files": 115,
+  "why": "The result tables are small and committed upstream; vendoring them makes every refined figure_script.py in this tree runnable without re-cloning a 111 MB repository. The model artefacts under automl/artifacts/ are NOT committed upstream and are therefore absent here too - see REPRODUCIBILITY.md."
+ },
+ "cohort": "4,746 measurements \u00b7 162 extractants \u00b7 905 adjacent-lanthanide pairs \u00b7 leave-extractants-out CV, 5 folds \u00d7 3 repeats",
+ "metric": "adjacent-pair log10 separation-factor R2, out-of-fold, leave-extractants-out; higher is better",
+ "panelA_blend_weight": [
+  {
+   "w_edge": null,
+   "w_topo": null,
+   "r2": 0.31818590438120864,
+   "kind": "none",
+   "row": "tabular shape only\n(reference)"
+  },
+  {
+   "w_edge": 0.34868421052631593,
+   "w_topo": null,
+   "r2": 0.3258037646824453,
+   "kind": "edge",
+   "row": "distance encoder\n(edges only)"
+  },
+  {
+   "w_edge": null,
+   "w_topo": 0.009868421052631577,
+   "r2": 0.31716523867199353,
+   "kind": "topo",
+   "row": "simplicial encoder\n(edges + triangles)"
+  },
+  {
+   "w_edge": null,
+   "w_topo": 0.06052631578947367,
+   "r2": 0.31840141047268655,
+   "kind": "topo",
+   "row": "the same encoder, as\noriginally published"
+  },
+  {
+   "w_edge": 0.34868421052631593,
+   "w_topo": 0.0,
+   "r2": 0.3258037646824453,
+   "kind": "both",
+   "row": "both encoders offered\nat once"
+  }
+ ],
+ "panelB_correlations": {
+  "values": {
+   "distance_vs_simplicial": 0.963,
+   "tabular_vs_distance": 0.743,
+   "tabular_vs_simplicial": 0.749,
+   "error_vs_distance": 0.196,
+   "error_vs_simplicial": 0.176
+  },
+  "provenance": "transcribed from automl/reports/TOPOLOGY_TESTS.md section 1 at commit 1cdeac3; computed upstream from out-of-fold parquets under automl/artifacts/, which is not committed upstream and is therefore not vendored here"
+ },
+ "panelC_triangle_ablation": [
+  {
+   "label": "4.0 \u00c5 cut-off,\nencoder on its own",
+   "edge": 0.25175608831520147,
+   "topo": 0.23186615889618767,
+   "n_seeds": 8,
+   "delta": -0.019889929419013797
+  },
+  {
+   "label": "4.0 \u00c5 cut-off,\nblended into the model",
+   "edge": 0.3245928291914968,
+   "topo": 0.3180343016408058,
+   "n_seeds": 8,
+   "delta": -0.0065585275506909735
+  },
+  {
+   "label": "3.5 \u00c5 cut-off,\nencoder on its own",
+   "edge": 0.2473260664448177,
+   "topo": 0.231603296781978,
+   "n_seeds": 8,
+   "delta": -0.015722769662839697
+  },
+  {
+   "label": "3.5 \u00c5 cut-off,\nblended into the model",
+   "edge": 0.3188331689426088,
+   "topo": 0.3181975735633874,
+   "n_seeds": 8,
+   "delta": -0.0006355953792214208
+  }
+ ],
+ "panelD_persistence": [
+  {
+   "stem": "anch_q60_q60",
+   "label": "no persistence\nfeatures (reference)",
+   "kind": "none",
+   "r2": 0.3188322372245369,
+   "seeds": [
+    0.2955374634054269,
+    0.3044945954720603,
+    0.3073519679667559,
+    0.3185616991531189
+   ],
+   "n_seeds": 4
+  },
+  {
+   "stem": "anch_g9",
+   "label": "+ 22 persistence\nsummary statistics",
+   "kind": "topo",
+   "r2": 0.0897242943134978,
+   "seeds": [
+    0.040704918250764,
+    0.0361129535138291,
+    0.0616742374080276,
+    0.0264262356848815
+   ],
+   "n_seeds": 4
+  },
+  {
+   "stem": "anch_g11",
+   "label": "+ 279 persistence-\nimage pixels",
+   "kind": "topo",
+   "r2": 0.0022491692022388,
+   "seeds": [
+    -0.0288591256531725,
+    -0.1295433546944018,
+    -0.1199409425329625,
+    -0.047754175004731
+   ],
+   "n_seeds": 4
+  },
+  {
+   "stem": "anch_g9_g11",
+   "label": "+ both",
+   "kind": "topo",
+   "r2": -0.0386527139065295,
+   "seeds": [
+    -0.1225777280415398,
+    -0.1174113424828526,
+    -0.1478492704881471,
+    -0.1227756427965216
+   ],
+   "n_seeds": 4
+  },
+  {
+   "stem": "anch_g9_bm",
+   "label": "+ the 22 statistics,\nblock-mean control",
+   "kind": "control",
+   "r2": 0.2686678429730884,
+   "seeds": [
+    0.2498823185690989,
+    0.2538839601183874,
+    0.2676730242166444,
+    0.2512188179290229
+   ],
+   "n_seeds": 4
+  }
+ ],
+ "panelE_stack_contrasts": [
+  {
+   "key": "1_primary",
+   "label": "adding the topological network\nto the 2-D baseline",
+   "kind": "topo",
+   "delta": 0.0350940465370892,
+   "lo": 0.0167131399684663,
+   "hi": 0.0645506487364922,
+   "lo_c": 0.0041516810206516,
+   "hi_c": 0.0660364120535269,
+   "clears": true,
+   "n_boot": 400
+  },
+  {
+   "key": "2_control",
+   "label": "adding a matched control network\n(same recipe, no 3-D input)",
+   "kind": "none",
+   "delta": 0.0055171483264074,
+   "lo": -0.0173556458180195,
+   "hi": 0.0184380887571164,
+   "lo_c": -0.0176350359521032,
+   "hi_c": 0.0286693326049182,
+   "clears": false,
+   "n_boot": 400
+  },
+  {
+   "key": "3_decisive",
+   "label": "the topological network against\nthat control, in the same slot",
+   "kind": "topo",
+   "delta": 0.0295768982106817,
+   "lo": 0.0050243758308136,
+   "hi": 0.0654419017542653,
+   "lo_c": -0.0095025024284213,
+   "hi_c": 0.0686562988497848,
+   "clears": false,
+   "n_boot": 400
+  }
+ ],
+ "name_map": {
+  "c15_plw4": "distance encoder (edges only)",
+  "c17_plw4": "simplicial encoder (edges + triangles)",
+  "c17_plw2": "simplicial encoder, published training objective",
+  "tabular_only": "tabular shape only",
+  "g9": "22 persistence summary statistics",
+  "g11": "279 persistence-image pixels",
+  "block_mean": "block-mean control",
+  "anch_q60_q60": "the anchored model's shape channel, unchanged",
+  "S0": "topological network",
+  "T0w": "matched control network (same recipe, 3-D encoder removed)",
+  "repaired": "2-D fingerprint + descriptor network (scaling repaired)",
+  "sel_adj_logSF_r2": "adjacent-pair log10 separation-factor R2"
+ },
+ "lint": {
+  "ok": true,
+  "violations": []
+ }
+}

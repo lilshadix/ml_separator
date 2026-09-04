@@ -1,0 +1,236 @@
+{
+ "figure": "figure_01_headline_result",
+ "source": {
+  "repository": "https://github.com/mironovb/lanthanidestrain",
+  "commit": "1cdeac39d0b018529a735f967d3c83120d04c714",
+  "script": "automl/figures_pi_email.py::fig_result",
+  "tables": [
+   "automl/reports/dualkey_arms.csv",
+   "automl/reports/best_stack.csv",
+   "automl/reports/stack_test.csv",
+   "automl/reports/adjacent_ensemble.csv",
+   "automl/reports/anchored_3d.json",
+   "automl/reports/anchored_3d_confirm.json"
+  ],
+  "reports": [
+   "automl/reports/PI_REPORT.md",
+   "automl/reports/COLLAB_UPDATE_REPORT.md",
+   "automl/reports/STACK_RESULTS.md",
+   "automl/reports/DUALKEY_RESULTS.md",
+   "automl/reports/CAMPAIGN_AUG2026.md"
+  ]
+ },
+ "metric": "adjacent-pair log SF R2 = R2 of the log10 separation factor between neighbouring lanthanides inside one extractant and condition block (evaluation.py sel_adj_logSF_r2). Replicates are averaged per (block, metal) first; the difference is taken lighter minus heavier neighbour; R2 is taken about the mean pair separation, -0.0724.",
+ "cohort": {
+  "panel_A_and_the_two_contrasts": {
+   "n_adjacent_pairs": 905,
+   "n_blocks": 552,
+   "n_rows": 4746,
+   "n_extractants": 162,
+   "source": "AUDIT_2026-07-30.md sec. 1",
+   "n_extractants_caveat": "AUDIT_2026-07-30.md gives 162 extractants for this 905-pair set; best_stack.py's docstring and STACK_PREREGISTRATION.md sec. 3 say the nested weights are fitted over 149. Which count the cluster bootstrap resamples is not decidable from the vendored tables, so no extractant count is drawn in the artwork.",
+   "cv": "leave-extractants-out, 5 folds x 3 repeats",
+   "bootstrap": "cluster bootstrap over whole extractants, 400 draws, seed 0, 90 % interval"
+  },
+  "panel_B_and_C_confirmation": {
+   "n_by_population": {
+    "fresh": 444,
+    "legacy": 905,
+    "all": 1349
+   },
+   "rule": "anchored_3d_confirm.py, committed before the encoder retrain finished: blend weight fixed at 0.35, primary endpoint is the sign of the contrast on the held-out 444"
+  }
+ },
+ "name_map": {
+  "CatBoost": "gradient boosting (2D)",
+  "repaired": "fingerprint network (2D)",
+  "S0": "3D encoder",
+  "T0w": "matched 2D control",
+  "no topology (CatBoost+repaired)": "gradient boosting + fingerprint network",
+  "topology swapped for control": "+ matched 2D control (no 3D input)",
+  "full (CatBoost+repaired+S0)": "+ 3D encoder",
+  "adj_r2_binned": "adjacent-pair log SF R\u00b2 (conditions binned into blocks)",
+  "fresh": "held-out confirmation pairs",
+  "legacy": "pairs used throughout the study",
+  "all": "both sets together",
+  "drop-in": "3D encoder added to the 2D pair",
+  "swap": "3D encoder in place of the control"
+ },
+ "systems": {
+  "panel_A": "combination study: gradient boosting, the fingerprint network and the 3D encoder blended, weights fitted per held-out extractant (best_stack.py, stack_test.py)",
+  "panels_B_C_confirmation": "anchored system: the composition-block level is fitted separately from the within-block series shape, and the 3D encoder enters the shape channel only, at a weight fixed at 0.35 in advance (anchored_3d_confirm.py)"
+ },
+ "panel_A_levels": [
+  {
+   "label": "gradient boosting (2D)",
+   "value": 0.1421731880856024,
+   "level_ci_90": null
+  },
+  {
+   "label": "fingerprint network (2D)",
+   "value": 0.2205686242115101,
+   "level_ci_90": null
+  },
+  {
+   "label": "3D encoder",
+   "value": 0.2382015823446188,
+   "level_ci_90": [
+    0.189444572219429,
+    0.2616144716996761
+   ]
+  },
+  {
+   "label": "fingerprint network (2D) + 3D encoder",
+   "value": 0.2511456856965699,
+   "level_ci_90": [
+    0.1819198226757507,
+    0.2781666327468962
+   ]
+  },
+  {
+   "label": "gradient boosting + fingerprint network",
+   "value": 0.2263372787562447,
+   "level_ci_90": null
+  },
+  {
+   "label": "+ matched 2D control (no 3D input)",
+   "value": 0.220753188639077,
+   "level_ci_90": null
+  },
+  {
+   "label": "+ 3D encoder",
+   "value": 0.2671708021544878,
+   "level_ci_90": [
+    0.1905228896007184,
+    0.2955187389872656
+   ]
+  }
+ ],
+ "panel_B_confirmation_levels": [
+  {
+   "key": "fresh",
+   "label": "held-out confirmation pairs, frozen before the model ran",
+   "short": "held-out confirmation pairs",
+   "n": 444,
+   "tabular": 0.10508157590687539,
+   "blend": 0.1206581464767792,
+   "contrast": 0.015576570569903803
+  },
+  {
+   "key": "legacy",
+   "label": "the pairs used throughout the study",
+   "short": "pairs used throughout",
+   "n": 905,
+   "tabular": 0.2963609888108252,
+   "blend": 0.31093850242662147,
+   "contrast": 0.01457751361579629
+  },
+  {
+   "key": "all",
+   "label": "both sets together",
+   "short": "both sets together",
+   "n": 1349,
+   "tabular": 0.23005377029181207,
+   "blend": 0.24497430650830776,
+   "contrast": 0.014920536216495695
+  }
+ ],
+ "panel_C_contrasts": [
+  {
+   "label": "3D encoder added to the 2D pair",
+   "n_pairs": 905,
+   "delta": 0.0380655288547098,
+   "lo_90": 0.0191372843108421,
+   "hi_90": 0.0495100379718717,
+   "lo_corrected": 0.0165890574540708,
+   "hi_corrected": 0.0595420002553488,
+   "verdict": "adds"
+  },
+  {
+   "label": "3D encoder in place of the matched control",
+   "n_pairs": 905,
+   "delta": 0.0446213346833682,
+   "lo_90": 0.0297730746730177,
+   "hi_90": 0.0544382246833861,
+   "lo_corrected": 0.0271806905224201,
+   "hi_corrected": 0.0620619788443162,
+   "verdict": "adds"
+  },
+  {
+   "label": "held-out confirmation pairs, frozen before the model ran",
+   "n_pairs": 444,
+   "delta": 0.015576570569903803,
+   "interval": null
+  },
+  {
+   "label": "the pairs used throughout the study",
+   "n_pairs": 905,
+   "delta": 0.01457751361579629,
+   "interval": null
+  },
+  {
+   "label": "both sets together",
+   "n_pairs": 1349,
+   "delta": 0.014920536216495695,
+   "interval": null
+  }
+ ],
+ "confirmation_rule": {
+  "w_fixed": 0.35,
+  "w_nested_on_the_earlier_set": {
+   "mean": 0.34868421052631593,
+   "min": 0.30000000000000004,
+   "max": 0.4
+  },
+  "primary_pass": true
+ },
+ "not_plotted": {
+  "anchored_3d.json main": "the same architecture with the weight re-fitted per held-out extractant scores 0.3258 against 0.3182 tabular-only on the 905 pairs; it is a different run from the confirmation (retrained encoder, fixed weight) and is deliberately not drawn beside it",
+  "adjacent_ensemble second row": "the persistence-image encoder ensemble, +0.2080, which the original figure does not carry either",
+  "stack_test rows 2_control, 3_decisive, desc_S2": "the pre-registered contrast set; it is figure 2 of this refinement"
+ },
+ "palette_check": {
+  "method": "the source repository's automl/tests/test_palette.py, unchanged (Machado CVD simulation, OKLab dE x100, its own thresholds: CVD dE >= 8 target / 6 floor, normal-vision dE >= 15, WCAG contrast >= 3)",
+  "original_figure_four_hues": {
+   "colours": [
+    "#4a3aa7",
+    "#eb6834",
+    "#2a78d6",
+    "#e34948"
+   ],
+   "worst_cvd_dE": 5.62,
+   "worst_cvd_pair": [
+    "#eb6834",
+    "#e34948"
+   ],
+   "worst_cvd_kind": "deutan",
+   "worst_normal_dE": 7.13,
+   "note": "below the 6.0 hard floor; this four-hue combination is not among the subsets that test registers, so it was never checked"
+  },
+  "refined_figure_five_colours": {
+   "colours": [
+    "#CC79A7",
+    "#E69F00",
+    "#0072B2",
+    "#D55E00",
+    "#4D4D4D"
+   ],
+   "worst_cvd_dE": 9.55,
+   "worst_normal_dE": 15.58,
+   "contrast_vs_white": {
+    "purple": 3.06,
+    "orange": 2.25,
+    "blue": 5.19,
+    "vermillion": 3.87,
+    "grey": 8.45
+   },
+   "note": "the one threshold not met is WCAG 3:1 for the orange against white (2.25); it is the shared style's orange, carried by a large filled bar with its own row label"
+  }
+ },
+ "single_seed_sd": 0.0468294583086284,
+ "n_seeds": 16,
+ "lint": {
+  "ok": true,
+  "violations": []
+ }
+}

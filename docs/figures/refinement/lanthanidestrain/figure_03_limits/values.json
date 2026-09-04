@@ -1,0 +1,180 @@
+{
+ "figure": "figure_03_limits",
+ "source": {
+  "repository": "github.com/mironovb/lanthanidestrain",
+  "script": "automl/figures_pi_email.py::fig_limits",
+  "tables": [
+   "encoder_test.csv",
+   "encoder_arms.csv",
+   "dualkey_test.csv"
+  ],
+  "provenance": {
+   "source_repository": "https://github.com/mironovb/lanthanidestrain",
+   "branch": "main",
+   "commit": "1cdeac39d0b018529a735f967d3c83120d04c714",
+   "commit_date": "2026-08-24T20:14:10-04:00",
+   "vendored": "automl/reports/*.csv and automl/reports/*.json",
+   "n_files": 115,
+   "why": "The result tables are small and committed upstream; vendoring them makes every refined figure_script.py in this tree runnable without re-cloning a 111 MB repository. The model artefacts under automl/artifacts/ are NOT committed upstream and are therefore absent here too - see REPRODUCIBILITY.md."
+  }
+ },
+ "label_map": {
+  "S0": "3D: edges + triangles",
+  "G0": "3D: triangles deleted",
+  "D0": "3D: distances only",
+  "T0w": "matched 2D control",
+  "CatBoost": "gradient boosting (2D)",
+  "repaired": "fingerprint network (2D)",
+  "composition_key": "conditions binned \u2014 552 blocks (published)",
+  "strict_composition_key": "every condition matched \u2014 2,109 blocks"
+ },
+ "block_counts": {
+  "composition_key": 552,
+  "strict_composition_key": 2109
+ },
+ "bootstrap": {
+  "n_boot": 400,
+  "interval": "90 %",
+  "cluster": "whole extractants",
+  "looks_panelA": 13,
+  "looks_panelC": 10
+ },
+ "panelA_differences_binned_key": [
+  {
+   "arm": "with G0",
+   "base": "no topology",
+   "label": "3D graph, triangles deleted added to the 2D-only pair",
+   "delta": 0.0343066395138196,
+   "lo": 0.0175981440988704,
+   "hi": 0.0455191690632559,
+   "lo_corrected": 0.011687341038887,
+   "hi_corrected": 0.0569259379887523,
+   "p_better": 1.0,
+   "verdict_corrected": "adds"
+  },
+  {
+   "arm": "with D0",
+   "base": "no topology",
+   "label": "3D distances only, no simplices added to the 2D-only pair",
+   "delta": 0.0284058010645541,
+   "lo": 0.0153825782920835,
+   "hi": 0.0473660768562543,
+   "lo_corrected": 0.0024954234470296,
+   "hi_corrected": 0.0543161786820786,
+   "p_better": 1.0,
+   "verdict_corrected": "adds"
+  },
+  {
+   "arm": "with S0",
+   "base": "with D0",
+   "label": "triangles against distances, same slot, head to head",
+   "delta": 0.0090690055521104,
+   "lo": -0.0164849218609682,
+   "hi": 0.0307850447066691,
+   "lo_corrected": -0.0292252004828507,
+   "hi_corrected": 0.0473632115870717,
+   "p_better": 0.6525,
+   "verdict_corrected": "not distinguishable"
+  }
+ ],
+ "panelB_levels_binned_key": [
+  {
+   "arm": "G0",
+   "label": "3D: triangles deleted",
+   "adj_r2_binned": 0.2458716764875809
+  },
+  {
+   "arm": "D0",
+   "label": "3D: distances only",
+   "adj_r2_binned": 0.2473663559908014
+  },
+  {
+   "arm": "S0",
+   "label": "3D: edges + triangles",
+   "adj_r2_binned": 0.2382015823446188
+  },
+  {
+   "arm": "T0w",
+   "label": "matched 2D control",
+   "adj_r2_binned": 0.2006417289741934
+  }
+ ],
+ "panelC_differences_both_keys": [
+  {
+   "question": "drop-in: does adding S0 to the best no-topology stack help?",
+   "label": "adding the 3D encoder to the 2D-only pair",
+   "key": "composition_key",
+   "key_label": "conditions binned \u2014 552 blocks (published)",
+   "delta": 0.0374748066166646,
+   "lo": 0.0173450325729505,
+   "hi": 0.0510488783777013,
+   "lo_corrected": 0.0110871611254273,
+   "hi_corrected": 0.0638624521079019,
+   "p_better": 1.0,
+   "verdict_corrected": "adds"
+  },
+  {
+   "question": "drop-in: does adding S0 to the best no-topology stack help?",
+   "label": "adding the 3D encoder to the 2D-only pair",
+   "key": "strict_composition_key",
+   "key_label": "every condition matched \u2014 2,109 blocks",
+   "delta": 0.0176730746183684,
+   "lo": -0.0023183234238839,
+   "hi": 0.0366626549368708,
+   "lo_corrected": -0.0128461795891202,
+   "hi_corrected": 0.0481923288258571,
+   "p_better": 0.925,
+   "verdict_corrected": "not distinguishable"
+  },
+  {
+   "question": "swap: S0 vs the matched tabular control in the same slot",
+   "label": "3D encoder against the matched 2D control",
+   "key": "composition_key",
+   "key_label": "conditions binned \u2014 552 blocks (published)",
+   "delta": 0.0437930483550631,
+   "lo": 0.0253134807163039,
+   "hi": 0.0553795761584277,
+   "lo_corrected": 0.0202534952598897,
+   "hi_corrected": 0.0673326014502366,
+   "p_better": 1.0,
+   "verdict_corrected": "adds"
+  },
+  {
+   "question": "swap: S0 vs the matched tabular control in the same slot",
+   "label": "3D encoder against the matched 2D control",
+   "key": "strict_composition_key",
+   "key_label": "every condition matched \u2014 2,109 blocks",
+   "delta": 0.0176730746183685,
+   "lo": -0.0023183234238837,
+   "hi": 0.0366626549368708,
+   "lo_corrected": -0.01284617958912,
+   "hi_corrected": 0.048192328825857,
+   "p_better": 0.925,
+   "verdict_corrected": "not distinguishable"
+  }
+ ],
+ "panelD_levels_both_keys": [
+  {
+   "label": "boosting + fingerprint net",
+   "source_column": "baseline_obs",
+   "binned": 0.2263372787562448,
+   "strict": 0.1737298727171216
+  },
+  {
+   "label": "+ matched 2D control",
+   "source_column": "baseline_obs",
+   "binned": 0.2207531886390771,
+   "strict": 0.1737298727171214
+  },
+  {
+   "label": "+ the 3D encoder\n(edges + triangles)",
+   "source_column": "arm_obs",
+   "binned": 0.2671708021544879,
+   "strict": 0.1917946489730616
+  }
+ ],
+ "lint": {
+  "ok": true,
+  "violations": []
+ }
+}
