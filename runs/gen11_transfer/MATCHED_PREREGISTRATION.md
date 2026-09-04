@@ -104,3 +104,63 @@ it would retract gen11's central claim, and the retraction is the result.
 If H_AMP survives, the direct test is a lambda ladder on D at per-row parity
 (`aux_lambda = n_aux/n_core ≈ 0.085`) against D at lambda = 1. That arm does not exist and would
 be labelled EXPLORATORY.
+
+---
+
+## Addendum 1 — 2026-09-04, written while the stage was running, before any result
+
+Two things established from the arms already on disk and from the sampler's arithmetic. Neither
+uses a matched-stage outcome; both are recorded here so they cannot be presented later as though
+they had been anticipated.
+
+**(a) Diagnostic 1 (Am dose-response) is underpowered by construction, and I am downgrading it in
+advance.** Every F draw samples the *same* fold-filtered actinide pool at the *same* size, differing
+only in the draw seed. Am is 36.1 % of that pool, and drawing ~424 of ~3,850 cells gives a
+hypergeometric sd of 2.2 pp — so the five draws will span roughly 32–41 % Am. A dose-response over
+a 9-point range cannot separate "americium-specific" from "actinide-general", whatever it shows.
+It will be reported as a descriptive spread, not as evidence either way. Testing that question
+properly needs draws stratified deliberately on Am fraction, which is not in this design.
+
+**(b) The size match is per fold, and it does control the amplification confound.** Confirmed from
+`diagnostics_F_..._draw11.csv`: at split seed 104729 fold 0, F has `n_core` 4,866 and `n_aux` 424 —
+identical to D's 424 in the same fold. So F and D share both the block size and the ~11.5x per-row
+up-weighting, and differ only in which metals the block contains. This is what makes F − D the
+clean test of §3, and it was worth verifying rather than assuming.
+
+---
+
+## Addendum 2 — 2026-09-04, still before any matched-stage result
+
+Reasoning about the four arms **already on disk**, recorded now so it cannot later look like it was
+fitted to the answer. It does not change the primary endpoint or the §5 predictions.
+
+**The strict monotone form of H_AMP is already false.** If harm rose with per-row amplification,
+B (109.9x) would be worse than D (11.76x). It is not: B is -0.0037, D is -0.0534. So amplification
+alone does not order the arms, and §3 overstates its case by implying it might.
+
+Two readings survive, and they differ in what F would mean.
+
+**H_AMP' — amplification x irrelevance.** B is heavily amplified but carries *lanthanide* rows,
+the same metals as the target, so up-weighting them costs nothing; D is moderately amplified and
+carries metals the target never sees. Under this reading chemistry is doing real work, and F
+(actinides at D's size) should land nearer B than D.
+
+**H_SIZE — a non-monotone size regime.** With `min_samples_leaf = 2`, 38 rows at half the training
+mass can simply be memorised into their own leaves without disturbing the rest; 357 rows cannot,
+and instead bend the fit. Under this reading the pathology is specific to a middle size range, and
+F sits inside it whatever metals it holds.
+
+**This does not weaken F − D.** F and D share the size, the lambda and the amplification, so the
+contrast still isolates chemistry. But it sharpens what a null result would license:
+
+* `eff(F) - eff(D) >= +0.04` -> chemistry matters at equal n and equal amplification. H_CHEM.
+* `eff(F) ~ eff(D)`, both negative -> at this block size the amplification pathology dominates
+  whatever chemistry contributes. That does **not** prove chemistry is irrelevant; it proves the
+  existing C-vs-D contrast **cannot be used to establish chemical relevance**, because its two arms
+  sit in different size regimes. gen11's central claim would then be unsupported rather than
+  refuted, which is a weaker and more accurate statement than §8 anticipated.
+
+The experiment that would separate H_AMP' from H_SIZE is the exploratory lambda ladder already named
+in §9: run D at `aux_lambda = n_aux/n_core ~ 0.085` so its per-row weight matches the core. If D's
+harm disappears at per-row parity, the pathology is amplification; if it persists, it is chemistry.
+That arm does not exist and remains EXPLORATORY.
