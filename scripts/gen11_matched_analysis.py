@@ -68,9 +68,15 @@ def main() -> int:
     print("=" * 78)
     prim = A.compare(base, reference="D", candidates=sorted(f_draws))
     print(prim.to_string(index=False))
-    col = "delta" if "delta" in prim.columns else prim.columns[1]
-    print(f"\nmean over {len(prim)} draws: {prim[col].mean():+.4f}   "
-          f"min {prim[col].min():+.4f}  max {prim[col].max():+.4f}")
+    col = "point_delta"
+    for stat in ("mae", "offset_mae", "shape_mae"):
+        sub = prim[prim["statistic"] == stat]
+        if sub.empty:
+            continue
+        excl = ((sub["bca_low"] > 0) | (sub["bca_high"] < 0)).sum()
+        print(f"\n{stat:10s} mean over {len(sub)} draws {sub[col].mean():+.4f}   "
+              f"min {sub[col].min():+.4f}  max {sub[col].max():+.4f}   "
+              f"draws with BCa excluding zero: {excl}/{len(sub)}")
 
     print("\n--- per split seed, each F draw vs D ---")
     for k in sorted(f_draws):
@@ -85,8 +91,10 @@ def main() -> int:
         print("=" * 78)
         gch = A.compare(base, reference="D", candidates=sorted(g_draws))
         print(gch.to_string(index=False))
-        print(f"\nmean G-vs-D {gch[col].mean():+.4f}   vs   mean F-vs-D {prim[col].mean():+.4f}"
-              f"   |difference| {abs(gch[col].mean()-prim[col].mean()):.4f}  (pre-registered < 0.02)")
+        gm = gch[gch["statistic"] == "mae"]["point_delta"].mean()
+        fm = prim[prim["statistic"] == "mae"]["point_delta"].mean()
+        print(f"\nmean G-vs-D {gm:+.4f}   vs   mean F-vs-D {fm:+.4f}"
+              f"   |difference| {abs(gm-fm):.4f}  (pre-registered < 0.02)")
 
     # ---- diagnostic 2: level vs shape ------------------------------------------
     print("\n" + "=" * 78)

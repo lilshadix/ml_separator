@@ -1,278 +1,255 @@
-# GEN11 decision report
+# gen11 — decision report
 
-_Rendered from `runs/gen11_transfer/headline_tables/` at 2026-08-22T19:24:09+00:00. Every number below is read back from one of those CSVs, which are themselves recomputed from the raw OOF predictions in `runs/gen11_transfer/arms`. Nothing here is transcribed._
+*Rewritten 2026-09-04 after the pre-registered `matched` stage ran. Supersedes
+`GEN11_DECISION_REPORT_SUPERSEDED_20260823.md`, which was rendered 2026-08-23T00:24 when 5 of the
+34 pre-registered arms existed and which concluded "No auxiliary arm passes any §18 criterion".
+That verdict was written before three of the arms it judged had been fitted (`arms/leaderboard.csv`
+was rewritten at 13:35 the same day) and must not be quoted.*
 
-## 0. What was available when this report was rendered
+**Headline: the stage is INCONCLUSIVE.** It neither established nor refuted the hypothesis it was
+built to test, and the reason is a power failure that no amount of re-analysis fixes.
 
-* arms with stored predictions: **5** of **34** pre-registered
-* design-matched baseline: `A_GEN10_CONTROL|JOINT|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1`
-* frozen gen10 anchor: `A_GEN10_CONTROL|JOINT|FROZEN_3|FROZEN_8|HIERARCHICAL|lam1`
-* seeds per arm: [104729, 130363, 155921, 196613, 262147]
-* cohort fingerprint asserted by the runner: `bed178ec1a7a82b0`
-* the frozen anchor recomputed here scores macro MAE **0.969484543735** against gen10's own re-derivation from gen10's raw predictions, **0.969484543735** (|Δ| = 0) — the anchor is the same model, not a look-alike
+---
 
-Pre-registered arms **not** on disk when this ran (the primary run was still in progress, or the stage has not been launched):
+## 1. What has been run
 
-* `C_LN_PLUS_ACTINIDES|AUX_PRETRAIN|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1`
-* `C_LN_PLUS_ACTINIDES|JOINT|GENERAL|ANNOTATION_SAFE|CHEMOTYPE|lam1`
-* `C_LN_PLUS_ACTINIDES|JOINT|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam0.25`
-* `C_LN_PLUS_ACTINIDES|JOINT|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam0.5`
-* `C_LN_PLUS_ACTINIDES|JOINT|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1`
-* `C_LN_PLUS_ACTINIDES|JOINT|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1|PERMUTED_AUX_TARGET`
-* `C_LN_PLUS_ACTINIDES|JOINT|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1|PUBLICATION_BLOCKED`
-* `C_LN_PLUS_ACTINIDES|JOINT|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1|SHUFFLED_METAL_LABELS`
-* `C_LN_PLUS_ACTINIDES|JOINT|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam2`
-* `C_LN_PLUS_ACTINIDES|JOINT|GENERAL|ANNOTATION_SAFE|METAL_BALANCED|lam1`
-* `C_LN_PLUS_ACTINIDES|JOINT|GENERAL|ANNOTATION_SAFE|ROW|lam1`
-* `C_LN_PLUS_ACTINIDES|SHARED_LEVEL|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1`
-* `C_LN_PLUS_ACTINIDES|SHARED_SHAPE|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1`
-* `D_LN_PLUS_NON_ACTINIDE|JOINT|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1`
-* `E_LN_PLUS_ALL|AUX_PRETRAIN|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1`
-* `E_LN_PLUS_ALL|JOINT|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1`
-* `E_LN_PLUS_ALL|JOINT|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1|PUBLICATION_BLOCKED`
-* `E_LN_PLUS_ALL|SHARED_LEVEL|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1`
-* `E_LN_PLUS_ALL|SHARED_SHAPE|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1`
-* `F_ACTINIDES_ONLY_MATCHED|JOINT|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1|draw11`
-* `F_ACTINIDES_ONLY_MATCHED|JOINT|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1|draw22`
-* `F_ACTINIDES_ONLY_MATCHED|JOINT|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1|draw33`
-* `F_ACTINIDES_ONLY_MATCHED|JOINT|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1|draw44`
-* `F_ACTINIDES_ONLY_MATCHED|JOINT|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1|draw55`
-* `G_RANDOM_AUX_MATCHED|JOINT|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1|draw11`
-* `G_RANDOM_AUX_MATCHED|JOINT|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1|draw22`
-* `G_RANDOM_AUX_MATCHED|JOINT|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1|draw33`
-* `G_RANDOM_AUX_MATCHED|JOINT|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1|draw44`
-* `G_RANDOM_AUX_MATCHED|JOINT|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1|draw55`
+| stage | arms | status |
+|---|---|---|
+| `primary` | 8 (4 controls + B, C, D, E) | complete, 5 split seeds |
+| `matched` | 10 (F and G, 5 fixed draws each) | complete, 5 split seeds |
+| `mechanisms`, `weighting`, `controls`, `policy` | 16 | **not run** |
 
-Tables skipped, with the reason (an absent table is recorded, never emitted empty):
+26 of 34 pre-registered arms remain unrun, including both negative controls
+(`PERMUTED_AUX_TARGET`, `SHUFFLED_METAL_LABELS`), which §19 requires to show no benefit before any
+gain is believed.
 
-* `t5_kshot.csv` — no k-shot artefact under runs/gen11_transfer/; produce it with scripts/gen10_final_locked.py pointed at the gen11 arms
-* `t7_controls.csv` — no negative-control arm has been run (scripts/gen11_run.py --stage controls)
+Evaluation is gen10's, unchanged: cohort fingerprint `bed178ec1a7a82b0`, 5,248 rows, 152
+extractants, 131 ECFP clusters (the macro unit), 79 Tanimoto chemotypes (the resampling block),
+seeds 104729/130363/155921/196613/262147, model seed `42 + fold*1009 + 9_999_991`. Auxiliary rows
+enter training only and are never scored (`assert_evaluation_unchanged`: 0 extra rows, max target
+delta 0.0 in every arm).
 
-## 1. The one framing that must not be dropped
+## 2. The comparison is forced, and the reference is not the frozen anchor
 
-Every auxiliary arm runs at a **changed design corner** (`GENERAL` metal representation + `ANNOTATION_SAFE` MASSACTION), because the frozen design cannot represent auxiliary rows. So `auxiliary arm − frozen gen10` is not the transfer effect; it is the sum of two effects, and every table here splits them:
+The frozen 3-column metal block is NaN on 98.44 % of auxiliary rows (median-imputed to europium),
+and two MASSACTION columns are null on 98.44 % / 40.66 % of them against 0.02 % of cohort rows —
+they would act as an "is-auxiliary" flag. So `GENERAL` + `ANNOTATION_SAFE` are **forced** on every
+auxiliary arm, and the honest reference is the design-matched control, not the frozen anchor.
 
-```
-design effect   = macro(control @ FROZEN_3|FROZEN_8) − macro(control @ GENERAL|ANNOTATION_SAFE)
-transfer effect = macro(control @ same corner as the arm) − macro(arm)
-total           = design effect + transfer effect          (positive = better)
-```
+| arm | macro MAE | eff = control − arm |
+|---|---|---|
+| frozen gen10 anchor | 0.96948 | — |
+| `GENERAL` + `FROZEN_8` | 0.96919 | — |
+| **design-matched control** | **0.97324** | — |
+| `FROZEN_3` + `ANNOTATION_SAFE` | 0.97809 | −0.0086, BCa [−0.0156, −0.0041] |
+| B (auxiliary lanthanides, n≈38) | 0.97695 | −0.0037 |
+| **C (all actinides, n≈3,852)** | **0.92410** | **+0.0491** |
+| **D (non-actinides, n≈357)** | **1.02662** | **−0.0534** |
+| E (everything, n≈4,247) | 0.92598 | +0.0473 |
+| **F (actinides matched to D, n≈357)** | mean 0.01244 above control | **−0.0392**, BCa [−0.063, −0.018] |
 
-Measured design effects (`t2_leaderboard.csv`), each control corner against the frozen anchor:
+> **A caveat that applies to gen11's own headline:** at the pre-registered 5,000 replicates,
+> `eff(C)` has BCa **[−0.00049, +0.11865] — which includes zero.** It excludes zero only at 20,000
+> replicates. C does not clear the bar that F is being judged against.
 
-| model | macro_mae | offset_mae | shape_mae | pooled_mae | n_seeds | design_effect_macro |
+## 3. Primary endpoint — and why it settles nothing
+
+`eff(F) − eff(D)`: F and D have **bit-identical `n_aux` in all 25 folds** (max difference 0), the
+same `aux_lambda`, and therefore the same per-row up-weighting. Per draw:
+
+−0.0017, +0.0243, +0.0119, +0.0159, +0.0205 → **mean +0.0142**
+
+| statistic | value |
+|---|---|
+| chemotype-blocked BCa on the mean | **[−0.034, +0.085]** |
+| block-bootstrap SE | 0.0309 |
+| draws with BCa excluding zero | **0/5** |
+| draws with BCa excluding +0.04 | **0/5** |
+| split seeds positive | 4/5 (+0.0213, +0.0221, −0.0027, +0.0159, +0.0143) |
+| draw-level t-test on the five means | t = 3.16, **p = 0.034** |
+
+**The interval contains zero, the pre-registered H_CHEM value of +0.04, and the whole H_MIX band.**
+z(+0.0142 vs +0.04) = −0.84, p = 0.40. Likelihood ratio H_CHEM : H_AMP = **0.78** — the experiment
+carries essentially no information separating the two hypotheses it exists to separate.
+
+### 3.1 The power failure
+
+* Minimum detectable effect at 80 % power: **+0.087** — 2.2× the pre-registered bar, and 1.8× C's
+  entire measured gain.
+* Power to detect a true +0.04 under the three-part rule: **≈22–25 %**.
+* TOST against the H_AMP band |·| < 0.02: **fails, p = 0.43.** The interval is three times wider
+  than the equivalence band.
+* The design's one precision lever was inert: **87–94 % of the endpoint's variance is chemotype
+  sampling shared by all five draws**, so averaging draws bought ~6 % variance reduction where
+  independence would have bought 80 %. Resolving +0.04 at 80 % power needs roughly **370
+  independent chemotype blocks against the 79 that exist.** No number of extra draws or seeds
+  reaches it.
+* **No power calculation appears anywhere in the pre-registration.** That is the defect.
+
+**Therefore: H_CHEM is not rejected (a non-significant result is not a rejection) and H_AMP is not
+established (a point estimate inside a band whose interval is three times wider is a
+non-detection).** Both remain unsupported.
+
+## 4. The real finding: the aggregate null is a mixture of two opposite effects
+
+Stratifying by the pre-declared chemotype bands (§7.3, declared before the run):
+
+| band | rows | ECFP units | **F − D** | draws > 0 | F − control | D − control |
 |---|---|---|---|---|---|---|
-| A_GEN10_CONTROL\|JOINT\|GENERAL\|FROZEN_8\|HIERARCHICAL\|lam1 | 0.9692 | 0.8225 | 0.4815 | 1.1246 | 5 | 0.0003 |
-| A_GEN10_CONTROL\|JOINT\|FROZEN_3\|FROZEN_8\|HIERARCHICAL\|lam1 | 0.9695 | 0.8212 | 0.4819 | 1.1218 | 5 | 0.0000 |
-| A_GEN10_CONTROL\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | 0.9732 | 0.8229 | 0.4833 | 1.1190 | 5 | -0.0038 |
-| A_GEN10_CONTROL\|JOINT\|FROZEN_3\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | 0.9781 | 0.8291 | 0.4826 | 1.1239 | 5 | -0.0086 |
-
-
-The same comparison as a paired, chemotype-blocked bootstrap (`t3_paired_bootstrap.csv`, `comparison_kind = DESIGN`). A design corner whose interval excludes zero is a real cost or benefit that an auxiliary arm inherits before it transfers anything:
-
-| candidate | point_delta | bca_low | bca_high | cluster_robust_low | cluster_robust_high | units_improved | units_total | bca_direction |
-|---|---|---|---|---|---|---|---|---|
-| A_GEN10_CONTROL\|JOINT\|FROZEN_3\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | -0.0086 | -0.0156 | -0.0041 | -0.0139 | -0.0033 | 52 | 131 | candidate worse |
-| A_GEN10_CONTROL\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | -0.0038 | -0.0109 | 0.0012 | -0.0094 | 0.0019 | 65 | 131 | not separated |
-| A_GEN10_CONTROL\|JOINT\|GENERAL\|FROZEN_8\|HIERARCHICAL\|lam1 | 0.0003 | -0.0039 | 0.0053 | -0.0044 | 0.0050 | 65 | 131 | not separated |
-
-
-## 2. Leaderboard (`t2_leaderboard.csv`; per-seed values in `t2_leaderboard_by_seed.csv`)
-
-| model | arm_kind | design_corner | macro_mae | macro_mae_sd | offset_mae | shape_mae | pooled_mae | n_seeds | transfer_effect_macro | design_effect_macro | total_vs_frozen_macro | n_seeds_improved_vs_baseline |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| B_LN_EXPANDED\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | AUXILIARY | GENERAL\|ANNOTATION_SAFE | 0.9770 | 0.0242 | 0.8238 | 0.4782 | 1.1166 | 5 | -0.0037 | -0.0038 | -0.0075 | 2 |
-| A_GEN10_CONTROL\|JOINT\|GENERAL\|FROZEN_8\|HIERARCHICAL\|lam1 | DESIGN_CONTROL | GENERAL\|FROZEN_8 | 0.9692 | 0.0241 | 0.8225 | 0.4815 | 1.1246 | 5 | n/a | 0.0003 | 0.0003 | n/a |
-| A_GEN10_CONTROL\|JOINT\|FROZEN_3\|FROZEN_8\|HIERARCHICAL\|lam1 | DESIGN_CONTROL | FROZEN_3\|FROZEN_8 | 0.9695 | 0.0254 | 0.8212 | 0.4819 | 1.1218 | 5 | n/a | 0.0000 | 0.0000 | n/a |
-| A_GEN10_CONTROL\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | DESIGN_CONTROL | GENERAL\|ANNOTATION_SAFE | 0.9732 | 0.0301 | 0.8229 | 0.4833 | 1.1190 | 5 | n/a | -0.0038 | -0.0038 | n/a |
-| A_GEN10_CONTROL\|JOINT\|FROZEN_3\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | DESIGN_CONTROL | FROZEN_3\|ANNOTATION_SAFE | 0.9781 | 0.0279 | 0.8291 | 0.4826 | 1.1239 | 5 | n/a | -0.0086 | -0.0086 | n/a |
-
-
-## 3. What each arm is made of (`t1_arm_composition.csv`)
-
-The archive's contribution is metals and curves, not ligands — read any transfer result against these counts.
-
-| arm | aux_rows | aux_structures | aux_metals | aux_new_chemotypes | aux_rows_on_new_chemistry | aux_rows_fingerprint_identical_to_cohort | aux_usable_curves | aux_effective_chemotypes | total_rows | n_oof_variants_run |
-|---|---|---|---|---|---|---|---|---|---|---|
-| A_GEN10_CONTROL | 0 | 0 | 0 | 0 | 0 | 0 | 0 | n/a | 5938 | 4 |
-| B_LN_EXPANDED | 86 | 6 | 5 | 1 | 11 | 75 | 6 | 1.7576 | 6024 | 1 |
-| C_LN_PLUS_ACTINIDES | 4896 | 153 | 8 | 37 | 908 | 2779 | 864 | 9.9678 | 10834 | 0 |
-| D_LN_PLUS_NON_ACTINIDE | 456 | 7 | 17 | 1 | 13 | 424 | 79 | 1.3519 | 6394 | 0 |
-| E_LN_PLUS_ALL | 5438 | 155 | 30 | 38 | 932 | 3278 | 954 | 8.9211 | 11376 | 0 |
-| F_ACTINIDES_ONLY_MATCHED | 456 | 81 | 6 | 19 | 82 | 255 | 12 | 8.9514 | 6394 | 0 |
-| G_RANDOM_AUX_MATCHED | 456 | 81 | 19 | 20 | 91 | 266 | 13 | 8.6511 | 6394 | 0 |
-
-
-## 4. Where a difference sits (`t6_decomposition.csv`)
-
-Positive = the candidate is better. `level` is the per-ligand mean residual and `shape` the deviation about it; they move independently.
-
-| candidate | band_scheme | stratum_kind | stratum | n_rows | n_units | abs_improvement | level_improvement | shape_improvement |
-|---|---|---|---|---|---|---|---|---|
-| B_LN_EXPANDED\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | GEN11_ANALYSIS | band | far | 2138 | 30 | -0.0186 | -0.0028 | 0.0087 |
-| B_LN_EXPANDED\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | GEN11_ANALYSIS | band | mid | 5367 | 71 | -0.0163 | -0.0004 | -0.0027 |
-| B_LN_EXPANDED\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | GEN11_ANALYSIS | band | near | 18735 | 71 | 0.0070 | 0.0015 | 0.0061 |
-| B_LN_EXPANDED\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | n/a | ALL | ALL | 26240 | 131 | -0.0037 | -0.0004 | 0.0043 |
-| B_LN_EXPANDED\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | GEN10_TERCILE | band | far | 6736 | 87 | -0.0154 | 0.0008 | -0.0023 |
-| B_LN_EXPANDED\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | GEN10_TERCILE | band | mid | 3951 | 51 | 0.0075 | 0.0051 | 0.0002 |
-| B_LN_EXPANDED\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | GEN10_TERCILE | band | near | 15553 | 38 | 0.0114 | 0.0045 | 0.0132 |
-
-
-Criterion D needs the far band to be *statistically* better, not merely better on a point estimate, so the far stratum carries its own chemotype-blocked paired bootstrap (`t6_far_band_bootstrap.csv`):
-
-| candidate | band_scheme | n_rows | n_units | point_delta | bca_low | bca_high | units_improved | units_total | status |
-|---|---|---|---|---|---|---|---|---|---|
-| B_LN_EXPANDED\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | GEN11_ANALYSIS | 2138 | 30 | -0.0186 | -0.0607 | 0.0424 | 12 | 30 | OK |
-| B_LN_EXPANDED\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | GEN10_TERCILE | 6736 | 87 | -0.0154 | -0.0410 | 0.0138 | 36 | 87 | OK |
-
-
-## 5. Curve shape by axis (`t4_shape_by_axis.csv`)
-
-| model | axis_label | n_curves | shape_mae | baseline_shape_mae | shape_improvement_vs_baseline | slope_mae | span_recovery_median |
-|---|---|---|---|---|---|---|---|
-| B_LN_EXPANDED\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | acid | 421 | 0.5398 | 0.5396 | -0.0002 | 1.3360 | 0.4262 |
-| B_LN_EXPANDED\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | contact_time | 8 | 0.0774 | 0.0716 | -0.0058 | 0.0044 | n/a |
-| B_LN_EXPANDED\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | extractant | 155 | 0.4675 | 0.4741 | 0.0066 | 1.4585 | 0.4682 |
-| B_LN_EXPANDED\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | metal_concentration | 9 | 0.2699 | 0.2691 | -0.0008 | 0.8502 | 0.0151 |
-| B_LN_EXPANDED\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | metal_series | 321 | 0.2959 | 0.2927 | -0.0032 | 0.0944 | 0.6349 |
-| B_LN_EXPANDED\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | temperature | 32 | 0.4087 | 0.4086 | -0.0001 | 0.0391 | 0.1579 |
-
-
-## 6. Few-shot frontier (`t5_kshot.csv`)
-
-_Not produced: no k-shot artefact under runs/gen11_transfer/; produce it with scripts/gen10_final_locked.py pointed at the gen11 arms._
-
-## 7. Negative controls (`t7_controls.csv`)
-
-_Not produced: no negative-control arm has been run (scripts/gen11_run.py --stage controls)._
-
-## 8. The thirteen questions (§21)
-
-_Question wording is reconstructed from the gen11 module contracts; the brief document is not in this worktree. Each answer names the table it came from._
-
-### 1. Does the audited multi-metal archive improve zero-shot prediction for unseen lanthanide chemistry on the frozen gen10 benchmark?
-
-_(maps to §1/§18A)_
-
-Best auxiliary arm is `B_LN_EXPANDED|JOINT|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1` with a **transfer effect of -0.0037 macro MAE** against its design-matched control (`t2_leaderboard.csv`), improving in 2/5 seeds. The §18A bar is 0.02 with consistent seed direction. Chemotype-blocked paired bootstrap (`t3_paired_bootstrap.csv`): point -0.0037, BCa 95 % [-0.0187, 0.0154], percentile [-0.0184, 0.0159], 57/131 units improved.
-
-### 2. How much of any observed change is the design change (general metal representation and annotation-safe MASSACTION) rather than the auxiliary data?
-
-_(maps to §3/§7)_
-
-Measured directly by running the control at every design corner (`t2_leaderboard.csv`, column `design_effect_macro`, positive = the changed design is better than frozen; intervals from `t3_paired_bootstrap.csv`): `GENERAL|FROZEN_8` 0.0003 [BCa -0.0039, 0.0053; not separated]; `FROZEN_3|FROZEN_8` 0.0000; `GENERAL|ANNOTATION_SAFE` -0.0038 [BCa -0.0109, 0.0012; not separated]; `FROZEN_3|ANNOTATION_SAFE` -0.0086 [BCa -0.0156, -0.0041; candidate worse]. Any `TOTAL_CONFOUNDED` row in `t3_paired_bootstrap.csv` is the sum of this and the transfer effect and must not be quoted as a transfer result.
-
-### 3. Which auxiliary composition helps, if any — extra lanthanides (B), actinides (C), other metals (D), or everything (E)?
-
-_(maps to §5 B-E)_
-
-Transfer effect by composition (`t2_leaderboard.csv`): `B_LN_EXPANDED` -0.0037. Read these against `t1_arm_composition.csv`: the auxiliary pool adds metals and curves, not ligands.
-
-### 4. At equal row count, is any gain chemical relevance or merely row count (F actinides-matched vs G random-matched)?
-
-_(maps to §5 F/G)_
-
-**Not answerable**, because the size-matched arms F and G have not been run (`t2_leaderboard.csv`); the F/G contrast is the only thing that separates chemical relevance from row count.
-
-### 5. Which transfer mechanism does the work — joint training, auxiliary pretraining, or a shared representation with a lanthanide-only head?
-
-_(maps to §6)_
-
-**Not answerable**, because only the JOINT mechanism has been run; §6 requires the mechanisms to be compared, not collapsed (`t2_leaderboard.csv`).
-
-### 6. Does any effect survive the pre-registered weighting schemes and auxiliary mass settings, or is it a weighting artefact?
-
-_(maps to §12)_
-
-**Not answerable**, because only one weighting/auxiliary-mass setting has been run, so §12's robustness question has no contrast to measure (`t2_leaderboard.csv`).
-
-### 7. Does the effect sit in the per-ligand level or in the within-curve shape?
-
-_(maps to §11)_
-
-Level/shape split of the transfer effect (`t6_decomposition.csv`, `stratum = ALL`): `B_LN_EXPANDED|JOINT|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1`: level -0.0004, shape 0.0043, total -0.0037
-
-### 8. Does the archive help most where the cohort is thinnest — on distant held-out chemotypes?
-
-_(maps to §18D)_
-
-Improvement by chemotype-distance band (`t6_decomposition.csv`): `B_LN_EXPANDED|JOINT|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1` [GEN10_TERCILE]: far -0.0154 (87 units), mid 0.0075 (51 units), near 0.0114 (38 units); `B_LN_EXPANDED|JOINT|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1` [GEN11_ANALYSIS]: far -0.0186 (30 units), mid -0.0163 (71 units), near 0.0070 (71 units). Both band definitions present in the repository are reported because they disagree (see the caveats).
-
-### 9. Does the archive improve curve shape on a scientifically important axis?
-
-_(maps to §8/§18C)_
-
-Best per-axis shape gain (`t4_shape_by_axis.csv`): `B_LN_EXPANDED|JOINT|GENERAL|ANNOTATION_SAFE|HIERARCHICAL|lam1` on axis `extractant`, shape MAE 0.4741 → 0.4675 (0.0066 over 155 curves). The §18C bar is 0.10 with macro non-worse.
-
-### 10. Does the archive change the k = 0/1/2/3/5 few-shot frontier?
-
-_(maps to §18B)_
-
-**Not answerable**, because no k-shot frontier exists for gen11 arms (`t5_kshot.csv` skipped); the frontier is produced by pointing `scripts/gen10_final_locked.py` at `runs/gen11_transfer/arms`.
-
-### 11. Do the negative controls (permuted auxiliary target, shuffled metal labels) stay flat, as they must for any gain to be real?
-
-_(maps to §19)_
-
-**Not answerable**, because the §19 negative-control arms (permuted auxiliary target, shuffled metal labels) have not been run (`t7_controls.csv` skipped); until they are, no positive result can be attributed to auxiliary information rather than to the extra rows themselves.
-
-### 12. Does any result survive publication-blocked auxiliary admissibility and publication-blocked intervals?
-
-_(maps to §13)_
-
-**Not answerable**, because no `PUBLICATION_BLOCKED` arm has been run, so §13's publication-level robustness cannot be assessed from arm predictions (`t2_leaderboard.csv`) — the publication-blocked *interval* variant is available separately by rerunning this script with `--block doi`.
-
-### 13. Is there enough evidence to replace frozen gen10 with an auxiliary arm?
-
-_(maps to §18)_
-
-**No.** No auxiliary arm passes any §18 criterion it could be scored on (`stopping_rule.csv`, status counts {'FAIL': 3, 'NOT_APPLICABLE': 20, 'NOT_EVALUABLE': 2}). Frozen gen10 remains the control. Read the `NOT_EVALUABLE` cells separately from the `FAIL` cells: the first is missing evidence, the second is a measured negative.
-
-## 9. The stopping rule (§18), evaluated mechanically
-
-Status counts across all (arm, criterion) cells: **FAIL** 3, **NOT_APPLICABLE** 20, **NOT_EVALUABLE** 2.
-
-| arm | arm_kind | criterion | measured_quantity | measured_value | threshold | requirement_met | status | reason |
-|---|---|---|---|---|---|---|---|---|
-| A_GEN10_CONTROL\|JOINT\|FROZEN_3\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | DESIGN_CONTROL | A_ZERO_SHOT | not applicable | n/a | 0.02 | n/a | NOT_APPLICABLE | this arm carries no auxiliary rows; it is a design control, and §18 governs auxiliary arms |
-| A_GEN10_CONTROL\|JOINT\|FROZEN_3\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | DESIGN_CONTROL | B_FEW_SHOT | not applicable | n/a | 0.01 | n/a | NOT_APPLICABLE | this arm carries no auxiliary rows; it is a design control, and §18 governs auxiliary arms |
-| A_GEN10_CONTROL\|JOINT\|FROZEN_3\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | DESIGN_CONTROL | C_SHAPE | not applicable | n/a | 0.1 | n/a | NOT_APPLICABLE | this arm carries no auxiliary rows; it is a design control, and §18 governs auxiliary arms |
-| A_GEN10_CONTROL\|JOINT\|FROZEN_3\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | DESIGN_CONTROL | D_FAR_CHEMOTYPE | not applicable | n/a | n/a | n/a | NOT_APPLICABLE | this arm carries no auxiliary rows; it is a design control, and §18 governs auxiliary arms |
-| A_GEN10_CONTROL\|JOINT\|FROZEN_3\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | DESIGN_CONTROL | E_ROBUSTNESS | not applicable | n/a | n/a | n/a | NOT_APPLICABLE | this arm carries no auxiliary rows; it is a design control, and §18 governs auxiliary arms |
-| A_GEN10_CONTROL\|JOINT\|FROZEN_3\|FROZEN_8\|HIERARCHICAL\|lam1 | DESIGN_CONTROL | A_ZERO_SHOT | not applicable | n/a | 0.02 | n/a | NOT_APPLICABLE | this arm carries no auxiliary rows; it is a design control, and §18 governs auxiliary arms |
-| A_GEN10_CONTROL\|JOINT\|FROZEN_3\|FROZEN_8\|HIERARCHICAL\|lam1 | DESIGN_CONTROL | B_FEW_SHOT | not applicable | n/a | 0.01 | n/a | NOT_APPLICABLE | this arm carries no auxiliary rows; it is a design control, and §18 governs auxiliary arms |
-| A_GEN10_CONTROL\|JOINT\|FROZEN_3\|FROZEN_8\|HIERARCHICAL\|lam1 | DESIGN_CONTROL | C_SHAPE | not applicable | n/a | 0.1 | n/a | NOT_APPLICABLE | this arm carries no auxiliary rows; it is a design control, and §18 governs auxiliary arms |
-| A_GEN10_CONTROL\|JOINT\|FROZEN_3\|FROZEN_8\|HIERARCHICAL\|lam1 | DESIGN_CONTROL | D_FAR_CHEMOTYPE | not applicable | n/a | n/a | n/a | NOT_APPLICABLE | this arm carries no auxiliary rows; it is a design control, and §18 governs auxiliary arms |
-| A_GEN10_CONTROL\|JOINT\|FROZEN_3\|FROZEN_8\|HIERARCHICAL\|lam1 | DESIGN_CONTROL | E_ROBUSTNESS | not applicable | n/a | n/a | n/a | NOT_APPLICABLE | this arm carries no auxiliary rows; it is a design control, and §18 governs auxiliary arms |
-| A_GEN10_CONTROL\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | DESIGN_CONTROL | A_ZERO_SHOT | not applicable | n/a | 0.02 | n/a | NOT_APPLICABLE | this arm carries no auxiliary rows; it is a design control, and §18 governs auxiliary arms |
-| A_GEN10_CONTROL\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | DESIGN_CONTROL | B_FEW_SHOT | not applicable | n/a | 0.01 | n/a | NOT_APPLICABLE | this arm carries no auxiliary rows; it is a design control, and §18 governs auxiliary arms |
-| A_GEN10_CONTROL\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | DESIGN_CONTROL | C_SHAPE | not applicable | n/a | 0.1 | n/a | NOT_APPLICABLE | this arm carries no auxiliary rows; it is a design control, and §18 governs auxiliary arms |
-| A_GEN10_CONTROL\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | DESIGN_CONTROL | D_FAR_CHEMOTYPE | not applicable | n/a | n/a | n/a | NOT_APPLICABLE | this arm carries no auxiliary rows; it is a design control, and §18 governs auxiliary arms |
-| A_GEN10_CONTROL\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | DESIGN_CONTROL | E_ROBUSTNESS | not applicable | n/a | n/a | n/a | NOT_APPLICABLE | this arm carries no auxiliary rows; it is a design control, and §18 governs auxiliary arms |
-| A_GEN10_CONTROL\|JOINT\|GENERAL\|FROZEN_8\|HIERARCHICAL\|lam1 | DESIGN_CONTROL | A_ZERO_SHOT | not applicable | n/a | 0.02 | n/a | NOT_APPLICABLE | this arm carries no auxiliary rows; it is a design control, and §18 governs auxiliary arms |
-| A_GEN10_CONTROL\|JOINT\|GENERAL\|FROZEN_8\|HIERARCHICAL\|lam1 | DESIGN_CONTROL | B_FEW_SHOT | not applicable | n/a | 0.01 | n/a | NOT_APPLICABLE | this arm carries no auxiliary rows; it is a design control, and §18 governs auxiliary arms |
-| A_GEN10_CONTROL\|JOINT\|GENERAL\|FROZEN_8\|HIERARCHICAL\|lam1 | DESIGN_CONTROL | C_SHAPE | not applicable | n/a | 0.1 | n/a | NOT_APPLICABLE | this arm carries no auxiliary rows; it is a design control, and §18 governs auxiliary arms |
-| A_GEN10_CONTROL\|JOINT\|GENERAL\|FROZEN_8\|HIERARCHICAL\|lam1 | DESIGN_CONTROL | D_FAR_CHEMOTYPE | not applicable | n/a | n/a | n/a | NOT_APPLICABLE | this arm carries no auxiliary rows; it is a design control, and §18 governs auxiliary arms |
-| A_GEN10_CONTROL\|JOINT\|GENERAL\|FROZEN_8\|HIERARCHICAL\|lam1 | DESIGN_CONTROL | E_ROBUSTNESS | not applicable | n/a | n/a | n/a | NOT_APPLICABLE | this arm carries no auxiliary rows; it is a design control, and §18 governs auxiliary arms |
-| B_LN_EXPANDED\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | AUXILIARY | A_ZERO_SHOT | macro MAE improvement vs design-matched control | -0.0037 | 0.02 | 2/5 | FAIL | n/a |
-| B_LN_EXPANDED\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | AUXILIARY | B_FEW_SHOT | macro MAE improvement at k in {1,2,3,5} | n/a | 0.01 | n/a | NOT_EVALUABLE | no k-shot frontier has been produced for this arm |
-| B_LN_EXPANDED\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | AUXILIARY | C_SHAPE | shape MAE improvement on axis 'extractant' (155 curves) | 0.0066 | 0.1 | False | FAIL | n/a |
-| B_LN_EXPANDED\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | AUXILIARY | D_FAR_CHEMOTYPE | far-band macro MAE improvement (30 units, 2138 rows) | -0.0186 | BCa 95 % lower bound > 0 | False | FAIL | n/a |
-| B_LN_EXPANDED\|JOINT\|GENERAL\|ANNOTATION_SAFE\|HIERARCHICAL\|lam1 | AUXILIARY | E_ROBUSTNESS | query-design sensitivity at matched accuracy | n/a | lower than the control | n/a | NOT_EVALUABLE | the query-consistency run has not been produced for gen11 arms |
-
-
-## 10. Reproducing every number here (§22)
-
-```sh
-PYTHONPATH=src python scripts/gen11_report_tables.py
-```
-
-It reads only `runs/gen11_transfer/arms/oof_*.parquet` (raw predictions), `runs/gen11_transfer/composition/` (counts) and, where present, the gen11 k-shot detail; it recomputes macro/offset/shape with `gen6.metrics` and `gen9.metrics`, the bootstrap with `gen6.metrics.paired_unit_bootstrap`, and rewrites this file from the CSVs it produced. Deleting `runs/gen11_transfer/headline_tables/` and rerunning reproduces both the tables and this report.
-
-The only cached step is gen9's curve reconstruction, in `headline_tables/.shape_cache/`. Its key is a content hash of the arm's predictions, so a refitted arm cannot be served a stale entry, and deleting the directory rebuilds it. `--skip-shape` omits it entirely, at the cost of making criterion C `NOT_EVALUABLE`.
-
-## 11. Caveats this run detected
-
-* `gen11.analysis.CHEMOTYPE_BANDS` puts the far/mid cut at Tanimoto 0.400 and calls it gen10's, but `composition.py` recomputes gen10's own tercile cut at 0.588284 (near at 0.657143). They disagree, so `t6_decomposition.csv` reports both and criterion D is evaluated on the gen11 module's definition.
-* the design change alone — `A_GEN10_CONTROL|JOINT|FROZEN_3|ANNOTATION_SAFE|HIERARCHICAL|lam1` against the frozen anchor, no auxiliary rows — is significantly *worse*: -0.0086 macro MAE, BCa [-0.0156, -0.0041]. no auxiliary arm on disk uses this corner, so it is reported as an isolated measurement of that one design change rather than as a deficit any arm carries.
-* one chemotype block holds 21.4% of the scoring units in the bootstrap; gen6 measured the percentile interval at ~12.7 % one-sided Type-I error under exactly this leverage, so the BCa and cluster-robust columns of `t3_paired_bootstrap.csv` are the ones to read.
+| **far** (nn ≤ 0.4) | 2,138 | 30 | **+0.2018** | **5/5** | −0.0700 | **−0.2717** |
+| mid (0.4–0.6) | 5,367 | 71 | −0.0524 | 0/5 | −0.0674 | −0.0150 |
+| near (> 0.6) | 18,735 | 71 | +0.0015 | 3/5 | −0.0053 | −0.0068 |
+
+Far-band `F − D` by split seed: +0.1998, +0.1998, +0.1865, +0.2023, +0.2204 — **5/5**. The five G
+draws reproduce it independently at +0.1810, also 5/5, so the far-band separation from D holds in
+**10 of 10** actinide-dominated draws.
+
+**On genuinely distant chemistry — the regime the whole archive-transfer programme exists to serve
+— non-actinide auxiliary rows do enormous damage (−0.272) and actinide rows at the identical block
+size do far less (−0.070).** The aggregate +0.0142 is a mixture dominated by the near band, which
+holds 71 % of evaluation rows and where there is almost nothing to rescue.
+
+Stated honestly and in both frames: **actinide chemistry recovers roughly 70 % of D's far-band
+damage at equal n, but it does not help — F on the far band is still −0.070 against the control.**
+On 30 units and 28 blocks this is suggestive, not established, and a separate verification pass
+using a different aggregation put the same contrast at +0.132 with BCa [+0.0015, +0.3874]. The
+direction and the 5/5 draw and seed agreement are robust; the magnitude is not pinned down.
+
+## 5. Arithmetic check on the sampler — G passes, and G is therefore uninformative
+
+`G_RANDOM_AUX_MATCHED` was designed as the "does row count alone explain it" control. It draws from
+`(ACTINIDE,) + NON_ACTINIDE_OTHER`, and **that pool is 5,050 cells of which 4,607 — 91.2 % — are
+actinide.** A size-matched draw of ~357 is therefore ~91 % actinide against F's 100 %: the two arms
+differ by roughly **31 cells out of 357**. The pre-registration predicted `|eff(G) − eff(F)| < 0.02`
+and said that if G instead tracked D, the reading of the sampler was wrong and §2 had to be
+withdrawn.
+
+| | per draw | mean |
+|---|---|---|
+| eff(F) | −0.0551, −0.0291, −0.0415, −0.0375, −0.0328 | **−0.0392** |
+| eff(G) | −0.0282, −0.0438, −0.0301, −0.0361, −0.0405 | **−0.0357** |
+
+**|mean eff(G) − mean eff(F)| = 0.0035.** The check passes; the sampler reading stands. The stage
+leaderboard shows the two arms fully interleaved (G 1.0014, F 1.0024, G 1.0034, F 1.0061, G 1.0093,
+F 1.0107, G 1.0137, F 1.0147, G 1.0170).
+
+**The consequence is that G carries almost no independent information.** As coded it is not a
+"random auxiliary" control at all but a second actinide arm, so it cannot test whether row count
+alone explains D's harm. Half the compute of this stage went to an arm that could not answer its
+own question. A control that would answer it must sample from the **non-actinide** pool, or the
+contrast must be F against D directly — which is what §3 does.
+
+What G does add is replication: `G − D` is **+0.0176** against F's +0.0142, and on the far band
+`G − D` is **+0.1810, 5/5 draws** against F's +0.2018, 5/5. Treating the ten draws as ten samples
+of "an actinide-dominated block at D's exact size", the far-band separation from D is positive in
+**10 of 10** draws.
+
+## 6. What the C-vs-D contrast can and cannot support
+
+It cannot support chemical relevance, but **not for the reason the pre-registration gave.** C and
+D differ simultaneously in four ways:
+
+| | C | D |
+|---|---|---|
+| auxiliary rows per fold | 3,852 | 357 |
+| per-row weight vs core | 1.09× | 11.76× (mean of ratios: **17.88×**) |
+| **per-chemotype weight** — the unit `HIERARCHICAL` actually equalises | ~1× | **~26×** |
+| auxiliary structures / chemotypes | 153 | **7 / ~3** (71 % of rows on one ligand) |
+
+Three corrections to the pre-registration's own §3 follow, and they are corrections to this
+session's work, not to the original study:
+
+1. The amplification table is captioned "mean over 25 folds" but reports **ratios of fold-means**.
+2. Under `HIERARCHICAL`, `group_balanced_weights` assigns 1/count per row *within* the auxiliary
+   block, so the objective's unit is the ECFP cluster, not the row. **Per-row amplification is the
+   wrong statistic.** On the right one, F sits at ~1.7× per chemotype against D's ~26×.
+3. Consequently **Addendum 1(b)'s "F and D differ only in which metals the block contains" is
+   false.** They match on `n_aux` exactly and differ ~15× in per-chemotype weight and ~12× in
+   auxiliary ligand diversity — both flattering F.
+
+**And no amplification statistic orders the arms.** Per row, B is the most amplified (109.9×, or
+115.8× correctly averaged) and is harmless (−0.0037). Per chemotype, F is barely amplified (~1.7×)
+and still harms (−0.0392). H_AMP is no better supported by the arms on disk than H_CHEM is.
+
+The strongest supported contrast in the whole stage is one the primary endpoint does not contain:
+**C − F = −0.0884, BCa [−0.174, −0.034], excluding zero.** At fixed chemistry — both blocks
+entirely actinide — a 10.8× change in block size is worth six times the F−D contrast and is
+statistically supported where F−D is not. It bundles "more rows" with "more coverage" and "less
+up-weighting", so it isolates nothing, but it is the real signal in these data.
+
+## 7. A defect in the shipped level/shape numbers
+
+`gen6.metrics.per_unit_statistics` runs `decompose_level_shape` on the **seed-pooled** frame, so
+each ligand's residuals are centred on a mean taken across all five split seeds, and between-seed
+level wobble is scored as *shape*. Measured per-ligand cross-seed level SD: F 0.288–0.339,
+D 0.258, control 0.248, C 0.196 log units.
+
+Holding one axis at a time on `d_shape(F − D)`:
+
+| change | value |
+|---|---|
+| pre-registered statistic (131 clusters, seed-pooled) | −0.0263 |
+| averaging unit only → 152 ligands | −0.0285 *(moves away from zero)* |
+| **centring only → per (split_seed, ligand)** | **−0.0061** |
+| both | −0.0063 |
+
+**77 % of the collapse is the centring, not the unit.** `gen11.analysis.decompose` centres per
+(split_seed, extractant) and is unaffected.
+
+**This has reached a published headline number.** `headline_tables/t3_paired_bootstrap.csv` ships
+`B_LN_EXPANDED` `shape_mae` = **+0.011904, BCa [0.00362, 0.02172], `significant_bca = True`** — the
+only significant transfer effect in the published tables. Recomputed with per-seed centring it is
+**+0.005** (independently reproduced here as +0.00516 against a pooled +0.01212), below the 0.01
+interpretability floor. The same artefact inflates C's shape gain from **+0.0026** (per ligand, per
+seed) to **+0.0179** (pooled, per cluster).
+
+**Action: every offset/shape number in gen11's published tables needs recomputation with per-seed
+centring before it is cited.** The macro-MAE numbers are unaffected.
+
+## 8. Corrections to this session's own analysis
+
+Recorded because the audit trail is part of the result.
+
+1. **A shape effect was claimed and then retracted, and the stated reason was wrong.** The
+   retraction attributed the collapse to the averaging unit; §7 shows it is the seed-pooled
+   centring. The recorded lesson ("use ligands, not clusters") would not prevent a recurrence.
+2. **The retraction substituted an unregistered statistic for the pre-registered one after the
+   result was seen.** §6 pre-registers the ECFP-cluster unit and `paired_chemotype_bootstrap`;
+   under that convention `d_shape(F−D)` is −0.0264 with 4/5 draws BCa-excluding-zero. The
+   substitution is correct on the merits — seed-pooled centring is a genuine artefact — but it was
+   chosen post hoc and is reported as a correction with its mechanism, not as a bare retraction.
+3. **The addenda are mis-dated relative to the fits.** Both say "before any result". The file was
+   last written 20:33:46; F draw11's OOF landed 20:27:44, and Addendum 1(b) quotes a diagnostics
+   file that exists only because that fit finished. The §1 header "before the `matched` stage was
+   run" is false by 4 minutes 49 seconds. No matched-stage *outcome* informed the predictions —
+   they were fixed in §5 before the stage started — but the header is wrong and is corrected here.
+4. **`scripts/gen11_matched_analysis.py` was edited after the F draws landed** (mtime 21:33:54 vs
+   last F draw 21:29:52). The edit fixed a column name and added a per-statistic filter and a
+   "BCa excluding zero: k/5" counter. It changed how results were summarised, not which arms ran.
+5. **Leave-one-chemotype-out on the primary endpoint spans −0.0008 to +0.0356**, driven by
+   `tan055`, which holds 28 of the 131 scoring units.
+
+## 9. Status against the pre-registered stopping rule
+
+| criterion | bar | outcome |
+|---|---|---|
+| A zero-shot | ≥ 0.02 macro vs design-matched control, seed-consistent | **not met** — F is −0.039; C is +0.049 but its BCa includes zero at the registered replicate count |
+| B few-shot | ≥ 0.01 at two or more k | **not evaluated** — the adapter chain was never run on these arms |
+| C shape | ≥ 0.10 shape MAE, macro non-worse | **not met**, and the shape statistic itself is contaminated (§7) |
+| D far chemotype | statistically supported improvement on distant chemotypes | **suggestive, not established** — F−D is +0.20 on the far band, 5/5 draws and seeds, but F is still −0.070 against the control there |
+| E robustness | lower query-design sensitivity at matched accuracy | **fails** — auxiliary arms are markedly *more* decoy-sensitive (DECOY median 0.138 C / 0.163 E vs 0.078 anchor) |
+
+**No criterion is met. gen11 does not ship.**
+
+## 10. What would settle it
+
+1. **The λ ladder the pre-registration already names (§9):** D at `aux_lambda ≈ 0.085`, i.e.
+   per-row parity with the core, against D at λ = 1. If D's harm disappears at parity the pathology
+   is weighting; if it persists it is chemistry. One arm, five seeds.
+2. **C sub-sampled to D's *chemotype* count rather than its row count.** F matched the wrong
+   quantity: it equalised `n_aux` and left a 15× gap in per-chemotype weight.
+3. **A far-band-powered design.** The far band carries the only directional signal in this stage
+   and has 30 units and 28 blocks. Nothing at this cohort size resolves +0.04 aggregate; a design
+   targeting the far band specifically is the only one with a chance.
+4. Recompute every published offset/shape number with per-seed centring (§7).
+5. Run the two negative controls §19 requires before any of this is believed.
