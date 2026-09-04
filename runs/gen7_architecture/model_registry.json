@@ -1,0 +1,1796 @@
+{
+  "learners": [
+    {
+      "name": "NULL_global_mean",
+      "class": "GlobalMean"
+    },
+    {
+      "name": "NULL_metal_cond",
+      "class": "MetalConditionMean"
+    },
+    {
+      "name": "TREE_MC_lig2d_ext_massaction",
+      "class": "LevelTree",
+      "arm": "MC_lig2d_ext_massaction",
+      "learner": "extratrees",
+      "weighting": "cluster"
+    },
+    {
+      "name": "TREE_MC_donors",
+      "class": "LevelTree",
+      "arm": "MC_donors",
+      "learner": "extratrees",
+      "weighting": "cluster"
+    },
+    {
+      "name": "TREE_MC_all2d_massaction",
+      "class": "LevelTree",
+      "arm": "MC_all2d_massaction",
+      "learner": "extratrees",
+      "weighting": "cluster"
+    },
+    {
+      "name": "TREE_MC_ecfp_massaction",
+      "class": "LevelTree",
+      "arm": "MC_ecfp_massaction",
+      "learner": "extratrees",
+      "weighting": "cluster"
+    },
+    {
+      "name": "TREE_MC",
+      "class": "LevelTree",
+      "arm": "MC",
+      "learner": "extratrees",
+      "weighting": "cluster"
+    },
+    {
+      "name": "LRN_extratrees",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "LIG2D_EXT",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "LRN_randomforest",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "LIG2D_EXT",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "LRN_hgb_mae",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "LIG2D_EXT",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "LRN_hgb_l2",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "LIG2D_EXT",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "LRN_catboost_mae",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "LIG2D_EXT",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "LRN_catboost_rmse",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "LIG2D_EXT",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "LRN_lightgbm_l1",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "LIG2D_EXT",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "LRN_lightgbm_huber",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "LIG2D_EXT",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "LRN_xgboost_mae",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "LIG2D_EXT",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "LRN_ridge",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "LIG2D_EXT",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "LRN_elasticnet",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "LIG2D_EXT",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "LRN_kernelridge_rbf",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "LIG2D_EXT",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "LRN_mlp",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "LIG2D_EXT",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    }
+  ],
+  "indicators": [
+    {
+      "name": "IND_none",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "LIG2D_EXT",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": false,
+      "weighting": "cluster"
+    },
+    {
+      "name": "IND_all",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "LIG2D_EXT",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "IND_noligand_none",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": false,
+      "weighting": "cluster"
+    },
+    {
+      "name": "IND_noligand_all",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "IND_nomassaction_all",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "LIG2D_EXT"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "IND_nocond_all",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "LIG2D_EXT",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    }
+  ],
+  "pairwise": [
+    {
+      "name": "PAIR_control_offset_shape_tree",
+      "class": "OffsetShapeTree",
+      "weighting": "cluster"
+    },
+    {
+      "name": "PADRE_donors",
+      "class": "PairwiseDifferenceLevel",
+      "weighting": "cluster"
+    },
+    {
+      "name": "PADRE_donors_lig2d",
+      "class": "PairwiseDifferenceLevel",
+      "weighting": "cluster"
+    }
+  ],
+  "oracles": [
+    {
+      "name": "REAL_best_tree",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "ECFP",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "NULL_metal_cond",
+      "class": "MetalConditionMean"
+    },
+    {
+      "name": "ORACLE_level",
+      "class": "Oracle",
+      "blocks": [
+        "METAL",
+        "COND",
+        "MASSACTION",
+        "ECFP"
+      ]
+    },
+    {
+      "name": "ORACLE_cell",
+      "class": "Oracle",
+      "blocks": [
+        "METAL",
+        "COND",
+        "MASSACTION",
+        "ECFP"
+      ]
+    },
+    {
+      "name": "ORACLE_batch",
+      "class": "Oracle",
+      "blocks": [
+        "METAL",
+        "COND",
+        "MASSACTION",
+        "ECFP"
+      ]
+    }
+  ],
+  "metal": [
+    {
+      "name": "MET_continuous",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "ECFP",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "MET_onehot",
+      "class": "Tabular",
+      "blocks": [
+        "METAL_ONEHOT",
+        "COND",
+        "ECFP",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "MET_physical",
+      "class": "Tabular",
+      "blocks": [
+        "METALPHYS",
+        "COND",
+        "ECFP",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "MET_continuous_physical",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "METALPHYS",
+        "COND",
+        "ECFP",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "MET_all",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "METALPHYS",
+        "METAL_ONEHOT",
+        "COND",
+        "ECFP",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "MET_none",
+      "class": "Tabular",
+      "blocks": [
+        "COND",
+        "ECFP",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    }
+  ],
+  "ligphys": [
+    {
+      "name": "LP_base",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "LP_donors",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "MASSACTION",
+        "DONORS",
+        "PHYSCHEM"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "LP_ligphys",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "MASSACTION",
+        "LIGPHYS"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "LP_donors_ligphys",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "MASSACTION",
+        "DONORS",
+        "PHYSCHEM",
+        "LIGPHYS"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "LP_ecfp_ligphys",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "MASSACTION",
+        "ECFP",
+        "LIGPHYS"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "LP_ecfp",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "MASSACTION",
+        "ECFP"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "LP_everything",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "MASSACTION",
+        "ECFP",
+        "LIG2D_EXT",
+        "DONORS",
+        "PHYSCHEM",
+        "LIGPHYS",
+        "RECOVERED",
+        "METALPHYS"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    }
+  ],
+  "finalists": [
+    {
+      "name": "NULL_pair_mean",
+      "class": "PairMeanNull"
+    },
+    {
+      "name": "NULL_metal_cond",
+      "class": "MetalConditionMean"
+    },
+    {
+      "name": "TREE_MC_lig2d_ext_massaction",
+      "class": "LevelTree",
+      "arm": "MC_lig2d_ext_massaction",
+      "learner": "extratrees",
+      "weighting": "cluster"
+    },
+    {
+      "name": "TREE_MC_ecfp_massaction",
+      "class": "LevelTree",
+      "arm": "MC_ecfp_massaction",
+      "learner": "extratrees",
+      "weighting": "cluster"
+    },
+    {
+      "name": "TREE_MC_donors",
+      "class": "LevelTree",
+      "arm": "MC_donors",
+      "learner": "extratrees",
+      "weighting": "cluster"
+    },
+    {
+      "name": "SELECT_inner",
+      "class": "InnerSelected",
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "GEN7_everything_EXPLORATORY",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "METALPHYS",
+        "COND",
+        "ECFP",
+        "LIG2D_EXT",
+        "DONORS",
+        "PHYSCHEM",
+        "LIGPHYS",
+        "MASSACTION",
+        "RECOVERED"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "GEN7_metalphys_ecfp_EXPLORATORY",
+      "class": "Tabular",
+      "blocks": [
+        "METALPHYS",
+        "COND",
+        "ECFP",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "IND_all",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "LIG2D_EXT",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "IND_none",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "LIG2D_EXT",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": false,
+      "weighting": "cluster"
+    },
+    {
+      "name": "DECONF_batch",
+      "class": "BatchDeconfounded",
+      "blocks": [
+        "METAL",
+        "COND",
+        "ECFP",
+        "MASSACTION"
+      ],
+      "weighting": "cluster"
+    },
+    {
+      "name": "DECOMP_offset_shape_tree",
+      "class": "OffsetShapeTree",
+      "weighting": "cluster"
+    },
+    {
+      "name": "REC_ecfp_plus_recovered",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "ECFP",
+        "MASSACTION",
+        "RECOVERED"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "HNN_base_film",
+      "class": "HierarchicalNet",
+      "config": {
+        "ligand_blocks": [
+          "DONORS",
+          "PHYSCHEM"
+        ],
+        "condition_blocks": [
+          "COND",
+          "MASSACTION"
+        ],
+        "extra_ligand_columns": [],
+        "extra_condition_columns": [],
+        "ligand_dim": 64,
+        "metal_dim": 32,
+        "condition_dim": 64,
+        "hidden": 128,
+        "depth": 2,
+        "dropout": 0.15,
+        "interaction": "film",
+        "n_experts": 4,
+        "physics_head": false,
+        "physics_n_range": [
+          0.0,
+          6.0
+        ],
+        "physics_m_range": [
+          -6.0,
+          6.0
+        ],
+        "lambda_abs": 1.0,
+        "lambda_shape": 1.0,
+        "lambda_pair": 0.5,
+        "lambda_center": 1.0,
+        "pair_mode": "both",
+        "pairs_per_step": 512,
+        "huber_delta": 1.0,
+        "epochs": 200,
+        "patience": 30,
+        "batch_size": 256,
+        "learning_rate": 0.003,
+        "weight_decay": 0.0001,
+        "inner_holdout_chemotypes": 0.2,
+        "n_ensemble": 2,
+        "predict_offset_shape": true
+      }
+    },
+    {
+      "name": "PADRE_donors",
+      "class": "PairwiseDifferenceLevel",
+      "weighting": "cluster"
+    }
+  ],
+  "representations": [
+    {
+      "name": "REP_none",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "REP_massaction",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "REP_donors",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "DONORS"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "REP_donors_massaction",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "DONORS",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "REP_physchem",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "PHYSCHEM",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "REP_ecfp",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "ECFP",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "REP_lig2d",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "LIG2D_EXT",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "REP_compact",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "DONORS",
+        "PHYSCHEM",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "REP_rich",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "PHYSCHEM",
+        "ECFP",
+        "LIG2D_EXT",
+        "DONORS",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "REP_3d_polyhedron",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "POLYHEDRON",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "REP_3d_complexphys",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "COMPLEX_PHYS",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "REP_3d_all",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "POLYHEDRON",
+        "COMPLEX_PHYS",
+        "GEOM_COND",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    },
+    {
+      "name": "REP_2d_plus_3d",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "DONORS",
+        "PHYSCHEM",
+        "MASSACTION",
+        "POLYHEDRON",
+        "COMPLEX_PHYS"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": true,
+      "weighting": "cluster"
+    }
+  ],
+  "recovered": [
+    {
+      "name": "REC_base",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "DONORS",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": false,
+      "weighting": "cluster"
+    },
+    {
+      "name": "REC_plus_recovered",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "DONORS",
+        "MASSACTION",
+        "RECOVERED"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": false,
+      "weighting": "cluster"
+    },
+    {
+      "name": "REC_champion",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "LIG2D_EXT",
+        "MASSACTION"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": false,
+      "weighting": "cluster"
+    },
+    {
+      "name": "REC_champion_plus_recovered",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "LIG2D_EXT",
+        "MASSACTION",
+        "RECOVERED"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": false,
+      "weighting": "cluster"
+    },
+    {
+      "name": "REC_plus_recovered_catboost",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "DONORS",
+        "MASSACTION",
+        "RECOVERED"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": false,
+      "weighting": "cluster"
+    }
+  ],
+  "embeddings": [
+    {
+      "name": "EMB_chemberta_raw",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "MASSACTION",
+        "EMB_CHEMBERTA"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": false,
+      "weighting": "cluster"
+    },
+    {
+      "name": "EMB_chemberta_pca32",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "MASSACTION",
+        "EMB_CHEMBERTA"
+      ],
+      "pca_blocks": [
+        "EMB_CHEMBERTA"
+      ],
+      "pca_components": 32,
+      "add_indicator": false,
+      "weighting": "cluster"
+    },
+    {
+      "name": "EMB_chembertamlm_raw",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "MASSACTION",
+        "EMB_CHEMBERTA_MLM"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": false,
+      "weighting": "cluster"
+    },
+    {
+      "name": "EMB_chembertamlm_pca32",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "MASSACTION",
+        "EMB_CHEMBERTA_MLM"
+      ],
+      "pca_blocks": [
+        "EMB_CHEMBERTA_MLM"
+      ],
+      "pca_components": 32,
+      "add_indicator": false,
+      "weighting": "cluster"
+    },
+    {
+      "name": "EMB_molformer_raw",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "MASSACTION",
+        "EMB_MOLFORMER"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": false,
+      "weighting": "cluster"
+    },
+    {
+      "name": "EMB_molformer_pca32",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "MASSACTION",
+        "EMB_MOLFORMER"
+      ],
+      "pca_blocks": [
+        "EMB_MOLFORMER"
+      ],
+      "pca_components": 32,
+      "add_indicator": false,
+      "weighting": "cluster"
+    },
+    {
+      "name": "EMB_molformercls_raw",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "MASSACTION",
+        "EMB_MOLFORMER_CLS"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": false,
+      "weighting": "cluster"
+    },
+    {
+      "name": "EMB_molformercls_pca32",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "MASSACTION",
+        "EMB_MOLFORMER_CLS"
+      ],
+      "pca_blocks": [
+        "EMB_MOLFORMER_CLS"
+      ],
+      "pca_components": 32,
+      "add_indicator": false,
+      "weighting": "cluster"
+    },
+    {
+      "name": "EMB_chembertacls_raw",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "MASSACTION",
+        "EMB_CHEMBERTA_CLS"
+      ],
+      "pca_blocks": [],
+      "pca_components": 32,
+      "add_indicator": false,
+      "weighting": "cluster"
+    },
+    {
+      "name": "EMB_chembertacls_pca32",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "MASSACTION",
+        "EMB_CHEMBERTA_CLS"
+      ],
+      "pca_blocks": [
+        "EMB_CHEMBERTA_CLS"
+      ],
+      "pca_components": 32,
+      "add_indicator": false,
+      "weighting": "cluster"
+    },
+    {
+      "name": "EMB_chemberta_hybrid_pca32",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "DONORS",
+        "PHYSCHEM",
+        "MASSACTION",
+        "EMB_CHEMBERTA"
+      ],
+      "pca_blocks": [
+        "EMB_CHEMBERTA"
+      ],
+      "pca_components": 32,
+      "add_indicator": false,
+      "weighting": "cluster"
+    },
+    {
+      "name": "EMB_chemberta_hybrid_pca32_catboost",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "DONORS",
+        "PHYSCHEM",
+        "MASSACTION",
+        "EMB_CHEMBERTA"
+      ],
+      "pca_blocks": [
+        "EMB_CHEMBERTA"
+      ],
+      "pca_components": 32,
+      "add_indicator": false,
+      "weighting": "cluster"
+    },
+    {
+      "name": "EMB_chembertamlm_hybrid_pca32",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "DONORS",
+        "PHYSCHEM",
+        "MASSACTION",
+        "EMB_CHEMBERTA_MLM"
+      ],
+      "pca_blocks": [
+        "EMB_CHEMBERTA_MLM"
+      ],
+      "pca_components": 32,
+      "add_indicator": false,
+      "weighting": "cluster"
+    },
+    {
+      "name": "EMB_chembertamlm_hybrid_pca32_catboost",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "DONORS",
+        "PHYSCHEM",
+        "MASSACTION",
+        "EMB_CHEMBERTA_MLM"
+      ],
+      "pca_blocks": [
+        "EMB_CHEMBERTA_MLM"
+      ],
+      "pca_components": 32,
+      "add_indicator": false,
+      "weighting": "cluster"
+    },
+    {
+      "name": "EMB_molformer_hybrid_pca32",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "DONORS",
+        "PHYSCHEM",
+        "MASSACTION",
+        "EMB_MOLFORMER"
+      ],
+      "pca_blocks": [
+        "EMB_MOLFORMER"
+      ],
+      "pca_components": 32,
+      "add_indicator": false,
+      "weighting": "cluster"
+    },
+    {
+      "name": "EMB_molformer_hybrid_pca32_catboost",
+      "class": "Tabular",
+      "blocks": [
+        "METAL",
+        "COND",
+        "DONORS",
+        "PHYSCHEM",
+        "MASSACTION",
+        "EMB_MOLFORMER"
+      ],
+      "pca_blocks": [
+        "EMB_MOLFORMER"
+      ],
+      "pca_components": 32,
+      "add_indicator": false,
+      "weighting": "cluster"
+    }
+  ],
+  "hnn": [
+    {
+      "name": "HNN_base_film",
+      "class": "HierarchicalNet",
+      "config": {
+        "ligand_blocks": [
+          "DONORS",
+          "PHYSCHEM"
+        ],
+        "condition_blocks": [
+          "COND",
+          "MASSACTION"
+        ],
+        "extra_ligand_columns": [],
+        "extra_condition_columns": [],
+        "ligand_dim": 64,
+        "metal_dim": 32,
+        "condition_dim": 64,
+        "hidden": 128,
+        "depth": 2,
+        "dropout": 0.15,
+        "interaction": "film",
+        "n_experts": 4,
+        "physics_head": false,
+        "physics_n_range": [
+          0.0,
+          6.0
+        ],
+        "physics_m_range": [
+          -6.0,
+          6.0
+        ],
+        "lambda_abs": 1.0,
+        "lambda_shape": 1.0,
+        "lambda_pair": 0.5,
+        "lambda_center": 1.0,
+        "pair_mode": "both",
+        "pairs_per_step": 512,
+        "huber_delta": 1.0,
+        "epochs": 200,
+        "patience": 30,
+        "batch_size": 256,
+        "learning_rate": 0.003,
+        "weight_decay": 0.0001,
+        "inner_holdout_chemotypes": 0.2,
+        "n_ensemble": 2,
+        "predict_offset_shape": true
+      }
+    },
+    {
+      "name": "HNN_concat",
+      "class": "HierarchicalNet",
+      "config": {
+        "ligand_blocks": [
+          "DONORS",
+          "PHYSCHEM"
+        ],
+        "condition_blocks": [
+          "COND",
+          "MASSACTION"
+        ],
+        "extra_ligand_columns": [],
+        "extra_condition_columns": [],
+        "ligand_dim": 64,
+        "metal_dim": 32,
+        "condition_dim": 64,
+        "hidden": 128,
+        "depth": 2,
+        "dropout": 0.15,
+        "interaction": "concat",
+        "n_experts": 4,
+        "physics_head": false,
+        "physics_n_range": [
+          0.0,
+          6.0
+        ],
+        "physics_m_range": [
+          -6.0,
+          6.0
+        ],
+        "lambda_abs": 1.0,
+        "lambda_shape": 1.0,
+        "lambda_pair": 0.5,
+        "lambda_center": 1.0,
+        "pair_mode": "both",
+        "pairs_per_step": 512,
+        "huber_delta": 1.0,
+        "epochs": 200,
+        "patience": 30,
+        "batch_size": 256,
+        "learning_rate": 0.003,
+        "weight_decay": 0.0001,
+        "inner_holdout_chemotypes": 0.2,
+        "n_ensemble": 2,
+        "predict_offset_shape": true
+      }
+    },
+    {
+      "name": "HNN_moe",
+      "class": "HierarchicalNet",
+      "config": {
+        "ligand_blocks": [
+          "DONORS",
+          "PHYSCHEM"
+        ],
+        "condition_blocks": [
+          "COND",
+          "MASSACTION"
+        ],
+        "extra_ligand_columns": [],
+        "extra_condition_columns": [],
+        "ligand_dim": 64,
+        "metal_dim": 32,
+        "condition_dim": 64,
+        "hidden": 128,
+        "depth": 2,
+        "dropout": 0.15,
+        "interaction": "moe",
+        "n_experts": 4,
+        "physics_head": false,
+        "physics_n_range": [
+          0.0,
+          6.0
+        ],
+        "physics_m_range": [
+          -6.0,
+          6.0
+        ],
+        "lambda_abs": 1.0,
+        "lambda_shape": 1.0,
+        "lambda_pair": 0.5,
+        "lambda_center": 1.0,
+        "pair_mode": "both",
+        "pairs_per_step": 512,
+        "huber_delta": 1.0,
+        "epochs": 200,
+        "patience": 30,
+        "batch_size": 256,
+        "learning_rate": 0.003,
+        "weight_decay": 0.0001,
+        "inner_holdout_chemotypes": 0.2,
+        "n_ensemble": 2,
+        "predict_offset_shape": true
+      }
+    },
+    {
+      "name": "HNN_no_shape",
+      "class": "HierarchicalNet",
+      "config": {
+        "ligand_blocks": [
+          "DONORS",
+          "PHYSCHEM"
+        ],
+        "condition_blocks": [
+          "COND",
+          "MASSACTION"
+        ],
+        "extra_ligand_columns": [],
+        "extra_condition_columns": [],
+        "ligand_dim": 64,
+        "metal_dim": 32,
+        "condition_dim": 64,
+        "hidden": 128,
+        "depth": 2,
+        "dropout": 0.15,
+        "interaction": "film",
+        "n_experts": 4,
+        "physics_head": false,
+        "physics_n_range": [
+          0.0,
+          6.0
+        ],
+        "physics_m_range": [
+          -6.0,
+          6.0
+        ],
+        "lambda_abs": 1.0,
+        "lambda_shape": 0.0,
+        "lambda_pair": 0.5,
+        "lambda_center": 1.0,
+        "pair_mode": "both",
+        "pairs_per_step": 512,
+        "huber_delta": 1.0,
+        "epochs": 200,
+        "patience": 30,
+        "batch_size": 256,
+        "learning_rate": 0.003,
+        "weight_decay": 0.0001,
+        "inner_holdout_chemotypes": 0.2,
+        "n_ensemble": 2,
+        "predict_offset_shape": true
+      }
+    },
+    {
+      "name": "HNN_no_pair",
+      "class": "HierarchicalNet",
+      "config": {
+        "ligand_blocks": [
+          "DONORS",
+          "PHYSCHEM"
+        ],
+        "condition_blocks": [
+          "COND",
+          "MASSACTION"
+        ],
+        "extra_ligand_columns": [],
+        "extra_condition_columns": [],
+        "ligand_dim": 64,
+        "metal_dim": 32,
+        "condition_dim": 64,
+        "hidden": 128,
+        "depth": 2,
+        "dropout": 0.15,
+        "interaction": "film",
+        "n_experts": 4,
+        "physics_head": false,
+        "physics_n_range": [
+          0.0,
+          6.0
+        ],
+        "physics_m_range": [
+          -6.0,
+          6.0
+        ],
+        "lambda_abs": 1.0,
+        "lambda_shape": 1.0,
+        "lambda_pair": 0.0,
+        "lambda_center": 1.0,
+        "pair_mode": "both",
+        "pairs_per_step": 512,
+        "huber_delta": 1.0,
+        "epochs": 200,
+        "patience": 30,
+        "batch_size": 256,
+        "learning_rate": 0.003,
+        "weight_decay": 0.0001,
+        "inner_holdout_chemotypes": 0.2,
+        "n_ensemble": 2,
+        "predict_offset_shape": true
+      }
+    },
+    {
+      "name": "HNN_no_center",
+      "class": "HierarchicalNet",
+      "config": {
+        "ligand_blocks": [
+          "DONORS",
+          "PHYSCHEM"
+        ],
+        "condition_blocks": [
+          "COND",
+          "MASSACTION"
+        ],
+        "extra_ligand_columns": [],
+        "extra_condition_columns": [],
+        "ligand_dim": 64,
+        "metal_dim": 32,
+        "condition_dim": 64,
+        "hidden": 128,
+        "depth": 2,
+        "dropout": 0.15,
+        "interaction": "film",
+        "n_experts": 4,
+        "physics_head": false,
+        "physics_n_range": [
+          0.0,
+          6.0
+        ],
+        "physics_m_range": [
+          -6.0,
+          6.0
+        ],
+        "lambda_abs": 1.0,
+        "lambda_shape": 1.0,
+        "lambda_pair": 0.5,
+        "lambda_center": 0.0,
+        "pair_mode": "both",
+        "pairs_per_step": 512,
+        "huber_delta": 1.0,
+        "epochs": 200,
+        "patience": 30,
+        "batch_size": 256,
+        "learning_rate": 0.003,
+        "weight_decay": 0.0001,
+        "inner_holdout_chemotypes": 0.2,
+        "n_ensemble": 2,
+        "predict_offset_shape": true
+      }
+    },
+    {
+      "name": "HNN_pair_across",
+      "class": "HierarchicalNet",
+      "config": {
+        "ligand_blocks": [
+          "DONORS",
+          "PHYSCHEM"
+        ],
+        "condition_blocks": [
+          "COND",
+          "MASSACTION"
+        ],
+        "extra_ligand_columns": [],
+        "extra_condition_columns": [],
+        "ligand_dim": 64,
+        "metal_dim": 32,
+        "condition_dim": 64,
+        "hidden": 128,
+        "depth": 2,
+        "dropout": 0.15,
+        "interaction": "film",
+        "n_experts": 4,
+        "physics_head": false,
+        "physics_n_range": [
+          0.0,
+          6.0
+        ],
+        "physics_m_range": [
+          -6.0,
+          6.0
+        ],
+        "lambda_abs": 1.0,
+        "lambda_shape": 1.0,
+        "lambda_pair": 0.5,
+        "lambda_center": 1.0,
+        "pair_mode": "across",
+        "pairs_per_step": 512,
+        "huber_delta": 1.0,
+        "epochs": 200,
+        "patience": 30,
+        "batch_size": 256,
+        "learning_rate": 0.003,
+        "weight_decay": 0.0001,
+        "inner_holdout_chemotypes": 0.2,
+        "n_ensemble": 2,
+        "predict_offset_shape": true
+      }
+    },
+    {
+      "name": "HNN_physics",
+      "class": "HierarchicalNet",
+      "config": {
+        "ligand_blocks": [
+          "DONORS",
+          "PHYSCHEM"
+        ],
+        "condition_blocks": [
+          "COND",
+          "MASSACTION"
+        ],
+        "extra_ligand_columns": [],
+        "extra_condition_columns": [],
+        "ligand_dim": 64,
+        "metal_dim": 32,
+        "condition_dim": 64,
+        "hidden": 128,
+        "depth": 2,
+        "dropout": 0.15,
+        "interaction": "film",
+        "n_experts": 4,
+        "physics_head": true,
+        "physics_n_range": [
+          0.0,
+          6.0
+        ],
+        "physics_m_range": [
+          -6.0,
+          6.0
+        ],
+        "lambda_abs": 1.0,
+        "lambda_shape": 1.0,
+        "lambda_pair": 0.5,
+        "lambda_center": 1.0,
+        "pair_mode": "both",
+        "pairs_per_step": 512,
+        "huber_delta": 1.0,
+        "epochs": 200,
+        "patience": 30,
+        "batch_size": 256,
+        "learning_rate": 0.003,
+        "weight_decay": 0.0001,
+        "inner_holdout_chemotypes": 0.2,
+        "n_ensemble": 2,
+        "predict_offset_shape": true
+      }
+    },
+    {
+      "name": "HNN_lig2d",
+      "class": "HierarchicalNet",
+      "config": {
+        "ligand_blocks": [
+          "DONORS",
+          "PHYSCHEM",
+          "LIG2D_EXT"
+        ],
+        "condition_blocks": [
+          "COND",
+          "MASSACTION"
+        ],
+        "extra_ligand_columns": [],
+        "extra_condition_columns": [],
+        "ligand_dim": 64,
+        "metal_dim": 32,
+        "condition_dim": 64,
+        "hidden": 128,
+        "depth": 2,
+        "dropout": 0.15,
+        "interaction": "film",
+        "n_experts": 4,
+        "physics_head": false,
+        "physics_n_range": [
+          0.0,
+          6.0
+        ],
+        "physics_m_range": [
+          -6.0,
+          6.0
+        ],
+        "lambda_abs": 1.0,
+        "lambda_shape": 1.0,
+        "lambda_pair": 0.5,
+        "lambda_center": 1.0,
+        "pair_mode": "both",
+        "pairs_per_step": 512,
+        "huber_delta": 1.0,
+        "epochs": 200,
+        "patience": 30,
+        "batch_size": 256,
+        "learning_rate": 0.003,
+        "weight_decay": 0.0001,
+        "inner_holdout_chemotypes": 0.2,
+        "n_ensemble": 2,
+        "predict_offset_shape": true
+      }
+    },
+    {
+      "name": "HNN_recovered",
+      "class": "HierarchicalNet",
+      "config": {
+        "ligand_blocks": [
+          "DONORS",
+          "PHYSCHEM"
+        ],
+        "condition_blocks": [
+          "COND",
+          "MASSACTION",
+          "RECOVERED"
+        ],
+        "extra_ligand_columns": [],
+        "extra_condition_columns": [],
+        "ligand_dim": 64,
+        "metal_dim": 32,
+        "condition_dim": 64,
+        "hidden": 128,
+        "depth": 2,
+        "dropout": 0.15,
+        "interaction": "film",
+        "n_experts": 4,
+        "physics_head": false,
+        "physics_n_range": [
+          0.0,
+          6.0
+        ],
+        "physics_m_range": [
+          -6.0,
+          6.0
+        ],
+        "lambda_abs": 1.0,
+        "lambda_shape": 1.0,
+        "lambda_pair": 0.5,
+        "lambda_center": 1.0,
+        "pair_mode": "both",
+        "pairs_per_step": 512,
+        "huber_delta": 1.0,
+        "epochs": 200,
+        "patience": 30,
+        "batch_size": 256,
+        "learning_rate": 0.003,
+        "weight_decay": 0.0001,
+        "inner_holdout_chemotypes": 0.2,
+        "n_ensemble": 2,
+        "predict_offset_shape": true
+      }
+    }
+  ],
+  "kernels": [
+    {
+      "name": "KRR_tanimoto",
+      "class": "StructuredKernelRidge",
+      "ligand_kernel": "tanimoto",
+      "weighting": "cluster"
+    },
+    {
+      "name": "KRR_rbf_donors",
+      "class": "StructuredKernelRidge",
+      "ligand_kernel": "rbf",
+      "weighting": "cluster"
+    },
+    {
+      "name": "KRR_rbf_lig2d",
+      "class": "StructuredKernelRidge",
+      "ligand_kernel": "rbf",
+      "weighting": "cluster"
+    },
+    {
+      "name": "KRR_tanimoto_additive",
+      "class": "StructuredKernelRidge",
+      "ligand_kernel": "tanimoto",
+      "weighting": "cluster"
+    },
+    {
+      "name": "GP_tanimoto",
+      "class": "TanimotoGP"
+    }
+  ]
+}

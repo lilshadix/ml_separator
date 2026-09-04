@@ -1,0 +1,491 @@
+{
+  "adapters": [
+    {
+      "name": "ZERO_SHOT",
+      "module": "lanthanide_separation.gen8.adapters",
+      "class": "ZeroShot",
+      "trainable": false,
+      "doc": "The frozen global model, untouched.  k is ignored."
+    },
+    {
+      "name": "OFFSET_K1",
+      "module": "lanthanide_separation.gen8.adapters",
+      "class": "RidgeOffset",
+      "trainable": false,
+      "doc": "gen7's offset correction, generalised to K1 / K2 / K3 (brief \u00a77)."
+    },
+    {
+      "name": "OFFSET_K2",
+      "module": "lanthanide_separation.gen8.adapters",
+      "class": "RidgeOffset",
+      "trainable": false,
+      "doc": "gen7's offset correction, generalised to K1 / K2 / K3 (brief \u00a77)."
+    },
+    {
+      "name": "OFFSET_K3",
+      "module": "lanthanide_separation.gen8.adapters",
+      "class": "RidgeOffset",
+      "trainable": false,
+      "doc": "gen7's offset correction, generalised to K1 / K2 / K3 (brief \u00a77)."
+    },
+    {
+      "name": "NO_MODEL",
+      "module": "lanthanide_separation.gen8.adapters",
+      "class": "NoModel",
+      "trainable": false,
+      "doc": "The null: predict the mean of what you measured.  No model at all."
+    },
+    {
+      "name": "NEAREST_OBSERVED",
+      "module": "lanthanide_separation.gen8.adapters",
+      "class": "NearestObserved",
+      "trainable": false,
+      "doc": "Predict each row from the measured row nearest it in condition space."
+    },
+    {
+      "name": "SLOPE_L_s05",
+      "module": "lanthanide_separation.gen8.slope_restore",
+      "class": "SlopeRestore",
+      "trainable": true,
+      "doc": "Adapter: repair the shape with a transferable slope prior, then calibrate the level."
+    },
+    {
+      "name": "SLOPE_L_s05_K1",
+      "module": "lanthanide_separation.gen8.slope_restore",
+      "class": "SlopeRestore",
+      "trainable": true,
+      "doc": "Adapter: repair the shape with a transferable slope prior, then calibrate the level."
+    },
+    {
+      "name": "SLOPE_L_s05_K3",
+      "module": "lanthanide_separation.gen8.slope_restore",
+      "class": "SlopeRestore",
+      "trainable": true,
+      "doc": "Adapter: repair the shape with a transferable slope prior, then calibrate the level."
+    },
+    {
+      "name": "SLOPE_L_s1",
+      "module": "lanthanide_separation.gen8.slope_restore",
+      "class": "SlopeRestore",
+      "trainable": true,
+      "doc": "Adapter: repair the shape with a transferable slope prior, then calibrate the level."
+    },
+    {
+      "name": "SLOPE_L_s1_K1",
+      "module": "lanthanide_separation.gen8.slope_restore",
+      "class": "SlopeRestore",
+      "trainable": true,
+      "doc": "Adapter: repair the shape with a transferable slope prior, then calibrate the level."
+    },
+    {
+      "name": "SLOPE_L_s1_K3",
+      "module": "lanthanide_separation.gen8.slope_restore",
+      "class": "SlopeRestore",
+      "trainable": true,
+      "doc": "Adapter: repair the shape with a transferable slope prior, then calibrate the level."
+    },
+    {
+      "name": "SLOPE_LH_s05",
+      "module": "lanthanide_separation.gen8.slope_restore",
+      "class": "SlopeRestore",
+      "trainable": true,
+      "doc": "Adapter: repair the shape with a transferable slope prior, then calibrate the level."
+    },
+    {
+      "name": "SLOPE_LH_s05_K1",
+      "module": "lanthanide_separation.gen8.slope_restore",
+      "class": "SlopeRestore",
+      "trainable": true,
+      "doc": "Adapter: repair the shape with a transferable slope prior, then calibrate the level."
+    },
+    {
+      "name": "SLOPE_LH_s05_K3",
+      "module": "lanthanide_separation.gen8.slope_restore",
+      "class": "SlopeRestore",
+      "trainable": true,
+      "doc": "Adapter: repair the shape with a transferable slope prior, then calibrate the level."
+    },
+    {
+      "name": "SLOPE_LH_s1",
+      "module": "lanthanide_separation.gen8.slope_restore",
+      "class": "SlopeRestore",
+      "trainable": true,
+      "doc": "Adapter: repair the shape with a transferable slope prior, then calibrate the level."
+    },
+    {
+      "name": "SLOPE_LH_s1_K1",
+      "module": "lanthanide_separation.gen8.slope_restore",
+      "class": "SlopeRestore",
+      "trainable": true,
+      "doc": "Adapter: repair the shape with a transferable slope prior, then calibrate the level."
+    },
+    {
+      "name": "SLOPE_LH_s1_K3",
+      "module": "lanthanide_separation.gen8.slope_restore",
+      "class": "SlopeRestore",
+      "trainable": true,
+      "doc": "Adapter: repair the shape with a transferable slope prior, then calibrate the level."
+    },
+    {
+      "name": "SLOPE_LHM_s05",
+      "module": "lanthanide_separation.gen8.slope_restore",
+      "class": "SlopeRestore",
+      "trainable": true,
+      "doc": "Adapter: repair the shape with a transferable slope prior, then calibrate the level."
+    },
+    {
+      "name": "SLOPE_LHM_s05_K1",
+      "module": "lanthanide_separation.gen8.slope_restore",
+      "class": "SlopeRestore",
+      "trainable": true,
+      "doc": "Adapter: repair the shape with a transferable slope prior, then calibrate the level."
+    },
+    {
+      "name": "SLOPE_LHM_s05_K3",
+      "module": "lanthanide_separation.gen8.slope_restore",
+      "class": "SlopeRestore",
+      "trainable": true,
+      "doc": "Adapter: repair the shape with a transferable slope prior, then calibrate the level."
+    },
+    {
+      "name": "SLOPE_LHM_s1",
+      "module": "lanthanide_separation.gen8.slope_restore",
+      "class": "SlopeRestore",
+      "trainable": true,
+      "doc": "Adapter: repair the shape with a transferable slope prior, then calibrate the level."
+    },
+    {
+      "name": "SLOPE_LHM_s1_K1",
+      "module": "lanthanide_separation.gen8.slope_restore",
+      "class": "SlopeRestore",
+      "trainable": true,
+      "doc": "Adapter: repair the shape with a transferable slope prior, then calibrate the level."
+    },
+    {
+      "name": "SLOPE_LHM_s1_K3",
+      "module": "lanthanide_separation.gen8.slope_restore",
+      "class": "SlopeRestore",
+      "trainable": true,
+      "doc": "Adapter: repair the shape with a transferable slope prior, then calibrate the level."
+    },
+    {
+      "name": "CURVE_SPLINE_SHAPEONLY",
+      "module": "lanthanide_separation.gen8.curve_baselines",
+      "class": "CurveShape",
+      "trainable": true,
+      "doc": "Frozen prediction with its within-curve shape replaced by a transferable one."
+    },
+    {
+      "name": "CURVE_SPLINE_K1",
+      "module": "lanthanide_separation.gen8.curve_baselines",
+      "class": "CurveShape",
+      "trainable": true,
+      "doc": "Frozen prediction with its within-curve shape replaced by a transferable one."
+    },
+    {
+      "name": "CURVE_SPLINE_AMP",
+      "module": "lanthanide_separation.gen8.curve_baselines",
+      "class": "CurveShape",
+      "trainable": true,
+      "doc": "Frozen prediction with its within-curve shape replaced by a transferable one."
+    },
+    {
+      "name": "CURVE_SPLINE_W1_K1",
+      "module": "lanthanide_separation.gen8.curve_baselines",
+      "class": "CurveShape",
+      "trainable": true,
+      "doc": "Frozen prediction with its within-curve shape replaced by a transferable one."
+    },
+    {
+      "name": "MASSACTION_SHAPEONLY",
+      "module": "lanthanide_separation.gen8.curve_baselines",
+      "class": "CurveShape",
+      "trainable": true,
+      "doc": "Frozen prediction with its within-curve shape replaced by a transferable one."
+    },
+    {
+      "name": "MASSACTION_K1",
+      "module": "lanthanide_separation.gen8.curve_baselines",
+      "class": "CurveShape",
+      "trainable": true,
+      "doc": "Frozen prediction with its within-curve shape replaced by a transferable one."
+    },
+    {
+      "name": "MASSACTION_POOLED_K1",
+      "module": "lanthanide_separation.gen8.curve_baselines",
+      "class": "CurveShape",
+      "trainable": true,
+      "doc": "Frozen prediction with its within-curve shape replaced by a transferable one."
+    },
+    {
+      "name": "MASSACTION_WITH_METAL_K1",
+      "module": "lanthanide_separation.gen8.curve_baselines",
+      "class": "CurveShape",
+      "trainable": true,
+      "doc": "Frozen prediction with its within-curve shape replaced by a transferable one."
+    },
+    {
+      "name": "CURVE_GP",
+      "module": "lanthanide_separation.gen8.curve_baselines",
+      "class": "LocalCurveGP",
+      "trainable": true,
+      "doc": "GP on the frozen model's residual over the continuous condition axes."
+    },
+    {
+      "name": "CURVE_SPLINE_GP",
+      "module": "lanthanide_separation.gen8.curve_baselines",
+      "class": "LocalCurveGP",
+      "trainable": true,
+      "doc": "GP on the frozen model's residual over the continuous condition axes."
+    },
+    {
+      "name": "PHYS_prior",
+      "module": "lanthanide_separation.gen8.physics_latent",
+      "class": "PhysicsAdapter",
+      "trainable": true,
+      "doc": "One adapter view onto a shared :class:`PhysicsLatentFitter`."
+    },
+    {
+      "name": "PHYS_map",
+      "module": "lanthanide_separation.gen8.physics_latent",
+      "class": "PhysicsAdapter",
+      "trainable": true,
+      "doc": "One adapter view onto a shared :class:`PhysicsLatentFitter`."
+    },
+    {
+      "name": "PHYS_residual_prior",
+      "module": "lanthanide_separation.gen8.physics_latent",
+      "class": "PhysicsAdapter",
+      "trainable": true,
+      "doc": "One adapter view onto a shared :class:`PhysicsLatentFitter`."
+    },
+    {
+      "name": "PHYS_residual",
+      "module": "lanthanide_separation.gen8.physics_latent",
+      "class": "PhysicsAdapter",
+      "trainable": true,
+      "doc": "One adapter view onto a shared :class:`PhysicsLatentFitter`."
+    },
+    {
+      "name": "PHYS_map_metalcat",
+      "module": "lanthanide_separation.gen8.physics_latent",
+      "class": "PhysicsAdapter",
+      "trainable": true,
+      "doc": "One adapter view onto a shared :class:`PhysicsLatentFitter`."
+    },
+    {
+      "name": "PHYS_residual_metalcat",
+      "module": "lanthanide_separation.gen8.physics_latent",
+      "class": "PhysicsAdapter",
+      "trainable": true,
+      "doc": "One adapter view onto a shared :class:`PhysicsLatentFitter`."
+    },
+    {
+      "name": "PHYS_residual_hypernet",
+      "module": "lanthanide_separation.gen8.physics_latent",
+      "class": "PhysicsAdapter",
+      "trainable": true,
+      "doc": "One adapter view onto a shared :class:`PhysicsLatentFitter`."
+    },
+    {
+      "name": "PHYS_residual_gbm",
+      "module": "lanthanide_separation.gen8.physics_latent",
+      "class": "PhysicsAdapter",
+      "trainable": true,
+      "doc": "One adapter view onto a shared :class:`PhysicsLatentFitter`."
+    },
+    {
+      "name": "CNP_conditions_only",
+      "module": "lanthanide_separation.gen8.cnp",
+      "class": "CNPAdapter",
+      "trainable": true,
+      "doc": "One trained-per-fold Conditional Neural Process, under the gen8 contract."
+    },
+    {
+      "name": "CNP_ligand",
+      "module": "lanthanide_separation.gen8.cnp",
+      "class": "CNPAdapter",
+      "trainable": true,
+      "doc": "One trained-per-fold Conditional Neural Process, under the gen8 contract."
+    },
+    {
+      "name": "CNP_ligand_recovered",
+      "module": "lanthanide_separation.gen8.cnp",
+      "class": "CNPAdapter",
+      "trainable": true,
+      "doc": "One trained-per-fold Conditional Neural Process, under the gen8 contract."
+    },
+    {
+      "name": "CNPRES_conditions_only",
+      "module": "lanthanide_separation.gen8.cnp",
+      "class": "CNPAdapter",
+      "trainable": true,
+      "doc": "One trained-per-fold Conditional Neural Process, under the gen8 contract."
+    },
+    {
+      "name": "CNPRES_ligand",
+      "module": "lanthanide_separation.gen8.cnp",
+      "class": "CNPAdapter",
+      "trainable": true,
+      "doc": "One trained-per-fold Conditional Neural Process, under the gen8 contract."
+    },
+    {
+      "name": "CNPRES_ligand_recovered",
+      "module": "lanthanide_separation.gen8.cnp",
+      "class": "CNPAdapter",
+      "trainable": true,
+      "doc": "One trained-per-fold Conditional Neural Process, under the gen8 contract."
+    },
+    {
+      "name": "CNPRES_absolute_x",
+      "module": "lanthanide_separation.gen8.cnp",
+      "class": "CNPAdapter",
+      "trainable": true,
+      "doc": "One trained-per-fold Conditional Neural Process, under the gen8 contract."
+    },
+    {
+      "name": "CNPRES_shrinkage",
+      "module": "lanthanide_separation.gen8.cnp",
+      "class": "CNPAdapter",
+      "trainable": true,
+      "doc": "One trained-per-fold Conditional Neural Process, under the gen8 contract."
+    },
+    {
+      "name": "CNPRES_attentive",
+      "module": "lanthanide_separation.gen8.cnp",
+      "class": "CNPAdapter",
+      "trainable": true,
+      "doc": "One trained-per-fold Conditional Neural Process, under the gen8 contract."
+    },
+    {
+      "name": "CNP_conditions_only@k0",
+      "module": "lanthanide_separation.gen8.cnp",
+      "class": "ZeroContextView",
+      "trainable": false,
+      "doc": "A k = 0 view of a trained adapter: same weights, empty context, every k."
+    },
+    {
+      "name": "CNP_ligand@k0",
+      "module": "lanthanide_separation.gen8.cnp",
+      "class": "ZeroContextView",
+      "trainable": false,
+      "doc": "A k = 0 view of a trained adapter: same weights, empty context, every k."
+    },
+    {
+      "name": "CNP_ligand_recovered@k0",
+      "module": "lanthanide_separation.gen8.cnp",
+      "class": "ZeroContextView",
+      "trainable": false,
+      "doc": "A k = 0 view of a trained adapter: same weights, empty context, every k."
+    },
+    {
+      "name": "CNPRES_conditions_only@k0",
+      "module": "lanthanide_separation.gen8.cnp",
+      "class": "ZeroContextView",
+      "trainable": false,
+      "doc": "A k = 0 view of a trained adapter: same weights, empty context, every k."
+    },
+    {
+      "name": "CNPRES_ligand@k0",
+      "module": "lanthanide_separation.gen8.cnp",
+      "class": "ZeroContextView",
+      "trainable": false,
+      "doc": "A k = 0 view of a trained adapter: same weights, empty context, every k."
+    },
+    {
+      "name": "CNPRES_ligand_recovered@k0",
+      "module": "lanthanide_separation.gen8.cnp",
+      "class": "ZeroContextView",
+      "trainable": false,
+      "doc": "A k = 0 view of a trained adapter: same weights, empty context, every k."
+    },
+    {
+      "name": "CNPRES_absolute_x@k0",
+      "module": "lanthanide_separation.gen8.cnp",
+      "class": "ZeroContextView",
+      "trainable": false,
+      "doc": "A k = 0 view of a trained adapter: same weights, empty context, every k."
+    },
+    {
+      "name": "CNPRES_shrinkage@k0",
+      "module": "lanthanide_separation.gen8.cnp",
+      "class": "ZeroContextView",
+      "trainable": false,
+      "doc": "A k = 0 view of a trained adapter: same weights, empty context, every k."
+    },
+    {
+      "name": "CNPRES_attentive@k0",
+      "module": "lanthanide_separation.gen8.cnp",
+      "class": "ZeroContextView",
+      "trainable": false,
+      "doc": "A k = 0 view of a trained adapter: same weights, empty context, every k."
+    }
+  ],
+  "policies": [
+    {
+      "name": "CENTRAL",
+      "deployable": true
+    },
+    {
+      "name": "CENTRAL_THEN_SPREAD",
+      "deployable": true
+    },
+    {
+      "name": "D_OPTIMAL",
+      "deployable": true
+    },
+    {
+      "name": "FARTHEST_FROM_EXISTING",
+      "deployable": true
+    },
+    {
+      "name": "MAX_CONDITION_COVERAGE",
+      "deployable": true
+    },
+    {
+      "name": "MAX_ENSEMBLE_SD",
+      "deployable": true
+    },
+    {
+      "name": "MAX_EXPECTED_VARIANCE_REDUCTION",
+      "deployable": true
+    },
+    {
+      "name": "MAX_MODEL_DISAGREEMENT",
+      "deployable": true
+    },
+    {
+      "name": "MAX_PREDICTIVE_VARIANCE",
+      "deployable": true
+    },
+    {
+      "name": "MEDIAN_PREDICTION",
+      "deployable": true
+    },
+    {
+      "name": "MEDOID",
+      "deployable": true
+    },
+    {
+      "name": "MID_ACID",
+      "deployable": true
+    },
+    {
+      "name": "MIN_ENSEMBLE_SD",
+      "deployable": true
+    },
+    {
+      "name": "RANDOM",
+      "deployable": true
+    },
+    {
+      "name": "ORACLE",
+      "deployable": false,
+      "note": "reads candidate targets; analysis upper bound only"
+    }
+  ],
+  "protocols": {
+    "P1": "exhaustive, gen7-compatible: every row a candidate, scored on the rest",
+    "P2": "acquisition-fair: disjoint candidate pool and evaluation set per repeat"
+  }
+}

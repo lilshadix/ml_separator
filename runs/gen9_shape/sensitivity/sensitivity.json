@@ -1,0 +1,57 @@
+{
+  "quarantined_rows": 70,
+  "corrected_rows": 70,
+  "affected_ligands": [
+    "CN(C(=O)c1cccc(C(=O)N(C)c2ccccc2)n1)c1ccccc1"
+  ],
+  "meta": {
+    "extractant_smiles": "CN(C(=O)c1cccc(C(=O)N(C)c2ccccc2)n1)c1ccccc1",
+    "ecfp_cluster": "d2686f132d536208",
+    "tanimoto_cluster": "tan084",
+    "doi": "https://doi.org/10.1081/SEI-120030392",
+    "n_frozen": 70,
+    "n_quarantined": 70,
+    "recommended_primary_action": "quarantine",
+    "note": "Correcting copy B reproduces copy A exactly, so the corrected list is a redundant duplicate of the frozen list, not new information. Use \"quarantined\" for the primary analysis; use \"corrected\" only to test that the fix, not the row deletion, drives any change.",
+    "condition_ids_copy_A_frozen": {
+      "1M": "f5a6b6e93ce4ac42",
+      "2M": "d5166599e4db7c09",
+      "3M": "c56a1d2545057312",
+      "4M": "8ef8ca0482833c77",
+      "5M": "12961d22b7540dd5"
+    },
+    "condition_ids_copy_B_quarantined": {
+      "1M": "3b5aeefb445a5152",
+      "2M": "54e8e5554dfeca2e",
+      "3M": "a47d8219c2351b58",
+      "4M": "f3eaafebe0ce97f5",
+      "5M": "1cb6dfc8e5dccd56"
+    },
+    "series_id_copy_A_frozen": "54245e3239ad5d14",
+    "series_id_copy_B_quarantined": "6ea59c50e60297e4",
+    "select_by": "row_id lists in this file, or cond__diluent__chloroform==1 / cond__diluent__ch3cl==1 for this extractant. A single condition_id names only 14 of the 70 rows.",
+    "leakage_warning": "The 'corrected' log_D values are computed from copy A's log_D. The two copies sit in different series_id and different condition_id, so unseen_series / unseen_conditions splits can put copy A in train and copy B in test; using 'corrected' under such a split makes a test target a deterministic function of a training target. Use 'corrected' only with an extractant-level split. Never join log_D_corrected or decade_shift_vs_pair in as a feature: both are label-derived.",
+    "verified_2026_08_20": {
+      "verifier": "adversarial re-run against cohort.parquet, dataset.parquet, recovered_cells.parquet and the upstream *_SAFE.csv",
+      "all_140_row_ids_present_in_cohort": true,
+      "frozen_quarantined_disjoint": true,
+      "corrected_ids_equal_quarantined_ids": true,
+      "n_duplicated_cells": 70,
+      "max_abs_delta_minus_nearest_integer": 4.86187534676219e-10,
+      "mean_abs_delta_log_D": 2.0428571429584297,
+      "sum_abs_delta_log_D": 143.00000000709008,
+      "max_abs_corrected_minus_copyA": 4.86187534676219e-10,
+      "pooled_mae_floor_same_prediction_model": 0.027248095,
+      "extractant_mae_floor": 1.021428572,
+      "corrections_from_report": [
+        "E4 Spearman +0.987 -> +0.992 and -0.029 -> -0.024",
+        "E7 'eight of nine have different DOIs' -> six of nine; three share a DOI",
+        "condition_id 'prefix' named only 14 of 70 rows",
+        "diluent-only merge does NOT collapse the copies (temperature/contact time also differ)",
+        "'no predictor can fit both' -> ten feature columns differ",
+        "chloroform-family denominator 263 -> 324 (chcl3 spelling omitted)"
+      ]
+    }
+  },
+  "note": "The global model is not refitted per cohort; the sensitivity is applied at evaluation time. The k-shot table uses whole-ligand exclusion because the detail frame is already aggregated past the row level, which is a stricter test than the row-level edit."
+}

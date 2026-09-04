@@ -1,0 +1,219 @@
+{
+  "stage": "finalists",
+  "seeds": [
+    104729,
+    130363,
+    155921,
+    196613,
+    262147
+  ],
+  "tag": "finalists",
+  "cohort_fingerprint": "bed178ec1a7a82b0",
+  "boost_config": {
+    "n_stages": 10,
+    "trees_per_stage": 120,
+    "learning_rate": 0.3,
+    "max_features": 0.3,
+    "min_samples_leaf": 2,
+    "max_depth": null,
+    "subsample": 1.0,
+    "row_delta": 1.0,
+    "pair_delta": 0.5,
+    "span_delta": 0.5,
+    "clip_to_training_range": true,
+    "n_jobs": -1,
+    "round_decimals": 9
+  },
+  "arms": [
+    {
+      "name": "A1_ADJ_d05",
+      "strategy": "ROW_ADJACENT",
+      "lambda_delta": 0.5,
+      "lambda_span": 0.0,
+      "axis_set": "LHM",
+      "balance": "curve"
+    },
+    {
+      "name": "A2_END_d05",
+      "strategy": "ROW_ENDPOINT",
+      "lambda_delta": 0.5,
+      "lambda_span": 0.0,
+      "axis_set": "LHM",
+      "balance": "curve"
+    },
+    {
+      "name": "A3_RAND_d05",
+      "strategy": "ROW_RANDOM_PAIR",
+      "lambda_delta": 0.5,
+      "lambda_span": 0.0,
+      "axis_set": "LHM",
+      "balance": "curve"
+    },
+    {
+      "name": "A4_MULTI_d05",
+      "strategy": "ROW_MULTISCALE",
+      "lambda_delta": 0.5,
+      "lambda_span": 0.0,
+      "axis_set": "LHM",
+      "balance": "curve"
+    },
+    {
+      "name": "X_MULTI_d2",
+      "strategy": "ROW_MULTISCALE",
+      "lambda_delta": 2.0,
+      "lambda_span": 0.0,
+      "axis_set": "LHM",
+      "balance": "curve"
+    },
+    {
+      "name": "X_MULTI_d8c",
+      "strategy": "ROW_MULTISCALE",
+      "lambda_delta": 8.0,
+      "lambda_span": 0.0,
+      "axis_set": "LHM",
+      "balance": "cluster"
+    }
+  ],
+  "results": [
+    {
+      "arm": "REC_ecfp_plus_recovered",
+      "kind": "frozen_reference"
+    },
+    {
+      "arm": "GEN9_A0_ROW_ONLY",
+      "kind": "shape",
+      "spec": {
+        "name": "A0_ROW_ONLY",
+        "strategy": "ROW_ONLY",
+        "lambda_delta": 0.0,
+        "lambda_span": 0.0,
+        "axis_set": "LHM",
+        "balance": "curve"
+      },
+      "config_override": {},
+      "median_pairs": 0.0,
+      "max_curve_weight_share": 0.0,
+      "pairs_by_axis": {}
+    },
+    {
+      "arm": "GEN9_A1_ADJ_d05",
+      "kind": "shape",
+      "spec": {
+        "name": "A1_ADJ_d05",
+        "strategy": "ROW_ADJACENT",
+        "lambda_delta": 0.5,
+        "lambda_span": 0.0,
+        "axis_set": "LHM",
+        "balance": "curve"
+      },
+      "config_override": {},
+      "median_pairs": 5414.0,
+      "max_curve_weight_share": 0.005649717514124294,
+      "pairs_by_axis": {
+        "acid": 2144,
+        "extractant": 774,
+        "metal_series": 2509
+      }
+    },
+    {
+      "arm": "GEN9_A2_END_d05",
+      "kind": "shape",
+      "spec": {
+        "name": "A2_END_d05",
+        "strategy": "ROW_ENDPOINT",
+        "lambda_delta": 0.5,
+        "lambda_span": 0.0,
+        "axis_set": "LHM",
+        "balance": "curve"
+      },
+      "config_override": {},
+      "median_pairs": 1056.0,
+      "max_curve_weight_share": 0.005649717514124294,
+      "pairs_by_axis": {
+        "acid": 470,
+        "extractant": 226,
+        "metal_series": 357
+      }
+    },
+    {
+      "arm": "GEN9_A3_RAND_d05",
+      "kind": "shape",
+      "spec": {
+        "name": "A3_RAND_d05",
+        "strategy": "ROW_RANDOM_PAIR",
+        "lambda_delta": 0.5,
+        "lambda_span": 0.0,
+        "axis_set": "LHM",
+        "balance": "curve"
+      },
+      "config_override": {},
+      "median_pairs": 5414.0,
+      "max_curve_weight_share": 0.005649717514124294,
+      "pairs_by_axis": {
+        "acid": 2144,
+        "extractant": 774,
+        "metal_series": 2509
+      }
+    },
+    {
+      "arm": "GEN9_A4_MULTI_d05",
+      "kind": "shape",
+      "spec": {
+        "name": "A4_MULTI_d05",
+        "strategy": "ROW_MULTISCALE",
+        "lambda_delta": 0.5,
+        "lambda_span": 0.0,
+        "axis_set": "LHM",
+        "balance": "curve"
+      },
+      "config_override": {},
+      "median_pairs": 12183.0,
+      "max_curve_weight_share": 0.005649717514124294,
+      "pairs_by_axis": {
+        "acid": 5114,
+        "extractant": 1739,
+        "metal_series": 5356
+      }
+    },
+    {
+      "arm": "GEN9_X_MULTI_d2",
+      "kind": "shape",
+      "spec": {
+        "name": "X_MULTI_d2",
+        "strategy": "ROW_MULTISCALE",
+        "lambda_delta": 2.0,
+        "lambda_span": 0.0,
+        "axis_set": "LHM",
+        "balance": "curve"
+      },
+      "config_override": {},
+      "median_pairs": 12183.0,
+      "max_curve_weight_share": 0.005649717514124294,
+      "pairs_by_axis": {
+        "acid": 5114,
+        "extractant": 1739,
+        "metal_series": 5356
+      }
+    },
+    {
+      "arm": "GEN9_X_MULTI_d8c",
+      "kind": "shape",
+      "spec": {
+        "name": "X_MULTI_d8c",
+        "strategy": "ROW_MULTISCALE",
+        "lambda_delta": 8.0,
+        "lambda_span": 0.0,
+        "axis_set": "LHM",
+        "balance": "cluster"
+      },
+      "config_override": {},
+      "median_pairs": 12183.0,
+      "max_curve_weight_share": 0.02718109383558253,
+      "pairs_by_axis": {
+        "acid": 5114,
+        "extractant": 1739,
+        "metal_series": 5356
+      }
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+component,current_contribution,oracle_removable,realistically_removable,required_intervention,basis
+1 predictable level (per-ligand constant),0.5200085229516411,0.5200085229516411,0.349391070150424,"one measurement per ligand (central), OFFSET_K1","ORACLE_level vs OFFSET_K1@CENTRAL_THEN_SPREAD, k=1"
+3 series-local level (beyond the ligand constant),0.0566639632057994,0.0566639632057994,0.1395471006027284,measure inside each series; OFFSET_K3 / corrected SERIES adapter at k>=3,per-series oracle offset vs per-ligand; OFFSET_K1@k1 vs OFFSET_K3@k3
+"2 curve shape (within-curve, after the curve's level)",0.191946364242222,0.191946364242222,0.0079819602681677,gen8 slope repair; gen9 recomposition is already in the model,oracle per-curve slope vs SLOPE_L_s1_K1@k1
+4 system identity (name/structure mismatch rows),-0.0017213201282183,0.0,0.0,"record the second species / represent the mixture (data work, not modelling)",Phase 7 cohort B vs A
+5 sparse support / distant chemotype,0.0602876834392762,0.0602876834392762,0.0,measure new chemotypes (Phase 9: one point on a far ligand is worth 0.49),far tercile of Tanimoto distance errored like the rest
+"6 suspected data quality (duplicates, TWE-24, flagged)",0.0372689465225615,0.0372689465225615,0.0,primary-source check of TWE-24 and the decade duplicates,"Phase 7 cohorts C, D, E vs A"
+7 residual unexplained,0.1033090633737129,0.0,0.0,none identified,"current macro MAE minus the sum of oracle-removable components (components overlap; this is a floor, not an exact remainder)"

@@ -1,0 +1,57 @@
+{
+  "oof": [
+    "runs/gen9_shape/finalists/oof_all.parquet",
+    "runs/gen9_shape/recomposed/oof_all.parquet",
+    "runs/gen9_shape/relmono/oof_all.parquet"
+  ],
+  "models": [
+    "REC_ecfp_plus_recovered"
+  ],
+  "seeds": [
+    104729,
+    130363,
+    155921,
+    196613,
+    262147
+  ],
+  "repeats": 12,
+  "policies": [
+    "RANDOM",
+    "CENTRAL",
+    "MEDOID",
+    "CENTRAL_THEN_SPREAD",
+    "D_OPTIMAL",
+    "MAX_PREDICTIVE_VARIANCE"
+  ],
+  "arms": [
+    {
+      "model": "REC_ecfp_plus_recovered",
+      "adapters": [
+        "ZERO_SHOT",
+        "OFFSET_K1",
+        "OFFSET_K2",
+        "OFFSET_K3",
+        "NO_MODEL",
+        "NEAREST_OBSERVED",
+        "SLOPE_L_s1_K1",
+        "SLOPE_L_s1_K3",
+        "SERIES_MAP",
+        "SERIES_MAP_NOSERIES",
+        "SERIES_MAP_LEVELONLY"
+      ],
+      "policies": [
+        "RANDOM",
+        "CENTRAL",
+        "MEDOID",
+        "CENTRAL_THEN_SPREAD",
+        "D_OPTIMAL",
+        "MAX_PREDICTIVE_VARIANCE",
+        "LEARNED_SCALAR",
+        "LEARNED_RANK",
+        "LEARNED_BLEND"
+      ],
+      "n_records": 3473580,
+      "seconds": 2999.02410531044
+    }
+  ]
+}

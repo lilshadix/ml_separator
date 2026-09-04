@@ -1,0 +1,274 @@
+{
+  "stage": "feature_access",
+  "seeds": [
+    104729,
+    130363,
+    155921,
+    196613,
+    262147
+  ],
+  "arms": [
+    {
+      "registry_name": "FROZEN",
+      "model_name": "REC_ecfp_plus_recovered",
+      "class": "MonolithModel",
+      "parameters": {
+        "name": "REC_ecfp_plus_recovered",
+        "representation_name": "NONE",
+        "window": "primary",
+        "blocks": "('METAL', 'COND', 'ECFP', 'MASSACTION', 'RECOVERED')",
+        "add_indicator": true,
+        "n_estimators": 400,
+        "max_features": 0.3,
+        "min_samples_leaf": 2,
+        "axes": "('cond__extractant_concentration_M', 'cond__acid_concentration_M', 'metal')",
+        "gen9_compat": false,
+        "context_replication": 1,
+        "membership_source": "query"
+      },
+      "seconds": 527.2,
+      "determinism": {
+        "split_seed": 104729,
+        "fold": 0,
+        "n_rows": 382,
+        "max_abs_delta": 1.3322676295501878e-15,
+        "mean_abs_delta": 1.478193294935106e-16,
+        "n_rows_moved": 263,
+        "within_tolerance": true,
+        "pooled_mae_first": 1.1376016636918374,
+        "pooled_mae_second": 1.1376016636918374,
+        "arm": "REC_ecfp_plus_recovered"
+      }
+    },
+    {
+      "registry_name": "REL_MONOLITH",
+      "model_name": "GEN9_REL_MONOLITH",
+      "class": "MonolithModel",
+      "parameters": {
+        "name": "GEN9_REL_MONOLITH",
+        "representation_name": "GEN9",
+        "window": "primary",
+        "blocks": "('METAL', 'COND', 'ECFP', 'MASSACTION', 'RECOVERED')",
+        "add_indicator": true,
+        "n_estimators": 400,
+        "max_features": 0.3,
+        "min_samples_leaf": 2,
+        "axes": "('cond__extractant_concentration_M', 'cond__acid_concentration_M', 'metal')",
+        "gen9_compat": true,
+        "context_replication": 1,
+        "membership_source": "query"
+      },
+      "seconds": 212.1,
+      "determinism": {
+        "split_seed": 104729,
+        "fold": 0,
+        "n_rows": 382,
+        "max_abs_delta": 1.1102230246251565e-15,
+        "mean_abs_delta": 1.3955782246819435e-16,
+        "n_rows_moved": 263,
+        "within_tolerance": true,
+        "pooled_mae_first": 1.1658999007871056,
+        "pooled_mae_second": 1.1658999007871056,
+        "arm": "GEN9_REL_MONOLITH"
+      }
+    },
+    {
+      "registry_name": "MF_SQRT",
+      "model_name": "GEN10_MF_SQRT",
+      "class": "MonolithModel",
+      "parameters": {
+        "name": "GEN10_MF_SQRT",
+        "representation_name": "GEN9",
+        "window": "primary",
+        "blocks": "('METAL', 'COND', 'ECFP', 'MASSACTION', 'RECOVERED')",
+        "add_indicator": true,
+        "n_estimators": 400,
+        "max_features": "sqrt",
+        "min_samples_leaf": 2,
+        "axes": "('cond__extractant_concentration_M', 'cond__acid_concentration_M', 'metal')",
+        "gen9_compat": true,
+        "context_replication": 1,
+        "membership_source": "query"
+      },
+      "seconds": 166.4,
+      "determinism": {
+        "split_seed": 104729,
+        "fold": 0,
+        "n_rows": 382,
+        "max_abs_delta": 8.881784197001252e-16,
+        "mean_abs_delta": 1.1916119814267123e-16,
+        "n_rows_moved": 261,
+        "within_tolerance": true,
+        "pooled_mae_first": 1.0799293076850567,
+        "pooled_mae_second": 1.0799293076850567,
+        "arm": "GEN10_MF_SQRT"
+      }
+    },
+    {
+      "registry_name": "MF_025",
+      "model_name": "GEN10_MF_025",
+      "class": "MonolithModel",
+      "parameters": {
+        "name": "GEN10_MF_025",
+        "representation_name": "GEN9",
+        "window": "primary",
+        "blocks": "('METAL', 'COND', 'ECFP', 'MASSACTION', 'RECOVERED')",
+        "add_indicator": true,
+        "n_estimators": 400,
+        "max_features": 0.25,
+        "min_samples_leaf": 2,
+        "axes": "('cond__extractant_concentration_M', 'cond__acid_concentration_M', 'metal')",
+        "gen9_compat": true,
+        "context_replication": 1,
+        "membership_source": "query"
+      },
+      "seconds": 249.7,
+      "determinism": {
+        "split_seed": 104729,
+        "fold": 0,
+        "n_rows": 382,
+        "max_abs_delta": 1.5543122344752192e-15,
+        "mean_abs_delta": 1.431759924406669e-16,
+        "n_rows_moved": 261,
+        "within_tolerance": true,
+        "pooled_mae_first": 1.1579119333449777,
+        "pooled_mae_second": 1.1579119333449774,
+        "arm": "GEN10_MF_025"
+      }
+    },
+    {
+      "registry_name": "MF_050",
+      "model_name": "GEN10_MF_050",
+      "class": "MonolithModel",
+      "parameters": {
+        "name": "GEN10_MF_050",
+        "representation_name": "GEN9",
+        "window": "primary",
+        "blocks": "('METAL', 'COND', 'ECFP', 'MASSACTION', 'RECOVERED')",
+        "add_indicator": true,
+        "n_estimators": 400,
+        "max_features": 0.5,
+        "min_samples_leaf": 2,
+        "axes": "('cond__extractant_concentration_M', 'cond__acid_concentration_M', 'metal')",
+        "gen9_compat": true,
+        "context_replication": 1,
+        "membership_source": "query"
+      },
+      "seconds": 302.1,
+      "determinism": {
+        "split_seed": 104729,
+        "fold": 0,
+        "n_rows": 382,
+        "max_abs_delta": 1.9984014443252818e-15,
+        "mean_abs_delta": 1.261667903477654e-16,
+        "n_rows_moved": 245,
+        "within_tolerance": true,
+        "pooled_mae_first": 1.172820368872544,
+        "pooled_mae_second": 1.172820368872544,
+        "arm": "GEN10_MF_050"
+      }
+    },
+    {
+      "registry_name": "MF_100",
+      "model_name": "GEN10_MF_100",
+      "class": "MonolithModel",
+      "parameters": {
+        "name": "GEN10_MF_100",
+        "representation_name": "GEN9",
+        "window": "primary",
+        "blocks": "('METAL', 'COND', 'ECFP', 'MASSACTION', 'RECOVERED')",
+        "add_indicator": true,
+        "n_estimators": 400,
+        "max_features": 1.0,
+        "min_samples_leaf": 2,
+        "axes": "('cond__extractant_concentration_M', 'cond__acid_concentration_M', 'metal')",
+        "gen9_compat": true,
+        "context_replication": 1,
+        "membership_source": "query"
+      },
+      "seconds": 433.4,
+      "determinism": {
+        "split_seed": 104729,
+        "fold": 0,
+        "n_rows": 382,
+        "max_abs_delta": 8.881784197001252e-16,
+        "mean_abs_delta": 1.135494585211049e-16,
+        "n_rows_moved": 211,
+        "within_tolerance": true,
+        "pooled_mae_first": 1.226755589928864,
+        "pooled_mae_second": 1.226755589928864,
+        "arm": "GEN10_MF_100"
+      }
+    },
+    {
+      "registry_name": "REP_8",
+      "model_name": "GEN10_REP_8",
+      "class": "MonolithModel",
+      "parameters": {
+        "name": "GEN10_REP_8",
+        "representation_name": "GEN9",
+        "window": "primary",
+        "blocks": "('METAL', 'COND', 'ECFP', 'MASSACTION', 'RECOVERED')",
+        "add_indicator": true,
+        "n_estimators": 400,
+        "max_features": 0.3,
+        "min_samples_leaf": 2,
+        "axes": "('cond__extractant_concentration_M', 'cond__acid_concentration_M', 'metal')",
+        "gen9_compat": true,
+        "context_replication": 8,
+        "membership_source": "query"
+      },
+      "seconds": 298.7,
+      "determinism": {
+        "split_seed": 104729,
+        "fold": 0,
+        "n_rows": 382,
+        "max_abs_delta": 1.5543122344752192e-15,
+        "mean_abs_delta": 1.4383729900137142e-16,
+        "n_rows_moved": 257,
+        "within_tolerance": true,
+        "pooled_mae_first": 1.1553798517039016,
+        "pooled_mae_second": 1.1553798517039016,
+        "arm": "GEN10_REP_8"
+      }
+    },
+    {
+      "registry_name": "REP_32",
+      "model_name": "GEN10_REP_32",
+      "class": "MonolithModel",
+      "parameters": {
+        "name": "GEN10_REP_32",
+        "representation_name": "GEN9",
+        "window": "primary",
+        "blocks": "('METAL', 'COND', 'ECFP', 'MASSACTION', 'RECOVERED')",
+        "add_indicator": true,
+        "n_estimators": 400,
+        "max_features": 0.3,
+        "min_samples_leaf": 2,
+        "axes": "('cond__extractant_concentration_M', 'cond__acid_concentration_M', 'metal')",
+        "gen9_compat": true,
+        "context_replication": 32,
+        "membership_source": "query"
+      },
+      "seconds": 495.2,
+      "determinism": {
+        "split_seed": 104729,
+        "fold": 0,
+        "n_rows": 382,
+        "max_abs_delta": 1.3322676295501878e-15,
+        "mean_abs_delta": 1.463746726720574e-16,
+        "n_rows_moved": 270,
+        "within_tolerance": true,
+        "pooled_mae_first": 1.1751318557028676,
+        "pooled_mae_second": 1.1751318557028676,
+        "arm": "GEN10_REP_32"
+      }
+    }
+  ],
+  "audit": {
+    "n_curves_straddling": 0,
+    "n_folds": 25,
+    "max_rows_outside_partition": 0
+  },
+  "cohort_fingerprint": "bed178ec1a7a82b0"
+}

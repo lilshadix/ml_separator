@@ -1,0 +1,96 @@
+{
+  "purpose": "The evaluation protocol GEN11 must reuse unchanged for any number that is compared against the GEN10 control.",
+  "cohort": {
+    "path": "runs/gen7_architecture/cache/cohort.parquet",
+    "loader": "lanthanide_separation.gen10.runner.prepared_cohort()",
+    "fingerprint": "bed178ec1a7a82b0",
+    "n_rows": 5248,
+    "n_columns": 5642,
+    "n_extractants": 152,
+    "n_tanimoto_clusters": 79,
+    "n_ecfp_clusters": 131
+  },
+  "frozen_bundle": {
+    "path": "dataset with 3D structures/dataset.parquet",
+    "sha256": "fefbefc6fe993aa9ce9db1a0c338adb9e5f58a8b75bab084cc1df4e024faf5dd",
+    "size_bytes": 2802776,
+    "pinned_in": "gen3_protocol.json :: dataset_sha256",
+    "matches_pin": true
+  },
+  "splits": {
+    "seeds": [
+      104729,
+      130363,
+      155921,
+      196613,
+      262147
+    ],
+    "rule": "lanthanide_separation.gen6.cohorts.seeded_group_kfold(groups, n_splits, seed)",
+    "group_column": "tanimoto_cluster",
+    "n_splits": 5,
+    "hash": "BLAKE2b (inside seeded_group_kfold); Python hash() is never used",
+    "verified": "fold assignment recomputed for all 5 seeds and compared row-by-row against oof_finalists.parquet: 0 mismatches in 5 x 5,248 rows"
+  },
+  "model_seed": {
+    "formula": "42 + fold*1009 + 9999991",
+    "base": 42,
+    "fold_stride": 1009,
+    "offset": 9999991,
+    "independent_of_split_seed": true,
+    "values_by_fold": {
+      "0": 10000033,
+      "1": 10001042,
+      "2": 10002051,
+      "3": 10003060,
+      "4": 10004069
+    },
+    "definition": "lanthanide_separation.gen7.harness.Fold.model_seed"
+  },
+  "frozen_model_arm": {
+    "name": "GEN9_SHAPE_RECOMPOSED",
+    "blocks": [
+      "METAL",
+      "COND",
+      "ECFP",
+      "MASSACTION",
+      "RECOVERED"
+    ],
+    "n_columns": 2146,
+    "level_target_column": "log_D"
+  },
+  "metrics": {
+    "macro_mae": "lanthanide_separation.gen9.metrics.macro_mae, unit='ecfp_cluster'; computed per split seed and averaged over the 5 seeds",
+    "offset_mae": "lanthanide_separation.gen6.metrics.decompose_level_shape -> summary['offset_mae'] = mean over ligands of |mean residual|",
+    "shape_metrics": "lanthanide_separation.gen9.metrics.curve_shape_table + summarise_shape over runs/gen9_shape/curves/curve_membership.parquet; span_recovery guarded at true span >= 0.5",
+    "shape_aggregation_warning": "final_locked/shape_by_axis.csv averages the per-seed summaries; the model-card slope median (1.024) and span recovery (0.423) are the seed-pooled medians. Pick one convention and state it.",
+    "kshot": "lanthanide_separation.gen8.evaluate.evaluate_fewshot, repeats=12, k in (0,1,2,3,5), policies (CENTRAL_THEN_SPREAD, MEDOID, D_OPTIMAL, RANDOM); frontier = mean over ligands of the mean MAE over (seed, fold, repeat), restricted to the 99-ligand common cohort"
+  },
+  "frozen_pipeline_rule": {
+    "0": {
+      "adapter": "ZERO_SHOT",
+      "policy": "NONE"
+    },
+    "1": {
+      "adapter": "SLOPE_L_s1_K1",
+      "policy": "CENTRAL_THEN_SPREAD"
+    },
+    "2": {
+      "adapter": "SERIES_ML",
+      "policy": "CENTRAL_THEN_SPREAD"
+    },
+    "3": {
+      "adapter": "SERIES_ML",
+      "policy": "CENTRAL_THEN_SPREAD"
+    },
+    "5": {
+      "adapter": "SERIES_ML",
+      "policy": "CENTRAL_THEN_SPREAD"
+    }
+  },
+  "environment": {
+    "python": "3.13.0",
+    "numpy": "2.5.1",
+    "pandas": "3.0.5",
+    "scikit_learn": "1.9.0"
+  }
+}

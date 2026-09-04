@@ -1,0 +1,6463 @@
+{
+ "provenance": {
+  "dataset": "/Users/lilshadix/PycharmProjects/ml_separator/dataset with 3D structures/dataset.parquet",
+  "upstream_glob": "/Users/lilshadix/PycharmProjects/lanthanide_dataset_builder/raw_data/*_SAFE.csv",
+  "dataset_rows": 5992,
+  "upstream_rows": 48138,
+  "join_key": "safe_exp_id == \"{stem}:{exp_id}\"",
+  "dataset_safe_exp_id_unique": true,
+  "upstream_safe_exp_id_unique": true,
+  "join_matched_rows": 5992,
+  "join_unmatched_rows": 0,
+  "extractant_name_equals_upstream_Extractant_Name": 1.0,
+  "LIGAND_SMILES_equals_upstream_Extractant_SMILES": 1.0,
+  "canonical_smiles_equals_upstream_Extractant_SMILES": 0.9602803738317757
+ },
+ "headline": {
+  "n_canonical_smiles": 190,
+  "n_extractant_name": 228,
+  "n_ambiguous_smiles": 17,
+  "n_names_mapping_to_multiple_smiles": 0,
+  "rows_in_ambiguous_smiles": 3011,
+  "frac_rows_in_ambiguous_smiles": 0.5025
+ },
+ "cell_definitions": {
+  "P (as requested)": "metal | metal_ox | upstream Acid_Name | cond__acid_concentration_M (4dp) | cond__extractant_concentration_M (6dp)",
+  "M (model-visible)": "metal | metal_ox | the full 64-column cond__* vector, i.e. everything the level model can distinguish"
+ },
+ "groups": [
+  {
+   "canonical_smiles": "CC1(C)CCC(C)(C)c2nc(-c3cccc(-c4cccc(-c5nnc6c(n5)C(C)(C)CCC6(C)C)n4)n3)nnc21",
+   "n_rows": 19,
+   "n_names": 2,
+   "names": {
+    "5-5-8-8-tetramethyl-3-[6-[6-(5-5-8-8-tetramethyl-6-7-dihydro-1-2-4-benzotriazin-3-yl)-2-pyridinyl]-2-pyridinyl]-6-7-dihydro-1-2-4-benzotriazine": 14,
+    "CyMe4-BTBP": 5
+   },
+   "metals": [
+    "Ce",
+    "Dy",
+    "Er",
+    "Eu",
+    "Gd",
+    "Ho",
+    "La",
+    "Lu",
+    "Nd",
+    "Pr",
+    "Sm",
+    "Tb",
+    "Tm",
+    "Yb"
+   ],
+   "dois": [
+    "https://cordis.europa.eu/project/id/211267, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1080/07366290600761936, https://doi.org/10.1021/jacs.5c19738"
+   ],
+   "curators": [
+    "Baosen Zhang"
+   ],
+   "upstream_Extractant_SMILES_variants": [
+    "CC1(C)CCC(C)(C)c2nc(-c3cccc(-c4cccc(-c5nnc6c(n5)C(C)(C)CCC6(C)C)n4)n3)nnc21"
+   ],
+   "n_matched_cells_with_2plus_names": 0,
+   "n_rows_in_matched_contested_cells": 0,
+   "name_effect_spread_logD_at_matched_conditions": null,
+   "per_name_at_matched_conditions": {},
+   "contested_cells": [],
+   "field_separation": {
+    "Solvent_Name": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "f_Solvent_Name": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Acid_Concentration_Organic_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Metal_Concentration_mM": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "obsTempsValue": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "Contact_Time_min": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "Shaking_Time_min": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Radiolytic_Dosage_kGy": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "volValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "thirdValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "DOI": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "entry_author": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "_src_file": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "ini_comp": {
+     "n_values": 15,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": true
+    },
+    "comments_description": {
+     "n_values": 6,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": true
+    }
+   },
+   "joint_name_recovery_condition_fields_only": 1.0,
+   "joint_name_recovery_condition_plus_provenance": 1.0,
+   "joint_name_recovery_including_leaky_free_text": 1.0,
+   "classification": "SYNONYM - the two names never co-occur at matched conditions; no measurable effect"
+  },
+  {
+   "canonical_smiles": "CC1(C)SC(C)(C)c2nc(-c3cccc(-c4cccc(-c5nnc6c(n5)C(C)(C)SC6(C)C)n4)n3)nnc21",
+   "n_rows": 11,
+   "n_names": 2,
+   "names": {
+    "Cy5S-Me4-BTBP": 6,
+    "Cy5-S-Me4-BTBP": 5
+   },
+   "metals": [
+    "Eu"
+   ],
+   "dois": [
+    "https://cordis.europa.eu/project/id/211267, https://doi.org/10.1021/jacs.5c19738"
+   ],
+   "curators": [
+    "Baosen Zhang"
+   ],
+   "upstream_Extractant_SMILES_variants": [
+    "CC1(C)SC(C)(C)c2nc(-c3cccc(-c4cccc(-c5nnc6c(n5)C(C)(C)SC6(C)C)n4)n3)nnc21"
+   ],
+   "n_matched_cells_with_2plus_names": 5,
+   "n_rows_in_matched_contested_cells": 10,
+   "name_effect_spread_logD_at_matched_conditions": 0.3144,
+   "per_name_at_matched_conditions": {
+    "Cy5-S-Me4-BTBP": {
+     "n": 5,
+     "mean_log_D": -2.0956,
+     "sd_log_D": 0.5657
+    },
+    "Cy5S-Me4-BTBP": {
+     "n": 5,
+     "mean_log_D": -2.41,
+     "sd_log_D": 0.2523
+    }
+   },
+   "contested_cells": [
+    {
+     "cell": "Eu|3|hno3|0.1|0.005",
+     "range_of_name_means": 0.0,
+     "names": {
+      "Cy5-S-Me4-BTBP": {
+       "n": 1,
+       "mean": -2.5229,
+       "sd": null
+      },
+      "Cy5S-Me4-BTBP": {
+       "n": 1,
+       "mean": -2.5229,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|0.5|0.005",
+     "range_of_name_means": 0.1761,
+     "names": {
+      "Cy5-S-Me4-BTBP": {
+       "n": 1,
+       "mean": -2.699,
+       "sd": null
+      },
+      "Cy5S-Me4-BTBP": {
+       "n": 1,
+       "mean": -2.5229,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|1.0|0.005",
+     "range_of_name_means": 0.4771,
+     "names": {
+      "Cy5-S-Me4-BTBP": {
+       "n": 1,
+       "mean": -2.0458,
+       "sd": null
+      },
+      "Cy5S-Me4-BTBP": {
+       "n": 1,
+       "mean": -2.5229,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|2.0|0.005",
+     "range_of_name_means": 0.5643,
+     "names": {
+      "Cy5-S-Me4-BTBP": {
+       "n": 1,
+       "mean": -1.9586,
+       "sd": null
+      },
+      "Cy5S-Me4-BTBP": {
+       "n": 1,
+       "mean": -2.5229,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|4.0|0.005",
+     "range_of_name_means": 0.7068,
+     "names": {
+      "Cy5-S-Me4-BTBP": {
+       "n": 1,
+       "mean": -1.2518,
+       "sd": null
+      },
+      "Cy5S-Me4-BTBP": {
+       "n": 1,
+       "mean": -1.9586,
+       "sd": null
+      }
+     }
+    }
+   ],
+   "field_separation": {
+    "Solvent_Name": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "f_Solvent_Name": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Acid_Concentration_Organic_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Metal_Concentration_mM": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "obsTempsValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Contact_Time_min": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Shaking_Time_min": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Radiolytic_Dosage_kGy": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "volValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "thirdValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "DOI": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "entry_author": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "_src_file": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "ini_comp": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": true
+    },
+    "comments_description": {
+     "n_values": 11,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": true
+    }
+   },
+   "joint_name_recovery_condition_fields_only": 1.0,
+   "joint_name_recovery_condition_plus_provenance": 1.0,
+   "joint_name_recovery_including_leaky_free_text": 1.0,
+   "classification": "SYNONYM - residual offset 0.31 log units, at or below the replicate noise floor"
+  },
+  {
+   "canonical_smiles": "CC12CCC(c3nnc(-c4cccc(-c5nnc6c(n5)C5(C)CCC6C5(C)C)n4)nc31)C2(C)C",
+   "n_rows": 22,
+   "n_names": 2,
+   "names": {
+    "8-11-11-trimethyl-5-[6-(8-11-11-trimethyl-3-4-6-triazatricyclo[6.2.1.02-7]undeca-2(7)-3-5-trien-5-yl)-2-pyridinyl]-3-4-6-triazatricyclo[6.2.1.02-7]undeca-2(7)-3-5-triene": 14,
+    "CA-BTP": 8
+   },
+   "metals": [
+    "Ce",
+    "Dy",
+    "Er",
+    "Eu",
+    "Gd",
+    "Ho",
+    "La",
+    "Lu",
+    "Nd",
+    "Pr",
+    "Sm",
+    "Tb",
+    "Tm",
+    "Yb"
+   ],
+   "dois": [
+    "https://cordis.europa.eu/project/id/211267, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1080/07366299.2011.539129, https://doi.org/10.1021/jacs.5c19738"
+   ],
+   "curators": [
+    "Baosen Zhang"
+   ],
+   "upstream_Extractant_SMILES_variants": [
+    "CC12CCC(c3nnc(-c4cccc(-c5nnc6c(n5)C5(C)CCC6C5(C)C)n4)nc31)C2(C)C"
+   ],
+   "n_matched_cells_with_2plus_names": 0,
+   "n_rows_in_matched_contested_cells": 0,
+   "name_effect_spread_logD_at_matched_conditions": null,
+   "per_name_at_matched_conditions": {},
+   "contested_cells": [],
+   "field_separation": {
+    "Solvent_Name": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "f_Solvent_Name": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Acid_Concentration_Organic_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Metal_Concentration_mM": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "obsTempsValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Contact_Time_min": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "Shaking_Time_min": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Radiolytic_Dosage_kGy": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "volValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "thirdValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "DOI": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "entry_author": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "_src_file": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "ini_comp": {
+     "n_values": 15,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": true
+    },
+    "comments_description": {
+     "n_values": 9,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": true
+    }
+   },
+   "joint_name_recovery_condition_fields_only": 1.0,
+   "joint_name_recovery_condition_plus_provenance": 1.0,
+   "joint_name_recovery_including_leaky_free_text": 1.0,
+   "classification": "SYNONYM - the two names never co-occur at matched conditions; no measurable effect"
+  },
+  {
+   "canonical_smiles": "CCCCC(CC)CN(CC(CC)CCCC)C(=O)CN(CC(=O)N(CC(CC)CCCC)CC(CC)CCCC)CC(=O)N(CC(CC)CCCC)CC(CC)CCCC",
+   "n_rows": 12,
+   "n_names": 2,
+   "names": {
+    "18b": 6,
+    "TWE-17": 6
+   },
+   "metals": [
+    "Eu"
+   ],
+   "dois": [
+    "https://cordis.europa.eu/project/id/211267, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1080/10610278.2010.506553, https://doi.org/10.1021/jacs.5c19738"
+   ],
+   "curators": [
+    "Baosen Zhang",
+    "Thomas Summers"
+   ],
+   "upstream_Extractant_SMILES_variants": [
+    "CCCCC(CC)CN(CC(CC)CCCC)C(=O)CN(CC(=O)N(CC(CC)CCCC)CC(CC)CCCC)CC(=O)N(CC(CC)CCCC)CC(CC)CCCC"
+   ],
+   "n_matched_cells_with_2plus_names": 0,
+   "n_rows_in_matched_contested_cells": 0,
+   "name_effect_spread_logD_at_matched_conditions": null,
+   "per_name_at_matched_conditions": {},
+   "contested_cells": [],
+   "field_separation": {
+    "Solvent_Name": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "f_Solvent_Name": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Acid_Concentration_Organic_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Metal_Concentration_mM": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "obsTempsValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Contact_Time_min": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Shaking_Time_min": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Radiolytic_Dosage_kGy": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "volValue": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "thirdValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "DOI": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "entry_author": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "_src_file": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "ini_comp": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": true
+    },
+    "comments_description": {
+     "n_values": 7,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": true
+    }
+   },
+   "joint_name_recovery_condition_fields_only": 1.0,
+   "joint_name_recovery_condition_plus_provenance": 1.0,
+   "joint_name_recovery_including_leaky_free_text": 1.0,
+   "classification": "SYNONYM - the two names never co-occur at matched conditions; no measurable effect"
+  },
+  {
+   "canonical_smiles": "CCCCC(CC)CN(CC(CC)CCCC)C(=O)COCC(=O)N(CC(CC)CCCC)CC(CC)CCCC",
+   "n_rows": 185,
+   "n_names": 2,
+   "names": {
+    "TEHDGA": 146,
+    "T2EHDGA": 39
+   },
+   "metals": [
+    "Ce",
+    "Dy",
+    "Er",
+    "Eu",
+    "Gd",
+    "Ho",
+    "La",
+    "Lu",
+    "Nd",
+    "Pr",
+    "Sm",
+    "Tb",
+    "Tm",
+    "Yb"
+   ],
+   "dois": [
+    "10.1016/S1002-0721(14)60437-3",
+    "10.1080/01496395.2015.1085874",
+    "10.1080/07366299.2015.1087209",
+    "10.1080/07366299.2018.1447261",
+    "DOI 10.1007/s10967-010-0467-y",
+    "DOI: 10.1039/c8nj01074a",
+    "DOI: 10.1080/07366290601169352",
+    "DOI: 10.1080/07366299.2013.866857",
+    "doi.org/10.1016/j.ica.2020.119928",
+    "doi.org/10.1299/jsmeicone.2007.15._ICONE1510_87",
+    "dx.doi.org/10.1016/j.seppur.2014.03.005",
+    "dx.doi.org/10.1021/acs.inorgchem.9b03612",
+    "https://doi.org/10.1016/j.seppur.2014.03.005, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1021/acs.inorgchem.0c02861, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1021/acs.jpcb.6b11222, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1039/D4GC01146E, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1080/07366291003685383 , https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1080/07366291003685383, https://doi.org/10.1021/jacs.5c19738"
+   ],
+   "curators": [
+    "Aurora Clark",
+    "Thomas Summers"
+   ],
+   "upstream_Extractant_SMILES_variants": [
+    "CCCCC(CC)CN(CC(CC)CCCC)C(=O)COCC(=O)N(CC(CC)CCCC)CC(CC)CCCC"
+   ],
+   "n_matched_cells_with_2plus_names": 10,
+   "n_rows_in_matched_contested_cells": 24,
+   "name_effect_spread_logD_at_matched_conditions": 0.3381,
+   "per_name_at_matched_conditions": {
+    "T2EHDGA": {
+     "n": 13,
+     "mean_log_D": 0.4682,
+     "sd_log_D": 0.9485
+    },
+    "TEHDGA": {
+     "n": 11,
+     "mean_log_D": 0.7871,
+     "sd_log_D": 0.6737
+    }
+   },
+   "contested_cells": [
+    {
+     "cell": "Dy|3|hno3|1.5|0.1",
+     "range_of_name_means": 0.0,
+     "names": {
+      "T2EHDGA": {
+       "n": 1,
+       "mean": 0.6928,
+       "sd": null
+      },
+      "TEHDGA": {
+       "n": 1,
+       "mean": 0.6928,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Er|3|hno3|1.5|0.1",
+     "range_of_name_means": 0.0,
+     "names": {
+      "T2EHDGA": {
+       "n": 1,
+       "mean": 0.7938,
+       "sd": null
+      },
+      "TEHDGA": {
+       "n": 1,
+       "mean": 0.7938,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|1.5|0.1",
+     "range_of_name_means": 0.0,
+     "names": {
+      "T2EHDGA": {
+       "n": 1,
+       "mean": 0.3997,
+       "sd": null
+      },
+      "TEHDGA": {
+       "n": 1,
+       "mean": 0.3997,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|3.0|0.1",
+     "range_of_name_means": 0.1157,
+     "names": {
+      "T2EHDGA": {
+       "n": 3,
+       "mean": 1.6674,
+       "sd": 0.309
+      },
+      "TEHDGA": {
+       "n": 2,
+       "mean": 1.7831,
+       "sd": 0.3512
+      }
+     }
+    },
+    {
+     "cell": "Gd|3|hno3|1.5|0.1",
+     "range_of_name_means": 0.0,
+     "names": {
+      "T2EHDGA": {
+       "n": 1,
+       "mean": 0.433,
+       "sd": null
+      },
+      "TEHDGA": {
+       "n": 1,
+       "mean": 0.433,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "La|3|hno3|1.5|0.1",
+     "range_of_name_means": 0.0,
+     "names": {
+      "T2EHDGA": {
+       "n": 1,
+       "mean": -0.1427,
+       "sd": null
+      },
+      "TEHDGA": {
+       "n": 1,
+       "mean": -0.1427,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Lu|3|hno3|1.5|0.1",
+     "range_of_name_means": 0.0,
+     "names": {
+      "T2EHDGA": {
+       "n": 1,
+       "mean": 0.8028,
+       "sd": null
+      },
+      "TEHDGA": {
+       "n": 1,
+       "mean": 0.8028,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Nd|3|hcl|3.0|0.1",
+     "range_of_name_means": 2.8136,
+     "names": {
+      "T2EHDGA": {
+       "n": 2,
+       "mean": -1.1935,
+       "sd": 0.1365
+      },
+      "TEHDGA": {
+       "n": 1,
+       "mean": 1.6202,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Nd|3|hno3|1.5|0.1",
+     "range_of_name_means": 0.0,
+     "names": {
+      "T2EHDGA": {
+       "n": 1,
+       "mean": 0.2068,
+       "sd": null
+      },
+      "TEHDGA": {
+       "n": 1,
+       "mean": 0.2068,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Sm|3|hno3|1.5|0.1",
+     "range_of_name_means": 0.0,
+     "names": {
+      "T2EHDGA": {
+       "n": 1,
+       "mean": 0.2856,
+       "sd": null
+      },
+      "TEHDGA": {
+       "n": 1,
+       "mean": 0.2856,
+       "sd": null
+      }
+     }
+    }
+   ],
+   "field_separation": {
+    "Solvent_Name": {
+     "n_values": 6,
+     "constant": false,
+     "frac_rows_name_determined": 0.2757,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "f_Solvent_Name": {
+     "n_values": 6,
+     "constant": false,
+     "frac_rows_name_determined": 0.2757,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Name": {
+     "n_values": 5,
+     "constant": false,
+     "frac_rows_name_determined": 0.3622,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Concentration_M": {
+     "n_values": 5,
+     "constant": false,
+     "frac_rows_name_determined": 0.3622,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Acid_Concentration_Organic_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Metal_Concentration_mM": {
+     "n_values": 21,
+     "constant": false,
+     "frac_rows_name_determined": 0.7459,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "obsTempsValue": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 0.0757,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Contact_Time_min": {
+     "n_values": 5,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Shaking_Time_min": {
+     "n_values": 5,
+     "constant": false,
+     "frac_rows_name_determined": 0.7297,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Radiolytic_Dosage_kGy": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "volValue": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "thirdValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "DOI": {
+     "n_values": 18,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "entry_author": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "_src_file": {
+     "n_values": 11,
+     "constant": false,
+     "frac_rows_name_determined": 0.0757,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "ini_comp": {
+     "n_values": 49,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": true
+    },
+    "comments_description": {
+     "n_values": 21,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": true
+    }
+   },
+   "joint_name_recovery_condition_fields_only": 1.0,
+   "joint_name_recovery_condition_plus_provenance": 1.0,
+   "joint_name_recovery_including_leaky_free_text": 1.0,
+   "classification": "SYNONYM - residual offset 0.34 log units, at or below the replicate noise floor"
+  },
+  {
+   "canonical_smiles": "CCCCCCCCN(C)C(=O)C(CCOCCCCCC)C(=O)N(C)CCCCCCCC",
+   "n_rows": 52,
+   "n_names": 2,
+   "names": {
+    "DMDOHEMA": 38,
+    "2-(2-hexoxyethyl)-N-N-dimethyl-N-N-dioctylpropanediamide": 14
+   },
+   "metals": [
+    "Ce",
+    "Dy",
+    "Er",
+    "Eu",
+    "Gd",
+    "Ho",
+    "La",
+    "Lu",
+    "Nd",
+    "Pr",
+    "Sm",
+    "Tb",
+    "Tm",
+    "Yb"
+   ],
+   "dois": [
+    "10.1080/07366299.2020.1794523",
+    "https://doi.org/10.1080/07366290701285512, https://doi.org/10.1021/jacs.5c19738"
+   ],
+   "curators": [
+    "Aurora Clark",
+    "Baosen Zhang"
+   ],
+   "upstream_Extractant_SMILES_variants": [
+    "CCCCCCCCN(C)C(=O)C(CCOCCCCCC)C(=O)N(C)CCCCCCCC"
+   ],
+   "n_matched_cells_with_2plus_names": 0,
+   "n_rows_in_matched_contested_cells": 0,
+   "name_effect_spread_logD_at_matched_conditions": null,
+   "per_name_at_matched_conditions": {},
+   "contested_cells": [],
+   "field_separation": {
+    "Solvent_Name": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "f_Solvent_Name": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Acid_Concentration_Organic_M": {
+     "n_values": 36,
+     "constant": false,
+     "frac_rows_name_determined": 0.6923,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Metal_Concentration_mM": {
+     "n_values": 4,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "obsTempsValue": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "Contact_Time_min": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Shaking_Time_min": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "Radiolytic_Dosage_kGy": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "volValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "thirdValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "DOI": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "entry_author": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "_src_file": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "ini_comp": {
+     "n_values": 16,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": true
+    },
+    "comments_description": {
+     "n_values": 3,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": true
+    }
+   },
+   "joint_name_recovery_condition_fields_only": 1.0,
+   "joint_name_recovery_condition_plus_provenance": 1.0,
+   "joint_name_recovery_including_leaky_free_text": 1.0,
+   "classification": "SYNONYM - the two names never co-occur at matched conditions; no measurable effect"
+  },
+  {
+   "canonical_smiles": "CCCCCCCCN(C)C(=O)COCC(=O)N(C)CCCCCCCC",
+   "n_rows": 449,
+   "n_names": 2,
+   "names": {
+    "DMDODGA": 379,
+    "N-methyl-2-[2-[methyl(octyl)amino]-2-oxoethoxy]-N-octylacetamide": 70
+   },
+   "metals": [
+    "Ce",
+    "Dy",
+    "Er",
+    "Eu",
+    "Gd",
+    "Ho",
+    "La",
+    "Lu",
+    "Nd",
+    "Pr",
+    "Sm",
+    "Tb",
+    "Tm",
+    "Yb"
+   ],
+   "dois": [
+    "DOI: 10.1080/07366299.2010.480932",
+    "doi.org/10.1007/s10967-018-6261-y",
+    "doi.org/10.1007/s10967-020-07242-1",
+    "https://doi.org/10.1007/s10967-020-07242-1, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1016/j.seppur.2014.03.005, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1021/acs.inorgchem.0c02861, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1039/D4GC01146E, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1080/07366290802672212, https://doi.org/10.1021/jacs.5c19738"
+   ],
+   "curators": [
+    "Aurora Clark",
+    "Baosen Zhang",
+    "Thomas Summers"
+   ],
+   "upstream_Extractant_SMILES_variants": [
+    "CCCCCCCCN(C)C(=O)COCC(=O)N(C)CCCCCCCC"
+   ],
+   "n_matched_cells_with_2plus_names": 14,
+   "n_rows_in_matched_contested_cells": 29,
+   "name_effect_spread_logD_at_matched_conditions": 0.0336,
+   "per_name_at_matched_conditions": {
+    "DMDODGA": {
+     "n": 15,
+     "mean_log_D": 1.1205,
+     "sd_log_D": 1.1192
+    },
+    "N-methyl-2-[2-[methyl(octyl)amino]-2-oxoethoxy]-N-octylacetamide": {
+     "n": 14,
+     "mean_log_D": 1.2052,
+     "sd_log_D": 1.1651
+    }
+   },
+   "contested_cells": [
+    {
+     "cell": "Eu|3|hno3|1.0|0.024",
+     "range_of_name_means": 0.0381,
+     "names": {
+      "DMDODGA": {
+       "n": 1,
+       "mean": 0.807,
+       "sd": null
+      },
+      "N-methyl-2-[2-[methyl(octyl)amino]-2-oxoethoxy]-N-octylacetamide": {
+       "n": 1,
+       "mean": 0.8451,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Gd|3|hno3|1.0|0.024",
+     "range_of_name_means": 0.0259,
+     "names": {
+      "DMDODGA": {
+       "n": 1,
+       "mean": 0.8772,
+       "sd": null
+      },
+      "N-methyl-2-[2-[methyl(octyl)amino]-2-oxoethoxy]-N-octylacetamide": {
+       "n": 1,
+       "mean": 0.9031,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Gd|3|hno3|2.0|0.024",
+     "range_of_name_means": 0.0681,
+     "names": {
+      "DMDODGA": {
+       "n": 1,
+       "mean": 1.6722,
+       "sd": null
+      },
+      "N-methyl-2-[2-[methyl(octyl)amino]-2-oxoethoxy]-N-octylacetamide": {
+       "n": 1,
+       "mean": 1.7404,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Ho|3|hno3|1.0|0.024",
+     "range_of_name_means": 0.0479,
+     "names": {
+      "DMDODGA": {
+       "n": 1,
+       "mean": 1.9298,
+       "sd": null
+      },
+      "N-methyl-2-[2-[methyl(octyl)amino]-2-oxoethoxy]-N-octylacetamide": {
+       "n": 1,
+       "mean": 1.9777,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Ho|3|hno3|2.0|0.024",
+     "range_of_name_means": 0.0545,
+     "names": {
+      "DMDODGA": {
+       "n": 1,
+       "mean": 2.6444,
+       "sd": null
+      },
+      "N-methyl-2-[2-[methyl(octyl)amino]-2-oxoethoxy]-N-octylacetamide": {
+       "n": 1,
+       "mean": 2.699,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "La|3|hno3|1.0|0.024",
+     "range_of_name_means": 0.0999,
+     "names": {
+      "DMDODGA": {
+       "n": 1,
+       "mean": -0.6228,
+       "sd": null
+      },
+      "N-methyl-2-[2-[methyl(octyl)amino]-2-oxoethoxy]-N-octylacetamide": {
+       "n": 1,
+       "mean": -0.5229,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "La|3|hno3|2.0|0.024",
+     "range_of_name_means": 0.0218,
+     "names": {
+      "DMDODGA": {
+       "n": 1,
+       "mean": -0.2,
+       "sd": null
+      },
+      "N-methyl-2-[2-[methyl(octyl)amino]-2-oxoethoxy]-N-octylacetamide": {
+       "n": 1,
+       "mean": -0.2218,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Lu|3|hno3|2.0|0.024",
+     "range_of_name_means": 0.0709,
+     "names": {
+      "DMDODGA": {
+       "n": 1,
+       "mean": 2.8833,
+       "sd": null
+      },
+      "N-methyl-2-[2-[methyl(octyl)amino]-2-oxoethoxy]-N-octylacetamide": {
+       "n": 1,
+       "mean": 2.9542,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Nd|3|hno3|1.0|0.024",
+     "range_of_name_means": 0.0033,
+     "names": {
+      "DMDODGA": {
+       "n": 1,
+       "mean": -0.1002,
+       "sd": null
+      },
+      "N-methyl-2-[2-[methyl(octyl)amino]-2-oxoethoxy]-N-octylacetamide": {
+       "n": 1,
+       "mean": -0.0969,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Nd|3|hno3|2.0|0.024",
+     "range_of_name_means": 0.0354,
+     "names": {
+      "DMDODGA": {
+       "n": 2,
+       "mean": 0.4333,
+       "sd": 0.0
+      },
+      "N-methyl-2-[2-[methyl(octyl)amino]-2-oxoethoxy]-N-octylacetamide": {
+       "n": 1,
+       "mean": 0.3979,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Nd|3|hno3|3.0|0.024",
+     "range_of_name_means": 0.0157,
+     "names": {
+      "DMDODGA": {
+       "n": 1,
+       "mean": 0.6833,
+       "sd": null
+      },
+      "N-methyl-2-[2-[methyl(octyl)amino]-2-oxoethoxy]-N-octylacetamide": {
+       "n": 1,
+       "mean": 0.699,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Nd|3|hno3|4.0|0.024",
+     "range_of_name_means": 0.0143,
+     "names": {
+      "DMDODGA": {
+       "n": 1,
+       "mean": 0.6389,
+       "sd": null
+      },
+      "N-methyl-2-[2-[methyl(octyl)amino]-2-oxoethoxy]-N-octylacetamide": {
+       "n": 1,
+       "mean": 0.6532,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Tb|3|hno3|2.0|0.024",
+     "range_of_name_means": 0.0056,
+     "names": {
+      "DMDODGA": {
+       "n": 1,
+       "mean": 2.0056,
+       "sd": null
+      },
+      "N-methyl-2-[2-[methyl(octyl)amino]-2-oxoethoxy]-N-octylacetamide": {
+       "n": 1,
+       "mean": 2.0,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Yb|3|hno3|2.0|0.024",
+     "range_of_name_means": 0.1229,
+     "names": {
+      "DMDODGA": {
+       "n": 1,
+       "mean": 2.7222,
+       "sd": null
+      },
+      "N-methyl-2-[2-[methyl(octyl)amino]-2-oxoethoxy]-N-octylacetamide": {
+       "n": 1,
+       "mean": 2.8451,
+       "sd": null
+      }
+     }
+    }
+   ],
+   "field_separation": {
+    "Solvent_Name": {
+     "n_values": 7,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "f_Solvent_Name": {
+     "n_values": 7,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Name": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 0.2272,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Concentration_M": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 0.2272,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Acid_Concentration_Organic_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Metal_Concentration_mM": {
+     "n_values": 4,
+     "constant": false,
+     "frac_rows_name_determined": 0.2428,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "obsTempsValue": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 0.0601,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Contact_Time_min": {
+     "n_values": 5,
+     "constant": false,
+     "frac_rows_name_determined": 0.4811,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Shaking_Time_min": {
+     "n_values": 4,
+     "constant": false,
+     "frac_rows_name_determined": 0.363,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Radiolytic_Dosage_kGy": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "volValue": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 0.4811,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "thirdValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "DOI": {
+     "n_values": 8,
+     "constant": false,
+     "frac_rows_name_determined": 0.4699,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "entry_author": {
+     "n_values": 3,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "_src_file": {
+     "n_values": 12,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "ini_comp": {
+     "n_values": 65,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": true
+    },
+    "comments_description": {
+     "n_values": 14,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": true
+    }
+   },
+   "joint_name_recovery_condition_fields_only": 1.0,
+   "joint_name_recovery_condition_plus_provenance": 1.0,
+   "joint_name_recovery_including_leaky_free_text": 1.0,
+   "classification": "SYNONYM - residual offset 0.03 log units, at or below the replicate noise floor"
+  },
+  {
+   "canonical_smiles": "CCCCCCCCN(CCCC(CCCC)CCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCC(CCCC)CCCCCC",
+   "n_rows": 14,
+   "n_names": 2,
+   "names": {
+    "DODDbDGA": 13,
+    "N-(4-butyldecyl)-2-[2-[4-butyldecyl(octyl)amino]-2-oxoethoxy]-N-octylacetamide": 1
+   },
+   "metals": [
+    "Ce",
+    "Dy",
+    "Er",
+    "Eu",
+    "Gd",
+    "Ho",
+    "La",
+    "Lu",
+    "Nd",
+    "Pr",
+    "Sm",
+    "Tb",
+    "Tm",
+    "Yb"
+   ],
+   "dois": [
+    "https://doi.org/10.1021/acs.inorgchem.0c02861, https://doi.org/10.1021/jacs.5c19738"
+   ],
+   "curators": [
+    "Baosen Zhang",
+    "Thomas Summers"
+   ],
+   "upstream_Extractant_SMILES_variants": [
+    "CCCCCCCCN(CCCC(CCCC)CCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCC(CCCC)CCCCCC"
+   ],
+   "n_matched_cells_with_2plus_names": 0,
+   "n_rows_in_matched_contested_cells": 0,
+   "name_effect_spread_logD_at_matched_conditions": null,
+   "per_name_at_matched_conditions": {},
+   "contested_cells": [],
+   "field_separation": {
+    "Solvent_Name": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "f_Solvent_Name": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Acid_Concentration_Organic_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Metal_Concentration_mM": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "obsTempsValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Contact_Time_min": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "Shaking_Time_min": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Radiolytic_Dosage_kGy": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "volValue": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "thirdValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "DOI": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "entry_author": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "_src_file": {
+     "n_values": 10,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "ini_comp": {
+     "n_values": 14,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": true
+    },
+    "comments_description": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": true
+    }
+   },
+   "joint_name_recovery_condition_fields_only": 1.0,
+   "joint_name_recovery_condition_plus_provenance": 1.0,
+   "joint_name_recovery_including_leaky_free_text": 1.0,
+   "classification": "SYNONYM - the two names never co-occur at matched conditions; no measurable effect"
+  },
+  {
+   "canonical_smiles": "CCCCCCCCN(CCCCCCCC)C(=O)C(C)OC(C(=O)N(CCCCCCCC)CCCCCCCC)c1ccccc1",
+   "n_rows": 12,
+   "n_names": 2,
+   "names": {
+    "NEA16": 6,
+    "TWE-15": 6
+   },
+   "metals": [
+    "Eu"
+   ],
+   "dois": [
+    "https://cordis.europa.eu/project/id/211267, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1080/10610278.2010.506553, https://doi.org/10.1021/jacs.5c19738"
+   ],
+   "curators": [
+    "Baosen Zhang",
+    "Thomas Summers"
+   ],
+   "upstream_Extractant_SMILES_variants": [
+    "CCCCCCCCN(CCCCCCCC)C(=O)C(C)OC(C(=O)N(CCCCCCCC)CCCCCCCC)c1ccccc1"
+   ],
+   "n_matched_cells_with_2plus_names": 0,
+   "n_rows_in_matched_contested_cells": 0,
+   "name_effect_spread_logD_at_matched_conditions": null,
+   "per_name_at_matched_conditions": {},
+   "contested_cells": [],
+   "field_separation": {
+    "Solvent_Name": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "f_Solvent_Name": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Acid_Concentration_Organic_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Metal_Concentration_mM": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "obsTempsValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Contact_Time_min": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Shaking_Time_min": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Radiolytic_Dosage_kGy": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "volValue": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "thirdValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "DOI": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "entry_author": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "_src_file": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "ini_comp": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": true
+    },
+    "comments_description": {
+     "n_values": 7,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": true
+    }
+   },
+   "joint_name_recovery_condition_fields_only": 1.0,
+   "joint_name_recovery_condition_plus_provenance": 1.0,
+   "joint_name_recovery_including_leaky_free_text": 1.0,
+   "classification": "SYNONYM - the two names never co-occur at matched conditions; no measurable effect"
+  },
+  {
+   "canonical_smiles": "CCCCCCCCN(CCCCCCCC)C(=O)C(C)OC(C)C(=O)N(CCCCCCCC)CCCCCCCC",
+   "n_rows": 46,
+   "n_names": 4,
+   "names": {
+    "2-[1-(dioctylamino)-1-oxopropan-2-yl]oxy-N-N-dioctylpropanamide": 28,
+    "NEA14": 6,
+    "Me2-TODGA": 6,
+    "TWE-14": 6
+   },
+   "metals": [
+    "Ce",
+    "Dy",
+    "Er",
+    "Eu",
+    "Gd",
+    "Ho",
+    "La",
+    "Lu",
+    "Nd",
+    "Pr",
+    "Sm",
+    "Tb",
+    "Tm",
+    "Yb"
+   ],
+   "dois": [
+    "https://cordis.europa.eu/project/id/211267, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1002/chem.201806161, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1021/acs.inorgchem.0c02861, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1080/07366299.2013.833791",
+    "https://doi.org/10.1080/10610278.2010.506553, https://doi.org/10.1021/jacs.5c19738"
+   ],
+   "curators": [
+    "Aurora Clark",
+    "Baosen Zhang",
+    "Thomas Summers"
+   ],
+   "upstream_Extractant_SMILES_variants": [
+    "CCCCCCCCN(CCCCCCCC)C(=O)C(C)OC(C)C(=O)N(CCCCCCCC)CCCCCCCC"
+   ],
+   "n_matched_cells_with_2plus_names": 0,
+   "n_rows_in_matched_contested_cells": 0,
+   "name_effect_spread_logD_at_matched_conditions": null,
+   "per_name_at_matched_conditions": {},
+   "contested_cells": [],
+   "field_separation": {
+    "Solvent_Name": {
+     "n_values": 3,
+     "constant": false,
+     "frac_rows_name_determined": 0.7391,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "f_Solvent_Name": {
+     "n_values": 3,
+     "constant": false,
+     "frac_rows_name_determined": 0.7391,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 4,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 4,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 4,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 4,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Acid_Concentration_Organic_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 4,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Metal_Concentration_mM": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 0.6087,
+     "max_names_sharing_one_value": 3,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "obsTempsValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 4,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Contact_Time_min": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "Shaking_Time_min": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 0.1304,
+     "max_names_sharing_one_value": 3,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "Radiolytic_Dosage_kGy": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 4,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "volValue": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 0.1304,
+     "max_names_sharing_one_value": 3,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "thirdValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 4,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "DOI": {
+     "n_values": 5,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "entry_author": {
+     "n_values": 3,
+     "constant": false,
+     "frac_rows_name_determined": 0.2609,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "_src_file": {
+     "n_values": 3,
+     "constant": false,
+     "frac_rows_name_determined": 0.7391,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "ini_comp": {
+     "n_values": 17,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": true
+    },
+    "comments_description": {
+     "n_values": 9,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": true
+    }
+   },
+   "joint_name_recovery_condition_fields_only": 1.0,
+   "joint_name_recovery_condition_plus_provenance": 1.0,
+   "joint_name_recovery_including_leaky_free_text": 1.0,
+   "classification": "SYNONYM - the two names never co-occur at matched conditions; no measurable effect"
+  },
+  {
+   "canonical_smiles": "CCCCCCCCN(CCCCCCCC)C(=O)CN(CC(=O)N(CCCCCCCC)CCCCCCCC)CC(=O)N(CCCCCCCC)CCCCCCCC",
+   "n_rows": 26,
+   "n_names": 2,
+   "names": {
+    "NTAamide(C8)": 20,
+    "TWE-11": 6
+   },
+   "metals": [
+    "Ce",
+    "Dy",
+    "Er",
+    "Eu",
+    "Gd",
+    "Ho",
+    "La",
+    "Lu",
+    "Nd",
+    "Pr",
+    "Sm",
+    "Tb",
+    "Tm",
+    "Yb"
+   ],
+   "dois": [
+    "https://cordis.europa.eu/project/id/211267, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1080/07366299.2013.836422, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1080/10610278.2010.506553, https://doi.org/10.1021/jacs.5c19738"
+   ],
+   "curators": [
+    "Baosen Zhang",
+    "Thomas Summers"
+   ],
+   "upstream_Extractant_SMILES_variants": [
+    "CCCCCCCCN(CCCCCCCC)C(=O)CN(CC(=O)N(CCCCCCCC)CCCCCCCC)CC(=O)N(CCCCCCCC)CCCCCCCC"
+   ],
+   "n_matched_cells_with_2plus_names": 1,
+   "n_rows_in_matched_contested_cells": 2,
+   "name_effect_spread_logD_at_matched_conditions": 0.0211,
+   "per_name_at_matched_conditions": {
+    "NTAamide(C8)": {
+     "n": 1,
+     "mean_log_D": 0.7522,
+     "sd_log_D": null
+    },
+    "TWE-11": {
+     "n": 1,
+     "mean_log_D": 0.7733,
+     "sd_log_D": null
+    }
+   },
+   "contested_cells": [
+    {
+     "cell": "Eu|3|hno3|0.0101|0.1",
+     "range_of_name_means": 0.0211,
+     "names": {
+      "NTAamide(C8)": {
+       "n": 1,
+       "mean": 0.7522,
+       "sd": null
+      },
+      "TWE-11": {
+       "n": 1,
+       "mean": 0.7733,
+       "sd": null
+      }
+     }
+    }
+   ],
+   "field_separation": {
+    "Solvent_Name": {
+     "n_values": 3,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "f_Solvent_Name": {
+     "n_values": 3,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Acid_Concentration_Organic_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Metal_Concentration_mM": {
+     "n_values": 8,
+     "constant": false,
+     "frac_rows_name_determined": 0.5385,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "obsTempsValue": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 0.5385,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Contact_Time_min": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 0.5385,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Shaking_Time_min": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Radiolytic_Dosage_kGy": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "volValue": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "thirdValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "DOI": {
+     "n_values": 3,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "entry_author": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "_src_file": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "ini_comp": {
+     "n_values": 16,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": true
+    },
+    "comments_description": {
+     "n_values": 14,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": true
+    }
+   },
+   "joint_name_recovery_condition_fields_only": 1.0,
+   "joint_name_recovery_condition_plus_provenance": 1.0,
+   "joint_name_recovery_including_leaky_free_text": 1.0,
+   "classification": "SYNONYM - residual offset 0.02 log units, at or below the replicate noise floor"
+  },
+  {
+   "canonical_smiles": "CCCCCCCCN(CCCCCCCC)C(=O)COC(C(=O)N(CCCCCCCC)CCCCCCCC)c1ccccc1",
+   "n_rows": 12,
+   "n_names": 2,
+   "names": {
+    "NEA15": 6,
+    "TWE-22": 6
+   },
+   "metals": [
+    "Eu"
+   ],
+   "dois": [
+    "https://cordis.europa.eu/project/id/211267, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1080/10610278.2010.506553, https://doi.org/10.1021/jacs.5c19738"
+   ],
+   "curators": [
+    "Baosen Zhang",
+    "Thomas Summers"
+   ],
+   "upstream_Extractant_SMILES_variants": [
+    "CCCCCCCCN(CCCCCCCC)C(=O)COC(C(=O)N(CCCCCCCC)CCCCCCCC)c1ccccc1"
+   ],
+   "n_matched_cells_with_2plus_names": 0,
+   "n_rows_in_matched_contested_cells": 0,
+   "name_effect_spread_logD_at_matched_conditions": null,
+   "per_name_at_matched_conditions": {},
+   "contested_cells": [],
+   "field_separation": {
+    "Solvent_Name": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "f_Solvent_Name": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Acid_Concentration_Organic_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Metal_Concentration_mM": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "obsTempsValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Contact_Time_min": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Shaking_Time_min": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Radiolytic_Dosage_kGy": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "volValue": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "thirdValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "DOI": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "entry_author": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "_src_file": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "ini_comp": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": true
+    },
+    "comments_description": {
+     "n_values": 7,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": true
+    }
+   },
+   "joint_name_recovery_condition_fields_only": 1.0,
+   "joint_name_recovery_condition_plus_provenance": 1.0,
+   "joint_name_recovery_including_leaky_free_text": 1.0,
+   "classification": "SYNONYM - the two names never co-occur at matched conditions; no measurable effect"
+  },
+  {
+   "canonical_smiles": "CCCCCCCCN(CCCCCCCC)C(=O)COC(C)C(=O)N(CCCCCCCC)CCCCCCCC",
+   "n_rows": 12,
+   "n_names": 2,
+   "names": {
+    "10a": 6,
+    "TWE-21": 6
+   },
+   "metals": [
+    "Eu"
+   ],
+   "dois": [
+    "https://cordis.europa.eu/project/id/211267, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1080/10610278.2010.506553, https://doi.org/10.1021/jacs.5c19738"
+   ],
+   "curators": [
+    "Baosen Zhang",
+    "Thomas Summers"
+   ],
+   "upstream_Extractant_SMILES_variants": [
+    "CCCCCCCCN(CCCCCCCC)C(=O)COC(C)C(=O)N(CCCCCCCC)CCCCCCCC"
+   ],
+   "n_matched_cells_with_2plus_names": 0,
+   "n_rows_in_matched_contested_cells": 0,
+   "name_effect_spread_logD_at_matched_conditions": null,
+   "per_name_at_matched_conditions": {},
+   "contested_cells": [],
+   "field_separation": {
+    "Solvent_Name": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "f_Solvent_Name": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Acid_Concentration_Organic_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Metal_Concentration_mM": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "obsTempsValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Contact_Time_min": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Shaking_Time_min": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Radiolytic_Dosage_kGy": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "volValue": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "thirdValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "DOI": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "entry_author": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "_src_file": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "ini_comp": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": true
+    },
+    "comments_description": {
+     "n_values": 7,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": true
+    }
+   },
+   "joint_name_recovery_condition_fields_only": 1.0,
+   "joint_name_recovery_condition_plus_provenance": 1.0,
+   "joint_name_recovery_including_leaky_free_text": 1.0,
+   "classification": "SYNONYM - the two names never co-occur at matched conditions; no measurable effect"
+  },
+  {
+   "canonical_smiles": "CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC",
+   "n_rows": 1714,
+   "n_names": 21,
+   "names": {
+    "TODGA": 1585,
+    "TODGA,DHOA": 18,
+    "PHEN-6OH": 14,
+    "PyTri-Tetraol": 11,
+    "PHEN-dialcohol": 10,
+    "TWE-40": 9,
+    "TWE-26": 7,
+    "CITAM": 6,
+    "SO3-Ph-BTP": 6,
+    "SO3-Ph-BTBP": 5,
+    "TWE-41": 5,
+    "TWE-42": 5,
+    "(PhSO3Na)2-BTBP": 4,
+    "(PhSO3Na)2-BTPhen": 4,
+    "PyTri-diol": 4,
+    "TWE-39": 4,
+    "TWE-31": 4,
+    "TWE-32": 4,
+    "TWE-37": 4,
+    "TWE-38": 4,
+    "PPA": 1
+   },
+   "metals": [
+    "Ce",
+    "Dy",
+    "Er",
+    "Eu",
+    "Gd",
+    "Ho",
+    "La",
+    "Lu",
+    "Nd",
+    "Pr",
+    "Sm",
+    "Tb",
+    "Tm",
+    "Yb"
+   ],
+   "dois": [
+    "10.1007/s10967-012-1905-9",
+    "10.1080/01496395.2015.1085874",
+    "10.1080/07366299.2015.1087209",
+    "10.1524/ract.2006.94.6.307",
+    "DOI 10.1007/s10967-010-0641-2",
+    "DOI 10.1007/s10967-017-5317-8",
+    "DOI: 10.1080/07366290601169345",
+    "DOI: 10.1080/07366290601169352",
+    "DOI: 10.1080/07366299.2011.539127",
+    "DOI: 10.1081/SEI-200066296",
+    "DOI:10.1007/s10967-017-5317-8",
+    "DOI:10.1021/jacs.7b07318",
+    "DOI:10.1080/07366299.2013.800431",
+    "doi.org/10.1016/j.hydromet.2018.07.005",
+    "doi.org/10.1016/j.ica.2020.119928",
+    "doi.org/10.1016/j.jre.2018.01.011",
+    "doi.org/10.1016/j.molliq.2021.117397",
+    "doi:10.1016/j.aca.2004.09.023",
+    "doi:10.1016/j.aca.2005.04.061",
+    "dx.doi.org/10.1016/j.hydromet.2017.03.005",
+    "dx.doi.org/10.1016/j.ica.2016.08.008",
+    "dx.doi.org/10.1016/j.seppur.2014.03.005",
+    "https://cordis.europa.eu/project/id/211267, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1007/s10967-020-07368-2, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1016/j.hydromet.2020.105248",
+    "https://doi.org/10.1016/j.hydromet.2020.105248, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1016/j.molliq.2020.113685",
+    "https://doi.org/10.1016/j.seppur.2014.03.005, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1021/acs.inorgchem.0c02861, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1021/acs.jpcb.6b11222, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1039/C7DT01954H, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1039/D4GC01146E, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1080/07366290701634578, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1080/07366290802672212, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1080/07366299.2012.700591 , https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1080/07366299.2012.757160, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1080/07366299.2013.833791",
+    "https://doi.org/10.1080/07366299.2013.836422, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1080/07366299.2015.1087209 , https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1080/07366299.2017.1415670, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1080/10610278.2010.506553, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1080/18811248.2007.9711301",
+    "https://doi.org/10.1081/SEI-100001376, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1081/SEI-200037727, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1081/SEI-200066296   , https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1246/cl.200431, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.15261/serdj.18.93, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.15261/serdj.26.21"
+   ],
+   "curators": [
+    "Aurora Clark",
+    "Baosen Zhang",
+    "Thomas Summers"
+   ],
+   "upstream_Extractant_SMILES_variants": [
+    "CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC",
+    "CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC,-"
+   ],
+   "n_matched_cells_with_2plus_names": 21,
+   "n_rows_in_matched_contested_cells": 143,
+   "name_effect_spread_logD_at_matched_conditions": 4.9551,
+   "per_name_at_matched_conditions": {
+    "(PhSO3Na)2-BTBP": {
+     "n": 4,
+     "mean_log_D": 1.7266,
+     "sd_log_D": 0.9671
+    },
+    "(PhSO3Na)2-BTPhen": {
+     "n": 4,
+     "mean_log_D": 1.7618,
+     "sd_log_D": 0.6806
+    },
+    "CITAM": {
+     "n": 6,
+     "mean_log_D": 1.4349,
+     "sd_log_D": 0.9105
+    },
+    "PHEN-6OH": {
+     "n": 4,
+     "mean_log_D": 2.1424,
+     "sd_log_D": 0.6383
+    },
+    "PHEN-dialcohol": {
+     "n": 10,
+     "mean_log_D": 1.4739,
+     "sd_log_D": 1.7219
+    },
+    "PyTri-Tetraol": {
+     "n": 11,
+     "mean_log_D": 1.8471,
+     "sd_log_D": 0.9508
+    },
+    "PyTri-diol": {
+     "n": 4,
+     "mean_log_D": 1.9483,
+     "sd_log_D": 0.3937
+    },
+    "SO3-Ph-BTBP": {
+     "n": 3,
+     "mean_log_D": 2.1103,
+     "sd_log_D": 0.9704
+    },
+    "SO3-Ph-BTP": {
+     "n": 4,
+     "mean_log_D": 2.4514,
+     "sd_log_D": 0.4593
+    },
+    "TODGA": {
+     "n": 52,
+     "mean_log_D": 1.1729,
+     "sd_log_D": 1.2693
+    },
+    "TODGA,DHOA": {
+     "n": 5,
+     "mean_log_D": 0.3288,
+     "sd_log_D": 0.7065
+    },
+    "TWE-26": {
+     "n": 4,
+     "mean_log_D": 2.2445,
+     "sd_log_D": 0.39
+    },
+    "TWE-31": {
+     "n": 4,
+     "mean_log_D": 1.8206,
+     "sd_log_D": 0.8177
+    },
+    "TWE-32": {
+     "n": 3,
+     "mean_log_D": -2.0697,
+     "sd_log_D": 0.9416
+    },
+    "TWE-37": {
+     "n": 2,
+     "mean_log_D": 0.5959,
+     "sd_log_D": 0.8489
+    },
+    "TWE-38": {
+     "n": 4,
+     "mean_log_D": -3.072,
+     "sd_log_D": 0.3172
+    },
+    "TWE-39": {
+     "n": 3,
+     "mean_log_D": 0.5205,
+     "sd_log_D": 0.3644
+    },
+    "TWE-40": {
+     "n": 7,
+     "mean_log_D": 2.1288,
+     "sd_log_D": 0.4121
+    },
+    "TWE-41": {
+     "n": 4,
+     "mean_log_D": 1.9034,
+     "sd_log_D": 0.9959
+    },
+    "TWE-42": {
+     "n": 5,
+     "mean_log_D": 1.8446,
+     "sd_log_D": 0.917
+    }
+   },
+   "contested_cells": [
+    {
+     "cell": "Eu|3|hno3|0.0001|0.2",
+     "range_of_name_means": 5.4855,
+     "names": {
+      "TWE-26": {
+       "n": 2,
+       "mean": 2.0876,
+       "sd": 0.5981
+      },
+      "TWE-31": {
+       "n": 1,
+       "mean": 0.7973,
+       "sd": null
+      },
+      "TWE-32": {
+       "n": 1,
+       "mean": -2.699,
+       "sd": null
+      },
+      "TWE-37": {
+       "n": 1,
+       "mean": -0.0044,
+       "sd": null
+      },
+      "TWE-38": {
+       "n": 1,
+       "mean": -3.3979,
+       "sd": null
+      },
+      "TWE-39": {
+       "n": 1,
+       "mean": 0.3576,
+       "sd": null
+      },
+      "TWE-40": {
+       "n": 2,
+       "mean": 2.0471,
+       "sd": 0.6548
+      },
+      "TWE-41": {
+       "n": 1,
+       "mean": 1.8153,
+       "sd": null
+      },
+      "TWE-42": {
+       "n": 1,
+       "mean": 1.3225,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|0.001|0.2",
+     "range_of_name_means": 5.3758,
+     "names": {
+      "CITAM": {
+       "n": 2,
+       "mean": 1.2538,
+       "sd": 1.3323
+      },
+      "PyTri-Tetraol": {
+       "n": 1,
+       "mean": 1.0294,
+       "sd": null
+      },
+      "PyTri-diol": {
+       "n": 1,
+       "mean": 1.44,
+       "sd": null
+      },
+      "TWE-31": {
+       "n": 1,
+       "mean": 1.5514,
+       "sd": null
+      },
+      "TWE-32": {
+       "n": 1,
+       "mean": -2.5229,
+       "sd": null
+      },
+      "TWE-38": {
+       "n": 1,
+       "mean": -3.1549,
+       "sd": null
+      },
+      "TWE-39": {
+       "n": 1,
+       "mean": 0.266,
+       "sd": null
+      },
+      "TWE-40": {
+       "n": 2,
+       "mean": 2.2209,
+       "sd": 0.3045
+      },
+      "TWE-42": {
+       "n": 1,
+       "mean": 1.7607,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|0.0093|0.2",
+     "range_of_name_means": 1.2096,
+     "names": {
+      "TWE-31": {
+       "n": 1,
+       "mean": 2.3075,
+       "sd": null
+      },
+      "TWE-37": {
+       "n": 1,
+       "mean": 1.1962,
+       "sd": null
+      },
+      "TWE-42": {
+       "n": 1,
+       "mean": 2.4058,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|0.0098|0.2",
+     "range_of_name_means": 5.5543,
+     "names": {
+      "TWE-38": {
+       "n": 1,
+       "mean": -3.0969,
+       "sd": null
+      },
+      "TWE-39": {
+       "n": 1,
+       "mean": 0.938,
+       "sd": null
+      },
+      "TWE-41": {
+       "n": 1,
+       "mean": 2.4574,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|0.01|0.2",
+     "range_of_name_means": 1.735,
+     "names": {
+      "CITAM": {
+       "n": 2,
+       "mean": 1.3783,
+       "sd": 1.1904
+      },
+      "PyTri-Tetraol": {
+       "n": 2,
+       "mean": 0.6749,
+       "sd": 0.3868
+      },
+      "PyTri-diol": {
+       "n": 2,
+       "mean": 2.029,
+       "sd": 0.2705
+      },
+      "TWE-26": {
+       "n": 1,
+       "mean": 2.4099,
+       "sd": null
+      },
+      "TWE-40": {
+       "n": 1,
+       "mean": 2.4098,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|0.0813|0.2",
+     "range_of_name_means": 3.6135,
+     "names": {
+      "TWE-31": {
+       "n": 1,
+       "mean": 2.6263,
+       "sd": null
+      },
+      "TWE-32": {
+       "n": 1,
+       "mean": -0.9872,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|0.0912|0.2",
+     "range_of_name_means": 0.2919,
+     "names": {
+      "(PhSO3Na)2-BTBP": {
+       "n": 1,
+       "mean": 2.4502,
+       "sd": null
+      },
+      "(PhSO3Na)2-BTPhen": {
+       "n": 1,
+       "mean": 2.1584,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|0.0955|0.2",
+     "range_of_name_means": 0.2434,
+     "names": {
+      "TWE-41": {
+       "n": 1,
+       "mean": 2.8,
+       "sd": null
+      },
+      "TWE-42": {
+       "n": 1,
+       "mean": 3.0434,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|0.0|0.2",
+     "range_of_name_means": 1.0233,
+     "names": {
+      "TWE-40": {
+       "n": 1,
+       "mean": 1.5641,
+       "sd": null
+      },
+      "TWE-41": {
+       "n": 1,
+       "mean": 0.5408,
+       "sd": null
+      },
+      "TWE-42": {
+       "n": 1,
+       "mean": 0.6905,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|0.1698|0.2",
+     "range_of_name_means": 0.0369,
+     "names": {
+      "(PhSO3Na)2-BTBP": {
+       "n": 1,
+       "mean": 2.2648,
+       "sd": null
+      },
+      "(PhSO3Na)2-BTPhen": {
+       "n": 1,
+       "mean": 2.2279,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|0.18|0.2",
+     "range_of_name_means": 0.8743,
+     "names": {
+      "SO3-Ph-BTBP": {
+       "n": 1,
+       "mean": 1.0755,
+       "sd": null
+      },
+      "SO3-Ph-BTP": {
+       "n": 1,
+       "mean": 1.9499,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|0.1|0.2",
+     "range_of_name_means": 5.031,
+     "names": {
+      "CITAM": {
+       "n": 2,
+       "mean": 1.6727,
+       "sd": 0.8762
+      },
+      "PHEN-dialcohol": {
+       "n": 4,
+       "mean": 0.0556,
+       "sd": 1.9604
+      },
+      "PyTri-Tetraol": {
+       "n": 2,
+       "mean": 1.1848,
+       "sd": 0.6773
+      },
+      "PyTri-diol": {
+       "n": 1,
+       "mean": 2.2951,
+       "sd": null
+      },
+      "TWE-26": {
+       "n": 1,
+       "mean": 2.3927,
+       "sd": null
+      },
+      "TWE-38": {
+       "n": 1,
+       "mean": -2.6383,
+       "sd": null
+      },
+      "TWE-40": {
+       "n": 1,
+       "mean": 2.392,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|0.3162|0.2",
+     "range_of_name_means": 0.0284,
+     "names": {
+      "(PhSO3Na)2-BTBP": {
+       "n": 1,
+       "mean": 1.8692,
+       "sd": null
+      },
+      "(PhSO3Na)2-BTPhen": {
+       "n": 1,
+       "mean": 1.8976,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|0.44|0.2",
+     "range_of_name_means": 0.1637,
+     "names": {
+      "SO3-Ph-BTBP": {
+       "n": 1,
+       "mean": 2.2553,
+       "sd": null
+      },
+      "SO3-Ph-BTP": {
+       "n": 2,
+       "mean": 2.419,
+       "sd": 0.2418
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|0.5248|0.2",
+     "range_of_name_means": 0.4412,
+     "names": {
+      "(PhSO3Na)2-BTBP": {
+       "n": 1,
+       "mean": 0.3222,
+       "sd": null
+      },
+      "(PhSO3Na)2-BTPhen": {
+       "n": 1,
+       "mean": 0.7634,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|0.5|0.2",
+     "range_of_name_means": 0.2386,
+     "names": {
+      "PHEN-dialcohol": {
+       "n": 3,
+       "mean": 2.0508,
+       "sd": 0.6168
+      },
+      "PyTri-Tetraol": {
+       "n": 3,
+       "mean": 2.2893,
+       "sd": 0.3181
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|0.88|0.2",
+     "range_of_name_means": 0.0179,
+     "names": {
+      "SO3-Ph-BTBP": {
+       "n": 1,
+       "mean": 3.0,
+       "sd": null
+      },
+      "SO3-Ph-BTP": {
+       "n": 1,
+       "mean": 3.0179,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|1.0|0.05",
+     "range_of_name_means": 0.2177,
+     "names": {
+      "PHEN-6OH": {
+       "n": 3,
+       "mean": 1.8565,
+       "sd": 0.3475
+      },
+      "TODGA": {
+       "n": 10,
+       "mean": 1.6388,
+       "sd": 0.1386
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|1.0|0.1",
+     "range_of_name_means": 0.0976,
+     "names": {
+      "TODGA": {
+       "n": 13,
+       "mean": 1.3942,
+       "sd": 1.2922
+      },
+      "TODGA,DHOA": {
+       "n": 1,
+       "mean": 1.4918,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|1.0|0.2",
+     "range_of_name_means": 0.9489,
+     "names": {
+      "PHEN-6OH": {
+       "n": 1,
+       "mean": 3.0,
+       "sd": null
+      },
+      "PHEN-dialcohol": {
+       "n": 3,
+       "mean": 2.788,
+       "sd": 0.2907
+      },
+      "PyTri-Tetraol": {
+       "n": 3,
+       "mean": 2.9005,
+       "sd": 0.0991
+      },
+      "TODGA": {
+       "n": 11,
+       "mean": 2.0511,
+       "sd": 0.5973
+      }
+     }
+    },
+    {
+     "cell": "Nd|3|hno3|3.0|0.1",
+     "range_of_name_means": 0.1795,
+     "names": {
+      "TODGA": {
+       "n": 18,
+       "mean": 0.2176,
+       "sd": 1.3431
+      },
+      "TODGA,DHOA": {
+       "n": 4,
+       "mean": 0.0381,
+       "sd": 0.3193
+      }
+     }
+    }
+   ],
+   "field_separation": {
+    "Solvent_Name": {
+     "n_values": 37,
+     "constant": false,
+     "frac_rows_name_determined": 0.5152,
+     "max_names_sharing_one_value": 11,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "f_Solvent_Name": {
+     "n_values": 37,
+     "constant": false,
+     "frac_rows_name_determined": 0.5152,
+     "max_names_sharing_one_value": 11,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Name": {
+     "n_values": 7,
+     "constant": false,
+     "frac_rows_name_determined": 0.0408,
+     "max_names_sharing_one_value": 21,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Concentration_M": {
+     "n_values": 11,
+     "constant": false,
+     "frac_rows_name_determined": 0.0408,
+     "max_names_sharing_one_value": 21,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 21,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 21,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Acid_Concentration_Organic_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 21,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Metal_Concentration_mM": {
+     "n_values": 81,
+     "constant": false,
+     "frac_rows_name_determined": 0.745,
+     "max_names_sharing_one_value": 21,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "obsTempsValue": {
+     "n_values": 17,
+     "constant": false,
+     "frac_rows_name_determined": 0.0321,
+     "max_names_sharing_one_value": 15,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Contact_Time_min": {
+     "n_values": 17,
+     "constant": false,
+     "frac_rows_name_determined": 0.374,
+     "max_names_sharing_one_value": 15,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Shaking_Time_min": {
+     "n_values": 10,
+     "constant": false,
+     "frac_rows_name_determined": 0.3431,
+     "max_names_sharing_one_value": 21,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Radiolytic_Dosage_kGy": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 21,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "volValue": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 20,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "thirdValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 21,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "DOI": {
+     "n_values": 48,
+     "constant": false,
+     "frac_rows_name_determined": 0.9352,
+     "max_names_sharing_one_value": 19,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "entry_author": {
+     "n_values": 3,
+     "constant": false,
+     "frac_rows_name_determined": 0.3489,
+     "max_names_sharing_one_value": 19,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "_src_file": {
+     "n_values": 19,
+     "constant": false,
+     "frac_rows_name_determined": 0.2993,
+     "max_names_sharing_one_value": 12,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "ini_comp": {
+     "n_values": 288,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": true
+    },
+    "comments_description": {
+     "n_values": 234,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": true
+    }
+   },
+   "joint_name_recovery_condition_fields_only": 0.9358,
+   "joint_name_recovery_condition_plus_provenance": 0.9393,
+   "joint_name_recovery_including_leaky_free_text": 1.0,
+   "classification": "WRONG STRUCTURE - one SMILES string pasted onto 19 chemically distinct ligands"
+  },
+  {
+   "canonical_smiles": "CCCCCCCCN(CCCCCCCC)C(=O)c1ccc2ccc3ccc(C(=O)N(CCCCCCCC)CCCCCCCC)nc3c2n1",
+   "n_rows": 35,
+   "n_names": 2,
+   "names": {
+    "2-N-2-N-9-N-9-N-tetraoctyl-1-10-phenanthroline-2-9-dicarboxamide": 23,
+    "T8-PHEN-CAM": 12
+   },
+   "metals": [
+    "Ce",
+    "Dy",
+    "Er",
+    "Eu",
+    "Gd",
+    "Ho",
+    "La",
+    "Lu",
+    "Nd",
+    "Pr",
+    "Sm",
+    "Tb",
+    "Tm",
+    "Yb"
+   ],
+   "dois": [
+    "https://cordis.europa.eu/project/id/211267, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1002/chem.201806443, https://doi.org/10.1021/jacs.5c19738"
+   ],
+   "curators": [
+    "Baosen Zhang"
+   ],
+   "upstream_Extractant_SMILES_variants": [
+    "CCCCCCCCN(CCCCCCCC)C(=O)c1ccc2ccc3ccc(C(=O)N(CCCCCCCC)CCCCCCCC)nc3c2n1"
+   ],
+   "n_matched_cells_with_2plus_names": 0,
+   "n_rows_in_matched_contested_cells": 0,
+   "name_effect_spread_logD_at_matched_conditions": null,
+   "per_name_at_matched_conditions": {},
+   "contested_cells": [],
+   "field_separation": {
+    "Solvent_Name": {
+     "n_values": 4,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "f_Solvent_Name": {
+     "n_values": 4,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Acid_Concentration_Organic_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Metal_Concentration_mM": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "obsTempsValue": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "Contact_Time_min": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "Shaking_Time_min": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Radiolytic_Dosage_kGy": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "volValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "thirdValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "DOI": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "entry_author": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "_src_file": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "ini_comp": {
+     "n_values": 26,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": true
+    },
+    "comments_description": {
+     "n_values": 5,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": true
+    }
+   },
+   "joint_name_recovery_condition_fields_only": 1.0,
+   "joint_name_recovery_condition_plus_provenance": 1.0,
+   "joint_name_recovery_including_leaky_free_text": 1.0,
+   "classification": "SYNONYM - the two names never co-occur at matched conditions; no measurable effect"
+  },
+  {
+   "canonical_smiles": "CCCCCc1nnc(-c2cccc(-c3cccc(-c4nnc(CCCCC)c(CCCCC)n4)n3)n2)nc1CCCCC",
+   "n_rows": 250,
+   "n_names": 2,
+   "names": {
+    "C5BTBP": 237,
+    "3-[6-[6-(5-6-dipentyl-1-2-4-triazin-3-yl)-2-pyridinyl]-2-pyridinyl]-5-6-dipentyl-1-2-4-triazine": 13
+   },
+   "metals": [
+    "Ce",
+    "Dy",
+    "Er",
+    "Eu",
+    "Gd",
+    "Ho",
+    "La",
+    "Lu",
+    "Nd",
+    "Pr",
+    "Sm",
+    "Tb",
+    "Yb"
+   ],
+   "dois": [
+    "https://doi.org/10.1080/07366290600646947, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1080/07366290600952659, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1080/07366290701416000, https://doi.org/10.1021/jacs.5c19738"
+   ],
+   "curators": [
+    "Baosen Zhang"
+   ],
+   "upstream_Extractant_SMILES_variants": [
+    "CCCCCc1nnc(-c2cccc(-c3cccc(-c4nnc(CCCCC)c(CCCCC)n4)n3)n2)nc1CCCCC"
+   ],
+   "n_matched_cells_with_2plus_names": 13,
+   "n_rows_in_matched_contested_cells": 26,
+   "name_effect_spread_logD_at_matched_conditions": 2.3083,
+   "per_name_at_matched_conditions": {
+    "3-[6-[6-(5-6-dipentyl-1-2-4-triazin-3-yl)-2-pyridinyl]-2-pyridinyl]-5-6-dipentyl-1-2-4-triazine": {
+     "n": 13,
+     "mean_log_D": -1.0347,
+     "sd_log_D": 0.8738
+    },
+    "C5BTBP": {
+     "n": 13,
+     "mean_log_D": -3.3429,
+     "sd_log_D": 0.8226
+    }
+   },
+   "contested_cells": [
+    {
+     "cell": "Ce|3|hno3|0.5|0.005",
+     "range_of_name_means": 1.938,
+     "names": {
+      "3-[6-[6-(5-6-dipentyl-1-2-4-triazin-3-yl)-2-pyridinyl]-2-pyridinyl]-5-6-dipentyl-1-2-4-triazine": {
+       "n": 1,
+       "mean": -2.2218,
+       "sd": null
+      },
+      "C5BTBP": {
+       "n": 1,
+       "mean": -4.1599,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Dy|3|hno3|0.5|0.005",
+     "range_of_name_means": 2.3482,
+     "names": {
+      "3-[6-[6-(5-6-dipentyl-1-2-4-triazin-3-yl)-2-pyridinyl]-2-pyridinyl]-5-6-dipentyl-1-2-4-triazine": {
+       "n": 1,
+       "mean": -0.4559,
+       "sd": null
+      },
+      "C5BTBP": {
+       "n": 1,
+       "mean": -2.8041,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Er|3|hno3|0.5|0.005",
+     "range_of_name_means": 2.1882,
+     "names": {
+      "3-[6-[6-(5-6-dipentyl-1-2-4-triazin-3-yl)-2-pyridinyl]-2-pyridinyl]-5-6-dipentyl-1-2-4-triazine": {
+       "n": 1,
+       "mean": -0.2218,
+       "sd": null
+      },
+      "C5BTBP": {
+       "n": 1,
+       "mean": -2.4101,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|0.5|0.005",
+     "range_of_name_means": 2.3526,
+     "names": {
+      "3-[6-[6-(5-6-dipentyl-1-2-4-triazin-3-yl)-2-pyridinyl]-2-pyridinyl]-5-6-dipentyl-1-2-4-triazine": {
+       "n": 1,
+       "mean": -1.0,
+       "sd": null
+      },
+      "C5BTBP": {
+       "n": 1,
+       "mean": -3.3526,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Gd|3|hno3|0.5|0.005",
+     "range_of_name_means": 2.4162,
+     "names": {
+      "3-[6-[6-(5-6-dipentyl-1-2-4-triazin-3-yl)-2-pyridinyl]-2-pyridinyl]-5-6-dipentyl-1-2-4-triazine": {
+       "n": 1,
+       "mean": -1.0706,
+       "sd": null
+      },
+      "C5BTBP": {
+       "n": 1,
+       "mean": -3.4868,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Ho|3|hno3|0.5|0.005",
+     "range_of_name_means": 2.2676,
+     "names": {
+      "3-[6-[6-(5-6-dipentyl-1-2-4-triazin-3-yl)-2-pyridinyl]-2-pyridinyl]-5-6-dipentyl-1-2-4-triazine": {
+       "n": 1,
+       "mean": -0.301,
+       "sd": null
+      },
+      "C5BTBP": {
+       "n": 1,
+       "mean": -2.5686,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "La|3|hno3|0.5|0.005",
+     "range_of_name_means": 1.3036,
+     "names": {
+      "3-[6-[6-(5-6-dipentyl-1-2-4-triazin-3-yl)-2-pyridinyl]-2-pyridinyl]-5-6-dipentyl-1-2-4-triazine": {
+       "n": 1,
+       "mean": -3.0,
+       "sd": null
+      },
+      "C5BTBP": {
+       "n": 1,
+       "mean": -4.3036,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Lu|3|hno3|0.5|0.005",
+     "range_of_name_means": 2.1612,
+     "names": {
+      "3-[6-[6-(5-6-dipentyl-1-2-4-triazin-3-yl)-2-pyridinyl]-2-pyridinyl]-5-6-dipentyl-1-2-4-triazine": {
+       "n": 1,
+       "mean": -0.1549,
+       "sd": null
+      },
+      "C5BTBP": {
+       "n": 1,
+       "mean": -2.3161,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Nd|3|hno3|0.5|0.005",
+     "range_of_name_means": 2.6383,
+     "names": {
+      "3-[6-[6-(5-6-dipentyl-1-2-4-triazin-3-yl)-2-pyridinyl]-2-pyridinyl]-5-6-dipentyl-1-2-4-triazine": {
+       "n": 1,
+       "mean": -1.301,
+       "sd": null
+      },
+      "C5BTBP": {
+       "n": 1,
+       "mean": -3.9393,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Pr|3|hno3|0.5|0.005",
+     "range_of_name_means": 2.4225,
+     "names": {
+      "3-[6-[6-(5-6-dipentyl-1-2-4-triazin-3-yl)-2-pyridinyl]-2-pyridinyl]-5-6-dipentyl-1-2-4-triazine": {
+       "n": 1,
+       "mean": -1.8239,
+       "sd": null
+      },
+      "C5BTBP": {
+       "n": 1,
+       "mean": -4.2464,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Sm|3|hno3|0.5|0.005",
+     "range_of_name_means": 3.4685,
+     "names": {
+      "3-[6-[6-(5-6-dipentyl-1-2-4-triazin-3-yl)-2-pyridinyl]-2-pyridinyl]-5-6-dipentyl-1-2-4-triazine": {
+       "n": 1,
+       "mean": -1.0458,
+       "sd": null
+      },
+      "C5BTBP": {
+       "n": 1,
+       "mean": -4.5143,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Tb|3|hno3|0.5|0.005",
+     "range_of_name_means": 2.3439,
+     "names": {
+      "3-[6-[6-(5-6-dipentyl-1-2-4-triazin-3-yl)-2-pyridinyl]-2-pyridinyl]-5-6-dipentyl-1-2-4-triazine": {
+       "n": 1,
+       "mean": -0.699,
+       "sd": null
+      },
+      "C5BTBP": {
+       "n": 1,
+       "mean": -3.0429,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Yb|3|hno3|0.5|0.005",
+     "range_of_name_means": 2.1585,
+     "names": {
+      "3-[6-[6-(5-6-dipentyl-1-2-4-triazin-3-yl)-2-pyridinyl]-2-pyridinyl]-5-6-dipentyl-1-2-4-triazine": {
+       "n": 1,
+       "mean": -0.1549,
+       "sd": null
+      },
+      "C5BTBP": {
+       "n": 1,
+       "mean": -2.3134,
+       "sd": null
+      }
+     }
+    }
+   ],
+   "field_separation": {
+    "Solvent_Name": {
+     "n_values": 13,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "f_Solvent_Name": {
+     "n_values": 13,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Acid_Concentration_Organic_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Metal_Concentration_mM": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "obsTempsValue": {
+     "n_values": 4,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Contact_Time_min": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Shaking_Time_min": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Radiolytic_Dosage_kGy": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "volValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "thirdValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "DOI": {
+     "n_values": 3,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "entry_author": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "_src_file": {
+     "n_values": 8,
+     "constant": false,
+     "frac_rows_name_determined": 0.044,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "ini_comp": {
+     "n_values": 38,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": true
+    },
+    "comments_description": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": true
+    }
+   },
+   "joint_name_recovery_condition_fields_only": 1.0,
+   "joint_name_recovery_condition_plus_provenance": 1.0,
+   "joint_name_recovery_including_leaky_free_text": 1.0,
+   "classification": "SYNONYM + RECOVERABLE DILUENT SPLIT - cyclohexanone vs kerosene/octanol, already a cond__ feature"
+  },
+  {
+   "canonical_smiles": "CN(C(=O)c1cccc(C(=O)N(C)c2ccccc2)n1)c1ccccc1",
+   "n_rows": 140,
+   "n_names": 2,
+   "names": {
+    "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": 70,
+    "DMDPhPDA": 70
+   },
+   "metals": [
+    "Ce",
+    "Dy",
+    "Er",
+    "Eu",
+    "Gd",
+    "Ho",
+    "La",
+    "Lu",
+    "Nd",
+    "Pr",
+    "Sm",
+    "Tb",
+    "Tm",
+    "Yb"
+   ],
+   "dois": [
+    "https://doi.org/10.1081/SEI-120030392, https://doi.org/10.1021/jacs.5c19738"
+   ],
+   "curators": [
+    "Baosen Zhang",
+    "Thomas Summers"
+   ],
+   "upstream_Extractant_SMILES_variants": [
+    "CN(C(=O)c1cccc(C(=O)N(C)c2ccccc2)n1)c1ccccc1",
+    "CN(C(=O)c2cccc(C(=O)N(C)c1ccccc1)n2)c3ccccc3"
+   ],
+   "n_matched_cells_with_2plus_names": 70,
+   "n_rows_in_matched_contested_cells": 140,
+   "name_effect_spread_logD_at_matched_conditions": 2.0429,
+   "per_name_at_matched_conditions": {
+    "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+     "n": 70,
+     "mean_log_D": 0.5483,
+     "sd_log_D": 0.3483
+    },
+    "DMDPhPDA": {
+     "n": 70,
+     "mean_log_D": -1.4945,
+     "sd_log_D": 1.5497
+    }
+   },
+   "contested_cells": [
+    {
+     "cell": "Ce|3|hno3|1.0|0.5",
+     "range_of_name_means": 4.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.301,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -3.699,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Ce|3|hno3|2.0|0.5",
+     "range_of_name_means": 3.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.5315,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -2.4685,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Ce|3|hno3|3.0|0.5",
+     "range_of_name_means": 2.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.3802,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -1.6198,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Ce|3|hno3|4.0|0.5",
+     "range_of_name_means": 1.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.2041,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -0.7959,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Ce|3|hno3|5.0|0.5",
+     "range_of_name_means": 1.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.7993,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -0.2007,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Dy|3|hno3|1.0|0.5",
+     "range_of_name_means": 4.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.301,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -3.699,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Dy|3|hno3|2.0|0.5",
+     "range_of_name_means": 3.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.301,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -2.699,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Dy|3|hno3|3.0|0.5",
+     "range_of_name_means": 2.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.3802,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -1.6198,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Dy|3|hno3|4.0|0.5",
+     "range_of_name_means": 1.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.716,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -0.284,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Dy|3|hno3|5.0|0.5",
+     "range_of_name_means": 0.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.8692,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": 0.8692,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Er|3|hno3|1.0|0.5",
+     "range_of_name_means": 4.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.6021,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -3.3979,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Er|3|hno3|2.0|0.5",
+     "range_of_name_means": 3.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.3617,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -2.6383,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Er|3|hno3|3.0|0.5",
+     "range_of_name_means": 2.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.5563,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -1.4437,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Er|3|hno3|4.0|0.5",
+     "range_of_name_means": 1.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 1.0792,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": 0.0792,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Er|3|hno3|5.0|0.5",
+     "range_of_name_means": 0.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 1.3222,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": 1.3222,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|1.0|0.5",
+     "range_of_name_means": 4.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.4771,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -3.5229,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|2.0|0.5",
+     "range_of_name_means": 3.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.4624,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -2.5376,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|3.0|0.5",
+     "range_of_name_means": 2.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.415,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -1.585,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|4.0|0.5",
+     "range_of_name_means": 1.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.3979,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -0.6021,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Eu|3|hno3|5.0|0.5",
+     "range_of_name_means": 0.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.2041,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": 0.2041,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Gd|3|hno3|1.0|0.5",
+     "range_of_name_means": 4.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.0,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -4.0,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Gd|3|hno3|2.0|0.5",
+     "range_of_name_means": 3.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.2553,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -2.7447,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Gd|3|hno3|3.0|0.5",
+     "range_of_name_means": 2.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.2304,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -1.7696,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Gd|3|hno3|4.0|0.5",
+     "range_of_name_means": 1.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.2788,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -0.7212,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Gd|3|hno3|5.0|0.5",
+     "range_of_name_means": 0.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.2041,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": 0.2041,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Ho|3|hno3|1.0|0.5",
+     "range_of_name_means": 4.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.4771,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -3.5229,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Ho|3|hno3|2.0|0.5",
+     "range_of_name_means": 3.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.3222,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -2.6778,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Ho|3|hno3|3.0|0.5",
+     "range_of_name_means": 2.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.4472,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -1.5528,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Ho|3|hno3|4.0|0.5",
+     "range_of_name_means": 1.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.8921,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -0.1079,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Ho|3|hno3|5.0|0.5",
+     "range_of_name_means": 0.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 1.1139,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": 1.1139,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "La|3|hno3|1.0|0.5",
+     "range_of_name_means": 4.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.4771,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -3.5229,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "La|3|hno3|2.0|0.5",
+     "range_of_name_means": 3.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.5563,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -2.4437,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "La|3|hno3|3.0|0.5",
+     "range_of_name_means": 2.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.301,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -1.699,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "La|3|hno3|4.0|0.5",
+     "range_of_name_means": 1.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.0,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -1.0,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "La|3|hno3|5.0|0.5",
+     "range_of_name_means": 1.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.5563,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -0.4437,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Lu|3|hno3|1.0|0.5",
+     "range_of_name_means": 4.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.6021,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -3.3979,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Lu|3|hno3|2.0|0.5",
+     "range_of_name_means": 3.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.3424,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -2.6576,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Lu|3|hno3|3.0|0.5",
+     "range_of_name_means": 2.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.6435,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -1.3565,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Lu|3|hno3|4.0|0.5",
+     "range_of_name_means": 1.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 1.301,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": 0.301,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Lu|3|hno3|5.0|0.5",
+     "range_of_name_means": 0.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 1.5563,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": 1.5563,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Nd|3|hno3|1.0|0.5",
+     "range_of_name_means": 4.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.4771,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -3.5229,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Nd|3|hno3|2.0|0.5",
+     "range_of_name_means": 3.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.6232,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -2.3768,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Nd|3|hno3|3.0|0.5",
+     "range_of_name_means": 2.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.5315,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -1.4685,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Nd|3|hno3|4.0|0.5",
+     "range_of_name_means": 1.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.3802,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -0.6198,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Nd|3|hno3|5.0|0.5",
+     "range_of_name_means": 0.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.0414,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": 0.0414,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Pr|3|hno3|1.0|0.5",
+     "range_of_name_means": 4.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.4771,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -3.5229,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Pr|3|hno3|2.0|0.5",
+     "range_of_name_means": 3.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.5911,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -2.4089,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Pr|3|hno3|3.0|0.5",
+     "range_of_name_means": 2.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.4914,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -1.5086,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Pr|3|hno3|4.0|0.5",
+     "range_of_name_means": 1.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.3617,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -0.6383,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Pr|3|hno3|5.0|0.5",
+     "range_of_name_means": 1.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.9868,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -0.0132,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Sm|3|hno3|1.0|0.5",
+     "range_of_name_means": 4.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.4771,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -3.5229,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Sm|3|hno3|2.0|0.5",
+     "range_of_name_means": 3.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.5682,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -2.4318,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Sm|3|hno3|3.0|0.5",
+     "range_of_name_means": 2.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.5051,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -1.4949,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Sm|3|hno3|4.0|0.5",
+     "range_of_name_means": 1.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.4472,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -0.5528,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Sm|3|hno3|5.0|0.5",
+     "range_of_name_means": 0.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.1761,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": 0.1761,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Tb|3|hno3|1.0|0.5",
+     "range_of_name_means": 4.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.301,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -3.699,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Tb|3|hno3|2.0|0.5",
+     "range_of_name_means": 3.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.2788,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -2.7212,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Tb|3|hno3|3.0|0.5",
+     "range_of_name_means": 2.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.301,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -1.699,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Tb|3|hno3|4.0|0.5",
+     "range_of_name_means": 1.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.4914,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -0.5086,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Tb|3|hno3|5.0|0.5",
+     "range_of_name_means": 0.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.5682,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": 0.5682,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Tm|3|hno3|1.0|0.5",
+     "range_of_name_means": 4.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.4771,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -3.5229,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Tm|3|hno3|2.0|0.5",
+     "range_of_name_means": 3.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.3222,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -2.6778,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Tm|3|hno3|3.0|0.5",
+     "range_of_name_means": 2.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.5798,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -1.4202,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Tm|3|hno3|4.0|0.5",
+     "range_of_name_means": 1.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 1.1761,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": 0.1761,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Tm|3|hno3|5.0|0.5",
+     "range_of_name_means": 0.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 1.4314,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": 1.4314,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Yb|3|hno3|1.0|0.5",
+     "range_of_name_means": 4.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.4771,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -3.5229,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Yb|3|hno3|2.0|0.5",
+     "range_of_name_means": 3.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.301,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -2.699,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Yb|3|hno3|3.0|0.5",
+     "range_of_name_means": 2.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 0.6021,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": -1.3979,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Yb|3|hno3|4.0|0.5",
+     "range_of_name_means": 1.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 1.2304,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": 0.2304,
+       "sd": null
+      }
+     }
+    },
+    {
+     "cell": "Yb|3|hno3|5.0|0.5",
+     "range_of_name_means": 0.0,
+     "names": {
+      "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": {
+       "n": 1,
+       "mean": 1.4914,
+       "sd": null
+      },
+      "DMDPhPDA": {
+       "n": 1,
+       "mean": 1.4914,
+       "sd": null
+      }
+     }
+    }
+   ],
+   "field_separation": {
+    "Solvent_Name": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "f_Solvent_Name": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Phase_Modifier_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Name": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Holdback_Agent_Concentration_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Acid_Concentration_Organic_M": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Metal_Concentration_mM": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "obsTempsValue": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "Contact_Time_min": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "Shaking_Time_min": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "Radiolytic_Dosage_kGy": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "volValue": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "thirdValue": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "DOI": {
+     "n_values": 1,
+     "constant": true,
+     "frac_rows_name_determined": 0.0,
+     "max_names_sharing_one_value": 2,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "entry_author": {
+     "n_values": 2,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": true,
+     "leaky_contains_the_name": false
+    },
+    "_src_file": {
+     "n_values": 11,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": false
+    },
+    "ini_comp": {
+     "n_values": 28,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": true
+    },
+    "comments_description": {
+     "n_values": 3,
+     "constant": false,
+     "frac_rows_name_determined": 1.0,
+     "max_names_sharing_one_value": 1,
+     "name_is_a_function_of_this_field": false,
+     "leaky_contains_the_name": true
+    }
+   },
+   "joint_name_recovery_condition_fields_only": 1.0,
+   "joint_name_recovery_condition_plus_provenance": 1.0,
+   "joint_name_recovery_including_leaky_free_text": 1.0,
+   "classification": "DUPLICATE ENTRY + DECIMAL CORRUPTION - same paper entered twice, one copy missing the 10^-n exponent"
+  }
+ ],
+ "variance_decomposition": {
+  "P": {
+   "all_ambiguous_smiles": {
+    "n_rows": 374,
+    "n_cells": 134,
+    "between_name_pairs": {
+     "n_pairs": 544,
+     "rms_abs_delta": 1.9388,
+     "median_abs_delta": 0.7605,
+     "mean_abs_delta": 1.3437,
+     "frac_gt_1_log": 0.4412
+    },
+    "within_name_pairs": {
+     "n_pairs": 374,
+     "rms_abs_delta": 1.5658,
+     "median_abs_delta": 0.6232,
+     "mean_abs_delta": 1.0997,
+     "frac_gt_1_log": 0.4171
+    },
+    "eta2_extractant_name": {
+     "eta2_raw": 0.8375,
+     "eta2_permutation_null_mean": 0.8012,
+     "eta2_adjusted": 0.1826,
+     "permutation_p": 0.08,
+     "n_key_groups": 295,
+     "n_cells": 134,
+     "residual_sd_after_cell": 1.3737
+    },
+    "eta2_upstream_condition_fields": {
+     "eta2_raw": 0.6958,
+     "eta2_permutation_null_mean": 0.6945,
+     "eta2_adjusted": 0.0044,
+     "permutation_p": 0.4,
+     "n_key_groups": 301,
+     "n_cells": 134,
+     "residual_sd_after_cell": 1.3737
+    },
+    "eta2_upstream_condition_plus_provenance": {
+     "eta2_raw": 0.6992,
+     "eta2_permutation_null_mean": 0.7099,
+     "eta2_adjusted": -0.037,
+     "permutation_p": 0.715,
+     "n_key_groups": 305,
+     "n_cells": 134,
+     "residual_sd_after_cell": 1.3737
+    }
+   },
+   "excl_TODGA_cluster": {
+    "n_rows": 231,
+    "n_cells": 113,
+    "between_name_pairs": {
+     "n_pairs": 120,
+     "rms_abs_delta": 2.0671,
+     "median_abs_delta": 1.0,
+     "mean_abs_delta": 1.5256,
+     "frac_gt_1_log": 0.55
+    },
+    "within_name_pairs": {
+     "n_pairs": 6,
+     "rms_abs_delta": 0.3779,
+     "median_abs_delta": 0.3089,
+     "mean_abs_delta": 0.3209,
+     "frac_gt_1_log": 0.0
+    },
+    "eta2_extractant_name": {
+     "eta2_raw": 0.9987,
+     "eta2_permutation_null_mean": 0.9881,
+     "eta2_adjusted": 0.8899,
+     "permutation_p": 0.1875,
+     "n_key_groups": 226,
+     "n_cells": 113,
+     "residual_sd_after_cell": 1.4662
+    },
+    "eta2_upstream_condition_fields": {
+     "eta2_raw": 0.9998,
+     "eta2_permutation_null_mean": 0.9997,
+     "eta2_adjusted": 0.3754,
+     "permutation_p": 0.49,
+     "n_key_groups": 230,
+     "n_cells": 113,
+     "residual_sd_after_cell": 1.4662
+    },
+    "eta2_upstream_condition_plus_provenance": {
+     "eta2_raw": 1.0,
+     "eta2_permutation_null_mean": 1.0,
+     "eta2_adjusted": null,
+     "permutation_p": 1.0,
+     "n_key_groups": 231,
+     "n_cells": 113,
+     "residual_sd_after_cell": 1.4662
+    }
+   },
+   "excl_TODGA_and_DMDPhPDA": {
+    "n_rows": 91,
+    "n_cells": 43,
+    "between_name_pairs": {
+     "n_pairs": 50,
+     "rms_abs_delta": 1.3399,
+     "median_abs_delta": 0.1114,
+     "mean_abs_delta": 0.8015,
+     "frac_gt_1_log": 0.3
+    },
+    "within_name_pairs": {
+     "n_pairs": 6,
+     "rms_abs_delta": 0.3779,
+     "median_abs_delta": 0.3089,
+     "mean_abs_delta": 0.3209,
+     "frac_gt_1_log": 0.0
+    },
+    "eta2_extractant_name": {
+     "eta2_raw": 0.9921,
+     "eta2_permutation_null_mean": 0.9343,
+     "eta2_adjusted": 0.8799,
+     "permutation_p": 0.2175,
+     "n_key_groups": 86,
+     "n_cells": 43,
+     "residual_sd_after_cell": 0.9373
+    },
+    "eta2_upstream_condition_fields": {
+     "eta2_raw": 0.9988,
+     "eta2_permutation_null_mean": 0.998,
+     "eta2_adjusted": 0.4049,
+     "permutation_p": 0.47,
+     "n_key_groups": 90,
+     "n_cells": 43,
+     "residual_sd_after_cell": 0.9373
+    },
+    "eta2_upstream_condition_plus_provenance": {
+     "eta2_raw": 1.0,
+     "eta2_permutation_null_mean": 1.0,
+     "eta2_adjusted": null,
+     "permutation_p": 1.0,
+     "n_key_groups": 91,
+     "n_cells": 43,
+     "residual_sd_after_cell": 0.9373
+    }
+   },
+   "excl_TODGA_DMDPhPDA_and_C5BTBP": {
+    "n_rows": 65,
+    "n_cells": 30,
+    "between_name_pairs": {
+     "n_pairs": 37,
+     "rms_abs_delta": 0.6937,
+     "median_abs_delta": 0.0381,
+     "mean_abs_delta": 0.2721,
+     "frac_gt_1_log": 0.0541
+    },
+    "within_name_pairs": {
+     "n_pairs": 6,
+     "rms_abs_delta": 0.3779,
+     "median_abs_delta": 0.3089,
+     "mean_abs_delta": 0.3209,
+     "frac_gt_1_log": 0.0
+    },
+    "eta2_extractant_name": {
+     "eta2_raw": 0.9462,
+     "eta2_permutation_null_mean": 0.5206,
+     "eta2_adjusted": 0.8878,
+     "permutation_p": 0.205,
+     "n_key_groups": 60,
+     "n_cells": 30,
+     "residual_sd_after_cell": 0.4205
+    },
+    "eta2_upstream_condition_fields": {
+     "eta2_raw": 0.9918,
+     "eta2_permutation_null_mean": 0.9861,
+     "eta2_adjusted": 0.4091,
+     "permutation_p": 0.4925,
+     "n_key_groups": 64,
+     "n_cells": 30,
+     "residual_sd_after_cell": 0.4205
+    },
+    "eta2_upstream_condition_plus_provenance": {
+     "eta2_raw": 1.0,
+     "eta2_permutation_null_mean": 1.0,
+     "eta2_adjusted": null,
+     "permutation_p": 1.0,
+     "n_key_groups": 65,
+     "n_cells": 30,
+     "residual_sd_after_cell": 0.4205
+    }
+   },
+   "replicate_noise_floor_single_name_cells": {
+    "n_rows": 1893,
+    "n_cells": 523,
+    "residual_sd": 0.9222,
+    "mean_abs_dev": 0.5165,
+    "within_name_pairs": {
+     "n_pairs": 4226,
+     "rms_abs_delta": 1.3245,
+     "median_abs_delta": 0.5833,
+     "mean_abs_delta": 0.914,
+     "frac_gt_1_log": 0.337
+    }
+   }
+  },
+  "M": {
+   "all_ambiguous_smiles": {
+    "n_rows": 73,
+    "n_cells": 22,
+    "between_name_pairs": {
+     "n_pairs": 99,
+     "rms_abs_delta": 1.8487,
+     "median_abs_delta": 0.6314,
+     "mean_abs_delta": 1.1941,
+     "frac_gt_1_log": 0.404
+    },
+    "within_name_pairs": {
+     "n_pairs": 26,
+     "rms_abs_delta": 1.517,
+     "median_abs_delta": 0.5886,
+     "mean_abs_delta": 1.0687,
+     "frac_gt_1_log": 0.3462
+    },
+    "eta2_extractant_name": {
+     "eta2_raw": 0.8152,
+     "eta2_permutation_null_mean": 0.8292,
+     "eta2_adjusted": -0.0822,
+     "permutation_p": 0.5275,
+     "n_key_groups": 54,
+     "n_cells": 22,
+     "residual_sd_after_cell": 1.3746
+    },
+    "eta2_upstream_condition_fields": {
+     "eta2_raw": 0.0,
+     "eta2_permutation_null_mean": 0.0,
+     "eta2_adjusted": 0.0,
+     "permutation_p": 1.0,
+     "n_key_groups": 22,
+     "n_cells": 22,
+     "residual_sd_after_cell": 1.3746
+    },
+    "eta2_upstream_condition_plus_provenance": {
+     "eta2_raw": 0.0153,
+     "eta2_permutation_null_mean": 0.0388,
+     "eta2_adjusted": -0.0244,
+     "permutation_p": 0.815,
+     "n_key_groups": 25,
+     "n_cells": 22,
+     "residual_sd_after_cell": 1.3746
+    }
+   },
+   "excl_TODGA_cluster": {
+    "n_rows": 0,
+    "n_cells": 0,
+    "between_name_pairs": {
+     "n_pairs": 0
+    },
+    "within_name_pairs": {
+     "n_pairs": 0
+    }
+   },
+   "excl_TODGA_and_DMDPhPDA": {
+    "n_rows": 0,
+    "n_cells": 0,
+    "between_name_pairs": {
+     "n_pairs": 0
+    },
+    "within_name_pairs": {
+     "n_pairs": 0
+    }
+   },
+   "excl_TODGA_DMDPhPDA_and_C5BTBP": {
+    "n_rows": 0,
+    "n_cells": 0,
+    "between_name_pairs": {
+     "n_pairs": 0
+    },
+    "within_name_pairs": {
+     "n_pairs": 0
+    }
+   },
+   "replicate_noise_floor_single_name_cells": {
+    "n_rows": 930,
+    "n_cells": 291,
+    "residual_sd": 0.7062,
+    "mean_abs_dev": 0.3738,
+    "within_name_pairs": {
+     "n_pairs": 1669,
+     "rms_abs_delta": 1.1696,
+     "median_abs_delta": 0.5774,
+     "mean_abs_delta": 0.825,
+     "frac_gt_1_log": 0.3212
+    }
+   }
+  },
+  "dataset_log_D_sd": 1.6661
+ },
+ "forensics_DMDPhPDA": {
+  "smiles": "CN(C(=O)c1cccc(C(=O)N(C)c2ccccc2)n1)c1ccccc1",
+  "names": [
+   "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide",
+   "DMDPhPDA"
+  ],
+  "n_matched_cells": 70,
+  "doi": [
+   "https://doi.org/10.1081/SEI-120030392, https://doi.org/10.1021/jacs.5c19738"
+  ],
+  "curators": [
+   "Baosen Zhang",
+   "Thomas Summers"
+  ],
+  "solvent_by_name": {
+   "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": [
+    "CH3Cl"
+   ],
+   "DMDPhPDA": [
+    "Chloroform"
+   ]
+  },
+  "upstream_smiles_by_name": {
+   "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": [
+    "CN(C(=O)c1cccc(C(=O)N(C)c2ccccc2)n1)c1ccccc1"
+   ],
+   "DMDPhPDA": [
+    "CN(C(=O)c2cccc(C(=O)N(C)c1ccccc1)n2)c3ccccc3"
+   ]
+  },
+  "delta_logD_is_an_exact_integer_in_every_cell": true,
+  "delta_logD_histogram": {
+   "0.0": 11,
+   "1.0": 17,
+   "2.0": 14,
+   "3.0": 14,
+   "4.0": 14
+  },
+  "D_ratio_median": 100.0,
+  "D_ratio_max": 10000.0,
+  "diluent_dummy_by_name": {
+   "2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide": [
+    "cond__diluent__ch3cl"
+   ],
+   "DMDPhPDA": [
+    "cond__diluent__chloroform"
+   ]
+  },
+  "rows_of_cond__diluent__ch3cl_in_dataset": 84,
+  "rows_of_cond__diluent__ch3cl_that_are_this_corruption": 70
+ },
+ "forensics_C5BTBP": {
+  "smiles": "CCCCCc1nnc(-c2cccc(-c3cccc(-c4nnc(CCCCC)c(CCCCC)n4)n3)n2)nc1CCCCC",
+  "solvent_by_name": {
+   "3-[6-[6-(5-6-dipentyl-1-2-4-triazin-3-yl)-2-pyridinyl]-2-pyridinyl]-5-6-dipentyl-1-2-4-triazine": [
+    "cyclohexanone"
+   ],
+   "C5BTBP": [
+    "1-decanol",
+    "1-heptanol",
+    "1-hexanol",
+    "1-nonanol",
+    "1-octanol",
+    "anisole",
+    "benzaldehyde",
+    "kerosene 0.7, 1-octanol 0.3",
+    "nitrobenzene",
+    "tert-butylbenzene",
+    "tetrachloroethane",
+    "trichloroethylene"
+   ]
+  },
+  "doi_by_name": {
+   "3-[6-[6-(5-6-dipentyl-1-2-4-triazin-3-yl)-2-pyridinyl]-2-pyridinyl]-5-6-dipentyl-1-2-4-triazine": [
+    "https://doi.org/10.1080/07366290600952659, https://doi.org/10.1021/jacs.5c19738"
+   ],
+   "C5BTBP": [
+    "https://doi.org/10.1080/07366290600646947, https://doi.org/10.1021/jacs.5c19738",
+    "https://doi.org/10.1080/07366290701416000, https://doi.org/10.1021/jacs.5c19738"
+   ]
+  },
+  "temperature_by_name": {
+   "3-[6-[6-(5-6-dipentyl-1-2-4-triazin-3-yl)-2-pyridinyl]-2-pyridinyl]-5-6-dipentyl-1-2-4-triazine": [
+    "25.0"
+   ],
+   "C5BTBP": [
+    "10.0",
+    "20.0",
+    "30.0"
+   ]
+  },
+  "dataset_encodes_cyclohexanone": true,
+  "dataset_encodes_kerosene_0_7_octanol_0_3": true
+ },
+ "forensics_TODGA": {
+  "smiles": "CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC",
+  "n_rows_total": 1714,
+  "n_rows_with_a_non_TODGA_name": 129,
+  "n_rows_wrong_structure": 111,
+  "n_rows_TODGA_DHOA_composite_label": 18,
+  "n_distinct_wrong_ligands": 19,
+  "wrong_names": {
+   "PHEN-6OH": 14,
+   "PyTri-Tetraol": 11,
+   "PHEN-dialcohol": 10,
+   "TWE-40": 9,
+   "TWE-26": 7,
+   "CITAM": 6,
+   "SO3-Ph-BTP": 6,
+   "SO3-Ph-BTBP": 5,
+   "TWE-41": 5,
+   "TWE-42": 5,
+   "(PhSO3Na)2-BTBP": 4,
+   "(PhSO3Na)2-BTPhen": 4,
+   "PyTri-diol": 4,
+   "TWE-39": 4,
+   "TWE-31": 4,
+   "TWE-32": 4,
+   "TWE-37": 4,
+   "TWE-38": 4,
+   "PPA": 1
+  },
+  "curator_of_wrong_structure_rows": [
+   "Baosen Zhang"
+  ],
+  "curator": [
+   "Baosen Zhang",
+   "Thomas Summers"
+  ],
+  "upstream_rows_with_exact_TODGA_smiles_and_another_name": 742,
+  "upstream_rows_with_TODGA_smiles_prefix_and_another_name": 2104,
+  "upstream_distinct_wrong_names": 21,
+  "Holdback_Agent_Name_values": [
+   "<NA>"
+  ],
+  "Phase_Modifier_Name_values": [
+   "<NA>"
+  ],
+  "Solvent_Name_values": [
+   "kerosene (solvent 70) 0.95, 1-octanol 0.05",
+   "kerosene 0.95, 1-octanol 0.05",
+   "tph 0.95, 1-octanol 0.05"
+  ],
+  "ini_comp_names_the_true_ligand": true,
+  "TWE_series_check": {
+   "upstream_TWE_rows": 555,
+   "distinct_TWE_codes": 34,
+   "distinct_TWE_smiles": 25,
+   "TWE_codes_sharing_the_TODGA_smiles": [
+    "TWE-18",
+    "TWE-26",
+    "TWE-31",
+    "TWE-32",
+    "TWE-37",
+    "TWE-38",
+    "TWE-39",
+    "TWE-40",
+    "TWE-41",
+    "TWE-42"
+   ],
+   "note": "The TWE screening series is not systematically broken: 24 of the 34 codes carry their own, chemically sensible SMILES (thiophosphinates, phosphonates, furandiamides, NTA-amides). Only the 10 listed codes collapse onto the TODGA string. The corruption is a copy-paste inside one batch, not a curator-wide failure - which is why the other synonym pairs (TWE-11/NTAamide(C8), TWE-14/Me2-TODGA, TWE-15/NEA16, TWE-17/18b, TWE-21/10a, TWE-22/NEA15) are safe to read as aliases."
+  }
+ },
+ "the_real_missing_variable": {
+  "finding": "The aqueous-phase complexant / holdback agent is recorded ONLY inside the free-text comments_description column, as \"Complexant_Name: X; Complexant_Concentration_M: Y\". The structured upstream column Holdback_Agent_Name is NULL on all 48138 upstream rows, and the dataset carries no cond__ feature for it.",
+  "n_rows_with_a_complexant": 557,
+  "frac_rows_with_a_complexant": 0.093,
+  "complexant_counts": {
+   "<none>": 5435,
+   "DTPA": 165,
+   "TEDGA": 88,
+   "DOODA(C2)": 88,
+   "NaNO3": 70,
+   "Amicacid": 69,
+   "malonamide": 56,
+   "HEDTA": 10,
+   "BTP-4Me": 10,
+   "CDTA": 1
+  },
+  "upstream_Holdback_Agent_Name_nonnull_anywhere": 0,
+  "dataset_features_matching_complexant_or_holdback": [],
+  "n_replicated_model_visible_cells": 313,
+  "n_rows_in_replicated_model_visible_cells": 1003,
+  "residual_sd_in_replicated_cells": 0.7756,
+  "oracle_MAE_floor_on_replicated_cells": 0.4019,
+  "n_cells_where_complexant_varies": 51,
+  "residual_sd_where_complexant_varies": 0.9443,
+  "residual_sd_where_complexant_constant": 0.6341,
+  "eta2_complexant_within_model_cell": {
+   "eta2_raw": 0.4537,
+   "eta2_permutation_null_mean": 0.2212,
+   "eta2_adjusted": 0.2986,
+   "permutation_p": 0.0,
+   "n_key_groups": 419,
+   "n_cells": 313,
+   "residual_sd_after_cell": 0.7756
+  },
+  "eta2_complexant_plus_conc_within_model_cell": {
+   "eta2_raw": 0.6096,
+   "eta2_permutation_null_mean": 0.563,
+   "eta2_adjusted": 0.1066,
+   "permutation_p": 0.0,
+   "n_key_groups": 597,
+   "n_cells": 313,
+   "residual_sd_after_cell": 0.7756
+  },
+  "eta2_random_control_DOI_within_model_cell": {
+   "eta2_raw": 0.0026,
+   "eta2_permutation_null_mean": 0.0026,
+   "eta2_adjusted": -0.0,
+   "permutation_p": 1.0,
+   "n_key_groups": 330,
+   "n_cells": 313,
+   "residual_sd_after_cell": 0.7756
+  },
+  "between_complexant_pairs": {
+   "n_pairs": 833,
+   "rms_abs_delta": 1.484,
+   "median_abs_delta": 1.0152,
+   "mean_abs_delta": 1.1833,
+   "frac_gt_1_log": 0.5078
+  },
+  "within_complexant_pairs": {
+   "n_pairs": 961,
+   "rms_abs_delta": 0.9387,
+   "median_abs_delta": 0.2861,
+   "mean_abs_delta": 0.559,
+   "frac_gt_1_log": 0.1686
+  },
+  "mean_cell_centred_logD_by_complexant": {
+   "<none>": {
+    "n": 592,
+    "mean_dev": 0.082
+   },
+   "Amicacid": {
+    "n": 27,
+    "mean_dev": 0.161
+   },
+   "BTP-4Me": {
+    "n": 10,
+    "mean_dev": -0.006
+   },
+   "DOODA(C2)": {
+    "n": 86,
+    "mean_dev": -0.257
+   },
+   "DTPA": {
+    "n": 108,
+    "mean_dev": -0.0
+   },
+   "HEDTA": {
+    "n": 10,
+    "mean_dev": 0.0
+   },
+   "NaNO3": {
+    "n": 28,
+    "mean_dev": 0.0
+   },
+   "TEDGA": {
+    "n": 86,
+    "mean_dev": -0.567
+   },
+   "malonamide": {
+    "n": 56,
+    "mean_dev": 0.325
+   }
+  }
+ },
+ "live_pipeline_impact": {
+  "pipeline": "scripts/run_gen5_levels.py, scripts/gen6_phase0.py and the gen7 harness read dataset.parquet straight into lanthanide_separation.levels.build_level_dataset",
+  "level_identity": "extractant = canonical_smiles (levels.py:409); the level cell is (extractant, condition_id, metal_symbol) with condition_id built from cond__* only",
+  "apply_default_quarantine_is_called": false,
+  "quarantine_exists_in": "src/lanthanide_separation/pairs.py::apply_default_quarantine, reason \"todga_structure_assigned_to_different_extractant\"",
+  "level_rows_min_rows_10": 4881,
+  "level_extractants": 91,
+  "mislabelled_TODGA_source_rows": 129,
+  "level_cells_carrying_mislabelled_rows": 69,
+  "level_cells_mixing_real_TODGA_with_mislabelled": 0,
+  "TODGA_level_cells": 1488,
+  "frac_of_TODGA_cells_that_are_another_molecule": 0.0464,
+  "DMDPhPDA_level_cells": 140,
+  "DMDPhPDA_level_cells_merging_the_two_curator_entries": 0,
+  "DMDPhPDA_note": "the two entries do NOT merge: Solvent_Name \"CH3Cl\" vs \"Chloroform\" map to two different cond__diluent__ dummies, so the level cohort holds the same molecule twice with log_D differing by up to 4 orders of magnitude, presented as a diluent contrast"
+ }
+}

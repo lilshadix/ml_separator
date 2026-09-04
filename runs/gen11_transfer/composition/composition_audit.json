@@ -1,0 +1,52 @@
+{
+  "cohort_rows": 5248,
+  "cohort_records": 5938,
+  "cohort_structures": 152,
+  "cohort_chemotypes": 79,
+  "auxiliary_pool_rows": 5438,
+  "fingerprint": {
+    "cohort_ligands": 152,
+    "bit_exact_ligands": 152
+  },
+  "chemotype": {
+    "aux_structures": 155,
+    "aux_structures_already_in_cohort": 72,
+    "aux_structures_mapped_to_cohort_chemotype": 110,
+    "aux_structures_in_no_cohort_chemotype": 45,
+    "new_chemotypes_among_them": 38,
+    "rows_on_new_chemistry": 932,
+    "rows_total": 5438,
+    "chemotype_threshold": 0.7,
+    "rdkit_unparsed_structures": 0,
+    "median_max_tanimoto_to_cohort": 0.9285714285714286
+  },
+  "curve_rule_check": {
+    "archive_curves_total": 2490,
+    "archive_curves_usable": 2331,
+    "recomputed_curves_usable_all_records": 2331,
+    "curve_id_sets_identical": true,
+    "strict_distinct_axis_rule_usable": 2326
+  },
+  "distance_buckets": {
+    "near_max_distance": 0.34285714285714286,
+    "mid_max_distance": 0.41171565561809464,
+    "near_min_tanimoto": 0.6571428571428571,
+    "mid_min_tanimoto": 0.5882843443819054,
+    "source": "scripts/gen10_budget_simulation.py:156",
+    "definition": "pd.qcut(1.0 - nn_train_tanimoto, 3, labels=[\"near\", \"mid\", \"far\"]); nn_train_tanimoto = max Tanimoto (Morgan r=2, 2048 bits) from the held-out ligand to the fold's training ligands",
+    "n_reference_ligands": 99
+  },
+  "overlap": {
+    "cohort_rows": 5248,
+    "bundle_rows": 5992,
+    "bundle_rows_feeding_cohort": 5938,
+    "bundle_rows_dropped_by_cohort_filters": 54,
+    "max_abs_target_delta": 0.0,
+    "archive_records": 16770,
+    "frozen_rows_matched_exactly": 5992,
+    "exact_join_metal_agreement": 1.0,
+    "exact_join_max_abs_target_delta": 5.551115123125783e-14,
+    "auxiliary_candidate_records": 10778
+  },
+  "match_seed": 11
+}

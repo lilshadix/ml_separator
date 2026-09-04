@@ -1,0 +1,25 @@
+issue,component,metric,before_fix,after_fix,difference,reason_if_changed
+1,acquisition,"CENTRAL one-shot macro MAE (1 seed, 2 repeats)",0.727439,0.632703,-0.094736,"Before the fix the OOF table carried no condition columns, so _standardised_axes returned zeros and every geometric policy tied on every candidate and returned the first index. After joining the cohort's conditions the policies are distinct and the ordering reproduces gen8's."
+1,acquisition,"MEDOID one-shot macro MAE (1 seed, 2 repeats)",0.727439,0.648310,-0.079129,same
+1,acquisition,"MID_ACID one-shot macro MAE (1 seed, 2 repeats)",0.727439,0.683540,-0.043899,same
+1,acquisition,"MAX_CONDITION_COVERAGE one-shot macro MAE (1 seed, 2 repeats)",0.727439,0.658834,-0.068605,same
+1,acquisition,"FARTHEST_FROM_EXISTING one-shot macro MAE (1 seed, 2 repeats)",0.727439,0.786509,+0.059070,"Farthest-point is significantly WORSE than random at k=1 in gen8; before the fix it was indistinguishable from MEDOID, which is itself the tell."
+1,acquisition,"MIN_GP_DESIGN_VAR one-shot macro MAE (1 seed, 2 repeats)",0.728976,0.672379,-0.056597,same
+1,acquisition,"number of distinct policy scores among 7 geometric policies",1,7,+6,"The decisive symptom: seven rules that disagree by construction produced one number."
+1,acquisition,"MEDOID vs RANDOM (sign)",worse,better,n/a,"Before the fix MEDOID (0.7274) scored worse than RANDOM (0.7086), contradicting gen8's +0.101; after, MEDOID 0.6483 beats RANDOM 0.7086."
+3,data_audit,exact-decade duplicate cell pairs found,0,61,+61,"Keying the duplicate scan on the full condition set put DMDPhPDA's two copies in different cells, because they differ only by an unreported temperature. The core-cell pass finds its 59 pairs at 1/2/3/4 decades plus two further single-cell cases."
+3,data_audit,DMDPhPDA rediscovered by the scan,no,yes,n/a,same
+4,data_audit,family-local level outliers found,0,5,+5,"The condition-adjusted level fell back to a ligand's own value when no other ligand shared its cell, reporting every level as exactly 0.0."
+4,data_audit,"TWE-24 level vs thiophosphoryl siblings (decades)",0.000,+4.817,+4.817,same
+4,data_audit,"TWE-24 cost to its nearest neighbour under a 1-NN level lookup (log units)",0.000,4.095,+4.095,"The contagion scan read a neighbour column that does not exist and silently found no neighbours."
+6,shape_arms,"A0_ROW_ONLY pooled MAE, seed 104729 fold 0, run 1",1.111475,1.102856,-0.008619,"ExtraTreesRegressor(n_jobs=-1) sums trees in thread-completion order; inside the boosting recursion the 1e-15 perturbation flips a near-tied split and grows a different tree. Rounding the running prediction to 1e-9 removes it."
+6,shape_arms,"A0_ROW_ONLY pooled MAE, seed 104729 fold 0, run 2",1.104748,1.102856,-0.001892,same
+6,shape_arms,"max |prediction difference| between two runs of the identical configuration",0.158800,0.000000,-0.158800,"Before the fix, 382 of 382 held-out predictions differed between two runs in the same process."
+7,shape_arms,"frozen-model nesting error (max |diff| over 240 rows)",0.000774,0.000000,-0.000774,"The first version of the determinism fix rounded the initial constant too, perturbing the first stage's target and growing a different first tree. Rounding the accumulation only restores exact nesting."
+6,shape_arms,"A1_ROW_ADJACENT extractant slope MAE vs control (3 seeds pre-fix / 5 seeds post-fix)",+0.030,-0.091,-0.121,"The pre-fix three-seed screen made ROW_ADJACENT look like the one sampler that improved slope accuracy (CI excluding zero, 3/3 seeds). Post-fix at five seeds it is worse than the control. The screen's conclusion (no sampler meets the bar) is unchanged and strengthened."
+6,shape_arms,"A1_ROW_ADJACENT median predicted extractant slope (3 seeds pre-fix / 5 seeds post-fix)",0.128,0.105,-0.023,same
+8,acquisition,"LEARNED_BLEND one-shot macro MAE (1 seed smoke, pre/post alpha fix)",0.652,0.648,-0.004,"alpha was selected on the blocks the ranker was fitted on, so alpha=0 won in 25/25 folds and the arm never fell back to MEDOID."
+8,acquisition,"LEARNED_BLEND one-shot macro MAE (5 seeds, k-shot frontier, pre/post alpha fix)",0.740,0.719,-0.021,same
+8,acquisition,"folds choosing alpha = 0 (pure learned score, no fallback)",25,varies,n/a,"After the fix alpha is chosen on ligands the inner ranker never saw."
+n/a,frontier,"deployable k=1 macro MAE, common cohort (gen8 -> gen9)",0.6674,0.6539,-0.0135,"Not a rerun difference: the gen9 result."
+n/a,frontier,"deployable k=5 macro MAE, common cohort (gen8 -> gen9)",0.4743,0.4675,-0.0068,"Not a rerun difference: the gen9 result."

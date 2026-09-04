@@ -1,0 +1,141 @@
+{
+  "available": true,
+  "model": "REC_ecfp_plus_recovered",
+  "source": "runs/gen7_architecture/finalists/oof_predictions.parquet",
+  "weighting": "row-weighted absolute error on held-out chemotypes",
+  "weighting_note": "these are per-ROW intervals and they shrink far less with k than the headline macro MAE does; the row-weighted and ligand-macro means of this same replay are both reported below.  The macro weights every ligand equally, so it is carried by the small-surface ligands where one measurement covers most of the surface; one row of a long titration series benefits much less.  Quote the macro when comparing methods, the row interval when quoting a prediction.",
+  "row_weighted_mean_abs_error": {
+    "k0": 1.159659836213149,
+    "k1": 1.0008614332996117,
+    "k2": 0.9781110077182202
+  },
+  "ligand_macro_of_this_replay": {
+    "k0": 0.9951517478301956,
+    "k1": 0.6148709862667442,
+    "k2": 0.5601299749513349
+  },
+  "ligand_macro_of_this_replay_note": "full-surface protocol (every candidate selectable, every unmeasured row scored) \u2014 a different protocol from the acquisition study's P2, so a gap against it is expected and is not evidence of drift.  The drift check is p2_replay.",
+  "p2_replay": {
+    "available": true,
+    "protocol": "P2, replayed from the frozen out-of-fold predictions with this script's own policy and adapter objects",
+    "seed": 20260820,
+    "repeats": 12,
+    "min_rows": 4,
+    "n_ligands": 143,
+    "macro_mae": {
+      "k0": 0.9949877940412077,
+      "k1": 0.6484540395999391,
+      "k2": 0.5578818260760579
+    },
+    "acquisition_artefact_macro_mae": {
+      "k0": 0.9949877940412077,
+      "k1": 0.6484540395999391,
+      "k2": 0.5578818260760579
+    },
+    "max_abs_difference": 0.0,
+    "reproduces_the_acquisition_artefact": true
+  },
+  "policy_replayed": "MEDOID then FARTHEST_FROM_EXISTING; OFFSET_K1 then OFFSET_K3",
+  "max_measurable_similarity": 0.6976744186046512,
+  "bins_note": "similarity bin edges are a presentation choice, not a fitted one: 0.4 carries over from gen5's near-neighbour result and 0.7 is the fold plan's chemotype threshold, but 0.6 was picked here to keep the top bin populated.  No comparison depends on it; read the widths as descriptive.  The top bin is labelled up to 1.01 but contains no row above max_measurable_similarity.",
+  "bins": [
+    {
+      "nn_low": 0.0,
+      "nn_high": 0.4,
+      "k0": {
+        "n": 2002,
+        "median": 1.4421692202717233,
+        "q68": 1.9942217184561872,
+        "q90": 3.021213741742561,
+        "mean": 1.5693442949808625
+      },
+      "k1": {
+        "n": 1922,
+        "median": 0.540234481891134,
+        "q68": 0.8603182882798787,
+        "q90": 1.94585637323647,
+        "mean": 0.7933977138412454
+      },
+      "k2": {
+        "n": 1842,
+        "median": 0.6105842841179412,
+        "q68": 1.091503774351856,
+        "q90": 2.023179532971208,
+        "mean": 0.8734039085731246
+      }
+    },
+    {
+      "nn_low": 0.4,
+      "nn_high": 0.6,
+      "k0": {
+        "n": 4805,
+        "median": 1.0303819321597967,
+        "q68": 1.5205156112755571,
+        "q90": 2.4831710436351346,
+        "mean": 1.2126633754901335
+      },
+      "k1": {
+        "n": 4580,
+        "median": 0.5825280767074335,
+        "q68": 1.0196972712409345,
+        "q90": 1.9356647252392758,
+        "mean": 0.8174232431479946
+      },
+      "k2": {
+        "n": 4355,
+        "median": 0.5707672665420369,
+        "q68": 1.0506320147459016,
+        "q90": 1.8711731697910716,
+        "mean": 0.8180478295957998
+      }
+    },
+    {
+      "nn_low": 0.6,
+      "nn_high": 1.01,
+      "k0": {
+        "n": 19298,
+        "median": 0.9624418530264504,
+        "q68": 1.4391709835308206,
+        "q90": 2.2777563045807,
+        "mean": 1.1039613030657311
+      },
+      "k1": {
+        "n": 18888,
+        "median": 0.773804679880676,
+        "q68": 1.3048298116768453,
+        "q90": 2.490013824131529,
+        "mean": 1.0664529294714344
+      },
+      "k2": {
+        "n": 18478,
+        "median": 0.7555914140122885,
+        "q68": 1.2294824822360368,
+        "q90": 2.407148227666838,
+        "mean": 1.0262734504797966
+      }
+    }
+  ],
+  "overall": {
+    "k0": {
+      "n": 26105,
+      "median": 1.0058768672436682,
+      "q68": 1.4939779838261371,
+      "q90": 2.3743520608601143,
+      "mean": 1.159659836213149
+    },
+    "k1": {
+      "n": 25390,
+      "median": 0.7162888480896423,
+      "q68": 1.205423580734642,
+      "q90": 2.3537070928572956,
+      "mean": 1.0008614332996117
+    },
+    "k2": {
+      "n": 24675,
+      "median": 0.7107891236484777,
+      "q68": 1.181338900283194,
+      "q90": 2.296432432910074,
+      "mean": 0.9781110077182202
+    }
+  }
+}

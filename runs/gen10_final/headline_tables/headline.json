@@ -1,0 +1,508 @@
+{
+  "missing": [],
+  "query_consistency": {
+    "FROZEN|CONTEXT": {
+      "median_shift": 0.0,
+      "p95_shift": 0.0
+    },
+    "FROZEN|DECOY": {
+      "median_shift": 0.0,
+      "p95_shift": 0.0
+    },
+    "FROZEN|DENSITY": {
+      "median_shift": 0.0,
+      "p95_shift": 0.0
+    },
+    "FROZEN|EXTEND": {
+      "median_shift": 0.0,
+      "p95_shift": 0.0
+    },
+    "FROZEN|NESTED": {
+      "median_shift": 0.0,
+      "p95_shift": 0.0
+    },
+    "FROZEN|PERMUTE": {
+      "median_shift": 0.0,
+      "p95_shift": 0.0
+    },
+    "FROZEN|SPARSE": {
+      "median_shift": 0.0,
+      "p95_shift": 0.0
+    },
+    "REL_MONOLITH|CONTEXT": {
+      "median_shift": 0.0,
+      "p95_shift": 0.0
+    },
+    "REL_MONOLITH|DECOY": {
+      "median_shift": 0.090064777640328,
+      "p95_shift": 0.5418260254573641
+    },
+    "REL_MONOLITH|DENSITY": {
+      "median_shift": 0.0077652398559067,
+      "p95_shift": 0.3666107176298764
+    },
+    "REL_MONOLITH|EXTEND": {
+      "median_shift": 0.0598050797667322,
+      "p95_shift": 0.4826149124075208
+    },
+    "REL_MONOLITH|NESTED": {
+      "median_shift": 0.028865070028918,
+      "p95_shift": 0.3552138825134995
+    },
+    "REL_MONOLITH|PERMUTE": {
+      "median_shift": 0.0,
+      "p95_shift": 0.0
+    },
+    "REL_MONOLITH|SPARSE": {
+      "median_shift": 0.0186405948676808,
+      "p95_shift": 0.5637686841732424
+    },
+    "SHAPE_RECOMPOSED|CONTEXT": {
+      "median_shift": 0.0,
+      "p95_shift": 2.220446049250313e-16
+    },
+    "SHAPE_RECOMPOSED|DECOY": {
+      "median_shift": 0.1174334821508416,
+      "p95_shift": 0.6808654493569899
+    },
+    "SHAPE_RECOMPOSED|DENSITY": {
+      "median_shift": 0.018493204836684,
+      "p95_shift": 0.6234523316227091
+    },
+    "SHAPE_RECOMPOSED|EXTEND": {
+      "median_shift": 0.0726602370819332,
+      "p95_shift": 0.5899350327539546
+    },
+    "SHAPE_RECOMPOSED|NESTED": {
+      "median_shift": 0.0455116043635808,
+      "p95_shift": 0.51814396000065
+    },
+    "SHAPE_RECOMPOSED|PERMUTE": {
+      "median_shift": 0.0,
+      "p95_shift": 3.996802888650563e-16
+    },
+    "SHAPE_RECOMPOSED|SPARSE": {
+      "median_shift": 0.0419545980254695,
+      "p95_shift": 0.6409404634076272
+    }
+  },
+  "query_consistency_control": {
+    "exact_invariance_families": [
+      "CONTEXT",
+      "PERMUTE"
+    ],
+    "exact_invariance_max_shift": 8.881784197001252e-16,
+    "exact_invariance_tolerance": 1e-12,
+    "exact_invariance_holds": true,
+    "seeds": [
+      104729,
+      130363,
+      155921,
+      196613,
+      262147
+    ],
+    "arms": [
+      "FROZEN",
+      "REL_MONOLITH",
+      "SHAPE_RECOMPOSED"
+    ],
+    "n_comparisons": 86466,
+    "n_ligands": 130,
+    "n_curves": 535,
+    "elapsed_s": 16498.6,
+    "frozen_control_max_shift": 0.0,
+    "frozen_control_is_zero": true
+  },
+  "leaderboards": {
+    "REC_ecfp_plus_recovered": 0.9807,
+    "GEN10_MF_025": 0.9852,
+    "GEN9_REL_MONOLITH": 0.9858,
+    "GEN10_REP_8": 0.9904,
+    "GEN10_MF_050": 0.9909,
+    "GEN10_REP_32": 0.9943,
+    "GEN10_MF_SQRT": 1.0566,
+    "GEN10_MF_100": 1.071,
+    "GEN9_SHAPE_RECOMPOSED": 0.9695,
+    "GEN10_RESIDUAL_SHAPE_INSAMPLE": 0.9748,
+    "GEN10_LEVEL_SHAPE": 0.9818,
+    "GEN10_RESIDUAL_SHAPE": 0.9821,
+    "GEN10_TWO_BRANCH_INTERACT": 0.9964,
+    "GEN10_TWO_BRANCH": 1.003,
+    "GEN10_REC_GEN9_PLUS": 0.9691,
+    "GEN10_REC_HYBRID": 0.9696,
+    "GEN10_REC_RANK": 0.9699,
+    "GEN10_REC_GEN9_CURVEWINDOW": 0.97,
+    "GEN10_REC_ALL": 0.97,
+    "GEN10_REC_LOCAL": 0.975,
+    "GEN10_MONO_HYBRID": 0.9905,
+    "GEN10_MONO_RANK": 0.9935,
+    "GEN10_SET_MEAN": 1.0059,
+    "GEN10_SET_ATTENTION": 1.0087
+  },
+  "adaptation_passes": [
+    {
+      "global_model": "GEN9_REL_MONOLITH",
+      "policy": "CENTRAL_THEN_SPREAD",
+      "comparison": "SERIES_ML_NOSERIES_vs_OFFSET_K3"
+    },
+    {
+      "global_model": "GEN9_REL_MONOLITH",
+      "policy": "CENTRAL_THEN_SPREAD",
+      "comparison": "SERIES_ML_vs_OFFSET_K3"
+    },
+    {
+      "global_model": "GEN9_REL_MONOLITH",
+      "policy": "CENTRAL_THEN_SPREAD",
+      "comparison": "SLOPE_L_s1_K3_vs_OFFSET_K3"
+    },
+    {
+      "global_model": "GEN9_REL_MONOLITH",
+      "policy": "D_OPTIMAL",
+      "comparison": "SERIES_ML_NOSERIES_vs_OFFSET_K3"
+    },
+    {
+      "global_model": "GEN9_REL_MONOLITH",
+      "policy": "D_OPTIMAL",
+      "comparison": "SERIES_ML_vs_OFFSET_K3"
+    },
+    {
+      "global_model": "GEN9_REL_MONOLITH",
+      "policy": "D_OPTIMAL",
+      "comparison": "SLOPE_L_s1_K3_vs_OFFSET_K3"
+    },
+    {
+      "global_model": "GEN9_REL_MONOLITH",
+      "policy": "MEDOID",
+      "comparison": "SERIES_ML_NOSERIES_vs_OFFSET_K3"
+    },
+    {
+      "global_model": "GEN9_REL_MONOLITH",
+      "policy": "MEDOID",
+      "comparison": "SERIES_ML_vs_OFFSET_K3"
+    },
+    {
+      "global_model": "GEN9_REL_MONOLITH",
+      "policy": "MEDOID",
+      "comparison": "SLOPE_L_s1_K3_vs_OFFSET_K3"
+    },
+    {
+      "global_model": "GEN9_SHAPE_RECOMPOSED",
+      "policy": "CENTRAL_THEN_SPREAD",
+      "comparison": "SERIES_ML_NOSERIES_vs_OFFSET_K3"
+    },
+    {
+      "global_model": "GEN9_SHAPE_RECOMPOSED",
+      "policy": "CENTRAL_THEN_SPREAD",
+      "comparison": "SERIES_ML_vs_OFFSET_K3"
+    },
+    {
+      "global_model": "GEN9_SHAPE_RECOMPOSED",
+      "policy": "D_OPTIMAL",
+      "comparison": "SERIES_ML_NOSERIES_vs_OFFSET_K3"
+    },
+    {
+      "global_model": "GEN9_SHAPE_RECOMPOSED",
+      "policy": "D_OPTIMAL",
+      "comparison": "SERIES_ML_vs_OFFSET_K3"
+    },
+    {
+      "global_model": "GEN9_SHAPE_RECOMPOSED",
+      "policy": "MEDOID",
+      "comparison": "SERIES_ML_NOSERIES_vs_OFFSET_K3"
+    },
+    {
+      "global_model": "GEN9_SHAPE_RECOMPOSED",
+      "policy": "MEDOID",
+      "comparison": "SERIES_ML_vs_OFFSET_K3"
+    }
+  ],
+  "acquisition": {
+    "ORACLE": 0.4628,
+    "SURROGATE_ORACLE": 0.4804,
+    "MEDOID": 0.6286,
+    "CENTRAL": 0.6317,
+    "LEARNED_BLEND[geometry]": 0.6342,
+    "LEARNED_BLEND[geometry+prediction]": 0.6383,
+    "LEARNED_SCALAR[geometry]": 0.6404,
+    "MEDIAN_PREDICTION": 0.6447,
+    "LEARNED_RANK[geometry]": 0.6478,
+    "MAX_CONDITION_COVERAGE": 0.6527,
+    "LEARNED_RANK[geometry+prediction]": 0.6537,
+    "MIN_GP_DESIGN_VAR": 0.6556,
+    "LEARNED_SCALAR[geometry+prediction]": 0.6652,
+    "MID_ACID": 0.6723,
+    "MAX_PREDICTION": 0.6789,
+    "MAX_ENSEMBLE_SD": 0.6875,
+    "RANDOM": 0.6917,
+    "MIN_ENSEMBLE_SD": 0.695,
+    "FARTHEST_FROM_EXISTING": 0.754,
+    "MIN_PREDICTION": 0.7814
+  },
+  "data_ceiling": {
+    "model": "GEN9_SHAPE_RECOMPOSED",
+    "pooled_mae": 1.1217506325100335,
+    "share_of_total_absolute_error": {
+      "A_CONSISTENT": 0.8820854398687292,
+      "B_MISMATCH": 0.05180688086007642,
+      "C_DUPLICATE": 0.04774659851909605,
+      "D_TWE24": 0.0041762228480868805,
+      "E_UNCERTAIN": 0.014184857904011415
+    },
+    "share_of_rows": {
+      "A_CONSISTENT": 0.8938643292682927,
+      "B_MISMATCH": 0.05163871951219512,
+      "C_DUPLICATE": 0.041539634146341466,
+      "D_TWE24": 0.0011432926829268292,
+      "E_UNCERTAIN": 0.011814024390243903
+    },
+    "mae_by_cohort": {
+      "A_CONSISTENT": 1.1069687733379128,
+      "B_MISMATCH": 1.1254036103555636,
+      "C_DUPLICATE": 1.2893656429498384,
+      "D_TWE24": 4.097533983469158,
+      "E_UNCERTAIN": 1.3468630841011195
+    },
+    "pooled_mae_excess_attributable": {
+      "B_MISMATCH": 0.0009519513780075016,
+      "C_DUPLICATE": 0.0075766992331173354,
+      "D_TWE24": 0.003419091322558588,
+      "E_UNCERTAIN": 0.0028341172384372753
+    },
+    "pooled_mae_excess_total": 0.014781859172120701,
+    "pooled_mae_if_all_rows_were_consistent_grade": 1.1069687733379128,
+    "note": "excess = (cohort MAE - consistent MAE) x cohort row share; it is the pooled-MAE reduction if those rows errored like consistent rows, an upper bound on what fixing their representation could recover"
+  },
+  "publication_sensitivity": {
+    "coverage": {
+      "n_curves": 946,
+      "n_publications": 90,
+      "curves_without_doi": 0
+    },
+    "extractant_shape_recomposed_vs_frozen": {
+      "row_mae": {
+        "point": 0.1222873209182139,
+        "positive_under_every_scheme": true,
+        "widest_scheme": "ligand",
+        "widest_ci": [
+          0.047978792295323265,
+          0.1719285802486843
+        ],
+        "chemotype_ci": [
+          0.06573936111569875,
+          0.13079784243454018
+        ],
+        "publication_ci": [
+          0.07573314578118953,
+          0.1799488483324556
+        ]
+      },
+      "shape_mae": {
+        "point": 0.19562078199167032,
+        "positive_under_every_scheme": true,
+        "widest_scheme": "two_factor",
+        "widest_ci": [
+          0.1396534077005702,
+          0.25763152584506566
+        ],
+        "chemotype_ci": [
+          0.11797647495306608,
+          0.20275446945561337
+        ],
+        "publication_ci": [
+          0.14036652207109154,
+          0.2567198594270797
+        ]
+      },
+      "slope_abs_error": {
+        "point": 0.9225934815533632,
+        "positive_under_every_scheme": true,
+        "widest_scheme": "ligand",
+        "widest_ci": [
+          0.5809678814939088,
+          1.1878789839735235
+        ],
+        "chemotype_ci": [
+          0.5081841316852631,
+          0.9515592585426543
+        ],
+        "publication_ci": [
+          0.6400099956554387,
+          1.1954694945405626
+        ]
+      },
+      "span_recovery_distance": {
+        "point": 0.37764583703642046,
+        "positive_under_every_scheme": true,
+        "widest_scheme": "publication",
+        "widest_ci": [
+          0.2958242935938482,
+          0.46450152098810493
+        ],
+        "chemotype_ci": [
+          0.25763015751692736,
+          0.3863577175769806
+        ],
+        "publication_ci": [
+          0.2958242935938482,
+          0.46450152098810493
+        ]
+      },
+      "spearman": {
+        "point": 0.3032570760114639,
+        "positive_under_every_scheme": true,
+        "widest_scheme": "two_factor",
+        "widest_ci": [
+          0.150122214862133,
+          0.47494590263747655
+        ],
+        "chemotype_ci": [
+          0.17393808245379572,
+          0.4618082998944628
+        ],
+        "publication_ci": [
+          0.15316623665624246,
+          0.47283376040411107
+        ]
+      }
+    },
+    "lopo_shape_mae": {
+      "min_effect_without_any_publication": 0.1761965010299613,
+      "max_single_publication_share": 0.16902754431118985,
+      "publication_with_max_share": "doi:10.1016/j.aca.2004.09.023",
+      "n_publications": 32,
+      "effect_stays_positive_under_every_removal": true
+    }
+  },
+  "budget": {
+    "model": "GEN9_SHAPE_RECOMPOSED",
+    "n_unseen_ligands": 99,
+    "n_chemotypes": 41,
+    "mean_marginal_gain": {
+      "first_point": 0.381926603854962,
+      "second_point": 0.07778983216757834,
+      "third_point": 0.06335804170826288,
+      "fourth_and_fifth_each": 0.020654071859022374
+    },
+    "first_point_gain_by_distance_tercile": {
+      "near": 0.23484960491891452,
+      "mid": 0.4484915347838809,
+      "far": 0.49480866123557044
+    },
+    "best_deployable_strategy_by_budget": {
+      "9": "D_NEW_CHEMOTYPE",
+      "24": "F_DIVERSITY",
+      "49": "D_NEW_CHEMOTYPE",
+      "99": "D_NEW_CHEMOTYPE",
+      "198": "E_CENTRAL_SPREAD_NOVELTY",
+      "297": "A_DEPTH_3",
+      "495": "A_DEPTH_5"
+    },
+    "diversity_order_available": true
+  },
+  "error_decomposition": {
+    "current": {
+      "pooled_mae": 1.1217506325100335,
+      "macro_mae": 0.9694845437352134
+    },
+    "after_ligand_level_oracle": {
+      "pooled_mae": 0.7459852474648963,
+      "macro_mae": 0.44947602078357235
+    },
+    "after_series_level_oracle": {
+      "pooled_mae": 0.5865653289465088,
+      "macro_mae": 0.3928120575777729
+    },
+    "after_curve_level_oracle": {
+      "pooled_mae": 0.4357644141260664,
+      "macro_mae": 0.3860053586260319
+    },
+    "after_curve_level_and_slope_oracle": {
+      "pooled_mae": 0.18891249696675075,
+      "macro_mae": 0.19405899438380983
+    }
+  },
+  "final_pipeline": {
+    "selected_global_model": "GEN9_SHAPE_RECOMPOSED",
+    "rules": {
+      "0": {
+        "adapter": "ZERO_SHOT",
+        "policy": "NONE"
+      },
+      "1": {
+        "adapter": "SLOPE_L_s1_K1",
+        "policy": "CENTRAL_THEN_SPREAD"
+      },
+      "2": {
+        "adapter": "SERIES_ML",
+        "policy": "CENTRAL_THEN_SPREAD"
+      },
+      "3": {
+        "adapter": "SERIES_ML",
+        "policy": "CENTRAL_THEN_SPREAD"
+      },
+      "5": {
+        "adapter": "SERIES_ML",
+        "policy": "CENTRAL_THEN_SPREAD"
+      }
+    },
+    "first_point": "CENTRAL_THEN_SPREAD (medoid of standardised condition axes, then spread)",
+    "series_adapter": "SERIES_ML",
+    "common_cohort_size": 99,
+    "frontier_common_cohort": {
+      "0": 1.0357994416277343,
+      "1": 0.653872837772772,
+      "2": 0.5592988144741076,
+      "3": 0.49280898262314987,
+      "5": 0.4405418081356232
+    },
+    "gen8_frontier": {
+      "0": 1.0605,
+      "1": 0.6674,
+      "2": 0.5879,
+      "3": 0.523,
+      "5": 0.4743
+    },
+    "gen9_frontier": {
+      "0": 1.0358,
+      "1": 0.6539,
+      "2": 0.5746,
+      "3": 0.5109,
+      "5": 0.4675
+    },
+    "finalists": [
+      "GEN10_REC_HYBRID",
+      "GEN10_REC_ALL",
+      "GEN10_REC_RANK",
+      "GEN10_REC_GEN9_PLUS",
+      "GEN10_LEVEL_SHAPE"
+    ],
+    "anchors": [
+      "REC_ecfp_plus_recovered",
+      "GEN9_A0_ROW_ONLY",
+      "GEN9_REL_MONOLITH",
+      "GEN9_SHAPE_RECOMPOSED"
+    ],
+    "seeds": [
+      104729,
+      130363,
+      155921,
+      196613,
+      262147
+    ],
+    "repeats": 12,
+    "policies": [
+      "CENTRAL_THEN_SPREAD",
+      "MEDOID",
+      "D_OPTIMAL",
+      "RANDOM"
+    ]
+  },
+  "phase0": {
+    "all_pass": true,
+    "n_checks": 12
+  },
+  "self_audit": {
+    "all_pass": true,
+    "n_checks": 17
+  }
+}

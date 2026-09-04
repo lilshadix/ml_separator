@@ -1,0 +1,163 @@
+{
+  "stage": "phase1",
+  "seeds": [
+    104729,
+    130363,
+    155921
+  ],
+  "tag": "phase1",
+  "cohort_fingerprint": "bed178ec1a7a82b0",
+  "boost_config": {
+    "n_stages": 10,
+    "trees_per_stage": 120,
+    "learning_rate": 0.3,
+    "max_features": 0.3,
+    "min_samples_leaf": 2,
+    "max_depth": null,
+    "subsample": 1.0,
+    "row_delta": 1.0,
+    "pair_delta": 0.5,
+    "span_delta": 0.5,
+    "clip_to_training_range": true,
+    "n_jobs": -1
+  },
+  "arms": [
+    {
+      "name": "A0_ROW_ONLY",
+      "strategy": "ROW_ONLY",
+      "lambda_delta": 0.0,
+      "lambda_span": 0.0,
+      "axis_set": "LHM",
+      "balance": "curve"
+    },
+    {
+      "name": "A1_ROW_ADJACENT",
+      "strategy": "ROW_ADJACENT",
+      "lambda_delta": 0.5,
+      "lambda_span": 0.0,
+      "axis_set": "LHM",
+      "balance": "curve"
+    },
+    {
+      "name": "A2_ROW_ENDPOINT",
+      "strategy": "ROW_ENDPOINT",
+      "lambda_delta": 0.5,
+      "lambda_span": 0.0,
+      "axis_set": "LHM",
+      "balance": "curve"
+    },
+    {
+      "name": "A3_ROW_RANDOM_PAIR",
+      "strategy": "ROW_RANDOM_PAIR",
+      "lambda_delta": 0.5,
+      "lambda_span": 0.0,
+      "axis_set": "LHM",
+      "balance": "curve"
+    },
+    {
+      "name": "A4_ROW_MULTISCALE",
+      "strategy": "ROW_MULTISCALE",
+      "lambda_delta": 0.5,
+      "lambda_span": 0.0,
+      "axis_set": "LHM",
+      "balance": "curve"
+    }
+  ],
+  "results": [
+    {
+      "arm": "REC_ecfp_plus_recovered",
+      "kind": "frozen_reference"
+    },
+    {
+      "arm": "GEN9_A0_ROW_ONLY",
+      "kind": "shape",
+      "spec": {
+        "name": "A0_ROW_ONLY",
+        "strategy": "ROW_ONLY",
+        "lambda_delta": 0.0,
+        "lambda_span": 0.0,
+        "axis_set": "LHM",
+        "balance": "curve"
+      },
+      "median_pairs": 0.0,
+      "max_curve_weight_share": 0.0,
+      "pairs_by_axis": {}
+    },
+    {
+      "arm": "GEN9_A1_ROW_ADJACENT",
+      "kind": "shape",
+      "spec": {
+        "name": "A1_ROW_ADJACENT",
+        "strategy": "ROW_ADJACENT",
+        "lambda_delta": 0.5,
+        "lambda_span": 0.0,
+        "axis_set": "LHM",
+        "balance": "curve"
+      },
+      "median_pairs": 5414.0,
+      "max_curve_weight_share": 0.004048582995951417,
+      "pairs_by_axis": {
+        "acid": 2144,
+        "extractant": 774,
+        "metal_series": 2509
+      }
+    },
+    {
+      "arm": "GEN9_A2_ROW_ENDPOINT",
+      "kind": "shape",
+      "spec": {
+        "name": "A2_ROW_ENDPOINT",
+        "strategy": "ROW_ENDPOINT",
+        "lambda_delta": 0.5,
+        "lambda_span": 0.0,
+        "axis_set": "LHM",
+        "balance": "curve"
+      },
+      "median_pairs": 1054.0,
+      "max_curve_weight_share": 0.004048582995951417,
+      "pairs_by_axis": {
+        "acid": 470,
+        "extractant": 226,
+        "metal_series": 357
+      }
+    },
+    {
+      "arm": "GEN9_A3_ROW_RANDOM_PAIR",
+      "kind": "shape",
+      "spec": {
+        "name": "A3_ROW_RANDOM_PAIR",
+        "strategy": "ROW_RANDOM_PAIR",
+        "lambda_delta": 0.5,
+        "lambda_span": 0.0,
+        "axis_set": "LHM",
+        "balance": "curve"
+      },
+      "median_pairs": 5414.0,
+      "max_curve_weight_share": 0.004048582995951417,
+      "pairs_by_axis": {
+        "acid": 2144,
+        "extractant": 774,
+        "metal_series": 2509
+      }
+    },
+    {
+      "arm": "GEN9_A4_ROW_MULTISCALE",
+      "kind": "shape",
+      "spec": {
+        "name": "A4_ROW_MULTISCALE",
+        "strategy": "ROW_MULTISCALE",
+        "lambda_delta": 0.5,
+        "lambda_span": 0.0,
+        "axis_set": "LHM",
+        "balance": "curve"
+      },
+      "median_pairs": 12209.0,
+      "max_curve_weight_share": 0.004048582995951418,
+      "pairs_by_axis": {
+        "acid": 5114,
+        "extractant": 1739,
+        "metal_series": 5356
+      }
+    }
+  ]
+}

@@ -1,0 +1,177 @@
+{
+  "seeds": [
+    104729,
+    130363,
+    155921,
+    196613,
+    262147
+  ],
+  "repeats": 12,
+  "environment": {
+    "platform": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "library_versions": {
+      "python": "3.13.0",
+      "numpy": "2.5.1",
+      "pandas": "3.0.5",
+      "scipy": "1.18.0",
+      "scikit-learn": "1.9.0",
+      "torch": "2.13.0",
+      "rdkit": "2026.03.5"
+    },
+    "git_commit": "fc39facb4f80153bae07b200784979987a6d64e3",
+    "git_dirty": true,
+    "pythonhashseed": "<unset>"
+  },
+  "environment_drift": {
+    "available": true,
+    "changed": {},
+    "n_changed": 0
+  },
+  "checks": [
+    {
+      "family": "slope",
+      "name": "extractant_true_median",
+      "expected": 2.574,
+      "observed": 2.573675226299942,
+      "tol": 0.05,
+      "pass": true
+    },
+    {
+      "family": "slope",
+      "name": "extractant_pred_median",
+      "expected": 0.116,
+      "observed": 0.11642844967037344,
+      "tol": 0.05,
+      "pass": true
+    },
+    {
+      "family": "slope",
+      "name": "acid_true_median",
+      "expected": 1.656,
+      "observed": 1.6557758087863772,
+      "tol": 0.05,
+      "pass": true
+    },
+    {
+      "family": "slope",
+      "name": "acid_pred_median",
+      "expected": 0.355,
+      "observed": 0.35523643585793424,
+      "tol": 0.05,
+      "pass": true
+    },
+    {
+      "family": "slope",
+      "name": "extractant_span_ratio",
+      "expected": 0.051,
+      "observed": 0.050717658529375556,
+      "tol": 0.02,
+      "pass": true
+    },
+    {
+      "family": "kshot",
+      "name": "zero_shot_k0",
+      "arm": "ZERO_SHOT",
+      "k": 0,
+      "expected": 1.0605,
+      "observed": 1.0605303772612387,
+      "tol": 0.005,
+      "pass": true
+    },
+    {
+      "family": "kshot",
+      "name": "random_1shot",
+      "arm": "OFFSET_K1@RANDOM",
+      "k": 1,
+      "expected": 0.7927,
+      "observed": 0.792732533836449,
+      "tol": 0.005,
+      "pass": true
+    },
+    {
+      "family": "kshot",
+      "name": "central_1shot",
+      "arm": "OFFSET_K1@CENTRAL",
+      "k": 1,
+      "expected": 0.6964,
+      "observed": 0.6963986244888282,
+      "tol": 0.005,
+      "pass": true
+    },
+    {
+      "family": "kshot",
+      "name": "medoid_1shot",
+      "arm": "OFFSET_K1@MEDOID",
+      "k": 1,
+      "expected": 0.6916,
+      "observed": 0.6915825683739637,
+      "tol": 0.005,
+      "pass": true
+    },
+    {
+      "family": "kshot",
+      "name": "oracle_1shot",
+      "arm": "OFFSET_K1@ORACLE[OFFSET_K1]",
+      "k": 1,
+      "expected": 0.5326,
+      "observed": 0.5325625770147346,
+      "tol": 0.005,
+      "pass": true
+    },
+    {
+      "family": "kshot",
+      "name": "slope_medoid_1shot",
+      "arm": "SLOPE_L_s1_K1@MEDOID",
+      "k": 1,
+      "expected": 0.6752,
+      "observed": 0.6751828667813538,
+      "tol": 0.005,
+      "pass": true
+    },
+    {
+      "family": "kshot",
+      "name": "best_2shot",
+      "arm": "SLOPE_L_s1_K3@MAX_PREDICTIVE_VARIANCE",
+      "k": 2,
+      "expected": 0.5879,
+      "observed": 0.5879150010234774,
+      "tol": 0.005,
+      "pass": true
+    },
+    {
+      "family": "kshot",
+      "name": "best_3shot",
+      "arm": "SLOPE_L_s1_K3@CENTRAL_THEN_SPREAD",
+      "k": 3,
+      "expected": 0.523,
+      "observed": 0.5229939263529747,
+      "tol": 0.005,
+      "pass": true
+    },
+    {
+      "family": "kshot",
+      "name": "best_5shot",
+      "arm": "SLOPE_L_s1_K3@D_OPTIMAL",
+      "k": 5,
+      "expected": 0.4743,
+      "observed": 0.47429956979762583,
+      "tol": 0.005,
+      "pass": true
+    },
+    {
+      "family": "kshot",
+      "name": "random_2shot",
+      "arm": "OFFSET_K1@RANDOM",
+      "k": 2,
+      "expected": 0.7018,
+      "observed": 0.7017984791740542,
+      "tol": 0.005,
+      "pass": true
+    }
+  ],
+  "common_cohort_size": 99,
+  "n_checks": 15,
+  "n_failed": 0,
+  "pass": true
+}

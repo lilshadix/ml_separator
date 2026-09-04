@@ -1,0 +1,88 @@
+{
+  "stage": "set_context",
+  "seeds": [
+    104729,
+    130363,
+    155921,
+    196613,
+    262147
+  ],
+  "arms": [
+    {
+      "registry_name": "SET_MEAN",
+      "model_name": "GEN10_SET_MEAN",
+      "class": "SetRecomposedModel",
+      "parameters": {
+        "name": "GEN10_SET_MEAN",
+        "pooling": "mean",
+        "width": 32,
+        "epochs": 300,
+        "learning_rate": 0.003,
+        "weight_decay": 0.0001,
+        "static_top": 32,
+        "inner_validation": true,
+        "inner_fraction": 0.2,
+        "blocks": "('METAL', 'COND', 'ECFP', 'MASSACTION', 'RECOVERED')",
+        "add_indicator": true,
+        "n_estimators": 400,
+        "max_features": 0.3,
+        "min_samples_leaf": 2,
+        "axes": "('cond__extractant_concentration_M', 'cond__acid_concentration_M', 'metal')"
+      },
+      "seconds": 561.1,
+      "determinism": {
+        "split_seed": 104729,
+        "fold": 0,
+        "n_rows": 382,
+        "max_abs_delta": 1.5543122344752192e-15,
+        "mean_abs_delta": 1.0613601329981658e-16,
+        "n_rows_moved": 187,
+        "within_tolerance": true,
+        "pooled_mae_first": 1.1335894370476878,
+        "pooled_mae_second": 1.1335894370476876,
+        "arm": "GEN10_SET_MEAN"
+      }
+    },
+    {
+      "registry_name": "SET_ATTENTION",
+      "model_name": "GEN10_SET_ATTENTION",
+      "class": "SetRecomposedModel",
+      "parameters": {
+        "name": "GEN10_SET_ATTENTION",
+        "pooling": "attention",
+        "width": 32,
+        "epochs": 300,
+        "learning_rate": 0.003,
+        "weight_decay": 0.0001,
+        "static_top": 32,
+        "inner_validation": true,
+        "inner_fraction": 0.2,
+        "blocks": "('METAL', 'COND', 'ECFP', 'MASSACTION', 'RECOVERED')",
+        "add_indicator": true,
+        "n_estimators": 400,
+        "max_features": 0.3,
+        "min_samples_leaf": 2,
+        "axes": "('cond__extractant_concentration_M', 'cond__acid_concentration_M', 'metal')"
+      },
+      "seconds": 678.5,
+      "determinism": {
+        "split_seed": 104729,
+        "fold": 0,
+        "n_rows": 382,
+        "max_abs_delta": 4.440892098500626e-16,
+        "mean_abs_delta": 1.0606335472490656e-16,
+        "n_rows_moved": 221,
+        "within_tolerance": true,
+        "pooled_mae_first": 1.1485641604767947,
+        "pooled_mae_second": 1.1485641604767949,
+        "arm": "GEN10_SET_ATTENTION"
+      }
+    }
+  ],
+  "audit": {
+    "n_curves_straddling": 0,
+    "n_folds": 25,
+    "max_rows_outside_partition": 0
+  },
+  "cohort_fingerprint": "bed178ec1a7a82b0"
+}

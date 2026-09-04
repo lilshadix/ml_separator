@@ -1,0 +1,1111 @@
+{
+  "run": "runs/gen9_shape",
+  "environment": {
+    "created_utc": "2026-08-21T08:58:40.762640+00:00",
+    "platform": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "library_versions": {
+      "python": "3.13.0",
+      "numpy": "2.5.1",
+      "pandas": "3.0.5",
+      "scipy": "1.18.0",
+      "scikit-learn": "1.9.0",
+      "torch": "2.13.0",
+      "rdkit": "2026.03.5",
+      "matplotlib": "3.11.1"
+    },
+    "git_commit": "fc39facb4f80153bae07b200784979987a6d64e3",
+    "git_dirty": true,
+    "n_dirty_paths": 76
+  },
+  "cohort_path": "runs/gen7_architecture/cache/cohort.parquet",
+  "cohort_fingerprint": "bed178ec1a7a82b0",
+  "frozen_global_model": "REC_ecfp_plus_recovered",
+  "frozen_oof": "runs/gen7_architecture/finalists/oof_predictions.parquet",
+  "split_seeds": [
+    104729,
+    130363,
+    155921,
+    196613,
+    262147
+  ],
+  "model_seed_formula": "42 + fold*1009 + 9999991",
+  "n_artefacts": 154,
+  "artefacts": {
+    "README.md": {
+      "bytes": 7428,
+      "modified_utc": "2026-08-21T08:58:39.147165+00:00",
+      "blake2b_128": "5d8b91d7d0329ff7584772228181c091"
+    },
+    "acquisition/feature_provenance.csv": {
+      "bytes": 3352,
+      "modified_utc": "2026-08-21T07:34:48.461636+00:00",
+      "blake2b_128": "c4d15eb6398c179f097ce7f4b559a923"
+    },
+    "acquisition/oracle_identity.csv": {
+      "bytes": 548942,
+      "modified_utc": "2026-08-21T07:34:50.601004+00:00",
+      "blake2b_128": "e969a83876378f42c2f591cc0d7c2878"
+    },
+    "acquisition/primary_bootstrap.csv": {
+      "bytes": 8786,
+      "modified_utc": "2026-08-21T08:36:22.968716+00:00",
+      "blake2b_128": "fbda806bd4752ab5cb96105bf7dbd822"
+    },
+    "acquisition/primary_detail.parquet": {
+      "bytes": 2384594,
+      "modified_utc": "2026-08-21T08:36:22.411156+00:00",
+      "blake2b_128": "fe9d924ecd44cb9618af0956041c1055"
+    },
+    "acquisition/primary_run.json": {
+      "bytes": 603,
+      "modified_utc": "2026-08-21T08:36:22.971473+00:00",
+      "blake2b_128": "6b263d3ab4d852f72b547604fbd7f04b"
+    },
+    "acquisition/primary_summary.csv": {
+      "bytes": 3660,
+      "modified_utc": "2026-08-21T08:36:22.438771+00:00",
+      "blake2b_128": "63a1483d955d2d53bead2baa5106faff"
+    },
+    "acquisition/primary_training_audit.csv": {
+      "bytes": 57855,
+      "modified_utc": "2026-08-21T08:36:22.414666+00:00",
+      "blake2b_128": "0d19ea8570454b94c4892c375d5935c1"
+    },
+    "boost_config.json": {
+      "bytes": 790,
+      "modified_utc": "2026-08-21T03:15:18.730806+00:00",
+      "blake2b_128": "7f24fe6772ccab4d6e96f4a09cf44b3f"
+    },
+    "boost_tuning.csv": {
+      "bytes": 1737,
+      "modified_utc": "2026-08-21T03:15:18.730592+00:00",
+      "blake2b_128": "99367d246bec3801f0effa49ec30a974"
+    },
+    "curves/curve_audit.json": {
+      "bytes": 2133,
+      "modified_utc": "2026-08-21T02:44:12.985867+00:00",
+      "blake2b_128": "a014f5071324643c2e88fa56092c9849"
+    },
+    "curves/curve_membership.parquet": {
+      "bytes": 156331,
+      "modified_utc": "2026-08-21T02:44:12.993148+00:00",
+      "blake2b_128": "6ddad301e7ac164f2c98daf9c8256243"
+    },
+    "curves/curve_table.parquet": {
+      "bytes": 130817,
+      "modified_utc": "2026-08-21T02:44:12.996180+00:00",
+      "blake2b_128": "26479deac08f5bd6fc4883010eb87846"
+    },
+    "data_audit/anomaly_flags.csv": {
+      "bytes": 1970,
+      "modified_utc": "2026-08-21T03:19:09.606124+00:00",
+      "blake2b_128": "f54d5370c42320788af8fd1a33496b6d"
+    },
+    "data_audit/condition_adjusted_levels.csv": {
+      "bytes": 24196,
+      "modified_utc": "2026-08-21T03:19:07.484087+00:00",
+      "blake2b_128": "58dcadfc0b1ce81e3c276e3c9048f530"
+    },
+    "data_audit/contagion.csv": {
+      "bytes": 774,
+      "modified_utc": "2026-08-21T03:19:09.586327+00:00",
+      "blake2b_128": "e6e58b64012fc9d0bad4fe15a1bc2ff3"
+    },
+    "data_audit/duplicate_cells.csv": {
+      "bytes": 336850,
+      "modified_utc": "2026-08-21T03:19:09.206962+00:00",
+      "blake2b_128": "8dd1776467d760fa51be046d2253277b"
+    },
+    "data_audit/implausible_conditions.csv": {
+      "bytes": 339,
+      "modified_utc": "2026-08-21T03:19:09.342460+00:00",
+      "blake2b_128": "751b7e413336f630ee30b9d84ad04a33"
+    },
+    "data_audit/level_outliers.csv": {
+      "bytes": 1133,
+      "modified_utc": "2026-08-21T03:19:07.646053+00:00",
+      "blake2b_128": "3114173bb37f6aa0d2a547d947bbd781"
+    },
+    "data_audit/name_mismatch.json": {
+      "bytes": 656,
+      "modified_utc": "2026-08-21T03:19:09.237484+00:00",
+      "blake2b_128": "6183c0fd76afd7eb8324c1a3c3480821"
+    },
+    "data_audit/smiles_name_conflicts.csv": {
+      "bytes": 2428,
+      "modified_utc": "2026-08-21T03:19:09.337835+00:00",
+      "blake2b_128": "05b30578bc4652f2f8543201d8f148f7"
+    },
+    "data_audit/summary.json": {
+      "bytes": 982,
+      "modified_utc": "2026-08-21T03:19:09.606925+00:00",
+      "blake2b_128": "cc3e3174a78a4ebfbe2adc13f8bb23df"
+    },
+    "data_audit/twe24.json": {
+      "bytes": 1419,
+      "modified_utc": "2026-08-21T03:19:09.600230+00:00",
+      "blake2b_128": "4cbec33da75649678b960df53b301397"
+    },
+    "decision_report.md": {
+      "bytes": 52546,
+      "modified_utc": "2026-08-21T08:57:40.721197+00:00",
+      "blake2b_128": "5d2d1ee30d2d2391e427d69687da6dfe"
+    },
+    "environment.json": {
+      "bytes": 2403,
+      "modified_utc": "2026-08-21T04:10:34.460319+00:00",
+      "blake2b_128": "c8be526b536f39ef65e460f5cd0154b5"
+    },
+    "failure_analysis.md": {
+      "bytes": 18340,
+      "modified_utc": "2026-08-21T08:51:14.322285+00:00",
+      "blake2b_128": "0216a8080241625b63d4b6646ae5c150"
+    },
+    "figures/fig1_slope_recovery.png": {
+      "bytes": 417885,
+      "modified_utc": "2026-08-21T08:55:53.321527+00:00"
+    },
+    "figures/fig2_span_recovery.png": {
+      "bytes": 480043,
+      "modified_utc": "2026-08-21T08:55:53.742200+00:00"
+    },
+    "figures/fig3_response_surfaces.png": {
+      "bytes": 156470,
+      "modified_utc": "2026-08-21T08:55:53.990166+00:00"
+    },
+    "figures/fig4_acquisition_regret.png": {
+      "bytes": 120518,
+      "modified_utc": "2026-08-21T08:55:54.115434+00:00"
+    },
+    "figures/fig5_adaptation.png": {
+      "bytes": 60374,
+      "modified_utc": "2026-08-21T08:55:54.159830+00:00"
+    },
+    "figures/fig6_decomposition.png": {
+      "bytes": 99676,
+      "modified_utc": "2026-08-21T08:55:54.247685+00:00"
+    },
+    "figures/figures.json": {
+      "bytes": 352,
+      "modified_utc": "2026-08-21T08:55:54.247948+00:00",
+      "blake2b_128": "b645e80cc927cd88a0be708034b24d76"
+    },
+    "finalists/curve_boundary_audit.csv": {
+      "bytes": 595,
+      "modified_utc": "2026-08-21T04:21:41.216695+00:00",
+      "blake2b_128": "da6dbe061e5f26da70821adde0ad7059"
+    },
+    "finalists/diagnostics_GEN9_A0_ROW_ONLY.json": {
+      "bytes": 81913,
+      "modified_utc": "2026-08-21T04:37:53.541500+00:00",
+      "blake2b_128": "f80b5c9067a9f659f5c30adf3a5ccf4b"
+    },
+    "finalists/diagnostics_GEN9_A1_ADJ_d05.json": {
+      "bytes": 111197,
+      "modified_utc": "2026-08-21T04:58:32.202981+00:00",
+      "blake2b_128": "f86b37ee2cc8a9c12e10ba6e26ec5c55"
+    },
+    "finalists/diagnostics_GEN9_A2_END_d05.json": {
+      "bytes": 110729,
+      "modified_utc": "2026-08-21T05:11:21.785570+00:00",
+      "blake2b_128": "6ed3cd67a1cd6d350ad77e3d9f506c8d"
+    },
+    "finalists/diagnostics_GEN9_A3_RAND_d05.json": {
+      "bytes": 111158,
+      "modified_utc": "2026-08-21T05:24:10.798311+00:00",
+      "blake2b_128": "e9c40b988f1583b3f0dfbdcf468179cd"
+    },
+    "finalists/diagnostics_GEN9_A4_MULTI_d05.json": {
+      "bytes": 111369,
+      "modified_utc": "2026-08-21T05:37:47.114788+00:00",
+      "blake2b_128": "6885d03cc6e444edd118d086925684c7"
+    },
+    "finalists/diagnostics_GEN9_X_MULTI_d2.json": {
+      "bytes": 110577,
+      "modified_utc": "2026-08-21T05:51:16.198694+00:00",
+      "blake2b_128": "158798d45c7923b3426ee8ef4a5f7f8a"
+    },
+    "finalists/diagnostics_GEN9_X_MULTI_d8c.json": {
+      "bytes": 111295,
+      "modified_utc": "2026-08-21T06:08:27.905691+00:00",
+      "blake2b_128": "ca45ab8b23c581bc9a57f8248e36ac51"
+    },
+    "finalists/fold_audit.csv": {
+      "bytes": 1142,
+      "modified_utc": "2026-08-21T04:21:41.216343+00:00",
+      "blake2b_128": "37570164e50c03ba873bb110c1f55fca"
+    },
+    "finalists/leaderboard.csv": {
+      "bytes": 966,
+      "modified_utc": "2026-08-21T06:08:39.234475+00:00",
+      "blake2b_128": "0cd4b9dac9fdf2f0808c85dbf0a3727d"
+    },
+    "finalists/oof_GEN9_A0_ROW_ONLY.parquet": {
+      "bytes": 781151,
+      "modified_utc": "2026-08-21T04:37:53.538105+00:00",
+      "blake2b_128": "c41d08eef4ce1c709b52603edb99aa30"
+    },
+    "finalists/oof_GEN9_A1_ADJ_d05.parquet": {
+      "bytes": 781296,
+      "modified_utc": "2026-08-21T04:58:32.200600+00:00",
+      "blake2b_128": "5de57f1c7257c2c56b75f07be2ec60b4"
+    },
+    "finalists/oof_GEN9_A2_END_d05.parquet": {
+      "bytes": 781632,
+      "modified_utc": "2026-08-21T05:11:21.783313+00:00",
+      "blake2b_128": "f00690aa0a106fcc7e0bf41b930f4d93"
+    },
+    "finalists/oof_GEN9_A3_RAND_d05.parquet": {
+      "bytes": 781619,
+      "modified_utc": "2026-08-21T05:24:10.796500+00:00",
+      "blake2b_128": "9d2670751a8398247f2045ba4a43e967"
+    },
+    "finalists/oof_GEN9_A4_MULTI_d05.parquet": {
+      "bytes": 781309,
+      "modified_utc": "2026-08-21T05:37:47.111958+00:00",
+      "blake2b_128": "00d5fbfb32225a66a77a3e025cf06c28"
+    },
+    "finalists/oof_GEN9_X_MULTI_d2.parquet": {
+      "bytes": 781470,
+      "modified_utc": "2026-08-21T05:51:16.195652+00:00",
+      "blake2b_128": "0541606722c1050dfb99657eb3b8c053"
+    },
+    "finalists/oof_GEN9_X_MULTI_d8c.parquet": {
+      "bytes": 783847,
+      "modified_utc": "2026-08-21T06:08:27.903359+00:00",
+      "blake2b_128": "68f5c21d5b581522ffebe4ec8f6927a3"
+    },
+    "finalists/oof_REC_ecfp_plus_recovered.parquet": {
+      "bytes": 537532,
+      "modified_utc": "2026-08-21T04:23:11.386506+00:00",
+      "blake2b_128": "fa14419133c0364612b1b9034f0c2091"
+    },
+    "finalists/oof_all.parquet": {
+      "bytes": 4585891,
+      "modified_utc": "2026-08-21T06:08:28.114683+00:00",
+      "blake2b_128": "8aba1dad49f14c09aba420c3957c75b0"
+    },
+    "finalists/row_accounting.csv": {
+      "bytes": 2112,
+      "modified_utc": "2026-08-21T06:08:27.985774+00:00",
+      "blake2b_128": "3fb084e703140152a8c05894890d8b99"
+    },
+    "finalists/run.json": {
+      "bytes": 5088,
+      "modified_utc": "2026-08-21T06:08:39.236223+00:00",
+      "blake2b_128": "651ff0dddbb744b6db872e9fb6d5946b"
+    },
+    "finalists/scores_by_seed.csv": {
+      "bytes": 19361,
+      "modified_utc": "2026-08-21T06:08:39.231591+00:00",
+      "blake2b_128": "4c38546272f72029dcd33e0e7aebb699"
+    },
+    "frontier/adaptation_curve.csv": {
+      "bytes": 1379,
+      "modified_utc": "2026-08-21T08:46:55.394614+00:00",
+      "blake2b_128": "3f62bcfac030b909640167b86c71ba9f"
+    },
+    "frontier/attribution_chain.csv": {
+      "bytes": 1280,
+      "modified_utc": "2026-08-21T08:46:55.384157+00:00",
+      "blake2b_128": "f072119b0e6229eb3347cafac7d833bf"
+    },
+    "frontier/failure_class_frontier.csv": {
+      "bytes": 1057607,
+      "modified_utc": "2026-08-21T08:48:18.877053+00:00",
+      "blake2b_128": "72652fb1f2003eef5e272a4da14f7b3d"
+    },
+    "frontier/frontier.json": {
+      "bytes": 1561,
+      "modified_utc": "2026-08-21T08:48:18.902160+00:00",
+      "blake2b_128": "387dd290088a8a6c46693b02f0644286"
+    },
+    "frontier/frontier_bootstrap.csv": {
+      "bytes": 3156,
+      "modified_utc": "2026-08-21T08:47:11.971780+00:00",
+      "blake2b_128": "a71de1f0c5f8095d72c702a8ac9030cd"
+    },
+    "frontier/frontier_by_model.csv": {
+      "bytes": 5870,
+      "modified_utc": "2026-08-21T08:46:55.395574+00:00",
+      "blake2b_128": "cf2ec8b444d464fafef88a6bae3f5e6a"
+    },
+    "frontier/pairing_audit.csv": {
+      "bytes": 1726,
+      "modified_utc": "2026-08-21T08:48:02.686805+00:00",
+      "blake2b_128": "be2891a20786d4f9267f38528fa48574"
+    },
+    "frontier/row_audit.csv": {
+      "bytes": 56252,
+      "modified_utc": "2026-08-21T08:46:28.672692+00:00",
+      "blake2b_128": "7352f373f458be721ea107b17d9cb670"
+    },
+    "frontier/table_a_maximal_coverage.csv": {
+      "bytes": 365651,
+      "modified_utc": "2026-08-21T08:46:55.326961+00:00",
+      "blake2b_128": "b8798b7ff112ecdc14b766ce38f78a2c"
+    },
+    "frontier/table_b_common_cohort.csv": {
+      "bytes": 363362,
+      "modified_utc": "2026-08-21T08:46:55.332875+00:00",
+      "blake2b_128": "7063dd6be2c249859edb6a0ba45f9e1c"
+    },
+    "kshot/acquisition_audit_GEN9_A1_ADJ_d05.csv": {
+      "bytes": 3644,
+      "modified_utc": "2026-08-21T07:45:46.289979+00:00",
+      "blake2b_128": "d7a6ef57af679152f08c03fbab94b33f"
+    },
+    "kshot/acquisition_audit_GEN9_SHAPE_RECOMPOSED.csv": {
+      "bytes": 3672,
+      "modified_utc": "2026-08-21T07:45:48.230885+00:00",
+      "blake2b_128": "c656b5d781bfb9a4882c178c3f5aaf11"
+    },
+    "kshot/acquisition_audit_REC_ecfp_plus_recovered.csv": {
+      "bytes": 3671,
+      "modified_utc": "2026-08-21T07:45:21.969693+00:00",
+      "blake2b_128": "887a93fe0c0950d516978d732c876769"
+    },
+    "kshot/frozen_detail.parquet": {
+      "bytes": 38998724,
+      "modified_utc": "2026-08-21T08:35:23.517553+00:00",
+      "blake2b_128": "10f92e7c13fab509a7ec6a1d3738daa5"
+    },
+    "kshot/frozen_run.json": {
+      "bytes": 1117,
+      "modified_utc": "2026-08-21T08:35:23.520465+00:00",
+      "blake2b_128": "4afa369ef54698c301e08c1878c15dc4"
+    },
+    "kshot/frozen_summary.csv": {
+      "bytes": 33300,
+      "modified_utc": "2026-08-21T08:35:24.462514+00:00",
+      "blake2b_128": "f849a73f3f157f3a64ce9e7adb81309e"
+    },
+    "kshot/new_detail.parquet": {
+      "bytes": 39108205,
+      "modified_utc": "2026-08-21T08:35:50.504892+00:00",
+      "blake2b_128": "b937f7a8e946e9589e0ba7acd3148653"
+    },
+    "kshot/new_run.json": {
+      "bytes": 1103,
+      "modified_utc": "2026-08-21T08:35:50.506974+00:00",
+      "blake2b_128": "e3d78fa714705fa943cf0e78739630eb"
+    },
+    "kshot/new_summary.csv": {
+      "bytes": 29806,
+      "modified_utc": "2026-08-21T08:35:51.516164+00:00",
+      "blake2b_128": "757b152c7de0838570c8805865ba131e"
+    },
+    "kshot/recomposed_detail.parquet": {
+      "bytes": 38658721,
+      "modified_utc": "2026-08-21T08:36:00.445565+00:00",
+      "blake2b_128": "b6746701690a7abf4c78756ca167ecc8"
+    },
+    "kshot/recomposed_run.json": {
+      "bytes": 1115,
+      "modified_utc": "2026-08-21T08:36:00.446807+00:00",
+      "blake2b_128": "f2af9c35c27f1db72061645f1b6ff042"
+    },
+    "kshot/recomposed_summary.csv": {
+      "bytes": 32436,
+      "modified_utc": "2026-08-21T08:36:01.318588+00:00",
+      "blake2b_128": "5f7aa33809a0d2cb446c22e8b878a00a"
+    },
+    "kshot/restA_detail.parquet": {
+      "bytes": 54486815,
+      "modified_utc": "2026-08-21T06:50:49.652964+00:00",
+      "blake2b_128": "e384599eda1ce7f93565ff62a23db3fc"
+    },
+    "kshot/restA_run.json": {
+      "bytes": 1530,
+      "modified_utc": "2026-08-21T06:50:49.656290+00:00",
+      "blake2b_128": "e0ef60773bb200068e99a1d4926c6f6b"
+    },
+    "kshot/restA_summary.csv": {
+      "bytes": 35261,
+      "modified_utc": "2026-08-21T06:50:51.974929+00:00",
+      "blake2b_128": "5aed03d82e7db92c938d592eb1b17976"
+    },
+    "kshot/restB_detail.parquet": {
+      "bytes": 54392711,
+      "modified_utc": "2026-08-21T06:50:58.198600+00:00",
+      "blake2b_128": "e308722a02c2f777efacfc479a69ab66"
+    },
+    "kshot/restB_run.json": {
+      "bytes": 1529,
+      "modified_utc": "2026-08-21T06:50:58.200492+00:00",
+      "blake2b_128": "6b7b87895f77998887e5dd4d059e5334"
+    },
+    "kshot/restB_summary.csv": {
+      "bytes": 35261,
+      "modified_utc": "2026-08-21T06:50:59.656062+00:00",
+      "blake2b_128": "1e009c0904ec3fc19fd81cc19b0a8384"
+    },
+    "kshot/restC_detail.parquet": {
+      "bytes": 81271363,
+      "modified_utc": "2026-08-21T07:07:30.716197+00:00",
+      "blake2b_128": "d601f8842408bafe6a1fa1051a7620ce"
+    },
+    "kshot/restC_run.json": {
+      "bytes": 2095,
+      "modified_utc": "2026-08-21T07:07:30.717166+00:00",
+      "blake2b_128": "1da43cfe991a6095782da07259f7c0ff"
+    },
+    "kshot/restC_summary.csv": {
+      "bytes": 52850,
+      "modified_utc": "2026-08-21T07:07:32.482461+00:00",
+      "blake2b_128": "60476683adc401a44faddcd2a9506297"
+    },
+    "logs/acquisition.log": {
+      "bytes": 12798,
+      "modified_utc": "2026-08-21T08:36:22.971237+00:00"
+    },
+    "logs/finalists.log": {
+      "bytes": 4651,
+      "modified_utc": "2026-08-21T06:08:39.236004+00:00"
+    },
+    "logs/frontier.log": {
+      "bytes": 7521,
+      "modified_utc": "2026-08-21T08:48:18.899416+00:00"
+    },
+    "logs/kshot_frozen.log": {
+      "bytes": 5434,
+      "modified_utc": "2026-08-21T08:35:24.468507+00:00"
+    },
+    "logs/kshot_new.log": {
+      "bytes": 5206,
+      "modified_utc": "2026-08-21T08:35:51.521940+00:00"
+    },
+    "logs/kshot_recomposed.log": {
+      "bytes": 5398,
+      "modified_utc": "2026-08-21T08:36:01.323966+00:00"
+    },
+    "logs/kshot_restA.log": {
+      "bytes": 4671,
+      "modified_utc": "2026-08-21T06:50:51.988604+00:00"
+    },
+    "logs/kshot_restB.log": {
+      "bytes": 4671,
+      "modified_utc": "2026-08-21T06:50:59.664928+00:00"
+    },
+    "logs/kshot_restC.log": {
+      "bytes": 7018,
+      "modified_utc": "2026-08-21T07:07:32.491156+00:00"
+    },
+    "logs/phase1.log": {
+      "bytes": 2969,
+      "modified_utc": "2026-08-21T03:48:52.529876+00:00"
+    },
+    "logs/recomposed.log": {
+      "bytes": 1119,
+      "modified_utc": "2026-08-21T04:50:03.008436+00:00"
+    },
+    "logs/relmono.log": {
+      "bytes": 1081,
+      "modified_utc": "2026-08-21T04:56:51.713122+00:00"
+    },
+    "logs/reproduce.log": {
+      "bytes": 3360,
+      "modified_utc": "2026-08-21T02:53:24.254665+00:00"
+    },
+    "logs/shape_analysis.log": {
+      "bytes": 32534,
+      "modified_utc": "2026-08-21T06:11:01.603663+00:00"
+    },
+    "logs/tune.log": {
+      "bytes": 890,
+      "modified_utc": "2026-08-21T03:15:18.730841+00:00"
+    },
+    "phase1/curve_boundary_audit.csv": {
+      "bytes": 385,
+      "modified_utc": "2026-08-21T03:15:50.089198+00:00",
+      "blake2b_128": "5d43d9696f2a6b3c06fd8742ee4ad903"
+    },
+    "phase1/diagnostics_GEN9_A0_ROW_ONLY.json": {
+      "bytes": 49153,
+      "modified_utc": "2026-08-21T03:22:37.088040+00:00",
+      "blake2b_128": "921a2de33114ffaffdba9a8deb15fbe5"
+    },
+    "phase1/diagnostics_GEN9_A1_ROW_ADJACENT.json": {
+      "bytes": 65936,
+      "modified_utc": "2026-08-21T03:29:20.889246+00:00",
+      "blake2b_128": "9697b890761c6e8605f283c3bdc46f23"
+    },
+    "phase1/diagnostics_GEN9_A2_ROW_ENDPOINT.json": {
+      "bytes": 65631,
+      "modified_utc": "2026-08-21T03:35:46.591912+00:00",
+      "blake2b_128": "cce900fd5e4376739ecf8679325edf01"
+    },
+    "phase1/diagnostics_GEN9_A3_ROW_RANDOM_PAIR.json": {
+      "bytes": 65976,
+      "modified_utc": "2026-08-21T03:42:13.476624+00:00",
+      "blake2b_128": "83d3193ac9145f1150bdb4c598760816"
+    },
+    "phase1/diagnostics_GEN9_A4_ROW_MULTISCALE.json": {
+      "bytes": 66070,
+      "modified_utc": "2026-08-21T03:48:48.987560+00:00",
+      "blake2b_128": "cb5f5e7fe57b7900780364f0506c42a4"
+    },
+    "phase1/fold_audit.csv": {
+      "bytes": 752,
+      "modified_utc": "2026-08-21T03:15:50.088939+00:00",
+      "blake2b_128": "8a4c4d54f4ae8d2917b7c0af0f532e91"
+    },
+    "phase1/leaderboard.csv": {
+      "bytes": 762,
+      "modified_utc": "2026-08-21T03:48:52.528851+00:00",
+      "blake2b_128": "7d59ab21bb6e34c65b558e342e4d4c0f"
+    },
+    "phase1/oof_GEN9_A0_ROW_ONLY.parquet": {
+      "bytes": 393555,
+      "modified_utc": "2026-08-21T03:22:37.087274+00:00",
+      "blake2b_128": "8a05ac7de187b03fd53587e0a40f1079"
+    },
+    "phase1/oof_GEN9_A1_ROW_ADJACENT.parquet": {
+      "bytes": 393877,
+      "modified_utc": "2026-08-21T03:29:20.888449+00:00",
+      "blake2b_128": "e681403cd871adaccf55d8a804af8ccf"
+    },
+    "phase1/oof_GEN9_A2_ROW_ENDPOINT.parquet": {
+      "bytes": 393912,
+      "modified_utc": "2026-08-21T03:35:46.591105+00:00",
+      "blake2b_128": "8d46bc696c8c03d0db605ae736aa6235"
+    },
+    "phase1/oof_GEN9_A3_ROW_RANDOM_PAIR.parquet": {
+      "bytes": 394071,
+      "modified_utc": "2026-08-21T03:42:13.475820+00:00",
+      "blake2b_128": "f1306d777040dc5e6213a0af3eab59cf"
+    },
+    "phase1/oof_GEN9_A4_ROW_MULTISCALE.parquet": {
+      "bytes": 393969,
+      "modified_utc": "2026-08-21T03:48:48.986347+00:00",
+      "blake2b_128": "f0bc8008c9136a1fb60be9701c4b17fb"
+    },
+    "phase1/oof_REC_ecfp_plus_recovered.parquet": {
+      "bytes": 391254,
+      "modified_utc": "2026-08-21T03:16:26.291014+00:00",
+      "blake2b_128": "97f1c4fd9f41d2e06a4f381b7ea3860d"
+    },
+    "phase1/oof_all.parquet": {
+      "bytes": 1459653,
+      "modified_utc": "2026-08-21T03:48:49.040131+00:00",
+      "blake2b_128": "84ae0e0216912a2e8dfaa152d17986dd"
+    },
+    "phase1/row_accounting.csv": {
+      "bytes": 1093,
+      "modified_utc": "2026-08-21T03:48:49.009176+00:00",
+      "blake2b_128": "2f8d78fc0c2c0809670300828697fa5b"
+    },
+    "phase1/run.json": {
+      "bytes": 3767,
+      "modified_utc": "2026-08-21T03:48:52.529991+00:00",
+      "blake2b_128": "1156f88373f7324e1505dc4f422155ba"
+    },
+    "phase1/scores_by_seed.csv": {
+      "bytes": 9053,
+      "modified_utc": "2026-08-21T03:48:52.527695+00:00",
+      "blake2b_128": "bb6759629fcaa9cf3795791cb3e5d29d"
+    },
+    "protocol.md": {
+      "bytes": 27236,
+      "modified_utc": "2026-08-21T05:10:02.069952+00:00",
+      "blake2b_128": "414efe9d307e170a9d196d652897e889"
+    },
+    "recomposed/curve_boundary_audit.csv": {
+      "bytes": 595,
+      "modified_utc": "2026-08-21T04:37:28.485302+00:00",
+      "blake2b_128": "da6dbe061e5f26da70821adde0ad7059"
+    },
+    "recomposed/diagnostics_GEN9_SHAPE_RECOMPOSED.json": {
+      "bytes": 4112,
+      "modified_utc": "2026-08-21T04:49:59.263118+00:00",
+      "blake2b_128": "f1eba6ea2b04a28508836b030e256a4c"
+    },
+    "recomposed/fold_audit.csv": {
+      "bytes": 1142,
+      "modified_utc": "2026-08-21T04:37:28.484052+00:00",
+      "blake2b_128": "37570164e50c03ba873bb110c1f55fca"
+    },
+    "recomposed/leaderboard.csv": {
+      "bytes": 174,
+      "modified_utc": "2026-08-21T04:50:03.006186+00:00",
+      "blake2b_128": "08053f6bc44e090e3c65ef54862bf879"
+    },
+    "recomposed/oof_GEN9_SHAPE_RECOMPOSED.parquet": {
+      "bytes": 548065,
+      "modified_utc": "2026-08-21T04:49:59.262231+00:00",
+      "blake2b_128": "b33e5b56f77b38b5f2f1bb70d6377cc3"
+    },
+    "recomposed/oof_all.parquet": {
+      "bytes": 548065,
+      "modified_utc": "2026-08-21T04:49:59.293437+00:00",
+      "blake2b_128": "b33e5b56f77b38b5f2f1bb70d6377cc3"
+    },
+    "recomposed/row_accounting.csv": {
+      "bytes": 397,
+      "modified_utc": "2026-08-21T04:49:59.272548+00:00",
+      "blake2b_128": "65a719bc0e6cdc4d7ca287dd2e6911fb"
+    },
+    "recomposed/run.json": {
+      "bytes": 1136,
+      "modified_utc": "2026-08-21T04:50:03.008730+00:00",
+      "blake2b_128": "0c65998ec8d4766f9d0e3d96ede0b434"
+    },
+    "recomposed/scores_by_seed.csv": {
+      "bytes": 2877,
+      "modified_utc": "2026-08-21T04:50:03.003746+00:00",
+      "blake2b_128": "e05673ba26b9c916043d6bffa41a3161"
+    },
+    "relmono/curve_boundary_audit.csv": {
+      "bytes": 595,
+      "modified_utc": "2026-08-21T04:52:56.684691+00:00",
+      "blake2b_128": "da6dbe061e5f26da70821adde0ad7059"
+    },
+    "relmono/fold_audit.csv": {
+      "bytes": 1142,
+      "modified_utc": "2026-08-21T04:52:56.683635+00:00",
+      "blake2b_128": "37570164e50c03ba873bb110c1f55fca"
+    },
+    "relmono/leaderboard.csv": {
+      "bytes": 173,
+      "modified_utc": "2026-08-21T04:56:51.710120+00:00",
+      "blake2b_128": "4765e1f2eefdf8473114af1f4b3e37be"
+    },
+    "relmono/oof_GEN9_REL_MONOLITH.parquet": {
+      "bytes": 546653,
+      "modified_utc": "2026-08-21T04:56:48.141659+00:00",
+      "blake2b_128": "0ed83bfa59a437a41bd715ba07edc1a0"
+    },
+    "relmono/oof_all.parquet": {
+      "bytes": 546653,
+      "modified_utc": "2026-08-21T04:56:48.173244+00:00",
+      "blake2b_128": "0ed83bfa59a437a41bd715ba07edc1a0"
+    },
+    "relmono/row_accounting.csv": {
+      "bytes": 377,
+      "modified_utc": "2026-08-21T04:56:48.151243+00:00",
+      "blake2b_128": "f9f5cb2a2890f6fcf619c2e04d516ebc"
+    },
+    "relmono/run.json": {
+      "bytes": 635,
+      "modified_utc": "2026-08-21T04:56:51.713762+00:00",
+      "blake2b_128": "4bceb0b7468b92c02d5a30f1084de3b0"
+    },
+    "relmono/scores_by_seed.csv": {
+      "bytes": 2862,
+      "modified_utc": "2026-08-21T04:56:51.697088+00:00",
+      "blake2b_128": "1c4c5df3a4be6021d70de58c720646a9"
+    },
+    "reproduction/gen8_reproduction_detail.parquet": {
+      "bytes": 21563573,
+      "modified_utc": "2026-08-21T02:52:44.201267+00:00",
+      "blake2b_128": "92f91eb8252ba7955c4e73e2fc572a31"
+    },
+    "reproduction/gen8_reproduction_table_b.csv": {
+      "bytes": 11060,
+      "modified_utc": "2026-08-21T02:53:24.252502+00:00",
+      "blake2b_128": "1a80a32a49a27dc70357ef6cf28fa2b8"
+    },
+    "reproduction/reproduction.json": {
+      "bytes": 3839,
+      "modified_utc": "2026-08-21T02:53:24.253659+00:00",
+      "blake2b_128": "d474ebab73e0ba748737690182d749d9"
+    },
+    "reproduction/slope_pathology.csv": {
+      "bytes": 661,
+      "modified_utc": "2026-08-21T02:46:19.779511+00:00",
+      "blake2b_128": "acb1de6f528ce8795de05c70ec626711"
+    },
+    "rerun_diff.csv": {
+      "bytes": 4576,
+      "modified_utc": "2026-08-21T08:53:16.008065+00:00",
+      "blake2b_128": "c4c0306f1dd0cc00429ee747518801c2"
+    },
+    "sensitivity/macro_by_cohort.csv": {
+      "bytes": 2207,
+      "modified_utc": "2026-08-21T08:02:41.094506+00:00",
+      "blake2b_128": "cdff7aa2781651703dcb2ddfe6e8efd3"
+    },
+    "sensitivity/sensitivity.json": {
+      "bytes": 3343,
+      "modified_utc": "2026-08-21T08:02:41.116131+00:00",
+      "blake2b_128": "f2c427f86429b689507248062111a3d2"
+    },
+    "sensitivity/shape_by_cohort.csv": {
+      "bytes": 86012,
+      "modified_utc": "2026-08-21T08:02:41.106662+00:00",
+      "blake2b_128": "45d7d8629f5d2ad7bb518a51cf9dc3ea"
+    },
+    "shape/analysis.json": {
+      "bytes": 620,
+      "modified_utc": "2026-08-21T06:11:01.600679+00:00",
+      "blake2b_128": "7bb3c78225060d382d99fc5026bde18b"
+    },
+    "shape/curve_shape.parquet": {
+      "bytes": 4988840,
+      "modified_utc": "2026-08-21T06:10:56.251656+00:00",
+      "blake2b_128": "27f5bc7467d34b172be0c101266430df"
+    },
+    "shape/dynamic_range.csv": {
+      "bytes": 1444804,
+      "modified_utc": "2026-08-21T06:10:57.956906+00:00",
+      "blake2b_128": "7a62755635c000b87e16aadb48a6b68c"
+    },
+    "shape/failure_class.csv": {
+      "bytes": 5246,
+      "modified_utc": "2026-08-21T06:11:01.597986+00:00",
+      "blake2b_128": "83ef9ce314838dae139045dcc24a5852"
+    },
+    "shape/macro_mae.csv": {
+      "bytes": 831,
+      "modified_utc": "2026-08-21T06:09:20.873051+00:00",
+      "blake2b_128": "022f718953e528b22279954781e57586"
+    },
+    "shape/per_ligand_shape.csv": {
+      "bytes": 2166061,
+      "modified_utc": "2026-08-21T06:10:58.103808+00:00",
+      "blake2b_128": "17463b42e71e8a423cb3dcd459f5c5b4"
+    },
+    "shape/shape_bootstrap.csv": {
+      "bytes": 43221,
+      "modified_utc": "2026-08-21T06:11:01.509883+00:00",
+      "blake2b_128": "836603fe3fe3396c7d29ef863de4819d"
+    },
+    "shape/shape_by_axis.csv": {
+      "bytes": 28430,
+      "modified_utc": "2026-08-21T06:10:56.537630+00:00",
+      "blake2b_128": "a35e2441fafd4da18f5c0a9cc35b4055"
+    },
+    "shape/slope_distribution.csv": {
+      "bytes": 18552,
+      "modified_utc": "2026-08-21T06:10:56.608383+00:00",
+      "blake2b_128": "02d1342935431884bae15f383a11dfa2"
+    }
+  },
+  "boost_config": {
+    "config": {
+      "n_stages": 10,
+      "trees_per_stage": 120,
+      "learning_rate": 0.3,
+      "max_features": 0.3,
+      "min_samples_leaf": 2,
+      "max_depth": null,
+      "subsample": 1.0,
+      "row_delta": 1.0,
+      "pair_delta": 0.5,
+      "span_delta": 0.5,
+      "clip_to_training_range": true,
+      "n_jobs": -1
+    },
+    "label": "s10x120_lr0.3_d1_leaf2",
+    "selected_by": {
+      "protocol": "inner seeded_group_kfold over tanimoto_cluster inside the outer training partition; no outer test row is used",
+      "objective": "ROW_ONLY (lambda_delta = lambda_span = 0)",
+      "split_seed": 104729,
+      "outer_folds": [
+        0,
+        2
+      ],
+      "inner_splits": 3,
+      "inner_macro_mae": 1.0017783838988998,
+      "frozen_equivalent_inner_macro_mae": 1.0183667375331018,
+      "n_configurations": 12
+    }
+  },
+  "reproduction": {
+    "seeds": [
+      104729,
+      130363,
+      155921,
+      196613,
+      262147
+    ],
+    "repeats": 12,
+    "environment": {
+      "platform": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+      "machine": "arm64",
+      "library_versions": {
+        "python": "3.13.0",
+        "numpy": "2.5.1",
+        "pandas": "3.0.5",
+        "scipy": "1.18.0",
+        "scikit-learn": "1.9.0",
+        "torch": "2.13.0",
+        "rdkit": "2026.03.5"
+      },
+      "git_commit": "fc39facb4f80153bae07b200784979987a6d64e3",
+      "git_dirty": true,
+      "pythonhashseed": "<unset>"
+    },
+    "environment_drift": {
+      "available": true,
+      "changed": {},
+      "n_changed": 0
+    },
+    "checks": [
+      {
+        "family": "slope",
+        "name": "extractant_true_median",
+        "expected": 2.574,
+        "observed": 2.573675226299942,
+        "tol": 0.05,
+        "pass": true
+      },
+      {
+        "family": "slope",
+        "name": "extractant_pred_median",
+        "expected": 0.116,
+        "observed": 0.11642844967037344,
+        "tol": 0.05,
+        "pass": true
+      },
+      {
+        "family": "slope",
+        "name": "acid_true_median",
+        "expected": 1.656,
+        "observed": 1.6557758087863772,
+        "tol": 0.05,
+        "pass": true
+      },
+      {
+        "family": "slope",
+        "name": "acid_pred_median",
+        "expected": 0.355,
+        "observed": 0.35523643585793424,
+        "tol": 0.05,
+        "pass": true
+      },
+      {
+        "family": "slope",
+        "name": "extractant_span_ratio",
+        "expected": 0.051,
+        "observed": 0.050717658529375556,
+        "tol": 0.02,
+        "pass": true
+      },
+      {
+        "family": "kshot",
+        "name": "zero_shot_k0",
+        "arm": "ZERO_SHOT",
+        "k": 0,
+        "expected": 1.0605,
+        "observed": 1.0605303772612387,
+        "tol": 0.005,
+        "pass": true
+      },
+      {
+        "family": "kshot",
+        "name": "random_1shot",
+        "arm": "OFFSET_K1@RANDOM",
+        "k": 1,
+        "expected": 0.7927,
+        "observed": 0.792732533836449,
+        "tol": 0.005,
+        "pass": true
+      },
+      {
+        "family": "kshot",
+        "name": "central_1shot",
+        "arm": "OFFSET_K1@CENTRAL",
+        "k": 1,
+        "expected": 0.6964,
+        "observed": 0.6963986244888282,
+        "tol": 0.005,
+        "pass": true
+      },
+      {
+        "family": "kshot",
+        "name": "medoid_1shot",
+        "arm": "OFFSET_K1@MEDOID",
+        "k": 1,
+        "expected": 0.6916,
+        "observed": 0.6915825683739637,
+        "tol": 0.005,
+        "pass": true
+      },
+      {
+        "family": "kshot",
+        "name": "oracle_1shot",
+        "arm": "OFFSET_K1@ORACLE[OFFSET_K1]",
+        "k": 1,
+        "expected": 0.5326,
+        "observed": 0.5325625770147346,
+        "tol": 0.005,
+        "pass": true
+      },
+      {
+        "family": "kshot",
+        "name": "slope_medoid_1shot",
+        "arm": "SLOPE_L_s1_K1@MEDOID",
+        "k": 1,
+        "expected": 0.6752,
+        "observed": 0.6751828667813538,
+        "tol": 0.005,
+        "pass": true
+      },
+      {
+        "family": "kshot",
+        "name": "best_2shot",
+        "arm": "SLOPE_L_s1_K3@MAX_PREDICTIVE_VARIANCE",
+        "k": 2,
+        "expected": 0.5879,
+        "observed": 0.5879150010234774,
+        "tol": 0.005,
+        "pass": true
+      },
+      {
+        "family": "kshot",
+        "name": "best_3shot",
+        "arm": "SLOPE_L_s1_K3@CENTRAL_THEN_SPREAD",
+        "k": 3,
+        "expected": 0.523,
+        "observed": 0.5229939263529747,
+        "tol": 0.005,
+        "pass": true
+      },
+      {
+        "family": "kshot",
+        "name": "best_5shot",
+        "arm": "SLOPE_L_s1_K3@D_OPTIMAL",
+        "k": 5,
+        "expected": 0.4743,
+        "observed": 0.47429956979762583,
+        "tol": 0.005,
+        "pass": true
+      },
+      {
+        "family": "kshot",
+        "name": "random_2shot",
+        "arm": "OFFSET_K1@RANDOM",
+        "k": 2,
+        "expected": 0.7018,
+        "observed": 0.7017984791740542,
+        "tol": 0.005,
+        "pass": true
+      }
+    ],
+    "common_cohort_size": 99,
+    "n_checks": 15,
+    "n_failed": 0,
+    "pass": true
+  },
+  "curve_audit": {
+    "n_curves": 1176,
+    "n_memberships": 7207,
+    "n_rows_on_a_curve": 5123,
+    "n_cohort_rows": 5248,
+    "n_nonfinite_axis_value": 0,
+    "n_duplicate_row_axis": 0,
+    "n_curves_spanning_series": 0,
+    "min_distinct_abscissae": 3,
+    "n_curves_below_min_points": 0,
+    "n_curves_with_repeated_abscissa": 0,
+    "n_repeated_abscissa_rows": 0,
+    "rows_by_n_axes": {
+      "1": 3311,
+      "2": 1563,
+      "3": 226,
+      "4": 23
+    },
+    "curves_by_axis": {
+      "acid": 496,
+      "contact_time": 8,
+      "extractant": 241,
+      "metal_concentration": 10,
+      "metal_series": 386,
+      "temperature": 35
+    },
+    "memberships_by_axis": {
+      "acid": 2751,
+      "contact_time": 50,
+      "extractant": 1078,
+      "metal_concentration": 85,
+      "metal_series": 3094,
+      "temperature": 149
+    },
+    "supervised_axes": [
+      "cond__extractant_concentration_M",
+      "cond__acid_concentration_M",
+      "metal"
+    ],
+    "n_supervised_curves": 1123,
+    "n_supervised_memberships": 6923,
+    "axis_sets": {
+      "LHM": [
+        "cond__extractant_concentration_M",
+        "cond__acid_concentration_M",
+        "metal"
+      ],
+      "L": [
+        "cond__extractant_concentration_M"
+      ],
+      "LH": [
+        "cond__extractant_concentration_M",
+        "cond__acid_concentration_M"
+      ],
+      "LHMT": [
+        "cond__extractant_concentration_M",
+        "cond__acid_concentration_M",
+        "metal",
+        "cond__temperature_C"
+      ],
+      "ALL": [
+        "cond__extractant_concentration_M",
+        "cond__acid_concentration_M",
+        "metal",
+        "cond__temperature_C",
+        "cond__metal_concentration_mM",
+        "cond__contact_time_min"
+      ]
+    },
+    "n_membership_rows_not_in_cohort": 0,
+    "cohort_fingerprint": "bed178ec1a7a82b0",
+    "min_points": 3,
+    "curve_axes": [
+      "cond__acid_concentration_M",
+      "cond__contact_time_min",
+      "cond__extractant_concentration_M",
+      "cond__metal_concentration_mM",
+      "cond__temperature_C",
+      "metal"
+    ],
+    "vs_gen8": {
+      "available": true,
+      "gen8_rows": 7207,
+      "gen9_rows": 7207,
+      "same_shape": true,
+      "identical_keys": true,
+      "max_abs_axis_value_delta": 0.0,
+      "gen8_curves": 1176,
+      "gen9_curves": 1176
+    },
+    "failures": []
+  },
+  "data_audit": {
+    "cohort_fingerprint": "bed178ec1a7a82b0",
+    "n_rows": 5248,
+    "n_level_outliers": 5,
+    "n_duplicate_gaps": 981,
+    "n_exact_decade_gaps": 61,
+    "n_smiles_name_conflicts": 17,
+    "name_mismatch": {
+      "available": true,
+      "n_rows": 353,
+      "share_of_cohort": 0.06726371951219512,
+      "n_extractants_affected": 17,
+      "worst": {
+        "CN(C(=O)c1cccc(C(=O)N(C)c2ccccc2)n1)c1ccccc1": 70,
+        "CCCCCCCCN(C)C(=O)COCC(=O)N(C)CCCCCCCC": 70,
+        "CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC": 69,
+        "CCCCC(CC)CN(CC(CC)CCCC)C(=O)COCC(=O)N(CC(CC)CCCC)CC(CC)CCCC": 38,
+        "CCCCCCCCN(CCCCCCCC)C(=O)C(C)OC(C)C(=O)N(CCCCCCCC)CCCCCCCC": 18,
+        "CCCCCCCCN(C)C(=O)C(CCOCCCCCC)C(=O)N(C)CCCCCCCC": 14,
+        "CCCCCc1nnc(-c2cccc(-c3cccc(-c4nnc(CCCCC)c(CCCCC)n4)n3)n2)nc1CCCCC": 13,
+        "CCCCCCCCN(CCCCCCCC)C(=O)c1ccc2ccc3ccc(C(=O)N(CCCCCCCC)CCCCCCCC)nc3c2n1": 12
+      }
+    },
+    "twe24_status": "UNRESOLVED",
+    "dmdphpda_cohorts_available": true,
+    "nothing_deleted": true
+  }
+}
