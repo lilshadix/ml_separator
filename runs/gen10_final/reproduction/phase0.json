@@ -1,0 +1,100 @@
+{
+  "started_utc": "2026-08-21T14:34:28Z",
+  "checks": [
+    {
+      "check": "gen9 manifest verifies with zero drift",
+      "pass": true,
+      "output": [
+        "154 recorded, 154 on disk: 0 changed, 0 missing, 0 new"
+      ]
+    },
+    {
+      "check": "gen9 Phase-0 reproduces all gen8 references",
+      "pass": true,
+      "n_checks": 15,
+      "n_passed": 15
+    },
+    {
+      "check": "cohort fingerprint is frozen",
+      "pass": true,
+      "fingerprint": "bed178ec1a7a82b0",
+      "n_rows": 5248
+    },
+    {
+      "check": "curve geometry is gen9's (1,176 curves / 7,207 memberships)",
+      "pass": true,
+      "n_curves": 1176,
+      "n_memberships": 7207
+    },
+    {
+      "check": "no curve straddles a fold boundary on any of 25 folds",
+      "pass": true,
+      "max_straddling": 0
+    },
+    {
+      "check": "gen10 nests REC_ecfp_plus_recovered at the float floor",
+      "pass": true,
+      "max_abs_delta": 8.881784197001252e-16,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "gen10 nests GEN9_REL_MONOLITH at the float floor",
+      "pass": true,
+      "max_abs_delta": 1.3322676295501878e-15,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "gen10 nests GEN9_SHAPE_RECOMPOSED at the float floor",
+      "pass": true,
+      "max_abs_delta": 1.3322676295501878e-15,
+      "tolerance": 1e-12
+    },
+    {
+      "check": "REL_MONOLITH identical on two in-process refits",
+      "pass": true,
+      "split_seed": 104729,
+      "fold": 0,
+      "n_rows": 382,
+      "max_abs_delta": 1.1102230246251565e-15,
+      "mean_abs_delta": 1.2483197285635195e-16,
+      "n_rows_moved": 261,
+      "within_tolerance": true,
+      "pooled_mae_first": 1.1658999007871056,
+      "pooled_mae_second": 1.1658999007871056
+    },
+    {
+      "check": "SHAPE_RECOMPOSED identical on two in-process refits",
+      "pass": true,
+      "split_seed": 104729,
+      "fold": 0,
+      "n_rows": 382,
+      "max_abs_delta": 8.881784197001252e-16,
+      "mean_abs_delta": 1.3408458825505024e-16,
+      "n_rows_moved": 240,
+      "within_tolerance": true,
+      "pooled_mae_first": 1.0976275962102773,
+      "pooled_mae_second": 1.0976275962102773
+    },
+    {
+      "check": "SHAPE_RECOMPOSED identical across PYTHONHASHSEED 0 / 4242 subprocesses",
+      "pass": true,
+      "max_abs_delta": 1.1102230246251565e-15
+    },
+    {
+      "check": "gen7/8/9/10 test suites pass",
+      "pass": true,
+      "summary": [
+        "214 passed in 373.27s (0:06:13)"
+      ]
+    }
+  ],
+  "environment": {
+    "python": "3.13.0",
+    "numpy": "2.5.1",
+    "pandas": "3.0.5",
+    "scipy": "1.18.0",
+    "scikit-learn": "1.9.0"
+  },
+  "finished_utc": "2026-08-21T14:45:26Z",
+  "all_pass": true
+}

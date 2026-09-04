@@ -1,0 +1,179 @@
+{
+  "started_utc": "2026-08-21T16:40:55Z",
+  "selected": "SHAPE_RECOMPOSED",
+  "checks": [
+    {
+      "check": "1 identical configuration twice in one process",
+      "pass": true,
+      "split_seed": 104729,
+      "fold": 0,
+      "n_rows": 382,
+      "max_abs_delta": 1.1102230246251565e-15,
+      "mean_abs_delta": 1.2934588682263716e-16,
+      "n_rows_moved": 237,
+      "within_tolerance": true,
+      "pooled_mae_first": 1.0976275962102773,
+      "pooled_mae_second": 1.0976275962102773
+    },
+    {
+      "check": "2 fresh subprocesses under PYTHONHASHSEED 0/1/4242 agree",
+      "pass": true,
+      "max_abs_delta": 8.881784197001252e-16
+    },
+    {
+      "check": "3a gen9 manifest verifies with zero drift",
+      "pass": true,
+      "output": [
+        "154 recorded, 154 on disk: 0 changed, 0 missing, 0 new"
+      ]
+    },
+    {
+      "check": "3b gen10 manifest stamped",
+      "pass": true,
+      "output": "wrote /Users/lilshadix/PycharmProjects/ml_separator/.claude/worktrees/lanthanide-separation-finalize-81154b/runs/gen10_final/manifest.json (233 artefacts)"
+    },
+    {
+      "check": "4 row accounting: every finalist returns every row at every seed",
+      "pass": true,
+      "counts": {
+        "GEN10_LEVEL_SHAPE@104729": 5248,
+        "GEN10_LEVEL_SHAPE@130363": 5248,
+        "GEN10_LEVEL_SHAPE@155921": 5248,
+        "GEN10_LEVEL_SHAPE@196613": 5248,
+        "GEN10_LEVEL_SHAPE@262147": 5248,
+        "GEN10_REC_ALL@104729": 5248,
+        "GEN10_REC_ALL@130363": 5248,
+        "GEN10_REC_ALL@155921": 5248,
+        "GEN10_REC_ALL@196613": 5248,
+        "GEN10_REC_ALL@262147": 5248,
+        "GEN10_REC_GEN9_PLUS@104729": 5248,
+        "GEN10_REC_GEN9_PLUS@130363": 5248,
+        "GEN10_REC_GEN9_PLUS@155921": 5248,
+        "GEN10_REC_GEN9_PLUS@196613": 5248,
+        "GEN10_REC_GEN9_PLUS@262147": 5248,
+        "GEN10_REC_HYBRID@104729": 5248,
+        "GEN10_REC_HYBRID@130363": 5248,
+        "GEN10_REC_HYBRID@155921": 5248,
+        "GEN10_REC_HYBRID@196613": 5248,
+        "GEN10_REC_HYBRID@262147": 5248,
+        "GEN10_REC_RANK@104729": 5248,
+        "GEN10_REC_RANK@130363": 5248,
+        "GEN10_REC_RANK@155921": 5248,
+        "GEN10_REC_RANK@196613": 5248,
+        "GEN10_REC_RANK@262147": 5248,
+        "GEN9_A0_ROW_ONLY@104729": 5248,
+        "GEN9_A0_ROW_ONLY@130363": 5248,
+        "GEN9_A0_ROW_ONLY@155921": 5248,
+        "GEN9_A0_ROW_ONLY@196613": 5248,
+        "GEN9_A0_ROW_ONLY@262147": 5248,
+        "GEN9_REL_MONOLITH@104729": 5248,
+        "GEN9_REL_MONOLITH@130363": 5248,
+        "GEN9_REL_MONOLITH@155921": 5248,
+        "GEN9_REL_MONOLITH@196613": 5248,
+        "GEN9_REL_MONOLITH@262147": 5248,
+        "GEN9_SHAPE_RECOMPOSED@104729": 5248,
+        "GEN9_SHAPE_RECOMPOSED@130363": 5248,
+        "GEN9_SHAPE_RECOMPOSED@155921": 5248,
+        "GEN9_SHAPE_RECOMPOSED@196613": 5248,
+        "GEN9_SHAPE_RECOMPOSED@262147": 5248,
+        "REC_ecfp_plus_recovered@104729": 5248,
+        "REC_ecfp_plus_recovered@130363": 5248,
+        "REC_ecfp_plus_recovered@155921": 5248,
+        "REC_ecfp_plus_recovered@196613": 5248,
+        "REC_ecfp_plus_recovered@262147": 5248
+      }
+    },
+    {
+      "check": "14 no difficult rows disappear",
+      "pass": true,
+      "missing": {
+        "GEN10_LEVEL_SHAPE": 0,
+        "GEN10_REC_ALL": 0,
+        "GEN10_REC_GEN9_PLUS": 0,
+        "GEN10_REC_HYBRID": 0,
+        "GEN10_REC_RANK": 0,
+        "GEN9_A0_ROW_ONLY": 0,
+        "GEN9_REL_MONOLITH": 0,
+        "GEN9_SHAPE_RECOMPOSED": 0,
+        "REC_ecfp_plus_recovered": 0
+      }
+    },
+    {
+      "check": "5 fold boundaries: zero ligand/chemotype/cluster overlap on 25 folds",
+      "pass": true
+    },
+    {
+      "check": "6 curve boundaries: zero curves straddle a fold",
+      "pass": true
+    },
+    {
+      "check": "7 no target column in the query frame",
+      "pass": true
+    },
+    {
+      "check": "8 corrupting held-out targets leaves predictions unchanged",
+      "pass": true,
+      "max_abs_delta": 6.661338147750939e-16
+    },
+    {
+      "check": "9 permuting candidate rows permutes predictions and nothing else",
+      "pass": true,
+      "max_abs_delta": 8.881784197001252e-16
+    },
+    {
+      "check": "10 query-set consistency distribution recorded",
+      "pass": true,
+      "arms": [
+        "FROZEN",
+        "REL_MONOLITH",
+        "SHAPE_RECOMPOSED"
+      ]
+    },
+    {
+      "check": "11 acquisition policies behave on a synthetic asymmetric pool",
+      "pass": true,
+      "picks": {
+        "MEDOID": 3,
+        "CENTRAL": 4,
+        "FARTHEST_FROM_EXISTING": 5,
+        "CENTRAL_THEN_SPREAD": 3,
+        "D_OPTIMAL": 5,
+        "RANDOM": 5
+      }
+    },
+    {
+      "check": "12 every global model scored on identical (seed, fold, ligand, repeat, pool, eval) units",
+      "pass": true,
+      "n_units": {
+        "GEN10_LEVEL_SHAPE": 8580,
+        "GEN10_REC_ALL": 8580,
+        "GEN10_REC_GEN9_PLUS": 8580,
+        "GEN10_REC_HYBRID": 8580,
+        "GEN10_REC_RANK": 8580,
+        "GEN9_A0_ROW_ONLY": 8580,
+        "GEN9_REL_MONOLITH": 8580,
+        "GEN9_SHAPE_RECOMPOSED": 8580,
+        "REC_ecfp_plus_recovered": 8580
+      }
+    },
+    {
+      "check": "13 no NaN / inf in final tables (BCa and degenerate guarded span excepted)",
+      "pass": true,
+      "offenders": {}
+    },
+    {
+      "check": "15 k = 0 common-cohort macro MAE regenerates from raw OOF predictions",
+      "pass": true,
+      "from_oof": 1.0323771635805996,
+      "stored": 1.0357994416277343,
+      "note": "k=0 in the k-shot protocol scores evaluation halves; the OOF regeneration scores all rows, so agreement is to the protocol's sampling, not bit-exact"
+    },
+    {
+      "check": "16 fold-0 rerun matches stored predictions at the float floor",
+      "pass": true,
+      "max_abs_delta": 1.1102230246251565e-15
+    }
+  ],
+  "finished_utc": "2026-08-21T16:42:14Z",
+  "all_pass": true
+}

@@ -1,0 +1,180 @@
+{
+  "overlap_audit": {
+    "cohort_rows": 5248,
+    "bundle_rows": 5992,
+    "bundle_rows_feeding_cohort": 5938,
+    "bundle_rows_dropped_by_cohort_filters": 54,
+    "max_abs_target_delta": 0.0,
+    "archive_records": 16770,
+    "frozen_rows_matched_exactly": 5992,
+    "exact_join_metal_agreement": 1.0,
+    "exact_join_max_abs_target_delta": 5.551115123125783e-14,
+    "auxiliary_candidate_records": 10778
+  },
+  "frozen_block_reproduction": {
+    "cohort_rows": 5248,
+    "max_abs_delta": 0.0,
+    "nan_pattern_mismatches": 0
+  },
+  "archive_rows": 16770,
+  "auxA_rows": 5438,
+  "distinct_metals_archive": 40,
+  "distinct_metals_auxA": 30,
+  "representations": {
+    "FROZEN_3": {
+      "columns": [
+        "Atomic Number_metal",
+        "lanthanide_index",
+        "Ionic Radius_metal"
+      ],
+      "n_columns": 3,
+      "informative_columns": [
+        "Atomic Number_metal",
+        "lanthanide_index",
+        "Ionic Radius_metal"
+      ],
+      "indicator_columns": [],
+      "auxA_rows": 5438,
+      "auxA_rows_with_no_representation": 5353,
+      "auxA_rows_with_partial_representation": 0
+    },
+    "FROZEN_3_INDICATED": {
+      "columns": [
+        "Atomic Number_metal",
+        "lanthanide_index",
+        "Ionic Radius_metal",
+        "metal_atomic_number_is_missing",
+        "metal_lanthanide_index_is_missing",
+        "metal_ionic_radius_is_missing",
+        "metal_not_in_frozen_dict"
+      ],
+      "n_columns": 7,
+      "informative_columns": [
+        "Atomic Number_metal",
+        "lanthanide_index",
+        "Ionic Radius_metal"
+      ],
+      "indicator_columns": [
+        "metal_atomic_number_is_missing",
+        "metal_lanthanide_index_is_missing",
+        "metal_ionic_radius_is_missing",
+        "metal_not_in_frozen_dict"
+      ],
+      "auxA_rows": 5438,
+      "auxA_rows_with_no_representation": 5353,
+      "auxA_rows_with_partial_representation": 0
+    },
+    "GENERAL": {
+      "columns": [
+        "metal_atomic_number",
+        "metal_oxidation_state",
+        "metal_effective_charge",
+        "metal_is_oxo_species",
+        "metal_ionic_radius_cn8_A",
+        "metal_f_electron_count",
+        "metal_is_lanthanide",
+        "metal_is_actinide",
+        "metal_period",
+        "metal_group",
+        "metal_block_is_s",
+        "metal_block_is_d",
+        "metal_block_is_p",
+        "metal_block_is_f",
+        "metal_oxidation_state_is_missing",
+        "metal_ionic_radius_is_missing",
+        "metal_ionic_radius_is_assumed_trivalent",
+        "metal_f_electron_count_is_missing",
+        "metal_symbol_is_unknown"
+      ],
+      "n_columns": 19,
+      "informative_columns": [
+        "metal_atomic_number",
+        "metal_oxidation_state",
+        "metal_effective_charge",
+        "metal_is_oxo_species",
+        "metal_ionic_radius_cn8_A",
+        "metal_f_electron_count",
+        "metal_is_lanthanide",
+        "metal_is_actinide",
+        "metal_period",
+        "metal_group",
+        "metal_block_is_s",
+        "metal_block_is_d",
+        "metal_block_is_p",
+        "metal_block_is_f"
+      ],
+      "indicator_columns": [
+        "metal_oxidation_state_is_missing",
+        "metal_ionic_radius_is_missing",
+        "metal_ionic_radius_is_assumed_trivalent",
+        "metal_f_electron_count_is_missing",
+        "metal_symbol_is_unknown"
+      ],
+      "auxA_rows": 5438,
+      "auxA_rows_with_no_representation": 0,
+      "auxA_rows_with_partial_representation": 1184
+    },
+    "NO_RADIUS": {
+      "columns": [
+        "metal_atomic_number",
+        "metal_oxidation_state",
+        "metal_effective_charge",
+        "metal_is_oxo_species",
+        "metal_f_electron_count",
+        "metal_is_lanthanide",
+        "metal_is_actinide",
+        "metal_period",
+        "metal_group",
+        "metal_block_is_s",
+        "metal_block_is_d",
+        "metal_block_is_p",
+        "metal_block_is_f",
+        "metal_oxidation_state_is_missing",
+        "metal_f_electron_count_is_missing",
+        "metal_symbol_is_unknown"
+      ],
+      "n_columns": 16,
+      "informative_columns": [
+        "metal_atomic_number",
+        "metal_oxidation_state",
+        "metal_effective_charge",
+        "metal_is_oxo_species",
+        "metal_f_electron_count",
+        "metal_is_lanthanide",
+        "metal_is_actinide",
+        "metal_period",
+        "metal_group",
+        "metal_block_is_s",
+        "metal_block_is_d",
+        "metal_block_is_p",
+        "metal_block_is_f"
+      ],
+      "indicator_columns": [
+        "metal_oxidation_state_is_missing",
+        "metal_f_electron_count_is_missing",
+        "metal_symbol_is_unknown"
+      ],
+      "auxA_rows": 5438,
+      "auxA_rows_with_no_representation": 0,
+      "auxA_rows_with_partial_representation": 552
+    }
+  },
+  "imputation_damage": {
+    "cohort_rows_fitted_on": 5248,
+    "cohort_metal_block_nan_cells": 0,
+    "indicator_columns_emitted": 0,
+    "median_imputed_values": {
+      "Atomic Number_metal": 63.0,
+      "lanthanide_index": 7.0,
+      "Ionic Radius_metal": 1.066
+    },
+    "auxA_rows_receiving_them": 5353,
+    "element_the_imputed_index_names": "Eu",
+    "note": "add_indicator=True emits features='missing-only'; a lanthanide-only fitting fold has no missing METAL cells, so no indicator is created and every auxiliary non-lanthanide row is silently relabelled"
+  },
+  "crosscheck_all_row_counts_match": true,
+  "crosscheck_all_radius_counts_match": true,
+  "crosscheck_all_Z_match": true,
+  "frozen_dict_all_values_agree": true,
+  "frozen_dict_metals_with_missing_archive_radius": 14
+}

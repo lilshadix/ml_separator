@@ -1,0 +1,400 @@
+{
+  "purpose": "GEN11 control: every GEN10 headline number re-derived here from the raw stored predictions in runs/gen10_final/final_locked, never copied from a summary table.",
+  "generated_utc": "2026-08-22T17:26:58.004047+00:00",
+  "frozen_model": "GEN9_SHAPE_RECOMPOSED",
+  "identity": {
+    "cohort": {
+      "fingerprint_recomputed": "bed178ec1a7a82b0",
+      "fingerprint_claimed": "bed178ec1a7a82b0",
+      "fingerprint_match": true,
+      "n_rows": 5248,
+      "n_columns": 5642,
+      "n_extractants": 152,
+      "n_tanimoto_clusters": 79,
+      "n_ecfp_clusters": 131
+    },
+    "bundle": {
+      "path": "/Users/lilshadix/PycharmProjects/ml_separator/.claude/worktrees/lanthanide-separation-finalize-81154b/dataset with 3D structures/dataset.parquet",
+      "sha256_recomputed": "fefbefc6fe993aa9ce9db1a0c338adb9e5f58a8b75bab084cc1df4e024faf5dd",
+      "sha256_claimed": "fefbefc6fe993aa9ce9db1a0c338adb9e5f58a8b75bab084cc1df4e024faf5dd",
+      "match_claimed": true,
+      "gen3_protocol_digests": [
+        [
+          "dataset_sha256",
+          "fefbefc6fe993aa9ce9db1a0c338adb9e5f58a8b75bab084cc1df4e024faf5dd"
+        ],
+        [
+          "pair_cohort_sha256",
+          "af3d91b718d0497818db52be8d93ecdee8c6c80eb8fc0aeda1c25c2c3f5e5f0e"
+        ],
+        [
+          "gen2_feature_registry_file_sha256",
+          "7fd9275cfd230dec5b8432e67f37ad78f70f3573a9560189e5e6958be05e6320"
+        ],
+        [
+          "gen2_feature_contract_sha256",
+          "0d227ca8af201ded1e22ce713582389f0ea42ecdaee0584569095c3ea26ffde4"
+        ]
+      ],
+      "match_gen3_protocol": true,
+      "size_bytes": 2802776
+    },
+    "fold_reproduction": {
+      "rule": "seeded_group_kfold(tanimoto_cluster, n_splits=5, seed)",
+      "per_seed": [
+        {
+          "split_seed": 104729,
+          "n_rows": 5248,
+          "n_fold_mismatches": 0,
+          "unassigned": 0
+        },
+        {
+          "split_seed": 130363,
+          "n_rows": 5248,
+          "n_fold_mismatches": 0,
+          "unassigned": 0
+        },
+        {
+          "split_seed": 155921,
+          "n_rows": 5248,
+          "n_fold_mismatches": 0,
+          "unassigned": 0
+        },
+        {
+          "split_seed": 196613,
+          "n_rows": 5248,
+          "n_fold_mismatches": 0,
+          "unassigned": 0
+        },
+        {
+          "split_seed": 262147,
+          "n_rows": 5248,
+          "n_fold_mismatches": 0,
+          "unassigned": 0
+        }
+      ],
+      "all_folds_reproduce": true
+    },
+    "note_on_frame_width": "the GEN11 brief states the cohort frame is 5,248 x 2,492; it is 5,248 x 5,642. 2,146 is the FROZEN arm's column count (METAL 3 + COND 64 + ECFP 2048 + MASSACTION 8 + RECOVERED 23), which is confirmed."
+  },
+  "zero_shot_frozen_cohort": {
+    "metrics": [
+      {
+        "metric": "macro MAE (ECFP cluster, FROZEN cohort)",
+        "claimed": 0.9695,
+        "recomputed": 0.9694845437352135,
+        "aggregation": "mean of 5 per-seed values",
+        "source": "oof_finalists.parquet row-level predictions",
+        "abs_delta": 1.545626478649531e-05,
+        "reproduces_at_claimed_precision": true
+      },
+      {
+        "metric": "offset MAE (per-ligand |mean residual|)",
+        "claimed": 0.8212,
+        "recomputed": 0.82117153046591,
+        "aggregation": "mean of 5 per-seed values",
+        "source": "oof_finalists.parquet row-level predictions",
+        "abs_delta": 2.8469534090080906e-05,
+        "reproduces_at_claimed_precision": true
+      },
+      {
+        "metric": "extractant-axis shape MAE",
+        "claimed": 0.469,
+        "recomputed": 0.469194113387331,
+        "aggregation": "mean over all 775 curves (5 seeds)",
+        "source": "curve_shape_table recomputed from oof_finalists + gen9 curve_membership",
+        "abs_delta": 0.00019411338733105188,
+        "reproduces_at_claimed_precision": true
+      },
+      {
+        "metric": "extractant-axis predicted slope, median",
+        "claimed": 1.024,
+        "recomputed": 1.0240136832686502,
+        "aggregation": "median over all 775 curves pooled across seeds",
+        "source": "curve_shape_table recomputed from oof_finalists + gen9 curve_membership",
+        "alternative_aggregation": {
+          "mean of 5 per-seed medians": 1.139199127851647,
+          "note": "final_locked/shape_by_axis.csv averages per-seed summaries and so reports 1.139; the claimed 1.024 is the seed-pooled median in axis_representation/shape/shape_by_axis.csv"
+        },
+        "abs_delta": 1.3683268650144242e-05,
+        "reproduces_at_claimed_precision": true
+      },
+      {
+        "metric": "extractant-axis span recovery (median, guarded span>=0.5)",
+        "claimed": 0.423,
+        "recomputed": 0.4232912084165291,
+        "aggregation": "median over all 775 curves pooled across seeds",
+        "source": "curve_shape_table recomputed from oof_finalists + gen9 curve_membership",
+        "alternative_aggregation": {
+          "mean of 5 per-seed medians": 0.4171673731461986,
+          "note": "final_locked/shape_by_axis.csv reports 0.417 by the per-seed-mean convention"
+        },
+        "abs_delta": 0.00029120841652913176,
+        "reproduces_at_claimed_precision": true
+      },
+      {
+        "metric": "within-curve Spearman (extractant axis)",
+        "claimed": 0.886,
+        "recomputed": 0.8856282679685347,
+        "aggregation": "mean over curves (identical under both conventions)",
+        "source": "curve_shape_table recomputed from oof_finalists + gen9 curve_membership",
+        "abs_delta": 0.00037173203146534384,
+        "reproduces_at_claimed_precision": true
+      },
+      {
+        "metric": "within-curve sign accuracy (extractant axis)",
+        "claimed": 0.926,
+        "recomputed": 0.9255721769270157,
+        "aggregation": "mean over curves (identical under both conventions)",
+        "source": "curve_shape_table recomputed from oof_finalists + gen9 curve_membership",
+        "abs_delta": 0.00042782307298439015,
+        "reproduces_at_claimed_precision": true
+      },
+      {
+        "metric": "acid-axis shape MAE",
+        "claimed": 0.545,
+        "recomputed": 0.5453233535058456,
+        "aggregation": "mean over curves (identical under both conventions)",
+        "source": "curve_shape_table recomputed from oof_finalists + gen9 curve_membership",
+        "abs_delta": 0.00032335350584555833,
+        "reproduces_at_claimed_precision": true
+      },
+      {
+        "metric": "lanthanide (metal_series) axis shape MAE",
+        "claimed": 0.291,
+        "recomputed": 0.2911287908843863,
+        "aggregation": "mean over curves (identical under both conventions)",
+        "source": "curve_shape_table recomputed from oof_finalists + gen9 curve_membership",
+        "abs_delta": 0.00012879088438633168,
+        "reproduces_at_claimed_precision": true
+      }
+    ],
+    "per_seed_level": [
+      {
+        "split_seed": 104729,
+        "n_rows": 5248,
+        "macro_mae_ecfp": 0.9944048690260088,
+        "offset_mae": 0.8520242696125676,
+        "shape_mae_ligand": 0.4874383904640881,
+        "pooled_mae": 1.1894234239391275,
+        "macro_mae_ligand": 1.0100706867134586
+      },
+      {
+        "split_seed": 130363,
+        "n_rows": 5248,
+        "macro_mae_ecfp": 0.9465300692427974,
+        "offset_mae": 0.7925148187905591,
+        "shape_mae_ligand": 0.48571269739074446,
+        "pooled_mae": 1.085195273652287,
+        "macro_mae_ligand": 0.961341199327744
+      },
+      {
+        "split_seed": 155921,
+        "n_rows": 5248,
+        "macro_mae_ecfp": 0.9385813876165281,
+        "offset_mae": 0.7844620743662055,
+        "shape_mae_ligand": 0.47247814801947624,
+        "pooled_mae": 1.0819602932055115,
+        "macro_mae_ligand": 0.9527431042788046
+      },
+      {
+        "split_seed": 196613,
+        "n_rows": 5248,
+        "macro_mae_ecfp": 0.9787983212933677,
+        "offset_mae": 0.8199395233705496,
+        "shape_mae_ligand": 0.4719900032075724,
+        "pooled_mae": 1.1191093169733717,
+        "macro_mae_ligand": 0.974267179718948
+      },
+      {
+        "split_seed": 262147,
+        "n_rows": 5248,
+        "macro_mae_ecfp": 0.9891080714973661,
+        "offset_mae": 0.8569169661896682,
+        "shape_mae_ligand": 0.4919939986477902,
+        "pooled_mae": 1.1330648547798694,
+        "macro_mae_ligand": 1.0211216037963615
+      }
+    ],
+    "pooled_mae_all_seeds": 1.1217506325100335,
+    "curve_table_reproduction": {
+      "n_curves_recomputed": 4730,
+      "n_curves_stored": 4730,
+      "join_both": 4730,
+      "join_left_only": 0,
+      "join_right_only": 0,
+      "max_abs_delta": {
+        "shape_mae": 0.0,
+        "slope_pred": 0.0,
+        "slope_true": 0.0,
+        "span_recovery": 0.0,
+        "spearman": 0.0,
+        "sign_accuracy": 0.0,
+        "row_mae": 0.0
+      }
+    }
+  },
+  "frontier_common_cohort": {
+    "common_cohort_size_recomputed": 99,
+    "common_cohort_size_claimed": 99,
+    "common_cohort_rule": "every ligand whose (n_pool >= 5) and (n_eval >= 2) hold in every (model, adapter, policy, k, seed, fold, repeat) record",
+    "kshot_detail_rows": 12834720,
+    "rows": [
+      {
+        "k": 0,
+        "arm": "ZERO_SHOT",
+        "claimed": 1.0358,
+        "recomputed_from_kshot_detail": 1.0357994416277343,
+        "stored_frontier_common_csv": 1.0357994416277343,
+        "stored_frontier_best_csv": 1.0357994416277343,
+        "abs_delta_vs_claimed": 5.583722657576118e-07,
+        "abs_delta_vs_stored": 0.0,
+        "n_ligands": 99,
+        "best_deployable_arm": "ZERO_SHOT",
+        "best_deployable_mae": 1.0357994416277343,
+        "reproduces_at_claimed_precision": true
+      },
+      {
+        "k": 1,
+        "arm": "SLOPE_L_s1_K1@CENTRAL_THEN_SPREAD",
+        "claimed": 0.6539,
+        "recomputed_from_kshot_detail": 0.653872837772772,
+        "stored_frontier_common_csv": 0.653872837772772,
+        "stored_frontier_best_csv": 0.653872837772772,
+        "abs_delta_vs_claimed": 2.716222722798367e-05,
+        "abs_delta_vs_stored": 0.0,
+        "n_ligands": 99,
+        "best_deployable_arm": "SLOPE_L_s1_K1@CENTRAL_THEN_SPREAD",
+        "best_deployable_mae": 0.653872837772772,
+        "reproduces_at_claimed_precision": true
+      },
+      {
+        "k": 2,
+        "arm": "SERIES_ML@CENTRAL_THEN_SPREAD",
+        "claimed": 0.5593,
+        "recomputed_from_kshot_detail": 0.5592988144741076,
+        "stored_frontier_common_csv": 0.5592988144741076,
+        "stored_frontier_best_csv": 0.5592988144741076,
+        "abs_delta_vs_claimed": 1.1855258924553524e-06,
+        "abs_delta_vs_stored": 0.0,
+        "n_ligands": 99,
+        "best_deployable_arm": "SERIES_ML@CENTRAL_THEN_SPREAD",
+        "best_deployable_mae": 0.5592988144741076,
+        "reproduces_at_claimed_precision": true
+      },
+      {
+        "k": 3,
+        "arm": "SERIES_ML@CENTRAL_THEN_SPREAD",
+        "claimed": 0.4928,
+        "recomputed_from_kshot_detail": 0.49280898262314987,
+        "stored_frontier_common_csv": 0.4928089826231498,
+        "stored_frontier_best_csv": 0.4928089826231498,
+        "abs_delta_vs_claimed": 8.982623149855762e-06,
+        "abs_delta_vs_stored": 5.551115123125783e-17,
+        "n_ligands": 99,
+        "best_deployable_arm": "SERIES_ML@CENTRAL_THEN_SPREAD",
+        "best_deployable_mae": 0.49280898262314987,
+        "reproduces_at_claimed_precision": true
+      },
+      {
+        "k": 5,
+        "arm": "SERIES_ML@CENTRAL_THEN_SPREAD",
+        "claimed": 0.4405,
+        "recomputed_from_kshot_detail": 0.4405418081356232,
+        "stored_frontier_common_csv": 0.4405418081356232,
+        "stored_frontier_best_csv": 0.4405418081356232,
+        "abs_delta_vs_claimed": 4.1808135623211395e-05,
+        "abs_delta_vs_stored": 0.0,
+        "n_ligands": 99,
+        "best_deployable_arm": "SERIES_ML@D_OPTIMAL",
+        "best_deployable_mae": 0.44032090173202865,
+        "reproduces_at_claimed_precision": true
+      }
+    ],
+    "full_table_agreement": {
+      "n_stored": 1629,
+      "n_recomputed": 1629,
+      "both": 1629,
+      "stored_only": 0,
+      "recomputed_only": 0,
+      "max_abs_delta_mae": 2.220446049250313e-16,
+      "n_ligands_mismatch": 0
+    },
+    "zero_shot_arm_on_common_cohort": {
+      "n_records": 5940,
+      "macro_mae": 1.0357994416277343,
+      "offset_mean": 0.8610502669717028,
+      "shape_mae_mean": 0.5144006136485918,
+      "spearman_mean": 0.45758245144787646,
+      "sign_accuracy_mean": 0.700307776117661
+    }
+  },
+  "strata_frozen_cohort": [
+    {
+      "stratum": "ALL",
+      "recomputed_macro_mae": 0.9694845437352135,
+      "stored_macro_mae": 0.9694845437352136,
+      "abs_delta": 1.1102230246251565e-16,
+      "n_rows": 5248,
+      "n_ligands": 152
+    },
+    {
+      "stratum": "RESIDUAL_SHAPE",
+      "recomputed_macro_mae": 1.301795222181266,
+      "stored_macro_mae": 1.301795222181266,
+      "abs_delta": 0.0,
+      "n_rows": 2758,
+      "n_ligands": 29
+    },
+    {
+      "stratum": "PURE_LEVEL",
+      "recomputed_macro_mae": 1.8850192686400498,
+      "stored_macro_mae": 1.8850192686400495,
+      "abs_delta": 2.220446049250313e-16,
+      "n_rows": 572,
+      "n_ligands": 25
+    },
+    {
+      "stratum": "ALREADY_GOOD",
+      "recomputed_macro_mae": 0.5433214789396515,
+      "stored_macro_mae": 0.5433214789396515,
+      "abs_delta": 0.0,
+      "n_rows": 1586,
+      "n_ligands": 82
+    },
+    {
+      "stratum": "PARTIAL_LEVEL",
+      "recomputed_macro_mae": 1.4409237448647632,
+      "stored_macro_mae": 1.4409237448647634,
+      "abs_delta": 2.220446049250313e-16,
+      "n_rows": 305,
+      "n_ligands": 7
+    },
+    {
+      "stratum": "MISMATCH_ROWS",
+      "recomputed_macro_mae": 1.0000961360721803,
+      "stored_macro_mae": 1.00009613607218,
+      "abs_delta": 2.220446049250313e-16,
+      "n_rows": 271,
+      "n_ligands": 15
+    },
+    {
+      "stratum": "CLEAN_ROWS",
+      "recomputed_macro_mae": 0.9289099058997834,
+      "stored_macro_mae": 0.9289099058997834,
+      "abs_delta": 0.0,
+      "n_rows": 4691,
+      "n_ligands": 145
+    }
+  ],
+  "verdict": {
+    "cohort_fingerprint_reproduces": true,
+    "bundle_sha256_reproduces": true,
+    "folds_reproduce": true,
+    "curve_table_bit_identical": true,
+    "frontier_reproduces": true,
+    "zero_shot_metrics_reproduce": true,
+    "zero_shot_metrics_failing": [],
+    "strata_max_abs_delta": 2.220446049250313e-16
+  }
+}

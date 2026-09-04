@@ -1,0 +1,218 @@
+{
+  "stage": "level_shape",
+  "seeds": [
+    104729,
+    130363,
+    155921,
+    196613,
+    262147
+  ],
+  "arms": [
+    {
+      "registry_name": "SHAPE_RECOMPOSED",
+      "model_name": "GEN9_SHAPE_RECOMPOSED",
+      "class": "RecomposedModel",
+      "parameters": {
+        "name": "GEN9_SHAPE_RECOMPOSED",
+        "representation_name": "GEN9",
+        "window": "primary",
+        "blocks": "('METAL', 'COND', 'ECFP', 'MASSACTION', 'RECOVERED')",
+        "add_indicator": true,
+        "n_estimators": 400,
+        "max_features": 0.3,
+        "shape_max_features": null,
+        "min_samples_leaf": 2,
+        "axes": "('cond__extractant_concentration_M', 'cond__acid_concentration_M', 'metal')",
+        "gen9_compat": true,
+        "context_replication": 1,
+        "membership_source": "query"
+      },
+      "seconds": 833.5,
+      "determinism": {
+        "split_seed": 104729,
+        "fold": 0,
+        "n_rows": 382,
+        "max_abs_delta": 1.1102230246251565e-15,
+        "mean_abs_delta": 1.396883808449858e-16,
+        "n_rows_moved": 229,
+        "within_tolerance": true,
+        "pooled_mae_first": 1.0976275962102773,
+        "pooled_mae_second": 1.0976275962102773,
+        "arm": "GEN9_SHAPE_RECOMPOSED"
+      }
+    },
+    {
+      "registry_name": "LEVEL_SHAPE",
+      "model_name": "GEN10_LEVEL_SHAPE",
+      "class": "LevelShapeModel",
+      "parameters": {
+        "name": "GEN10_LEVEL_SHAPE",
+        "representation_name": "GEN9",
+        "window": "primary",
+        "blocks": "('METAL', 'COND', 'ECFP', 'MASSACTION', 'RECOVERED')",
+        "add_indicator": true,
+        "n_estimators": 400,
+        "max_features": 0.3,
+        "min_samples_leaf": 2,
+        "axes": "('cond__extractant_concentration_M', 'cond__acid_concentration_M', 'metal')",
+        "context_replication": 1,
+        "membership_source": "query"
+      },
+      "seconds": 362.7,
+      "determinism": {
+        "split_seed": 104729,
+        "fold": 0,
+        "n_rows": 382,
+        "max_abs_delta": 6.661338147750939e-16,
+        "mean_abs_delta": 8.620031680887893e-17,
+        "n_rows_moved": 220,
+        "within_tolerance": true,
+        "pooled_mae_first": 1.183154959453777,
+        "pooled_mae_second": 1.183154959453777,
+        "arm": "GEN10_LEVEL_SHAPE"
+      }
+    },
+    {
+      "registry_name": "RESIDUAL_SHAPE",
+      "model_name": "GEN10_RESIDUAL_SHAPE",
+      "class": "ResidualShapeModel",
+      "parameters": {
+        "name": "GEN10_RESIDUAL_SHAPE",
+        "representation_name": "GEN9",
+        "window": "primary",
+        "blocks": "('METAL', 'COND', 'ECFP', 'MASSACTION', 'RECOVERED')",
+        "add_indicator": true,
+        "n_estimators": 400,
+        "max_features": 0.3,
+        "min_samples_leaf": 2,
+        "axes": "('cond__extractant_concentration_M', 'cond__acid_concentration_M', 'metal')",
+        "context_replication": 1,
+        "membership_source": "query",
+        "cross_fit": true,
+        "inner_splits": 3
+      },
+      "seconds": 1289.8,
+      "determinism": {
+        "split_seed": 104729,
+        "fold": 0,
+        "n_rows": 382,
+        "max_abs_delta": 1.5543122344752192e-15,
+        "mean_abs_delta": 1.7020271172672966e-16,
+        "n_rows_moved": 261,
+        "within_tolerance": true,
+        "pooled_mae_first": 1.1092965720378238,
+        "pooled_mae_second": 1.1092965720378238,
+        "arm": "GEN10_RESIDUAL_SHAPE"
+      }
+    },
+    {
+      "registry_name": "RESIDUAL_SHAPE_INSAMPLE",
+      "model_name": "GEN10_RESIDUAL_SHAPE_INSAMPLE",
+      "class": "ResidualShapeModel",
+      "parameters": {
+        "name": "GEN10_RESIDUAL_SHAPE_INSAMPLE",
+        "representation_name": "GEN9",
+        "window": "primary",
+        "blocks": "('METAL', 'COND', 'ECFP', 'MASSACTION', 'RECOVERED')",
+        "add_indicator": true,
+        "n_estimators": 400,
+        "max_features": 0.3,
+        "min_samples_leaf": 2,
+        "axes": "('cond__extractant_concentration_M', 'cond__acid_concentration_M', 'metal')",
+        "context_replication": 1,
+        "membership_source": "query",
+        "cross_fit": false,
+        "inner_splits": 3
+      },
+      "seconds": 808.1,
+      "determinism": {
+        "split_seed": 104729,
+        "fold": 0,
+        "n_rows": 382,
+        "max_abs_delta": 1.3322676295501878e-15,
+        "mean_abs_delta": 1.3599414642690429e-16,
+        "n_rows_moved": 227,
+        "within_tolerance": true,
+        "pooled_mae_first": 1.1318726724547574,
+        "pooled_mae_second": 1.1318726724547574,
+        "arm": "GEN10_RESIDUAL_SHAPE_INSAMPLE"
+      }
+    },
+    {
+      "registry_name": "TWO_BRANCH",
+      "model_name": "GEN10_TWO_BRANCH",
+      "class": "TwoBranchModel",
+      "parameters": {
+        "name": "GEN10_TWO_BRANCH",
+        "representation_name": "GEN9",
+        "window": "primary",
+        "blocks": "('METAL', 'COND', 'ECFP', 'MASSACTION', 'RECOVERED')",
+        "context_blocks": "('METAL', 'COND', 'MASSACTION')",
+        "add_indicator": true,
+        "n_estimators": 400,
+        "max_features": 0.3,
+        "branch_max_features": 0.5,
+        "min_samples_leaf": 2,
+        "axes": "('cond__extractant_concentration_M', 'cond__acid_concentration_M', 'metal')",
+        "interaction": "none",
+        "inner_splits": 3,
+        "context_replication": 1,
+        "membership_source": "query"
+      },
+      "seconds": 1181.8,
+      "determinism": {
+        "split_seed": 104729,
+        "fold": 0,
+        "n_rows": 382,
+        "max_abs_delta": 1.3322676295501878e-15,
+        "mean_abs_delta": 1.4649785166233454e-16,
+        "n_rows_moved": 251,
+        "within_tolerance": true,
+        "pooled_mae_first": 1.1441308730404205,
+        "pooled_mae_second": 1.1441308730404207,
+        "arm": "GEN10_TWO_BRANCH"
+      }
+    },
+    {
+      "registry_name": "TWO_BRANCH_INTERACT",
+      "model_name": "GEN10_TWO_BRANCH_INTERACT",
+      "class": "TwoBranchModel",
+      "parameters": {
+        "name": "GEN10_TWO_BRANCH_INTERACT",
+        "representation_name": "GEN9",
+        "window": "primary",
+        "blocks": "('METAL', 'COND', 'ECFP', 'MASSACTION', 'RECOVERED')",
+        "context_blocks": "('METAL', 'COND', 'MASSACTION')",
+        "add_indicator": true,
+        "n_estimators": 400,
+        "max_features": 0.3,
+        "branch_max_features": 0.5,
+        "min_samples_leaf": 2,
+        "axes": "('cond__extractant_concentration_M', 'cond__acid_concentration_M', 'metal')",
+        "interaction": "base_prediction",
+        "inner_splits": 3,
+        "context_replication": 1,
+        "membership_source": "query"
+      },
+      "seconds": 1139.3,
+      "determinism": {
+        "split_seed": 104729,
+        "fold": 0,
+        "n_rows": 382,
+        "max_abs_delta": 1.3322676295501878e-15,
+        "mean_abs_delta": 1.6611566688804085e-16,
+        "n_rows_moved": 261,
+        "within_tolerance": true,
+        "pooled_mae_first": 1.1450191156263902,
+        "pooled_mae_second": 1.1450191156263902,
+        "arm": "GEN10_TWO_BRANCH_INTERACT"
+      }
+    }
+  ],
+  "audit": {
+    "n_curves_straddling": 0,
+    "n_folds": 25,
+    "max_rows_outside_partition": 0
+  },
+  "cohort_fingerprint": "bed178ec1a7a82b0"
+}
