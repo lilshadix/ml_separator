@@ -1,0 +1,975 @@
+{
+ "generation": "Gen12.2",
+ "directory": "gen12_2_eu_pred",
+ "brief_name": "Gen1Eu_pred-2 (the brief's spelling; renamed to the repository convention)",
+ "created_utc": "2026-09-05T10:35:23.376041+00:00",
+ "identity": {
+  "cohort_fingerprint": "2a364bb5264e9935",
+  "gen12_root": "gen12_eu_pred",
+  "split_seeds": [
+   104729,
+   130363,
+   155921,
+   196613,
+   262147
+  ],
+  "design": "B (chemotype hold-out), inherited from Gen12 unchanged",
+  "bootstrap_seed": 8675309
+ },
+ "frozen_inputs": {
+  "coordination_spec": {
+   "path": "config/coordination_smarts.json",
+   "sha256": "4b07366065f53fff7ab82aa55e0bd4b4d63b621285e18c6202d935f8ca3da045",
+   "version": "1.1.0"
+  },
+  "level_definition_rules": {
+   "path": "config/level_definition_rules.json",
+   "sha256": "5d78b64ecb3a195091e1e0fa7d573c63da6f4ba51b487a9d2f4035e81c066b17"
+  },
+  "pre_registration_sha256": "182c2490d0650cc53f6a4a95bdb6236947cbe45f06d03ae999fe87277782b8b7",
+  "descriptor_spec_sha256": "96e4106c1fb2fadba2561f1cb6590f3403799db2a137e017d53bf9d7bb353156"
+ },
+ "decisions": {
+  "primary_level_definition": "LVL_MEAN",
+  "secondary_level_definition": "LVL_COND_RESIDUAL",
+  "level_reliable_threshold_cells": 5,
+  "multi_arm_rule": "coord__arm__local_donor_cluster_count >= 2",
+  "n_multi_arm": 43
+ },
+ "feature_matrix": {
+  "blake2b": "da609be8fcd5f260",
+  "columns_defined": 114,
+  "columns_informative": 109
+ },
+ "environment": {
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "machine": "arm64",
+  "versions": {
+   "python": "3.13.0",
+   "numpy": "2.5.1",
+   "pandas": "3.0.5",
+   "scipy": "1.18.0",
+   "sklearn": "1.9.0",
+   "rdkit": "2026.03.5",
+   "catboost": "1.2.10",
+   "xgboost": "3.4.1",
+   "matplotlib": "3.11.1",
+   "pyarrow": "25.0.0"
+  },
+  "git": {
+   "commit": "e9513932c19c49bd980fb1094bcb08e75c90320b",
+   "branch": "descriptor-arm-metal-site",
+   "dirty": true
+  }
+ },
+ "artefacts": {
+  "COORDINATION_DESCRIPTOR_SPEC.md": {
+   "bytes": 13115,
+   "blake2b_128": "4013c7d1b1f625cc60206d2b2805f0a4"
+  },
+  "DATA_AUDIT.md": {
+   "bytes": 10602,
+   "blake2b_128": "40781178f2bc22425820e943cd452113"
+  },
+  "DECISION_REPORT.md": {
+   "bytes": 43893,
+   "blake2b_128": "9b3b521966597a86ed4b8243d09e3093"
+  },
+  "PRE_REGISTRATION.md": {
+   "bytes": 18791,
+   "blake2b_128": "8811eceb2f688a9bd549b118d78c0e31"
+  },
+  "README.md": {
+   "bytes": 4940,
+   "blake2b_128": "bbd9c64d2661e5f240be73434d6444a2"
+  },
+  "analysis/descriptor_defect_sensitivity.json": {
+   "bytes": 1832,
+   "blake2b_128": "5114f6fcc46b50a9ebaada315ba3195d"
+  },
+  "analysis/descriptor_defect_sensitivity.md": {
+   "bytes": 1918,
+   "blake2b_128": "330d8ae5ff3454eae1b7f750a3878fc6"
+  },
+  "analysis/exploratory_level_analysis.md": {
+   "bytes": 9483,
+   "blake2b_128": "b01c6509e8a5f2b613f1c70d32728b6f"
+  },
+  "analysis/exploratory_level_by_family.csv": {
+   "bytes": 5006,
+   "blake2b_128": "6ad13845f33999dacce1991b795168bd"
+  },
+  "analysis/exploratory_level_correlations.csv": {
+   "bytes": 10859,
+   "blake2b_128": "5a603415308df6d823036aa0684e2f11"
+  },
+  "analysis/gen12_failure_family.json": {
+   "bytes": 525,
+   "blake2b_128": "c0d770c51fe7054a7e0fc9123c81ddd8"
+  },
+  "analysis/gen12_failure_family.md": {
+   "bytes": 19198,
+   "blake2b_128": "058fa27619962b0510c46c5773405c8c"
+  },
+  "analysis/gen12_level_bias_per_extractant.csv": {
+   "bytes": 62158,
+   "blake2b_128": "e633f9b213d28e0b6ff82f9172e8729f"
+  },
+  "analysis/level_bottleneck.csv": {
+   "bytes": 1695,
+   "blake2b_128": "26b80d95a67166458a654f9caaf70a37"
+  },
+  "analysis/level_bottleneck.json": {
+   "bytes": 3765,
+   "blake2b_128": "948cb50badb6ff12efc21b54d0a8cd49"
+  },
+  "analysis/level_bottleneck.md": {
+   "bytes": 3575,
+   "blake2b_128": "0292403fe1f29a87027ed3c640eceb74"
+  },
+  "analysis/level_definition_study.md": {
+   "bytes": 5959,
+   "blake2b_128": "1704afbe48ca20f00abecb77de9ccd34"
+  },
+  "bootstrap/full_by_band.csv": {
+   "bytes": 14010,
+   "blake2b_128": "0564bac4c036ac3aacb8afecbab1a566"
+  },
+  "bootstrap/full_influence.csv": {
+   "bytes": 19839,
+   "blake2b_128": "e8416725cfcb2c335d20dcbe646818b4"
+  },
+  "bootstrap/full_pairwise.csv": {
+   "bytes": 7028,
+   "blake2b_128": "d41c658f64e475a988c99efa59ae6477"
+  },
+  "bootstrap/full_power.csv": {
+   "bytes": 1152,
+   "blake2b_128": "1c827b20139674d5f9b1666de76fdbe6"
+  },
+  "bootstrap/interval_disagreements.csv": {
+   "bytes": 7943,
+   "blake2b_128": "b564530ad10be56fc09c24068cb27882"
+  },
+  "bootstrap/level_LVL_COND_RESIDUAL_by_band.csv": {
+   "bytes": 11403,
+   "blake2b_128": "65ed62f9d8c152eefe75d6f7abdfe2b7"
+  },
+  "bootstrap/level_LVL_COND_RESIDUAL_influence.csv": {
+   "bytes": 25611,
+   "blake2b_128": "13b388c33cbb43843848e4e745e2af10"
+  },
+  "bootstrap/level_LVL_COND_RESIDUAL_pairwise.csv": {
+   "bytes": 11590,
+   "blake2b_128": "74c154c76dbf7f4cb38774aca18f365b"
+  },
+  "bootstrap/level_LVL_COND_RESIDUAL_power.csv": {
+   "bytes": 4458,
+   "blake2b_128": "d5559dd438329381574eb59c042a8a2b"
+  },
+  "bootstrap/level_LVL_COND_RESIDUAL_subgroup.csv": {
+   "bytes": 13139,
+   "blake2b_128": "70b57fd238d3e43d89db9f299d5e4134"
+  },
+  "bootstrap/level_LVL_MEAN_by_band.csv": {
+   "bytes": 11451,
+   "blake2b_128": "2fc2f59fd356a794dd0e4b6837a67279"
+  },
+  "bootstrap/level_LVL_MEAN_catboost_by_band.csv": {
+   "bytes": 4699,
+   "blake2b_128": "700541fa05c62ef738569a81d133656f"
+  },
+  "bootstrap/level_LVL_MEAN_catboost_influence.csv": {
+   "bytes": 24957,
+   "blake2b_128": "ad338106dc53462042cd45a6a44a74d3"
+  },
+  "bootstrap/level_LVL_MEAN_catboost_pairwise.csv": {
+   "bytes": 5914,
+   "blake2b_128": "82bf5211f4bfb8d959c35d84963b2123"
+  },
+  "bootstrap/level_LVL_MEAN_catboost_power.csv": {
+   "bytes": 2235,
+   "blake2b_128": "2a158c16d4a65dde676d1da41d4caec0"
+  },
+  "bootstrap/level_LVL_MEAN_catboost_subgroup.csv": {
+   "bytes": 5150,
+   "blake2b_128": "4483c99a8d5924afcb0fc0c176db67d6"
+  },
+  "bootstrap/level_LVL_MEAN_influence.csv": {
+   "bytes": 24987,
+   "blake2b_128": "da711e2e82687f3c7c59c60acd92b04d"
+  },
+  "bootstrap/level_LVL_MEAN_pairwise.csv": {
+   "bytes": 11547,
+   "blake2b_128": "c0cebee8d52d17a89a1f6e61f7232908"
+  },
+  "bootstrap/level_LVL_MEAN_power.csv": {
+   "bytes": 4434,
+   "blake2b_128": "ee099fa624d8c5c43a49f74d9f896ab7"
+  },
+  "bootstrap/level_LVL_MEAN_subgroup.csv": {
+   "bytes": 13132,
+   "blake2b_128": "1fe8f6f1ce6aa6cfc997d4f6947b7e49"
+  },
+  "bootstrap/level_LVL_MEAN_xgboost_by_band.csv": {
+   "bytes": 4705,
+   "blake2b_128": "c152cf03e63e67b3ac4d3bebc6b39473"
+  },
+  "bootstrap/level_LVL_MEAN_xgboost_influence.csv": {
+   "bytes": 25273,
+   "blake2b_128": "8f25a679e72c345c9b3f9173db4df5ce"
+  },
+  "bootstrap/level_LVL_MEAN_xgboost_pairwise.csv": {
+   "bytes": 5921,
+   "blake2b_128": "e3691f05f80d8632b6f25b292d8de715"
+  },
+  "bootstrap/level_LVL_MEAN_xgboost_power.csv": {
+   "bytes": 2234,
+   "blake2b_128": "5775356eca0276e0df3e4ec8d0db8c60"
+  },
+  "bootstrap/level_LVL_MEAN_xgboost_subgroup.csv": {
+   "bytes": 5140,
+   "blake2b_128": "c1559012c51927797b644b4cf91db028"
+  },
+  "bootstrap/one_shot_pairwise.csv": {
+   "bytes": 2035,
+   "blake2b_128": "5e353b0143a0a5d2002b6f81ecdaffc5"
+  },
+  "bootstrap/posthoc_spec_pairwise.csv": {
+   "bytes": 748,
+   "blake2b_128": "8eea6c9ecaacb6d1305964512927c9eb"
+  },
+  "bootstrap/statistical_caveats.csv": {
+   "bytes": 4657,
+   "blake2b_128": "2ad531f0362c596c53191428a742b085"
+  },
+  "bootstrap/statistical_caveats.json": {
+   "bytes": 914,
+   "blake2b_128": "6ff3593bb41a1737d00b9662866af711"
+  },
+  "config/coordination_smarts.json": {
+   "bytes": 10763,
+   "blake2b_128": "30b31babd29171f6ce79d4021b69804f"
+  },
+  "config/coordination_smarts_posthoc.json": {
+   "bytes": 12773,
+   "blake2b_128": "fb9bdb7cb97de407d101f4c572624831"
+  },
+  "config/level_definition_rules.json": {
+   "bytes": 6002,
+   "blake2b_128": "f4b311ebda9feb05de129c313436253d"
+  },
+  "features/coordination_audit.json": {
+   "bytes": 2889,
+   "blake2b_128": "3dfe489f556b8b16407f08ccdc92cb65"
+  },
+  "features/coordination_columns.json": {
+   "bytes": 12742,
+   "blake2b_128": "5f2f9aa54ba957d3781ed402b4a38ce0"
+  },
+  "features/coordination_descriptors.parquet": {
+   "bytes": 112114,
+   "blake2b_128": "fda970bb6213abadccf63d9836598932"
+  },
+  "features/coordination_descriptors_posthoc.parquet": {
+   "bytes": 112881,
+   "blake2b_128": "dfd3c5f8911a605a69c6fcf108aa219c"
+  },
+  "figures/fig1_level_ladder.png": {
+   "bytes": 66423,
+   "blake2b_128": "1b728be00ede6237d49f038a786f648b"
+  },
+  "figures/fig2_primary_contrast.png": {
+   "bytes": 56133,
+   "blake2b_128": "676c8f0e13510c3db6dcf1cf0d18128d"
+  },
+  "figures/fig3_multi_arm.png": {
+   "bytes": 66384,
+   "blake2b_128": "d16fa947e30655cc050f724ea4750901"
+  },
+  "figures/fig4_level_bottleneck.png": {
+   "bytes": 54283,
+   "blake2b_128": "374fe422dc51bf9dca0dcb26ea9494f3"
+  },
+  "figures/fig5_one_shot.png": {
+   "bytes": 90802,
+   "blake2b_128": "8ef607b345117293d4a80cb999d767f4"
+  },
+  "figures/values.json": {
+   "bytes": 8540,
+   "blake2b_128": "a0f99ac5d8c681de953ad15bce0f4e8c"
+  },
+  "gen122/__init__.py": {
+   "bytes": 164,
+   "blake2b_128": "2bdd51a8b9b161f7d27993cf9ab3d410"
+  },
+  "gen122/coordination.py": {
+   "bytes": 21191,
+   "blake2b_128": "21bdc9a57189bc7cdfa89155e8e74020"
+  },
+  "gen122/decomposed.py": {
+   "bytes": 11798,
+   "blake2b_128": "270b46daf0aba2a8978928d8cc9ca616"
+  },
+  "gen122/levelmetrics.py": {
+   "bytes": 4760,
+   "blake2b_128": "b4546c41dea195a84308d5859cc8886d"
+  },
+  "gen122/levelmodels.py": {
+   "bytes": 8684,
+   "blake2b_128": "19365c8fe302367b73b5251fde7c4fb2"
+  },
+  "gen122/levelrunner.py": {
+   "bytes": 9245,
+   "blake2b_128": "1893cda0696d6a6adcebef62c25c86f7"
+  },
+  "gen122/levels.py": {
+   "bytes": 13279,
+   "blake2b_128": "5c1e0c345f59f1741e21c18ddefe6046"
+  },
+  "gen122/paths.py": {
+   "bytes": 2340,
+   "blake2b_128": "283fc9a7e688d8f65377c1e7f5d6c1f9"
+  },
+  "headline_tables/t10_influence.csv": {
+   "bytes": 2530,
+   "blake2b_128": "508e80b8e42095f0c060b2913d64546b"
+  },
+  "headline_tables/t10_influence.md": {
+   "bytes": 5632,
+   "blake2b_128": "99f0ea019a3b018bf06961cddfc2e596"
+  },
+  "headline_tables/t11_statistical_caveats.csv": {
+   "bytes": 2397,
+   "blake2b_128": "0a54f94cd2e3106735a06f5a9534a843"
+  },
+  "headline_tables/t11_statistical_caveats.md": {
+   "bytes": 5588,
+   "blake2b_128": "36b7c634e6845228fa09cb446d1708a0"
+  },
+  "headline_tables/t1_level_leaderboard.csv": {
+   "bytes": 6290,
+   "blake2b_128": "e44e0c2727b069fa266f51f0516f3f1b"
+  },
+  "headline_tables/t1_level_leaderboard.md": {
+   "bytes": 16994,
+   "blake2b_128": "664ef4ff2e7d6e40b124b69f0f4b75b8"
+  },
+  "headline_tables/t2_level_contrasts.csv": {
+   "bytes": 22614,
+   "blake2b_128": "61c9eeb6be9b1488a21335843a03c59e"
+  },
+  "headline_tables/t2_level_contrasts.md": {
+   "bytes": 49654,
+   "blake2b_128": "31df318d5fd07dadbca847ed229cf7fc"
+  },
+  "headline_tables/t3_bands.csv": {
+   "bytes": 9879,
+   "blake2b_128": "0be204171faeaacd4b43561602eea5d4"
+  },
+  "headline_tables/t3_bands.md": {
+   "bytes": 23750,
+   "blake2b_128": "f196cbb54fefc2277ac40f154fac4df8"
+  },
+  "headline_tables/t4_power.csv": {
+   "bytes": 13332,
+   "blake2b_128": "0d2a147ae5872568e5cc7ca27fab2da7"
+  },
+  "headline_tables/t4_power.md": {
+   "bytes": 26733,
+   "blake2b_128": "8d3985f746887f7c12fe47007d09926b"
+  },
+  "headline_tables/t5_multi_arm_subgroup.csv": {
+   "bytes": 1023,
+   "blake2b_128": "fa6121a9737c5fae9c347c191ec66146"
+  },
+  "headline_tables/t5_multi_arm_subgroup.md": {
+   "bytes": 2740,
+   "blake2b_128": "ee52c6483262275941ff34642291c3fc"
+  },
+  "headline_tables/t6_full_leaderboard.csv": {
+   "bytes": 980,
+   "blake2b_128": "edc2ec87fca481903513223eafa3454d"
+  },
+  "headline_tables/t6_full_leaderboard.md": {
+   "bytes": 2717,
+   "blake2b_128": "d235faa574e135440ee7b7bc24a8ec6a"
+  },
+  "headline_tables/t7_direct_vs_decomposed.csv": {
+   "bytes": 4139,
+   "blake2b_128": "db7e3529847bed693cd38efaa1bfd96c"
+  },
+  "headline_tables/t7_direct_vs_decomposed.md": {
+   "bytes": 9975,
+   "blake2b_128": "edee614fdc757e668ff82e3f1b204120"
+  },
+  "headline_tables/t8_one_shot.csv": {
+   "bytes": 455,
+   "blake2b_128": "3fb32f291a70d805ece38147c36f2bde"
+  },
+  "headline_tables/t8_one_shot.md": {
+   "bytes": 1099,
+   "blake2b_128": "df5e0c86945cf117f5293d431915d985"
+  },
+  "headline_tables/t9_grouped_importance.csv": {
+   "bytes": 560,
+   "blake2b_128": "8275db7caa1cd5838c6199fab9db47a8"
+  },
+  "headline_tables/t9_grouped_importance.md": {
+   "bytes": 1705,
+   "blake2b_128": "668e5d676044794e25d0d24da4fe9226"
+  },
+  "manifests/level_definition_choice.json": {
+   "bytes": 7459,
+   "blake2b_128": "5de0eef00c01f2cc10d42bd6d7e229c6"
+  },
+  "manifests/multi_arm_subgroup.csv": {
+   "bytes": 22522,
+   "blake2b_128": "2b1ff471a3355d98a4fa3f589343d11c"
+  },
+  "manifests/report_verification.csv": {
+   "bytes": 9954,
+   "blake2b_128": "7e3366e6d95f93e29d744b3700bc62b9"
+  },
+  "manifests/self_audit.csv": {
+   "bytes": 1510,
+   "blake2b_128": "a723d3cabf5b0a8967cbfe034a9511f9"
+  },
+  "metrics/frontier_sextiles.csv": {
+   "bytes": 10318,
+   "blake2b_128": "beb7485bcc67b2a04449a52f7288dad0"
+  },
+  "metrics/full/bands.csv": {
+   "bytes": 14423,
+   "blake2b_128": "f7ba8e8dc8b88878aac188f68a95ac73"
+  },
+  "metrics/full/leaderboard.csv": {
+   "bytes": 3964,
+   "blake2b_128": "0c13f3ed648f72e1bba98844841775df"
+  },
+  "metrics/level/LVL_COND_RESIDUAL/band_overlap.json": {
+   "bytes": 368,
+   "blake2b_128": "c3421df731d712be4a303686e43ff12f"
+  },
+  "metrics/level/LVL_COND_RESIDUAL/bands.csv": {
+   "bytes": 19508,
+   "blake2b_128": "267e527389fb782915a1e588a5b93e4c"
+  },
+  "metrics/level/LVL_COND_RESIDUAL/leaderboard.csv": {
+   "bytes": 6676,
+   "blake2b_128": "4991687bded036ccf7f510d503d98655"
+  },
+  "metrics/level/LVL_COND_RESIDUAL/summary.json": {
+   "bytes": 284,
+   "blake2b_128": "a57b4acfdba129c258120b3ca3bf45c2"
+  },
+  "metrics/level/LVL_MEAN/band_overlap.json": {
+   "bytes": 368,
+   "blake2b_128": "c3421df731d712be4a303686e43ff12f"
+  },
+  "metrics/level/LVL_MEAN/bands.csv": {
+   "bytes": 19412,
+   "blake2b_128": "ec88c56907ef6eaaed5173e2c9c11e0d"
+  },
+  "metrics/level/LVL_MEAN/leaderboard.csv": {
+   "bytes": 6583,
+   "blake2b_128": "d1f1fda0612814e306e1670082ab6efa"
+  },
+  "metrics/level/LVL_MEAN/summary.json": {
+   "bytes": 280,
+   "blake2b_128": "5c18f27fb575deaba432cf6e2c64bf90"
+  },
+  "metrics/level/LVL_MEAN_catboost/band_overlap.json": {
+   "bytes": 368,
+   "blake2b_128": "c3421df731d712be4a303686e43ff12f"
+  },
+  "metrics/level/LVL_MEAN_catboost/bands.csv": {
+   "bytes": 10816,
+   "blake2b_128": "392e7af2c3abfd78e3401b8170d23c19"
+  },
+  "metrics/level/LVL_MEAN_catboost/leaderboard.csv": {
+   "bytes": 3827,
+   "blake2b_128": "6e5af40455c4e5aa4c6aecd88496ebb4"
+  },
+  "metrics/level/LVL_MEAN_catboost/summary.json": {
+   "bytes": 275,
+   "blake2b_128": "3009a136c0ff0b57ad01529cb5bfd15f"
+  },
+  "metrics/level/LVL_MEAN_xgboost/band_overlap.json": {
+   "bytes": 368,
+   "blake2b_128": "c3421df731d712be4a303686e43ff12f"
+  },
+  "metrics/level/LVL_MEAN_xgboost/bands.csv": {
+   "bytes": 10788,
+   "blake2b_128": "9a9e5868d614e01ca961820a41fd541d"
+  },
+  "metrics/level/LVL_MEAN_xgboost/leaderboard.csv": {
+   "bytes": 3817,
+   "blake2b_128": "3746f0b99e159c9418a42f45c6143167"
+  },
+  "metrics/level/LVL_MEAN_xgboost/summary.json": {
+   "bytes": 268,
+   "blake2b_128": "729622e838deae0256ce353c44b44272"
+  },
+  "metrics/level/family_stratified_contrasts.csv": {
+   "bytes": 2082,
+   "blake2b_128": "39d951dfd091f410908f821545191905"
+  },
+  "metrics/level/grouped_permutation_detail.csv": {
+   "bytes": 18906,
+   "blake2b_128": "045fbc970dc171c329856aa711cca063"
+  },
+  "metrics/level/grouped_permutation_importance.csv": {
+   "bytes": 1019,
+   "blake2b_128": "078762ff936ada2cb02c6845ca4aab73"
+  },
+  "metrics/level/grouped_permutation_meta.json": {
+   "bytes": 142,
+   "blake2b_128": "bd7d38a4f09879bc9d55d29c6f6abac9"
+  },
+  "metrics/one_shot/fewshot_curve.csv": {
+   "bytes": 16495,
+   "blake2b_128": "37919890a438c654169200a6e138993d"
+  },
+  "metrics/one_shot/fewshot_detail.parquet": {
+   "bytes": 6809898,
+   "blake2b_128": "96d67d0502d43b4c76495bfe89f29aa4"
+  },
+  "metrics/one_shot/fewshot_support_membership.parquet": {
+   "bytes": 885106,
+   "blake2b_128": "ba933b5097a75bb5ae1b10baeacaffe2"
+  },
+  "metrics/one_shot/meta.json": {
+   "bytes": 291,
+   "blake2b_128": "c791ecb0436316d6a1f0acc35d859608"
+  },
+  "metrics/one_shot/one_shot_gain.csv": {
+   "bytes": 939,
+   "blake2b_128": "dae706972ab16c83c3c2134e27aa5760"
+  },
+  "predictions/full/DEC_L3_S1.parquet": {
+   "bytes": 226988,
+   "blake2b_128": "d29d8fa72b6534cd5e0a43590d2306db"
+  },
+  "predictions/full/DEC_L3_S1__selection.csv": {
+   "bytes": 4244,
+   "blake2b_128": "7b2a8925a0f023b81504d35289caa0f1"
+  },
+  "predictions/full/DEC_L4_S1.parquet": {
+   "bytes": 226844,
+   "blake2b_128": "3526aa9a84caa9350658386bc5a261bf"
+  },
+  "predictions/full/DEC_L4_S1__selection.csv": {
+   "bytes": 4266,
+   "blake2b_128": "2fc2e133f849fe7e0c77856438781e8c"
+  },
+  "predictions/full/DEC_L6_S1.parquet": {
+   "bytes": 226867,
+   "blake2b_128": "8b4def5058d27fe54aab1858a5d25a3c"
+  },
+  "predictions/full/DEC_L6_S1__selection.csv": {
+   "bytes": 4275,
+   "blake2b_128": "3267d85b78403a368084281b0810afef"
+  },
+  "predictions/full/DEC_L7_S0.parquet": {
+   "bytes": 219690,
+   "blake2b_128": "91b300f1d00b25da4838c6ebe9177e1b"
+  },
+  "predictions/full/DEC_L7_S0__selection.csv": {
+   "bytes": 4219,
+   "blake2b_128": "297bba988bc1c6a89908f030244b2b19"
+  },
+  "predictions/full/DEC_L7_S1.parquet": {
+   "bytes": 226915,
+   "blake2b_128": "3f8f2b2fe0e58248dff1194d7f9e260e"
+  },
+  "predictions/full/DEC_L7_S1__selection.csv": {
+   "bytes": 4241,
+   "blake2b_128": "cd94373cb6c50650d8876440e125354f"
+  },
+  "predictions/full/DEC_L7_S2.parquet": {
+   "bytes": 229715,
+   "blake2b_128": "2949748672776c819af4df1dabe5a007"
+  },
+  "predictions/full/DEC_L7_S2__selection.csv": {
+   "bytes": 4252,
+   "blake2b_128": "5770651397d91fcfc5fd876ebda00539"
+  },
+  "predictions/full/DEC_L7_S3.parquet": {
+   "bytes": 229059,
+   "blake2b_128": "3a8ff7d82961871ba17239d6b6171f47"
+  },
+  "predictions/full/DEC_L7_S3__selection.csv": {
+   "bytes": 4255,
+   "blake2b_128": "75875594d48fa536d252043acb124a48"
+  },
+  "predictions/full/DIRECT_ALL.parquet": {
+   "bytes": 152970,
+   "blake2b_128": "6c638d320b35aa821da994c0eedbae58"
+  },
+  "predictions/full/DIRECT_ALL__selection.csv": {
+   "bytes": 1395,
+   "blake2b_128": "eb81d4d59d18487161aaa9367a687008"
+  },
+  "predictions/level/LVL_COND_RESIDUAL/L0_GLOBAL_MEAN.parquet": {
+   "bytes": 45855,
+   "blake2b_128": "ba3d5bc7e8085a2115634e02505cab92"
+  },
+  "predictions/level/LVL_COND_RESIDUAL/L0_GLOBAL_MEAN__selection.csv": {
+   "bytes": 1487,
+   "blake2b_128": "ee0ee776c54559b3b571b8ea4401fa1d"
+  },
+  "predictions/level/LVL_COND_RESIDUAL/L0_NN_TANIMOTO.parquet": {
+   "bytes": 55915,
+   "blake2b_128": "2b8074385f702e9558505286d254d668"
+  },
+  "predictions/level/LVL_COND_RESIDUAL/L0_NN_TANIMOTO__selection.csv": {
+   "bytes": 1493,
+   "blake2b_128": "9992968ee5045f062d26fec56692daa3"
+  },
+  "predictions/level/LVL_COND_RESIDUAL/L1_ECFP.parquet": {
+   "bytes": 60423,
+   "blake2b_128": "564c2b86da043bf3845d0ee047b04267"
+  },
+  "predictions/level/LVL_COND_RESIDUAL/L1_ECFP__selection.csv": {
+   "bytes": 1778,
+   "blake2b_128": "811d82a95b5ad6d99331206b16eef366"
+  },
+  "predictions/level/LVL_COND_RESIDUAL/L2_GENERIC.parquet": {
+   "bytes": 62203,
+   "blake2b_128": "2bfc41a38473bfe02f56d87cf57dfa67"
+  },
+  "predictions/level/LVL_COND_RESIDUAL/L2_GENERIC__selection.csv": {
+   "bytes": 2295,
+   "blake2b_128": "28796bbca8c97336530d1199700114c6"
+  },
+  "predictions/level/LVL_COND_RESIDUAL/L3_ECFP_GENERIC.parquet": {
+   "bytes": 62228,
+   "blake2b_128": "03d51d1bdae695d8f0bf2a8155512d4c"
+  },
+  "predictions/level/LVL_COND_RESIDUAL/L3_ECFP_GENERIC__selection.csv": {
+   "bytes": 2417,
+   "blake2b_128": "a7ceaf37cc41625cb7070def1c6f8f4c"
+  },
+  "predictions/level/LVL_COND_RESIDUAL/L4_COORD.parquet": {
+   "bytes": 62192,
+   "blake2b_128": "32dd50d9e6bbf570460d9f789250f4e6"
+  },
+  "predictions/level/LVL_COND_RESIDUAL/L4_COORD__selection.csv": {
+   "bytes": 2152,
+   "blake2b_128": "841df5ba02b6fbaef5e5b8487f007a1d"
+  },
+  "predictions/level/LVL_COND_RESIDUAL/L5_ECFP_COORD.parquet": {
+   "bytes": 62218,
+   "blake2b_128": "d592ace0b8877caf667a713f58a9ea9f"
+  },
+  "predictions/level/LVL_COND_RESIDUAL/L5_ECFP_COORD__selection.csv": {
+   "bytes": 2280,
+   "blake2b_128": "19dbbcec987100bfaf41606f5dd896d6"
+  },
+  "predictions/level/LVL_COND_RESIDUAL/L6_GENERIC_COORD.parquet": {
+   "bytes": 62313,
+   "blake2b_128": "09f6f98056a77c24ccf19165e1f825f6"
+  },
+  "predictions/level/LVL_COND_RESIDUAL/L6_GENERIC_COORD__selection.csv": {
+   "bytes": 2437,
+   "blake2b_128": "67382d89ed681293f9d9fbbbb00fe967"
+  },
+  "predictions/level/LVL_COND_RESIDUAL/L7_ALL.parquet": {
+   "bytes": 62262,
+   "blake2b_128": "f924a92032a678e695df3cbb9c8f8d7a"
+  },
+  "predictions/level/LVL_COND_RESIDUAL/L7_ALL__selection.csv": {
+   "bytes": 2196,
+   "blake2b_128": "7a5ce7fab8806bfb5c2f2335691665a9"
+  },
+  "predictions/level/LVL_COND_RESIDUAL/run_manifest.json": {
+   "bytes": 487,
+   "blake2b_128": "8b104dca3484ef8caef6dd7c0de1e914"
+  },
+  "predictions/level/LVL_MEAN/L0_GLOBAL_MEAN.parquet": {
+   "bytes": 38803,
+   "blake2b_128": "4b45c476b9fbdf1c291ee9455e93d994"
+  },
+  "predictions/level/LVL_MEAN/L0_GLOBAL_MEAN__selection.csv": {
+   "bytes": 1488,
+   "blake2b_128": "8c25f325dc3a132a83693e33784879f0"
+  },
+  "predictions/level/LVL_MEAN/L0_NN_TANIMOTO.parquet": {
+   "bytes": 30927,
+   "blake2b_128": "afb41669f893f79541130a86283435e6"
+  },
+  "predictions/level/LVL_MEAN/L0_NN_TANIMOTO__selection.csv": {
+   "bytes": 1499,
+   "blake2b_128": "63567bfe334e3118eec56388f9f7eb40"
+  },
+  "predictions/level/LVL_MEAN/L1_ECFP.parquet": {
+   "bytes": 54027,
+   "blake2b_128": "421385220ea80cee1fcaa52eee1fe421"
+  },
+  "predictions/level/LVL_MEAN/L1_ECFP__selection.csv": {
+   "bytes": 1768,
+   "blake2b_128": "ad79ff854967005c0961463260b951f3"
+  },
+  "predictions/level/LVL_MEAN/L2_GENERIC.parquet": {
+   "bytes": 55855,
+   "blake2b_128": "cb6b926819ff0054f9afaec05bde0368"
+  },
+  "predictions/level/LVL_MEAN/L2_GENERIC__selection.csv": {
+   "bytes": 2283,
+   "blake2b_128": "cc1d7ff279c016923d5f3b52d57aa48e"
+  },
+  "predictions/level/LVL_MEAN/L3_ECFP_GENERIC.parquet": {
+   "bytes": 55880,
+   "blake2b_128": "0d858b9cf641330dda90f2439f3414bd"
+  },
+  "predictions/level/LVL_MEAN/L3_ECFP_GENERIC__selection.csv": {
+   "bytes": 2414,
+   "blake2b_128": "9d5332bf4cabd0ce9440e613835fd107"
+  },
+  "predictions/level/LVL_MEAN/L4_COORD.parquet": {
+   "bytes": 55652,
+   "blake2b_128": "22c3e83d1f5039b1a458c15013138941"
+  },
+  "predictions/level/LVL_MEAN/L4_COORD__selection.csv": {
+   "bytes": 2151,
+   "blake2b_128": "a11f143ccc75324eca9a659c528923b9"
+  },
+  "predictions/level/LVL_MEAN/L5_ECFP_COORD.parquet": {
+   "bytes": 55838,
+   "blake2b_128": "08cde988ce7a663975444e5af079a533"
+  },
+  "predictions/level/LVL_MEAN/L5_ECFP_COORD__selection.csv": {
+   "bytes": 2273,
+   "blake2b_128": "73988a27710b1f20c8448e0dfdd23212"
+  },
+  "predictions/level/LVL_MEAN/L6_GENERIC_COORD.parquet": {
+   "bytes": 55965,
+   "blake2b_128": "7bdc978f931ab078959bf9882ec53ac6"
+  },
+  "predictions/level/LVL_MEAN/L6_GENERIC_COORD__selection.csv": {
+   "bytes": 2437,
+   "blake2b_128": "d4cbaefe3dc3959f5b17f469d24893ca"
+  },
+  "predictions/level/LVL_MEAN/L7_ALL.parquet": {
+   "bytes": 55914,
+   "blake2b_128": "37ffb7d6f6261875b375209166a1571b"
+  },
+  "predictions/level/LVL_MEAN/L7_ALL__selection.csv": {
+   "bytes": 2189,
+   "blake2b_128": "84d2e0a169f65d287fe0ae8e0b7e9a69"
+  },
+  "predictions/level/LVL_MEAN/catboost/L1_ECFP.parquet": {
+   "bytes": 54027,
+   "blake2b_128": "543bd07b1d052dfd0a32c9d3e1877247"
+  },
+  "predictions/level/LVL_MEAN/catboost/L1_ECFP__selection.csv": {
+   "bytes": 1762,
+   "blake2b_128": "f1e6775c90de679a4b5286c163397620"
+  },
+  "predictions/level/LVL_MEAN/catboost/L3_ECFP_GENERIC.parquet": {
+   "bytes": 55880,
+   "blake2b_128": "7802f0ea2979acfe51505dcda7ef9455"
+  },
+  "predictions/level/LVL_MEAN/catboost/L3_ECFP_GENERIC__selection.csv": {
+   "bytes": 2394,
+   "blake2b_128": "d1a8ca81b65cdc5793f5b33ecb52d582"
+  },
+  "predictions/level/LVL_MEAN/catboost/L4_COORD.parquet": {
+   "bytes": 55844,
+   "blake2b_128": "3a3d875f00d93caca2ad9d6cca6a95b2"
+  },
+  "predictions/level/LVL_MEAN/catboost/L4_COORD__selection.csv": {
+   "bytes": 2140,
+   "blake2b_128": "2e828bf92593d29155b6c755c100ca5c"
+  },
+  "predictions/level/LVL_MEAN/catboost/L5_ECFP_COORD.parquet": {
+   "bytes": 55870,
+   "blake2b_128": "880e5d08415bca29d83920053797f237"
+  },
+  "predictions/level/LVL_MEAN/catboost/L5_ECFP_COORD__selection.csv": {
+   "bytes": 2263,
+   "blake2b_128": "35339f52e7b3d597df9860f5d1079841"
+  },
+  "predictions/level/LVL_MEAN/catboost/L7_ALL.parquet": {
+   "bytes": 55882,
+   "blake2b_128": "3d900a52168d5a5295262980b0b72153"
+  },
+  "predictions/level/LVL_MEAN/catboost/L7_ALL__selection.csv": {
+   "bytes": 2178,
+   "blake2b_128": "5cef87b41ad85aa4a957355e5866de9c"
+  },
+  "predictions/level/LVL_MEAN/catboost/run_manifest.json": {
+   "bytes": 476,
+   "blake2b_128": "ab1838479f6e406ee2f0ef149f59ac50"
+  },
+  "predictions/level/LVL_MEAN/run_manifest.json": {
+   "bytes": 478,
+   "blake2b_128": "bd64610187d1bd247fe3fff503bb33af"
+  },
+  "predictions/level/LVL_MEAN/xgboost/L1_ECFP.parquet": {
+   "bytes": 50548,
+   "blake2b_128": "962599205f83e4a841b4cedb10f422da"
+  },
+  "predictions/level/LVL_MEAN/xgboost/L1_ECFP__selection.csv": {
+   "bytes": 1753,
+   "blake2b_128": "9db85cf87cdd0ac6dfa3d3228277cb3b"
+  },
+  "predictions/level/LVL_MEAN/xgboost/L3_ECFP_GENERIC.parquet": {
+   "bytes": 52300,
+   "blake2b_128": "581c7cd217c44d01ac855cc65a45bb4c"
+  },
+  "predictions/level/LVL_MEAN/xgboost/L3_ECFP_GENERIC__selection.csv": {
+   "bytes": 2397,
+   "blake2b_128": "27a5c50ff12295910bf81a7ab3cbd4aa"
+  },
+  "predictions/level/LVL_MEAN/xgboost/L4_COORD.parquet": {
+   "bytes": 52420,
+   "blake2b_128": "fd3b2c9a5bcc0509d75216633a229489"
+  },
+  "predictions/level/LVL_MEAN/xgboost/L4_COORD__selection.csv": {
+   "bytes": 2130,
+   "blake2b_128": "9fabb8ddb6b9c589094ab7ffb04f9378"
+  },
+  "predictions/level/LVL_MEAN/xgboost/L5_ECFP_COORD.parquet": {
+   "bytes": 52499,
+   "blake2b_128": "00700d78e1b7dc2e64fdc7bfd25cb9de"
+  },
+  "predictions/level/LVL_MEAN/xgboost/L5_ECFP_COORD__selection.csv": {
+   "bytes": 2258,
+   "blake2b_128": "2792f9e0a3af88ec0886740569d94da2"
+  },
+  "predictions/level/LVL_MEAN/xgboost/L7_ALL.parquet": {
+   "bytes": 52287,
+   "blake2b_128": "cb1485eac3b3a20b30ef559150693b5e"
+  },
+  "predictions/level/LVL_MEAN/xgboost/L7_ALL__selection.csv": {
+   "bytes": 2171,
+   "blake2b_128": "72a4135b59bf91bb65745f5d4e3ffec4"
+  },
+  "predictions/level/LVL_MEAN/xgboost/run_manifest.json": {
+   "bytes": 475,
+   "blake2b_128": "a5e661c07a20b818f99d7066b7ba5f5d"
+  },
+  "predictions/level/LVL_MEAN_posthoc_spec/L1_ECFP.parquet": {
+   "bytes": 54027,
+   "blake2b_128": "46a12b175d88ebe36778358105ac34fe"
+  },
+  "predictions/level/LVL_MEAN_posthoc_spec/L1_ECFP__selection.csv": {
+   "bytes": 1770,
+   "blake2b_128": "07f45e016896c423ab6c466df72a4a32"
+  },
+  "predictions/level/LVL_MEAN_posthoc_spec/L3_ECFP_GENERIC.parquet": {
+   "bytes": 55880,
+   "blake2b_128": "677f7d83f73a0b7c13ae7f2cbbf27a88"
+  },
+  "predictions/level/LVL_MEAN_posthoc_spec/L3_ECFP_GENERIC__selection.csv": {
+   "bytes": 2411,
+   "blake2b_128": "8cc62ac062bb266ebe3030d3ec723f62"
+  },
+  "predictions/level/LVL_MEAN_posthoc_spec/L4_COORD.parquet": {
+   "bytes": 55652,
+   "blake2b_128": "6c0d6a471b47299a33efc23310a86647"
+  },
+  "predictions/level/LVL_MEAN_posthoc_spec/L4_COORD__selection.csv": {
+   "bytes": 2149,
+   "blake2b_128": "9ee6084d6cf363669b9bef2a2bc37745"
+  },
+  "predictions/level/LVL_MEAN_posthoc_spec/L5_ECFP_COORD.parquet": {
+   "bytes": 55870,
+   "blake2b_128": "20e0d1a8ac7b65dff3c7c82bfa565c5b"
+  },
+  "predictions/level/LVL_MEAN_posthoc_spec/L5_ECFP_COORD__selection.csv": {
+   "bytes": 2266,
+   "blake2b_128": "65b8e4c02dcf38a5473dbaf7d172f81e"
+  },
+  "predictions/level/LVL_MEAN_posthoc_spec/L7_ALL.parquet": {
+   "bytes": 55914,
+   "blake2b_128": "f780bbe5852b58198306cfa720e93f7e"
+  },
+  "predictions/level/LVL_MEAN_posthoc_spec/L7_ALL__selection.csv": {
+   "bytes": 2180,
+   "blake2b_128": "3076e22213ecabcbcc992710eb66f737"
+  },
+  "scripts/g122_build_features.py": {
+   "bytes": 6195,
+   "blake2b_128": "2efafa6ce24bb044edf5d9bf8a5f0550"
+  },
+  "scripts/g122_decomposed.py": {
+   "bytes": 5065,
+   "blake2b_128": "42be49382ac8ac5b99cbda2dfb2545ae"
+  },
+  "scripts/g122_descriptor_defect_sensitivity.py": {
+   "bytes": 7309,
+   "blake2b_128": "55e2cdeb7d47c10c3418c710ef05d3b5"
+  },
+  "scripts/g122_exploratory_level.py": {
+   "bytes": 7880,
+   "blake2b_128": "4086f90888a61368dfcf5c566053cab1"
+  },
+  "scripts/g122_failure_family.py": {
+   "bytes": 7989,
+   "blake2b_128": "fb7cd5bf1a1d6664b34608540ecaa824"
+  },
+  "scripts/g122_figures.py": {
+   "bytes": 8660,
+   "blake2b_128": "b920ded5195a001c992ed1bbd59fcc0a"
+  },
+  "scripts/g122_frontier.py": {
+   "bytes": 3614,
+   "blake2b_128": "3d0c28de702d5b9d43492d7a6c14b0cb"
+  },
+  "scripts/g122_full_analysis.py": {
+   "bytes": 7693,
+   "blake2b_128": "e92e66eb9c2002c1fc3870417a41ba38"
+  },
+  "scripts/g122_headline_tables.py": {
+   "bytes": 7996,
+   "blake2b_128": "5f4bda06271a17f8d084db7101b00266"
+  },
+  "scripts/g122_importance.py": {
+   "bytes": 5361,
+   "blake2b_128": "81b73515ffe70321add02f7db8c85ae6"
+  },
+  "scripts/g122_level_analysis.py": {
+   "bytes": 16715,
+   "blake2b_128": "0ec1876a0461c4609b2a68f0cab35729"
+  },
+  "scripts/g122_level_bottleneck.py": {
+   "bytes": 5614,
+   "blake2b_128": "876180cff6daf87d895c3975966e966c"
+  },
+  "scripts/g122_level_definition_study.py": {
+   "bytes": 13162,
+   "blake2b_128": "56be2282a4b9102a6e15d44e184ab75a"
+  },
+  "scripts/g122_manifest.py": {
+   "bytes": 4452,
+   "blake2b_128": "3010a8956a7e358ac862bf2f50c73454"
+  },
+  "scripts/g122_one_shot.py": {
+   "bytes": 6683,
+   "blake2b_128": "59a592c0693a83e1339fede1c2ad4c0d"
+  },
+  "scripts/g122_run_level_ladder.py": {
+   "bytes": 5199,
+   "blake2b_128": "a2225b42b980dd6a944dde14a90c9a59"
+  },
+  "scripts/g122_self_audit.py": {
+   "bytes": 8682,
+   "blake2b_128": "c52a429a24d1edb63dd90e94daaaa8a8"
+  },
+  "scripts/g122_statistical_caveats.py": {
+   "bytes": 6087,
+   "blake2b_128": "088fd5018c6ff1a897ffce7010623f65"
+  },
+  "scripts/g122_verify_report.py": {
+   "bytes": 13869,
+   "blake2b_128": "09d6a89e67d381aeca465087390426de"
+  },
+  "tests/test_gen122_invariants.py": {
+   "bytes": 16670,
+   "blake2b_128": "30a828666e3602b70831f55c53b41398"
+  }
+ }
+}

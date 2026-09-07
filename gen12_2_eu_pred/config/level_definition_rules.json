@@ -1,0 +1,46 @@
+{
+  "written_utc": "2026-09-05",
+  "written_before": "the level-definition study was run; the study script reads this file and may not modify it",
+  "development_fold": {
+    "design": "B",
+    "split_seed": 104729,
+    "fold": 0,
+    "rows": "training rows of that fold only",
+    "why": "A definition study needs a training-only view, and under a chemotype hold-out 'training only' is a property of a fold, not of the cohort. One fold is designated here so the choice cannot drift; the same statistics on the full cohort are reported in DATA_AUDIT.md as a sensitivity and are explicitly not what selected the definition."
+  },
+  "criteria_in_order": [
+    "interpretability: the quantity can be stated in one sentence without naming a fitted model",
+    "split-half reliability: for extractants with at least four cells, alpha computed on two deterministic halves of their cells must agree; a level that is not reproducible from half the data is not an intrinsic property",
+    "freedom from condition-sampling distortion: how far the definition moves once the shared condition response is removed",
+    "definedness: every definition must return a value for a one-cell extractant, because 85 of 183 extractants have exactly one cell and deleting them would delete the phenomenon"
+  ],
+  "decision_rule": {
+    "default": "LVL_MEAN",
+    "why_default": "the mean log_D of an extractant over the conditions at which it was measured is the only candidate that needs no fitted model to state, it is exactly the quantity Gen12's offset/level component already measures, and it makes the Gen12.2 level numbers directly comparable with Gen12's",
+    "override_1": "if split-half Spearman for LVL_MEAN is lower than the best alternative by more than 0.05, adopt that alternative",
+    "override_2": "if more than 10 percent of development-fold training extractants move by more than 0.5 decades between LVL_MEAN and LVL_COND_RESIDUAL, adopt LVL_COND_RESIDUAL as primary, because the raw mean is then materially distorted by heterogeneous condition sampling",
+    "secondary": "whichever of LVL_MEAN and LVL_COND_RESIDUAL is not primary is carried as the declared secondary definition and every headline level contrast is repeated under it",
+    "never": "the definition is not revisited after any level model has been scored on held-out extractants"
+  },
+  "level_reliable_cohort_rule": {
+    "rule": "the smallest number of cells n at which the standard error of a per-extractant mean, sigma_within / sqrt(n), is at most 0.25 times tau, the between-extractant standard deviation of levels",
+    "estimated_on": "development-fold training rows only",
+    "why_0_25": "a level estimate whose noise is a quarter of the spread it is trying to resolve can still order extractants; the constant is fixed here rather than chosen from the resulting cohort size",
+    "floor": "the threshold is at least 2, because a single cell gives no within-extractant information at all",
+    "cap": "the threshold is at most 7, the Gen12 few-shot common-cohort size, so that the level-reliable cohort is never narrower than the cohort Gen12's k-shot curve already used"
+  },
+  "addendum_1": {
+    "dated_utc": "2026-09-05",
+    "stage": "after the training-only definition study ran, before any level model was fitted and before any held-out extractant was scored",
+    "what_the_original_rule_did": "override_2 fired: 73.9 percent of development-fold training extractants move by more than 0.5 decades between LVL_MEAN and LVL_COND_RESIDUAL, so the frozen rule selected LVL_COND_RESIDUAL as primary.",
+    "why_that_is_wrong": [
+      "override_2 assumed a large shift means the raw mean is distorted by heterogeneous condition sampling. Three training-only measurements say the shift is something else.",
+      "The cross-fitted condition-only model explains 8.9 percent of pooled row variance but its per-extractant mean prediction has a variance equal to 43.9 percent of the between-extractant variance of the target, and correlates with the true per-extractant level at Spearman 0.55. Subtracting it therefore removes a large part of the genuine extractant level, because each extractant was measured at its own acidities, diluents and series, so the condition vector partially identifies the extractant. The repository already measured this mechanism in gen7: the apparent level capture was really learning each ligand's conditions.",
+      "If the shift were sampling distortion it would be largest where the sampling is thinnest. It is not: the median absolute shift is 0.63 decades at one cell, 2.03 at two to three cells, 1.67 at four to six, 1.06 at seven to twenty and 0.33 above twenty. The shift is uncorrelated with cell count (Spearman 0.088).",
+      "LVL_COND_RESIDUAL has the worst split-half reliability of the five candidates (Spearman 0.841 against 0.920 for LVL_MEAN), so the adjustment adds noise to the quantity rather than removing it. Criterion 2 exists to catch exactly this and the original override bypassed it."
+    ],
+    "amended_override_2": "adopt LVL_COND_RESIDUAL as primary only if all three hold: more than 10 percent of development-fold training extractants shift by more than 0.5 decades; the condition-only model's per-extractant mean prediction explains less than 10 percent of the between-extractant variance of the target, so the adjustment is not itself removing level; and LVL_COND_RESIDUAL's split-half Spearman is not worse than LVL_MEAN's by more than 0.02.",
+    "outcome": "the second and third conditions both fail, so the amended rule keeps the default. Primary level definition is LVL_MEAN; LVL_COND_RESIDUAL remains the declared secondary and every headline level contrast is repeated under it.",
+    "what_was_not_changed": "the development fold, the four criteria, the default, override_1, the secondary-definition rule and the level-reliable-cohort rule are unchanged. No model had been fitted and no held-out extractant had been scored when this was written."
+  }
+}

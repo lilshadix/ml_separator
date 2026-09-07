@@ -1,0 +1,299 @@
+{
+ "rules_digest": "5d78b64ecb3a195091e1e0fa7d573c63da6f4ba51b487a9d2f4035e81c066b17",
+ "development_fold": {
+  "design": "B",
+  "split_seed": 104729,
+  "fold": 0,
+  "rows": "training rows of that fold only",
+  "why": "A definition study needs a training-only view, and under a chemotype hold-out 'training only' is a property of a fold, not of the cohort. One fold is designated here so the choice cannot drift; the same statistics on the full cohort are reported in DATA_AUDIT.md as a sensitivity and are explicitly not what selected the definition."
+ },
+ "n_train_rows": 1148,
+ "n_train_extractants": 153,
+ "n_train_chemotypes": 77,
+ "summary": {
+  "LVL_MEAN": {
+   "mean": -0.2812322171230837,
+   "sd": 1.7870385303929115,
+   "min": -3.598626672448025,
+   "max": 3.0208161052477838,
+   "defined_for_all": true,
+   "defined_for_one_cell": true
+  },
+  "LVL_MEDIAN": {
+   "mean": -0.27107913199980743,
+   "sd": 1.836215060951396,
+   "min": -4.0,
+   "max": 3.0915887850467287,
+   "defined_for_all": true,
+   "defined_for_one_cell": true
+  },
+  "LVL_FE_INTERCEPT": {
+   "mean": -0.45025433302211143,
+   "sd": 1.7139654874733332,
+   "min": -4.161463991500476,
+   "max": 4.187691358822223,
+   "defined_for_all": true,
+   "defined_for_one_cell": true
+  },
+  "LVL_SHRUNK": {
+   "mean": -0.3100280682726916,
+   "sd": 1.548982252415719,
+   "min": -3.4868776028214237,
+   "max": 2.91584656176311,
+   "defined_for_all": true,
+   "defined_for_one_cell": true
+  },
+  "LVL_COND_RESIDUAL": {
+   "mean": 0.38719861038287107,
+   "sd": 1.4619611481863901,
+   "min": -3.1643144225522786,
+   "max": 4.6152748275305395,
+   "defined_for_all": true,
+   "defined_for_one_cell": true
+  }
+ },
+ "spearman_between_definitions": {
+  "LVL_MEAN": {
+   "LVL_MEAN": 1.0,
+   "LVL_MEDIAN": 0.9928,
+   "LVL_FE_INTERCEPT": 0.9472,
+   "LVL_SHRUNK": 0.9949,
+   "LVL_COND_RESIDUAL": 0.7429
+  },
+  "LVL_MEDIAN": {
+   "LVL_MEAN": 0.9928,
+   "LVL_MEDIAN": 1.0,
+   "LVL_FE_INTERCEPT": 0.9422,
+   "LVL_SHRUNK": 0.9907,
+   "LVL_COND_RESIDUAL": 0.747
+  },
+  "LVL_FE_INTERCEPT": {
+   "LVL_MEAN": 0.9472,
+   "LVL_MEDIAN": 0.9422,
+   "LVL_FE_INTERCEPT": 1.0,
+   "LVL_SHRUNK": 0.952,
+   "LVL_COND_RESIDUAL": 0.7608
+  },
+  "LVL_SHRUNK": {
+   "LVL_MEAN": 0.9949,
+   "LVL_MEDIAN": 0.9907,
+   "LVL_FE_INTERCEPT": 0.952,
+   "LVL_SHRUNK": 1.0,
+   "LVL_COND_RESIDUAL": 0.7451
+  },
+  "LVL_COND_RESIDUAL": {
+   "LVL_MEAN": 0.7429,
+   "LVL_MEDIAN": 0.747,
+   "LVL_FE_INTERCEPT": 0.7608,
+   "LVL_SHRUNK": 0.7451,
+   "LVL_COND_RESIDUAL": 1.0
+  }
+ },
+ "split_half_reliability": [
+  {
+   "definition": "LVL_MEAN",
+   "n_extractants": 53,
+   "spearman": 0.9197047978266187,
+   "pearson": 0.9260402675070251,
+   "mean_abs_half_difference": 0.469244346265895,
+   "median_abs_half_difference": 0.3017681863035706
+  },
+  {
+   "definition": "LVL_MEDIAN",
+   "n_extractants": 53,
+   "spearman": 0.8916160782726167,
+   "pearson": 0.8990146540666223,
+   "mean_abs_half_difference": 0.5619183785426072,
+   "median_abs_half_difference": 0.294453802386776
+  },
+  {
+   "definition": "LVL_FE_INTERCEPT",
+   "n_extractants": 53,
+   "spearman": 0.9131591678761489,
+   "pearson": 0.9033432534548436,
+   "mean_abs_half_difference": 0.5476384907843601,
+   "median_abs_half_difference": 0.34877933127471517
+  },
+  {
+   "definition": "LVL_SHRUNK",
+   "n_extractants": 53,
+   "spearman": 0.9181702736386247,
+   "pearson": 0.9287005118830969,
+   "mean_abs_half_difference": 0.4417725800562521,
+   "median_abs_half_difference": 0.24833860139498332
+  },
+  {
+   "definition": "LVL_COND_RESIDUAL",
+   "n_extractants": 53,
+   "spearman": 0.8413159167876147,
+   "pearson": 0.8440299258004982,
+   "mean_abs_half_difference": 0.587669510067954,
+   "median_abs_half_difference": 0.3903443286419549
+  }
+ ],
+ "condition_sampling_distortion": {
+  "n_extractants": 153,
+  "median_abs_shift": 0.7635417072522652,
+  "mean_abs_shift": 1.0692271170279042,
+  "frac_above_0_5_decades": 0.738562091503268,
+  "frac_above_1_0_decades": 0.43137254901960786,
+  "spearman_mean_vs_residual": 0.7428844875228113,
+  "shift_vs_n_cells_spearman": 0.08784669976113055
+ },
+ "condition_model_absorption": {
+  "pooled_r2_of_condition_model": 0.08948998031583033,
+  "between_variance_of_level": 3.193506709108857,
+  "between_variance_of_condition_prediction": 1.4035127579930673,
+  "between_variance_share": 0.43948952854547635,
+  "spearman_level_vs_condition_prediction": 0.5510203630543823,
+  "shift_by_cell_count": [
+   {
+    "n_cells": "1",
+    "n_extractants": 75,
+    "median_abs_shift": 0.62866808900176
+   },
+   {
+    "n_cells": "2-3",
+    "n_extractants": 19,
+    "median_abs_shift": 2.032359226085144
+   },
+   {
+    "n_cells": "4-6",
+    "n_extractants": 25,
+    "median_abs_shift": 1.670708359276949
+   },
+   {
+    "n_cells": "7-20",
+    "n_extractants": 25,
+    "median_abs_shift": 1.0629493341993963
+   },
+   {
+    "n_cells": "21+",
+    "n_extractants": 9,
+    "median_abs_shift": 0.3306897656346127
+   }
+  ]
+ },
+ "level_reliable_cohort": {
+  "sigma_within": 0.9714269694154636,
+  "tau_between": 1.7870385303929115,
+  "ladder": [
+   {
+    "n_cells": 1,
+    "se_of_mean": 0.9714,
+    "se_over_tau": 0.5436
+   },
+   {
+    "n_cells": 2,
+    "se_of_mean": 0.6869,
+    "se_over_tau": 0.3844
+   },
+   {
+    "n_cells": 3,
+    "se_of_mean": 0.5609,
+    "se_over_tau": 0.3138
+   },
+   {
+    "n_cells": 4,
+    "se_of_mean": 0.4857,
+    "se_over_tau": 0.2718
+   },
+   {
+    "n_cells": 5,
+    "se_of_mean": 0.4344,
+    "se_over_tau": 0.2431
+   },
+   {
+    "n_cells": 6,
+    "se_of_mean": 0.3966,
+    "se_over_tau": 0.2219
+   },
+   {
+    "n_cells": 7,
+    "se_of_mean": 0.3672,
+    "se_over_tau": 0.2055
+   },
+   {
+    "n_cells": 8,
+    "se_of_mean": 0.3435,
+    "se_over_tau": 0.1922
+   },
+   {
+    "n_cells": 9,
+    "se_of_mean": 0.3238,
+    "se_over_tau": 0.1812
+   },
+   {
+    "n_cells": 10,
+    "se_of_mean": 0.3072,
+    "se_over_tau": 0.1719
+   },
+   {
+    "n_cells": 11,
+    "se_of_mean": 0.2929,
+    "se_over_tau": 0.1639
+   },
+   {
+    "n_cells": 12,
+    "se_of_mean": 0.2804,
+    "se_over_tau": 0.1569
+   },
+   {
+    "n_cells": 13,
+    "se_of_mean": 0.2694,
+    "se_over_tau": 0.1508
+   },
+   {
+    "n_cells": 14,
+    "se_of_mean": 0.2596,
+    "se_over_tau": 0.1453
+   },
+   {
+    "n_cells": 15,
+    "se_of_mean": 0.2508,
+    "se_over_tau": 0.1404
+   },
+   {
+    "n_cells": 16,
+    "se_of_mean": 0.2429,
+    "se_over_tau": 0.1359
+   },
+   {
+    "n_cells": 17,
+    "se_of_mean": 0.2356,
+    "se_over_tau": 0.1318
+   },
+   {
+    "n_cells": 18,
+    "se_of_mean": 0.229,
+    "se_over_tau": 0.1281
+   },
+   {
+    "n_cells": 19,
+    "se_of_mean": 0.2229,
+    "se_over_tau": 0.1247
+   },
+   {
+    "n_cells": 20,
+    "se_of_mean": 0.2172,
+    "se_over_tau": 0.1216
+   }
+  ],
+  "threshold_cells": 5,
+  "rule": "the smallest number of cells n at which the standard error of a per-extractant mean, sigma_within / sqrt(n), is at most 0.25 times tau, the between-extractant standard deviation of levels"
+ },
+ "decision": {
+  "primary_level_definition": "LVL_MEAN",
+  "reason": "default: no override triggered under the amended rule",
+  "secondary_level_definition": "LVL_COND_RESIDUAL",
+  "override_1_triggered": false,
+  "override_2_shift_large": true,
+  "override_2_adjustment_is_clean": false,
+  "override_2_reliability_holds": false,
+  "override_2_triggered": false,
+  "original_rule_would_have_chosen": "LVL_COND_RESIDUAL",
+  "best_reliability_definition": "LVL_MEAN",
+  "best_reliability_spearman": 0.9197047978266187,
+  "lvl_mean_reliability_spearman": 0.9197047978266187
+ }
+}

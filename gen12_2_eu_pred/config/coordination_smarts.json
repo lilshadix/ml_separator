@@ -1,0 +1,206 @@
+{
+  "spec_version": "1.1.0",
+  "frozen_utc": "2026-09-05",
+  "note": "Frozen before any Gen12.2 outcome-bearing model was fitted. Every pattern is matched against the RDKit-canonical SMILES of the extractant and against nothing else. A pattern is counted with uniquify=True, so a symmetric motif that matches in two directions over the same atom set counts once. These are motif counts over a 2D molecular graph; they are not coordination numbers and not geometry.",
+  "donor_classes": {
+    "O_amide_carbonyl": {
+      "smarts": "[OX1]=[CX3][NX3]",
+      "atom": 0,
+      "why": "amide carbonyl oxygen; the principal hard donor of every amide-type extractant in this cohort"
+    },
+    "O_ester_carbonyl": {
+      "smarts": "[OX1]=[CX3][OX2][#6]",
+      "atom": 0,
+      "why": "ester carbonyl oxygen; a weaker donor than an amide carbonyl and counted apart from it"
+    },
+    "O_carboxyl": {
+      "smarts": "[CX3](=[OX1])[OX2H1,OX1-]",
+      "atom": [
+        1,
+        2
+      ],
+      "why": "carboxylic acid / carboxylate oxygens; strong anionic donors when deprotonated"
+    },
+    "O_ketone": {
+      "smarts": "[OX1]=[CX3;!$([CX3][NX3]);!$([CX3][OX2]);!$([CX3][OX1-])]",
+      "atom": 0,
+      "why": "carbonyl oxygen that is neither amide, ester nor carboxyl (ketone/aldehyde)"
+    },
+    "O_ether": {
+      "smarts": "[OX2;!$([OX2][CX3]=[OX1]);!$([OX2][P,S]);!$([OX2H])]([CX4])[CX4]",
+      "atom": 0,
+      "why": "aliphatic ether oxygen with two sp3-carbon neighbours: the bridging donor of a diglycolamide, a podand and a crown"
+    },
+    "O_hydroxyl": {
+      "smarts": "[OX2H;!$([OX2H][CX3]=[OX1])]",
+      "atom": 0,
+      "why": "alcohol/phenol oxygen, excluding the acidic OH of a carboxyl (counted as O_carboxyl)"
+    },
+    "O_phosphoryl": {
+      "smarts": "[OX1]=[PX4]",
+      "atom": 0,
+      "why": "phosphoryl oxygen: CMPO, phosphine oxide, phosphonate, phosphate"
+    },
+    "O_phosphate_ester": {
+      "smarts": "[OX2]([#6])[PX4]",
+      "atom": 0,
+      "why": "P-O-C ester oxygen; a weak donor, counted apart from the phosphoryl oxygen"
+    },
+    "O_nitroxide": {
+      "smarts": "[OX1-][n+,NX4+]",
+      "atom": 0,
+      "why": "N-oxide oxygen; one pyridine-N-oxide bis(phosphine oxide) is present in this cohort"
+    },
+    "N_aromatic": {
+      "smarts": "[nX2]",
+      "atom": 0,
+      "why": "pyridine-type aromatic nitrogen with a free lone pair; pyrrole-type [nX3] is deliberately excluded because its lone pair is in the ring pi system and it does not coordinate"
+    },
+    "N_amine": {
+      "smarts": "[NX3;!$([NX3][CX3]=[OX1]);!$([NX3][CX3]=[SX1]);!$([NX3]=*);!$([NX3+]);!$([NX3][a]);!n]",
+      "atom": 0,
+      "why": "aliphatic amine nitrogen that is not an amide, not an anilide and not charged"
+    },
+    "S_thiophosphoryl": {
+      "smarts": "[SX1]=[PX4]",
+      "atom": 0,
+      "why": "P=S soft donor of the dithiophosphinate/thiophosphate family"
+    },
+    "S_thiocarbonyl": {
+      "smarts": "[SX1]=[CX3]",
+      "atom": 0,
+      "why": "C=S soft donor of the thioamide family"
+    },
+    "S_thioether_thiol": {
+      "smarts": "[SX2]",
+      "atom": 0,
+      "why": "divalent sulfur: thioether, thiol or the S of a dithiophosphinic acid"
+    },
+    "P_phosphine": {
+      "smarts": "[PX3;!$([PX3]=*)]",
+      "atom": 0,
+      "why": "trivalent phosphorus lone pair; recorded for completeness, expected to be rare here"
+    },
+    "O_ether_aryl": {
+      "smarts": "[OX2;!$([OX2][CX3]=[OX1]);!$([OX2][P,S]);!$([OX2H])]([c,C])[c]",
+      "atom": 0,
+      "why": "aryl or diaryl ether oxygen; a weaker donor than an aliphatic ether because the lone pair is conjugated into the ring, and counted apart from it for that reason"
+    }
+  },
+  "donor_element_groups": {
+    "hard_O": [
+      "O_amide_carbonyl",
+      "O_ester_carbonyl",
+      "O_carboxyl",
+      "O_ketone",
+      "O_ether",
+      "O_ether_aryl",
+      "O_hydroxyl",
+      "O_phosphoryl",
+      "O_phosphate_ester",
+      "O_nitroxide"
+    ],
+    "N": [
+      "N_aromatic",
+      "N_amine"
+    ],
+    "soft_S": [
+      "S_thiophosphoryl",
+      "S_thiocarbonyl",
+      "S_thioether_thiol"
+    ],
+    "P": [
+      "P_phosphine"
+    ]
+  },
+  "chelating_unit_motifs": {
+    "dga_unit": {
+      "smarts": "[N]C(=O)[#6;X4,a][#8X2][#6;X4,a]C(=O)[N]",
+      "why": "diglycolamide backbone N-C(=O)-C-O-C-C(=O)-N; the bridging carbons may be sp3 or aromatic (pyranone analogues) and the oxygen aliphatic or aromatic. Reused verbatim from lanthanide_separation.ligand_descriptors so the Gen12.2 count is the same object gen6 used to assign the diglycolamide family."
+    },
+    "malonamide_unit": {
+      "smarts": "[N]C(=O)[CX4]C(=O)[N]",
+      "why": "malonamide backbone N-C(=O)-C-C(=O)-N. Reused verbatim from lanthanide_separation.ligand_descriptors."
+    },
+    "cmpo_unit": {
+      "smarts": "[PX4](=[OX1])[CX4]C(=[OX1])[NX3]",
+      "why": "carbamoylmethylphosphine oxide: a phosphoryl and an amide oxygen two bonds apart, the classic bifunctional actinide extractant"
+    },
+    "bis_thiophosphoryl_unit": {
+      "smarts": "[PX4](=[SX1])[#6,#8][#6,#8,#7]~[#6,#8,#7][PX4](=[SX1])",
+      "why": "two P=S donors separated by a short bridge: the TWE-23/24/27/28/29/30 dithiophosphinate family"
+    },
+    "bis_thiophosphoryl_methylene": {
+      "smarts": "[PX4](=[SX1])[CX4][PX4](=[SX1])",
+      "why": "the tightest member of that family, P(=S)-CH2-P(=S), which is TWE-23 and TWE-24"
+    },
+    "picolinamide_arm": {
+      "smarts": "[NX3]C(=[OX1])[c;$(c[nX2])]",
+      "why": "an amide carbon on a heteroaromatic carbon adjacent to a pyridine-type nitrogen: the N,O-chelating arm of picolinamides, dipicolinamides and phenanthroline diamides"
+    },
+    "aryl_amide": {
+      "smarts": "[NX3]C(=[OX1])[c]",
+      "why": "any amide on an aromatic carbon; the superset picolinamide_arm is drawn from"
+    },
+    "carboxylate_arm": {
+      "smarts": "[NX3][CX4]C(=[OX1])[OX2H1,OX1-]",
+      "why": "glycinate arm of an aminopolycarboxylate (EDTA/CDTA/HEDTA type)"
+    },
+    "beta_diketone_unit": {
+      "smarts": "[#6](=[OX1])[CX4][#6](=[OX1])",
+      "why": "1,3-dicarbonyl chelate; note that a malonamide also matches this pattern and the two counts are reported separately rather than made exclusive"
+    },
+    "thioamide_unit": {
+      "smarts": "[NX3]C(=[SX1])",
+      "why": "thioamide donor group of the CAM/TAM pairs"
+    },
+    "phosphine_oxide": {
+      "smarts": "[PX4](=[OX1])([#6])([#6])[#6]",
+      "why": "trialkyl/triaryl phosphine oxide"
+    },
+    "phosphonate_ester": {
+      "smarts": "[PX4](=[OX1])([OX2][#6])[#6]",
+      "why": "phosphonate: one P-C bond and at least one P-O-C ester"
+    },
+    "phosphate_ester": {
+      "smarts": "[PX4](=[OX1])([OX2][#6])([OX2][#6])[OX2,OX1]",
+      "why": "phosphate/phosphoric acid ester: three P-O bonds"
+    },
+    "phosphoryl_amide_extended": {
+      "smarts": "[PX4](=[OX1])[CX4][#7,#8][CX4]C(=[OX1])[NX3]",
+      "why": "phosphoryl and amide separated by a three-atom C-X-C bridge, X = O or N: the TWE-33 to TWE-36 series. The tighter one-atom bridge is cmpo_unit."
+    }
+  },
+  "ring_motifs": {
+    "note": "Ring classes are counted from the RDKit symmetrised smallest set of smallest rings, not from SMARTS, so that fused systems are counted once per ring.",
+    "classes": {
+      "pyridine_like_ring": "aromatic 6-ring with exactly one [nX2]",
+      "diazine_like_ring": "aromatic 6-ring with exactly two ring nitrogens",
+      "triazine_like_ring": "aromatic 6-ring with three or more ring nitrogens",
+      "azole_ring": "aromatic 5-ring with two or more ring nitrogens (pyrazole, triazole, imidazole)",
+      "crown_like_ring": "ring of size 9 or more containing three or more oxygen atoms",
+      "lactam_ring": "non-aromatic ring containing an amide nitrogen"
+    }
+  },
+  "topology_rules": {
+    "donor_graph": "shortest-path distances are computed over the heavy-atom molecular graph with RDKit GetDistanceMatrix; hydrogens are implicit and never counted",
+    "chelate_link_distance": 4,
+    "chelate_link_why": "Two potential donors separated by four bonds or fewer on the molecular graph can close a four-, five- or six-membered chelate ring on one metal centre: a donor pair d bonds apart closes a (d+2)-membered ring. Four bonds is the malonamide amide-O to amide-O separation and the P(=S)-CH2-P(=S) sulfur-to-sulfur separation, both textbook six-membered bidentate chelates; three bonds is the diglycolamide amide-O to ether-O separation, a five-membered chelate. Six-membered is the largest ring commonly quoted as chelate-stabilised, so four is the loosest defensible link. The value is fixed here from that chemistry and is not tuned: sensitivity to 3 and 5 is reported in COORDINATION_DESCRIPTOR_SPEC.md and neither is used to define MULTI_ARM.",
+    "donor_cluster": "connected components of the graph whose nodes are the donor atoms and whose edges join two donors at graph distance <= chelate_link_distance. One component is one chelating pocket.",
+    "multi_arm_rule": "MULTI_ARM is true when a molecule has two or more donor clusters, i.e. it presents two or more spatially separate chelating pockets. The threshold of two is the mono-topic / poly-topic boundary and is chosen from that structural semantics, before any Gen12.2 model output was read.",
+    "symmetry": "atom symmetry orbits come from RDKit CanonicalRankAtoms(breakTies=False), which assigns equal rank to constitutionally equivalent atoms; a repeated arm is a symmetry orbit whose members are donor-cluster roots"
+  },
+  "revision_log": [
+    {
+      "version": "1.0.0",
+      "what": "first draft",
+      "defect": "chelate_link_distance was 3 bonds, and the justification text mis-stated the ring size that a 3-bond donor separation closes. A donor pair d bonds apart closes a (d+2)-membered chelate ring with the metal, so 3 bonds is a five-membered ring and 4 bonds is a six-membered one. At 3 bonds every malonamide (amide O to amide O is 4 bonds) and every P(=S)-CH2-P(=S) dithiophosphinate (S to S is 4 bonds) was split into two chelating pockets, although both are textbook single-pocket bidentates closing a six-membered ring.",
+      "found": "by inventorying the descriptor over all 183 cohort structures and reading the topicity of the malonamide family; no target value and no model output was consulted"
+    },
+    {
+      "version": "1.1.0",
+      "what": "chelate_link_distance raised to 4 bonds, so that four-, five- and six-membered chelate rings all count as one pocket; ether oxygen split into aliphatic and aryl classes; the phosphoryl+amide motif that failed to match the TWE-33..36 series replaced by one with the correct bridge length",
+      "found": "structure-only, before any Gen12.2 level target was computed and before any model was fitted"
+    }
+  ]
+}

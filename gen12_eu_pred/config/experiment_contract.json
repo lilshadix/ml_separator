@@ -1,0 +1,152 @@
+{
+ "generation": "Gen12Eu_pred",
+ "frozen_utc": "2026-09-05",
+ "question": "can extractant structure + conditions predict log_D(Eu) on unseen extractants",
+ "dataset": {
+  "path": "dataset with 3D structures/dataset.parquet",
+  "sha256": "fefbefc6fe993aa9ce9db1a0c338adb9e5f58a8b75bab084cc1df4e024faf5dd"
+ },
+ "cohort": {
+  "fingerprint": "2a364bb5264e9935",
+  "rows": 1329,
+  "extractants": 183,
+  "ecfp_clusters": 162,
+  "chemotypes": 97,
+  "unit": "one row per (extractant, condition) cell",
+  "replicate_policy": "mean within cell",
+  "quarantine": "todga_structure_assigned_to_different_extractant",
+  "min_rows_filter": null
+ },
+ "target": {
+  "column": "log_D",
+  "transform": null,
+  "definition": "log10 of the distribution ratio D = [Eu]_org/[Eu]_aq",
+  "units": "dimensionless decades"
+ },
+ "feature_blocks": {
+  "COND": 64,
+  "MASSACT": 8,
+  "ECFP": 2048,
+  "PHYSCHEM": 10,
+  "DONORS": 15,
+  "LIG2D": 206
+ },
+ "default_model_contract": [
+  "COND",
+  "MASSACT",
+  "ECFP",
+  "PHYSCHEM",
+  "DONORS"
+ ],
+ "excluded_by_design": {
+  "metal_identity": [
+   "Atomic Number_metal",
+   "lanthanide_index",
+   "Ionic Radius_metal",
+   "metal_ox",
+   "sample_weight_inv_metal_freq"
+  ],
+  "geometry_3d": "not used; 1370/1566 raw Eu rows covered and gen2/3/5 verdict",
+  "lig2d_in_default_arm": "excluded per gen7; tested as ablation D"
+ },
+ "forbidden_feature_tokens": [
+  "log_D",
+  "D_value",
+  "log_SF",
+  "safe_exp_id",
+  "build_id",
+  "geometry_key",
+  "xyz_path",
+  "mol2_path",
+  "sample_weight",
+  "asset_index",
+  "doi",
+  "archive_",
+  "review_",
+  "row_id",
+  "extractant_name",
+  "_index",
+  "series_id",
+  "condition_id",
+  "chemotype",
+  "ecfp_cluster"
+ ],
+ "splits": {
+  "primary": "B (frozen Tanimoto-0.7 chemotype)",
+  "sensitivity": "A (exact canonical SMILES)",
+  "seeds": [
+   104729,
+   130363,
+   155921,
+   196613,
+   262147
+  ],
+  "n_splits": 5,
+  "n_inner_splits": 4,
+  "inner_seed_rule": "seed*31 + fold*7919 + 17",
+  "model_seed_rule": "42 + fold*1009 + 9999991"
+ },
+ "bands": [
+  {
+   "name": "far",
+   "low": null,
+   "high": 0.4
+  },
+  {
+   "name": "mid",
+   "low": 0.4,
+   "high": 0.6
+  },
+  {
+   "name": "near",
+   "low": 0.6,
+   "high": null
+  }
+ ],
+ "metrics": {
+  "primary": "macro_mae_extractant",
+  "averaging": "per split seed, then over seeds",
+  "centring": "per (split_seed, extractant); never seed-pooled"
+ },
+ "inference": {
+  "unit": "extractant",
+  "block": "chemotype",
+  "replicates": 10000,
+  "seed": 8675309,
+  "interval": "BCa governs; percentile reported alongside",
+  "robustness_blocking": "doi"
+ },
+ "decision_rules": {
+  "reproducibility_floor_macro_mae": 0.01,
+  "equivalence_margin_macro_mae": 0.02,
+  "power": "MDE at 80% reported before interpretation"
+ },
+ "few_shot": {
+  "k_values": [
+   0,
+   1,
+   2,
+   3,
+   5
+  ],
+  "repeats": 20,
+  "draw": "BLAKE2b of (seed, repeat, extractant, n_rows)",
+  "common_cohort_min_rows": 7
+ },
+ "multi_lanthanide": {
+  "policies": [
+   "STRICT",
+   "MATCHED_EU_ONLY",
+   "PERMUTED_METAL",
+   "SHUFFLED_TARGET",
+   "LEAKY_NO_FILTER"
+  ],
+  "exclusion": "every row of a held-out chemotype under every metal",
+  "reference": "T4_MATCHED_EU_ONLY (design-matched control)"
+ },
+ "training_rules": {
+  "sample_weights": "equal total mass per training extractant",
+  "prediction_clip": "training target range +/- 1 decade",
+  "preprocessing": "fold-local median impute + missingness indicator"
+ }
+}

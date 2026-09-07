@@ -1,0 +1,20 @@
+| subgroup   | arm              |   signed_level_error |   absolute_level_error |   n_extractants |   n_chemotypes |   n_eff_chemotype |
+|:-----------|:-----------------|---------------------:|-----------------------:|----------------:|---------------:|------------------:|
+| MULTI_ARM  | L0_GLOBAL_MEAN   |              -0.972  |                 2.2139 |              43 |             21 |            3.9593 |
+| MULTI_ARM  | L0_NN_TANIMOTO   |              -0.7436 |                 1.5543 |              43 |             21 |            3.9593 |
+| MULTI_ARM  | L1_ECFP          |              -1.1898 |                 1.9141 |              43 |             21 |            3.9593 |
+| MULTI_ARM  | L2_GENERIC       |              -1.171  |                 1.9748 |              43 |             21 |            3.9593 |
+| MULTI_ARM  | L3_ECFP_GENERIC  |              -1.1642 |                 1.8815 |              43 |             21 |            3.9593 |
+| MULTI_ARM  | L4_COORD         |              -0.8586 |                 1.5329 |              43 |             21 |            3.9593 |
+| MULTI_ARM  | L5_ECFP_COORD    |              -1.1897 |                 1.7959 |              43 |             21 |            3.9593 |
+| MULTI_ARM  | L6_GENERIC_COORD |              -1.1414 |                 1.8287 |              43 |             21 |            3.9593 |
+| MULTI_ARM  | L7_ALL           |              -1.1246 |                 1.7886 |              43 |             21 |            3.9593 |
+| single_arm | L0_GLOBAL_MEAN   |               0.1115 |                 1.4062 |             140 |             81 |           21.9239 |
+| single_arm | L0_NN_TANIMOTO   |              -0.0849 |                 0.9602 |             140 |             81 |           21.9239 |
+| single_arm | L1_ECFP          |              -0.2666 |                 0.8238 |             140 |             81 |           21.9239 |
+| single_arm | L2_GENERIC       |              -0.1683 |                 0.7976 |             140 |             81 |           21.9239 |
+| single_arm | L3_ECFP_GENERIC  |              -0.2418 |                 0.8108 |             140 |             81 |           21.9239 |
+| single_arm | L4_COORD         |              -0.076  |                 0.787  |             140 |             81 |           21.9239 |
+| single_arm | L5_ECFP_COORD    |              -0.2    |                 0.7824 |             140 |             81 |           21.9239 |
+| single_arm | L6_GENERIC_COORD |              -0.1415 |                 0.7871 |             140 |             81 |           21.9239 |
+| single_arm | L7_ALL           |              -0.1902 |                 0.7945 |             140 |             81 |           21.9239 |

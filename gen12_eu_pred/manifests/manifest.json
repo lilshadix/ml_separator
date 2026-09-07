@@ -1,0 +1,805 @@
+{
+ "generation": "Gen12Eu_pred",
+ "identity": {
+  "cohort_fingerprint": "2a364bb5264e9935",
+  "cohort_rows": 1329,
+  "cohort_extractants": 183,
+  "cohort_chemotypes": 97,
+  "split_seeds": [
+   104729,
+   130363,
+   155921,
+   196613,
+   262147
+  ],
+  "model_seed_rule": "42 + fold*1009 + 9999991",
+  "bootstrap_seed": 8675309
+ },
+ "frozen_inputs": {
+  "frozen_bundle": {
+   "path": "dataset with 3D structures/dataset.parquet",
+   "sha256": "fefbefc6fe993aa9ce9db1a0c338adb9e5f58a8b75bab084cc1df4e024faf5dd"
+  },
+  "ligand_2d_descriptors": {
+   "path": "dataset with 3D structures/ligand_2d_descriptors.parquet",
+   "sha256": "cca10165ba933eea084c974851f32b92609349000f70bc9fbe3521c7fbdd3cd4"
+  },
+  "frozen_chemistry_map": {
+   "path": "runs/gen7_architecture/cache/chemistry_map.parquet",
+   "sha256": "7cdf46a6d38f3bb74b24c87f8c616caba7b64e6ac46476d9b252ecb96da4157a"
+  },
+  "gen7_cohort_cache": {
+   "path": "runs/gen7_architecture/cache/cohort.parquet",
+   "sha256": "e5030252aa212b1d456cd9ad661d0840f549771d3627f56692fc9f2235ca79a7"
+  }
+ },
+ "environment": {
+  "created_utc": "2026-09-05T07:33:26.888495+00:00",
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "machine": "arm64",
+  "versions": {
+   "python": "3.13.0",
+   "numpy": "2.5.1",
+   "pandas": "3.0.5",
+   "scipy": "1.18.0",
+   "sklearn": "1.9.0",
+   "rdkit": "2026.03.5",
+   "catboost": "1.2.10",
+   "xgboost": "3.4.1",
+   "torch": "2.13.0",
+   "matplotlib": "3.11.1",
+   "pyarrow": "25.0.0"
+  },
+  "git": {
+   "commit": "e9513932c19c49bd980fb1094bcb08e75c90320b",
+   "branch": "descriptor-arm-metal-site",
+   "dirty": true
+  }
+ },
+ "artefacts": {
+  "DATA_AUDIT.md": {
+   "bytes": 21007,
+   "blake2b_128": "6693d9665b9d62b8e63cffbb0bca3a9a"
+  },
+  "DECISION_REPORT.md": {
+   "bytes": 33052,
+   "blake2b_128": "ddef3459fd86a30c62a9b6d2dc5f9d3b"
+  },
+  "PRE_REGISTRATION.md": {
+   "bytes": 19783,
+   "blake2b_128": "b9f8ded37457fef9d9dc8241b21d3f04"
+  },
+  "README.md": {
+   "bytes": 4052,
+   "blake2b_128": "c3e7f8e280833b088ab377cff16a5152"
+  },
+  "bootstrap/A_influence.csv": {
+   "bytes": 8350,
+   "blake2b_128": "dfef25f628c8c8b950aaf58a5ed7d3b5"
+  },
+  "bootstrap/A_pairwise.csv": {
+   "bytes": 5409,
+   "blake2b_128": "2863c7490b1a78acc81c73bb52a4734a"
+  },
+  "bootstrap/A_pairwise_by_band.csv": {
+   "bytes": 5447,
+   "blake2b_128": "d98c6199f739ba36075b22b66f5f6503"
+  },
+  "bootstrap/A_pairwise_doi_blocked.csv": {
+   "bytes": 1925,
+   "blake2b_128": "d3d17eebc5594cb5c36c898efc918265"
+  },
+  "bootstrap/A_power.csv": {
+   "bytes": 733,
+   "blake2b_128": "aa0ea6866e43673243149dd524010e53"
+  },
+  "bootstrap/B_ablation_pairwise.csv": {
+   "bytes": 1295,
+   "blake2b_128": "4bdbbceed474f5528620f549de3e201c"
+  },
+  "bootstrap/B_fewshot_pairwise.csv": {
+   "bytes": 9101,
+   "blake2b_128": "797d23e94b5b4747e6133cc9d2f2f603"
+  },
+  "bootstrap/B_frontier_by_band.csv": {
+   "bytes": 8332,
+   "blake2b_128": "6ba243a26d8815d9e65ed9e63101ceb4"
+  },
+  "bootstrap/B_hypotheses.csv": {
+   "bytes": 20347,
+   "blake2b_128": "d0020899e329b545e218c4fdc35daa85"
+  },
+  "bootstrap/B_influence.csv": {
+   "bytes": 8807,
+   "blake2b_128": "c3ded66f81222f6fb19df8e2d164a3b2"
+  },
+  "bootstrap/B_influence_ABL_C_MOL_COND.csv": {
+   "bytes": 8393,
+   "blake2b_128": "467f521dbc681dab5127b8d2095649b5"
+  },
+  "bootstrap/B_influence_ABL_D_PLUS_LIG2D.csv": {
+   "bytes": 8517,
+   "blake2b_128": "b11bccd3cca8388798fc60d09a0f75da"
+  },
+  "bootstrap/B_influence_hypothesis.csv": {
+   "bytes": 27021,
+   "blake2b_128": "56cdabcf26f9d26d9ce60bb4b7e065e6"
+  },
+  "bootstrap/B_multiln_pairwise.csv": {
+   "bytes": 3711,
+   "blake2b_128": "8c93cc56e236f2fc59da5f8d6b4fb554"
+  },
+  "bootstrap/B_multiln_power.csv": {
+   "bytes": 522,
+   "blake2b_128": "c8c3f20ae57411438754fb2f0b9d288b"
+  },
+  "bootstrap/B_one_measurement.csv": {
+   "bytes": 2088,
+   "blake2b_128": "5536cf6f1576300d9fb26aa7cf1aeab3"
+  },
+  "bootstrap/B_pairwise.csv": {
+   "bytes": 7453,
+   "blake2b_128": "325d75172cab952378f13daa835fb516"
+  },
+  "bootstrap/B_pairwise_by_band.csv": {
+   "bytes": 7487,
+   "blake2b_128": "f2b5cd0d34a87f94af53e5933335c86f"
+  },
+  "bootstrap/B_pairwise_doi_blocked.csv": {
+   "bytes": 2609,
+   "blake2b_128": "85d13ab3301ee7f71e87a8d2e4cc4aef"
+  },
+  "bootstrap/B_power.csv": {
+   "bytes": 981,
+   "blake2b_128": "fcb8634a1bafb1a269529d7c167855b4"
+  },
+  "config/experiment_contract.json": {
+   "bytes": 3387,
+   "blake2b_128": "04fdf591382b5d569fdd46013538d1ce"
+  },
+  "figures/fig1_leaderboard_B.png": {
+   "bytes": 58157
+  },
+  "figures/fig2_similarity_frontier_B.png": {
+   "bytes": 74145
+  },
+  "figures/fig3_fewshot_B.png": {
+   "bytes": 83592
+  },
+  "figures/fig4_cohort_B.png": {
+   "bytes": 48258
+  },
+  "figures/values_B.json": {
+   "bytes": 2211,
+   "blake2b_128": "8871e44b883e423c055326d080e2f5ae"
+  },
+  "gen12eu/__init__.py": {
+   "bytes": 470,
+   "blake2b_128": "cb1d5c0be9dbabfce78106acd3450cd7"
+  },
+  "gen12eu/chemistry.py": {
+   "bytes": 4386,
+   "blake2b_128": "82e55ae21c0339e0564253eff91da8dd"
+  },
+  "gen12eu/cohort.py": {
+   "bytes": 15914,
+   "blake2b_128": "ef0f14466e09cc9abe6148836cf1079a"
+  },
+  "gen12eu/data.py": {
+   "bytes": 1662,
+   "blake2b_128": "439dc6ca9ff3a7dbea456d6636ac8f32"
+  },
+  "gen12eu/dmpnn.py": {
+   "bytes": 20019,
+   "blake2b_128": "7ebc3befc5c1d65e475205c39c6c1c07"
+  },
+  "gen12eu/fewshot.py": {
+   "bytes": 10364,
+   "blake2b_128": "1becc8141e34447429798df67c543988"
+  },
+  "gen12eu/inference.py": {
+   "bytes": 8741,
+   "blake2b_128": "150ae4e38a62fa6fab1e50b990257337"
+  },
+  "gen12eu/metrics.py": {
+   "bytes": 7623,
+   "blake2b_128": "2158783332b5d2e5673888b180fd19bf"
+  },
+  "gen12eu/models.py": {
+   "bytes": 19388,
+   "blake2b_128": "93d74b876e8bc08ace6e277cdaa8af30"
+  },
+  "gen12eu/multiln.py": {
+   "bytes": 8905,
+   "blake2b_128": "8f695b826896dbfe022f3419d98c5bd7"
+  },
+  "gen12eu/paths.py": {
+   "bytes": 1958,
+   "blake2b_128": "15348677143191934fb607741c397857"
+  },
+  "gen12eu/preprocess.py": {
+   "bytes": 5666,
+   "blake2b_128": "847232790463439a09f0bfae492da267"
+  },
+  "gen12eu/runner.py": {
+   "bytes": 4431,
+   "blake2b_128": "cd54aea9fd4e4f9c1443674a431e6fc7"
+  },
+  "gen12eu/splits.py": {
+   "bytes": 8310,
+   "blake2b_128": "dba0ce5d93c2380b20cf325ea4d37278"
+  },
+  "headline_tables/t1_zero_shot_leaderboard.csv": {
+   "bytes": 2415,
+   "blake2b_128": "60f1febaddb80b61713165a9df97ac1f"
+  },
+  "headline_tables/t1_zero_shot_leaderboard.md": {
+   "bytes": 6992,
+   "blake2b_128": "de76509788228bfef69cb26e1b754e06"
+  },
+  "headline_tables/t2_bands.csv": {
+   "bytes": 5743,
+   "blake2b_128": "df3e67920386cb494d420823af54fe96"
+  },
+  "headline_tables/t2_bands.md": {
+   "bytes": 16254,
+   "blake2b_128": "6665ab473e08ad8d666ee82cca5c9511"
+  },
+  "headline_tables/t3_pairwise_comparisons.csv": {
+   "bytes": 16265,
+   "blake2b_128": "ecc27106bc3b66bc814b52899e978351"
+  },
+  "headline_tables/t3_pairwise_comparisons.md": {
+   "bytes": 38121,
+   "blake2b_128": "99ecc53d09670c5cedf7cc0eeff6ed22"
+  },
+  "headline_tables/t4_power.csv": {
+   "bytes": 1220,
+   "blake2b_128": "cb8dcda79fe53c95a52178f4eedc736b"
+  },
+  "headline_tables/t4_power.md": {
+   "bytes": 2502,
+   "blake2b_128": "a59ae8ce8bf3d51deb100f6e798bc0e9"
+  },
+  "headline_tables/t5_fewshot_curve.csv": {
+   "bytes": 6052,
+   "blake2b_128": "24eaa27da4b6f2b9f426a2e77746144a"
+  },
+  "headline_tables/t5_fewshot_curve.md": {
+   "bytes": 12556,
+   "blake2b_128": "ce3436435dab94c03feb18cd063c888a"
+  },
+  "headline_tables/t6_multi_lanthanide.csv": {
+   "bytes": 428,
+   "blake2b_128": "6a2f6abe869814f0f1a8e4935acdcd92"
+  },
+  "headline_tables/t6_multi_lanthanide.md": {
+   "bytes": 1112,
+   "blake2b_128": "441d58da9ca06b730781d901d683f636"
+  },
+  "headline_tables/t7_ablation.csv": {
+   "bytes": 327,
+   "blake2b_128": "3cd96b4b06ea6a4373aa46c0ec4a7656"
+  },
+  "headline_tables/t7_ablation.md": {
+   "bytes": 792,
+   "blake2b_128": "6d903a0e6e48ee2c0b3944de1419b33e"
+  },
+  "headline_tables/t8_influence.csv": {
+   "bytes": 638,
+   "blake2b_128": "507d504c157564772fd7617f59dea811"
+  },
+  "headline_tables/t8_influence.md": {
+   "bytes": 1526,
+   "blake2b_128": "f630b4ad9de56d6f0efe8b82dddf0956"
+  },
+  "headline_tables/t9_hypotheses.md": {
+   "bytes": 36260,
+   "blake2b_128": "e7bad67b9bc2781e813f9480aa81b662"
+  },
+  "manifests/cohort.parquet": {
+   "bytes": 1699565,
+   "blake2b_128": "1927c1a4901a93479a40adc120f753a3"
+  },
+  "manifests/cohort_blocks.json": {
+   "bytes": 38760,
+   "blake2b_128": "a7cdd2a6d7a0e81e9268c0959b350124"
+  },
+  "manifests/cohort_identity.parquet": {
+   "bytes": 504015,
+   "blake2b_128": "b8f70cd2e8541b5c1c33ff33623367d7"
+  },
+  "manifests/data_audit.json": {
+   "bytes": 16477,
+   "blake2b_128": "3de408664e28820bd79759259a15442c"
+  },
+  "manifests/report_verification.csv": {
+   "bytes": 5524,
+   "blake2b_128": "f2bd74f3062de0dd02ef51bb951fd9c3"
+  },
+  "manifests/self_audit.csv": {
+   "bytes": 738,
+   "blake2b_128": "d34f925549d49de993cb59d085b57473"
+  },
+  "metrics/A/bands.csv": {
+   "bytes": 11982,
+   "blake2b_128": "93fabc60e04b19521b430ab101fa3fe5"
+  },
+  "metrics/A/bootstrap_input_mae.csv": {
+   "bytes": 164205,
+   "blake2b_128": "3832c705f4114d0c4a251db9d3f952fe"
+  },
+  "metrics/A/leaderboard.csv": {
+   "bytes": 3450,
+   "blake2b_128": "34baae7578effccf1f2977bcb7af13e2"
+  },
+  "metrics/A/per_chemotype.csv": {
+   "bytes": 38843,
+   "blake2b_128": "ba972de5f86981b3ed4857bcbe8a6168"
+  },
+  "metrics/A/per_extractant.csv": {
+   "bytes": 2509419,
+   "blake2b_128": "aa4e089fa080c84b2e2c782301574d88"
+  },
+  "metrics/A/summary.json": {
+   "bytes": 8164,
+   "blake2b_128": "4bfe9e3286a01d863be4c6d60a965ec4"
+  },
+  "metrics/B/bands.csv": {
+   "bytes": 15919,
+   "blake2b_128": "005ee728d590a0d65bba4519ee3962d7"
+  },
+  "metrics/B/bootstrap_input_mae.csv": {
+   "bytes": 221152,
+   "blake2b_128": "a5f36068d58bf72e19740b116ac4d02e"
+  },
+  "metrics/B/calibration.csv": {
+   "bytes": 618,
+   "blake2b_128": "7823069bc5472755876e4f9426afa90c"
+  },
+  "metrics/B/fewshot_curve.csv": {
+   "bytes": 10245,
+   "blake2b_128": "06371823800a5183d730377f66afaee1"
+  },
+  "metrics/B/fewshot_detail.parquet": {
+   "bytes": 3447487,
+   "blake2b_128": "40feee150f224d8706c22ea7cfe2e8a9"
+  },
+  "metrics/B/fewshot_meta.json": {
+   "bytes": 384,
+   "blake2b_128": "170fd6fd37cfc24b2292f6a057983173"
+  },
+  "metrics/B/fewshot_support_membership.parquet": {
+   "bytes": 615700,
+   "blake2b_128": "2af5fe1b6627223604f39ba2ae8cb5e3"
+  },
+  "metrics/B/frontier_deciles.csv": {
+   "bytes": 4413,
+   "blake2b_128": "fff6982577033ec86ddf4785386492f4"
+  },
+  "metrics/B/leaderboard.csv": {
+   "bytes": 4502,
+   "blake2b_128": "f8528a39a4d7222c24252352d7ff2d5c"
+  },
+  "metrics/B/one_measurement_by_band.csv": {
+   "bytes": 276,
+   "blake2b_128": "411a970b3b4ddf090a8fe654e61daae0"
+  },
+  "metrics/B/one_measurement_detail.parquet": {
+   "bytes": 99791,
+   "blake2b_128": "201f516ebc8bd8287aca766b6446b5b7"
+  },
+  "metrics/B/per_chemotype.csv": {
+   "bytes": 52961,
+   "blake2b_128": "cc84130c854eac05e9b25be89ca9a05a"
+  },
+  "metrics/B/per_extractant.csv": {
+   "bytes": 3371056,
+   "blake2b_128": "398b617b8e1f5d6a27b869506a0a9749"
+  },
+  "metrics/B/review_flag_strata.csv": {
+   "bytes": 593,
+   "blake2b_128": "3aaea4acb84673c6899138b0b7617436"
+  },
+  "metrics/B/summary.json": {
+   "bytes": 10804,
+   "blake2b_128": "fb9b5d43d859fc9605002446e8052581"
+  },
+  "metrics/B/worst_extractants.csv": {
+   "bytes": 2173,
+   "blake2b_128": "e9a1e589ad875f41b231fe067cdcff91"
+  },
+  "metrics/B_ablation/bands.csv": {
+   "bytes": 8151,
+   "blake2b_128": "84b8c90b84eba355d0e707ca18634efe"
+  },
+  "metrics/B_ablation/leaderboard.csv": {
+   "bytes": 2250,
+   "blake2b_128": "495bdb2d084ecfc15184ecaae7aa600e"
+  },
+  "metrics/B_multiln/bands.csv": {
+   "bytes": 8125,
+   "blake2b_128": "c33198649a73c20440131317575a56d0"
+  },
+  "metrics/B_multiln/inventory.json": {
+   "bytes": 2280,
+   "blake2b_128": "9079a586fef631ee41a517aab8403e2b"
+  },
+  "metrics/B_multiln/leaderboard.csv": {
+   "bytes": 2248,
+   "blake2b_128": "61740ad5c8e19a7fd1e58fb040552253"
+  },
+  "predictions/A/B0_GLOBAL_MEAN.parquet": {
+   "bytes": 99877,
+   "blake2b_128": "fdfd30ae5b41b58bc00ae8e674c3bcd5"
+  },
+  "predictions/A/B0_GLOBAL_MEAN__selection.csv": {
+   "bytes": 810,
+   "blake2b_128": "aa1d2644009748362625387b34cade9b"
+  },
+  "predictions/A/B1_COND_ONLY.parquet": {
+   "bytes": 154105,
+   "blake2b_128": "b9da6f839bec820dfca17d400d0a1135"
+  },
+  "predictions/A/B1_COND_ONLY__selection.csv": {
+   "bytes": 756,
+   "blake2b_128": "3a431c167d4cd67ea428aeded78250ae"
+  },
+  "predictions/A/B2_NN_CHEMICAL.parquet": {
+   "bytes": 145884,
+   "blake2b_128": "f4cac9369519c34e9b576d369819a3d0"
+  },
+  "predictions/A/B2_NN_CHEMICAL__selection.csv": {
+   "bytes": 1465,
+   "blake2b_128": "8bbe7a5c0a7a223b00d5a3fc17813924"
+  },
+  "predictions/A/B3_NN_LEVEL_ONLY.parquet": {
+   "bytes": 103615,
+   "blake2b_128": "d467b1d4cc1a2d4e034c340bbe439d9e"
+  },
+  "predictions/A/B3_NN_LEVEL_ONLY__selection.csv": {
+   "bytes": 860,
+   "blake2b_128": "786f9fceaa4e9cd92420147580872a81"
+  },
+  "predictions/A/T1_CATBOOST.parquet": {
+   "bytes": 155901,
+   "blake2b_128": "bfd2ff2f1160485ba2851a604c00a975"
+  },
+  "predictions/A/T1_CATBOOST__selection.csv": {
+   "bytes": 1516,
+   "blake2b_128": "bc1fe9458b4b2bf8a52c91ea9495bdd7"
+  },
+  "predictions/A/T1_EXTRATREES.parquet": {
+   "bytes": 161281,
+   "blake2b_128": "d0e6e8e39dcdb77aa5b84b2befa9fd1b"
+  },
+  "predictions/A/T1_EXTRATREES__selection.csv": {
+   "bytes": 1456,
+   "blake2b_128": "b89b2d5ab386133b2394ea6d200c64b9"
+  },
+  "predictions/A/T1_RANDOMFOREST.parquet": {
+   "bytes": 161235,
+   "blake2b_128": "4631781130cfceedc4de2221e336f3e5"
+  },
+  "predictions/A/T1_RANDOMFOREST__selection.csv": {
+   "bytes": 1506,
+   "blake2b_128": "d156255a5e9ecb8aca946defeb43e65a"
+  },
+  "predictions/A/T1_XGBOOST.parquet": {
+   "bytes": 147717,
+   "blake2b_128": "23ac8563eac1bafc3084504163bddad0"
+  },
+  "predictions/A/T1_XGBOOST__selection.csv": {
+   "bytes": 1514,
+   "blake2b_128": "16565ccf887fd31e25918249b2bec7b9"
+  },
+  "predictions/A/T2_MLP.parquet": {
+   "bytes": 150625,
+   "blake2b_128": "7a67c983bed32598abe96bbe3b9a21d5"
+  },
+  "predictions/A/T2_MLP__selection.csv": {
+   "bytes": 1191,
+   "blake2b_128": "0d10c3f934a456779c62063b49c992e3"
+  },
+  "predictions/A/fold_plan.json": {
+   "bytes": 220602,
+   "blake2b_128": "cd9342e87af7682c2f5c7cf589a15e80"
+  },
+  "predictions/A/similarity.parquet": {
+   "bytes": 19022,
+   "blake2b_128": "f8d5df791813f2b8cc837793fe839ecb"
+  },
+  "predictions/B/B0_GLOBAL_MEAN.parquet": {
+   "bytes": 94467,
+   "blake2b_128": "a16dbee7dbbb94c1aa36160c8951a3d4"
+  },
+  "predictions/B/B0_GLOBAL_MEAN__selection.csv": {
+   "bytes": 809,
+   "blake2b_128": "a00ed0f7bf6945b912bba42e8444b3d7"
+  },
+  "predictions/B/B1_COND_ONLY.parquet": {
+   "bytes": 143309,
+   "blake2b_128": "ee6423e42e85685949f7a39de8f518c1"
+  },
+  "predictions/B/B1_COND_ONLY__selection.csv": {
+   "bytes": 756,
+   "blake2b_128": "ac221a939cd49b2daa6e6215f2d9f558"
+  },
+  "predictions/B/B2_NN_CHEMICAL.parquet": {
+   "bytes": 140795,
+   "blake2b_128": "6be43c6026f6eab6e03195746142e0c8"
+  },
+  "predictions/B/B2_NN_CHEMICAL__selection.csv": {
+   "bytes": 1458,
+   "blake2b_128": "b315bbb81b1fb76af22d87ceef0fa94a"
+  },
+  "predictions/B/B3_NN_LEVEL_ONLY.parquet": {
+   "bytes": 97435,
+   "blake2b_128": "94287181d752a60dc6a72e8e52df5400"
+  },
+  "predictions/B/B3_NN_LEVEL_ONLY__selection.csv": {
+   "bytes": 860,
+   "blake2b_128": "d357095a307ab4cc1479d49aacbcb4c3"
+  },
+  "predictions/B/T1_CATBOOST.parquet": {
+   "bytes": 148389,
+   "blake2b_128": "025851c2aca9b94726e03a9cebe34984"
+  },
+  "predictions/B/T1_CATBOOST__selection.csv": {
+   "bytes": 1506,
+   "blake2b_128": "41227d54755e2fc9ac01f7aad7e8bc73"
+  },
+  "predictions/B/T1_EXTRATREES.parquet": {
+   "bytes": 152969,
+   "blake2b_128": "512d42922e119d934ff097e6303c2d25"
+  },
+  "predictions/B/T1_EXTRATREES__selection.csv": {
+   "bytes": 1456,
+   "blake2b_128": "77a5b375619185c9b7ed0848dc6a9ec5"
+  },
+  "predictions/B/T1_RANDOMFOREST.parquet": {
+   "bytes": 153019,
+   "blake2b_128": "3c3dc048a58d8d50c858bfd03edfb663"
+  },
+  "predictions/B/T1_RANDOMFOREST__selection.csv": {
+   "bytes": 1508,
+   "blake2b_128": "0b54a8dc82b46947c79b70c75a9034af"
+  },
+  "predictions/B/T1_XGBOOST.parquet": {
+   "bytes": 137133,
+   "blake2b_128": "daa1eab6ab4c7242b04dfb170e77f8ad"
+  },
+  "predictions/B/T1_XGBOOST__selection.csv": {
+   "bytes": 1480,
+   "blake2b_128": "c05fb2c9df2c595c0da9cac89695c9e2"
+  },
+  "predictions/B/T2_MLP.parquet": {
+   "bytes": 144333,
+   "blake2b_128": "9da078ad8f5989061694091a5135808c"
+  },
+  "predictions/B/T2_MLP__selection.csv": {
+   "bytes": 1190,
+   "blake2b_128": "28fc781183e73d6d4c6d777ff16de2a7"
+  },
+  "predictions/B/T3_DMPNN_COND.parquet": {
+   "bytes": 144305,
+   "blake2b_128": "7c74c0a940711c149739d8154c7be6a9"
+  },
+  "predictions/B/T3_DMPNN_COND_DESC.parquet": {
+   "bytes": 144326,
+   "blake2b_128": "c55adf65e37aea70066d9cf4eb8e5215"
+  },
+  "predictions/B/T3_DMPNN_COND_DESC__selection.csv": {
+   "bytes": 1501,
+   "blake2b_128": "b556317222496537e02aed13127b3a09"
+  },
+  "predictions/B/T3_DMPNN_COND__selection.csv": {
+   "bytes": 1374,
+   "blake2b_128": "f5154ee261cce40feb7a0b986d9abc61"
+  },
+  "predictions/B/T3_DMPNN_GRAPH_ONLY.parquet": {
+   "bytes": 106602,
+   "blake2b_128": "869553a63d3114e936e0e7f4cc9a9b52"
+  },
+  "predictions/B/T3_DMPNN_GRAPH_ONLY__selection.csv": {
+   "bytes": 1535,
+   "blake2b_128": "7353c69813d2e8da724516ad6ed213f7"
+  },
+  "predictions/B/fold_plan.json": {
+   "bytes": 169957,
+   "blake2b_128": "9777921750b3acf7b7849ddcb62139e3"
+  },
+  "predictions/B/similarity.parquet": {
+   "bytes": 17415,
+   "blake2b_128": "76a911cd3cbf832bcea506aaa541be3a"
+  },
+  "predictions/B_ablation/ABL_A_CONDITIONS.parquet": {
+   "bytes": 145321,
+   "blake2b_128": "4f344233822fde3c9a95ea9f1c9ebb48"
+  },
+  "predictions/B_ablation/ABL_A_CONDITIONS__selection.csv": {
+   "bytes": 1537,
+   "blake2b_128": "aa259a910ca335b76d141f1040d4c3af"
+  },
+  "predictions/B_ablation/ABL_B_MOLECULE.parquet": {
+   "bytes": 106439,
+   "blake2b_128": "b85398b7ea004dc1101fc07f633fe98e"
+  },
+  "predictions/B_ablation/ABL_B_MOLECULE__selection.csv": {
+   "bytes": 1487,
+   "blake2b_128": "bc516a35403118d52e1baf782b861b56"
+  },
+  "predictions/B_ablation/ABL_C_MOL_COND.parquet": {
+   "bytes": 152974,
+   "blake2b_128": "3ee34e590fa9c453207b41aee3d4d4fb"
+  },
+  "predictions/B_ablation/ABL_C_MOL_COND__selection.csv": {
+   "bytes": 1482,
+   "blake2b_128": "e3752daf3bf0c2db2c5d682a7a125db2"
+  },
+  "predictions/B_ablation/ABL_D_PLUS_LIG2D.parquet": {
+   "bytes": 152848,
+   "blake2b_128": "c6f26acaf20cf4de077dd1f39de362e8"
+  },
+  "predictions/B_ablation/ABL_D_PLUS_LIG2D__selection.csv": {
+   "bytes": 1527,
+   "blake2b_128": "8aac0be495f303b589de6ac80cd3c72f"
+  },
+  "predictions/B_ablation/ABL_E_ECFP_COND.parquet": {
+   "bytes": 151627,
+   "blake2b_128": "ef18c623946efe8431878c133f74816b"
+  },
+  "predictions/B_ablation/ABL_E_ECFP_COND__selection.csv": {
+   "bytes": 1508,
+   "blake2b_128": "588937dd9e75462d0a3bc9bbc22f4b74"
+  },
+  "predictions/B_multiln/T4_LEAKY_NO_FILTER.parquet": {
+   "bytes": 155274,
+   "blake2b_128": "35975890d1237f3a58e1acf6d97b2501"
+  },
+  "predictions/B_multiln/T4_LEAKY_NO_FILTER__selection.csv": {
+   "bytes": 1859,
+   "blake2b_128": "16ab7a3dc0c7b6c368a3d50a71f5818d"
+  },
+  "predictions/B_multiln/T4_MATCHED_EU_ONLY.parquet": {
+   "bytes": 152850,
+   "blake2b_128": "749973cdc44689f46a2c6b3c33b799a3"
+  },
+  "predictions/B_multiln/T4_MATCHED_EU_ONLY__selection.csv": {
+   "bytes": 2124,
+   "blake2b_128": "83d302e3a12dc23da197316542b87591"
+  },
+  "predictions/B_multiln/T4_PERMUTED_METAL.parquet": {
+   "bytes": 153749,
+   "blake2b_128": "242f0a05794eb1388d1f530c65da8c67"
+  },
+  "predictions/B_multiln/T4_PERMUTED_METAL__selection.csv": {
+   "bytes": 1877,
+   "blake2b_128": "befd5e70d3688202ab3dfdacfd2c1a43"
+  },
+  "predictions/B_multiln/T4_SHUFFLED_TARGET.parquet": {
+   "bytes": 153986,
+   "blake2b_128": "64b99e0702f4bc524908b0302de1f649"
+  },
+  "predictions/B_multiln/T4_SHUFFLED_TARGET__selection.csv": {
+   "bytes": 1902,
+   "blake2b_128": "14de99d92991879425475bc4a7770d6a"
+  },
+  "predictions/B_multiln/T4_STRICT.parquet": {
+   "bytes": 153549,
+   "blake2b_128": "f5934a37e5c22fe7f0ad0beb94147ddd"
+  },
+  "predictions/B_multiln/T4_STRICT__selection.csv": {
+   "bytes": 1677,
+   "blake2b_128": "a506923c7896801660f4a5770ced2a32"
+  },
+  "predictions/B_pre_clip_guard/B2_NN_CHEMICAL.parquet": {
+   "bytes": 141371,
+   "blake2b_128": "b41c11f66cc8863022cb8d62ccd21e83"
+  },
+  "predictions/B_pre_clip_guard/B2_NN_CHEMICAL__selection.csv": {
+   "bytes": 1461,
+   "blake2b_128": "feada1de5480913fa0b314d8ac59d091"
+  },
+  "predictions/B_pre_clip_guard/T2_MLP.parquet": {
+   "bytes": 144783,
+   "blake2b_128": "006d28c52ac5d7bea9d04edc6e382838"
+  },
+  "predictions/B_pre_clip_guard/T2_MLP__selection.csv": {
+   "bytes": 1175,
+   "blake2b_128": "46daccf7811df9d2cb95054b879d316c"
+  },
+  "predictions/B_pre_clip_guard/T3_DMPNN_COND.parquet": {
+   "bytes": 144749,
+   "blake2b_128": "8c7e90e39b9767246b6a4991528e1691"
+  },
+  "predictions/B_pre_clip_guard/T3_DMPNN_COND_DESC.parquet": {
+   "bytes": 143818,
+   "blake2b_128": "bda6c6cbf7c9920ba04a4d18bc051723"
+  },
+  "predictions/B_pre_clip_guard/T3_DMPNN_COND_DESC__selection.csv": {
+   "bytes": 1498,
+   "blake2b_128": "44267005590ab8254dd438039a76bc51"
+  },
+  "predictions/B_pre_clip_guard/T3_DMPNN_COND__selection.csv": {
+   "bytes": 1378,
+   "blake2b_128": "47ca4c3c82ff4d889d50208bbcdcddae"
+  },
+  "predictions/B_pre_clip_guard/T3_DMPNN_GRAPH_ONLY.parquet": {
+   "bytes": 106490,
+   "blake2b_128": "4796378f6202a3f3d350a29e732ecc1f"
+  },
+  "predictions/B_pre_clip_guard/T3_DMPNN_GRAPH_ONLY__selection.csv": {
+   "bytes": 1537,
+   "blake2b_128": "7b7664ada9856e9d8c30175f5b175701"
+  },
+  "scripts/gen12_ablation.py": {
+   "bytes": 3860,
+   "blake2b_128": "68858cd9dfea780bb2e9f923d9649576"
+  },
+  "scripts/gen12_analysis.py": {
+   "bytes": 9727,
+   "blake2b_128": "7325e3f94f16d75ccd4be6f0917d9b31"
+  },
+  "scripts/gen12_data_audit.py": {
+   "bytes": 17186,
+   "blake2b_128": "cdd340198b81b674bdac2a9f02775f0c"
+  },
+  "scripts/gen12_diagnostics.py": {
+   "bytes": 4421,
+   "blake2b_128": "48218a9afc0a75b9e4de4ac96afc3906"
+  },
+  "scripts/gen12_fewshot.py": {
+   "bytes": 4729,
+   "blake2b_128": "a93733416abda96653821c15ff245a9b"
+  },
+  "scripts/gen12_figures.py": {
+   "bytes": 9177,
+   "blake2b_128": "9ec6259e9dbb50c952b28d82aa4d11c4"
+  },
+  "scripts/gen12_frontier.py": {
+   "bytes": 4500,
+   "blake2b_128": "375cde0699688c25769cab51e5b850a3"
+  },
+  "scripts/gen12_headline_tables.py": {
+   "bytes": 5686,
+   "blake2b_128": "05db4091eb33ed61f879bb7d73dce296"
+  },
+  "scripts/gen12_hypotheses.py": {
+   "bytes": 5648,
+   "blake2b_128": "79f6af541f4bb58f785a4554bd86c49b"
+  },
+  "scripts/gen12_manifest.py": {
+   "bytes": 5672,
+   "blake2b_128": "9f766ce6542bcc0a8da89ccad261b2a1"
+  },
+  "scripts/gen12_multiln.py": {
+   "bytes": 5960,
+   "blake2b_128": "be22df02e1ccdc9624b91f012979e769"
+  },
+  "scripts/gen12_one_measurement.py": {
+   "bytes": 4950,
+   "blake2b_128": "70794dd40fc51756669f3d36a0f17d2e"
+  },
+  "scripts/gen12_run_ladder.py": {
+   "bytes": 3479,
+   "blake2b_128": "bbd8450b4191b18156cb88a387ec9927"
+  },
+  "scripts/gen12_self_audit.py": {
+   "bytes": 6268,
+   "blake2b_128": "273d7b8cc62bf4d1adebad9235d85745"
+  },
+  "scripts/gen12_verify_report.py": {
+   "bytes": 9491,
+   "blake2b_128": "d3833430220a968619da238d51339faf"
+  },
+  "splits/similarity_by_fold.parquet": {
+   "bytes": 27568,
+   "blake2b_128": "fd280a4b74cf6b535b293d51d1fff18e"
+  },
+  "tests/test_gen12_invariants.py": {
+   "bytes": 17249,
+   "blake2b_128": "cbce9f9f386a069cc1999c7d781e4c80"
+  }
+ }
+}
