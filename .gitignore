@@ -87,3 +87,16 @@ gen13_separation/metrics/**/fewshot_stage2_pairs.parquet
 # gen14.dirbench.load / the verify_direction runner).
 gen14_direction/cache/
 gen13_separation/analysis/stage3/verify_direction/bench_cache.pkl
+
+# gen15: derived scoring tables, disk caches and agent scratch. Every one of these is rebuilt by
+# the scripts in gen15_curve/scripts/ from the frozen gen13 cohort; the boards and contrast CSVs
+# that back the report are checked in, the per-unit intermediates behind them are not.
+gen15_curve/cache/
+gen15_curve/models/*.joblib
+gen15_curve/results/*.parquet
+gen15_curve/exp/**/*.pkl
+gen15_curve/exp/embed/*_fp.parquet
+gen15_curve/exp/embed/ligand_embeddings.parquet
+gen15_curve/exp/**/per_extractant_*.csv
+gen15_curve/exp/kernel/results/ad_cells.csv
+gen15_curve/exp/kernel/results/publeak_cells.csv
