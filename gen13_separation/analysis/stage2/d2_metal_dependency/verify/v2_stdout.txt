@@ -1,0 +1,84 @@
+cells=521  metals=14  complete-14 cells=78  m>=8 cells=188  m==2 cells=138
+row-centring check: max |mean of centred curve over observed metals| = 7.30e-16
+
+==============================================================================
+C1  PC1 variance fraction and radius correlation
+==============================================================================
+variogram pair counts: min=87 median=153 max=242  (91 pairs)
+max |V(raw) - V(centred)| = 4.44e-16  (level-free, as claimed)
+variogram, unshrunk                    PC1=0.910 PC2=0.053 PC3=0.029 cum3=0.992   [/sum(pos): 0.872]  min eig=-0.0860
+smallest alpha on a 0.01 grid making all 13 subspace eigenvalues > 0: 0.22
+variogram, shrunk alpha=0.22           PC1=0.726 PC2=0.058 PC3=0.040 cum3=0.825   [/sum(pos): 0.726]  min eig=-0.0000
+complete-14 sample cov (n=78)          PC1=0.898 PC2=0.065 PC3=0.015 cum3=0.977   [/sum(pos): 0.898]  min eig=-0.0000
+
+PC1 vs physics basis (Pearson r over the 14 metals):
+            estimator  radius  radius_sq  inv_radius  radius_cn9  hydration  gd_break  tetrad_e1  tetrad_e3
+   variogram_unshrunk  0.9881     0.5001     -0.9815      0.9875     0.9728   -0.8756     0.1456     0.0224
+variogram_shrunk_0.22  0.9881     0.5001     -0.9815      0.9875     0.9728   -0.8756     0.1456     0.0224
+           complete14  0.9855     0.5235     -0.9777      0.9857     0.9683   -0.8741     0.1356     0.0170
+PC1 (unshrunk) ~ radius + inv_radius : R2 = 0.9905
+PC1 (shrunk) ~ radius + inv_radius : R2 = 0.9905
+PC1 (complete14) ~ radius + inv_radius : R2 = 0.9923
+
+sd of centred curve, complete-14 cells: La=1.072 Ce=0.885 Pr=0.732 Nd=0.589 Sm=0.267 Eu=0.221 Gd=0.233 Tb=0.339 Dy=0.391 Ho=0.475 Er=0.532 Tm=0.545 Yb=0.579 Lu=0.618
+
+==============================================================================
+C2/C3  extractant-macro MAE and the one-scalar amplitude oracle
+==============================================================================
+C_DIRECT_ROW: 70750 rows, 521 cells, 90 extractants, 5 seeds
+[C3] extractant-macro MAE, all cells, 5 seeds = 0.4953   (programme reference 0.495)
+[C3] pooled MAE, all cells, 5 seeds          = 0.5245
+[C3] extractant-macro MAE X_ENS_DIRECT+LOWRANK_K2    = 0.4810
+[C3] extractant-macro MAE M_SELECTED                 = 0.5014
+[C3] extractant-macro MAE B1_MEAN_CURVE              = 0.6033
+[C3] extractant-macro MAE B4_HEAVIER_ALWAYS          = 0.6742
+
+using single split seed 104729 for the oracle (as the summary did)
+
+[C2] held-out cells with m>=8, seed 104729: 188 cells, 72 extractants, 12176 pairs
+[C2] baseline extractant-macro MAE (m>=8)        = 0.4426   (summary 0.441)
+[C2] baseline pooled MAE (m>=8)                  = 0.5392
+                              variant  ext_macro_mae  pooled_mae  frac_removed
+                             baseline         0.4426      0.5392        0.0000
+         pc1_shrunk__oracle_all_pairs         0.1775      0.1925        0.5990
+    pc1_shrunk__leave_scored_pair_out         0.1805      0.1953        0.5921
+     pc1_complete14__oracle_all_pairs         0.1758      0.1933        0.6029
+pc1_complete14__leave_scored_pair_out         0.1788      0.1961        0.5961
+             radius__oracle_all_pairs         0.1838      0.1962        0.5848
+        radius__leave_scored_pair_out         0.1869      0.1991        0.5777
+         pc2_shrunk__oracle_all_pairs         0.4265      0.5198        0.0364
+    pc2_shrunk__leave_scored_pair_out         0.4334      0.5273        0.0209
+             pc1pc2__oracle_all_pairs         0.1539      0.1577        0.6524
+        pc1pc2__leave_scored_pair_out         0.1591      0.1622        0.6405
+              rand0__oracle_all_pairs         0.4305      0.5244        0.0275
+         rand0__leave_scored_pair_out         0.4366      0.5312        0.0136
+              rand1__oracle_all_pairs         0.4301      0.5240        0.0282
+         rand1__leave_scored_pair_out         0.4359      0.5301        0.0153
+              rand2__oracle_all_pairs         0.4207      0.5046        0.0496
+         rand2__leave_scored_pair_out         0.4277      0.5123        0.0337
+              rand3__oracle_all_pairs         0.4377      0.5358        0.0111
+         rand3__leave_scored_pair_out         0.4435      0.5421       -0.0020
+              rand4__oracle_all_pairs         0.4305      0.5229        0.0275
+         rand4__leave_scored_pair_out         0.4376      0.5307        0.0114
+
+[C2] per-cell-first extractant-macro: baseline 0.4411 -> pc1 oracle 0.1779
+[C2] pairs per extractant: max=2945 (CCCCCCCCN(CCCCCCCC)C(=O)COCC...), median=91, min=28
+[C2] pairs per cell: max=91, median=78, share of all pairs held by the largest cell = 0.747%
+[C2] additivity of the arm pair-residual in a per-cell metal curve: mean R2 = 1.000000 over 188 cells (min 1.0000) -> a cell's residual has only m-1 free numbers
+
+[C2] all five seeds (summary used one):
+ split_seed  baseline  oracle_pc1  frac_removed
+     104729    0.4426      0.1775        0.5990
+     130363    0.4239      0.1858        0.5617
+     155921    0.4319      0.1816        0.5795
+     196613    0.4701      0.1794        0.6184
+     262147    0.4681      0.1834        0.6082
+
+==============================================================================
+C4  mean |log SF| vs |Shannon CN8 radius difference| over the 91 pairs
+==============================================================================
+pairs=91  n_cells min=87 median=153 max=242
+OLS mean|logSF| = 9.603 * |dr| + 0.024   R2 = 0.9610  (summary 9.60 / 0.024 / 0.961)
+fraction heavy-preferred: mean 0.749, range 0.469-0.883
+
+wrote: v2_amplitude_oracle.csv, v2_amplitude_oracle_by_seed.csv, v2_eigenvectors.csv, v2_pair_stats.csv, v2_pc1_physics_correlation.csv, v2_variance_fractions.csv

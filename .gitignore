@@ -64,3 +64,26 @@ dataset with 3D structures/ligand_pretrained_embeddings.parquet
 # slash matters: unanchored, "figures/" also matches docs/figures/.
 /figures/
 docs/figures/**/__pycache__/
+
+# --- gen13 / gen14 separation artefacts -------------------------------------
+# Same rule as the gen7-gen11 run artefacts above: fitted blobs and per-arm
+# prediction dumps regenerate from the committed code, and the manifests and
+# metrics CSVs that the reports cite are committed, so every quoted number stays
+# checkable without them.
+#
+# Fitted model blobs (102 MB for gen13, over GitHub's per-file limit; both are
+# version-fragile sklearn pickles).  Rebuild:
+#   .venv/Scripts/python.exe gen13_separation/scripts/g13_predict.py fit
+#   .venv/Scripts/python.exe gen14_direction/scripts/g14_predict.py fit
+gen13_separation/models/*.joblib
+gen14_direction/models/*.joblib
+
+# Per-arm out-of-fold prediction dumps (296 files, 134 MB) and the few-shot pair
+# tables (105 MB).  Rebuilt by scripts/g13_run_ladder.py and g13_fewshot_stage2.py.
+gen13_separation/predictions/**/*.parquet
+gen13_separation/metrics/**/fewshot_stage2_pairs.parquet
+
+# Disk caches of the frozen bench (10 MB each, rebuilt in ~5 s by
+# gen14.dirbench.load / the verify_direction runner).
+gen14_direction/cache/
+gen13_separation/analysis/stage3/verify_direction/bench_cache.pkl

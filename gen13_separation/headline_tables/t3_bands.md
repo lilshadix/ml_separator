@@ -1,0 +1,46 @@
+*T3 per-band paired contrasts on mae_all (band = max training Tanimoto of the held-out cell: far ≤ 0.40, mid 0.40–0.60, near > 0.60; descriptive — bands are not a partition of extractants)*
+
+| band   | comparison                                        |   point |   ci95_low |   ci95_high |   p_two_sided |   mde_80 |   n_units |
+|:-------|:--------------------------------------------------|--------:|-----------:|------------:|--------------:|---------:|----------:|
+| far    | P1_M_SELECTED_vs_C_DIRECT_ROW                     |  0.0495 |    -0.0452 |      0.138  |         0.298 |   0.132  |        19 |
+| far    | S1_M_SELECTED_vs_B1_MEAN_CURVE                    |  0.1666 |     0.0847 |      0.245  |         0     |   0.1162 |        19 |
+| far    | S2_M_SELECTED_vs_B3_NN_TANIMOTO                   | -0.0258 |    -0.2029 |      0.1344 |         0.792 |   0.2456 |        19 |
+| far    | S3_M_SELECTED_vs_B2_PAIRMEAN                      |  0.1741 |     0.0864 |      0.258  |         0     |   0.1248 |        19 |
+| far    | S4_M_SELECTED_vs_B4_HEAVIER_ALWAYS                |  0.2744 |     0.1142 |      0.439  |         0     |   0.2368 |        19 |
+| far    | X_M_PHYSICS_radius+radius_sq_vs_C_DIRECT_ROW      |  0.0536 |    -0.034  |      0.1336 |         0.24  |   0.1236 |        19 |
+| far    | X_X_PHYSICS+RESID_K1_vs_C_DIRECT_ROW              |  0.068  |    -0.025  |      0.161  |         0.163 |   0.134  |        19 |
+| far    | X_X_ENS_DIRECT+PHYSICS_vs_C_DIRECT_ROW            |  0.043  |    -0.0007 |      0.0838 |         0.06  |   0.0617 |        19 |
+| far    | X_X_ENS_DIRECT+LOWRANK_K2_vs_C_DIRECT_ROW         |  0.0596 |     0.0109 |      0.1115 |         0.014 |   0.0752 |        19 |
+| far    | X_X_DIRECT_PROJ_K2_vs_C_DIRECT_ROW                | -0.0034 |    -0.0077 |      0.0006 |         0.097 |   0.0059 |        19 |
+| far    | X_X_KRR_TANIMOTO_radius+radius_sq_vs_C_DIRECT_ROW | -0.0106 |    -0.0565 |      0.0267 |         0.64  |   0.0603 |        19 |
+| far    | X_X_ENS_DIRECT+PHYSICS_vs_M_SELECTED              | -0.0065 |    -0.0586 |      0.0478 |         0.825 |   0.0776 |        19 |
+| far    | X_M_PHYSICS_radius+radius_sq_vs_M_SELECTED        |  0.0041 |    -0.0338 |      0.0397 |         0.823 |   0.0518 |        19 |
+| far    | X_X_PHYSICS+RESID_K1_vs_M_SELECTED                |  0.0185 |    -0.0169 |      0.0511 |         0.287 |   0.048  |        19 |
+| mid    | P1_M_SELECTED_vs_C_DIRECT_ROW                     | -0.021  |    -0.0867 |      0.0238 |         0.393 |   0.0791 |        30 |
+| mid    | S1_M_SELECTED_vs_B1_MEAN_CURVE                    |  0.1035 |     0.0143 |      0.1506 |         0.026 |   0.0982 |        30 |
+| mid    | S2_M_SELECTED_vs_B3_NN_TANIMOTO                   |  0.1771 |     0.0343 |      0.3301 |         0.005 |   0.2111 |        30 |
+| mid    | S3_M_SELECTED_vs_B2_PAIRMEAN                      |  0.1008 |     0.0147 |      0.1542 |         0.032 |   0.1004 |        30 |
+| mid    | S4_M_SELECTED_vs_B4_HEAVIER_ALWAYS                |  0.1149 |    -0.0452 |      0.2835 |         0.162 |   0.2359 |        30 |
+| mid    | X_M_PHYSICS_radius+radius_sq_vs_C_DIRECT_ROW      | -0.0156 |    -0.0812 |      0.0299 |         0.517 |   0.078  |        30 |
+| mid    | X_X_PHYSICS+RESID_K1_vs_C_DIRECT_ROW              | -0.0268 |    -0.0921 |      0.0157 |         0.233 |   0.0765 |        30 |
+| mid    | X_X_ENS_DIRECT+PHYSICS_vs_C_DIRECT_ROW            |  0.0027 |    -0.0268 |      0.0262 |         0.872 |   0.0367 |        30 |
+| mid    | X_X_ENS_DIRECT+LOWRANK_K2_vs_C_DIRECT_ROW         | -0.0015 |    -0.0315 |      0.0195 |         0.862 |   0.0356 |        30 |
+| mid    | X_X_DIRECT_PROJ_K2_vs_C_DIRECT_ROW                |  0.0008 |    -0.0036 |      0.0067 |         0.742 |   0.0074 |        30 |
+| mid    | X_X_KRR_TANIMOTO_radius+radius_sq_vs_C_DIRECT_ROW | -0.0255 |    -0.0684 |      0.0133 |         0.169 |   0.0565 |        30 |
+| mid    | X_X_ENS_DIRECT+PHYSICS_vs_M_SELECTED              |  0.0238 |    -0.0036 |      0.0678 |         0.103 |   0.0516 |        30 |
+| mid    | X_M_PHYSICS_radius+radius_sq_vs_M_SELECTED        |  0.0054 |    -0.0152 |      0.031  |         0.67  |   0.0328 |        30 |
+| mid    | X_X_PHYSICS+RESID_K1_vs_M_SELECTED                | -0.0058 |    -0.0244 |      0.0135 |         0.511 |   0.0267 |        30 |
+| near   | P1_M_SELECTED_vs_C_DIRECT_ROW                     | -0.016  |    -0.0614 |      0.03   |         0.503 |   0.064  |        55 |
+| near   | S1_M_SELECTED_vs_B1_MEAN_CURVE                    |  0.0948 |     0.0204 |      0.179  |         0.015 |   0.1071 |        55 |
+| near   | S2_M_SELECTED_vs_B3_NN_TANIMOTO                   |  0.1157 |     0.0249 |      0.1642 |         0.016 |   0.0994 |        55 |
+| near   | S3_M_SELECTED_vs_B2_PAIRMEAN                      |  0.0947 |     0.0234 |      0.1934 |         0.011 |   0.1155 |        55 |
+| near   | S4_M_SELECTED_vs_B4_HEAVIER_ALWAYS                |  0.1786 |     0.0745 |      0.367  |         0     |   0.2163 |        55 |
+| near   | X_M_PHYSICS_radius+radius_sq_vs_C_DIRECT_ROW      | -0.0188 |    -0.0667 |      0.0223 |         0.416 |   0.0631 |        55 |
+| near   | X_X_PHYSICS+RESID_K1_vs_C_DIRECT_ROW              | -0.0205 |    -0.065  |      0.0264 |         0.395 |   0.0646 |        55 |
+| near   | X_X_ENS_DIRECT+PHYSICS_vs_C_DIRECT_ROW            |  0.0029 |    -0.0131 |      0.0207 |         0.683 |   0.0236 |        55 |
+| near   | X_X_ENS_DIRECT+LOWRANK_K2_vs_C_DIRECT_ROW         |  0.0069 |    -0.0155 |      0.0234 |         0.491 |   0.0275 |        55 |
+| near   | X_X_DIRECT_PROJ_K2_vs_C_DIRECT_ROW                | -0.005  |    -0.0102 |     -0.0018 |         0.001 |   0.0061 |        55 |
+| near   | X_X_KRR_TANIMOTO_radius+radius_sq_vs_C_DIRECT_ROW | -0.0271 |    -0.0698 |      0.006  |         0.102 |   0.053  |        55 |
+| near   | X_X_ENS_DIRECT+PHYSICS_vs_M_SELECTED              |  0.0189 |    -0.0103 |      0.0509 |         0.233 |   0.0435 |        55 |
+| near   | X_M_PHYSICS_radius+radius_sq_vs_M_SELECTED        | -0.0029 |    -0.0119 |      0.0026 |         0.339 |   0.0105 |        55 |
+| near   | X_X_PHYSICS+RESID_K1_vs_M_SELECTED                | -0.0045 |    -0.011  |      0.0048 |         0.236 |   0.0111 |        55 |

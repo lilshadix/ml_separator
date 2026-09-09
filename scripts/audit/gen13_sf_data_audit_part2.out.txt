@@ -1,0 +1,90 @@
+### (A) PROVENANCE TABLE runs/gen6_provenance/provenance_table.parquet
+shape (5992, 17)
+columns ['safe_exp_id', 'extractant', 'metal_symbol', 'condition_id', 'cell_id', 'strict_cell_id', 'experiment_id', 'experiment_id_status', 'publication_id', 'publication_references', 'publication_id_status', 'experiment_series_id', 'experiment_series_id_status', 'replicate_id', 'replicate_id_status', 'legacy_compatible', 'provenance_strict']
+                                                                                                                                                                   0                                                                                                                                        1                                                                                                                                        2
+safe_exp_id                                                                                                                                            Am_SAFE:10321                                                                                                                            Am_SAFE:10343                                                                                                                            Am_SAFE:10344
+extractant                   CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)NCCNC(=O)c1cc(C(=O)NCCNC(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC)cc(C(=O)NCCNC(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC)c1  CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)NCCNC(=O)c1cc(C(=O)NCCNC(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC)cc(C(=O)NCCNC(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC)c1  CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)NCCNC(=O)c1cc(C(=O)NCCNC(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC)cc(C(=O)NCCNC(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC)c1
+metal_symbol                                                                                                                                                      Eu                                                                                                                                       Eu                                                                                                                                       Eu
+condition_id                                                                                                                                        782948f98ccdbd6b                                                                                                                         4e05acbe270f7d9e                                                                                                                         4103b5b26dc85319
+cell_id                                                                                                                                             489e603e22c0991f                                                                                                                         fdfb7d846b5869f9                                                                                                                         6955d14e9698ed01
+strict_cell_id                                                                                                                                      8368d5a3634393e1                                                                                                                         12deebb4fd1debff                                                                 
+   safe_exp_id: nunique=5992 nulls=0
+   extractant: nunique=190 nulls=0
+   metal_symbol: nunique=14 nulls=0
+   condition_id: nunique=2067 nulls=0
+   cell_id: nunique=5302 nulls=0
+   strict_cell_id: nunique=5305 nulls=0
+   experiment_id: nunique=5992 nulls=0
+   experiment_id_status: nunique=1 nulls=0
+   publication_id: nunique=105 nulls=0
+   publication_references: nunique=105 nulls=0
+   publication_id_status: nunique=1 nulls=0
+   experiment_series_id: nunique=690 nulls=0
+   experiment_series_id_status: nunique=1 nulls=0
+   replicate_id: nunique=5302 nulls=0
+   replicate_id_status: nunique=1 nulls=0
+   legacy_compatible: dtype=bool nunique=1 nulls=0
+   provenance_strict: dtype=bool nunique=1 nulls=0
+publication-like cols: ['publication_id', 'publication_references', 'publication_id_status']  series-like cols: ['experiment_series_id', 'experiment_series_id_status']
+join matched: 5992 of 5992
+n publications: 105
+rows per publication quantiles: {0.1: 3.0, 0.25: 8.0, 0.5: 26.0, 0.75: 54.0, 0.9: 183.20000000000005, 1.0: 459.0}
+publications per extractant distribution: {1: 162, 2: 15, 3: 6, 4: 1, 5: 2, 6: 1, 7: 1, 16: 1, 43: 1}
+metals per publication distribution: {1: 41, 2: 9, 3: 9, 4: 3, 5: 2, 6: 2, 7: 2, 8: 3, 9: 3, 12: 1, 13: 3, 14: 27}
+publications with all 14 metals: 27  rows in them: 3182
+EXACT cells: n= 2459  cells with >1 publication: 8  rows in those: 61
+   multi-metal cells with >1 publication: 7 of 521  rows: 59
+PUB-AWARE cells (smiles+64 cond+publication): n= 2467  >=2 metals: 521  dist: {1: 1946, 2: 138, 3: 62, 4: 32, 5: 21, 6: 72, 7: 8, 8: 57, 9: 11, 10: 4, 11: 2, 12: 1, 13: 35, 14: 78}
+   rows in >=2-metal cells: 3871  rows in 14-metal cells: 1230  n 14-metal cells: 78  extractants with >=1 multi-metal cell: 90
+series col experiment_series_id nunique 690
+SERIES cells (smiles+series): n= 849  >=2 metals: 259  dist: {1: 590, 2: 27, 3: 20, 4: 6, 5: 9, 6: 54, 7: 4, 8: 51, 9: 9, 10: 1, 11: 2, 12: 3, 13: 14, 14: 59}
+
+### (B) LOG SF BASELINES (exact key, dZ==1 pairs)
+dZ==1 pairs n=2115, total var=0.0534 (sd=0.2312)
+   residual var after pair-type mean: 0.0474 (R2=0.113)
+   residual var after per-extractant mean: 0.0447 (R2=0.163)
+   residual var after additive extractant+pair: 0.0388 (R2=0.275)
+   residual var after (extractant x pair) cell mean [condition-only residual, in-sample]: 0.0171 (R2=0.680); n groups=764
+   MAE of predicting 0: 0.1671; MAE of pair-type mean (in-sample): 0.1405; MAE of per-extractant mean: 0.1382
+   sign accuracy of pair-type mean sign: 0.673; of 'heavier always preferred': 0.681
+   dZ==1 pair types with n>=30: mean sd across types = 0.2091  min sd 0.1191  max sd 0.3053
+
+### (B2) REPLICATE NOISE FLOOR: (cell,metal) combos with >1 row
+n (cell,metal) with replicates: 313  rows involved: 1003  size dist: {2: 196, 3: 35, 4: 30, 5: 10, 6: 9, 7: 2, 8: 16, 9: 12, 10: 2, 12: 1}
+within-replicate sd of log_D: mean=0.4193 median=0.2374 q90=1.0471 max=3.9535
+   -> implied noise sd of log SF (sqrt(2)*median sd) = 0.3358; frac replicate sd==0: 0.038
+replicates by extractant_name (top 8): {'TODGA': 261, 'DOODA (C12)': 172, 'TDdDGA': 133, 'DOODA (C8)': 70, 'DBD1MHDGA': 58, 'DMDO-HPyranDGA': 49, 'DMDODGA': 46, '2-[1-(dioctylamino)-1-oxopropan-2-yl]oxy-N-N-dioctylpropanamide': 28}
+
+### (C) feat3d__ PER-COLUMN NON-NULL
+complex_physical columns with 0 non-null: ['feat3d__complex_physical__binding_energy_eV', 'feat3d__complex_physical__homo_eV', 'feat3d__complex_physical__homo_lumo_gap_eV', 'feat3d__complex_physical__lumo_eV', 'feat3d__complex_physical__strain_energy_eV']
+complex_physical non-null counts (unique values): [0, 3372, 5365, 5479]
+   polyhedron non-null=5479: ['coordination_number', 'donor_angle_01_02_deg', 'donor_angle_01_03_deg', 'donor_angle_01_04_deg', 'donor_angle_01_05_deg', 'donor_angle_01_06_deg', 'donor_angle_01_07_deg', 'donor_angle_01_08_deg', 'donor_angle_02_03_deg', 'donor_angle_02_04_deg', 'donor_angle_02_05_deg', 'donor_angle_02_06_deg', 'donor_angle_02_07_deg', 'donor_angle_02_08_deg', 'donor_angle_03_04_deg', 'donor_angle_03_05_deg', 'donor_angle_03_06_deg', 'donor_angle_03_07_deg', 'donor_angle_03_08_deg', 'donor_angle_04_05_deg', 'donor_angle_04_06_deg', 'donor_angle_04_07_deg', 'donor_angle_04_08_deg', 'donor_angle_05_06_deg', 'donor_angle_05_07_deg', 'donor_angle_05_08_deg', 'donor_angle_06_07_deg', 'donor_angle_06_08_deg', 'donor_angle_07_08_deg', 'donor_atomic_number_01', 'donor_atomic_number_02', 'donor_atomic_number_03', 'donor_atomic_number_04', 'donor_atomic_number_05', 'donor_atomic_number_06', 'donor_atomic_number_07', 'donor_atomic_number_08', 'ln_donor_distance_01', 'ln_donor_distance_02', 'ln_donor_distance_03', 'ln_donor_distance_04', 'ln_donor_distance_05', 'ln_donor_distance_06', 'ln_donor_distance_07', 'ln_donor_distance_08']
+   polyhedron non-null=3470: ['donor_angle_01_09_deg', 'donor_angle_02_09_deg', 'donor_angle_03_09_deg', 'donor_angle_04_09_deg', 'donor_angle_05_09_deg', 'donor_angle_06_09_deg', 'donor_angle_07_09_deg', 'donor_angle_08_09_deg', 'donor_atomic_number_09', 'ln_donor_distance_09']
+polyhedron_scalars: {'feat3d__polyhedron_scalars__coreCN_donor_gap': 5479, 'feat3d__polyhedron_scalars__coreCN_max_donor_dist': 5479, 'feat3d__polyhedron_scalars__next_donor_dist': 5479}
+coreCN dist (all rows): {8: 2178, 9: 3814}  geometry_ok rows coreCN: {8: 2009, 9: 3470}
+feat3d coordination_number dist (geometry_ok): {8.0: 2009, 9.0: 3470}
+
+### (D) MULTI-METAL CELLS BY safe_exp_id STEM (exact key)
+rows in >=2-metal cells by stem: {'Ca_SAFE': 1251, 'Er_SAFE': 677, 'Am_SAFE': 564, 'Lu_SAFE': 199, 'Dy_SAFE': 177, 'Ce_SAFE': 131, 'La_SAFE': 119, 'Pa_SAFE': 119, 'Gd_SAFE': 118, 'Eu_SAFE': 116, 'Ho_SAFE': 81, 'Pr_SAFE': 76, 'Nd_SAFE': 67, 'Pd_SAFE': 45, 'Bi_SAFE': 28, 'Cm_SAFE': 23, 'Tb_SAFE': 17, 'Sm_SAFE': 15, 'Cd_SAFE': 14, 'Pb_SAFE': 12, 'Y_SAFE': 9, 'Th_SAFE': 8, 'In_SAFE': 7, 'Tm_SAFE': 5}
+rows in 14-metal cells by stem: {'Am_SAFE': 434, 'Ca_SAFE': 297, 'Pa_SAFE': 103, 'Er_SAFE': 65, 'Nd_SAFE': 35, 'Ce_SAFE': 34, 'Dy_SAFE': 33, 'Eu_SAFE': 30, 'Gd_SAFE': 30, 'Ho_SAFE': 30, 'Lu_SAFE': 30, 'La_SAFE': 29, 'Bi_SAFE': 28, 'Pd_SAFE': 25, 'Cd_SAFE': 14, 'Cm_SAFE': 13, 'Pr_SAFE': 7, 'Th_SAFE': 4, 'Sm_SAFE': 2, 'Tb_SAFE': 2}
+14-metal-cell extractant names: ['2-(2-hexoxyethyl)-N-N-dimethyl-N-N-dioctylpropanediamide', '2-6-bis(dioctylphosphorylmethyl)-1-oxidopyridin-1-ium', '2-N-2-N-9-N-9-N-tetrabutyl-1-10-phenanthroline-2-9-dicarboxamide', '2-N-2-N-9-N-9-N-tetraoctyl-1-10-phenanthroline-2-9-dicarboxamide', '2-N-6-N-diethyl-2-N-6-N-bis(2-methylphenyl)pyridine-2-6-dicarboxamide', '2-N-6-N-diethyl-2-N-6-N-bis(3-methylphenyl)pyridine-2-6-dicarboxamide', '2-N-6-N-diethyl-2-N-6-N-bis(4-methylphenyl)pyridine-2-6-dicarboxamide', '2-N-6-N-dimethyl-2-N-6-N-diphenylpyridine-2-6-dicarboxamide', '2-N-9-N-diethyl-2-N-9-N-bis(4-ethylphenyl)-1-10-phenanthroline-2-9-dicarboxamide', '2-[1-(dioctylamino)-1-oxopropan-2-yl]oxy-N-N-dioctylpropanamide', '3-[6-(5-6-dipropyl-1-2-4-triazin-3-yl)-2-pyridinyl]-5-6-dipropyl-1-2-4-triazine', '5-5-8-8-tetramethyl-3-[6-[6-(5-5-8-8-tetramethyl-6-7-dihydro-1-2-4-benzotriazin-3-yl)-2-pyridinyl]-2-pyridinyl]-6-7-dihydro-1-2-4-benzotriazine', '6-19-dihexyl-7-8-17-18-tetraphenyl-3-6-19-22-tetrazapentacyclo[12.8.0.02-11.04-9.016-21]docosa-1(22)-2-4(9)-7-10-12-14-16(21)-17-nonaene-5-20-dione', '8-11-11-trimethyl-5-[6-(8-11-11-trimethyl-3-4-6-triazatricyclo[6.2.1.02-7]undeca-2(7)-3-5-trien-5-yl)-2-pyridinyl]-3-4-6-triazatricyclo[6.2.1.02-7]undeca-2(7)-3-5-triene', 'DEDODGA', 'DHD2DGA', 'DMDODGA', 'DMDPhPDA', 'DMDdecHDGA', 'DMDdecdDGA', 'DMDetHDGA', 'DODDmDGA', 'DODHtDGA', 'DPDODGA', 'DPiperidineDGA', 'Et-Me-TDDGA-Syn', 'MMTODGA', 'N-(2-4-dimethylphenyl)-6-[6-[(2-4-dimethylphenyl)-ethylcarbamoyl]-2-pyridinyl]-N-ethylpyridine-2-carboxamide', 'N-(2-5-dimethylphenyl)-6-[6-[(2-5-dimethylphenyl)-ethylcarbamoyl]-2-pyridinyl]-N-ethylpyridine-2-carboxamide', 'N-(3-5-dimethylphenyl)-6-[6-[(3-5-dimethylphenyl)-ethylcarbamoyl]-2-pyridinyl]-N-ethylpyridine-2-carboxamide', 'N-(3-7-dimethyloct-6-enyl)-2-[2-[3-7-dimethyloct-6-enyl(hexyl)amino]-2-oxoethoxy]-N-hexylacetamide', 'N-(3-7-dimethyloctyl)-2-[2-[3-7-dimethyloctyl(hexyl)amino]-2-oxoethoxy]-N-hexylacetamide', 'N-(4-methylphenyl)-N-octyl-1-10-phenanthroline-2-carboxamide', 'N-N-bis(2-methylpropyl)-2-[octyl(phenyl)phosphoryl]acetamide', 'N-N-didodecyl-2-(1-hexyl-2-oxopiperidin-3-yl)oxyacetamide', 'N-N-dimethyl-N-N-diphenylpropanediamide', 'N-ethyl-6-[6-[ethyl(phenyl)carbamoyl]-2-pyridinyl]-N-phenylpyridine-2-carboxamide', 'N-ethyl-6-[6-[ethyl-(4-hexylphenyl)carbamoyl]-2-pyridinyl]-N-(4-hexylphenyl)pyridine-2-carboxamide', 'N-methyl-2-[2-[methyl(octyl)amino]-2-oxoethoxy]-N-octylacetamide', 'T2EHDGA', 'TEtOMeDGA', 'TODGA', '[4-7-dichloro-9-(pyrrolidine-1-carbonyl)-1-10-phenanthrolin-2-yl]-pyrrolidin-1-ylmethanone', 'cMe2-TODGA', 'cPSNDGA', 'p-TODGA-Syn', 'tMe2-TODGA']
+
+### (E) build_id / geometry_key STRUCTURE
+build_id nunique: 1256  geometry_key nunique: 1256
+build_id -> geometry_key one-to-one: True True
+geometry_key parts: Z nunique 14  smiles nunique 190  anion values {'nitrate': 4459, 'water': 1533}
+inner_sphere_anion dist: {'nitrate': 4459, 'water': 1533}
+fill_ligand dist: {'nitrate': 4459, 'water': 1533}  n_fill dist: {0: 3388, 2: 1627, 1: 509, 4: 353, 5: 87, 3: 28}
+(metal, smiles) combos: 1112  vs geometry_key nunique 1256
+rows per geometry_key quantiles: {0.25: 1.0, 0.5: 1.0, 0.75: 2.25, 0.9: 11.5, 1.0: 377.0}
+geometry_xtb_energy_eV non-null: 0
+DENTATE dist: {2: 182, 3: 4701, 4: 971, 5: 41, 6: 46, 7: 39, 8: 12}  n_ligs dist: {1: 536, 2: 2151, 3: 3124, 4: 181}
+
+### (F) ligand_2d_descriptors hand-crafted columns
+hc cols: ['lig2d__hc__n_heavy_atoms', 'lig2d__hc__n_carbons', 'lig2d__hc__n_aromatic_atoms', 'lig2d__hc__n_amide_N', 'lig2d__hc__n_thioamide_N', 'lig2d__hc__n_NH_amide', 'lig2d__hc__n_amide_N_in_ring', 'lig2d__hc__n_carbonyl_O', 'lig2d__hc__n_ether_O', 'lig2d__hc__n_amine_N', 'lig2d__hc__n_aromatic_N', 'lig2d__hc__n_phosphoryl_O', 'lig2d__hc__n_thiocarbonyl_S', 'lig2d__hc__n_hydroxyl_O', 'lig2d__hc__n_donor_atoms', 'lig2d__hc__n_N_substituents', 'lig2d__hc__chain_len_max', 'lig2d__hc__chain_len_min', 'lig2d__hc__chain_len_mean', 'lig2d__hc__chain_len_asymmetry', 'lig2d__hc__n_branched_substituents', 'lig2d__hc__n_alpha_branched_substituents', 'lig2d__hc__n_beta_branched_substituents', 'lig2d__hc__n_methyl_on_N', 'lig2d__hc__n_aryl_on_N', 'lig2d__hc__n_C_in_N_substituents', 'lig2d__hc__subst_heavy_max', 'lig2d__hc__frac_heavy_in_largest_N_substituent', 'lig2d__hc__is_symmetric_amide', 'lig2d__hc__is_symmetric_across_N', 'lig2d__hc__n_substituted_alpha_carbons', 'lig2d__hc__n_stereocentres', 'lig2d__hc__n_assigned_stereocentres', 'lig2d__hc__assigned_cip_homochiral', 'lig2d__hc__longest_carbon_chain', 'lig2d__hc__n_dga_motifs', 'lig2d__hc__n_malonamide_motifs', 'lig2d__hc__amide_carbonyl_min_path']
+nan count total: 504  dtypes: {dtype('float64'): 206, <StringDtype(na_value=nan)>: 1}
+manifest n_rows 190 n_columns 207 n_rdkit 168 n_hc 38 unparsed [] rdkit 2026.03.3
+
+### (G) dataset_geometry_available.parquet
+shape (5479, 2261)  geometry_ok all: True  same columns as dataset: True
+DONE2

@@ -1,0 +1,51 @@
+section,quantity,extractant_macro_mae_or_value,basis
+zero-shot,best arm B_primary (X_ENS_DIRECT+LOWRANK_K2),0.481,90 extractants x 5 seeds
+zero-shot,best arm B_v2 (V2_BAG_MIX3),0.4577,90 extractants x 5 seeds
+zero-shot,C_DIRECT_ROW incumbent,0.4953,90 extractants x 5 seeds
+zero-shot,corpus mean curve (B1_MEAN_CURVE),0.6033,90 extractants x 5 seeds
+ceiling,"mean curve of the same extractant, cell left out",0.25,24 extractants / 450 cells
+ceiling,best arm rescored on those same 24 extractants,0.41,24 extractants / 450 cells
+ceiling,oracle rank-1 amplitude with the corpus shape,0.212,"90 extractants, full cohort"
+ceiling,"the cell's own curve as a quadratic, in sample",0.135,"89 extractants, full cohort"
+one measurement,"V2_BAG_MIX3 + widest pair, conditional update",0.2485,89 extractants / 383 cells x 5 seeds
+one measurement,"X_ENS + widest pair, conditional update",0.251,89 extractants / 383 cells x 5 seeds
+one measurement,corpus mean curve + widest pair,0.2681,89 extractants / 383 cells x 5 seeds
+one measurement,"straight line through the widest pair, no model",0.2718,89 extractants / 383 cells x 5 seeds
+one measurement,"X_ENS + random pair, conditional update",0.3618,89 extractants / 383 cells x 5 seeds
+one measurement,"X_ENS + random pair, locked basis_shift (M_PHYSICS)",0.3963,89 extractants / 383 cells x 5 seeds
+budget,"0 pairs measured, best arm",0.4091,321 cells with >=4 metals x 5 seeds
+budget,1 pair measured,0.2106,321 cells with >=4 metals x 5 seeds
+budget,2 pairs measured,0.1933,321 cells with >=4 metals x 5 seeds
+budget,3 pairs measured,0.1674,321 cells with >=4 metals x 5 seeds
+closed branch,oracle global gain calibration,0.0026,max MAE gain over 5 arms
+closed branch,in-sample optimal non-smooth element offset,0.0011,MAE gain on the best arm
+closed branch,"abstain on the worst predicted decile, normalised",0.0,vs 0.7566 for random abstention
+closed branch,external logK slope vs observed amplitude,0.0,Spearman over 82 extractants
+publication-masked,"conditions only, C_DIRECT_ROW (design BP)",0.6246,90 extractants x 5 seeds
+publication-masked,corpus mean curve (design BP),0.6385,90 extractants x 5 seeds
+publication-masked,"lean blocks, C_DIRECT_ROW (design BP)",0.5693,90 extractants x 5 seeds
+publication-masked,"lean blocks, M_SELECTED (design BP)",0.5581,90 extractants x 5 seeds
+publication-masked,"all seven blocks, C_DIRECT_ROW (design BP)",0.5834,90 extractants x 5 seeds
+publication-masked,"lean vs conditions-only, M_SELECTED (gain)",0.0957,"p 0.001, passes P1"
+one measurement,BP_lean C_DIRECT_ROW + widest pair,0.2664,89 extractants / 383 cells x 5 seeds
+one measurement,BP_lean corpus mean curve + widest pair,0.2777,89 extractants / 383 cells x 5 seeds
+stage-2 arms,S2_CENTRED_ROW_basic (5 seeds),0.4891,"vs 0.4953; +0.006 CI [-0.031,0.050] p 0.71"
+stage-2 arms,"S3_HIER, condition head (5 seeds)",0.5014,worst arm; loses to its own ablation
+publication-masked,"BR control: same 952 cells dropped at random, conditions only",0.4876,90 extractants x 5 seeds
+publication-masked,"BQ control: whole unrelated publications dropped, conditions only",0.4711,matched on cells and condition series
+publication-masked,BP_v2 best arm V2_BAG4@lean,0.536,90 extractants x 5 seeds
+publication-masked,BP_v2 V2_BAG_MIX3 vs its conditions-only member (gain),0.067,"p < 0.001, 5/5 seeds"
+stage-2 arms,S4_BAG_MIX3C vs V2_BAG_MIX3 under BP,-0.013,0/5 seeds; branch closed
+stage-3 direction,"donor topology, direction accuracy (BP)",0.768,82 extractants/40 chemotypes; B 0.822 BR 0.816 BQ 0.814 A 0.798
+stage-3 direction,always predict heavy-selective,0.559,"same units, all five designs"
+stage-3 direction,gain over the constant baseline (BP),0.21,"CI [0.067,0.425] p 0.002; +0.21..+0.26 in five designs"
+stage-3 direction,increment of topology over the 13-column donor census,0.075,"CI [0.022,0.151] p 0.006 (audit-corrected)"
+stage-3 direction,"three-way magnitude class, topology",0.482,vs 0.462 majority: not predictable
+stage-3 value,"direction x mean magnitude, direction from topology",0.5614,BP extractant-macro MAE
+stage-3 value,full 209-column regression,0.5523,BP; difference +0.009 p 0.76
+stage-3 value,true direction x mean magnitude (oracle),0.4826,BP; beats the full model by 0.070 p 0.006
+stage-3 value,corpus mean curve,0.6217,"BP; topology direction beats it +0.060 p 0.027, passes P1"
+stage-3 closed,kernel ridge / PLS / ridge / kNN / boosting,0.581,best alternative estimator vs 0.552 for trees
+stage-3 closed,amplitude-only target,-0.012,"mean over B, BR, BQ, A; falsified"
+stage-3 closed,de-shrinking the ridge-attenuated target,-0.011,BP; worse
+stage-3 closed,averaging predictions over an extractant's cells,0.0005,BP; nothing to remove

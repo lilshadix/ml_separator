@@ -1,0 +1,106 @@
+[load] 521 cells, 90 extractants, 3359 observed (cell, metal) entries
+[acid] colour column = cond__acid_concentration_M restricted to cond__acid__hno3==1: 429/521 cells use HNO3
+[coverage] metals per cell: median 6, mean 6.45; cells with >= 4 metals = 321/521 (61.6%); with >= 5 = 289; exactly 2 = 138
+
+[rank] top 12 by cells:
+ rank_by_cells extractant_name  n_cells  n_entries  n_publications  n_condition_keys  median_n_metals
+             1           TODGA      171        902              18               171              3.0
+             2         DMDODGA       74        369               5                74              3.0
+             3           TBDGA       33        106               4                33              2.0
+             4          TDdDGA       21        102               2                21              5.0
+             5         DHD2DGA       20        128               1                20              6.0
+             6       DBD1MHDGA       17         81               1                17              5.0
+             7          C5BTBP       16        207               2                16             13.0
+             8           TDDGA       14         34               1                14              2.0
+             9           TEDGA       12         84               1                12              7.0
+            10         DMDPDGA       11         78               3                11              8.0
+            11        DMDPhPDA       10        140               1                10             14.0
+            12     DOODA (C12)       10         72               1                10              7.5
+[rank] cells covered by top 12 = 409/521 (78.5%); extractants with 1 cell = 64/90
+[fig] d1_curve_01_TODGA.png
+[fig] d1_curve_02_DMDODGA.png
+[fig] d1_curve_03_TBDGA.png
+[fig] d1_curve_04_TDdDGA.png
+[fig] d1_curve_05_DHD2DGA.png
+[fig] d1_curve_06_DBD1MHDGA.png
+[fig] d1_curve_07_C5BTBP.png
+[fig] d1_curve_08_TDDGA.png
+[fig] d1_curve_09_TEDGA.png
+[fig] d1_curve_10_DMDPDGA.png
+[fig] d1_curve_11_DMDPhPDA.png
+[fig] d1_curve_12_DOODA__C12_.png
+[fig] d1_atlas_grid_top12.png
+
+[levels] mean pairwise similarity of centred curves (>= 4 shared metals, MAE after re-centring on the shared metals):
+                                   level  n_pairs  mean_pearson  mean_spearman  mean_mae  median_mae  mean_sf_mae  median_sf_mae  frac_pearson_gt_0p8  frac_pearson_lt_0
+           within extractant (all pairs)     3208      0.702686       0.674461  0.229865    0.167969     0.342283       0.255994             0.686409           0.106920
+     within extractant, same publication     1066      0.745929       0.734085  0.189573    0.156116     0.279162       0.230150             0.700750           0.075047
+within extractant, different publication     2142      0.680911       0.644437  0.249917    0.173602     0.373696       0.271660             0.679272           0.122782
+    different extractant, same chemotype     7628      0.506074       0.497416  0.342588    0.291370     0.519177       0.441976             0.583639           0.215260
+                       random cell pairs    20000      0.334754       0.318165  0.379825    0.308395     0.566445       0.464905             0.439700           0.309650
+
+[per-extractant reproducibility] extractants with >= 3 cells = 16
+extractant_name  n_cells  n_pairs  mean_pearson  mean_mae  mean_mae_samepub  mean_mae_diffpub  mean_sf_mae
+          TODGA      171     2245      0.712202  0.237409          0.244356          0.236325     0.352278
+        DMDODGA       74      375      0.743027  0.270520          0.167586          0.424921     0.416239
+          TBDGA       33       15      0.873301  0.273278          0.225367          0.405034     0.416098
+         TDdDGA       21       26      0.617888  0.229037          0.185869          0.326165     0.348160
+        DHD2DGA       20      190      0.493324  0.093019          0.093019               NaN     0.137877
+      DBD1MHDGA       17       76      0.791554  0.215470          0.215470               NaN     0.344612
+         C5BTBP       16      120      0.883696  0.250872          0.251288          0.247960     0.347781
+          TEDGA       12       30      0.559112  0.085833          0.085833               NaN     0.127011
+        DMDPDGA       11       30      0.393949  0.203008          0.142905          0.243077     0.309713
+       DMDPhPDA       10       45      0.386277  0.291997          0.291997               NaN     0.401460
+    DOODA (C12)       10       20      0.781371  0.142434          0.142434               NaN     0.211514
+         TPrDGA        9       16      0.430630  0.168764          0.168764               NaN     0.261151
+        T2EHDGA        6        6      0.975401  0.052529          0.000000          0.063034     0.079072
+         mTDDGA        5       10      0.988203  0.073461          0.073461               NaN     0.107229
+ DMDO-HPyranDGA        3        3      0.993267  0.122034          0.122034               NaN     0.184419
+          THDGA        3        1      1.000000  0.000000          0.000000               NaN     0.000000
+
+[sf transfer, >= 2 shared metals - covers the whole cohort] MAE in log SF when one cell is used to predict another:
+                                   level  n_pairs  mean_sf_mae  median_sf_mae  p90_sf_mae  mean_n_shared
+                       within extractant     9237     0.303191       0.192202    0.724312       3.963625
+     within extractant, same publication     2556     0.229203       0.148623    0.542506       4.743349
+within extractant, different publication     6681     0.331497       0.210514    0.820609       3.665320
+    different extractant, same chemotype    27024     0.479287       0.378624    1.023428       3.753330
+                       random cell pairs    20000     0.525717       0.389856    1.148984       4.557100
+
+[acid] within-extractant pairs with both [HNO3] known = 1417; Spearman(|dlog10 HNO3|, SF MAE) = 0.165
+   hno3_gap  n_pairs  mean_sf_mae  mean_curve_mae  mean_pearson
+same [HNO3]      217     0.218496        0.146320      0.745432
+   <0.2 dex      254     0.284805        0.185745      0.798238
+0.2-0.5 dex      350     0.360326        0.238240      0.743315
+  0.5-1 dex      250     0.340691        0.234379      0.757874
+     >1 dex      346     0.376640        0.246232      0.580632
+
+[quad] fitted 289 of 521 cells (>= 5 observed metals)
+[quad] R2 quadratic: mean 0.876 median 0.962; linear-only R2 mean 0.744
+[quad] amplitude (coef on standardised Shannon CN8 radius): mean -0.414 sd 0.680 range [-2.300, +2.053]; negative (heavy-selective) in 75.8% of cells
+[quad] curvature: mean -0.052 sd 0.415
+
+[quad top12]
+extractant_name  n_cells_fitted  amp_mean  amp_sd  amp_min  amp_max  curv_mean  curv_sd  r2_quad_mean  r2_lin_mean  n_publications
+          TODGA              63    -0.844   0.535   -2.177    0.439     -0.145    0.320         0.934        0.826              10
+        DMDODGA              27    -0.560   0.776   -1.317    1.659      0.480    0.908         0.929        0.739               5
+          TBDGA               5    -0.711   0.273   -0.903   -0.239      0.023    0.067         0.950        0.941               2
+         TDdDGA              11    -0.825   0.922   -2.300    0.608     -0.122    0.435         0.876        0.792               2
+        DHD2DGA              20    -0.098   0.096   -0.263    0.180     -0.015    0.128         0.784        0.723               1
+      DBD1MHDGA              11    -0.570   0.198   -0.765   -0.047      0.058    0.358         0.892        0.824               1
+         C5BTBP              16    -0.722   0.151   -0.924   -0.351      0.011    0.167         0.919        0.876               2
+          TDDGA               1    -0.333     NaN   -0.333   -0.333      0.063      NaN         0.829        0.793               1
+          TEDGA              12     0.083   0.699   -1.104    0.906     -0.350    0.208         0.944        0.455               1
+        DMDPDGA              11    -0.649   0.895   -2.044    0.650     -0.276    0.335         0.962        0.861               3
+       DMDPhPDA              10    -0.207   0.272   -0.698    0.100      0.109    0.110         0.611        0.484               1
+    DOODA (C12)              10     0.901   0.555    0.096    1.897     -0.169    0.359         0.924        0.782               1
+
+[variance decomposition, extractants with >= 2 fitted cells]
+             column  n_extractants  n_cells  total_sd  frac_ss_between  sd_between  sd_within      icc
+   amplitude_linear             21      228  0.705301         0.440012    0.466990   0.553919 0.415464
+curvature_quadratic             21      228  0.452555         0.243101    0.198861   0.413211 0.188054
+           curve_sd             21      228  0.318394         0.512496    0.231508   0.233311 0.496121
+[fig] d1_amplitude_curvature.png
+[fig] d1_similarity_levels.png
+
+[done]
+EXIT=0

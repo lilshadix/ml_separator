@@ -1,0 +1,90 @@
+[load] 521 cells, 14 metals, 3359 observed logD values, median n_metals 6
+[1] complete-14 subset: 78 cells
+[1] pairwise co-observation count: min 87 (pair Pr-Tm), median 153, max 242
+[1] diag of naive centred cov (var of centred logD, log10 units^2): [0.641, 0.523, 0.362, 0.214, 0.117, 0.129, 0.098, 0.094, 0.114, 0.206, 0.192, 0.209, 0.252, 0.261]
+[1] diag of variogram cov G: [0.922, 0.683, 0.525, 0.247, 0.053, 0.038, 0.043, 0.092, 0.106, 0.217, 0.238, 0.304, 0.314, 0.301]
+[1] mean off-diag corr  naive=-0.082  variogram=-0.037  complete14=-0.021
+[1] adjacent-pair corr (V): La-Ce=0.959, Ce-Pr=0.931, Pr-Nd=0.996, Nd-Sm=0.659, Sm-Eu=0.278, Eu-Gd=0.398, Gd-Tb=0.725, Tb-Dy=0.755, Dy-Ho=0.977, Ho-Er=0.949, Er-Tm=0.918, Tm-Yb=0.977, Yb-Lu=0.977
+[1] La-Lu corr: naive=-1.035 variogram=-0.776 complete14=-0.817
+[1] fraction of each pair's cells that are 2-metal cells (corr forced to -1): mean 0.008, max 0.079
+[2] shrinkage: linear shrinkage of the variogram covariance G toward an isotropic covariance on the mean-zero subspace, alpha = 0.22 (smallest alpha on a 0.01 grid that makes all 13 in-subspace eigenvalues > 0)
+[2] variance fractions:
+             matrix  alpha  total_var  frac_pc1  frac_pc2  frac_pc3  frac_pc4  frac_pc5  cum_pc3
+ V_variogram_shrunk 0.2200     4.0821    0.7265    0.0582    0.0399    0.0328    0.0267   0.8246
+    V_variogram_raw 0.0000     4.2580    0.8721    0.0508    0.0282    0.0195    0.0120   0.9511
+C_complete14_shrunk 0.0500     4.7799    0.8565    0.0651    0.0177    0.0097    0.0084   0.9394
+     N_naive_shrunk 0.0500     3.7974    0.8090    0.0757    0.0292    0.0184    0.0149   0.9139
+[2] pc1 vs physics basis (top 4 by r2): radius r=-0.988, radius_cn9 r=-0.987, inv_radius r=+0.982, hydration r=-0.973
+[2] pc2 vs physics basis (top 4 by r2): radius_sq r=+0.656, tetrad_e1 r=+0.235, inv_radius r=+0.127, hydration r=-0.115
+[2] pc3 vs physics basis (top 4 by r2): radius_sq r=+0.386, hydration r=-0.145, inv_radius r=+0.099, radius_cn9 r=-0.080
+[2] pc1 best 2-term physics fit: radius + inv_radius, R2 = 0.991
+[2] pc2 best 2-term physics fit: radius_sq + inv_radius, R2 = 0.580
+[2] pc3 best 2-term physics fit: radius + hydration, R2 = 0.481
+[3] all521: 182 ordered pairs with n>=25; mean LOO R2 0.488, median 0.608, mean LOO MAE 0.241 vs baseline MAE 0.403
+[3] nmet>=6: 182 ordered pairs with n>=25; mean LOO R2 0.500, median 0.633, mean LOO MAE 0.238 vs baseline MAE 0.405
+[3] complete14: 182 ordered pairs with n>=25; mean LOO R2 0.558, median 0.659, mean LOO MAE 0.236 vs baseline MAE 0.447
+[3] R2 decay with |dZ| (subset complete14):
+    subset  dZ  n_pairs  mean_r2  median_r2  mean_mae  mean_n
+complete14   1       24    0.814      0.900     0.122  78.000
+complete14   2       22    0.618      0.776     0.187  78.000
+complete14   3       20    0.411      0.426     0.250  78.000
+complete14   4       18    0.256      0.187     0.296  78.000
+complete14   5       18    0.256      0.284     0.324  78.000
+complete14   6       16    0.337      0.319     0.308  78.000
+complete14   7       14    0.484      0.509     0.261  78.000
+complete14   8       12    0.674      0.804     0.206  78.000
+complete14   9       10    0.822      0.877     0.174  78.000
+complete14  10        8    0.861      0.852     0.187  78.000
+complete14  11        8    0.823      0.821     0.224  78.000
+complete14  12        6    0.782      0.776     0.262  78.000
+complete14  13        4    0.736      0.737     0.311  78.000
+complete14  14        2    0.659      0.659     0.379  78.000
+[3] R2 decay with |dZ| (subset nmet>=6):
+ subset  dZ  n_pairs  mean_r2  median_r2  mean_mae  mean_n
+nmet>=6   1       24    0.790      0.877     0.124 161.417
+nmet>=6   2       22    0.569      0.726     0.184 170.364
+nmet>=6   3       20    0.374      0.341     0.240 162.200
+nmet>=6   4       18    0.211      0.089     0.284 163.889
+nmet>=6   5       18    0.191      0.102     0.312 150.222
+nmet>=6   6       16    0.277      0.250     0.300 150.000
+nmet>=6   7       14    0.412      0.499     0.270 133.000
+nmet>=6   8       12    0.572      0.712     0.226 132.000
+nmet>=6   9       10    0.711      0.729     0.206 122.200
+nmet>=6  10        8    0.772      0.754     0.226 115.500
+nmet>=6  11        8    0.770      0.777     0.238 120.250
+nmet>=6  12        6    0.743      0.767     0.276 106.333
+nmet>=6  13        4    0.647      0.647     0.346 118.000
+nmet>=6  14        2    0.642      0.642     0.348 132.000
+[3] two flanking neighbours, all521: 14 metals, mean LOO R2 0.871, mean LOO MAE 0.089 (baseline 0.379)
+[3] two flanking neighbours, nmet>=6: 14 metals, mean LOO R2 0.880, mean LOO MAE 0.087 (baseline 0.383)
+[3] two flanking neighbours, complete14: 14 metals, mean LOO R2 0.929, mean LOO MAE 0.083 (baseline 0.447)
+[3] flanking-neighbour detail (complete14):
+target neighbours  n  r2_loo  mae_loo  mae_loo_baseline
+    La      Ce+Pr 78   0.947    0.193             0.907
+    Ce      La+Pr 78   0.956    0.125             0.729
+    Pr      Ce+Nd 78   0.955    0.101             0.629
+    Nd      Pr+Sm 78   0.952    0.093             0.521
+    Sm      Nd+Eu 78   0.936    0.050             0.230
+    Eu      Sm+Gd 78   0.834    0.057             0.168
+    Gd      Eu+Tb 78   0.787    0.078             0.191
+    Tb      Gd+Dy 78   0.903    0.071             0.285
+    Dy      Tb+Ho 78   0.954    0.058             0.334
+    Ho      Dy+Er 78   0.952    0.062             0.385
+    Er      Ho+Tm 78   0.946    0.075             0.440
+    Tm      Er+Yb 78   0.932    0.069             0.450
+    Yb      Tm+Lu 78   0.976    0.052             0.480
+    Lu      Tm+Yb 78   0.968    0.080             0.510
+[4] OLS mean_abs_logSF ~ |d radius CN8|: slope 9.603 per Angstrom, intercept 0.024, R2 = 0.961 over 91 pairs
+[4]   through-origin version: slope 9.837, R2 vs mean = 0.960
+[4] OLS mean_abs_logSF_extractant_macro ~ |d radius CN8|: slope 8.046 per Angstrom, intercept 0.050, R2 = 0.947 over 91 pairs
+[4]   through-origin version: slope 8.541, R2 vs mean = 0.942
+[4] 91 pairs; n_cells min 87 median 153 max 242
+[4] mean |logSF| pooled: min 0.065 (Tm-Yb), max 1.676 (La-Ho)
+[4] fraction heavy-preferred over the 91 pairs: mean 0.749, range 0.469-0.883
+[4] adjacent pairs: La-Ce n=187 mean=-0.206 sd=0.289 |SF|=0.266 heavy=0.77, Ce-Pr n=169 mean=-0.113 sd=0.305 |SF|=0.238 heavy=0.73, Pr-Nd n=172 mean=-0.107 sd=0.234 |SF|=0.176 heavy=0.73, Nd-Sm n=234 mean=-0.317 sd=0.386 |SF|=0.390 heavy=0.78, Sm-Eu n=203 mean=-0.092 sd=0.256 |SF|=0.207 heavy=0.67, Eu-Gd n=177 mean=+0.001 sd=0.220 |SF|=0.160 heavy=0.54, Gd-Tb n=188 mean=-0.239 sd=0.209 |SF|=0.269 heavy=0.88, Tb-Dy n=181 mean=-0.113 sd=0.221 |SF|=0.161 heavy=0.76, Dy-Ho n=185 mean=-0.106 sd=0.164 |SF|=0.146 heavy=0.81, Ho-Er n=188 mean=-0.050 sd=0.153 |SF|=0.103 heavy=0.70, Er-Tm n=153 mean=-0.001 sd=0.219 |SF|=0.098 heavy=0.50, Tm-Yb n=147 mean=+0.018 sd=0.120 |SF|=0.065 heavy=0.47, Yb-Lu n=164 mean=-0.008 sd=0.119 |SF|=0.075 heavy=0.52
+[4] most NEGATIVE residuals (less separation than radius predicts): Eu-Lu -0.193, Tb-Lu -0.193, Dy-Lu -0.176, Tb-Yb -0.160, Ho-Lu -0.153, Sm-Lu -0.146
+[4] most POSITIVE residuals (more separation than radius predicts): Ce-Dy +0.149, Ce-Ho +0.154, La-Tb +0.156, Ce-Tb +0.157, Nd-Tb +0.168, La-Ho +0.260
+[5] C_DIRECT_ROW: pooled residual MAE 0.519; 100.0% of within-cell residual variance is an additive metal curve; leave-one-pair-out R2 of a pair's residual from the other pairs in the same cell = +1.000 over 13634 held-out pairs
+[5] X_ENS_DIRECT+LOWRANK_K2: pooled residual MAE 0.501; 100.0% of within-cell residual variance is an additive metal curve; leave-one-pair-out R2 of a pair's residual from the other pairs in the same cell = +1.000 over 13634 held-out pairs
+[5] M_LOWRANK_K2: pooled residual MAE 0.507; 100.0% of within-cell residual variance is an additive metal curve; leave-one-pair-out R2 of a pair's residual from the other pairs in the same cell = +1.000 over 13634 held-out pairs
+[5] M_SELECTED: pooled residual MAE 0.502; 100.0% of within-cell residual variance is an additive metal curve; leave-one-pair-out R2 of a pair's residual from the other pairs in the same cell = +1.000 over 13634 held-out pairs

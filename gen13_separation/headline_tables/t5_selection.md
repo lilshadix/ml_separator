@@ -1,0 +1,10 @@
+*T5 inner-validation selection of M_SELECTED over the 25 (seed, fold) pairs*
+
+| selected                                       |   folds |
+|:-----------------------------------------------|--------:|
+| M_PHYSICS_radius+radius_sq+tetrad_e1+tetrad_e3 |       9 |
+| M_PHYSICS_radius+radius_sq+gd_break            |       5 |
+| M_LOWRANK_K1                                   |       4 |
+| M_LOWRANK_K3                                   |       4 |
+| M_PHYSICS_radius+radius_sq                     |       2 |
+| M_LOWRANK_K2                                   |       1 |

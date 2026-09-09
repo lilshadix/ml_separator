@@ -1,0 +1,23 @@
+quantity,claimed,my_value,verdict
+arm X_ENS_DIRECT+LOWRANK_K2 ext-macro (5 seeds x 90 ext),0.481,0.4810,exact
+arm C_DIRECT_ROW ext-macro,0.495,0.4953,exact
+arm M_SELECTED ext-macro,0.501,0.5014,exact
+arm B1_MEAN_CURVE ext-macro,0.603,0.6033,exact
+arm B4_HEAVIER_ALWAYS ext-macro,0.674,0.6742,exact
+L1 corpus mean LOO ext-macro (90 ext/521 cells/14150 pairs),0.589,0.5885,exact (needs the chemotype-balanced weight; unweighted gives 0.6081)
+L2 chemotype mean LOO (64 ext/491 cells/12707 pairs),0.355,0.3549,exact
+L3 extractant mean LOO (24 ext/450 cells/9840 pairs),0.250,0.2502,exact
+L4 ext+publication LOO (23 ext/419 cells/9079 pairs),0.234,0.2338,exact
+L7 oracle rank-1 amplitude (90 ext/521 cells/14150 pairs),0.212,0.2117,exact
+like-for-like subset size,299 cells/20 ext/7228 pairs,299/20/7228,exact
+HEADLINE L3 on subset,0.207,0.2067,exact
+HEADLINE best arm on subset,0.457,0.4574,exact
+L4 on subset,0.190,0.1898,exact
+L5 on subset,0.199,0.1989,exact
+B1 arm on subset,0.486,0.4861,exact
+L5b near-duplicate (16 ext/200 cells/4455 pairs),0.177,0.1774,exact
+"ANOVA between/within var, df, n0, share","0.393/0.186, 5382/8677, 2.385, 67.9%","0.393/0.186, 5382/8677, 2.385, 67.9%",exact
+ANOVA total variance of log SF,0.544,0.579 (component sum) / 0.684 (raw var of y),"MISMATCH, not load-bearing"
+replicate census,"216/3359 entries, 41/521 cells, q25 .061 med .302 q75 .679 mean .428",identical,exact
+multi-cell extractant census,"26 of 90 ext, 457 of 521 cells",identical,exact
+L3 on the FULL set where it is defined vs arm there,not reported,"L3 0.2502 vs arm 0.4095, gap 0.159",SUBSET EFFECT: headline gap 0.251 is 0.092 wider

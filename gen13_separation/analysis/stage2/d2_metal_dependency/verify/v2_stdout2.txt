@@ -1,0 +1,41 @@
+==============================================================================
+D1  complete-14 covariance variants (summary claims PC1=0.857 PC2=0.065 PC3=0.018)
+==============================================================================
+  cov of row-centred, ddof=1           PC1=0.898 PC2=0.065 PC3=0.015 cum3=0.977
+  cov of row-centred, ddof=0           PC1=0.898 PC2=0.065 PC3=0.015 cum3=0.977
+  second moment (no column mean)       PC1=0.926 PC2=0.046 PC3=0.010 cum3=0.982
+  double-centred second moment         PC1=0.926 PC2=0.046 PC3=0.010 cum3=0.982
+  variogram of the 78 complete cells   PC1=0.898 PC2=0.065 PC3=0.015 cum3=0.977
+  corr matrix of row-centred           PC1=0.751 PC2=0.189 PC3=0.022 cum3=0.962
+  complete-14 shrunk alpha=0.02           PC1=0.881 PC2=0.065 PC3=0.016 cum3=0.962
+  complete-14 shrunk alpha=0.05           PC1=0.857 PC2=0.065 PC3=0.018 cum3=0.939
+  complete-14 shrunk alpha=0.08           PC1=0.832 PC2=0.066 PC3=0.020 cum3=0.917
+  complete-14 shrunk alpha=0.1            PC1=0.815 PC2=0.066 PC3=0.021 cum3=0.902
+
+==============================================================================
+D3  PC2 vs physics basis (summary: radius_sq +0.656, gd_break +0.037, tetrad_e3 -0.106)
+==============================================================================
+  PC2 (shrunk variogram): radius=+0.092  radius_sq=-0.656  inv_radius=-0.127  radius_cn9=+0.082  hydration=+0.115  gd_break=-0.037  tetrad_e1=-0.235  tetrad_e3=+0.106
+  PC2 loadings: La-0.445 Ce-0.044 Pr+0.366 Nd-0.164 Sm+0.111 Eu+0.246 Gd+0.292 Tb+0.399 Dy-0.014 Ho+0.089 Er-0.254 Tm+0.045 Yb-0.154 Lu-0.473
+  best 2-term physics fit to PC2: R2=0.580 (radius_sq + inv_radius)  (summary 0.580)
+
+==============================================================================
+D2  'two scalars' variants on m>=8 cells (summary claims 0.129)
+==============================================================================
+  baseline (m>=8, seed 104729) extractant-macro MAE = 0.4426
+  PC1+PC2 (shrunk variogram)     -> 0.1539   (65.2% removed)
+  PC1+PC2 (complete-14)          -> 0.1281   (71.1% removed)
+  radius+radius_sq               -> 0.1307   (70.5% removed)
+  PC1+PC2+PC3 (shrunk)           -> 0.1363   (69.2% removed)
+
+==============================================================================
+D4  reveal ONE measured log SF per held-out cell (summary: 0.433 -> 0.224)
+==============================================================================
+  C_DIRECT_ROW: 14012 pairs, 89 extractants, 383 cells (m>=3), mean kappa=1.060
+    scoring INCLUDING the revealed pair : 0.4769 -> 0.2292
+    scoring EXCLUDING the revealed pair : 0.4675 -> 0.2497
+  X_ENS_DIRECT+LOWRANK_K2: 14012 pairs, 89 extractants, 383 cells (m>=3), mean kappa=1.057
+    scoring INCLUDING the revealed pair : 0.4614 -> 0.2259
+    scoring EXCLUDING the revealed pair : 0.4526 -> 0.2450
+
+wrote v2_revealed_sf.csv
