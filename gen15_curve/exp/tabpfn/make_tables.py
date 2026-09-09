@@ -19,7 +19,10 @@ ORDER = ["FLAT", "G14",
          "TP_DIR39", "TP_DIR209", "TP_MAG", "TP_CURV", "TP_ALL",
          "CB_DIR", "CB_DIR209", "CB_DIR_ES", "CB_MAG", "CB_CURV",
          "XGB_MONO", "XGB_FREE", "ISO_PRIOR", "ISO_PICK",
-         "GAM_DIR", "GAM_DIR_K", "GAM_MAG", "SYM_DIR"]
+         "GAM_DIR", "GAM_DIR_K", "GAM_MAG", "SYM_DIR",
+         "MAG_MED", "CB_MAG_LEVEL", "CB_MAG_RANK"]
+
+SOURCES = (("cheap", False), ("tabpfn", True), ("control", True))
 
 
 def _order(df: pd.DataFrame) -> pd.DataFrame:
@@ -41,8 +44,8 @@ def _md(df: pd.DataFrame, floatfmt: str = "%.4f") -> str:
 
 def boards() -> dict[str, pd.DataFrame]:
     frames = []
-    for f, drop_ref in (("cheap_board.csv", False), ("tabpfn_board.csv", True)):
-        p = OUT / f
+    for tag, drop_ref in SOURCES:
+        p = OUT / f"{tag}_board.csv"
         if not p.exists():
             continue
         b = pd.read_csv(p)
@@ -50,6 +53,8 @@ def boards() -> dict[str, pd.DataFrame]:
             b = b[~b.arm.isin(["FLAT", "G14"])]
         frames.append(b)
     B = pd.concat(frames, ignore_index=True)
+    # CB_MAG is scored in both the cheap run and the control run on the same folds; keep one.
+    B = B.drop_duplicates(subset=["arm", "design"], keep="first")
     return {v: _order(V.wide(B, v)) for v in ("macro_mae_extractant", "macro_mae_chemotype",
                                               "macro_sign_acc_strong", "macro_pair_spearman",
                                               "macro_mae_adjacent", "macro_mae_far")}
@@ -62,14 +67,19 @@ def main() -> None:
     out.append(_md(bs["macro_mae_extractant"]))
     out.append("\n### Direction macro accuracy, gen14's yardstick (higher is better)\n")
     dfs = []
-    for f, drop in (("cheap_direction.csv", False), ("tabpfn_direction.csv", True)):
-        p = OUT / f
+    for tag, drop in SOURCES:
+        p = OUT / f"{tag}_direction.csv"
         if p.exists():
             d = pd.read_csv(p)
             dfs.append(d[~d.arm.isin(["FLAT", "G14"])] if drop else d)
     if dfs:
         db = pd.concat(dfs, ignore_index=True)
-        out.append(_md(_order(K.wide_dir(db))))
+        w = _order(K.wide_dir(db))
+        if "FLAT" in w.index:
+            heavy = 1.0 - w.loc["FLAT"]      # every cell is either heavy- or light-selective
+            w.loc["ALWAYS_HEAVY"] = heavy
+            w = w.rename(index={"FLAT": "ALWAYS_LIGHT (= FLAT)"})
+        out.append(_md(w))
     out.append("\n### Chemotype-macro MAE (the second unit gen13 reports)\n")
     out.append(_md(bs["macro_mae_chemotype"]))
     out.append("\n### Pairwise sign accuracy on strong pairs (|log SF| >= 0.3)\n")

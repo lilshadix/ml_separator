@@ -63,6 +63,17 @@ def run_topo(bench, design: str) -> D.OOF:
                  design=design)
 
 
+def run_majority(bench, design: str) -> D.OOF:
+    """Always call the training fold's majority direction -- the floor a classifier must clear.
+
+    Implemented as ``run_matrix`` on a single constant column, so the fold plan, the rich-cell
+    training set, the chemotype weights and the 0.5 decision rule are byte-identical to every other
+    row of the table; a constant feature leaves only the intercept, i.e. the weighted majority.
+    """
+    X = np.ones((len(bench.frame), 1), dtype=float)
+    return run_matrix(bench, "MAJORITY", X, design, C=1.0)
+
+
 def main() -> None:
     tags = sys.argv[1].split(",")
     designs = sys.argv[2].split(",") if len(sys.argv) > 2 else list(DESIGNS)

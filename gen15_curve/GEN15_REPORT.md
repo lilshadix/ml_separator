@@ -285,6 +285,51 @@ selectivity and very little else, and the interval says so.
 
 ---
 
+## 7. Letting the measurement pick the curve shape — a null with a mechanism
+
+Two results in this report point at each other.  §2 measured that a small alphabet of canonical
+lanthanide curves is real and valuable — assigning a held-out cell to the nearest of four prototypes
+scores 0.4438 against 0.5001, +0.056, passing P1 — and that no model can pick the letter from
+structure.  §5 measured that once a separation factor is measured, the measurement and not the
+chemistry is what identifies the cell.  So: use the measurement to pick the letter.
+
+The prior over a held-out cell's curve becomes a mixture of Gaussians, one per prototype, each with
+its own residual covariance; a measured log SF updates the weights by their likelihoods and the
+prediction is the posterior mixture of the per-component BLUPs.  The pooled BLUP of §5 is the
+K = 1 case.  Components are shifted so the prior mixture mean equals the gen14 curve, which makes
+k = 0 *identical* to the gen15 arm (0.4443 for both) and every later difference attributable to the
+measurement selecting a shape.
+
+**The pre-check passes and the arm still fails.**  One measurement separates the components by a
+median 2.8 nats at K = 4 and 3.2 at K = 6, and the posterior collapses onto a single component in
+only 2 % of held-out cells — so the measurement *can* tell the prototypes apart.  It does not help:
+
+| design BP | k = 0 | k = 1 | k = 2 | k = 3 |
+|---|---|---|---|---|
+| `POOLED` (K = 1, training-fold covariance) | 0.4443 | 0.2381 | 0.2183 | 0.1922 |
+| `MIX6mean` (full mixture) | 0.4443 | 0.2576 | 0.2277 | 0.1965 |
+| `MIX6hard` (commit to the best component) | 0.5285 | 0.2761 | 0.2508 | 0.2088 |
+| **`MIX6meanPC`** (component means, **pooled** covariance) | 0.4443 | **0.2335** | **0.2136** | **0.1865** |
+
+Every full-mixture arm loses — `MIX4hard` by −0.045 at k = 1 — and the hard rule is worse than the
+mixture mean at every K and every k, which is the signature of over-commitment.
+
+The attribution arm says why, and it is the opposite of the obvious guess.  Giving every component
+the **pooled** covariance while keeping the prototype means turns the loss into a gain: `MIX6meanPC`
+beats `POOLED` by +0.0046 / +0.0047 / +0.0070 at k = 1 / 2 / 3 (p = 0.049, 0.023, < 1e-4; 67 of 84
+extractants and 5/5 seeds at k = 3; LOCO-sign-stable).  **The prototype means were never the
+problem — the per-component covariances were.**  A component holding 30–120 cells cannot support
+105 covariance parameters, and shrinking it halfway to the pooled matrix is not enough.
+
+That gain is real and it is small.  At +0.002 to +0.007 it sits far under the pre-registered 0.02
+margin, so it does not pass P1, and it is measured against the training-fold covariance route
+(`POOLED@k3` = 0.1922) rather than the deployed leave-chemotype-out one (0.1700), which is the
+stronger baseline.  The honest verdict is a **null with a mechanism**: the alphabet's oracle value
+does not convert into a measured-mode gain, and the reason is covariance estimation, not shape
+identification.
+
+---
+
 ## Files
 
 | | |
@@ -299,3 +344,4 @@ selectivity and very little else, and the interval says so.
 | `scripts/g15_fewshot_sweep.py` | the estimator sensitivity sweep |
 | `scripts/g15_uncertainty.py` | interval coverage, resolution and decision value |
 | `scripts/g15_predict.py` | the deployable predictor: SMILES + measurements -> curve, 91 pairwise log SF with intervals, next pair to measure |
+| `gen15/mixture.py`, `scripts/g15_mixture.py` | §7: the measurement-conditioned prototype mixture and its attribution arm |
