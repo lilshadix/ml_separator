@@ -1,0 +1,121 @@
+   [B] FE_ACID_S1 0.7s  G14 0.5s  FE_CURV_PHYS4 0.4s  META_PHYS4_S1 0.3s
+  design B done in 46s
+   [BR] FE_ACID_S1 0.7s  G14 0.5s  FE_CURV_PHYS4 0.5s  FE_C64_S1 0.3s
+  design BR done in 46s
+   [BQ] FE_ACID_S1 0.7s  G14 0.5s  FE_CURV_PHYS4 0.5s  META_PHYS4_S1 0.3s
+  design BQ done in 46s
+   [A] FE_ACID_S1 0.8s  G14 0.5s  FE_CURV_PHYS4 0.5s  FE_PHYS4_S1 0.3s
+  design A done in 47s
+   [BP] FE_ACID_S1 0.7s  G14 0.5s  FE_CURV_PHYS4 0.4s  META_PHYS4_S1 0.3s
+  design BP done in 46s
+
+########## FORCED: shrinkage pinned at 1.0 (the within estimate simply trusted) ##########
+
+--- extractant-macro MAE (lower is better) ---
+design                B      BR      BQ       A      BP
+arm                                                    
+FE_ACID_MIN4_S1  0.5014  0.4997  0.5013  0.5020  0.5073
+FE_ACID_S1       0.4937  0.4927  0.4912  0.4927  0.5004
+FE_C64_S1        0.5309  0.5370  0.5291  0.5423  0.5520
+FE_CURV_PHYS4    0.5162  0.5242  0.5155  0.5118  0.5141
+FE_PHYS4_S1      0.5101  0.5185  0.5096  0.5098  0.5045
+FLAT             0.5885  0.5885  0.5885  0.5885  0.5885
+G14              0.4932  0.4906  0.4905  0.4921  0.5001
+META_ACID_S1     0.4930  0.4904  0.4909  0.4925  0.5000
+META_PHYS4_S1    0.4973  0.4940  0.4951  0.5030  0.5050
+O_WITHIN         0.4599  0.4573  0.4568  0.4519  0.4582
+
+--- macro_sign_acc_strong ---
+design                B      BR      BQ       A      BP
+arm                                                    
+FE_ACID_MIN4_S1  0.8019  0.8022  0.8060  0.8040  0.8068
+FE_ACID_S1       0.8093  0.8064  0.8104  0.8087  0.8137
+FE_C64_S1        0.8029  0.8054  0.8057  0.7975  0.8026
+FE_CURV_PHYS4    0.7968  0.7942  0.7967  0.7986  0.7995
+FE_PHYS4_S1      0.8087  0.8000  0.8078  0.8077  0.8128
+FLAT             0.0000  0.0000  0.0000  0.0000  0.0000
+G14              0.8081  0.8093  0.8102  0.8085  0.8122
+META_ACID_S1     0.8076  0.8088  0.8104  0.8079  0.8121
+META_PHYS4_S1    0.8073  0.8085  0.8098  0.8074  0.8116
+O_WITHIN         0.7919  0.7939  0.7933  0.7912  0.7977
+
+--- macro_pair_spearman ---
+design                B      BR      BQ       A      BP
+arm                                                    
+FE_ACID_MIN4_S1  0.4925  0.4883  0.4952  0.4978  0.4936
+FE_ACID_S1       0.5088  0.4985  0.5103  0.5125  0.5069
+FE_C64_S1        0.4797  0.4790  0.4865  0.4816  0.4776
+FE_CURV_PHYS4    0.4805  0.4764  0.4824  0.4895  0.4794
+FE_PHYS4_S1      0.5063  0.4925  0.5064  0.5090  0.5093
+FLAT                NaN     NaN     NaN     NaN     NaN
+G14              0.5062  0.5025  0.5078  0.5111  0.5038
+META_ACID_S1     0.5050  0.5010  0.5066  0.5101  0.5033
+META_PHYS4_S1    0.5037  0.5013  0.5057  0.5077  0.5039
+O_WITHIN         0.4811  0.4788  0.4821  0.4860  0.4870
+
+--- chemotype-blocked paired bootstrap (positive point = candidate better) ---
+design             comparison   point  ci95_low  ci95_high  p_two_sided  loco_min  loco_max  loco_sign_stable  seeds_positive  n_seeds  passes_P1
+     B      FE_ACID_S1_vs_G14 -0.0005   -0.0026     0.0026       0.7860   -0.0012    0.0008             False               2        5      False
+     B     FE_PHYS4_S1_vs_G14 -0.0169   -0.0287    -0.0008       0.0336   -0.0185   -0.0080              True               0        5      False
+     B       FE_C64_S1_vs_G14 -0.0377   -0.0808    -0.0100       0.0032   -0.0524   -0.0281              True               0        5      False
+     B    META_ACID_S1_vs_G14  0.0002   -0.0021     0.0018       0.9712   -0.0011    0.0004             False               3        5      False
+     B   META_PHYS4_S1_vs_G14 -0.0041   -0.0108     0.0007       0.1042   -0.0068   -0.0033              True               0        5      False
+     B FE_ACID_MIN4_S1_vs_G14 -0.0082   -0.0279     0.0063       0.2866   -0.0191   -0.0057              True               0        5      False
+     B   FE_CURV_PHYS4_vs_G14 -0.0230   -0.0347    -0.0075       0.0012   -0.0248   -0.0164              True               0        5      False
+     B        O_WITHIN_vs_G14  0.0333   -0.0026     0.0548       0.0676    0.0202    0.0381              True               5        5      False
+    BR      FE_ACID_S1_vs_G14 -0.0021   -0.0049    -0.0001       0.0380   -0.0027   -0.0015              True               3        5      False
+    BR     FE_PHYS4_S1_vs_G14 -0.0279   -0.0384    -0.0136       0.0000   -0.0293   -0.0205              True               0        5      False
+    BR       FE_C64_S1_vs_G14 -0.0464   -0.1013    -0.0110       0.0042   -0.0684   -0.0360              True               0        5      False
+    BR    META_ACID_S1_vs_G14  0.0002   -0.0031     0.0027       0.9882   -0.0018    0.0006             False               3        5      False
+    BR   META_PHYS4_S1_vs_G14 -0.0035   -0.0103     0.0014       0.1812   -0.0067   -0.0025              True               0        5      False
+    BR FE_ACID_MIN4_S1_vs_G14 -0.0091   -0.0313     0.0075       0.3026   -0.0218   -0.0061              True               0        5      False
+    BR   FE_CURV_PHYS4_vs_G14 -0.0336   -0.0460    -0.0188       0.0000   -0.0355   -0.0291              True               0        5      False
+    BR        O_WITHIN_vs_G14  0.0333   -0.0024     0.0548       0.0628    0.0202    0.0382              True               5        5      False
+    BQ      FE_ACID_S1_vs_G14 -0.0006   -0.0036     0.0036       0.8684   -0.0013    0.0016             False               2        5      False
+    BQ     FE_PHYS4_S1_vs_G14 -0.0190   -0.0343     0.0005       0.0592   -0.0208   -0.0070              True               0        5      False
+    BQ       FE_C64_S1_vs_G14 -0.0386   -0.0747    -0.0130       0.0014   -0.0471   -0.0278              True               0        5      False
+    BQ    META_ACID_S1_vs_G14 -0.0004   -0.0019     0.0006       0.4960   -0.0011   -0.0002              True               2        5      False
+    BQ   META_PHYS4_S1_vs_G14 -0.0045   -0.0106    -0.0001       0.0474   -0.0066   -0.0037              True               0        5      False
+    BQ FE_ACID_MIN4_S1_vs_G14 -0.0108   -0.0235    -0.0020       0.0104   -0.0165   -0.0085              True               0        5      False
+    BQ   FE_CURV_PHYS4_vs_G14 -0.0250   -0.0395    -0.0061       0.0054   -0.0271   -0.0151              True               0        5      False
+    BQ        O_WITHIN_vs_G14  0.0337   -0.0022     0.0553       0.0662    0.0205    0.0385              True               5        5      False
+     A      FE_ACID_S1_vs_G14 -0.0006   -0.0022     0.0013       0.4890   -0.0010   -0.0002              True               2        5      False
+     A     FE_PHYS4_S1_vs_G14 -0.0176   -0.0271    -0.0038       0.0090   -0.0191   -0.0113              True               0        5      False
+     A       FE_C64_S1_vs_G14 -0.0502   -0.0902    -0.0227       0.0006   -0.0585   -0.0406              True               0        5      False
+     A    META_ACID_S1_vs_G14 -0.0004   -0.0016     0.0005       0.4122   -0.0009   -0.0002              True               0        5      False
+     A   META_PHYS4_S1_vs_G14 -0.0108   -0.0170    -0.0018       0.0162   -0.0121   -0.0065              True               0        5      False
+     A FE_ACID_MIN4_S1_vs_G14 -0.0099   -0.0270     0.0023       0.1212   -0.0186   -0.0070              True               0        5      False
+     A   FE_CURV_PHYS4_vs_G14 -0.0197   -0.0285    -0.0076       0.0018   -0.0212   -0.0155              True               0        5      False
+     A        O_WITHIN_vs_G14  0.0403    0.0044     0.0636       0.0298    0.0300    0.0452              True               5        5       True
+    BP      FE_ACID_S1_vs_G14 -0.0003   -0.0024     0.0028       0.8722   -0.0010    0.0009             False               2        5      False
+    BP     FE_PHYS4_S1_vs_G14 -0.0044   -0.0323     0.0129       0.6382   -0.0172    0.0010             False               2        5      False
+    BP       FE_C64_S1_vs_G14 -0.0520   -0.1252    -0.0016       0.0402   -0.0897   -0.0422              True               0        5      False
+    BP    META_ACID_S1_vs_G14  0.0001   -0.0027     0.0021       0.9500   -0.0015    0.0004             False               3        5      False
+    BP   META_PHYS4_S1_vs_G14 -0.0049   -0.0126     0.0005       0.0822   -0.0082   -0.0039              True               0        5      False
+    BP FE_ACID_MIN4_S1_vs_G14 -0.0072   -0.0265     0.0071       0.3546   -0.0179   -0.0043              True               0        5      False
+    BP   FE_CURV_PHYS4_vs_G14 -0.0140   -0.0440     0.0036       0.1358   -0.0264   -0.0081              True               1        5      False
+    BP        O_WITHIN_vs_G14  0.0419    0.0065     0.0652       0.0238    0.0313    0.0469              True               5        5       True
+
+--- what the within fits actually learned (forced) ---
+          arm  n_fits  shrink_mean  shrink_zero_frac  cols_identified_mean  beta_l1_mean  beta_raw_l1_mean
+  FE_PHYS4_S1     125          1.0               0.0                 2.976        0.3114            0.3114
+META_PHYS4_S1     125          1.0               0.0                 2.352        0.1293            0.1293
+ META_ACID_S1     125          1.0               0.0                 0.992        0.0253            0.0253
+
+--- within coefficients on log|a|, FE_PHYS4_S1 (forced, mean over folds x designs) ---
+    column  beta_raw_mean  beta_raw_sd  frac_positive  frac_identified
+complexant         0.0000       0.0000          0.000            0.000
+   is_hno3         0.1485       0.1380          0.944            1.000
+log_acid_M        -0.0268       0.1367          0.296            1.000
+    temp_C         0.0120       0.0299          0.816            0.976
+
+--- within coefficients on log|a|, META_PHYS4_S1 (forced, mean over folds x designs) ---
+    column  beta_raw_mean  beta_raw_sd  frac_positive  frac_identified
+complexant         0.0000       0.0000          0.000            0.000
+   is_hno3         0.0927       0.0881          0.528            0.528
+log_acid_M         0.0293       0.0300          0.928            0.992
+    temp_C        -0.0058       0.0045          0.016            0.832
+
+--- within coefficients on log|a|, META_ACID_S1 (forced, mean over folds x designs) ---
+    column  beta_raw_mean  beta_raw_sd  frac_positive  frac_identified
+log_acid_M          0.024       0.0293           0.92            0.992

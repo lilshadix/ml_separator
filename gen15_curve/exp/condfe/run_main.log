@@ -1,0 +1,173 @@
+bench: 521 cells, 58 publications, 45 chemotypes
+   [B] FE_ACID 3.0s  META_ACID 2.9s  FE_C64 2.9s  META_PHYS4 2.9s
+  design B done in 63s
+   [BR] FE_C64 2.7s  FE_ACID 2.7s  META_PHYS4 2.7s  FE_PHYS4 2.5s
+  design BR done in 66s
+   [BQ] META_PHYS4 3.2s  FE_ACID 3.1s  FE_C64 3.0s  FE_NUM14 3.0s
+  design BQ done in 84s
+   [A] META_PHYS4 4.5s  FE_C64 4.4s  FE_ACID 4.4s  FE_NUM14 4.2s
+  design A done in 95s
+   [BP] META_PHYS4 3.2s  META_ACID 3.0s  FE_ACID 3.0s  FE_NUM14 3.0s
+  design BP done in 85s
+
+total 392s
+
+########## MAIN: five designs, all arms ##########
+
+--- extractant-macro MAE (lower is better) ---
+design            B          BR       BQ       A            BP
+arm                                                           
+FE_ACID      0.4930      0.4905   0.4907  0.4928  4.996000e-01
+FE_C64       0.4932      0.4898   0.4906  0.4916  4.976000e-01
+FE_NUM14     0.4936      0.4916   0.4906  0.4922  4.984000e-01
+FE_PHYS4     0.4932      0.4913   0.4906  0.4919  4.946000e-01
+FLAT         0.5885      0.5885   0.5885  0.5885  5.885000e-01
+G14          0.4932      0.4906   0.4905  0.4921  5.001000e-01
+META_ACID    0.4933      0.4908   0.4905  0.4924  5.001000e-01
+META_PHYS4   0.4932      0.4907   0.4905  0.4921  5.001000e-01
+O_PUBMAG     0.4396      0.4403   0.4369  0.4388  4.476000e-01
+O_WITHIN     0.4599      0.4573   0.4568  0.4519  4.582000e-01
+POOL_C64     2.5966  12097.0697  12.9869  0.5212  4.974770e+11
+RESID_PHYS4  0.4932      0.4913   0.4906  0.4919  4.946000e-01
+RI_C64       0.5274      0.8803   0.5298  0.5341  2.496658e+02
+RI_PHYS4     0.5037      0.5016   0.5084  0.5049  5.047000e-01
+
+--- macro_sign_acc_strong ---
+design            B      BR      BQ       A      BP
+arm                                                
+FE_ACID      0.8082  0.8080  0.8102  0.8083  0.8123
+FE_C64       0.8081  0.8093  0.8101  0.8084  0.8092
+FE_NUM14     0.8080  0.8091  0.8102  0.8089  0.8121
+FE_PHYS4     0.8081  0.8096  0.8102  0.8087  0.8130
+FLAT         0.0000  0.0000  0.0000  0.0000  0.0000
+G14          0.8081  0.8093  0.8102  0.8085  0.8122
+META_ACID    0.8081  0.8093  0.8102  0.8085  0.8122
+META_PHYS4   0.8081  0.8093  0.8102  0.8078  0.8122
+O_PUBMAG     0.8092  0.8088  0.8106  0.8076  0.7984
+O_WITHIN     0.7919  0.7939  0.7933  0.7912  0.7977
+POOL_C64     0.7961  0.7937  0.8004  0.7804  0.7840
+RESID_PHYS4  0.8081  0.8096  0.8102  0.8087  0.8130
+RI_C64       0.8068  0.8024  0.8092  0.8015  0.8047
+RI_PHYS4     0.8091  0.8060  0.8092  0.8094  0.8126
+
+--- macro_pair_spearman ---
+design            B      BR      BQ       A      BP
+arm                                                
+FE_ACID      0.5071  0.5025  0.5092  0.5111  0.5052
+FE_C64       0.5062  0.5024  0.5083  0.5107  0.5001
+FE_NUM14     0.5072  0.5036  0.5080  0.5113  0.5066
+FE_PHYS4     0.5063  0.5028  0.5079  0.5113  0.5055
+FLAT            NaN     NaN     NaN     NaN     NaN
+G14          0.5062  0.5025  0.5078  0.5111  0.5038
+META_ACID    0.5062  0.5024  0.5079  0.5110  0.5037
+META_PHYS4   0.5063  0.5025  0.5079  0.5106  0.5037
+O_PUBMAG     0.5064  0.5026  0.5094  0.5091  0.4904
+O_WITHIN     0.4811  0.4788  0.4821  0.4860  0.4870
+POOL_C64     0.4892  0.4841  0.4933  0.4725  0.4664
+RESID_PHYS4  0.5063  0.5028  0.5079  0.5113  0.5055
+RI_C64       0.4971  0.4917  0.4984  0.4948  0.4926
+RI_PHYS4     0.5081  0.5010  0.5099  0.5121  0.5093
+
+--- chemotype-blocked paired bootstrap (positive point = candidate better) ---
+design        comparison         point      ci95_low  ci95_high  p_two_sided      loco_min   loco_max  loco_sign_stable  seeds_positive  n_seeds  passes_P1
+     B    FE_ACID_vs_G14  3.000000e-04 -4.000000e-04     0.0011       0.5264 -1.000000e-04     0.0004             False               1        5      False
+     B   FE_PHYS4_vs_G14 -0.000000e+00 -2.000000e-04     0.0001       0.7578 -1.000000e-04     0.0000             False               0        5      False
+     B   FE_NUM14_vs_G14 -4.000000e-04 -1.400000e-03     0.0004       0.3232 -6.000000e-04    -0.0002              True               1        5      False
+     B     FE_C64_vs_G14  0.000000e+00  0.000000e+00     0.0000       1.0000  0.000000e+00     0.0000             False               0        5      False
+     B META_PHYS4_vs_G14 -0.000000e+00 -1.000000e-04     0.0001       0.8104 -0.000000e+00     0.0000             False               0        5      False
+     B   RI_PHYS4_vs_G14 -1.050000e-02 -1.980000e-02     0.0020       0.1274 -1.180000e-02    -0.0035              True               0        5      False
+     B     RI_C64_vs_G14 -3.420000e-02 -5.890000e-02    -0.0128       0.0034 -3.640000e-02    -0.0291              True               0        5      False
+     B   POOL_C64_vs_G14 -2.103400e+00 -6.145800e+00     0.0058       0.0780 -2.254600e+00    -0.6100              True               0        5      False
+     B   O_WITHIN_vs_G14  3.330000e-02 -2.600000e-03     0.0548       0.0676  2.020000e-02     0.0381              True               5        5      False
+     B   O_PUBMAG_vs_G14  5.360000e-02 -2.940000e-02     0.1161       0.2888  7.600000e-03     0.0669              True               5        5      False
+     B  FE_PHYS4_vs_FLAT  9.530000e-02  4.600000e-03     0.1581       0.0378  4.910000e-02     0.1051              True               5        5       True
+     B       G14_vs_FLAT  9.530000e-02  4.600000e-03     0.1581       0.0374  4.910000e-02     0.1050              True               5        5       True
+    BR    FE_ACID_vs_G14  1.000000e-04 -7.000000e-04     0.0008       0.8488 -2.000000e-04     0.0002             False               1        5      False
+    BR   FE_PHYS4_vs_G14 -7.000000e-04 -2.000000e-03     0.0011       0.4334 -1.100000e-03    -0.0001              True               0        5      False
+    BR   FE_NUM14_vs_G14 -1.000000e-03 -2.700000e-03    -0.0000       0.0346 -1.400000e-03    -0.0006              True               0        5      False
+    BR     FE_C64_vs_G14  8.000000e-04 -9.000000e-04     0.0022       0.6008 -3.000000e-04     0.0011             False               1        5      False
+    BR META_PHYS4_vs_G14 -1.000000e-04 -2.000000e-04     0.0001       0.4600 -1.000000e-04     0.0000             False               0        5      False
+    BR   RI_PHYS4_vs_G14 -1.100000e-02 -1.680000e-02    -0.0031       0.0046 -1.210000e-02    -0.0078              True               1        5      False
+    BR     RI_C64_vs_G14 -3.897000e-01 -7.094000e-01    -0.0436       0.0000 -4.150000e-01    -0.2849              True               0        5      False
+    BR   POOL_C64_vs_G14 -1.209658e+04 -3.731220e+04    -0.0120       0.0254 -1.296062e+04 -3009.2565              True               1        5      False
+    BR   O_WITHIN_vs_G14  3.330000e-02 -2.400000e-03     0.0548       0.0628  2.020000e-02     0.0382              True               5        5      False
+    BR   O_PUBMAG_vs_G14  5.030000e-02 -3.260000e-02     0.1125       0.3300  4.300000e-03     0.0635              True               5        5      False
+    BR  FE_PHYS4_vs_FLAT  9.720000e-02  6.300000e-03     0.1594       0.0324  5.190000e-02     0.1070              True               5        5       True
+    BR       G14_vs_FLAT  9.790000e-02  6.700000e-03     0.1607       0.0318  5.200000e-02     0.1078              True               5        5       True
+    BQ    FE_ACID_vs_G14 -1.000000e-04 -1.300000e-03     0.0015       0.9540 -5.000000e-04     0.0007             False               1        5      False
+    BQ   FE_PHYS4_vs_G14 -0.000000e+00 -2.000000e-04     0.0001       0.7608 -1.000000e-04     0.0000             False               0        5      False
+    BQ   FE_NUM14_vs_G14 -1.000000e-04 -5.000000e-04     0.0004       0.7728 -2.000000e-04     0.0001             False               1        5      False
+    BQ     FE_C64_vs_G14 -1.000000e-04 -7.000000e-04     0.0010       0.8608 -4.000000e-04     0.0003             False               0        5      False
+    BQ META_PHYS4_vs_G14  0.000000e+00 -1.000000e-04     0.0002       0.8326 -0.000000e+00     0.0001             False               1        5      False
+    BQ   RI_PHYS4_vs_G14 -1.780000e-02 -3.370000e-02     0.0012       0.0822 -1.960000e-02    -0.0053              True               0        5      False
+    BQ     RI_C64_vs_G14 -3.930000e-02 -5.980000e-02    -0.0136       0.0068 -4.170000e-02    -0.0344              True               0        5      False
+    BQ   POOL_C64_vs_G14 -1.249630e+01 -3.275740e+01     0.0019       0.0578 -1.338980e+01    -4.7848              True               0        5      False
+    BQ   O_WITHIN_vs_G14  3.370000e-02 -2.200000e-03     0.0553       0.0662  2.050000e-02     0.0385              True               5        5      False
+    BQ   O_PUBMAG_vs_G14  5.370000e-02 -2.970000e-02     0.1164       0.2882  7.700000e-03     0.0671              True               5        5      False
+    BQ  FE_PHYS4_vs_FLAT  9.790000e-02  8.100000e-03     0.1601       0.0290  5.260000e-02     0.1076              True               5        5       True
+    BQ       G14_vs_FLAT  9.800000e-02  8.100000e-03     0.1601       0.0286  5.270000e-02     0.1076              True               5        5       True
+     A    FE_ACID_vs_G14 -7.000000e-04 -1.500000e-03    -0.0001       0.0330 -8.000000e-04    -0.0005              True               1        5      False
+     A   FE_PHYS4_vs_G14  2.000000e-04 -8.000000e-04     0.0009       0.7752 -3.000000e-04     0.0003             False               1        5      False
+     A   FE_NUM14_vs_G14 -1.000000e-04 -1.200000e-03     0.0017       0.9360 -4.000000e-04     0.0005             False               1        5      False
+     A     FE_C64_vs_G14  5.000000e-04 -8.000000e-04     0.0016       0.7370 -4.000000e-04     0.0006             False               1        5      False
+     A META_PHYS4_vs_G14 -0.000000e+00 -2.000000e-04     0.0002       0.9862 -1.000000e-04     0.0000             False               2        5      False
+     A   RI_PHYS4_vs_G14 -1.280000e-02 -2.130000e-02    -0.0008       0.0344 -1.400000e-02    -0.0069              True               0        5      False
+     A     RI_C64_vs_G14 -4.200000e-02 -7.450000e-02    -0.0188       0.0006 -5.210000e-02    -0.0365              True               0        5      False
+     A   POOL_C64_vs_G14 -2.910000e-02 -5.440000e-02     0.0009       0.0548 -3.430000e-02    -0.0250              True               0        5      False
+     A   O_WITHIN_vs_G14  4.030000e-02  4.400000e-03     0.0636       0.0298  3.000000e-02     0.0452              True               5        5       True
+     A   O_PUBMAG_vs_G14  5.330000e-02 -2.700000e-02     0.1127       0.2606  1.010000e-02     0.0666              True               5        5      False
+     A  FE_PHYS4_vs_FLAT  9.660000e-02  3.100000e-03     0.1632       0.0408  4.750000e-02     0.1068              True               5        5       True
+     A       G14_vs_FLAT  9.640000e-02  3.200000e-03     0.1624       0.0408  4.790000e-02     0.1065              True               5        5       True
+    BP    FE_ACID_vs_G14  5.000000e-04 -4.000000e-04     0.0016       0.3600  0.000000e+00     0.0007              True               3        5      False
+    BP   FE_PHYS4_vs_G14  5.400000e-03 -9.000000e-04     0.0112       0.1866  7.000000e-04     0.0058              True               2        5      False
+    BP   FE_NUM14_vs_G14  1.700000e-03 -9.600000e-03     0.0100       0.8600 -4.600000e-03     0.0030             False               2        5      False
+    BP     FE_C64_vs_G14  2.500000e-03 -6.600000e-03     0.0089       0.5812 -8.000000e-04     0.0040             False               2        5      False
+    BP META_PHYS4_vs_G14 -0.000000e+00 -1.000000e-04     0.0001       0.7252 -0.000000e+00     0.0000             False               0        5      False
+    BP   RI_PHYS4_vs_G14 -4.600000e-03 -9.500000e-03     0.0029       0.2030 -5.800000e-03    -0.0021              True               2        5      False
+    BP     RI_C64_vs_G14 -2.491658e+02 -7.525035e+02    -0.0401       0.0004 -3.347102e+02   -88.2437              True               0        5      False
+    BP   POOL_C64_vs_G14 -4.974770e+11 -1.885176e+12    -0.0979       0.0002 -6.682527e+11 -1238.8121              True               0        5      False
+    BP   O_WITHIN_vs_G14  4.190000e-02  6.500000e-03     0.0652       0.0238  3.130000e-02     0.0469              True               5        5       True
+    BP   O_PUBMAG_vs_G14  5.240000e-02 -3.830000e-02     0.1222       0.3904 -9.000000e-04     0.0660             False               5        5      False
+    BP  FE_PHYS4_vs_FLAT  9.390000e-02  1.100000e-03     0.1571       0.0452  4.760000e-02     0.1042              True               5        5       True
+    BP       G14_vs_FLAT  8.840000e-02  1.000000e-03     0.1473       0.0468  4.680000e-02     0.0986              True               5        5       True
+
+--- what the within fits actually learned (main) ---
+       arm  n_fits  shrink_mean  shrink_zero_frac  cols_identified_mean  beta_l1_mean  beta_raw_l1_mean
+  FE_PHYS4     125        0.092             0.904                 2.976        0.0152            0.3114
+   FE_ACID     125        0.158             0.792                 1.000        0.0130            0.0680
+    FE_C64     125        0.030             0.920                26.800        0.0267            1.1949
+META_PHYS4     125        0.072             0.920                 2.352        0.0015            0.1293
+  FE_NUM14     125        0.088             0.808                12.368        0.0927            0.9729
+
+--- within coefficients on log|a|, FE_PHYS4 (main, mean over folds x designs) ---
+    column  beta_raw_mean  beta_raw_sd  frac_positive  frac_identified
+complexant         0.0000       0.0000          0.000            0.000
+   is_hno3         0.1485       0.1380          0.944            1.000
+log_acid_M        -0.0268       0.1367          0.296            1.000
+    temp_C         0.0120       0.0299          0.816            0.976
+
+--- within coefficients on log|a|, META_PHYS4 (main, mean over folds x designs) ---
+    column  beta_raw_mean  beta_raw_sd  frac_positive  frac_identified
+complexant         0.0000       0.0000          0.000            0.000
+   is_hno3         0.0927       0.0881          0.528            0.528
+log_acid_M         0.0293       0.0300          0.928            0.992
+    temp_C        -0.0058       0.0045          0.016            0.832
+
+--- within coefficients on log|a|, FE_NUM14 (main, mean over folds x designs) ---
+         column  beta_raw_mean  beta_raw_sd  frac_positive  frac_identified
+     log_acid_M         0.0365       0.1227          0.560            1.000
+     log_extr_M        -0.1368       0.1657          0.176            1.000
+   log_metal_mM         0.0798       0.0925          0.680            0.928
+         temp_C         0.0069       0.0209          0.824            0.976
+log_contact_min        -0.0160       0.0641          0.272            1.000
+        is_hno3         0.0824       0.1016          0.848            1.000
+         is_hcl        -0.0825       0.1025          0.152            1.000
+       is_h2so4        -0.0063       0.0038          0.000            0.784
+     complexant         0.0000       0.0000          0.000            0.000
+       modifier        -0.0458       0.1006          0.336            0.920
+  dil_aliphatic         0.0066       0.1027          0.560            0.928
+   dil_aromatic        -0.0537       0.0629          0.200            0.960
+dil_chlorinated         0.0276       0.0520          0.592            0.912
+      dil_polar         0.0181       0.0374          0.616            0.960
+
+FWL identity (within == residual-on-residual) across all five designs: True

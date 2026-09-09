@@ -69,14 +69,17 @@ def direction_loco(rec: pd.DataFrame) -> pd.DataFrame:
 
 def main() -> None:
     parts = []
-    for f in ("cheap_predictions.csv.gz", "tabpfn_predictions.csv.gz"):
+    for i, f in enumerate(("cheap_predictions.csv.gz", "tabpfn_predictions.csv.gz",
+                           "control_predictions.csv.gz", "tpcontrol_predictions.csv.gz")):
         p = OUT / f
         if p.exists():
             r = pd.read_csv(p)
-            if f.startswith("tabpfn"):
+            if i:
                 r = r[~r.arm.isin(["FLAT", "G14"])]
             parts.append(r)
     rec = pd.concat(parts, ignore_index=True)
+    rec = rec.drop_duplicates(subset=["design", "arm", "split_seed", "fold", "cell_index"],
+                              keep="first")
     mc = magnitude_confounds(rec)
     lo = direction_loco(rec)
     mc.to_csv(OUT / "confound_magnitude.csv", index=False)

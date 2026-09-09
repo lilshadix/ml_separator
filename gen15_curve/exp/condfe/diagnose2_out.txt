@@ -1,0 +1,55 @@
+== pooled within-block correlation, |a| ==
+  log_acid_M   within pub                rho=+0.356  rho|n_metals=+0.362  blocks= 19 cells=223
+  log_acid_M   within pub+extractant     rho=+0.245  rho|n_metals=+0.244  blocks= 17 cells=156
+  log_acid_M   within pub+extr+diluent   rho=+0.208  rho|n_metals=+0.220  blocks= 19 cells=150
+
+  log_extr_M   within pub                rho=-0.359  rho|n_metals=-0.378  blocks= 12 cells=148
+  log_extr_M   within pub+extractant     rho=-0.001  rho|n_metals=+0.049  blocks=  8 cells= 87
+  log_extr_M   within pub+extr+diluent   rho=-0.001  rho|n_metals=+0.058  blocks=  8 cells= 81
+
+  temp_C       within pub                rho=-0.127  rho|n_metals=-0.095  blocks=  5 cells= 47
+  temp_C       within pub+extractant     rho=-0.127  rho|n_metals=-0.093  blocks=  4 cells= 44
+  temp_C       within pub+extr+diluent   rho=-0.078  rho|n_metals=-0.057  blocks=  4 cells= 39
+
+  log_metal_mM within pub                rho=+nan  rho|n_metals=+nan  blocks=  4 cells= 38
+  log_metal_mM within pub+extractant     rho=+0.012  rho|n_metals=+0.571  blocks=  7 cells= 37
+  log_metal_mM within pub+extr+diluent   rho=-0.312  rho|n_metals=+0.440  blocks=  7 cells= 33
+
+  max_logD     within pub                rho=+0.313  rho|n_metals=+0.315  blocks= 32 cells=279
+  max_logD     within pub+extractant     rho=+0.419  rho|n_metals=+0.449  blocks= 27 cells=210
+  max_logD     within pub+extr+diluent   rho=+0.446  rho|n_metals=+0.488  blocks= 45 cells=207
+
+== within (pub+extractant), other targets ==
+  a     vs log_acid_M   rho=-0.270 blocks=17 cells=156
+  a     vs log_extr_M   rho=-0.003 blocks=8 cells=87
+  a     vs temp_C       rho=+0.035 blocks=4 cells=44
+  b     vs log_acid_M   rho=-0.095 blocks=17 cells=156
+  b     vs log_extr_M   rho=-0.185 blocks=8 cells=87
+  b     vs temp_C       rho=+0.106 blocks=4 cells=44
+
+== leave-one-publication-out on within(pub) rho, log_acid_M vs |a| ==
+  all: +0.356  (19 varying publications, 223 cells)
+  drop pub_5a68dc5665 (n=39) -> +0.195
+  drop pub_6a0ef8528c (n=15) -> +0.334
+  drop pub_8415538291 (n=10) -> +0.350
+  drop pub_1605e436d7 (n= 9) -> +0.353
+  drop pub_f8a621ede4 (n= 5) -> +0.355
+  ...
+  drop pub_b9dfc468cd (n=16) -> +0.376
+  drop pub_d68ed8c8cf (n=22) -> +0.378
+  drop pub_b0b3296ec5 (n=20) -> +0.411
+
+== per-publication acid series (rich cells, >=3 cells, >=3 acid levels) ==
+  pub_b9dfc468cd  n= 16 levels= 3 extractants=11 rho=-0.385 acid=1.00-5.00M |a|=0.21-0.30
+  pub_4cba27f5f3  n=  8 levels= 3 extractants= 5 rho=+0.156 acid=0.10-3.00M |a|=0.00-0.90
+  pub_bdb1564c49  n= 11 levels= 5 extractants= 1 rho=-0.232 acid=1.00-5.00M |a|=0.21-0.62
+  pub_d68ed8c8cf  n= 22 levels= 7 extractants= 4 rho=+0.193 acid=0.00-5.00M |a|=0.02-0.53
+  pub_1c1b558856  n=  5 levels= 5 extractants= 1 rho=+0.300 acid=1.60-5.60M |a|=0.15-0.25
+  pub_c8195b4ca7  n= 20 levels= 6 extractants= 1 rho=+0.354 acid=0.10-7.00M |a|=0.01-0.22
+  pub_19783c039b  n= 19 levels=14 extractants= 1 rho=+0.328 acid=0.50-5.99M |a|=0.02-1.11
+  pub_f8a621ede4  n=  5 levels= 5 extractants= 1 rho=+1.000 acid=1.00-3.00M |a|=0.24-0.53
+  pub_1605e436d7  n=  9 levels= 8 extractants= 1 rho=+0.762 acid=0.01-0.11M |a|=0.11-0.85
+  pub_37086f6378  n=  9 levels= 6 extractants= 1 rho=-0.339 acid=0.05-1.00M |a|=0.00-0.13
+  pub_b0b3296ec5  n= 20 levels= 4 extractants= 1 rho=-0.248 acid=1.00-5.00M |a|=0.26-0.92
+  pub_6a0ef8528c  n= 15 levels= 5 extractants= 1 rho=+0.927 acid=0.10-1.00M |a|=0.33-0.88
+  pub_8415538291  n= 10 levels= 5 extractants= 1 rho=+0.886 acid=1.00-5.00M |a|=0.05-0.67

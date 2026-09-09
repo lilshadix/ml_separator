@@ -26,7 +26,7 @@ under):
 
 | arm | BP | what it is |
 |---|---|---|
-| `O_BOTH` | **0.181** | the cell's own two coefficients — the representation ceiling |
+| `O_BOTH` | **0.181** | the cell's own two coefficients — **in sample; see §1a, the honest value is 0.274** |
 | `O_AMP` | 0.322 | the cell's own radius coefficient |
 | `O_CURV` | **0.427** | gen14's amplitude with the cell's own **curvature** |
 | `O_PUBMAG` | 0.448 | magnitude = the cell's own publication's mean \|a\| |
@@ -50,6 +50,36 @@ p = 0.047, 59/90 extractants improved, 5/5 seeds, LOCO-stable, passes P1).  Four
 ligand modelling move the pairwise error from 0.589 to 0.500.  That is a real, significant,
 design-invariant gain, and it is small.
 
+### 1a. Correction: every own-cell oracle in this report is optimistic, and by how much
+
+An earlier draft called `O_BOTH` = 0.181 "the representation ceiling".  That is wrong and the
+correction is load-bearing enough to state before anything else in this report is read.
+
+A cell's coefficients are fitted to the same log D values the arm is then scored against, so part of
+every own-cell oracle's advantage is the coefficient absorbing the noise of the very pair being
+scored.  The clean correction needs no assumption about the noise at all: **refit the cell's
+coefficients without the two metals of the pair being scored**, and score that.  On identical rows
+(`exp/labelerr/results/s4b_oracle_honesty.csv`; the in-sample arm reproduces this report's `O_BOTH`
+to 0.18111057, so it is the same pipeline):
+
+| arm | in sample | leave-pair-out | what the oracle was fitting |
+|---|---|---|---|
+| own a and b | 0.1811 | **0.2736** | 0.093 of it was noise |
+| own a, constant b | 0.3191 | 0.3370 | 0.018 |
+| true sign, own b | 0.3771 | 0.4245 | 0.047 |
+| true sign, constant b | 0.4724 | 0.4724 | — (nothing own-cell to fit) |
+
+So the two-parameter representation ceiling is **≈ 0.27**, not 0.18, and a σ-based simulation puts
+the honest two-term ceiling at 0.234–0.299 across the defensible noise range with a noise-only floor
+of 0.13–0.22.  The labels themselves are clean — reliability 0.978 for `a` and 0.936 for `b`, and
+every attempt to de-noise or precision-weight them is null or harmful — so this is not a data
+problem.  It is that an in-sample oracle is not a ceiling.
+
+Everything that follows quotes the in-sample oracles because they are what the five-design bench
+computes, but **every own-cell oracle gap in this report should be read as roughly half again too
+large**, and the correction is largest exactly where the fitted quantity is least determined: the
+curvature.
+
 ---
 
 ## 2. The curvature is the unclaimed half of the error
@@ -63,6 +93,13 @@ fold's mean — scores 0.427 against 0.500.
 | `O_AMP` − `G14` | +0.1779 | [+0.0952, +0.2390] | < 0.0001 | passes |
 | `O_PUBMAG` − `G14` | +0.0524 | [−0.0383, +0.1222] | 0.39 | no |
 | `O_LEVEL_MAX` − `G14` | +0.0332 | [−0.0017, +0.0569] | 0.067 | no |
+
+**Read that table with §1a.**  On matched rows the curvature oracle's in-sample advantage is +0.095
+and its leave-pair-out advantage is +0.048, so **about half of the +0.073 above is the oracle fitting
+the noise of the pair it is scored on**, and the honest curvature headroom is nearer +0.036.  The
+curvature is still the second-largest identified lever and it is still unclaimed, but it is a
+smaller prize than the in-sample number says, and any future arm must be compared with the
+leave-pair-out oracle rather than this one.
 
 The curvature is not a redundant re-parameterisation of the amplitude: the two are uncorrelated
 (Pearson 0.03, Spearman −0.10).  It has chemotype ICC 0.67 — the same grouped structure the amplitude
@@ -327,6 +364,46 @@ margin, so it does not pass P1, and it is measured against the training-fold cov
 stronger baseline.  The honest verdict is a **null with a mechanism**: the alphabet's oracle value
 does not convert into a measured-mode gain, and the reason is covariance estimation, not shape
 identification.
+
+---
+
+## 8. Eight parallel experiments: seven nulls and one honest positive
+
+Eight independent arms were run against this bench, each under all five designs with the
+chemotype-blocked bootstrap.  Their code and tables are under `exp/<slug>/`.
+
+| arm | verdict | best BP | what it settles |
+|---|---|---|---|
+| `embed` pretrained chemical LMs | null | 0.5029 | ChemBERTa-77M-MTR/MLM and MoLFormer-XL carry neither magnitude nor curvature, and for the *direction* they are actively harmful: best 0.5687 macro accuracy against TOPO39's 0.8205 and an always-heavy floor of 0.5586. Every `DIR_*` embedding arm is worse than predicting no separation. |
+| `kernel` 85 similarity-kernel arms | null | 0.4980 | Tanimoto/RBF/Matérn kernel ridge, kernel logistic, SVC, kNN and a GP all fail identically. The reason is structural: the chemotype hold-out is single-linkage Tanimoto 0.7 on the very ECFP bits the kernel uses, so the kernel extrapolates on 100 % of held-out cells by construction. |
+| `phys3d` 28-column xTB geometry block | null | 0.4998 | Confirms §3 independently; the best honest fold-refit arm is 0.5013, worse than gen14. Note the caveat: the reference jobs were never run, so binding, strain and frontier-orbital energies are all NULL — this is "these xTB scalars are useless here", not "xTB is useless here". |
+| `tabpfn` modern tabular learners | null | 0.4914 | TabPFN v2, CatBoost, monotone XGBoost, an isotonic bite fit, a spline GAM and an exhaustive 4602-term symbolic search. The one positive (TabPFN magnitude head, +0.0086) has p = 0.50 and is negative under design A. **The estimator axis is now closed**: twelve magnitude priors, all within ~0.007 of a constant. |
+| `external` transfer to/from aqueous logK | null | 0.5520 | Gen14's classifier does not predict the logK slope sign of 273 independent ligands (0.440 against a 0.722 constant rule, permutation p = 0.81). The converse direction carries genuinely non-random signal — it beats all five of its label-permutation nulls, p = 0.004–0.018 — but scores 0.5520, indistinguishable from FLAT and worse than gen14. |
+| `condfe` within-publication conditions | null | 0.4946 | The Frisch–Waugh transformation *does* repair the laboratory blow-up (a pooled conditions model goes from 5e11 to 0.4976 under BP). But the physics does not transfer: the acid association is real (within-publication Spearman +0.356 with \|a\|, LOCO- and LOPO-stable) and worth only +0.009 on a mean \|a\| of 0.295, and the inner LOPO CV shrinks the coefficient to exactly zero in 90 % of folds. |
+| `labelerr` label noise and ceilings | null, **but see §1a** | 0.4959 | The labels are clean and every correction is null — and the ceilings in this report were wrong. This arm produced the most important number of the eight. |
+| `decision` decision-relevant metrics | **positive, and bounded** | — | see below |
+
+### What the model can and cannot be trusted to do
+
+The `decision` arm asked the questions a chemist actually asks, with a permutation null behind every
+number, and the answer splits cleanly in two.
+
+**The direction call is genuinely deployable.**  Pair-sign accuracy under BP is **0.812 against 0.630
+for "always prefer the heavier lanthanide"** — +0.18, consistent across all five designs, p ≤ 0.018,
+z = 6.8–10.6 against a permutation null.  Told a ligand and a metal pair, the model says which
+lanthanide goes into the organic phase, and it is right four times in five where the incumbent rule
+is right two times in three.
+
+**Every selection decision is at chance.**  Asked "which of these extractants best separates this
+pair", the model's top-1 pick is no better than random (0.023 against 0.017), and with the laboratory
+held fixed its ranking of candidates is not better than random either.  The reason is now localised:
+gen14 emits *one bit per extractant*, and that bit is identical across the candidate set in 70–85 %
+of real comparisons, so the model has nothing to rank with.
+
+That is the honest state of the programme in one sentence.  **Zero-shot, this model answers "which
+way" and cannot answer "which ligand".**  Answering "which ligand" needs the magnitude, and §1a says
+the magnitude's honest headroom is smaller than we thought — or it needs a measurement, which §5
+shows is worth more than any modelling move in four generations.
 
 ---
 

@@ -20,9 +20,10 @@ ORDER = ["FLAT", "G14",
          "CB_DIR", "CB_DIR209", "CB_DIR_ES", "CB_MAG", "CB_CURV",
          "XGB_MONO", "XGB_FREE", "ISO_PRIOR", "ISO_PICK",
          "GAM_DIR", "GAM_DIR_K", "GAM_MAG", "SYM_DIR",
-         "MAG_MED", "CB_MAG_LEVEL", "CB_MAG_RANK"]
+         "MAG_MED", "CB_MAG_LEVEL", "CB_MAG_RANK", "CB_MAG_SHUF",
+         "TP_MAG_MEAN", "TP_MAG_SHUF"]
 
-SOURCES = (("cheap", False), ("tabpfn", True), ("control", True))
+SOURCES = (("cheap", False), ("tabpfn", True), ("control", True), ("tpcontrol", True))
 
 
 def _order(df: pd.DataFrame) -> pd.DataFrame:
@@ -88,8 +89,8 @@ def main() -> None:
     out.append(_md(bs["macro_pair_spearman"]))
 
     cons = []
-    for f, drop in (("cheap_contrasts.csv", False), ("tabpfn_contrasts.csv", True)):
-        p = OUT / f
+    for tag, drop in SOURCES:
+        p = OUT / f"{tag}_contrasts.csv"
         if p.exists():
             c = pd.read_csv(p)
             if drop:
@@ -97,6 +98,7 @@ def main() -> None:
             cons.append(c)
     if cons:
         C = pd.concat(cons, ignore_index=True)
+        C = C.drop_duplicates(subset=["comparison", "design"], keep="first")
         C.to_csv(OUT / "all_contrasts.csv", index=False)
         for tag, sel in (("vs G14", "_vs_G14"), ("vs FLAT", "_vs_FLAT")):
             sub = C[C.comparison.str.endswith(sel)].copy()
