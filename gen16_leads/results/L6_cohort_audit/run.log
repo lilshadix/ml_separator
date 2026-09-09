@@ -1,0 +1,63 @@
+== 0. frozen reproduction ==
+  exact    cells= 521 (frozen 521)  extractants=90 (frozen 90)  fp=4c3c6628ea0be949 OK
+  relaxed  cells= 509 (frozen 509)  extractants=90 (frozen 90)  fp=97fb945371e30ac5 OK
+  series   cells= 597 (frozen 597)  extractants=89 (frozen 89)  fp=f0270097d692aaf3 OK
+  Kish n_eff over chemotypes, by DISTINCT EXTRACTANTS per chemotype = 11.6715   <- this is gen13's published 11.7 (scripts/g13_analysis.py)
+  Kish n_eff over chemotypes, by CELL counts                        = 1.9134
+
+== 1. exclusion trace over all 190 bundle extractants ==
+  bundle extractants                                        190
+  with >= 2 distinct lanthanides measured ANYWHERE           90
+  in the frozen cohort                                       90
+  >= 2 lanthanides but NOT in the frozen cohort              0
+
+exclusion_rule
+single_metal_in_bundle    100
+kept                       90
+
+== 2. what the excluded compounds are ==
+  frozen chem__supercluster == my single-linkage ECFP4 Tanimoto-0.7 clustering: True (98 clusters vs 98 frozen)
+  excluded compounds                                         100
+  chemotypes represented among the excluded                  60
+  of those, chemotypes ABSENT from the kept cohort           53
+  excluded compounds with max Tanimoto to kept < 0.7         77
+  excluded compounds joining an existing chemotype (T>=0.7)  23
+  max Tanimoto to kept: median 0.576  min 0.140  max 1.000
+  ECFP4-identical to a kept extractant (T = 1.00): 5
+    DEDDdDGA  ==  DEDODGA  (different canonical SMILES)
+    DMDDdDGA  ==  DMDODGA  (different canonical SMILES)
+    DPDDdDGA  ==  DPDODGA  (different canonical SMILES)
+    D3DODGA  ==  DODDdDGA  (different canonical SMILES)
+    CyMe4-BTTP  ==  5-5-8-8-tetramethyl-3-[6-[6-(5-5-8-8-tetramethyl-6-7-dihydro-1-2-4-benzotriazin-3-yl)-2-pyridinyl]-2-pyridinyl]-6-7-dihydro-1-2-4-benzotriazine  (different canonical SMILES)
+
+== 3. relaxations, ONE RULE AT A TIME ==
+  FROZEN                       cells= 521  ext= 90  chemotypes= 45  Kish=11.671  (d_ext +0, d_chemo +0)
+  relax_todga_quarantine       cells= 521  ext= 90  chemotypes= 45  Kish=11.671  (d_ext +0, d_chemo +0)
+  relax_sentinel               cells= 521  ext= 90  chemotypes= 45  Kish=11.671  (d_ext +0, d_chemo +0)
+  relax_publication_in_key     cells= 521  ext= 90  chemotypes= 45  Kish=11.671  (d_ext +0, d_chemo +0)
+  key_mode_relaxed             cells= 509  ext= 90  chemotypes= 45  Kish=11.671  (d_ext +0, d_chemo +0)
+  key_mode_series              cells= 597  ext= 89  chemotypes= 45  Kish=11.597  (d_ext -1, d_chemo +0)
+  key_mode_none                cells= 131  ext= 90  chemotypes= 45  Kish=11.671  (d_ext +0, d_chemo +0)
+  relax_require_chemotype      cells= 521  ext= 90  chemotypes= 45  Kish=11.671  (d_ext +0, d_chemo +0)
+
+  MIN_METALS_PER_CELL = 2 is not relaxable: a separation factor needs two metals in one cell.
+
+== 4. counterfactual: what a SECOND lanthanide on the excluded compounds would buy ==
+  FROZEN                                                 90 extractants /  45 chemotypes / Kish 11.671  (1.00x)
+  all 100 single-lanthanide compounds                  +100 ext -> 190 extractants /  98 chemotypes / Kish 12.271  (1.05x)
+  only those in chemotypes absent from the cohort      + 60 ext -> 150 extractants /  98 chemotypes / Kish 28.553  (2.45x)
+  only those with max ECFP4 Tanimoto to kept < 0.7     + 77 ext -> 167 extractants /  98 chemotypes / Kish 15.607  (1.34x)
+  one compound per absent chemotype (cheapest batch)   + 53 ext -> 143 extractants /  98 chemotypes / Kish 27.375  (2.35x)
+  HYPOTHETICAL: these need new laboratory measurements, not a filter change.
+  Kish barely moves for 'all 100' because 28 of the 100 are themselves in sc009, the dominant diglycolamide chemotype (23 of the cohort's 90 extractants).
+
+== exclusions by rule ==
+                             rule  n_extractants  n_new_chemotypes           relaxation_arm  cells_if_relaxed  extractants_if_relaxed  chemotypes_if_relaxed  kish_neff_if_relaxed
+           single_metal_in_bundle            100                53            not relaxable               NaN                     NaN                    NaN                   NaN
+                             kept             90                 0                        -             521.0                    90.0                   45.0              11.67147
+            todga_name_quarantine              0                 0   relax_todga_quarantine             521.0                    90.0                   45.0              11.67150
+             sentinel_log_D_le_-6              0                 0           relax_sentinel             521.0                    90.0                   45.0              11.67150
+ publication_in_key_splits_metals              0                 0 relax_publication_in_key             521.0                    90.0                   45.0              11.67150
+           missing_publication_id              0                 0            not relaxable               NaN                     NaN                    NaN                   NaN
+    missing_chemotype_in_gen6_map              0                 0  relax_require_chemotype             521.0                    90.0                   45.0              11.67150
+exact_condition_key_splits_metals              0                 0            key_mode_none             131.0                    90.0                   45.0              11.67150
