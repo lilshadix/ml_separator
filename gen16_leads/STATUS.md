@@ -2,7 +2,27 @@
 
 *Updated at the end of each phase so the work survives a context reset.  Newest entry first.*
 
-## Phase 2 in progress — L2 closed 2026-09-10 00:52
+## Phase 2 complete — 2026-09-10 02:10
+
+Five leads ran on the five discovery seeds under all five designs.  **One claim passed its
+registered decision rule in all five designs (L3a).**  Two leads closed with a mechanism, one is
+design-inconsistent, one is a set of sub-margin effects and two defects.
+
+| lead | verdict | headline (BP unless stated) |
+|---|---|---|
+| **L1** cycle-corrected xTB | **CLOSED** | ρ(SPECIES slope, `a`) = **−0.084** on S8 (n = 62), CI [−0.297, +0.240], LOCO sign unstable.  Monotone dose–response in bookkeeping exactness: NAIVE +0.392 → SPECIES_NFILLCOL +0.374 → ELEM +0.313 → SPECIES_CONST +0.167 → SPECIES −0.084.  Gen15's +0.644 reproduces exactly (n = 39) and is a composition artefact; the naive slope and its curvature are one step function read twice (ρ = −0.981). |
+| **L2** curvature | **CLOSED** (gate) | honest leave-pair-out headroom +0.0287, CI [−0.0013, +0.0532], p 0.061; MDE 0.039.  `r0` not run. |
+| **L3a** measurements saved | **POSITIVE, all five designs** | the direction call cuts expected measurements to the first useful candidate from **6.91 to 4.92, saving 1.99 (28.8 %)**; five designs +1.99 to +2.49; permutation p = 0.0000 (2000 reps) in all five; CI [+0.44, +3.78]; "always heavier" saves exactly 0. |
+| **L3c** ranking at k = 1 | **NULL** | `G14@k1 − NAIVE_LINE@k1` on regret: +0.003 / +0.002 / −0.003 / −0.017 / −0.021, p 0.34–1.00; on Spearman consistently **negative** (−0.022 to −0.027, p 0.013–0.026).  Once a candidate has one measurement, the corpus adds nothing to ranking. |
+| **L3b** within-chemotype ranking | **not run** | registered as conditional on L1 being positive; L1 closed. |
+| **L4** acquisition order | **design-inconsistent, fails the rule** | A-optimal vs random ABC: B −0.012, BR +0.023, BQ −0.003, A +0.037, **BP +0.050** [+0.027, +0.066], 5/5 seeds, percentile 100/100 among random draws.  Passes P1 under BR, A, BP; fails under B and BQ, which differ from BR only in training-side masking.  Prospective ranking of 95 bundle + 273 logK candidates delivered. |
+| **L5** covariance and calibration | **no P1 claim; two defects** | `MIX6meanPC` beats the *deployed* baseline (the comparison gen15 never ran) by **+0.0070** at k = 3, p < 1e-4, design-invariant, 5/5 seeds, LOCO-stable — but 3× under the 0.02 margin.  Ledoit–Wolf is catastrophic (BP MAE 34.4 at k = 3) because the deployed residual covariance is **indefinite on 100 % of its 430 leave-chemotype-out estimates** and greedy D-optimal seeks those directions.  Measured-mode intervals over-cover: nominal 90 % covers **98.8 %** at k = 3 (zero-shot 92.6 %), driven by the fixed `NOISE_VAR = 0.09`.  Platt recalibration of the direction probability makes it worse; the raw probability beats the base rate on Brier in all five designs but its ECE is 0.139, above the registered 0.10 bar. |
+
+Comparison accounting so far: L1 90, L2 20, L3 85, L4 435, L5 230 contrast rows written.
+
+**Phase 4 launched**: two blind refuters each on L3A, L4BP and the L1 null.
+
+## Phase 2 partial — L2 closed 2026-09-10 00:52
 
 **L2 gate: CLOSED, the lead ends here** (`results/L2/L2_GATE.md`).  The honest leave-pair-out
 curvature headroom under BP is **+0.0287**, percentile 95 % CI [−0.0013, +0.0532], p = 0.061,

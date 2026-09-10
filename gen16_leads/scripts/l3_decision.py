@@ -56,9 +56,10 @@ def run_l3a(tab: pd.DataFrame, design: str, checks: dict) -> tuple[pd.DataFrame,
     per_task = L.per_task_frame(T)
     for arm, cl in calls.items():
         mats = L.l3a_matrices(T, cl)
-        point = L.l3a_saved_weighted(W_one, mats)
+        # the single unit-weight row is squeezed to 1-D: every point estimate below is a scalar
+        point = {k: v[0] for k, v in L.l3a_saved_weighted(W_one, mats).items()}
         direct = L.l3a_per_task_direct(T, cl)
-        worst = max(float(np.nanmax(np.abs(point[k][0] - direct[k].to_numpy())))
+        worst = max(float(np.nanmax(np.abs(point[k] - direct[k].to_numpy())))
                     for k in ("saved", "saved_heavy", "saved_light", "e_random", "e_model"))
         checks[f"{design}:{arm}:matrix_vs_direct"] = worst
         if worst > 1e-9:
@@ -68,7 +69,7 @@ def run_l3a(tab: pd.DataFrame, design: str, checks: dict) -> tuple[pd.DataFrame,
         perm = L.l3a_permutation(T, cl) if arm == "G14" else None
         if arm == "G14":
             for k in ("saved", "saved_heavy", "saved_light", "e_random", "e_model"):
-                per_task[k] = point[k][0]
+                per_task[k] = point[k]
             per_task["n_no_call"] = direct["n_no_call"].to_numpy()
             per_task["n_called_heavy"] = direct["n_called_heavy"].to_numpy()
             per_task["n_called_light"] = direct["n_called_light"].to_numpy()
@@ -87,7 +88,7 @@ def run_l3a(tab: pd.DataFrame, design: str, checks: dict) -> tuple[pd.DataFrame,
             e_mod = L.seed_macro(point["e_model"], T.seeds, sel)
             e_rand_b = L.seed_macro(boot["e_random"], T.seeds, sel)
             with np.errstate(invalid="ignore", divide="ignore"):
-                frac_task = L.seed_macro(point["saved"][0] / point["e_random"][0], T.seeds, sel)
+                frac_task = L.seed_macro(point["saved"] / point["e_random"], T.seeds, sel)
                 frac_boot = stats["saved"]["block"] / e_rand_b
             n_sel = int(sel.sum())
             row = {"design": design, "arm": arm, "split": split, "n_tasks": n_sel,

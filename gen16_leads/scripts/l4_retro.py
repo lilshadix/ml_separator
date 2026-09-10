@@ -222,6 +222,7 @@ def main() -> None:
             rows.append(c)
     CA = pd.concat(rows, ignore_index=True)
     CA["lead"] = LEAD
+    CA["loco_stable"] = CA["loco_sign_stable"]   # orchestrator's column name; same values
     CA["p_bh_within_lead_family"] = np.nan
     for fam in ("registered", "exploratory"):
         m = CA.family == fam
@@ -245,6 +246,7 @@ def main() -> None:
                 rows.append(c)
     CB = pd.concat(rows, ignore_index=True)
     CB["lead"] = LEAD
+    CB["loco_stable"] = CB["loco_sign_stable"]   # orchestrator's column name; same values
     CB["p_bh_within_lead_family"] = bh(CB["p_two_sided"])
     CB.to_csv(OUT / "contrasts_per_budget.csv", index=False)
 

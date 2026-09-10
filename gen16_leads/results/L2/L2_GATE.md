@@ -1,6 +1,6 @@
 # L2 gate — the honest (leave-pair-out) curvature headroom
 
-*Discovery seeds (5), designs B / BR / BQ / A / BP, extractant-macro MAE of pairwise log SF, n = 90 extractants, chemotype-blocked paired bootstrap (10 000 replicates). Run 2026-09-10T00:50:16, 98 s.*
+*Discovery seeds (5), designs B / BR / BQ / A / BP, extractant-macro MAE of pairwise log SF, n = 90 extractants, chemotype-blocked paired bootstrap (10 000 replicates). Run 2026-09-10T07:05:31, 102 s.*
 
 ## Verdict: **CLOSED**
 
@@ -59,12 +59,4 @@ Gate valid (O_CURV reproduces 0.4272 ± 0.001 and G14 0.5001): **True**.
 gen15 `s4b_oracle_honesty.csv` (one seed, all 521 cells in one frame, **true** sign, global constants): SIGN_OWNB 0.3771 → SIGN_OWNB_LOPO 0.4245, gap +0.0474.
 
 This run (5 discovery seeds, fold-wise pair tables, **G14's predicted** sign and training-fold constants): B +0.0418, BR +0.0420, BQ +0.0408, A +0.0431, BP +0.0442.
-
-The pair set is the same in both: every cell is held out exactly once per seed under every design, so each seed's table is the 14 150 pairs of the s4b frame (70 750 rows / 5 seeds) and only the amplitude and the constant differ.  The gap is 0.003 smaller here because (i) the amplitude is G14's *predicted* sign (macro direction accuracy 0.81) rather than the true sign, and where the sign is wrong the amplitude error dominates both arms equally so the b term's self-fitting contributes the same absolute amount to a larger error; (ii) the magnitude and the constant b are training-fold quantities under a publication mask rather than global constants; (iii) five seeds are averaged.  None of this changes the conclusion: about 0.04 of the in-sample own-curvature advantage is the coefficient absorbing the noise of the scored pair, exactly as gen15 §1a measured.
-
-## Closure
-
-The gate is closed.  On the standard BP pair tables the honest curvature headroom — G14's amplitude with the cell's own second coefficient refitted without the two metals of the scored pair — is **+0.0287** (61/90 extractants improved, 5/5 seeds positive, leave-one-chemotype-out range [+0.022, +0.034]) with a percentile 95 % CI [−0.0013, +0.0532] and p = 0.061: the point clears the registered 0.02 margin but the interval does not exclude zero, and the same holds under B (p = 0.065), BR (p = 0.104) and BQ (p = 0.129); only design A, the exact-extractant hold-out that never selects, excludes zero (p = 0.031).  The bootstrap SE is 0.014, so the minimum detectable headroom at 80 % power is 0.039: ninety extractants in 45 chemotype blocks cannot resolve a curvature prize of the registered size.  The honest prize is about +0.03, some 40 % of the in-sample +0.073 gen15 §2 reported; the remaining +0.044 under BP (+0.041 to +0.043 elsewhere) is the oracle fitting the noise of the pair it is scored on, consistent with §1a's +0.047.  Any future curvature arm would have to close a gap that the frozen bench cannot distinguish from zero, so the r0 reparametrisation registered for the open case was **not run** (no subset R, no ICC, no G14_R0 arm) and the L2 agents are released to L1/L4.
-
-**Temptation recorded, not acted on.**  The BCa lower bound under BP is +5.7 × 10⁻⁶.  Reading the rule as "the *BCa* interval excludes zero" would have opened the gate on a six-millionths margin.  The script's rule was fixed on the percentile interval (the `ci95_low`/`ci95_high` columns of `paired_contrasts`) before the run, P1's convention requires *both* intervals, and p = 0.061 fails the p < 0.05 part of the same rule under any reading; the verdict stands.  A second temptation — quoting design A, the only design whose interval excludes zero — is closed by the brief's rule that A never selects.
 

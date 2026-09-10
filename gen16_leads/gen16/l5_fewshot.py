@@ -246,3 +246,47 @@ def evaluate(bench, arms: dict[str, Callable[[Ctx], np.ndarray]], design: str, *
         print(f"   [{design}] L5 few-shot {len(table)} scored pairs, {len(modes)} modes, "
               f"{len(est_names)} estimators, {time.time() - t0:.0f}s", flush=True)
     return FewShotResult(pairs=table, modes=modes, seconds=time.time() - t0)
+
+
+# --------------------------------------------------------------------------------------
+# diagnostic: the residual rows every estimator is handed
+# --------------------------------------------------------------------------------------
+def residual_rows(bench, arm: Callable[[Ctx], np.ndarray], design: str, *,
+                  mask_publication: bool = True):
+    """Passes 1 and 2 of ``evaluate``, exposed: the leave-chemotype-out (optionally publication-
+    masked) residual curves handed to the covariance estimator, per distinct cache key.
+
+    Used only by ``scripts/l5_condition.py`` to report the conditioning of each estimator on the
+    REAL rows.  It does not touch ``evaluate`` and cannot move any scored number.
+    """
+    fs = feature_sets(bench)
+    X = bench.matrix(LEAN_BLOCKS)
+    rich = bench.frame.n_metals.to_numpy() >= MIN_METALS
+    pub = bench.frame.publication_id.astype(str).to_numpy()
+    resid_by_seed: dict[int, dict[int, np.ndarray]] = {}
+    for f in all_folds(bench.frame, design=design):
+        ctx = Ctx(bench=bench, design=design, seed=f.seed, fold=f.fold, train=f.train_index,
+                  test=f.test_index, w=cell_weights(bench.groups[f.train_index],
+                                                    bench.n_obs[f.train_index]),
+                  model_seed=f.model_seed, fs=fs, X=X, rich=rich)
+        coef = np.asarray(arm(ctx), dtype=float).reshape(len(f.test_index), bench.basis.shape[0])
+        cv = coef @ bench.basis
+        for j, ci in enumerate(f.test_index):
+            resid_by_seed.setdefault(f.seed, {})[ci] = centred_residual(bench.Y[ci], cv[j])
+    seen: set[tuple] = set()
+    out = []
+    for seed, d in resid_by_seed.items():
+        for ci in d:
+            key = (seed, str(bench.groups[ci]), pub[ci] if mask_publication else "")
+            if key in seen:
+                continue
+            seen.add(key)
+            keep = [cj for cj in d
+                    if bench.groups[cj] != bench.groups[ci]
+                    and not (mask_publication and pub[cj] == pub[ci])]
+            if len(keep) < 10:
+                out.append((key, None, None))
+                continue
+            out.append((key, np.array([d[cj] for cj in keep]),
+                        np.array([str(bench.groups[cj]) for cj in keep])))
+    return out

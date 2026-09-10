@@ -25,9 +25,14 @@ Bookkeeping facts established before any model was fitted (``scripts/l1_stage1.p
 * the non-ligand atoms of every complex decompose exactly into ``n_NO3`` nitrates and ``n_H2O``
   waters (element counts minus ``n_ligs`` x the RDKit formula of the neutral ligand); all 177
   ligands are neutral as written and are not deprotonated in the complex;
-* the xTB total charge is ``3 - n_NO3`` (sum of the ``initial_charges`` column, verified on the
-  1145 files that carry it; the ten legacy-header files have no energy anyway); ``initial_magmoms``
-  are all zero (``--uhf 0``).
+* the xTB total charge is ``3 - n_NO3``: the ``initial_charges`` column sums to exactly that on all
+  1145 files that carry it, and the post-relaxation Mulliken ``charge`` column sums to it (tolerance
+  0.02 e) on all 1116 files that carry one.  The ten legacy-header files have no energy anyway;
+* ``initial_magmoms`` is zero on 1134 of the 1145, and carries the *formal f-electron count* on the
+  metal in eleven (Eu 6.0, Yb 1.0).  It is metadata that GFN2 cannot use -- the lanthanides are
+  parameterised with f-in-core, so the valence shell is closed -- and it is set inconsistently
+  (other Eu and Yb complexes carry 0.0).  ``--uhf 0`` everywhere is therefore correct, and the
+  eleven files are reported rather than silently ignored.
 
 Hence the registered ``SPECIES`` model enters each fill species with its *actual molecule count*
 (``n_NO3 * gamma_nitrate + n_H2O * gamma_water``); the literal ``n_fill``-column variant is written
@@ -66,6 +71,7 @@ BOOT_SEED = 20260909          # robust_stats.py's generator seed
 MIN_BOOT_ROWS = 20            # robust_stats.py: a resample needs >= 20 rows and >= 5 distinct x
 MIN_PERM_UNITS = 10           # robust_stats.py: a chemotype-level rho needs >= 10 units
 HARTREE_EV = 27.211386245988
+KNOWN_ELEMENTS = {"H", "B", "C", "N", "O", "F", "P", "S", "Cl", "Br", "I", "Si", "Se", "As"} | set(LANTHANIDES)
 
 # registered decision rule (PRE_REGISTRATION.md section 3, L1)
 RULE_POSITIVE_RHO = 0.40
@@ -98,7 +104,12 @@ def fill_composition(g: pd.DataFrame, count_cols: list[str]) -> pd.DataFrame:
     """
     g = g.copy()
     formulas = {s: ligand_formula(s) for s in g["canonical_smiles"].unique()}
-    els = [c[2:] for c in count_cols]
+    # build_block.composition() skips only line 0 of the xyz, so the extxyz *comment* line is
+    # counted as one atom of a phantom element ("Properties=species:..." / "energy:").  The real
+    # element counts are unaffected; the phantom column is dropped here and the defect is reported
+    # rather than fixed in the frozen file (it is constant within a header style, so it enters
+    # gen15's construction B as a near-zero-variance covariate).
+    els = [c[2:] for c in count_cols if c[2:] in KNOWN_ELEMENTS]
     n_no3 = np.zeros(len(g), dtype=int)
     n_h2o = np.zeros(len(g), dtype=int)
     ok = np.ones(len(g), dtype=bool)
@@ -120,6 +131,36 @@ def fill_composition(g: pd.DataFrame, count_cols: list[str]) -> pd.DataFrame:
     g["total_charge"] = 3 - g["n_NO3"]
     g["lig_n_atoms"] = g["canonical_smiles"].map(lambda s: sum(formulas[s].values()))
     return g
+
+
+def xyz_charge_audit(rows: pd.DataFrame) -> pd.DataFrame:
+    """Per complex: the total charge the xyz declares, the Mulliken charge it carries, and the
+    largest |initial_magmom|.  Nothing is inferred; the file is read."""
+    import re
+    recs = []
+    for gk, p, metal in zip(rows["geometry_key"], rows["xyz_path"], rows["metal_symbol"]):
+        lines = (DATA / p).read_text().splitlines()
+        nat = int(lines[0].split()[0])
+        m = re.search(r"Properties=(\S+)", lines[1])
+        rec = {"geometry_key": gk, "has_properties_header": bool(m)}
+        if m:
+            spec = m.group(1).split(":")
+            cols, i = [], 0
+            while i < len(spec):
+                name, _typ, cnt = spec[i], spec[i + 1], int(spec[i + 2])
+                i += 3
+                cols += [name] if cnt == 1 else [f"{name}{k}" for k in range(cnt)]
+            df = pd.DataFrame([ln.split() for ln in lines[2:2 + nat]], columns=cols)
+            for c in cols:
+                if c != "species":
+                    df[c] = df[c].astype(float)
+            rec["q_initial_sum"] = float(df["initial_charges"].sum())
+            rec["q_metal_initial"] = float(df.loc[df["species"] == metal, "initial_charges"].iloc[0])
+            rec["max_abs_magmom"] = float(np.abs(df["initial_magmoms"]).max())
+            rec["magmom_on_metal"] = float(df.loc[df["species"] == metal, "initial_magmoms"].iloc[0])
+            rec["q_mulliken_sum"] = float(df["charge"].sum()) if "charge" in df.columns else np.nan
+        recs.append(rec)
+    return pd.DataFrame(recs)
 
 
 def load_energy_rows() -> tuple[pd.DataFrame, list[str]]:
@@ -294,8 +335,7 @@ def identifiability(rows: pd.DataFrame) -> pd.DataFrame:
         # VIF of delta_s inside the augmented SPECIES design (series x r, series x r^2 added)
         j = names.index(f"delta::{s}")
         jcol = X.shape[1] - C.shape[1] + j
-        aug = np.c_[X, np.where(m[ok], rc[np.argsort(np.argsort(np.flatnonzero(m)))] if False else 0, 0)]
-        # (simpler and exact) rebuild the two extra columns on the ok-rows directly
+        # the two extra columns (this series' own r and r^2 trend) on the ok-rows
         extra_r = np.zeros(ok.sum())
         extra_r2 = np.zeros(ok.sum())
         mm = m[ok]
@@ -375,8 +415,6 @@ def attach_sets(sl: pd.DataFrame) -> pd.DataFrame:
 def wide(df: pd.DataFrame, value: str = "slope") -> pd.DataFrame:
     """82-row frame: one column ``<value>__<model>__<set>`` per (model, set), NaN outside the set."""
     t = targets().set_index("extractant")
-    for (m, s), sub in df.groupby(["model", "set"]) if "set" in df.columns else []:
-        pass
     cols = {}
     for m in df["model"].unique():
         d = df[df["model"] == m].set_index("extractant")
@@ -471,14 +509,21 @@ def permutation_null(W: pd.DataFrame, cols: list[str], rng: np.random.Generator,
     return pd.DataFrame(out_rows), pd.DataFrame(obs_rows)
 
 
-def full_stats(df: pd.DataFrame, models: tuple[str, ...] = MODELS, value: str = "slope"):
-    """Registered statistics per (model, set, target) plus the LOCO sweep, bootstrap and null."""
+def full_stats(df: pd.DataFrame, models: tuple[str, ...] = MODELS, value: str = "slope",
+               family_models: tuple[str, ...] = MODELS):
+    """Registered statistics per (model, set, target) plus the LOCO sweep, bootstrap and null.
+
+    ``models`` are the rows written out (registered four plus any exploratory variant);
+    ``family_models`` are the columns entering the family-wise permutation null, which the
+    pre-registration fixes at the four registered models x three sets."""
     W = wide(df, value)
     cols = [f"{value}__{m}__{s}" for m in models for s in SETS]
+    fam_cols = [f"{value}__{m}__{s}" for m in family_models for s in SETS]
     chem = W["chemotype"].to_numpy()
     nm = W["n_metals"].to_numpy(dtype=float)
     boot, rng = blocked_bootstrap(W, cols)
-    null, obs = permutation_null(W, cols, rng)
+    null, obs = permutation_null(W, fam_cols, rng)
+    obs = obs.set_index(["column", "target"])
     rows, loco_rows = [], []
     for m in models:
         for s in SETS:
@@ -490,12 +535,21 @@ def full_stats(df: pd.DataFrame, models: tuple[str, ...] = MODELS, value: str = 
                 for ch, rr in st.pop("_loco"):
                     loco_rows.append({"model": m, "set": s, "target": tgt, "held_out_chemotype": ch, "rho": rr})
                 b = boot[(boot["column"] == c) & (boot["target"] == tgt)].iloc[0]
-                o = obs[(obs["column"] == c) & (obs["target"] == tgt)].iloc[0]
+                if (c, tgt) in obs.index:
+                    o = obs.loc[(c, tgt)]
+                    o_rho, o_nch, o_clear = (o["rho_chemotype_means"], int(o["n_chemotypes"]),
+                                             bool(o["clears_familywise_bar"]))
+                else:                        # exploratory column: outside the registered null family
+                    cm = W.groupby("chemotype")[[c, tgt]].mean()
+                    okc = np.isfinite(cm[c].to_numpy(float)) & np.isfinite(cm[tgt].to_numpy(float))
+                    o_rho = (stats.spearmanr(cm[c].to_numpy(float)[okc], cm[tgt].to_numpy(float)[okc]).statistic
+                             if okc.sum() >= MIN_PERM_UNITS else np.nan)
+                    o_nch, o_clear = int(okc.sum()), False
                 rec = {"model": m, "set": s, "target": tgt, "value": value, **st,
                        "ci95_low": b["ci_lo"], "ci95_high": b["ci_hi"], "n_boot": int(b["n_boot"]),
                        "ci_excludes_zero": bool(np.isfinite(b["ci_lo"]) and b["ci_lo"] * b["ci_hi"] > 0),
-                       "rho_chemotype_means": o["rho_chemotype_means"], "n_chemotypes": int(o["n_chemotypes"]),
-                       "clears_familywise_bar": bool(o["clears_familywise_bar"])}
+                       "rho_chemotype_means": o_rho, "n_chemotypes": o_nch,
+                       "clears_familywise_bar": o_clear}
                 rows.append(rec)
     return pd.DataFrame(rows), pd.DataFrame(loco_rows), null, W
 
@@ -555,8 +609,9 @@ def contrasts_frame(st: pd.DataFrame, *, lead: str = "L1", stage: str = "stage1"
         frames.append(extra_exploratory.assign(stage=stage))
     s = pd.concat(frames, ignore_index=True)
     reg = set(registered)
-    s["family"] = [("registered" if (m, se, t) in reg else "exploratory")
-                   for m, se, t in zip(s["model"], s["set"], s["target"])]
+    # the registered correlation is the *slope*'s; the quadratic term is exploratory throughout
+    s["family"] = [("registered" if (v == "slope" and (m, se, t) in reg) else "exploratory")
+                   for m, se, t, v in zip(s["model"], s["set"], s["target"], s["value"])]
     rows = []
     for _, r in s.iterrows():
         rows.append({

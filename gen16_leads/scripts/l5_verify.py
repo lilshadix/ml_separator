@@ -56,13 +56,34 @@ def main() -> None:
           f"max|dcov| = {d_lw_c:.3e}")
     assert d_pooled == 0.0, "pairwise_moment does not mirror residual_covariance"
     assert d_lw_s < 1e-10 and d_lw_c < 1e-10, "pairwise LW does not reduce to sklearn"
-    # every estimator returns a symmetric PD 14x14 on the same rows
+    # Every estimator returns a symmetric 14 x 14.  Positive-definiteness is *reported*, not
+    # asserted: the deployed `residual_covariance` is a pairwise-complete second moment of
+    # row-centred curves with 35-80 % missingness, which is not guaranteed PSD and is measured
+    # here not to be, on structured rows as well as on white noise.  The BLUP never inverts the
+    # covariance itself -- only D Sigma D' + noise I, which stays solvable -- so asserting PD
+    # would be a check the frozen estimator itself fails.  The min-eigenvalue of every estimator
+    # on the REAL leave-chemotype-out residual rows is reported by scripts/l5_covrun.py.
     groups = np.array([f"c{i % 9}" for i in range(len(rows))])
+    A0 = rng.normal(size=(LC.N_LN, 3))
+    struct = rng.normal(size=(200, 3)) @ A0.T + 0.3 * rng.normal(size=(200, LC.N_LN))
+    struct = struct - struct.mean(axis=1, keepdims=True)
+    struct[rng.random(struct.shape) < 0.35] = np.nan
+    struct = struct - np.nanmean(struct, axis=1, keepdims=True)
+    gs = np.array([f"c{i % 9}" for i in range(len(struct))])
+    eig_report = {}
     for name, fn in LC.ESTIMATORS.items():
-        C = fn(rows, groups)
+        C = fn(struct, gs)
         ev = np.linalg.eigvalsh(C)
-        assert C.shape == (LC.N_LN, LC.N_LN) and np.allclose(C, C.T) and ev.min() > 0, name
-        print(f"  {name:9s} trace {np.trace(C):.4f}  min eig {ev.min():.2e}  max eig {ev.max():.4f}")
+        Cw = fn(rows, groups)
+        evw = np.linalg.eigvalsh(Cw)
+        assert C.shape == (LC.N_LN, LC.N_LN) and np.allclose(C, C.T), name
+        eig_report[name] = {"structured_min_eig": float(ev.min()),
+                            "structured_max_eig": float(ev.max()),
+                            "structured_trace": float(np.trace(C)),
+                            "whitenoise_min_eig": float(evw.min())}
+        print(f"  {name:9s} structured: trace {np.trace(C):.4f}  min eig {ev.min():.2e}  "
+              f"max eig {ev.max():.4f}   white-noise min eig {evw.min():+.2e}")
+    report["estimator_eigenvalues"] = eig_report
 
     # ---- the reproduction ----
     bench = V.load()

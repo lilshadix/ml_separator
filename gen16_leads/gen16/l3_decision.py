@@ -540,12 +540,16 @@ def check_weighted(T: Tasks, per_pair: pd.DataFrame, *, n_random: int = 40,
         ref_reg = 0.5 * ((hi - M._tie_expected_value(pe, oe)) + (M._tie_expected_value(-pe, oe) - lo))
         worst_w = max(worst_w, abs(float(st["spearman"][0]) - ref_sp),
                       abs(float(st["top1"][0]) - ref_top), abs(float(st["regret"][0]) - ref_reg))
+        # the permutation null runs at UNIT weights, so its reference best/worst are the task's
+        # own max and min -- not ``hi`` / ``lo`` of the reweighted multiset used just above
         perm = np.argsort(rng.random((3, n)), axis=1)
+        hi_u, lo_u = obs.max(), obs.min()
         sp = task_stats_permuted(p, obs, perm)
         for r in range(3):
             pp = p[perm[r]]
             ref_sp = M._spearman(pp, obs)
-            ref_reg = 0.5 * ((hi - M._tie_expected_value(pp, obs)) + (M._tie_expected_value(-pp, obs) - lo))
+            ref_reg = 0.5 * ((hi_u - M._tie_expected_value(pp, obs))
+                             + (M._tie_expected_value(-pp, obs) - lo_u))
             worst_perm = max(worst_perm, abs(float(sp["spearman"][r]) - ref_sp),
                              abs(float(sp["regret"][r]) - ref_reg))
     return {"unit_vs_decmetrics": worst_unit, "weighted_vs_expanded": worst_w,
