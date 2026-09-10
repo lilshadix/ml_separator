@@ -2,6 +2,29 @@
 
 *Updated at the end of each phase so the work survives a context reset.  Newest entry first.*
 
+## Phases 4, 5, 6 — 2026-09-10 03:40
+
+**Phase 4, refutation.**  Six refuters, two per claim, blind to each other.  **No claim survived
+both refuters untouched.**  L3A dented materially (the saving is between-laboratory: +0.005 within
+one publication, interval containing zero in all five designs); L4BP killed (a featureless
+"biggest chemotype first" order reproduces it, positive in all five designs, while A-optimal adds
++0.005 at p 0.36); L1's null dented materially and its **verdict corrected** from "closed" to "not
+closed, not positive" — the registered estimator has split-half reliability −0.27 and jackknife
+reliability 0.000, so the |ρ| ≥ 0.40 bar was unreachable in principle, and attenuation-free
+corrections give +0.29 to +0.45.  Full log in `REFUTATION_LOG.md`.
+
+**Phase 5, confirmation.**  Executed once on the withheld seeds after `g16_confirm.py` verified
+them against the published commitment and the registered rule.  One claim qualified.  It
+replicated: BP +1.909 against a discovery +1.988, interval excluding zero, 5/5 seeds, LOCO-stable,
+passing in all five designs.  `CONFIRMATION.md`.
+
+**Phase 6.**  `DECISION_REPORT.md` written; two adversarial auditors running (numbers, and
+claims/scope/protocol).
+
+Comparison accounting, recounted from the CSVs: **940 contrast rows, 126 registered, 814
+exploratory**; the confirmed claim's BP row is at BH q = 0.039 within the registered family and
+q = 0.025 over all 940.
+
 ## Phase 2 complete — 2026-09-10 02:10
 
 Five leads ran on the five discovery seeds under all five designs.  **One claim passed its
