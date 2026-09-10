@@ -76,7 +76,7 @@ correctly declined to run unregistered.  It is decisive and it is not repaired b
 | regime | `saved` under BP | 95 % CI | tasks |
 |---|---|---|---|
 | pooled across laboratories (the confirmed claim) | **+1.909** | [+0.360, +3.760] | 455 |
-| the same, rebuilt **one fold at a time** (no candidate predicted by a model trained on another candidate in its task) | **+0.906** of an E_random of 5.52 | — | 455 |
+| the same on the **discovery** seeds, rebuilt **one fold at a time** (no candidate predicted by a model trained on another candidate in its task; its pooled counterpart is the discovery +1.988) | **+0.906** of an E_random of 5.52 | — | 2 100 |
 | candidate sets restricted to **one publication** | **+0.0046** | [−0.016, +0.022] | 1 230 |
 
 Within a single laboratory's candidate set the saving is **0.07 % of the no-model cost**, the

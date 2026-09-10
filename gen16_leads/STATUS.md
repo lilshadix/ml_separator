@@ -8,10 +8,13 @@
 both refuters untouched.**  L3A dented materially (the saving is between-laboratory: +0.005 within
 one publication, interval containing zero in all five designs); L4BP killed (a featureless
 "biggest chemotype first" order reproduces it, positive in all five designs, while A-optimal adds
-+0.005 at p 0.36); L1's null dented materially and its **verdict corrected** from "closed" to "not
-closed, not positive" — the registered estimator has split-half reliability −0.27 and jackknife
-reliability 0.000, so the |ρ| ≥ 0.40 bar was unreachable in principle, and attenuation-free
-corrections give +0.29 to +0.45.  Full log in `REFUTATION_LOG.md`.
++0.005 at p 0.36); L1's null dented materially and its **verdict corrected** (first to "not closed, not
+positive"; **superseded in Phase 6 by "undecided"** once the audit showed the positive evidence
+fails the diglycolamide control) — the registered estimator has split-half reliability −0.27 and jackknife
+reliability 0.000, so the |ρ| ≥ 0.40 bar was unreachable in principle.  Attenuation-free
+corrections give +0.29 to +0.45, but four of five collapse without the diglycolamides and the
+positive lives on the composition-varying series — see the Phase 6 entry above.  Full log in
+`REFUTATION_LOG.md`.
 
 **Phase 5, confirmation.**  Executed once on the withheld seeds after `g16_confirm.py` verified
 them against the published commitment and the registered rule.  One claim qualified.  It
@@ -30,9 +33,10 @@ the artefacts and folded in:
   recommendation is downgraded to "cheap and decisive, expect a null".
 - **major** — L1's registered family-wise permutation bar (0.609) was computed and not quoted:
   nothing in the family clears it, gen15's +0.644 included.  L1's registered cheapest competitor
-  (`frac_donor_pairs_within_3`, −0.42 to −0.53) was missing and is larger than every xTB estimator.
+  (`frac_donor_pairs_within_3`, −0.42 to −0.53) was missing; it is larger than every
+  *composition-corrected* xTB estimator and fails the diglycolamide control itself (−0.28).
 - **major** — the fold-purity dent had no number: +0.906 of E_random 5.52 (16.4 %) against 28.8 %.
-  Now carried in the headline, §2 and guardrail 1.
+  Now carried in the headline, finding 1, §2, §9 and guardrail 1.
 - **major** — `LOWRANK2 − POOLED` @k2 is +0.0151, twice the `MIX6meanPC` gain I called "the largest
   real effect".  Under-claim, corrected.
 - **major** — 940 vs the 860 the itemisation summed to: 80 rows are a discarded dry run in

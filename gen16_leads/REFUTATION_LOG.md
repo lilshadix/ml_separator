@@ -57,8 +57,8 @@ rebuilding the pipeline from the sealed pre-registration text rather than from t
    fraction of the perfect-sign ceiling the fold-pure run captures **49.8 %**, slightly more than
    the pooled run's 47.3 %.  This dents the *quoted magnitude*, not the existence of the effect,
    and both figures now travel with the claim.
-4. **One overstatement in the lead's prose** about the decision rule, corrected in §4 of the
-   lead's own report.
+4. **One overstatement in the lead's prose** about the decision rule, corrected in
+   `DECISION_REPORT.md` §9 and §10 item 10.
 
 **Verdict.**  The arithmetic is right and it replicated on the withheld seeds.  The *claim as
 worded* — a saving available to a chemist choosing among candidates — is refuted.  What survives
@@ -90,8 +90,8 @@ achieved.  What the 39 donor-topology columns add on top is
   `AOPT_vs_SIZE` = **+0.005**, p = 0.36, below the 0.02 margin, and **negative under B and BQ**,
 
 carrying the same −/+/−/+/+ sign pattern as the claim itself.  The mechanism is direct:
-Spearman(A-optimal pick position, chemotype cell count) = **−0.63** under BP against ≈ 0 for
-random, and at a budget of 6 chemotypes the A-optimal order already holds **72 %** of the fold's
+Spearman(A-optimal pick position, chemotype **well-determined**-cell count) = **−0.63** under BP
+(−0.45 against the plain cell count) against ≈ −0.01 for random, and at a budget of 6 chemotypes the A-optimal order already holds **72 %** of the fold's
 training cells against random's 18 %.  The reference was never matched on training-set size, and
 matching it removes the claim.
 
@@ -134,10 +134,15 @@ Kendall, or of the 39-vs-62 set change; the family-wise permutation bar reproduc
    lead's own 73 % attenuation estimate).  SPECIES needs an injected trend of ≈ 0.45–1.1 eV per
    standardised-radius unit before it clears its own 0.40 bar, while the entire observed SPECIES
    slope spread is 0.25 eV.
-3. **A correction that cannot absorb the trend regains signal.**  Fixed additive reference
-   energies with no free per-series parameter give ρ = **+0.29** (lens A, `CYCLE_ADD`) and
-   **+0.34 / +0.45** (lens B, `FIXCYC_CONSTNLIGS`, S8 / S14) — **above the registered 0.25
-   "closed" threshold**.
+3. **A correction that cannot absorb the trend *appears* to regain signal — and the appearance
+   does not survive its own controls.**  Fixed additive reference energies with no free per-series
+   parameter give ρ = **+0.29** (lens A, `CYCLE_ADD`) and **+0.34 / +0.45** (lens B,
+   `FIXCYC_CONSTNLIGS`, S8 / S14), nominally above the registered 0.25 "closed" threshold.  **But
+   four of the five such estimators collapse when the 23 diglycolamides are removed** — +0.291 →
+   −0.026, +0.339 → +0.037, +0.326 → +0.010, +0.290 → −0.026 — and `CYCLE_ADD` scores **+0.049**
+   on the 19 constant-composition series against **+0.476** on the 43 varying ones, i.e. the
+   composition step re-entering.  The first draft of this log presented this item as encouraging;
+   the Phase 6 audit caught that, and the corrected verdict below is the one that stands.
 4. **n = 19 cannot separate +0.167 from +0.5.**  The Fisher interval at the registered
    `SPECIES_CONST` row is [−0.337, +0.597], width 0.93; power to reject ρ = 0 at truth +0.4 is
    0.36.  The secondary registered row could never have decided anything.
