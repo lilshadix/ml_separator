@@ -23,7 +23,10 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent.parent
-ALLOWED = {"scripts/g16_confirm.py", "scripts/g16_audit_seeds.py"}
+#: the confirmation machinery, and only it, may name the seeds: ``g16_confirm.py`` reads and
+#: verifies them, ``gen16/claims.py`` threads them into the frozen bench.  Both are executed only
+#: by the confirmation run; every discovery script takes the frozen defaults.
+ALLOWED = {"scripts/g16_confirm.py", "scripts/g16_audit_seeds.py", "gen16/claims.py"}
 DISCOVERY = (104729, 130363, 155921, 196613, 262147)
 #: the frozen entry points whose ``seeds`` keyword selects the split seeds
 BENCH_CALLS = {"all_folds", "build_folds", "score", "evaluate", "run_arms", "run",
