@@ -1,0 +1,60 @@
+Gen17 lead probe -- within-publication pairwise difference learning (PADRE / DeepDelta)
+Run 2026-09-09 on the gen14 cached bench (gen14_direction/cache/bench.pkl), well-determined
+cells only (n_metals >= 5, 289 of 521).  All numbers below are leave-one-publication-out
+(LOPO) on that subset, NOT the project's BP protocol with 5 seeds and the chemotype-blocked
+bootstrap, so they are indicative, not headline.
+
+1. PAIR CENSUS -- the pair set does NOT collapse
+   289 well-determined cells sit in 41 publications; 281 of them have >= 1 sibling.
+   4296 ordered within-publication pairs (2148 unordered).  One publication supplies
+   34.5 % of all pairs, so every interval below resamples publications, not pairs.
+
+   stratum                                   n      null MAE |da|
+   same extractant, conditions differ      2264         0.1902
+   diff extractant, conditions identical    434         0.2498
+   diff extractant, conditions differ      1598         0.0966
+
+2. NOISE FLOOR
+   median replicate sd of log D              0.333
+   propagated sd(a) per cell                 0.115
+   |delta a| expected from replicate noise    0.130
+   -> the "same extractant / conditions differ" (0.190) and "diff extractant / same
+      conditions" (0.250) strata carry real signal above the floor; the third does not.
+
+3. THE TEST -- LOPO delta-a against the null delta-a = 0.  EVERY ARM IS WORSE.
+   TOPOi+TOPOj+dCOND  ET     null 0.1614  model 0.1940  delta +0.0326  pub-boot [+0.0151, +0.0448]
+   dTOPO+dCOND        ET     null 0.1614  model 0.1933  delta +0.0319  pub-boot [+0.0138, +0.0488]
+   dCOND72            ET     null 0.1614  model 0.1834  delta +0.0220  pub-boot [+0.0083, +0.0443]
+   dCOND72            ridge  null 0.1614  model 0.1745  delta +0.0131  pub-boot [-0.0160, +0.0639]
+   Stratified, the pure condition contrast (same extractant, conditions differ) is
+   +0.0086 (ET) to +0.0245 (ridge) WORSE than predicting zero.
+
+4. THE CLEANEST CONTRAST IN THE CORPUS -- also a null.
+   Same publication, IDENTICAL 72-column condition vector, DIFFERENT extractant:
+   362 ordered pairs from 15 publications, null |da| = 0.183, sd 0.284 (above the
+   0.130 noise floor, so the ligand effect is real).  LOPO:
+   dTOPO39        ET    0.2031  (+0.0200)      dTOPO39        ridge 0.2393  (+0.0563)
+   TOPOi|TOPOj    ET    0.1912  (+0.0082)      TOPOi|TOPOj    ridge 0.2387  (+0.0556)
+   dDONORS13      ET    0.2178  (+0.0348)      dDONORS13      ridge 0.2103  (+0.0272)
+   dTOPO+dDONORS  ET    0.2392  (+0.0562)      dTOPO+dDONORS  ridge 0.2588  (+0.0757)
+   With the lab effect AND the condition effect cancelled exactly by construction, the
+   amplitude difference between two ligands measured side by side is still not a
+   function of the donor topology or the donor census.
+
+5. SIDE RESULT -- the sibling ANCHOR, which needs no model at all.
+   Extractant-macro MAE of log SF on the same subset (indicative scale: this subset's
+   zero-curve arm is 0.543 where the project's BP mean-curve arm is 0.622):
+     zero curve                              0.543
+     oracle direction x constant magnitude   0.436
+     copy ONE random sibling from the pub    0.426
+     copy the mean of all siblings           0.345
+     ORACLE own quadratic (2-coef ceiling)   0.157
+   Split by what the sibling is:
+     sibling with a DIFFERENT extractant     copy-1 0.402   copy-mean 0.367  (143 cells)
+     sibling with the SAME extractant        copy-1 0.342   copy-mean 0.307  (218 cells)
+     same extractant, ANY publication        copy-1 0.348   copy-mean 0.316  (228 cells)
+   Knowing the same ligand from a DIFFERENT paper (0.348) is worth as much as knowing it
+   from the SAME paper (0.342): the anchor's value is extractant identity, not the
+   publication.  Note also that BP forbids this arm by construction -- BP drops every
+   training cell from the held-out cell's publication precisely because deployment means
+   a lab you have no data from.

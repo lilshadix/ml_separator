@@ -103,6 +103,9 @@ for design in DESIGNS:
     board.insert(0, "design", design)
     db.RESULTS.mkdir(parents=True, exist_ok=True)
     board.to_csv(db.RESULTS / f"g14_value_{design}.csv", index=False)
+    # keep the per-extractant table: every headline p-value is a paired mean over these units,
+    # and few-cluster re-inference (gen16_protocol/scripts/g16_dir_signflip.py) needs them.
+    pe.to_csv(db.RESULTS / f"g14_value_per_extractant_{design}.csv", index=False)
     print(f"\n=== design {design} ({time.time() - t0:.0f}s) ===")
     print(board[["arm", "macro_mae_extractant", "macro_mae_extractant_seed_sd",
                  "macro_mae_chemotype", "macro_mae_far", "macro_sign_acc_strong",
