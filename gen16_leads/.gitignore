@@ -10,3 +10,10 @@ results/L3/l3c_per_task.csv
 results/**/*.log
 !results/**/run.log
 __pycache__/
+
+# Raw xtb working directories for the L1 Stage 2 reference species: 361 job folders, ~97 MB of
+# scratch (xtb.out, xtbopt.xyz, wbo, charges).  Fully regenerable in ~5 minutes from the committed
+# inputs with scripts/l1_run_references_local.py --workers 6.  The scientific result,
+# reference_energies.csv, IS committed, and results/L1/reference_species/sha256_out.txt records a
+# digest of every xtb.out so a regenerated run can be compared with the one the report used.
+results/L1/reference_species/out/

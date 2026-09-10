@@ -15,18 +15,17 @@ refutations under `results/refutation/`, the single confirmation run under
 
 ## Headline
 
-**Gen16 ran 940 scored contrasts across six leads, sent every surviving claim to two blind
+**Gen16 ran 1030 scored contrasts across six leads, sent every surviving claim to two blind
 refuters, and confirmed one claim on five seeds no discovery agent had seen.  The confirmed claim
 is real, it replicated, and it is narrower in two ways than its own lead believed: the direction
 call saves about two of seven measurements when candidates are pooled across laboratories *and*
 across folds, about one in six when the folds are made leak-free, and **nothing at all** — +0.005
 measurements, interval containing zero in all five designs — when the candidates come from one
-laboratory.  Every other lead closed or was left undecided.  The xTB thermodynamic cycle (L1) is not the
-clean null its lead reported and it is not a live lead either: the registered estimator turns out
-to have zero test–retest reliability, so that experiment had no power, while every post-hoc
-estimator that does show a correlation fails the programme's mandatory diglycolamide control and
-carries its signal only on the series whose composition varies — the artefact itself.  L1 is
-**undecided**.  The curvature gate (L2) closed under its own rule on a headroom of +0.029 whose
+laboratory.  Every other lead closed.  The xTB thermodynamic cycle (L1) was **closed by running the experiment
+it had been deferring**: all 361 reference species were computed here in five minutes, the cycle
+closed with no free parameter, and gen15's +0.644 fell to −0.09 — from an estimator whose
+reliability is 0.80 and which could have seen ρ = 0.90, so the null has power rather than merely
+lacking it.  The curvature gate (L2) closed under its own rule on a headroom of +0.029 whose
 interval includes zero, in a test whose minimum detectable effect (0.039) was twice its own
 registered margin.  The corpus-expansion result (L4) was killed by its own refuter: a
 featureless "measure the biggest family first" order reproduces all of it.  The covariance and
@@ -48,24 +47,21 @@ Six findings, in decreasing order of support.
    at a time it is **+0.906 of an E_random of 5.52, 16.4 %** rather than 28.8 %, though it then
    captures a slightly *larger* share of the perfect-call ceiling (49.8 % against 47.3 %).  All
    three statements are true; the within-laboratory one governs deployment.
-2. **The xTB verdict is corrected to *undecided*, in both directions.**  Correcting the complex
-   energies with explicit per-species composition terms takes the slope's correlation with the
-   amplitude from +0.644 (gen15's figure, reproduced exactly on its 39 series) to **−0.084** on 62
-   extractants.  That is not a clean null: the corrected slope's split-half reliability is
-   **−0.27** and its jackknife reliability is **0.000**, so the registered \|ρ\| ≥ 0.40 bar was
-   unreachable in principle — *"the cycle-corrected slope, as constructed, does not correlate with
-   itself"*.  But the post-hoc attenuation-free estimators that do reach +0.29 to +0.45 are not
-   evidence either: `CYCLE_ADD` falls from **+0.291 to −0.026** when the 23 diglycolamides are
-   removed (n = 43, p = 0.87), and on the 19 constant-composition series it is **+0.049** against
-   **+0.476** on the 43 series whose composition varies.  The "signal" is the composition step
-   re-entering.  Nothing in L1's registered family clears its own registered permutation bar
-   (largest 0.602 against a 95th-percentile bar of **0.609**, both chemotype-level; gen15's +0.644
-   is the same cell measured at the extractant level).  The free 2D competitor
-   `frac_donor_pairs_within_3` (−0.42 to −0.53) is larger than every *composition-corrected* xTB
-   estimator, though smaller than the uncorrected +0.644, and it fails the diglycolamide control
-   too (−0.28, p = 0.07).  The reference-species energies (≈ 6.7 CPU-hours) remain the only
-   construction that is exact *and* attenuation-free, and are delivered ready to submit — but
-   gen16 supplies no positive evidence that there is anything for them to find.
+2. **The xTB lead is closed, by running the real experiment.**  All 361 reference species were
+   computed locally (4.8 min wall, 361/361 converged), and the thermodynamic cycle was closed with
+   **no free parameter**: `dE = E(complex) − E(Ln³⁺) − n_ligs·E(L) − n_NO₃·E(NO₃⁻) − n_H₂O·E(H₂O)`.
+   The bookkeeping check passes exactly — the fill-species coefficients collapse from free-species
+   totals (−431.97 and −138.88 eV) to **binding** energies (**−16.74** and **−0.90 eV**), matching
+   the computed free-species energies to two decimals.  And the correlation vanishes: the same
+   `NAIVE` construction that gives **+0.644** on raw total energies gives **−0.093** on `dE`, the
+   registered `SPECIES` arm gives **−0.084** (CI [−0.297, +0.240]), and the registered family-wise
+   permutation null fails at **p = 0.94** (observed max 0.215 against a bar of 0.609).
+   **This null has power, unlike Stage 1's:** the `dE` slope's split-half reliability is **+0.71**
+   and its jackknife reliability **0.80**, so it could have detected \|ρ\| up to **0.90** against a
+   0.40 bar — where the Stage 1 estimator's reliability was 0.000 and its bar unreachable.  A
+   composition-corrected GFN2-xTB interaction energy carries **no** information about selectivity
+   amplitude here, while the free 2D `frac_donor_pairs_within_3` carries −0.53.  Closed
+   permanently, with the mechanism named.
 3. **The corpus-expansion plan is not supported, and the reason is worth more than the plan.**
    A greedy A-optimal chemotype order beats random under BP by +0.050, but its sign flips under B
    and BQ, and a **featureless order — biggest chemotype first, zero descriptors — reproduces it
@@ -125,10 +121,11 @@ under BP = `0.5000794414203691`; `FLAT` = `0.5885062528901843`; `G14 − FLAT` =
 `PYTHONHASHSEED` values; the only `hash()` on the bench path takes an int tuple, which CPython
 does not salt.  No dependency has moved since gen13.
 
-**Comparison accounting.**  **940 contrast rows: 126 registered, 814 exploratory** — by lead,
-L1 90 rows (5 energy models × 3 sets × 3 targets × slope and quadratic term, 2 registered),
-L2 20 (4 arms, 5 registered), L3 85 (4 arms over 455 tasks, 15 registered), L4 **515**
-(4 acquisition orders × 6 budgets, 24 registered), L5 230 (25 arm × k combinations, 80 registered).  **L4's 515 includes 80 rows from a
+**Comparison accounting.**  **1030 contrast rows: 128 registered, 902 exploratory** — by lead,
+L1 **180** (5 energy models × 3 sets × 3 targets × slope and quadratic term, **for each of Stage 1
+and Stage 2**; 4 registered), L2 20 (4 arms, 5 registered), L3 85 (4 arms over 455 tasks, 15
+registered), L4 **515** (4 acquisition orders × 6 budgets, 24 registered), L5 230 (25 arm × k
+combinations, 80 registered).  **L4's 515 includes 80 rows from a
 discarded dry run retained in `results/L4/_dry/`**, 4 of them labelled registered; counting only
 the eleven final files gives 860 rows, 122 registered and 738 exploratory, which is what an
 independent refuter counted from the same tree.  The larger family is used throughout because it
@@ -141,7 +138,7 @@ uses:
 
 | contrast | raw p (across five designs) | BH q |
 |---|---|---|
-| **L3a `G14_saved_vs_0`** (§2) | 0.004–0.010 | **0.020–0.042** |
+| **L3a `G14_saved_vs_0`** (§2) | 0.004–0.010 | **0.020–0.043** |
 | L5 `MIX6meanPC − POOLED` @k3 (§7) | < 1e-4 | < 0.001 |
 | L5 `LOWRANK2 − POOLED` @k2 (§7) | 0.002–0.336 | 0.011–0.547 |
 | L3c `G14@k1 − NAIVE` on Spearman (§3) | 0.013–0.026 | 0.048–0.076 |
@@ -149,8 +146,8 @@ uses:
 | L4 `AOPT_vs_RANDOM` (§6) | < 1e-4–0.974 | < 0.001–0.993 |
 | L3c `G14@k1 − NAIVE` on regret (§3) | 0.335–0.997 | 0.547–0.997 |
 
-Over the combined 940 the confirmed claim's BP row is at q = 0.025.  L1's two registered rows have
-q = 0.518 within its own family.
+Over the combined 1030 the confirmed claim's BP row is at q = 0.027.  L1's registered rows sit at
+q = 0.52 (Stage 1) and q ≈ 0.8 (Stage 2) within the registered family.
 
 ---
 
@@ -317,22 +314,65 @@ significant result from an unregistered arm" the brief lists as *not* success.
 (The LOCO minimum of each of these arms equals its no-diglycolamide value, because sc009 is the
 chemotype whose removal hurts most — the two controls coincide here.)
 
-**Verdict: L1 is undecided — not closed, and not open.**  The registered estimator is too noisy to
-detect anything (so "closed" overstates), and every estimator that shows a correlation fails the
-diglycolamide control and carries its signal on the composition step (so "promising" overstates in
-the other direction).  Nothing in the registered family clears its own permutation bar, and a free
-2D column beats all of it.
+**Stage 1's verdict alone would have been undecided** — the registered estimator was too noisy to
+detect anything, and every estimator that showed a correlation failed the diglycolamide control.
+**Stage 2 settles it.**
 
-**Stage 2 is still the right experiment, and its prior should be low.**  With real reference
-energies the composition is subtracted at true species energies with **no free parameter and no
-fitted γ**, which is the only construction that is simultaneously exact and attenuation-free — it
-is the only way the question has ever actually been asked.  But gen16 supplies no positive
-evidence that there is signal to find, and three reasons to doubt it: the 2D competitor is larger,
-the registered permutation bar is unmet by the whole family, and every post-hoc positive is
-composition in disguise.  It is worth 6.7 CPU-hours because it is cheap and decisive, not because
-it is promising.  Hand-over: `results/L1/L1_STAGE2_HANDOVER.md`, 361 array tasks, 1 core and 2 GB
-each, ≈ 6.7 CPU-hours (≈ 20 min wall at 20 concurrent), then one local command.  `xtb` is absent
-from this machine, verified by a disk walk.
+### Stage 2 — the cycle run for real, and L1 closes
+
+`xtb` 6.7.1pre was installed locally (§10 item 12) and all **361 reference species converged** —
+177 free ligands optimised, 168 ligand-at-complex-geometry single points, nitrate, water and the
+14 Ln³⁺ ions — in **4.8 minutes of wall time on 6 workers**.  Then
+`dE = E(complex) − E(Ln³⁺) − n_ligs·E(L) − n_NO₃·E(NO₃⁻) − n_H₂O·E(H₂O)`, with **no free
+parameter and no fitted γ**, on 1116 complexes.
+
+**Table 4d — the cycle demonstrably worked.**  If the subtraction is exact, the fill-species
+coefficients refitted *on `dE`* must collapse from free-species total energies to mean **binding**
+energies.  They do, and they land where the true free-species energies say they must:
+
+| coefficient | Stage 1, on raw total energy | **Stage 2, on `dE`** | true free species (computed) | difference |
+|---|---|---|---|---|
+| γ(NO₃) | −431.97 eV | **−16.74 ± 1.39 eV** | −415.23 eV | 431.97 − 415.23 = 16.74 ✓ |
+| γ(H₂O) | −138.88 eV | **−0.90 ± 0.31 eV** | −137.98 eV | 138.88 − 137.98 = 0.90 ✓ |
+
+The Stage 1 coefficients were the free-species energies *plus* the binding energy; Stage 2
+subtracts the former exactly and leaves the latter, to two decimal places in eV.  This is the
+bookkeeping check the whole lead turned on, and it passes.
+
+**Table 4e — and every correlation is gone**, ρ(cycle-corrected slope, `a`):
+
+| model on `dE` | S8 (n = 62) | S14 (n = 39) | S3 (n = 81) |
+|---|---|---|---|
+| `NAIVE` two-way fit on `dE` (no free δ at all) | **−0.093** | −0.042 | −0.195 |
+| `ELEM` | +0.244 | +0.288 | +0.146 |
+| **`SPECIES` (registered)** | **−0.084** (p = 0.52, CI [−0.297, +0.240]) | −0.048 | −0.042 |
+| `SPECIES_CONST` | +0.167 (n = 19) | +0.155 (n = 11) | +0.199 |
+
+On raw total energies the same `NAIVE` construction gave **+0.392 / +0.644**.  Subtracting the
+composition at *true* species energies takes it to **−0.093 / −0.042**.  Gen15's +0.644 does not
+survive an exact cycle at all.  The registered family-wise permutation null now fails
+overwhelmingly: observed max \|ρ\| = **0.215** against a bar of 0.609, **family-wise p = 0.94**
+(in Stage 1 the observed max was 0.602, just under the bar).
+
+**Table 4f — and this time the null has power.**  The standing rule of §12 is applied to Stage 2
+before its verdict is read:
+
+| estimator | split-half ρ (odd vs even metals) | jackknife reliability | max attainable \|ρ\| |
+|---|---|---|---|
+| Stage 1 `SPECIES` slope | **−0.27** | **0.000** | ≈ 0 — the 0.40 bar was unreachable |
+| **Stage 2 `dE` slope** | **+0.71** (Pearson +0.76) | **0.80** | **0.90** |
+
+n = 71 extractants with ≥ 6 computed metals.  The Stage 2 slope reproduces itself, and could have
+detected a correlation up to \|ρ\| ≈ 0.90 — more than twice the registered 0.40 bar.  It observes
+−0.084.
+
+**Verdict: L1 is CLOSED, and this is a real null rather than an absence of power.**  The registered
+rule (\|ρ\| < 0.25 on S8 with a CI containing zero) is met at ρ = −0.084, CI [−0.297, +0.240], by
+an estimator with reliability 0.80.  **A GFN2-xTB interaction energy, composition-corrected
+exactly against true reference species, carries no information about lanthanide selectivity
+amplitude in this corpus** — while the free 2D `frac_donor_pairs_within_3` carries ρ = −0.53.  The
+lead is closed permanently, with the exact bookkeeping that produced gen15's +0.644 named and
+measured.
 
 ## 5. L2 — the curvature gate
 
@@ -500,14 +540,17 @@ remove it, replicated on withheld seeds):
 
 **Not supported:**
 
-- any new representation beating the lean block set zero-shot;
+- any new representation beating the lean block set zero-shot — and L1 is now a *measured* null
+  rather than an open question (§4);
 - the corpus-expansion plan as a *chemistry* result (L4 killed by its featureless control);
 - ranking candidates at k = 1 with the corpus (L3c null, and negative on rank correlation);
 - any covariance estimator or calibrated interval at the 0.02 margin (L5);
 - any cohort expansion available from relaxing a filter (L6).
 
-**Undecided, and explicitly not a null:** L1 (§4).  The registered test had no power and every
-post-hoc positive fails the diglycolamide control.
+**A powered null:** L1 (§4).  The cycle was closed against true reference energies with no free
+parameter, by an estimator of reliability 0.80 that could have detected ρ = 0.90; it observes
+−0.084 with a family-wise permutation p of 0.94.  This is the strongest negative in the
+programme's history and it closes the lead permanently.
 
 **Nothing here supports an equivalence claim.**  The minimum detectable effect at 80 % power is
 0.039 for the L2 curvature headroom, against its own registered margin of 0.02; the L1 registered
@@ -552,6 +595,15 @@ estimator has reliability 0.000 and so has no detectable effect at all.
     permutation null, which is the claim's primary evidence, is unaffected.  §9 says "the lead's
     registered rule" rather than "P1" for this reason.
 11. Orchestrator process failures are recorded in `REFUTATION_LOG.md` §6.
+12. **Environment change made during this work, recorded because it is the only one.**  `xtb`
+    was absent from this machine, so the official upstream build
+    `xtb-6.7.1pre-windows-x86_64.zip` (37.6 MB) was downloaded from the grimme-lab GitHub
+    releases, verified against its published SHA-256
+    (`043e578da4a7e114a4d584972959a875e3ffb9f2767a86723b95aa6719d28d9c`, exact match) and
+    unpacked to `C:\Users\Bandai\opt\xtb-6.7.1`, **outside the repository**.  It is a
+    standalone executable: no Python package was added, changed or removed, so no frozen
+    anchor can have moved, and `tests/test_anchors.py` still passes.  Its version, 6.7.1pre,
+    is the version that produced the complex energies in the dataset.
 
 ---
 
@@ -562,12 +614,14 @@ estimator has reliability 0.000 and so has no detectable effect at all.
    seeds (27.6 %); rebuilt fold-pure it is +0.91 of 5.52 (16.4 %); inside one laboratory's
    candidate set it is +0.005 with an interval containing zero.  The last is the one a screening
    chemist experiences.
-2. **Do not read L1 either way.**  It is not "xTB is useless here" — the registered estimator has
-   reliability 0.000 and so could not have detected anything.  It is equally not "xTB looks
-   promising": every post-hoc estimator that correlates fails the diglycolamide control (+0.29 →
-   −0.03) and carries its signal only where the composition varies (+0.48 against +0.05).  L1 is
-   undecided, the free 2D competitor is still larger than any of it, and nothing in the registered
-   family clears its own permutation bar.
+2. **Read L1 as a powered null about *this* quantity, not as "xTB is useless".**  What is closed
+   is one specific construction: a GFN2 gas-phase interaction energy, composition-corrected
+   exactly, correlated with the selectivity amplitude over 62 extractants.  That is now measured
+   at ρ = −0.084 by an estimator that could have seen 0.90.  It does not license "semi-empirical
+   quantum chemistry cannot help here" in general — a different level of theory, a solvated model,
+   or a quantity other than a total-energy slope is untested.  Note also that Stage 1's post-hoc
+   positives (+0.29 to +0.45) were composition in disguise: they fail the diglycolamide control
+   and live on the composition-varying series.
 3. **Do not use the L4 prospective ranking as a purchase list.**  It is ordered by a criterion its
    own refuter showed to be a proxy for family size.
 4. **Do not quote the +0.83 composition-position correlations as a result.**  They are post hoc,
@@ -595,15 +649,14 @@ compound per absent chemotype would multiply the programme's effective sample si
 which is larger than every modelling effect this generation measured put together.  That is L6,
 it needs no model, and it has been the programme's standing recommendation since gen6.
 
-**The one experiment to run on a cluster**, and it is cheap rather than promising, is L1 Stage 2:
-361 array tasks, ≈ 6.7 CPU-hours, one core and 2 GB each, then one local command.  Gen16's
-contribution is to say precisely why it is worth 6.7 CPU-hours and no more: every estimator that
-can be built from the existing data either has zero reliability (the registered one) or smuggles
-the composition step back in (every post-hoc one), so the question has never actually been asked.
-Expect a null — the free 2D competitor is larger than every composition-corrected xTB estimator
-here, nothing in the registered family clears its own permutation bar for the amplitude, and no
-descriptor in the section, xTB or 2D, survives the diglycolamide control — and pre-register that
-expectation.
+**The experiment that was going to need a cluster has been run here**, and it closes L1.  It cost
+4.8 minutes of wall time on six cores, not the 6.7 CPU-hours the hand-over budgeted for a queue,
+because the reference species are small molecules.  The result is §4: an exact cycle, a bookkeeping
+check that passes to two decimals in eV, a correlation of −0.084 from an estimator that could have
+seen 0.90, and a family-wise permutation p of 0.94.  **Nothing further should be spent on
+total-energy slopes from this geometry set.**  What that does *not* close is stated in guardrail 2:
+a different level of theory, a solvated model, or a quantity other than a total-energy slope
+remains untested, and any of those would be a new pre-registration rather than a continuation.
 
 **What to deploy is unchanged.**  `gen15_curve/scripts/g15_predict.py` still stands; gen16 adds no
 zero-shot skill.  Add the direction-call filter of §2 to it as a **literature-wide screening

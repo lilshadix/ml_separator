@@ -37,9 +37,15 @@ def digest(p: Path) -> str:
     return h.hexdigest()
 
 
+SKIP_TREES = ("L1/reference_species/out",)
+
+
 def excluded(p: Path) -> bool:
     if p.name == MANIFEST.name:
         return False
+    rel = p.relative_to(RESULTS).as_posix()
+    if any(rel.startswith(t) for t in SKIP_TREES):
+        return False        # git-ignored wholesale; digested in sha256_out.txt instead
     size = p.stat().st_size
     if size >= LIMIT:
         return True

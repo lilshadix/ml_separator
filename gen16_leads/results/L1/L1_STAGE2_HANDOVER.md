@@ -6,6 +6,19 @@ was submitted from here.*
 
 ---
 
+> **STATUS: RUN, AND THE LEAD IS CLOSED (2026-09-10).**  There was no cluster; the job was run on
+> this machine.  `xtb` 6.7.1pre was installed from the official upstream release (SHA-256 verified,
+> unpacked to `C:\Users\Bandai\opt\xtb-6.7.1`, outside the repository), and all **361 reference
+> species converged in 4.8 minutes of wall time on 6 workers** with
+> `scripts/l1_run_references_local.py --workers 6`.  `reference_energies.csv` is in this directory.
+> The analysis below was then run unchanged and **L1 is closed**: rho = -0.084, CI [-0.297,
+> +0.240], family-wise permutation p = 0.94, from an estimator of reliability 0.80.  See
+> `DECISION_REPORT.md` section 4.  The SLURM instructions below are kept for the record and for
+> anyone reproducing this on a queue; the local runner is the route that was used.
+
+---
+
+
 ## 1. What to run
 
 ```bash

@@ -14,7 +14,7 @@ or bookkeeping error that would make this claim wrong.  Their code is under
 |---|---|---|---|
 | **L3A** measurements saved | dented, **material** | dented, **material** | survives as a *pooled* statistic, refuted as a *laboratory-level* saving |
 | **L4BP** acquisition order | dented, **fatal** | dented, **material** | **killed** — a featureless order reproduces it |
-| **L1NULL** the xTB null | dented, **material** | dented, **material** | verdict **corrected**: "closed" → **undecided** (no power either way) |
+| **L1NULL** the xTB null | dented, **material** | dented, **material** | Stage 1's verdict was unpowered; **Stage 2 then closed the lead for real** (`DECISION_REPORT.md` §4) |
 
 Both refuters reproduced every headline digit for digit before attacking it, one of them by
 rebuilding the pipeline from the sealed pre-registration text rather than from the lead's code.
@@ -168,9 +168,12 @@ a 95th-percentile bar of 0.609, family-wise p = 0.057), gen15's +0.644 included;
 competitor `frac_donor_pairs_within_3` (−0.42 to −0.53) is larger than every xTB estimator on the
 table.
 
-So Stage 2 remains the only construction that is exact *and* attenuation-free, and it is worth its
-6.7 CPU-hours because it is cheap and decisive — **not** because gen16 found anything promising.
-`DECISION_REPORT.md` §4 and §12 state the expected-null prior that goes with it.
+So Stage 2 was the only construction that is exact *and* attenuation-free — and it was then
+**run**: 361 reference species computed locally, the cycle closed with no free parameter, the
+fill-species coefficients collapsing from free-species totals to binding energies exactly as an
+exact subtraction requires, and rho falling to **-0.084** from an estimator whose reliability is
+**0.80** (against Stage 1's 0.000).  The refuters' diagnosis was right and their remedy was
+decisive: the lead is now closed with power.  `DECISION_REPORT.md` §4.
 
 ### A refuter finding that is not a claim, and is striking
 

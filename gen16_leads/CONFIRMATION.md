@@ -33,7 +33,7 @@ the five leads produced such a claim.**
 | lead | candidate | why it did or did not go to confirmation |
 |---|---|---|
 | **L3a** | `G14_saved_vs_0` | **admitted.**  Positive with permutation p < 0.0005 and a chemotype-blocked CI excluding zero in all five designs.  Both refuters dented it *materially* but neither removed it: they left the pooled arithmetic exactly intact and restricted its **scope** (§4). |
-| L1 | — | undecided (`DECISION_REPORT.md` §4): the registered estimator had no power and every post-hoc positive fails the diglycolamide control.  Neither a claim nor a null. |
+| L1 | — | closed by its Stage 2 run (`DECISION_REPORT.md` §4): an exact cycle against computed reference energies gives rho = -0.084 from an estimator of reliability 0.80.  A null, and nulls are not confirmation claims. |
 | L2 | — | gate closed; no arm was run. |
 | L3c | — | null, and negative on its second registered endpoint. |
 | L4 | `AOPT_vs_RANDOM` | **not admitted**: the sign flips under B and BQ, so it never passed the five-design rule; and its lens-A refuter then killed it outright (a featureless "biggest chemotype first" order reproduces it). |
@@ -62,10 +62,10 @@ the interval still excludes zero, five of five fresh seeds agree, no held-out ch
 sign, and the same holds in all five designs.  `E_random` is 6.906 in both runs (it is a property
 of the task set, not of the model).
 
-**Multiplicity.**  The fleet wrote **940 contrast rows: 126 registered and 814 exploratory**
+**Multiplicity.**  The fleet wrote **1030 contrast rows: 128 registered and 902 exploratory**
 (`DECISION_REPORT.md` §1 lists them by lead).  Benjamini–Hochberg on the discovery p-values leaves
-this claim's BP row at **q = 0.039** within the registered family of 126 and **q = 0.025** over all
-940, and every one of its five designs stays under q = 0.05 in both families.  The confirmation
+this claim's BP row at **q = 0.040** within the registered family of 128 and **q = 0.027** over all
+1030, and every one of its five designs stays under q = 0.05 in both families.  The confirmation
 run itself tested one claim, so no correction applies within it.
 
 ## 4. What the confirmation does **not** establish

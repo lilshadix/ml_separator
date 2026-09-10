@@ -148,7 +148,7 @@ def test_contrast_files_all_declare_a_family():
 
 
 def test_comparison_accounting_matches_the_report():
-    """940 contrast rows, 126 registered and 814 exploratory (DECISION_REPORT.md section 1)."""
+    """1030 contrast rows, 128 registered and 902 exploratory (DECISION_REPORT.md section 1)."""
     skip = {"refutation", "confirmation", "anchors"}
     n = {"registered": 0, "exploratory": 0}
     for p in R.rglob("*contrast*.csv"):
@@ -156,7 +156,7 @@ def test_comparison_accounting_matches_the_report():
             continue
         for fam, k in pd.read_csv(p).family.value_counts().items():
             n[fam] += int(k)
-    assert n == {"registered": 126, "exploratory": 814}, n
+    assert n == {"registered": 128, "exploratory": 902}, n
 
 
 @pytest.mark.slow
@@ -165,3 +165,55 @@ def test_confirmation_claim_reproduces_the_discovery_numbers():
     sys.path.insert(0, str(HERE))
     from gen16 import claims
     assert claims.self_check() == 0
+
+
+# --------------------------------------------------------------------------------------
+# L1 Stage 2: the cycle was run for real
+# --------------------------------------------------------------------------------------
+def test_stage2_all_references_converged():
+    r = pd.read_csv(R / "L1" / "reference_species" / "reference_energies.csv")
+    assert len(r) == 361
+    assert (r.converged == "ok").all()
+    assert r.energy_eV.notna().all()
+    assert set(r.xtb_version.unique()) == {"6.7.1pre"}
+
+
+def test_stage2_cycle_leaves_binding_energies_not_free_species_totals():
+    """The bookkeeping check the lead turns on: after an exact subtraction the fill-species
+    coefficients must be mean binding energies, not free-species totals."""
+    c = pd.read_csv(R / "L1" / "stage2_coefficients.csv")
+    sp = c[c.model == "SPECIES"]
+    no3 = sp[sp.term.str.contains("n_NO3")].iloc[0]["coef"]
+    h2o = sp[sp.term.str.contains("n_H2O")].iloc[0]["coef"]
+    assert -25 < no3 < -8, no3          # Stage 1 had -431.97 (a free-species total)
+    assert -3 < h2o < 0, h2o            # Stage 1 had -138.88
+    ref = pd.read_csv(R / "L1" / "reference_species" / "reference_energies.csv").set_index("species")
+    # the Stage 1 coefficient equals the true free-species energy plus this binding energy
+    assert abs((-431.970549915437 - float(ref.loc["nitrate", "energy_eV"])) - no3) < 0.5
+    assert abs((-138.87532349058438 - float(ref.loc["water", "energy_eV"])) - h2o) < 0.5
+
+
+def test_stage2_verdict_is_closed():
+    import json
+    d = json.loads((R / "L1" / "stage2_decision.json").read_text())
+    assert d["registered"]["verdict"] == "closed"
+    assert abs(d["registered"]["rho_a"] + 0.0837) < 5e-4
+    assert d["registered"]["ci95_low"] < 0 < d["registered"]["ci95_high"]
+    # the cycle also kills the uncorrected construction that produced gen15's +0.644
+    assert abs(d["cycle_only_NAIVE_on_dE"]["rho_a"]) < 0.25
+
+
+def test_stage2_null_has_power():
+    """Unlike Stage 1, whose estimator had reliability 0.000 and could detect nothing."""
+    rel = pd.read_csv(R / "L1" / "stage2_reliability.csv")
+    s2 = rel[rel.quantity.str.startswith("Stage 2")].iloc[0]
+    assert s2.split_half_spearman > 0.5, s2.split_half_spearman
+    assert s2.reliability > 0.5, s2.reliability
+    assert s2.max_attainable_abs_rho > 0.40, "must exceed the registered decision bar"
+
+
+def test_stage2_permutation_null_fails_decisively():
+    p = pd.read_csv(R / "L1" / "stage2_perm_null.csv")
+    a = p[p.target == "a"].iloc[0]
+    assert a.observed_max_abs_rho < a.null_p95_max_abs_rho
+    assert a.familywise_p > 0.5, a.familywise_p

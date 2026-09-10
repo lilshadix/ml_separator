@@ -2,6 +2,33 @@
 
 *Updated at the end of each phase so the work survives a context reset.  Newest entry first.*
 
+## Phase 7 — L1 Stage 2 run locally, and the lead CLOSES — 2026-09-10 16:35
+
+The hand-over assumed a cluster because `xtb` was absent.  The user corrected that: the job runs
+here.  `xtb` 6.7.1pre was installed from the official upstream release (SHA-256 verified, unpacked
+outside the repository, no Python package touched, anchors still pass) and **all 361 reference
+species converged in 4.8 minutes of wall time on 6 workers** — the cluster estimate of 6.7
+CPU-hours was right per-core and irrelevant in wall time, because the species are small.
+
+**The cycle closed with no free parameter and the bookkeeping check passes exactly.**  The
+fill-species coefficients refitted on `dE` collapse from free-species totals to binding energies:
+γ(NO₃) −431.97 → **−16.74 eV**, γ(H₂O) −138.88 → **−0.90 eV**, matching the computed free-species
+energies (−415.23, −137.98 eV) to two decimals.
+
+**And the correlation is gone.**  `NAIVE` on `dE` gives −0.093 on S8 (it gives +0.392/+0.644 on
+raw total energies), registered `SPECIES` gives **−0.084**, CI [−0.297, +0.240], and the registered
+family-wise permutation null fails at **p = 0.94** (observed max 0.215 against a bar of 0.609).
+
+**This null has power**, which Stage 1's did not: the `dE` slope's split-half reliability is
+**+0.71** and its jackknife reliability **0.80**, so it could have detected |ρ| ≈ 0.90 against a
+0.40 bar, where Stage 1's estimator had reliability 0.000.  **L1 is CLOSED** — a clean, powered,
+mechanistic null, which is `START_HERE.md` §9's fourth success category.
+
+Multiplicity updated for the Stage 2 contrasts: **1030 rows, 128 registered, 902 exploratory**;
+the confirmed claim's BP row is at q = 0.040 in the registered family.
+New: `scripts/l1_run_references_local.py` (local parallel runner, resumable),
+`scripts/l1_stage2_reliability.py`, `results/L1/stage2_*`, five Stage 2 regression tests.
+
 ## Phases 4, 5, 6 — 2026-09-10 03:40
 
 **Phase 4, refutation.**  Six refuters, two per claim, blind to each other.  **No claim survived
