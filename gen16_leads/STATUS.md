@@ -2,6 +2,26 @@
 
 *Updated at the end of each phase so the work survives a context reset.  Newest entry first.*
 
+## Phase 2 in progress — L2 closed 2026-09-10 00:52
+
+**L2 gate: CLOSED, the lead ends here** (`results/L2/L2_GATE.md`).  The honest leave-pair-out
+curvature headroom under BP is **+0.0287**, percentile 95 % CI [−0.0013, +0.0532], p = 0.061,
+61/90 extractants improved, 5/5 seeds, LOCO [+0.022, +0.034] — the point clears the 0.02 margin
+but the interval does not exclude zero, so P1 fails and the registered gate is closed.  Same in
+B (p 0.065), BR (0.104), BQ (0.129); only design A excludes zero and A never selects.  Bootstrap
+SE 0.014 → minimum detectable headroom 0.039, so this corpus cannot resolve a curvature prize of
+the registered size.  About 0.044 of gen15 §2's in-sample +0.073 was the oracle fitting the noise
+of the pair it is scored on (gen15 §1a measured +0.047 by a different route).  The `r0`
+reparametrisation was **not run**, per the registered stopping rule.  Loop validity: G14, O_CURV
+and FLAT reproduce the gen15 BP anchors to the last digit.
+Temptation recorded (not acted on): the BCa lower bound is +5.7e-6, so reading "the CI" as BCa
+alone would have opened the gate on a six-millionths margin; P1 requires both intervals and
+p = 0.061 fails regardless.
+
+**The other four Phase 2 agents (L1, L3, L4, L5) were killed by a model usage limit, not by an
+error**, and were resumed on the same workflow run (`wf_857279f0-21e`) after switching to
+Opus 5.  L2 replays from cache.
+
 ## Phase 0 complete — 2026-09-10 00:35
 
 **Confirmed**

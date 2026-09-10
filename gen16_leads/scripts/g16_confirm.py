@@ -106,7 +106,7 @@ def main() -> int:
                 "confirmation_point": float(r["point"]), "confirmation_ci_low": float(r["ci95_low"]),
                 "confirmation_ci_high": float(r["ci95_high"]), "confirmation_p": float(r["p_two_sided"]),
                 "confirmation_seeds_positive": int(r["seeds_positive"]),
-                "confirmation_loco_stable": bool(r["loco_stable"]),
+                "confirmation_loco_stable": bool(r["loco_sign_stable"]),
                 "confirmation_passes_P1": bool(r["passes_P1"]),
             })
         print(f"[confirm] {cid} done in {time.time() - t1:.0f}s", flush=True)
