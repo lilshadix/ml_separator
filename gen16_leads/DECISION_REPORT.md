@@ -21,10 +21,13 @@ is real, it replicated, and its scope is narrower than its own lead believed: th
 saves about two of seven measurements when candidates are pooled across laboratories, and saves
 nothing — +0.005 measurements, interval containing zero in all five designs — when the candidates
 come from one laboratory.  Every other lead closed.  The xTB thermodynamic cycle (L1) is not the
-clean null its lead reported: the registered estimator turns out to have zero test–retest
-reliability, so that experiment had no power, and the honest verdict is "not closed, not
-positive".  The curvature gate (L2) closed on an honest headroom of +0.029 that this corpus cannot
-distinguish from zero.  The corpus-expansion result (L4) was killed by its own refuter: a
+clean null its lead reported and it is not a live lead either: the registered estimator turns out
+to have zero test–retest reliability, so that experiment had no power, while every post-hoc
+estimator that does show a correlation fails the programme's mandatory diglycolamide control and
+carries its signal only on the series whose composition varies — the artefact itself.  L1 is
+**undecided**.  The curvature gate (L2) closed under its own rule on a headroom of +0.029 whose
+interval includes zero, in a test whose minimum detectable effect (0.039) was twice its own
+registered margin.  The corpus-expansion result (L4) was killed by its own refuter: a
 featureless "measure the biggest family first" order reproduces all of it.  The covariance and
 calibration lead (L5) produced no claim above the margin and two defects in the deployed
 measured mode.  Nothing here beats the lean block set zero-shot, and the programme's honest
@@ -41,31 +44,47 @@ Six findings, in decreasing order of support.
    **between laboratories**: restricted to one publication's candidate set it is **+0.0046
    (0.07 %)**, interval containing zero in all five designs, where 69.6 % of tasks give every
    candidate the same call.  Both statements are true and the second governs deployment.
-2. **The xTB verdict is corrected, and Stage 2 is now worth more, not less.**  Correcting the
-   complex energies with explicit per-species composition terms takes the slope's correlation with
-   the amplitude from +0.644 (gen15's figure, reproduced exactly on its 39 series) to **−0.084** on
-   62 extractants — but the corrected slope's split-half reliability is **−0.27** and its jackknife
-   reliability is **0.000**, so the registered \|ρ\| ≥ 0.40 bar was unreachable in principle, and
-   an attenuation-free correction gives **+0.29 to +0.45**.  The honest sentence is *"the
-   cycle-corrected slope, as constructed, does not correlate with itself"*.  The real
-   reference-species energies (≈ 6.7 CPU-hours, 361 array tasks) are delivered ready to submit and
-   are the only way to settle it.
+2. **The xTB verdict is corrected to *undecided*, in both directions.**  Correcting the complex
+   energies with explicit per-species composition terms takes the slope's correlation with the
+   amplitude from +0.644 (gen15's figure, reproduced exactly on its 39 series) to **−0.084** on 62
+   extractants.  That is not a clean null: the corrected slope's split-half reliability is
+   **−0.27** and its jackknife reliability is **0.000**, so the registered \|ρ\| ≥ 0.40 bar was
+   unreachable in principle — *"the cycle-corrected slope, as constructed, does not correlate with
+   itself"*.  But the post-hoc attenuation-free estimators that do reach +0.29 to +0.45 are not
+   evidence either: `CYCLE_ADD` falls from **+0.291 to −0.026** when the 23 diglycolamides are
+   removed (n = 43, p = 0.87), and on the 19 constant-composition series it is **+0.049** against
+   **+0.476** on the 43 series whose composition varies.  The "signal" is the composition step
+   re-entering.  Nothing in L1's registered family clears its own registered permutation bar
+   (largest 0.602 against a 95th-percentile bar of **0.609**), gen15's +0.644 included, and the
+   free 2D competitor `frac_donor_pairs_within_3` is larger in magnitude (−0.42 to −0.53) than
+   every xTB estimator here.  The reference-species energies (≈ 6.7 CPU-hours) remain the only
+   construction that is exact *and* attenuation-free, and are delivered ready to submit — but
+   gen16 supplies no positive evidence that there is anything for them to find.
 3. **The corpus-expansion plan is not supported, and the reason is worth more than the plan.**
    A greedy A-optimal chemotype order beats random under BP by +0.050, but its sign flips under B
    and BQ, and a **featureless order — biggest chemotype first, zero descriptors — reproduces it
    and is positive in all five designs**, with A-optimal adding +0.005 (p = 0.36) on top.  At a
    budget of 6 chemotypes the A-optimal order already holds 72 % of the fold's training cells.
    What the retrospective simulation measures is corpus **volume**, not chemistry choice.
-4. **The curvature is closed.**  The honest leave-pair-out headroom is **+0.0287** (CI
-   [−0.0013, +0.0532], p = 0.061); the minimum detectable headroom on this corpus is 0.039.  About
-   0.044 of gen15 §2's in-sample +0.073 was the oracle absorbing the noise of the pair it was
-   scored on, confirming gen15 §1a by an independent route.
+4. **The curvature gate is closed by rule, and underpowered by design.**  The honest leave-pair-out
+   headroom is **+0.0287** — above the registered 0.02 margin, 61/90 extractants improved, 5/5
+   seeds, LOCO-stable — with a percentile CI of [−0.0013, +0.0532] and p = 0.061, so P1 fails and
+   the gate closed.  But the minimum detectable headroom is **0.039**, nearly twice the margin the
+   gate was registered to detect, so this gate could not have opened at its own registered effect
+   size whatever was true.  "Closed by rule, underpowered by design" is the honest reading, not
+   "indistinguishable from zero".  About 0.044 of gen15 §2's in-sample +0.073 was the oracle
+   absorbing the noise of the pair it was scored on, confirming gen15 §1a by an independent route.
 5. **Two defects in the deployed measured mode.**  The leave-chemotype-out residual covariance is
    **indefinite on 100 % of its 430 estimates**, which makes Ledoit–Wolf shrinkage catastrophic
    (BP MAE 34.4 at k = 3) because greedy D-optimal selection seeks the negative directions; and
    the intervals over-cover badly — nominal 90 % covers **98.8 %** at k = 3 — driven by the fixed
    `NOISE_VAR = 0.09`.  Gen15 §7's `MIX6meanPC` gain does survive the deployed baseline it was
    never tested against, at **+0.0070** (p < 1e-4, all five designs), three times under the margin.
+5b. **The largest sub-margin estimator effect is not the one gen15 pointed at.**  `LOWRANK2 −
+   POOLED` at k = 2 is **+0.0151** under BP (p = 0.002, both intervals excluding zero, 5/5 seeds,
+   LOCO-stable, same sign in all five designs) — 25 % under the margin, and twice the
+   `MIX6meanPC` gain — though it vanishes at k = 3 (+0.0003).  Neither is deployable.
+
 6. **The cohort is not throwing chemistry away, but the laboratory is.**  No relaxation of any
    gen13 cohort rule adds a single chemotype.  The 100 excluded bundle extractants are excluded
    because **only one lanthanide was ever measured on them**; they carry **53 chemotypes the
@@ -83,7 +102,15 @@ Six findings, in decreasing order of support.
 | 2 | five lead agents in parallel: L1, L2, L3, L4, L5 |
 | 4 | six refuters, two per claim, blind to each other |
 | 5 | the confirmation run, executed once |
-| 6 | this report, then an adversarial audit of it |
+| 6 | this report, then two adversarial audits of it (numbers; claims and protocol), whose findings are folded in below |
+
+**Deviation from `START_HERE.md` §8's layout, stated rather than hidden.**  The brief asks for
+`headline_tables/`, `metrics/`, `bootstrap/`, `predictions/`, `scripts/`, `tests/` following the
+gen13 layout.  Gen16 uses a single `results/<lead>/` tree instead, plus `scripts/` and `tests/`.
+The mapping: headline tables are the `*_board.csv` and the tables in each `results/<lead>/
+<LEAD>_REPORT.md`; metrics are the `per_extractant*` and `*_metrics.csv` files; bootstrap output
+is in the `contrasts_*.csv` files (point, both intervals, p, per-seed signs, LOCO); predictions and
+other large dumps are excluded by design and digested in `results/MANIFEST.sha256`.
 
 **Anchors** (`results/anchors/ANCHORS.md`, guarded by `tests/test_anchors.py`).  All three
 reproduce exactly: gen13 stage-3 `G13_ET_TOPO39` under BP = `0.7683085207475452`; gen14 `G14`
@@ -92,11 +119,30 @@ under BP = `0.5000794414203691`; `FLAT` = `0.5885062528901843`; `G14 − FLAT` =
 `PYTHONHASHSEED` values; the only `hash()` on the bench path takes an int tuple, which CPython
 does not salt.  No dependency has moved since gen13.
 
-**Comparison accounting.**  940 contrast rows: **126 registered, 814 exploratory**
-(L1 90, L2 20, L3 85, L4 435, L5 230; `results/*/contrasts_*.csv`, every row carrying `family`
-and `lead`).  Benjamini–Hochberg on the discovery p-values puts the confirmed claim's BP row at
-**q = 0.039** within the registered family and **q = 0.025** over all 940.  Every other registered
-contrast that reached nominal significance is reported with its q in the lead reports.
+**Comparison accounting.**  **940 contrast rows: 126 registered, 814 exploratory** — by lead,
+L1 90 rows (4 energy models × 3 sets × 3 targets, 2 registered), L2 20 (4 arms, 5 registered),
+L3 85 (4 arms over 455 tasks, 15 registered), L4 **515** (4 acquisition orders × 6 budgets, 24
+registered), L5 230 (25 arm × k combinations, 80 registered).  **L4's 515 includes 80 rows from a
+discarded dry run retained in `results/L4/_dry/`**, 4 of them labelled registered; counting only
+the eleven final files gives 860 rows, 122 registered and 738 exploratory, which is what an
+independent refuter counted from the same tree.  The larger family is used throughout because it
+is the more conservative denominator.
+
+Benjamini–Hochberg within the registered family of 126, quoted beside every raw p this report
+uses:
+
+| contrast | raw p (across five designs) | BH q |
+|---|---|---|
+| **L3a `G14_saved_vs_0`** (§2) | 0.004–0.010 | **0.020–0.042** |
+| L5 `MIX6meanPC − POOLED` @k3 (§7) | < 1e-4 | < 0.001 |
+| L5 `LOWRANK2 − POOLED` @k2 (§7) | 0.002–0.336 | 0.011–0.547 |
+| L3c `G14@k1 − NAIVE` on Spearman (§3) | 0.013–0.026 | 0.048–0.076 |
+| L2 `OCURVLPO_vs_G14` (§5) | 0.031–0.129 | 0.080–0.246 |
+| L4 `AOPT_vs_RANDOM` (§6) | < 1e-4–0.974 | < 0.001–0.993 |
+| L3c `G14@k1 − NAIVE` on regret (§3) | 0.335–0.997 | 0.547–0.997 |
+
+Over the combined 940 the confirmed claim's BP row is at q = 0.025.  L1's two registered rows have
+q = 0.518 within its own family.
 
 ---
 
@@ -141,12 +187,23 @@ carrying it.
 | leave-one-publication-out, all 58 | [+1.506, +2.428], 0 sign flips | held |
 | **candidate sets within one publication** | **+0.0046**, CI [−0.016, +0.022] | **dents, materially** |
 | candidate sets within one chemotype | +0.334, rule fails 5/5 | dents |
-| rebuilt one fold at a time (fold purity) | magnitude falls, direction survives | dents the magnitude |
+| **rebuilt one fold at a time (fold purity)** | **+0.906 of an E_random of 5.52 (16.4 %)** | **dents the magnitude** |
 
-The within-publication test rests on 4 of 58 publications, 31 extractants and 11 chemotypes, 18 of
-the 31 being diglycolamides — which is why it is recorded as material rather than fatal.  On those
-same tasks a perfect sign call would save 0.414 measurements, so the regime is not vacuous: the
-model captures 1.1 % of the available headroom there against 47.3 % pooled.
+Two dents, and both must travel with the number.
+
+**Scope.**  The within-publication test rests on 4 of 58 publications, 31 extractants and 11
+chemotypes, 18 of the 31 being diglycolamides — which is why it is recorded as material rather
+than fatal.  On those same tasks a perfect sign call would save 0.414 measurements, so the regime
+is not vacuous: the model captures 1.1 % of the available headroom there against 47.3 % pooled.
+
+**Magnitude.**  A task pools the held-out predictions of all five folds of a seed, so candidate *X*
+was predicted by a model whose training set contained candidate *Y*.  Rebuilt one fold at a time,
+so that no candidate in a task was predicted by a model trained on another candidate in it, the
+saving under BP is **+0.906 of an E_random of 5.52, i.e. 16.4 %** against the quoted 28.8 % —
+**46 % of the headline magnitude**.  The effect itself survives: as a fraction of the perfect-sign
+ceiling the fold-pure run captures **49.8 %**, slightly *more* than the pooled run's 47.3 %.  So
+"about two of every seven measurements" is the cross-fold figure; the leak-free figure is about
+one in six.
 
 **What this supports.**  *Told a ligand and a metal pair, from a laboratory the model has never
 seen, the model says which lanthanide enters the organic phase, and used as a filter over a
@@ -185,12 +242,22 @@ amplitude and killed it with a composition control.  L1 rebuilt the bookkeeping 
 | element counts as covariates (gen15's B) | `ELEM` | +0.313 | +0.396 |
 | exact counts, no free δ (19 series) | `SPECIES_CONST` | +0.167 | +0.155 |
 | exact counts + free δ (**registered**) | `SPECIES` | **−0.084** | −0.048 |
+| *cheapest competitor*: `frac_donor_pairs_within_3` (free, 2D, no xTB at all) | — | **−0.416** (n = 61) | **−0.457** (n = 39); −0.530 over all 80 |
 
-Two supporting facts: `n_fill` counts donor **sites**, not molecules (nitrate is bidentate), and
-every complex decomposes exactly as metal + n·ligand + n·NO₃ + n·H₂O with no residue; the fitted
-species energies land within 0.34 eV of an independent per-element regression, so the model is
-doing the cycle's arithmetic.  The naive slope and its curvature are **the same step function read
-twice** (ρ = −0.981).
+**The registered family-wise bar, which the lead computed and did not quote.**  The
+pre-registration requires a chemotype-level permutation null taking the maximum \|ρ\| over the 4
+models × 3 sets.  Its 95th percentile is **0.609**; the largest value the family actually attains
+is **0.602** (`NAIVE` on S14), family-wise p = **0.057**.  **Nothing in L1's registered family
+clears its own bar — gen15's +0.644 included.**  Against that bar the whole of Table 4a is noise,
+and the free 2D competitor is larger in magnitude than every xTB estimator in it.
+
+Two supporting facts about the bookkeeping: `n_fill` counts donor **sites**, not molecules (nitrate
+is bidentate), and every complex decomposes exactly as metal + n·ligand + n·NO₃ + n·H₂O with no
+residue.  The fitted **water** coefficient lands within 0.34 eV of an independent per-element
+regression (−138.88 against −139.22 eV); the fitted **nitrate** coefficient sits 17.8 eV below it
+(−431.97 against −414.21 eV), as it must for a charged, strongly bound bidentate anion.  So the
+model is doing the cycle's arithmetic.  The naive slope and its curvature are **the same step
+function read twice** (ρ = −0.981).
 
 **Table 4b — why the registered verdict is wrong** (`REFUTATION_LOG.md` §4)
 
@@ -199,16 +266,41 @@ twice** (ρ = −0.981).
 | split-half reliability of the `SPECIES` slope (odd vs even metals) | **−0.272** | the slope does not reproduce itself |
 | jackknife reliability (between-extractant sd 0.203 eV vs within-series SE 0.329 eV) | **0.000** | max attainable \|ρ\| ≈ 0; the 0.40 bar was unreachable |
 | fraction of an injected real trend retained by `SPECIES` | **0.42** | the correction removes ~58 % of a real signal |
-| attenuation-free corrections (fixed reference energies, no free δ) | ρ = **+0.29 / +0.34 / +0.45** | **above** the 0.25 "closed" threshold |
 | Fisher CI of the `SPECIES_CONST` row at n = 19 | [−0.337, +0.597] | could never separate +0.167 from +0.5 |
 
-**Verdict corrected from "closed" to "not closed, not positive".**  The registered estimator is
-too noisy to detect anything.  This raises rather than lowers the value of Stage 2: with real
-reference energies the composition is subtracted at true species energies with **no free
-parameter**, which is the one construction that is both exact and attenuation-free.
-Hand-over: `results/L1/L1_STAGE2_HANDOVER.md`, 361 array tasks, 1 core and 2 GB each, ≈ 6.7
-CPU-hours (≈ 20 min wall at 20 concurrent), then one local command.  `xtb` is absent from this
-machine, verified by a disk walk.
+**Table 4c — and why the positive side fails too.**  Both refuters built attenuation-free
+corrections (fixed reference energies, no free per-series parameter) and both got a positive.
+Neither survives the controls the brief makes mandatory:
+
+| estimator | S8 (n = 62) | without diglycolamides | constant-composition series | composition-varying series |
+|---|---|---|---|---|
+| `CYCLE_ADD` | +0.291 (p = 0.022) | **−0.026** (n = 43, p = 0.87) | **+0.049** (n = 19, p = 0.84) | **+0.476** (n = 43, p = 0.001) |
+| `FIXCYC_CONSTNLIGS` | +0.339 (p = 0.007) | — | LOCO min +0.037 | — |
+| `FIXCYC_ALL` | +0.290 (p = 0.022) | — | LOCO min **−0.026** | — |
+
+`CYCLE_ADD`'s correlation is carried entirely by the diglycolamides and lives **only on the series
+whose inner-sphere composition varies** — +0.48 there against +0.05 where it is constant.  That is
+the composition step re-entering through a different door, which is the artefact the whole lead
+exists to remove.  These are also unregistered post-hoc arms, so applying the registered 0.25/0.40
+thresholds to them would be exactly the "nominally significant result from an unregistered arm"
+the brief lists as *not* success.
+
+**Verdict: L1 is undecided — not closed, and not open.**  The registered estimator is too noisy to
+detect anything (so "closed" overstates), and every estimator that shows a correlation fails the
+diglycolamide control and carries its signal on the composition step (so "promising" overstates in
+the other direction).  Nothing in the registered family clears its own permutation bar, and a free
+2D column beats all of it.
+
+**Stage 2 is still the right experiment, and its prior should be low.**  With real reference
+energies the composition is subtracted at true species energies with **no free parameter and no
+fitted γ**, which is the only construction that is simultaneously exact and attenuation-free — it
+is the only way the question has ever actually been asked.  But gen16 supplies no positive
+evidence that there is signal to find, and three reasons to doubt it: the 2D competitor is larger,
+the registered permutation bar is unmet by the whole family, and every post-hoc positive is
+composition in disguise.  It is worth 6.7 CPU-hours because it is cheap and decisive, not because
+it is promising.  Hand-over: `results/L1/L1_STAGE2_HANDOVER.md`, 361 array tasks, 1 core and 2 GB
+each, ≈ 6.7 CPU-hours (≈ 20 min wall at 20 concurrent), then one local command.  `xtb` is absent
+from this machine, verified by a disk walk.
 
 ## 5. L2 — the curvature gate
 
@@ -222,10 +314,19 @@ two metals of the scored pair**.
 | `O_CURV` (in sample) | 0.4216 | 0.4218 | 0.4233 | 0.4168 | 0.4272 |
 | **`O_CURV_LPO`** | 0.4634 | 0.4638 | 0.4642 | 0.4599 | **0.4714** |
 
-Headroom `G14 − O_CURV_LPO`: +0.0298 / +0.0268 / +0.0264 / +0.0323 / **+0.0287**; under BP the
-percentile CI is [−0.0013, +0.0532] and p = 0.061, so P1 fails and the gate closed; only design A
-excludes zero and A never selects.  Bootstrap SE 0.014 puts the **minimum detectable headroom at
-0.039**.  The `r0` reparametrisation was not run, per the registered stopping rule.
+Headroom `G14 − O_CURV_LPO`: +0.0298 / +0.0268 / +0.0264 / +0.0323 / **+0.0287**.  Under BP the
+percentile CI is [−0.0013, +0.0532] **and the BCa CI is [+0.0000, +0.0544]**; P1 requires *both*
+intervals to exclude zero and p < 0.05, and p = 0.061 (q = 0.08–0.25) fails under either reading,
+so the gate closed.  Only design A excludes zero on the percentile interval, and A never selects.
+The BCa lower bound is +5.7 × 10⁻⁶ — a six-millionths margin, recorded as a temptation in
+`REFUTATION_LOG.md` §5 and not acted on.
+
+**The gate was also underpowered to detect its own registered effect.**  Bootstrap SE 0.014 puts
+the minimum detectable headroom at **0.039**, nearly twice the registered 0.02 margin, so no true
+headroom of the registered size could have opened this gate.  The honest reading is *closed by
+rule, underpowered by design*, with a point estimate of +0.029 [−0.001, +0.053] that is above the
+margin, improves 61 of 90 extractants, and is LOCO-stable and 5/5 seeds positive.  The `r0`
+reparametrisation was not run, per the registered stopping rule.
 
 ## 6. L4 — corpus-level experimental design
 
@@ -279,11 +380,20 @@ Verification first: the ported evaluator reproduces `G14@doptk3` = 0.1700393901 
 | `MIX6meanPC` | 0.4052 | 0.2236 | 0.1974 | **0.1604** |
 | `NAIVE_LINE` | — | 0.2310 | 0.2251 | 0.2243 |
 
-No registered contrast reaches the 0.02 margin in any design; the largest real effect is
-`MIX6meanPC − POOLED` = **+0.0070** at k = 3 (p < 1e-4, both intervals exclude zero, 5/5 seeds,
-LOCO-stable, same sign in all five designs) — the comparison against the **deployed** baseline
-that gen15 §7 never ran.  It is positive, significant, design-invariant and **three times under
-the margin**, and it is reported as exactly that.
+No registered contrast reaches the 0.02 margin in any design.  **Two come close and neither is
+deployable:**
+
+| contrast | BP | 95 % CI | p | q | designs | margin |
+|---|---|---|---|---|---|---|
+| **`LOWRANK2 − POOLED` @ k = 2** | **+0.0151** | [+0.0067, +0.0232] | 0.002 | 0.011 | same sign in all five, 5/5 seeds, LOCO-stable | 25 % under |
+| `MIX6meanPC − POOLED` @ k = 3 | +0.0070 | [+0.0044, +0.0111] | < 1e-4 | < 0.001 | same sign in all five, 5/5 seeds, LOCO-stable | 3× under |
+
+`LOWRANK2` is the **larger** of the two and was not in gen15's field of view at all; it is
+significant only at k = 2 and vanishes at k = 3 (+0.0003, 4/5 seeds, LOCO-unstable), and under
+design A it is p = 0.34.  `MIX6meanPC` is the one that matters historically: it is the comparison
+against the **deployed** baseline that gen15 §7 never ran, and it holds.  Both are positive,
+significant and design-invariant, and both are under the margin; they are reported as exactly
+that, and neither changes what is deployed.
 
 **Two defects.**  (i) The deployed leave-chemotype-out residual covariance is **indefinite on
 100 % of its 430 estimates**; Ledoit–Wolf deepens the negative directions and greedy D-optimal
@@ -292,11 +402,15 @@ Coverage: nominal 90 % intervals cover **98.8 %** at k = 3 and 92.6 % at k = 0, 
 `NOISE_VAR = 0.09` alone exceeds the realised squared error at k = 3 (RMSE 0.248).  The
 programme's measured-mode intervals are conservative by roughly 2.5× in width.
 
-**Calibration of the zero-shot direction probability.**  The registered fix (inner-fold Platt)
-makes it **worse** in every design (Brier 0.255 against the raw 0.167 and a constant base rate of
-0.313).  The raw probability beats the base rate on Brier in all five designs, but its ECE under
-BP is **0.139**, above the registered 0.10 bar, so the calibrated probability is **not** a
-deliverable under the rule as written.
+**Calibration of the zero-shot direction probability.**  The registered deliverable is the
+*calibrated* (inner-fold Platt) probability, and it fails the registered rule on its own terms:
+under BP its Brier is **0.255** and its ECE **0.301**, three times the 0.10 bar, and it is worse
+than the uncalibrated probability on both — Platt recalibration makes calibration worse in every
+design.  The **raw** probability is much the better object (Brier **0.167**, macro accuracy 0.821,
+against a constant base rate at Brier 0.313) and beats that constant in all five designs, but it
+was never the registered deliverable and its own ECE of **0.139** is above the bar too.  **So
+nothing here is deliverable as a calibrated probability**, and the honest summary is that the
+direction call is well separated but over-confident.
 
 ## 8. L6 — the cohort audit, and the only corpus advice this report will give
 
@@ -309,8 +423,10 @@ single relaxation adds a chemotype — the maximum over seven relaxations is +0.
 `min_rows` failure does not recur.
 
 The 100 excluded compounds are excluded because only one lanthanide was ever measured on them
-(Eu 567 rows, Pr 96, Nd 35); 91 of the 100 come from one publication.  They carry **60 chemotypes,
-53 of them absent from the cohort**, and 77 sit at ECFP4 Tanimoto < 0.7 from every kept extractant.
+(Eu 567 rows, Pr 96, Nd 35).  **91 of the 100 appear in only a single publication each**, and the
+100 together span 23 publications, the largest of which contributes 52 of them.  They carry
+**60 chemotypes, 53 of them absent from the cohort**, and 77 sit at ECFP4 Tanimoto < 0.7 from every
+kept extractant.
 
 | counterfactual: a second lanthanide measured on … | extractants | Kish n_eff | ratio |
 |---|---|---|---|
@@ -326,32 +442,41 @@ programme's binding constraint stated as a laboratory action, and it needs no mo
 
 ## 9. What is statistically supported, and what is not
 
-**Supported** (registered rule met in all five designs, refuters unable to remove it, replicated
-on withheld seeds):
+**Supported** (the lead's registered decision rule met in all five designs, refuters unable to
+remove it, replicated on withheld seeds):
 
 - the direction call saves ≈ 2 of 6.9 expected measurements when candidates are pooled across
-  laboratories (§2), **with the scope limitation of §2 attached**.
+  laboratories (§2), **with both limitations of §2 attached**: within one laboratory it saves
+  +0.005 with an interval containing zero, and rebuilt fold-pure the magnitude is 16.4 % rather
+  than 28.8 %.  Note the rule met is L3a's registered rule of `PRE_REGISTRATION.md` §3, not P1:
+  see the disclosed deviation in §10, item 10.
 
 **Measured and reported, but not supported as claims:**
 
-- `MIX6meanPC` over the deployed measured-mode baseline: +0.0070, real and design-invariant,
-  three times under the pre-registered margin (§7);
+- `LOWRANK2 − POOLED` at k = 2 (+0.0151) and `MIX6meanPC − POOLED` at k = 3 (+0.0070): real,
+  significant and design-invariant, both under the pre-registered margin (§7);
+- the L2 curvature headroom of +0.029: above the margin, interval includes zero, and the test's
+  minimum detectable effect was twice its own margin (§5);
 - a featureless "biggest chemotype first" acquisition order beating random in all five designs
   (§6) — found by a refuter, and a refuter check can kill a claim, never resurrect one;
-- composition-position descriptors correlating with the amplitude at ρ up to +0.83 (§10, lead 1
-  for gen17) — post hoc, small n, from a geometry builder's recipe rather than from measurement.
+- composition-position descriptors correlating with the amplitude at ρ up to +0.83 (§12, gen17
+  lead 1) — post hoc, small n, from a geometry builder's recipe, and correlated +0.79 to +0.86
+  with the naive xTB slope this report calls a composition artefact.
 
 **Not supported:**
 
-- any new representation beating the lean block set zero-shot (L1 closed with no power, L2 closed);
+- any new representation beating the lean block set zero-shot;
 - the corpus-expansion plan as a *chemistry* result (L4 killed by its featureless control);
 - ranking candidates at k = 1 with the corpus (L3c null, and negative on rank correlation);
 - any covariance estimator or calibrated interval at the 0.02 margin (L5);
 - any cohort expansion available from relaxing a filter (L6).
 
+**Undecided, and explicitly not a null:** L1 (§4).  The registered test had no power and every
+post-hoc positive fails the diglycolamide control.
+
 **Nothing here supports an equivalence claim.**  The minimum detectable effect at 80 % power is
-0.039 for the L2 curvature headroom; the L1 registered estimator has reliability 0.000 and so has
-no detectable effect at all.
+0.039 for the L2 curvature headroom, against its own registered margin of 0.02; the L1 registered
+estimator has reliability 0.000 and so has no detectable effect at all.
 
 ---
 
@@ -380,27 +505,43 @@ no detectable effect at all.
    gen14/gen15 bench path.
 9. **A deviation from the sealed pre-registration in L1**, disclosed by the lead and confirmed by a
    refuter: the sealed text wrote `n_fill × γ_species`, the implementation used per-species
-   molecule counts.  Both were run; the verdict is the same under either.
-10. Orchestrator process failures are recorded in `REFUTATION_LOG.md` §6.
+   molecule counts (because `n_fill` counts donor sites).  Both were run; the verdict is the same
+   under either.
+10. **A second deviation, on the confirmed claim, disclosed here for the first time.**  The sealed
+    §0 fixes inference as `gen13sep.inference.paired_contrasts` — 10 000 replicates, **percentile
+    and BCa** intervals — and says no new bootstrap is written.  L3 wrote its own chemotype-blocked
+    bootstrap at **2 000 replicates with a percentile interval only**, because its resampling unit
+    is the task rather than the extractant and the frozen function cannot express that.  The
+    consequence is precise: the claim meets **L3a's registered rule** (§3 of the pre-registration)
+    and the percentile half of P1; **the BCa half of P1 was never computed for it**.  The
+    permutation null, which is the claim's primary evidence, is unaffected.  §9 says "the lead's
+    registered rule" rather than "P1" for this reason.
+11. Orchestrator process failures are recorded in `REFUTATION_LOG.md` §6.
 
 ---
 
 ## 11. Guardrails — what a reader must not do with these numbers
 
-1. **Do not quote "the model saves two of seven measurements" without the within-laboratory
-   number.**  Pooled it is +1.91; inside one laboratory's candidate set it is +0.005 with an
-   interval containing zero.  The second is the one a screening chemist experiences.
-2. **Do not read L1 as "xTB is useless here".**  It is "this estimator has no power": reliability
-   0.000, and attenuation-free variants reach +0.29 to +0.45.  The question is open and Stage 2 is
-   the experiment that closes it.
+1. **Do not quote "the model saves two of seven measurements" without both dents.**  Pooled and
+   cross-fold it is +1.91 of 6.91 (28.8 %); rebuilt fold-pure it is +0.91 of 5.52 (16.4 %); inside
+   one laboratory's candidate set it is +0.005 with an interval containing zero.  The last is the
+   one a screening chemist experiences.
+2. **Do not read L1 either way.**  It is not "xTB is useless here" — the registered estimator has
+   reliability 0.000 and so could not have detected anything.  It is equally not "xTB looks
+   promising": every post-hoc estimator that correlates fails the diglycolamide control (+0.29 →
+   −0.03) and carries its signal only where the composition varies (+0.48 against +0.05).  L1 is
+   undecided, the free 2D competitor is still larger than any of it, and nothing in the registered
+   family clears its own permutation bar.
 3. **Do not use the L4 prospective ranking as a purchase list.**  It is ordered by a criterion its
    own refuter showed to be a proxy for family size.
 4. **Do not quote the +0.83 composition-position correlations as a result.**  They are post hoc,
-   n = 27–29, from a builder's recipe, and above a family-wise bar that was set for a different
-   family.
-5. **Do not treat `MIX6meanPC` as deployable.**  It is under the margin; the honest statement is
-   that it is the only structured estimator in this programme that has ever beaten its pooled
-   control, twice.
+   n = 27–29, computed from a geometry builder's recipe rather than from measurement, and — the
+   fact that matters most — they correlate **+0.79 to +0.86 with the naive xTB slope**, the
+   quantity this report calls a composition artefact read twice.  They are a parametrisation of
+   the composition step, not an independent observable.
+5. **Do not treat `MIX6meanPC` or `LOWRANK2` as deployable.**  Both are under the margin.  The
+   honest statement is that they are the only structured estimators in this programme that have
+   ever beaten their pooled control, and that `LOWRANK2` is the larger of the two only at k = 2.
 6. **Do not use the measured-mode intervals as calibrated.**  They cover 98.8 % at nominal 90 %.
 7. **Do not quote any design-B number**, and do not quote `MEAN_CURVE` (0.622) as a baseline: it
    is worse than predicting no separation at all (0.589).
@@ -418,10 +559,13 @@ compound per absent chemotype would multiply the programme's effective sample si
 which is larger than every modelling effect this generation measured put together.  That is L6,
 it needs no model, and it has been the programme's standing recommendation since gen6.
 
-**The one experiment to run on a cluster** is L1 Stage 2: 361 array tasks, ≈ 6.7 CPU-hours, one
-core and 2 GB each, then one local command.  Gen16's contribution is that it now knows *why* it
-matters — not because the correlation was promising, but because the only estimator gen16 could
-build from existing data has zero reliability, so the question has never actually been asked.
+**The one experiment to run on a cluster**, and it is cheap rather than promising, is L1 Stage 2:
+361 array tasks, ≈ 6.7 CPU-hours, one core and 2 GB each, then one local command.  Gen16's
+contribution is to say precisely why it is worth 6.7 CPU-hours and no more: every estimator that
+can be built from the existing data either has zero reliability (the registered one) or smuggles
+the composition step back in (every post-hoc one), so the question has never actually been asked.
+Expect a null — the free 2D competitor is larger than every xTB estimator here, and nothing in the
+registered family clears its own permutation bar — and pre-register that expectation.
 
 **What to deploy is unchanged.**  `gen15_curve/scripts/g15_predict.py` still stands; gen16 adds no
 zero-shot skill.  Add the direction-call filter of §2 to it as a **literature-wide screening
@@ -430,11 +574,17 @@ PSD cone before any future shrinkage work.
 
 **Four things to pre-register for gen17**, in descending order of expected value.
 
-1. **Composition-position as a size-match observable.**  `steppos_n_H2O` and its relatives reach
-   ρ = +0.78 to +0.83 against the amplitude with no energy in them.  Either the radius at which a
-   ligand's inner sphere reorganises is a real size-match observable — which would be the first
-   new physics in the programme since gen2 — or it is an artefact of Architector's heuristics.
-   Pre-register both hypotheses, a builder-independent replication, and a five-design MAE arm.
+1. **Is the composition step an observable or a recipe?**  `steppos_n_H2O` and its relatives reach
+   ρ = +0.78 to +0.83 against the amplitude (n = 27–29) with no energy in them, and `nligs_range`
+   reaches −0.50 on S8 and survives removing the diglycolamides (−0.43).  But they correlate
+   **+0.79 to +0.86 with the naive xTB slope** — they *are* the composition step, the quantity
+   gen15 identified as the artefact behind +0.644 and one of the three killed results
+   `START_HERE.md` §0 records.  So the gen17 question is not "new physics or builder heuristic"
+   but the sharper one: **does the radius at which a ligand's inner sphere reorganises carry real
+   size-match information, or is it a property of Architector's decision rules?**  It can only be
+   answered against a builder-independent geometry source, and it must be pre-registered with a
+   five-design MAE arm, a matched shuffled null, and the diglycolamide control that killed
+   `CYCLE_ADD`.
 2. **`SIZE` acquisition.**  "Measure the biggest family first" beat random in all five designs
    from zero features.  It needs its own pre-registration, its own matched null and its own
    cell-matched control, and it is a cheap, honest corpus-growth result if it holds.

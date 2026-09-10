@@ -14,7 +14,7 @@ or bookkeeping error that would make this claim wrong.  Their code is under
 |---|---|---|---|
 | **L3A** measurements saved | dented, **material** | dented, **material** | survives as a *pooled* statistic, refuted as a *laboratory-level* saving |
 | **L4BP** acquisition order | dented, **fatal** | dented, **material** | **killed** — a featureless order reproduces it |
-| **L1NULL** the xTB null | dented, **material** | dented, **material** | verdict **corrected**: "closed" → "not closed, not positive" |
+| **L1NULL** the xTB null | dented, **material** | dented, **material** | verdict **corrected**: "closed" → **undecided** (no power either way) |
 
 Both refuters reproduced every headline digit for digit before attacking it, one of them by
 rebuilding the pipeline from the sealed pre-registration text rather than from the lead's code.
@@ -52,8 +52,11 @@ rebuilding the pipeline from the sealed pre-registration text rather than from t
 2. **Within one chemotype** (lens B): +0.334, registered rule fails in all five designs.
 3. **Fold purity** (lens B): the task pools the held-out predictions of all five folds of a seed,
    so candidate *X* was predicted by a model whose training set contained candidate *Y*.  Rebuilt
-   one fold at a time the magnitude falls (the direction survives).  This dents the *quoted
-   magnitude*, not the existence of the effect.
+   one fold at a time the saving under BP is **+0.906 of an E_random of 5.52 (16.4 %)** against
+   +1.988 of 6.906 (28.8 %) — **46 % of the quoted magnitude**.  The effect survives: as a
+   fraction of the perfect-sign ceiling the fold-pure run captures **49.8 %**, slightly more than
+   the pooled run's 47.3 %.  This dents the *quoted magnitude*, not the existence of the effect,
+   and both figures now travel with the claim.
 4. **One overstatement in the lead's prose** about the decision rule, corrected in §4 of the
    lead's own report.
 
@@ -98,7 +101,7 @@ claim's causal wording is falsified.
 **Note, and it is deliberately not promoted.**  `SIZE` is itself a real, design-consistent,
 featureless result, and it was found by a refuter.  A refuter check can kill a claim, never
 resurrect one, so it is **not** a gen16 claim.  It is recommended for pre-registration in gen17
-(`DECISION_REPORT.md` §8), where it would need its own matched null and its own five designs.
+(`DECISION_REPORT.md` §12), where it would need its own matched null and its own five designs.
 
 ---
 
@@ -143,12 +146,26 @@ Kendall, or of the 39-vs-62 set change; the family-wise permutation bar reproduc
    because `n_fill` counts donor *sites*.  The lead disclosed this, ran the literal variant as
    well, and both give the same verdict — but it is a deviation and it is recorded here.
 
-**Verdict corrected.**  The registered verdict "**CLOSED**" is estimator-specific and overstated.
-The honest verdict is **"not closed, not positive"**: the registered estimator is too noisy to
-detect anything, so the experiment had no power, and every attenuation-free estimator's interval
-contains +0.40.  The honest sentence is not "the cycle-corrected slope does not correlate with the
-amplitude" but **"the cycle-corrected slope, as constructed, does not correlate with itself"**.
-This *raises* the value of the Stage 2 reference-energy job, which is delivered ready to submit.
+**Verdict corrected to UNDECIDED — and the correction cuts both ways.**  The registered verdict
+"**CLOSED**" is estimator-specific and overstated: the registered estimator is too noisy to detect
+anything, so the experiment had no power, and the honest sentence is not "the cycle-corrected slope
+does not correlate with the amplitude" but **"the cycle-corrected slope, as constructed, does not
+correlate with itself"**.
+
+But the positive side fails just as clearly, and the audit of this log caught the first draft
+treating it as encouraging.  The attenuation-free estimators are unregistered post-hoc arms and
+they do not survive the diglycolamide control the brief makes mandatory: `CYCLE_ADD` falls from
+**+0.291 to −0.026** (n = 43, p = 0.87) when sc009 is removed, and it scores **+0.049** on the 19
+constant-composition series against **+0.476** on the 43 whose composition varies — the positive
+lives on the composition step itself, which is the artefact the lead exists to remove.  Nor does
+anything in L1's registered family clear its own registered permutation bar (largest 0.602 against
+a 95th-percentile bar of 0.609, family-wise p = 0.057), gen15's +0.644 included; and the free 2D
+competitor `frac_donor_pairs_within_3` (−0.42 to −0.53) is larger than every xTB estimator on the
+table.
+
+So Stage 2 remains the only construction that is exact *and* attenuation-free, and it is worth its
+6.7 CPU-hours because it is cheap and decisive — **not** because gen16 found anything promising.
+`DECISION_REPORT.md` §4 and §12 state the expected-null prior that goes with it.
 
 ### A refuter finding that is not a claim, and is striking
 
@@ -163,7 +180,7 @@ recipe*, not measurements; they were found post hoc by refuters over many tried 
 small; and the family-wise bar for the max \|ρ\| over the registered 12 columns was already ≈ 0.60.
 Whether it is real physics (the radius at which a ligand's coordination sphere reorganises is a
 size-match observable) or an artefact of the builder's heuristics is exactly the question gen17
-should pre-register.  It is written up in `DECISION_REPORT.md` §8 as lead 1 for the next
+should pre-register.  It is written up in `DECISION_REPORT.md` §12 as lead 1 for the next
 generation, and it is **not** a gen16 result.
 
 ---

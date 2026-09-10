@@ -18,8 +18,40 @@ them against the published commitment and the registered rule.  One claim qualif
 replicated: BP +1.909 against a discovery +1.988, interval excluding zero, 5/5 seeds, LOCO-stable,
 passing in all five designs.  `CONFIRMATION.md`.
 
-**Phase 6.**  `DECISION_REPORT.md` written; two adversarial auditors running (numbers, and
-claims/scope/protocol).
+**Phase 6, audit.**  Two adversarial auditors (numbers: 311 statements traced to artefacts, 13
+wrong; claims/scope/protocol: 64 checked, 2 wrong).  Both returned "publishable after fixes" and
+both found the report **under-claiming**, not over-claiming.  All findings were verified against
+the artefacts and folded in:
+
+- **fatal** — the +0.29/+0.45 attenuation-free estimators that carried my L1 correction fail the
+  mandatory diglycolamide control (`CYCLE_ADD` +0.291 → −0.026) and score +0.049 on
+  constant-composition series against +0.476 where composition varies.  They re-admit the
+  artefact.  **L1's verdict is now *undecided*, not "not closed, not positive"**, and the Stage 2
+  recommendation is downgraded to "cheap and decisive, expect a null".
+- **major** — L1's registered family-wise permutation bar (0.609) was computed and not quoted:
+  nothing in the family clears it, gen15's +0.644 included.  L1's registered cheapest competitor
+  (`frac_donor_pairs_within_3`, −0.42 to −0.53) was missing and is larger than every xTB estimator.
+- **major** — the fold-purity dent had no number: +0.906 of E_random 5.52 (16.4 %) against 28.8 %.
+  Now carried in the headline, §2 and guardrail 1.
+- **major** — `LOWRANK2 − POOLED` @k2 is +0.0151, twice the `MIX6meanPC` gain I called "the largest
+  real effect".  Under-claim, corrected.
+- **major** — 940 vs the 860 the itemisation summed to: 80 rows are a discarded dry run in
+  `results/L4/_dry/`, now disclosed; γ_nitrate is 17.8 eV from the yardstick, not 0.34 (only water
+  is); "91 of 100 from one publication" was a per-extractant column misread (they span 23).
+- **major** — an undisclosed deviation on the confirmed claim: L3 used its own 2 000-replicate
+  percentile bootstrap, not the frozen 10 000-replicate percentile+BCa `paired_contrasts`, so the
+  BCa half of P1 was never computed for it.  Now §10 item 10.
+- **minor** — L2 reported as "cannot distinguish from zero" while L1 was un-closed for lack of
+  power: the same argument applies, L2's MDE (0.039) is twice its own margin.  Now "closed by
+  rule, underpowered by design".  BCa interval now printed.  Calibration paragraph's non sequitur
+  fixed.  Layout deviation from `START_HERE.md` §8 now stated with its mapping.  Stale
+  cross-references fixed.
+- the composition-position finding now carries the fact that kills the hype: it correlates +0.79
+  to +0.86 with the naive xTB slope, i.e. it *is* the composition step.
+
+Deliverables complete: sealed pre-registration, `DECISION_REPORT.md`, `CONFIRMATION.md`,
+`REFUTATION_LOG.md`, `results/MANIFEST.sha256` for the 26 excluded large artefacts, and 35 passing
+regression tests (2 slow) pinning the report to its artefacts.
 
 Comparison accounting, recounted from the CSVs: **940 contrast rows, 126 registered, 814
 exploratory**; the confirmed claim's BP row is at BH q = 0.039 within the registered family and
