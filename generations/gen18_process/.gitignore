@@ -1,0 +1,20 @@
+# Large gen18 artefacts are excluded by design and their SHA-256 is recorded in
+# results/MANIFEST.sha256 (the same convention as gen16_leads/.gitignore and the top-level
+# README: "prediction dumps ... their digests are in each run's manifest").  Everything a report
+# cites by number lives in a small committed CSV, JSON or Markdown file.
+# Verify what is present with:  scripts/g18_manifest.py --check
+
+# The per-draw LHS sweeps of the Pr/Nd case: 130 files, ~24 MB, 250 candidate regimes each.
+# They are the raw search output, not a result.  The aggregation the report actually quotes --
+# cell_best.csv (the best regime per draw x spec cell), intervals.csv/md, cyanex_vs_pc88a.*,
+# sensitivity.csv, reference_regimes.csv, stage_ladder_b.csv, consistency_checks.md -- is
+# committed, and MANIFEST.sha256 carries a digest of every excluded draw file so a regenerated
+# run can be compared byte for byte with the one the report was written from.
+# Regenerate (about 2.4 h, one process):
+#   scripts/g18_case_prnd.py --feed cases/prnd_feed.json --spec cases/prnd_spec.json \
+#       --allow-placeholders --draws 64 --n-lhs 250 --max-stages 40 \
+#       --todga-feed cases/todga_prnd_feed.json
+results/case_prnd/sys_*/draw_*.csv
+
+__pycache__/
+.pytest_cache/

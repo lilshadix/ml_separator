@@ -1,0 +1,26 @@
+{
+  "name": "todga_prnd_feed",
+  "description": "Nitrate Pr/Nd feed for the DGA + aqueous-ligand exploration of DESIGN.md section 13.5 on sys_5cb78e5000d40860 (TODGA / nitrate / aliphatic). Every number assumed with a range; the complexant sweep ranges are those of section 13.5 and of literature.todga_hydrophilic_complexant_placeholder(). Metals in mM, everything else mol/L; flow L/h; temperature degC.",
+  "feed_status": "assumed",
+  "system_id": "sys_5cb78e5000d40860",
+  "anion": "nitrate",
+  "acid": "HNO3",
+  "flow_L_h": {"value": 1.0, "unit": "L/h", "status": "assumed", "assumed_label": "ASSUMED_PLACEHOLDER", "range": [0.1, 10.0], "source": {"kind": "none", "doi": null, "locator": "DESIGN.md 13.5 default; basis flow", "publication_id": null, "safe_exp_ids": []}, "model_id": null, "fit_manifest_sha256": null, "note": ""},
+  "metals_mM": {
+    "Nd": {"value": 75.0, "unit": "mmol/L", "status": "assumed", "assumed_label": "ASSUMED_PLACEHOLDER", "range": [7.5, 225.0], "source": {"kind": "none", "doi": null, "locator": "DESIGN.md 13.5: Pr 25 mM, Nd 75 mM", "publication_id": null, "safe_exp_ids": []}, "model_id": null, "fit_manifest_sha256": null, "note": "above the sourced LOC (0.008 M Nd in the organic at 0.1 M TODGA / 3 M HNO3): THIRD_PHASE_RISK is expected at high loading"},
+    "Pr": {"value": 25.0, "unit": "mmol/L", "status": "assumed", "assumed_label": "ASSUMED_PLACEHOLDER", "range": [7.5, 150.0], "source": {"kind": "none", "doi": null, "locator": "DESIGN.md 13.5: Pr 25 mM, Nd 75 mM", "publication_id": null, "safe_exp_ids": []}, "model_id": null, "fit_manifest_sha256": null, "note": ""}
+  },
+  "h_M": {"value": 3.0, "unit": "mol/L", "status": "assumed", "assumed_label": "ASSUMED_PLACEHOLDER", "range": [0.5, 5.0], "source": {"kind": "none", "doi": null, "locator": "DESIGN.md 13.5: 3 M HNO3 (inside the corpus acid range 0.0093-5.0 M of the system)", "publication_id": null, "safe_exp_ids": []}, "model_id": null, "fit_manifest_sha256": null, "note": "ACID_UPTAKE_UNMODELLED above 1 M (K_H null)"},
+  "anion_M": {"value": 3.3, "unit": "mol/L", "status": "assumed", "assumed_label": "ASSUMED_PLACEHOLDER", "range": [0.5, 5.5], "source": {"kind": "none", "doi": null, "locator": "nitrate = 3 M HNO3 + 3 x 0.1 M metal nitrate", "publication_id": null, "safe_exp_ids": []}, "model_id": null, "fit_manifest_sha256": null, "note": "corpus parameters were fitted with nitrate = nominal acid: ANION_ACID_CONFOUNDED where anion != h"},
+  "complexant_total_M": {"value": 0.0, "unit": "mol/L", "status": "assumed", "assumed_label": "ASSUMED_PLACEHOLDER", "range": [0.0, 0.2], "source": {"kind": "none", "doi": null, "locator": "DESIGN.md 13.5: complexant in the feed and in the scrub only are the two variants", "publication_id": null, "safe_exp_ids": []}, "model_id": null, "fit_manifest_sha256": null, "note": "0 in the TODGA-only table; the complexant variants sweep the range"},
+  "sodium_M": {"value": 0.0, "unit": "mol/L", "status": "assumed", "assumed_label": "ASSUMED_PLACEHOLDER", "range": [0.0, 0.0], "source": {"kind": "none", "doi": null, "locator": "no sodium in the feed", "publication_id": null, "safe_exp_ids": []}, "model_id": null, "fit_manifest_sha256": null, "note": ""},
+  "temperature_C": {"value": 25.0, "unit": "Cel", "status": "assumed", "assumed_label": "ASSUMED_PLACEHOLDER", "range": [20.0, 30.0], "source": {"kind": "none", "doi": null, "locator": "band 20-30C of the corpus fit", "publication_id": null, "safe_exp_ids": []}, "model_id": null, "fit_manifest_sha256": null, "note": ""},
+  "complexant_sweep": {
+    "complexant": "literature.todga_hydrophilic_complexant_placeholder()",
+    "log_beta_Nd": {"value": null, "unit": "1", "status": "assumed", "assumed_label": "ASSUMED_PLACEHOLDER", "range": [1.0, 4.0], "source": {"kind": "none", "doi": null, "locator": "DESIGN.md 13.5 sweep; no sourced beta set (open item U3, candidate: logK Ln-series SDFs)", "publication_id": null, "safe_exp_ids": []}, "model_id": null, "fit_manifest_sha256": null, "note": "cumulative log beta_1 of Nd"},
+    "delta_log_beta": {"value": null, "unit": "1", "status": "assumed", "assumed_label": "ASSUMED_PLACEHOLDER", "range": [0.0, 1.5], "source": {"kind": "none", "doi": null, "locator": "DESIGN.md 13.5 sweep", "publication_id": null, "safe_exp_ids": []}, "model_id": null, "fit_manifest_sha256": null, "note": "log beta_Pr - log beta_Nd (the hold-back ligand prefers the lighter Pr)"},
+    "log_k_h": {"value": null, "unit": "1", "status": "assumed", "assumed_label": "ASSUMED_PLACEHOLDER", "range": [1.0, 3.0], "source": {"kind": "none", "doi": null, "locator": "DESIGN.md 13.5 sweep", "publication_id": null, "safe_exp_ids": []}, "model_id": null, "fit_manifest_sha256": null, "note": "cumulative protonation log K_H,1"},
+    "regeneration_fraction": {"value": 0.9, "unit": "1", "status": "assumed", "assumed_label": "ASSUMED_PLACEHOLDER", "range": [0.5, 1.0], "source": {"kind": "none", "doi": null, "locator": "no regeneration data; consumption reported with this range", "publication_id": null, "safe_exp_ids": []}, "model_id": null, "fit_manifest_sha256": null, "note": ""}
+  },
+  "note": "sensitivity study, not a recommendation, until a sourced beta set exists (open item U3); feed confirmation is open item U1"
+}

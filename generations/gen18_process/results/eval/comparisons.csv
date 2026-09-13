@@ -1,0 +1,17 @@
+# regime: cohort=E1 cohort (14 systems); holdout=as named per contrast; averaging_unit=system (E1) / series (E2)
+name,family,p_value,p_adjusted,adjustment,n_in_family,note
+E1: M1 vs B0,primary,0.589,,none,3,two-sided paired system bootstrap p of mean(E1(B0) - E1(M1)) = 0
+E1: M1 vs B1,primary,0.877,,none,3,two-sided paired system bootstrap p of mean(E1(B1) - E1(M1)) = 0; R1 uses the CI
+E3 secondary: TODGA slope check,secondary,,,none,4,"TODGA n = 2.453 vs [2.36, 2.88]: inside"
+X2 metal-specific slopes vs pooled M1,exploratory,0.002,0.01,benjamini_hochberg_exploratory_family,8,paired system bootstrap of mean(E1(M1 pooled) - E1(X2))
+X3 cross-metal 1-NN vs B1,exploratory,0.579,0.7237499999999999,benjamini_hochberg_exploratory_family,8,paired system bootstrap of mean(E1(B1) - E1(B1_crossmetal))
+X4 tied-D sensitivity,exploratory,0.46,0.7237499999999999,benjamini_hochberg_exploratory_family,8,paired system bootstrap of mean(E1(M1 all rows) - E1(M1 without TIED_D))
+X6 diluent-identity split (TODGA n-dodecane vs other),exploratory,,,benjamini_hochberg_exploratory_family,8,descriptive: E1 per subset in e1_macro.csv
+X7 offset-calibrated one-measurement mode vs M1,exploratory,0.748,0.748,benjamini_hochberg_exploratory_family,8,paired system bootstrap of mean(E1(M1) - E1(M1_offset)); one held-out point sets the publication effect
+X8 Huber-loss M1,exploratory,,,benjamini_hochberg_exploratory_family,8,"declared in PRE_REGISTRATION section 8; not implemented in evalproto (no Huber option); counted, not run"
+E2: C1 vs C0,primary,0.008,,none,3,two-sided paired series bootstrap p of mean(E2(C0) - E2(C1)) = 0; R2 uses the CI
+E2 secondary: loading-active subset,secondary,0.006,,none,4,same contrast on the loading-active series
+E2 secondary: O/A 0.5,secondary,0.027,,none,4,same contrast at O/A 0.5
+E2 secondary: O/A 2,secondary,0.0,,none,4,same contrast at O/A 2.0
+X1 effective capacity phi,exploratory,,,benjamini_hochberg_exploratory_family,8,LOO-MAE(X1) < E2(C1) - 0.1 on 2 loading-active series; supported = False
+X5 publication-blind loading series,exploratory,0.184,0.45999999999999996,benjamini_hochberg_exploratory_family,8,E2 on the publication-blind definition (11 series)

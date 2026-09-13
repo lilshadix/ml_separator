@@ -1,0 +1,47 @@
+{
+  "schema": "gen18.design_spaces.1",
+  "_doc": "Default bounds of the regime design space (DESIGN.md section 9.1). Concentration axes marked from_domain take their default from the parameter set's ApplicabilityDomain when the optimiser builds the space; the numbers here are the fallback when no domain exists (literature entries) and the hard outer window the user may widen. Integer variables are drawn as floor(u * (hi - lo + 1)) + lo, clipped to [lo, hi]; offsets are counted down from n_ext - 1 and clipped to [0, n_ext - 1] per candidate. Units: stage counts dimensionless, ratios volumetric (O/A, S/A, W/A), concentrations mol/L except scrub_target_mM (mM), fractions dimensionless. Every candidate outside the recorded applicability intervals carries its OOD flags; nothing here is a chemical claim.",
+  "default": {
+    "bounds": {
+      "n_ext": [1, 30],
+      "n_scr": [1, 30],
+      "n_str": [1, 30],
+      "feed_stage_offset": [0, 29],
+      "scrub_return_offset": [0, 29],
+      "oa_ext": [0.2, 5.0],
+      "s_over_a": [0.2, 5.0],
+      "w_over_a": [0.2, 5.0],
+      "scrub_acid_M": [0.01, 3.0],
+      "scrub_target_mM": [0.0, 50.0],
+      "scrub_complexant_M": [0.0, 0.1],
+      "strip_acid_M": [0.5, 6.0],
+      "strip_anion_M": [0.0, 6.0],
+      "ligand_total_M": [0.05, 1.0],
+      "saponification_degree": [0.0, 0.5],
+      "feed_dilution": [0.0, 1.0],
+      "f_bleed": [0.0, 0.1]
+    },
+    "integer": ["n_ext", "n_scr", "n_str", "feed_stage_offset", "scrub_return_offset"],
+    "fixed": {},
+    "from_domain": ["scrub_acid_M", "strip_acid_M", "ligand_total_M", "scrub_complexant_M"],
+    "notes": {
+      "n_scr, n_str": "DESIGN 9.1 says 1-30 each; a scrub-free or strip-free cascade (n_scr = 0 or n_str = 0, allowed by 7.1) is a user widening of the lower bound, not a default",
+      "scrub_target_mM": "displacement scrub with the target metal (DESIGN 13.2: 0-50 mM)",
+      "strip_acid_M": "DESIGN 13.2: 0.5-6 M strip acid",
+      "saponification_degree": "0-0.5; always flagged SAPONIFICATION_RANGE_UNKNOWN unless the entry records a studied range",
+      "f_bleed": "fraction of the organic replaced by fresh organic per pass, 0-0.1",
+      "feed_dilution": "volume of water added per volume of feed (0 = as received); dilution water enters water_L_h",
+      "ligand_total_M": "formal monomer concentration mol/L organic; the loader halves it for dimeric acidic extractants (DESIGN 1.1)"
+    }
+  },
+  "families": {
+    "acidic_organophosphorus": {
+      "bounds": {"saponification_degree": [0.0, 0.5], "ligand_total_M": [0.2, 1.5]},
+      "notes": "PC88A / Cyanex 272 placeholder concentration range of DESIGN 3.7 (0.2-1.5 M)"
+    },
+    "diglycolamide": {
+      "bounds": {"saponification_degree": [0.0, 0.0], "ligand_total_M": [0.05, 0.4]},
+      "notes": "solvating: no saponification; TODGA corpus extractant range is 0.00023-0.3 M, working window 0.05-0.4 M"
+    }
+  }
+}

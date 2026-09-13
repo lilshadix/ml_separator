@@ -1,0 +1,864 @@
+{
+  "applicability": {
+    "DOpipDGA|20-30C": {
+      "anion": "nitrate",
+      "diluent_family": "alcohol_modifier",
+      "hull_vertices": [
+        [
+          0.0017337128090005314,
+          -1.0
+        ],
+        [
+          -2.016782042370972,
+          -2.3010299956639813
+        ],
+        [
+          -1.0098716825189378,
+          -2.3010299956639813
+        ],
+        [
+          -0.018756001573164,
+          -2.3010299956639813
+        ],
+        [
+          0.28529170060695724,
+          -2.3010299956639813
+        ],
+        [
+          0.4787756568460108,
+          -2.3010299956639813
+        ]
+      ],
+      "loading_fraction": [
+        0.0003,
+        0.006
+      ],
+      "log_acid": [
+        -2.016782042370972,
+        0.4787756568460108
+      ],
+      "log_complexant": null,
+      "log_ligand": {
+        "DOpipDGA": [
+          -2.3010299956639813,
+          -1.0
+        ]
+      },
+      "log_metal_total_mM": [
+        -2.0,
+        -2.0
+      ],
+      "modifiers": [],
+      "n_publications": 1,
+      "n_records": 12,
+      "oa_ratio": null,
+      "saponification_degree": null,
+      "temperature_C": [
+        22.0,
+        22.0
+      ]
+    }
+  },
+  "aqueous_complexants": [],
+  "diluent": {
+    "components": [],
+    "family": "alcohol_modifier",
+    "name": "n_octane_with_5_1_octanol"
+  },
+  "direction_prior": null,
+  "family": "diglycolamide",
+  "medium": {
+    "acid": "HNO3",
+    "acid_class": "nitrate",
+    "anion": "nitrate",
+    "ionic_strength_M": {
+      "assumed_label": null,
+      "fit_manifest_sha256": null,
+      "model_id": null,
+      "note": "",
+      "range": null,
+      "source": {
+        "doi": null,
+        "kind": "none",
+        "locator": null,
+        "publication_id": null,
+        "safe_exp_ids": []
+      },
+      "status": "unknown",
+      "unit": "mol/L",
+      "value": null
+    },
+    "salting_agent": null,
+    "salting_anion_M": {
+      "assumed_label": null,
+      "fit_manifest_sha256": null,
+      "model_id": null,
+      "note": "no salting additive recorded; the cascade uses anion = nominal acid for corpus systems (section 4.3)",
+      "range": null,
+      "source": {
+        "doi": null,
+        "kind": "corpus",
+        "locator": "no salting-agent column in the bundle",
+        "publication_id": null,
+        "safe_exp_ids": []
+      },
+      "status": "unknown",
+      "unit": "mol/L",
+      "value": null
+    },
+    "temperature_C": {
+      "assumed_label": null,
+      "fit_manifest_sha256": null,
+      "model_id": null,
+      "note": "22-22 C across records; parameter sets are per temperature band",
+      "range": null,
+      "source": {
+        "doi": null,
+        "kind": "corpus",
+        "locator": "per record: cond__temperature_C",
+        "publication_id": null,
+        "safe_exp_ids": []
+      },
+      "status": "unknown",
+      "unit": "Cel",
+      "value": null
+    }
+  },
+  "name": "DOpipDGA in alcohol modifier, nitrate medium, no additive",
+  "notes": "12 records, 1 publications, 1 metals; diluents: n_octane_with_5_1_octanol.",
+  "organic_ligands": [
+    {
+      "aggregation": "monomer",
+      "canonical_smiles": "CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N1CCCCC1",
+      "concentration": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "varies per record; see records[].ligand_M",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "per record: cond__extractant_concentration_M",
+          "publication_id": null,
+          "safe_exp_ids": []
+        },
+        "status": "unknown",
+        "unit": "mol/L",
+        "value": null
+      },
+      "mechanism": "solvating",
+      "name": "DOpipDGA",
+      "role": "extractant",
+      "scaffold_id": "DGA_core",
+      "smiles": "CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N1CCCCC1",
+      "stoichiometry": {
+        "anions_per_metal": {
+          "assumed_label": null,
+          "fit_manifest_sha256": null,
+          "model_id": null,
+          "note": "LnX3.L_n, X = nitrate",
+          "range": null,
+          "source": {
+            "doi": "10.1016/j.jiec.2014.03.002",
+            "kind": "doi",
+            "locator": "as above",
+            "publication_id": null,
+            "safe_exp_ids": []
+          },
+          "status": "literature",
+          "unit": "1",
+          "value": 3.0
+        },
+        "ligands_per_metal": {
+          "assumed_label": null,
+          "fit_manifest_sha256": null,
+          "model_id": null,
+          "note": "",
+          "range": null,
+          "source": {
+            "doi": null,
+            "kind": "none",
+            "locator": "set from the fitted n_solvation by g18_fit_dmodels.py",
+            "publication_id": null,
+            "safe_exp_ids": []
+          },
+          "status": "unknown",
+          "unit": "1",
+          "value": null
+        },
+        "protons_released_per_metal": {
+          "assumed_label": null,
+          "fit_manifest_sha256": null,
+          "model_id": null,
+          "note": "no proton release for neutral solvating extractants",
+          "range": null,
+          "source": {
+            "doi": "10.1016/j.jiec.2014.03.002",
+            "kind": "doi",
+            "locator": "solvating mechanism Ln3+ + 3 X- + n L (BRIEF.md section 3b; textbook mechanism, DOI is the brief's reference for the mechanism class)",
+            "publication_id": null,
+            "safe_exp_ids": []
+          },
+          "status": "literature",
+          "unit": "1",
+          "value": 0.0
+        }
+      },
+      "variant_tag": null
+    }
+  ],
+  "origin": "corpus",
+  "oxidation_state_routes": [],
+  "params": {},
+  "phase": {
+    "disengagement_s": {
+      "assumed_label": null,
+      "fit_manifest_sha256": null,
+      "model_id": null,
+      "note": "",
+      "range": null,
+      "source": {
+        "doi": null,
+        "kind": "none",
+        "locator": null,
+        "publication_id": null,
+        "safe_exp_ids": []
+      },
+      "status": "unknown",
+      "unit": "s",
+      "value": null
+    },
+    "ligand_loss_mol_per_L_aq": {
+      "assumed_label": null,
+      "fit_manifest_sha256": null,
+      "model_id": null,
+      "note": "",
+      "range": null,
+      "source": {
+        "doi": null,
+        "kind": "none",
+        "locator": null,
+        "publication_id": null,
+        "safe_exp_ids": []
+      },
+      "status": "unknown",
+      "unit": "mol/L_aq",
+      "value": null
+    },
+    "loc_acid_M": {
+      "assumed_label": null,
+      "fit_manifest_sha256": null,
+      "model_id": null,
+      "note": "",
+      "range": null,
+      "source": {
+        "doi": null,
+        "kind": "none",
+        "locator": null,
+        "publication_id": null,
+        "safe_exp_ids": []
+      },
+      "status": "unknown",
+      "unit": "mol/L",
+      "value": null
+    },
+    "loc_metal_M": {
+      "assumed_label": null,
+      "fit_manifest_sha256": null,
+      "model_id": null,
+      "note": "third-phase limits stay null until a DOI is entered",
+      "range": null,
+      "source": {
+        "doi": null,
+        "kind": "none",
+        "locator": null,
+        "publication_id": null,
+        "safe_exp_ids": []
+      },
+      "status": "unknown",
+      "unit": "mol/L",
+      "value": null
+    },
+    "max_loading_fraction_studied": {
+      "assumed_label": null,
+      "fit_manifest_sha256": null,
+      "model_id": null,
+      "note": "",
+      "range": null,
+      "source": {
+        "doi": null,
+        "kind": "corpus",
+        "locator": "computed by the fitter from loading-series records",
+        "publication_id": null,
+        "safe_exp_ids": []
+      },
+      "status": "unknown",
+      "unit": "1",
+      "value": null
+    },
+    "regenerability_note": "",
+    "third_phase_observed": {
+      "assumed_label": null,
+      "fit_manifest_sha256": null,
+      "model_id": null,
+      "note": "",
+      "range": null,
+      "source": {
+        "doi": null,
+        "kind": "none",
+        "locator": null,
+        "publication_id": null,
+        "safe_exp_ids": []
+      },
+      "status": "unknown",
+      "unit": "1",
+      "value": null
+    }
+  },
+  "records": [
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 1.0,
+      "anion_M": 1.0,
+      "complexant_M": null,
+      "contact_time_min": 30.0,
+      "d": 4.3132776793781,
+      "diluent_name": "n_octane_with_5_1_octanol",
+      "duplicate_flag": null,
+      "experiment_series_id": "7540e43f61ace86b",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "DOpipDGA": 0.01
+      },
+      "loading_series_id": null,
+      "log_d": 0.6348074179743205,
+      "metal": "Eu",
+      "metals_initial_mM": {
+        "Eu": 0.01
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_691fc07992",
+          "safe_exp_ids": [
+            "Eu_SAFE:9178"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_691fc07992",
+      "record_id": "Eu_SAFE:9178",
+      "replicate_id": "d6f5e25a70babfa3",
+      "temperature_C": 22.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 0.00962095,
+      "anion_M": 0.00962095,
+      "complexant_M": null,
+      "contact_time_min": 30.0,
+      "d": 0.137610098827267,
+      "diluent_name": "n_octane_with_5_1_octanol",
+      "duplicate_flag": null,
+      "experiment_series_id": "aca032307e7c0cd7",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "DOpipDGA": 0.005
+      },
+      "loading_series_id": null,
+      "log_d": -0.8613496932515357,
+      "metal": "Eu",
+      "metals_initial_mM": {
+        "Eu": 0.01
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_691fc07992",
+          "safe_exp_ids": [
+            "Eu_SAFE:9198"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_691fc07992",
+      "record_id": "Eu_SAFE:9198",
+      "replicate_id": "68722d6bf30327a9",
+      "temperature_C": 22.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 0.024321,
+      "anion_M": 0.024321,
+      "complexant_M": null,
+      "contact_time_min": 30.0,
+      "d": 0.167702631470779,
+      "diluent_name": "n_octane_with_5_1_octanol",
+      "duplicate_flag": null,
+      "experiment_series_id": "aca032307e7c0cd7",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "DOpipDGA": 0.005
+      },
+      "loading_series_id": null,
+      "log_d": -0.7754601226993866,
+      "metal": "Eu",
+      "metals_initial_mM": {
+        "Eu": 0.01
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_691fc07992",
+          "safe_exp_ids": [
+            "Eu_SAFE:9199"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_691fc07992",
+      "record_id": "Eu_SAFE:9199",
+      "replicate_id": "1c28cff538c416c7",
+      "temperature_C": 22.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 0.0977526,
+      "anion_M": 0.0977526,
+      "complexant_M": null,
+      "contact_time_min": 30.0,
+      "d": 0.784293340883201,
+      "diluent_name": "n_octane_with_5_1_octanol",
+      "duplicate_flag": null,
+      "experiment_series_id": "aca032307e7c0cd7",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "DOpipDGA": 0.005
+      },
+      "loading_series_id": null,
+      "log_d": -0.10552147239263487,
+      "metal": "Eu",
+      "metals_initial_mM": {
+        "Eu": 0.01
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_691fc07992",
+          "safe_exp_ids": [
+            "Eu_SAFE:9200"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_691fc07992",
+      "record_id": "Eu_SAFE:9200",
+      "replicate_id": "07538bac11071246",
+      "temperature_C": 22.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 0.4887,
+      "anion_M": 0.4887,
+      "complexant_M": null,
+      "contact_time_min": 30.0,
+      "d": 74.1205529070634,
+      "diluent_name": "n_octane_with_5_1_octanol",
+      "duplicate_flag": null,
+      "experiment_series_id": "aca032307e7c0cd7",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "DOpipDGA": 0.005
+      },
+      "loading_series_id": null,
+      "log_d": 1.8699386503067497,
+      "metal": "Eu",
+      "metals_initial_mM": {
+        "Eu": 0.01
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_691fc07992",
+          "safe_exp_ids": [
+            "Eu_SAFE:9201"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_691fc07992",
+      "record_id": "Eu_SAFE:9201",
+      "replicate_id": "b8a21d911c6a472e",
+      "temperature_C": 22.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 0.957732,
+      "anion_M": 0.957732,
+      "complexant_M": null,
+      "contact_time_min": 30.0,
+      "d": 199.244573963302,
+      "diluent_name": "n_octane_with_5_1_octanol",
+      "duplicate_flag": null,
+      "experiment_series_id": "aca032307e7c0cd7",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "DOpipDGA": 0.005
+      },
+      "loading_series_id": null,
+      "log_d": 2.29938650306748,
+      "metal": "Eu",
+      "metals_initial_mM": {
+        "Eu": 0.01
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_691fc07992",
+          "safe_exp_ids": [
+            "Eu_SAFE:9202"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_691fc07992",
+      "record_id": "Eu_SAFE:9202",
+      "replicate_id": "c48b802939637f1f",
+      "temperature_C": 22.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 1.92882,
+      "anion_M": 1.92882,
+      "complexant_M": null,
+      "contact_time_min": 30.0,
+      "d": 2765.14424507225,
+      "diluent_name": "n_octane_with_5_1_octanol",
+      "duplicate_flag": null,
+      "experiment_series_id": "aca032307e7c0cd7",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "DOpipDGA": 0.005
+      },
+      "loading_series_id": null,
+      "log_d": 3.44171779141104,
+      "metal": "Eu",
+      "metals_initial_mM": {
+        "Eu": 0.01
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_691fc07992",
+          "safe_exp_ids": [
+            "Eu_SAFE:9203"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_691fc07992",
+      "record_id": "Eu_SAFE:9203",
+      "replicate_id": "4c44e082297e6952",
+      "temperature_C": 22.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 3.01145,
+      "anion_M": 3.01145,
+      "complexant_M": null,
+      "contact_time_min": 30.0,
+      "d": 2015.09014251614,
+      "diluent_name": "n_octane_with_5_1_octanol",
+      "duplicate_flag": null,
+      "experiment_series_id": "aca032307e7c0cd7",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "DOpipDGA": 0.005
+      },
+      "loading_series_id": null,
+      "log_d": 3.304294478527602,
+      "metal": "Eu",
+      "metals_initial_mM": {
+        "Eu": 0.01
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_691fc07992",
+          "safe_exp_ids": [
+            "Eu_SAFE:9204"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_691fc07992",
+      "record_id": "Eu_SAFE:9204",
+      "replicate_id": "f4f24d82069489ca",
+      "temperature_C": 22.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 1.004,
+      "anion_M": 1.004,
+      "complexant_M": null,
+      "contact_time_min": 30.0,
+      "d": 4.26215882901532,
+      "diluent_name": "n_octane_with_5_1_octanol",
+      "duplicate_flag": null,
+      "experiment_series_id": "834c76357e77615b",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "DOpipDGA": 0.01
+      },
+      "loading_series_id": null,
+      "log_d": 0.6296296296296292,
+      "metal": "Eu",
+      "metals_initial_mM": {
+        "Eu": 0.01
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_691fc07992",
+          "safe_exp_ids": [
+            "Eu_SAFE:9232"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_691fc07992",
+      "record_id": "Eu_SAFE:9232",
+      "replicate_id": "5c7c9e26a3470288",
+      "temperature_C": 22.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 1.004,
+      "anion_M": 1.004,
+      "complexant_M": null,
+      "contact_time_min": 30.0,
+      "d": 326.891247245824,
+      "diluent_name": "n_octane_with_5_1_octanol",
+      "duplicate_flag": null,
+      "experiment_series_id": "834c76357e77615b",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "DOpipDGA": 0.04
+      },
+      "loading_series_id": null,
+      "log_d": 2.5144032921810706,
+      "metal": "Eu",
+      "metals_initial_mM": {
+        "Eu": 0.01
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_691fc07992",
+          "safe_exp_ids": [
+            "Eu_SAFE:9233"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_691fc07992",
+      "record_id": "Eu_SAFE:9233",
+      "replicate_id": "4b59a371fe669a48",
+      "temperature_C": 22.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 1.004,
+      "anion_M": 1.004,
+      "complexant_M": null,
+      "contact_time_min": 30.0,
+      "d": 1606.05833968525,
+      "diluent_name": "n_octane_with_5_1_octanol",
+      "duplicate_flag": null,
+      "experiment_series_id": "834c76357e77615b",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "DOpipDGA": 0.07
+      },
+      "loading_series_id": null,
+      "log_d": 3.2057613168724264,
+      "metal": "Eu",
+      "metals_initial_mM": {
+        "Eu": 0.01
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_691fc07992",
+          "safe_exp_ids": [
+            "Eu_SAFE:9234"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_691fc07992",
+      "record_id": "Eu_SAFE:9234",
+      "replicate_id": "127cad4fce1b5bec",
+      "temperature_C": 22.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 1.004,
+      "anion_M": 1.004,
+      "complexant_M": null,
+      "contact_time_min": 30.0,
+      "d": 2890.04995579575,
+      "diluent_name": "n_octane_with_5_1_octanol",
+      "duplicate_flag": null,
+      "experiment_series_id": "834c76357e77615b",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "DOpipDGA": 0.1
+      },
+      "loading_series_id": null,
+      "log_d": 3.460905349794238,
+      "metal": "Eu",
+      "metals_initial_mM": {
+        "Eu": 0.01
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_691fc07992",
+          "safe_exp_ids": [
+            "Eu_SAFE:9235"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_691fc07992",
+      "record_id": "Eu_SAFE:9235",
+      "replicate_id": "59414422f9d644f6",
+      "temperature_C": 22.0
+    }
+  ],
+  "schema_version": "gen18.1",
+  "stream_records": [],
+  "system_id": "sys_358faf7fc8fee964"
+}

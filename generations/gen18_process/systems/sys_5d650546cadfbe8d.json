@@ -1,0 +1,1486 @@
+{
+  "applicability": {
+    "TODGA|20-30C": {
+      "anion": "sulfate",
+      "diluent_family": "aliphatic_hydrocarbon",
+      "hull_vertices": [
+        [
+          0.7781512503836436,
+          -1.0969100130080565
+        ],
+        [
+          0.0,
+          -1.3979400086720375
+        ],
+        [
+          0.7781512503836436,
+          -1.6989700043360187
+        ],
+        [
+          0.8450980400142568,
+          -1.3979400086720375
+        ]
+      ],
+      "loading_fraction": [
+        0.25125000000000003,
+        1.0050000000000001
+      ],
+      "log_acid": [
+        0.0,
+        0.8450980400142568
+      ],
+      "log_complexant": null,
+      "log_ligand": {
+        "TODGA": [
+          -1.6989700043360187,
+          -1.0969100130080565
+        ]
+      },
+      "log_metal_total_mM": [
+        0.8260748027008264,
+        0.8260748027008264
+      ],
+      "modifiers": [],
+      "n_publications": 1,
+      "n_records": 26,
+      "oa_ratio": null,
+      "saponification_degree": null,
+      "temperature_C": [
+        25.0,
+        25.0
+      ]
+    }
+  },
+  "aqueous_complexants": [],
+  "diluent": {
+    "components": [],
+    "family": "aliphatic_hydrocarbon",
+    "name": "avkerosene"
+  },
+  "direction_prior": null,
+  "family": "diglycolamide",
+  "medium": {
+    "acid": "H2SO4",
+    "acid_class": "sulfate",
+    "anion": "sulfate",
+    "ionic_strength_M": {
+      "assumed_label": null,
+      "fit_manifest_sha256": null,
+      "model_id": null,
+      "note": "",
+      "range": null,
+      "source": {
+        "doi": null,
+        "kind": "none",
+        "locator": null,
+        "publication_id": null,
+        "safe_exp_ids": []
+      },
+      "status": "unknown",
+      "unit": "mol/L",
+      "value": null
+    },
+    "salting_agent": null,
+    "salting_anion_M": {
+      "assumed_label": null,
+      "fit_manifest_sha256": null,
+      "model_id": null,
+      "note": "no salting additive recorded; the cascade uses anion = nominal acid for corpus systems (section 4.3)",
+      "range": null,
+      "source": {
+        "doi": null,
+        "kind": "corpus",
+        "locator": "no salting-agent column in the bundle",
+        "publication_id": null,
+        "safe_exp_ids": []
+      },
+      "status": "unknown",
+      "unit": "mol/L",
+      "value": null
+    },
+    "temperature_C": {
+      "assumed_label": null,
+      "fit_manifest_sha256": null,
+      "model_id": null,
+      "note": "25-25 C across records; parameter sets are per temperature band",
+      "range": null,
+      "source": {
+        "doi": null,
+        "kind": "corpus",
+        "locator": "per record: cond__temperature_C",
+        "publication_id": null,
+        "safe_exp_ids": []
+      },
+      "status": "unknown",
+      "unit": "Cel",
+      "value": null
+    }
+  },
+  "name": "TODGA in aliphatic hydrocarbon, sulfate medium, no additive",
+  "notes": "26 records, 1 publications, 3 metals; diluents: avkerosene.",
+  "organic_ligands": [
+    {
+      "aggregation": "monomer",
+      "canonical_smiles": "CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC",
+      "concentration": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "varies per record; see records[].ligand_M",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "per record: cond__extractant_concentration_M",
+          "publication_id": null,
+          "safe_exp_ids": []
+        },
+        "status": "unknown",
+        "unit": "mol/L",
+        "value": null
+      },
+      "mechanism": "solvating",
+      "name": "TODGA",
+      "role": "extractant",
+      "scaffold_id": "DGA_core",
+      "smiles": "CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC",
+      "stoichiometry": {
+        "anions_per_metal": {
+          "assumed_label": null,
+          "fit_manifest_sha256": null,
+          "model_id": null,
+          "note": "",
+          "range": null,
+          "source": {
+            "doi": null,
+            "kind": "none",
+            "locator": "anions per metal not fixed for sulfate media",
+            "publication_id": null,
+            "safe_exp_ids": []
+          },
+          "status": "unknown",
+          "unit": "1",
+          "value": null
+        },
+        "ligands_per_metal": {
+          "assumed_label": null,
+          "fit_manifest_sha256": null,
+          "model_id": null,
+          "note": "",
+          "range": null,
+          "source": {
+            "doi": null,
+            "kind": "none",
+            "locator": "set from the fitted n_solvation by g18_fit_dmodels.py",
+            "publication_id": null,
+            "safe_exp_ids": []
+          },
+          "status": "unknown",
+          "unit": "1",
+          "value": null
+        },
+        "protons_released_per_metal": {
+          "assumed_label": null,
+          "fit_manifest_sha256": null,
+          "model_id": null,
+          "note": "no proton release for neutral solvating extractants",
+          "range": null,
+          "source": {
+            "doi": "10.1016/j.jiec.2014.03.002",
+            "kind": "doi",
+            "locator": "solvating mechanism Ln3+ + 3 X- + n L (BRIEF.md section 3b; textbook mechanism, DOI is the brief's reference for the mechanism class)",
+            "publication_id": null,
+            "safe_exp_ids": []
+          },
+          "status": "literature",
+          "unit": "1",
+          "value": 0.0
+        }
+      },
+      "variant_tag": null
+    }
+  ],
+  "origin": "corpus",
+  "oxidation_state_routes": [],
+  "params": {},
+  "phase": {
+    "disengagement_s": {
+      "assumed_label": null,
+      "fit_manifest_sha256": null,
+      "model_id": null,
+      "note": "",
+      "range": null,
+      "source": {
+        "doi": null,
+        "kind": "none",
+        "locator": null,
+        "publication_id": null,
+        "safe_exp_ids": []
+      },
+      "status": "unknown",
+      "unit": "s",
+      "value": null
+    },
+    "ligand_loss_mol_per_L_aq": {
+      "assumed_label": null,
+      "fit_manifest_sha256": null,
+      "model_id": null,
+      "note": "",
+      "range": null,
+      "source": {
+        "doi": null,
+        "kind": "none",
+        "locator": null,
+        "publication_id": null,
+        "safe_exp_ids": []
+      },
+      "status": "unknown",
+      "unit": "mol/L_aq",
+      "value": null
+    },
+    "loc_acid_M": {
+      "assumed_label": null,
+      "fit_manifest_sha256": null,
+      "model_id": null,
+      "note": "",
+      "range": null,
+      "source": {
+        "doi": null,
+        "kind": "none",
+        "locator": null,
+        "publication_id": null,
+        "safe_exp_ids": []
+      },
+      "status": "unknown",
+      "unit": "mol/L",
+      "value": null
+    },
+    "loc_metal_M": {
+      "assumed_label": null,
+      "fit_manifest_sha256": null,
+      "model_id": null,
+      "note": "third-phase limits stay null until a DOI is entered",
+      "range": null,
+      "source": {
+        "doi": null,
+        "kind": "none",
+        "locator": null,
+        "publication_id": null,
+        "safe_exp_ids": []
+      },
+      "status": "unknown",
+      "unit": "mol/L",
+      "value": null
+    },
+    "max_loading_fraction_studied": {
+      "assumed_label": null,
+      "fit_manifest_sha256": null,
+      "model_id": null,
+      "note": "",
+      "range": null,
+      "source": {
+        "doi": null,
+        "kind": "corpus",
+        "locator": "computed by the fitter from loading-series records",
+        "publication_id": null,
+        "safe_exp_ids": []
+      },
+      "status": "unknown",
+      "unit": "1",
+      "value": null
+    },
+    "regenerability_note": "",
+    "third_phase_observed": {
+      "assumed_label": null,
+      "fit_manifest_sha256": null,
+      "model_id": null,
+      "note": "",
+      "range": null,
+      "source": {
+        "doi": null,
+        "kind": "none",
+        "locator": null,
+        "publication_id": null,
+        "safe_exp_ids": []
+      },
+      "status": "unknown",
+      "unit": "1",
+      "value": null
+    }
+  },
+  "records": [
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 7.0,
+      "anion_M": 7.0,
+      "complexant_M": null,
+      "contact_time_min": null,
+      "d": 85.875,
+      "diluent_name": "avkerosene",
+      "duplicate_flag": null,
+      "experiment_series_id": "d79cdccfb1e8ae4d",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "TODGA": 0.04
+      },
+      "loading_series_id": null,
+      "log_d": 1.9338667500676068,
+      "metal": "Ce",
+      "metals_initial_mM": {
+        "Ce": 6.7
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_ab5ae597b9",
+          "safe_exp_ids": [
+            "Ce_SAFE:4651"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_ab5ae597b9",
+      "record_id": "Ce_SAFE:4651",
+      "replicate_id": "1e029d126177656e",
+      "temperature_C": 25.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 6.0,
+      "anion_M": 6.0,
+      "complexant_M": null,
+      "contact_time_min": null,
+      "d": 138.0,
+      "diluent_name": "avkerosene",
+      "duplicate_flag": null,
+      "experiment_series_id": "d79cdccfb1e8ae4d",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "TODGA": 0.04
+      },
+      "loading_series_id": null,
+      "log_d": 2.1398790864012365,
+      "metal": "Ce",
+      "metals_initial_mM": {
+        "Ce": 6.7
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_ab5ae597b9",
+          "safe_exp_ids": [
+            "Ce_SAFE:4653"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_ab5ae597b9",
+      "record_id": "Ce_SAFE:4653",
+      "replicate_id": "afadab1a06bc754b",
+      "temperature_C": 25.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 4.0,
+      "anion_M": 4.0,
+      "complexant_M": null,
+      "contact_time_min": null,
+      "d": 2.131,
+      "diluent_name": "avkerosene",
+      "duplicate_flag": null,
+      "experiment_series_id": "d79cdccfb1e8ae4d",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "TODGA": 0.04
+      },
+      "loading_series_id": null,
+      "log_d": 0.32858344971420195,
+      "metal": "Ce",
+      "metals_initial_mM": {
+        "Ce": 6.7
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_ab5ae597b9",
+          "safe_exp_ids": [
+            "Ce_SAFE:4660"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_ab5ae597b9",
+      "record_id": "Ce_SAFE:4660",
+      "replicate_id": "4d1f6f593bed3905",
+      "temperature_C": 25.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 3.0,
+      "anion_M": 3.0,
+      "complexant_M": null,
+      "contact_time_min": null,
+      "d": 0.609,
+      "diluent_name": "avkerosene",
+      "duplicate_flag": null,
+      "experiment_series_id": "d79cdccfb1e8ae4d",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "TODGA": 0.04
+      },
+      "loading_series_id": null,
+      "log_d": -0.21538270736712464,
+      "metal": "Ce",
+      "metals_initial_mM": {
+        "Ce": 6.7
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_ab5ae597b9",
+          "safe_exp_ids": [
+            "Ce_SAFE:4661"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_ab5ae597b9",
+      "record_id": "Ce_SAFE:4661",
+      "replicate_id": "9177f342e975ede1",
+      "temperature_C": 25.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 2.0,
+      "anion_M": 2.0,
+      "complexant_M": null,
+      "contact_time_min": null,
+      "d": 0.445,
+      "diluent_name": "avkerosene",
+      "duplicate_flag": null,
+      "experiment_series_id": "d79cdccfb1e8ae4d",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "TODGA": 0.04
+      },
+      "loading_series_id": null,
+      "log_d": -0.3516399890190684,
+      "metal": "Ce",
+      "metals_initial_mM": {
+        "Ce": 6.7
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_ab5ae597b9",
+          "safe_exp_ids": [
+            "Ce_SAFE:4662"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_ab5ae597b9",
+      "record_id": "Ce_SAFE:4662",
+      "replicate_id": "2f46e26f3c34883a",
+      "temperature_C": 25.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 5.0,
+      "anion_M": 5.0,
+      "complexant_M": null,
+      "contact_time_min": null,
+      "d": 56.917,
+      "diluent_name": "avkerosene",
+      "duplicate_flag": null,
+      "experiment_series_id": "d79cdccfb1e8ae4d",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "TODGA": 0.04
+      },
+      "loading_series_id": null,
+      "log_d": 1.7552420010787697,
+      "metal": "Ce",
+      "metals_initial_mM": {
+        "Ce": 6.7
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_ab5ae597b9",
+          "safe_exp_ids": [
+            "Ce_SAFE:4664"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_ab5ae597b9",
+      "record_id": "Ce_SAFE:4664",
+      "replicate_id": "2b049a09f0b906c3",
+      "temperature_C": 25.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 1.0,
+      "anion_M": 1.0,
+      "complexant_M": null,
+      "contact_time_min": null,
+      "d": 0.141,
+      "diluent_name": "avkerosene",
+      "duplicate_flag": null,
+      "experiment_series_id": "d79cdccfb1e8ae4d",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "TODGA": 0.04
+      },
+      "loading_series_id": null,
+      "log_d": -0.8507808873446201,
+      "metal": "Ce",
+      "metals_initial_mM": {
+        "Ce": 6.7
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_ab5ae597b9",
+          "safe_exp_ids": [
+            "Ce_SAFE:4666"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_ab5ae597b9",
+      "record_id": "Ce_SAFE:4666",
+      "replicate_id": "ccfee2b675d815cf",
+      "temperature_C": 25.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 6.0,
+      "anion_M": 6.0,
+      "complexant_M": null,
+      "contact_time_min": null,
+      "d": 224.853,
+      "diluent_name": "avkerosene",
+      "duplicate_flag": null,
+      "experiment_series_id": "c38e738637875d15",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "TODGA": 0.08
+      },
+      "loading_series_id": null,
+      "log_d": 2.3518986863213684,
+      "metal": "Ce",
+      "metals_initial_mM": {
+        "Ce": 6.7
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_ab5ae597b9",
+          "safe_exp_ids": [
+            "Ce_SAFE:4672"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_ab5ae597b9",
+      "record_id": "Ce_SAFE:4672",
+      "replicate_id": "57b3bb533c9caee0",
+      "temperature_C": 25.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 6.0,
+      "anion_M": 6.0,
+      "complexant_M": null,
+      "contact_time_min": null,
+      "d": 105.946,
+      "diluent_name": "avkerosene",
+      "duplicate_flag": null,
+      "experiment_series_id": "c38e738637875d15",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "TODGA": 0.04
+      },
+      "loading_series_id": null,
+      "log_d": 2.025084564532223,
+      "metal": "Ce",
+      "metals_initial_mM": {
+        "Ce": 6.7
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_ab5ae597b9",
+          "safe_exp_ids": [
+            "Ce_SAFE:4674"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_ab5ae597b9",
+      "record_id": "Ce_SAFE:4674",
+      "replicate_id": "afadab1a06bc754b",
+      "temperature_C": 25.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 6.0,
+      "anion_M": 6.0,
+      "complexant_M": null,
+      "contact_time_min": null,
+      "d": 17.765,
+      "diluent_name": "avkerosene",
+      "duplicate_flag": null,
+      "experiment_series_id": "c38e738637875d15",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "TODGA": 0.02
+      },
+      "loading_series_id": null,
+      "log_d": 1.2495652118253469,
+      "metal": "Ce",
+      "metals_initial_mM": {
+        "Ce": 6.7
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_ab5ae597b9",
+          "safe_exp_ids": [
+            "Ce_SAFE:4675"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_ab5ae597b9",
+      "record_id": "Ce_SAFE:4675",
+      "replicate_id": "62f788e4df784e23",
+      "temperature_C": 25.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 6.0,
+      "anion_M": 6.0,
+      "complexant_M": null,
+      "contact_time_min": null,
+      "d": 245.632,
+      "diluent_name": "avkerosene",
+      "duplicate_flag": null,
+      "experiment_series_id": "c38e738637875d15",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "TODGA": 0.06
+      },
+      "loading_series_id": null,
+      "log_d": 2.39028494438334,
+      "metal": "Ce",
+      "metals_initial_mM": {
+        "Ce": 6.7
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_ab5ae597b9",
+          "safe_exp_ids": [
+            "Ce_SAFE:4679"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_ab5ae597b9",
+      "record_id": "Ce_SAFE:4679",
+      "replicate_id": "47ff68a65ce60c89",
+      "temperature_C": 25.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 6.0,
+      "anion_M": 6.0,
+      "complexant_M": null,
+      "contact_time_min": null,
+      "d": 187.273,
+      "diluent_name": "avkerosene",
+      "duplicate_flag": null,
+      "experiment_series_id": "c38e738637875d15",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "TODGA": 0.04
+      },
+      "loading_series_id": null,
+      "log_d": 2.27247516767816,
+      "metal": "Nd",
+      "metals_initial_mM": {
+        "Nd": 6.7
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_ab5ae597b9",
+          "safe_exp_ids": [
+            "Er_SAFE:4646"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_ab5ae597b9",
+      "record_id": "Er_SAFE:4646",
+      "replicate_id": "408add37adda3006",
+      "temperature_C": 25.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 6.0,
+      "anion_M": 6.0,
+      "complexant_M": null,
+      "contact_time_min": null,
+      "d": 19.681,
+      "diluent_name": "avkerosene",
+      "duplicate_flag": null,
+      "experiment_series_id": "c38e738637875d15",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "TODGA": 0.02
+      },
+      "loading_series_id": null,
+      "log_d": 1.2940471613437157,
+      "metal": "Nd",
+      "metals_initial_mM": {
+        "Nd": 6.7
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_ab5ae597b9",
+          "safe_exp_ids": [
+            "Er_SAFE:4650"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_ab5ae597b9",
+      "record_id": "Er_SAFE:4650",
+      "replicate_id": "9da7531191020a2e",
+      "temperature_C": 25.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 4.0,
+      "anion_M": 4.0,
+      "complexant_M": null,
+      "contact_time_min": null,
+      "d": 2.697,
+      "diluent_name": "avkerosene",
+      "duplicate_flag": null,
+      "experiment_series_id": "d79cdccfb1e8ae4d",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "TODGA": 0.04
+      },
+      "loading_series_id": null,
+      "log_d": 0.4308809464528912,
+      "metal": "Nd",
+      "metals_initial_mM": {
+        "Nd": 6.7
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_ab5ae597b9",
+          "safe_exp_ids": [
+            "Er_SAFE:4654"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_ab5ae597b9",
+      "record_id": "Er_SAFE:4654",
+      "replicate_id": "d88bb6f8dced2270",
+      "temperature_C": 25.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 1.0,
+      "anion_M": 1.0,
+      "complexant_M": null,
+      "contact_time_min": null,
+      "d": 0.143,
+      "diluent_name": "avkerosene",
+      "duplicate_flag": null,
+      "experiment_series_id": "d79cdccfb1e8ae4d",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "TODGA": 0.04
+      },
+      "loading_series_id": null,
+      "log_d": -0.8446639625349383,
+      "metal": "Nd",
+      "metals_initial_mM": {
+        "Nd": 6.7
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_ab5ae597b9",
+          "safe_exp_ids": [
+            "Er_SAFE:4655"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_ab5ae597b9",
+      "record_id": "Er_SAFE:4655",
+      "replicate_id": "2d1187b25b0bac60",
+      "temperature_C": 25.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 2.0,
+      "anion_M": 2.0,
+      "complexant_M": null,
+      "contact_time_min": null,
+      "d": 0.436,
+      "diluent_name": "avkerosene",
+      "duplicate_flag": null,
+      "experiment_series_id": "d79cdccfb1e8ae4d",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "TODGA": 0.04
+      },
+      "loading_series_id": null,
+      "log_d": -0.36051351073141397,
+      "metal": "Nd",
+      "metals_initial_mM": {
+        "Nd": 6.7
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_ab5ae597b9",
+          "safe_exp_ids": [
+            "Er_SAFE:4656"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_ab5ae597b9",
+      "record_id": "Er_SAFE:4656",
+      "replicate_id": "19cb4e83ccdcbee5",
+      "temperature_C": 25.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 3.0,
+      "anion_M": 3.0,
+      "complexant_M": null,
+      "contact_time_min": null,
+      "d": 0.675,
+      "diluent_name": "avkerosene",
+      "duplicate_flag": null,
+      "experiment_series_id": "d79cdccfb1e8ae4d",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "TODGA": 0.04
+      },
+      "loading_series_id": null,
+      "log_d": -0.17069622716897506,
+      "metal": "Nd",
+      "metals_initial_mM": {
+        "Nd": 6.7
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_ab5ae597b9",
+          "safe_exp_ids": [
+            "Er_SAFE:4657"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_ab5ae597b9",
+      "record_id": "Er_SAFE:4657",
+      "replicate_id": "74a979a2c2ee38cc",
+      "temperature_C": 25.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 7.0,
+      "anion_M": 7.0,
+      "complexant_M": null,
+      "contact_time_min": null,
+      "d": 68.444,
+      "diluent_name": "avkerosene",
+      "duplicate_flag": null,
+      "experiment_series_id": "d79cdccfb1e8ae4d",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "TODGA": 0.04
+      },
+      "loading_series_id": null,
+      "log_d": 1.835335382621906,
+      "metal": "Nd",
+      "metals_initial_mM": {
+        "Nd": 6.7
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_ab5ae597b9",
+          "safe_exp_ids": [
+            "Er_SAFE:4658"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_ab5ae597b9",
+      "record_id": "Er_SAFE:4658",
+      "replicate_id": "dee9c8e4a065df65",
+      "temperature_C": 25.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 5.0,
+      "anion_M": 5.0,
+      "complexant_M": null,
+      "contact_time_min": null,
+      "d": 42.478,
+      "diluent_name": "avkerosene",
+      "duplicate_flag": null,
+      "experiment_series_id": "d79cdccfb1e8ae4d",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "TODGA": 0.04
+      },
+      "loading_series_id": null,
+      "log_d": 1.6281640605825591,
+      "metal": "Nd",
+      "metals_initial_mM": {
+        "Nd": 6.7
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_ab5ae597b9",
+          "safe_exp_ids": [
+            "Er_SAFE:4659"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_ab5ae597b9",
+      "record_id": "Er_SAFE:4659",
+      "replicate_id": "58522ef228ca525d",
+      "temperature_C": 25.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 6.0,
+      "anion_M": 6.0,
+      "complexant_M": null,
+      "contact_time_min": null,
+      "d": 115.279,
+      "diluent_name": "avkerosene",
+      "duplicate_flag": null,
+      "experiment_series_id": "d79cdccfb1e8ae4d",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "TODGA": 0.04
+      },
+      "loading_series_id": null,
+      "log_d": 2.061750200488397,
+      "metal": "Nd",
+      "metals_initial_mM": {
+        "Nd": 6.7
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_ab5ae597b9",
+          "safe_exp_ids": [
+            "Er_SAFE:4663"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_ab5ae597b9",
+      "record_id": "Er_SAFE:4663",
+      "replicate_id": "408add37adda3006",
+      "temperature_C": 25.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 6.0,
+      "anion_M": 6.0,
+      "complexant_M": null,
+      "contact_time_min": null,
+      "d": 170.693,
+      "diluent_name": "avkerosene",
+      "duplicate_flag": null,
+      "experiment_series_id": "c38e738637875d15",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "TODGA": 0.06
+      },
+      "loading_series_id": null,
+      "log_d": 2.232215711368349,
+      "metal": "Nd",
+      "metals_initial_mM": {
+        "Nd": 6.7
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_ab5ae597b9",
+          "safe_exp_ids": [
+            "Er_SAFE:4665"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_ab5ae597b9",
+      "record_id": "Er_SAFE:4665",
+      "replicate_id": "27950597220b8b01",
+      "temperature_C": 25.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 6.0,
+      "anion_M": 6.0,
+      "complexant_M": null,
+      "contact_time_min": null,
+      "d": 194.253,
+      "diluent_name": "avkerosene",
+      "duplicate_flag": null,
+      "experiment_series_id": "c38e738637875d15",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "TODGA": 0.08
+      },
+      "loading_series_id": null,
+      "log_d": 2.2883677346718447,
+      "metal": "Nd",
+      "metals_initial_mM": {
+        "Nd": 6.7
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_ab5ae597b9",
+          "safe_exp_ids": [
+            "Er_SAFE:4668"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_ab5ae597b9",
+      "record_id": "Er_SAFE:4668",
+      "replicate_id": "8ec648fe73203a58",
+      "temperature_C": 25.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 6.0,
+      "anion_M": 6.0,
+      "complexant_M": null,
+      "contact_time_min": null,
+      "d": 124.516,
+      "diluent_name": "avkerosene",
+      "duplicate_flag": null,
+      "experiment_series_id": "c38e738637875d15",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "TODGA": 0.08
+      },
+      "loading_series_id": null,
+      "log_d": 2.095225160791154,
+      "metal": "La",
+      "metals_initial_mM": {
+        "La": 6.7
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_ab5ae597b9",
+          "safe_exp_ids": [
+            "Er_SAFE:4669"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_ab5ae597b9",
+      "record_id": "Er_SAFE:4669",
+      "replicate_id": "d2d5d60638f99a40",
+      "temperature_C": 25.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 6.0,
+      "anion_M": 6.0,
+      "complexant_M": null,
+      "contact_time_min": null,
+      "d": 145.313,
+      "diluent_name": "avkerosene",
+      "duplicate_flag": null,
+      "experiment_series_id": "c38e738637875d15",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "TODGA": 0.06
+      },
+      "loading_series_id": null,
+      "log_d": 2.1623044689140816,
+      "metal": "La",
+      "metals_initial_mM": {
+        "La": 6.7
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_ab5ae597b9",
+          "safe_exp_ids": [
+            "Er_SAFE:4670"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_ab5ae597b9",
+      "record_id": "Er_SAFE:4670",
+      "replicate_id": "f63747c9fb3f4f7b",
+      "temperature_C": 25.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 6.0,
+      "anion_M": 6.0,
+      "complexant_M": null,
+      "contact_time_min": null,
+      "d": 99.122,
+      "diluent_name": "avkerosene",
+      "duplicate_flag": null,
+      "experiment_series_id": "c38e738637875d15",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "TODGA": 0.04
+      },
+      "loading_series_id": null,
+      "log_d": 1.9961700562836742,
+      "metal": "La",
+      "metals_initial_mM": {
+        "La": 6.7
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_ab5ae597b9",
+          "safe_exp_ids": [
+            "Er_SAFE:4671"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_ab5ae597b9",
+      "record_id": "Er_SAFE:4671",
+      "replicate_id": "f2f03f264473270a",
+      "temperature_C": 25.0
+    },
+    {
+      "acid_eq_M": null,
+      "acid_nominal_M": 6.0,
+      "anion_M": 6.0,
+      "complexant_M": null,
+      "contact_time_min": null,
+      "d": 15.562,
+      "diluent_name": "avkerosene",
+      "duplicate_flag": null,
+      "experiment_series_id": "c38e738637875d15",
+      "fit_eligible": true,
+      "fit_ineligible_reason": null,
+      "is_tracer": false,
+      "ligand_M": {
+        "TODGA": 0.02
+      },
+      "loading_series_id": null,
+      "log_d": 1.192065410979292,
+      "metal": "La",
+      "metals_initial_mM": {
+        "La": 6.7
+      },
+      "oa_ratio": null,
+      "provenance": {
+        "assumed_label": null,
+        "fit_manifest_sha256": null,
+        "model_id": null,
+        "note": "metal concentration semantics ASSUMED initial aqueous; O/A not reported",
+        "range": null,
+        "source": {
+          "doi": null,
+          "kind": "corpus",
+          "locator": "dataset.parquet row",
+          "publication_id": "pub_ab5ae597b9",
+          "safe_exp_ids": [
+            "Er_SAFE:4673"
+          ]
+        },
+        "status": "measured_corpus"
+      },
+      "publication_id": "pub_ab5ae597b9",
+      "record_id": "Er_SAFE:4673",
+      "replicate_id": "82ffcc4edf0ebac5",
+      "temperature_C": 25.0
+    }
+  ],
+  "schema_version": "gen18.1",
+  "stream_records": [],
+  "system_id": "sys_5d650546cadfbe8d"
+}

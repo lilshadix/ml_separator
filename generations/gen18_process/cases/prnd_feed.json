@@ -1,0 +1,22 @@
+{
+  "name": "prnd_feed",
+  "description": "Pr/Nd chloride feed of DESIGN.md section 13.1; every number assumed with a range (open item U1: the user must confirm feed and spec). Metals in mM, everything else mol/L; flow L/h; temperature degC.",
+  "feed_status": "assumed",
+  "anion": "chloride",
+  "acid": "HCl",
+  "flow_L_h": {"value": 1.0, "unit": "L/h", "status": "assumed", "assumed_label": "ASSUMED_PLACEHOLDER", "range": [0.1, 10.0], "source": {"kind": "none", "doi": null, "locator": "DESIGN.md 13.1 default; basis flow, results scale linearly", "publication_id": null, "safe_exp_ids": []}, "model_id": null, "fit_manifest_sha256": null, "note": ""},
+  "metals_mM": {
+    "Nd": {"value": 75.0, "unit": "mmol/L", "status": "assumed", "assumed_label": "ASSUMED_PLACEHOLDER", "range": [7.5, 225.0], "source": {"kind": "none", "doi": null, "locator": "DESIGN.md 13.1: Nd:Pr 3:1 mol, total 0.1 M", "publication_id": null, "safe_exp_ids": []}, "model_id": null, "fit_manifest_sha256": null, "note": "range spans the sensitivity sets (total 0.03-0.3 M, ratio 1:1-3:1)"},
+    "Pr": {"value": 25.0, "unit": "mmol/L", "status": "assumed", "assumed_label": "ASSUMED_PLACEHOLDER", "range": [7.5, 150.0], "source": {"kind": "none", "doi": null, "locator": "DESIGN.md 13.1: Nd:Pr 3:1 mol, total 0.1 M", "publication_id": null, "safe_exp_ids": []}, "model_id": null, "fit_manifest_sha256": null, "note": "range spans the sensitivity sets (total 0.03-0.3 M, ratio 1:1-3:1)"}
+  },
+  "h_M": {"value": 0.01, "unit": "mol/L", "status": "assumed", "assumed_label": "ASSUMED_PLACEHOLDER", "range": [0.001, 0.1], "source": {"kind": "none", "doi": null, "locator": "DESIGN.md 13.1: [H+] 0.01 M (pH 2)", "publication_id": null, "safe_exp_ids": []}, "model_id": null, "fit_manifest_sha256": null, "note": "aqueous [H+] of the feed; the cascade computes the equilibrium acidity per stage"},
+  "anion_M": {"value": 0.31, "unit": "mol/L", "status": "assumed", "assumed_label": "ASSUMED_PLACEHOLDER", "range": [0.1, 1.0], "source": {"kind": "none", "doi": null, "locator": "DESIGN.md 13.1: chloride 0.31 M = 3 x 0.1 M metal + 0.01 M HCl", "publication_id": null, "safe_exp_ids": []}, "model_id": null, "fit_manifest_sha256": null, "note": "total chloride of the feed"},
+  "complexant_total_M": {"value": 0.0, "unit": "mol/L", "status": "assumed", "assumed_label": "ASSUMED_PLACEHOLDER", "range": [0.0, 0.0], "source": {"kind": "none", "doi": null, "locator": "no aqueous complexant in the PC88A / Cyanex 272 case", "publication_id": null, "safe_exp_ids": []}, "model_id": null, "fit_manifest_sha256": null, "note": ""},
+  "sodium_M": {"value": 0.0, "unit": "mol/L", "status": "assumed", "assumed_label": "ASSUMED_PLACEHOLDER", "range": [0.0, 0.0], "source": {"kind": "none", "doi": null, "locator": "no sodium in the feed; saponification adds it in the organic reserve", "publication_id": null, "safe_exp_ids": []}, "model_id": null, "fit_manifest_sha256": null, "note": ""},
+  "temperature_C": {"value": 25.0, "unit": "Cel", "status": "assumed", "assumed_label": "ASSUMED_PLACEHOLDER", "range": [20.0, 30.0], "source": {"kind": "none", "doi": null, "locator": "DESIGN.md 13.1: 25 C (band 20-30C of the literature entries)", "publication_id": null, "safe_exp_ids": []}, "model_id": null, "fit_manifest_sha256": null, "note": ""},
+  "sensitivity": {
+    "total_metal_M": {"values": [0.03, 0.1, 0.3], "unit": "mol/L", "status": "assumed", "assumed_label": "ASSUMED_PLACEHOLDER", "range": [0.03, 0.3], "source": {"kind": "none", "doi": null, "locator": "DESIGN.md 13.1 sensitivity sets", "publication_id": null, "safe_exp_ids": []}, "model_id": null, "fit_manifest_sha256": null, "note": "Nd:Pr ratio held at the feed ratio; chloride = 3 x total metal + [H+]"},
+    "ratio_nd_pr": {"values": ["1:1", "3:1"], "unit": "1", "status": "assumed", "assumed_label": "ASSUMED_PLACEHOLDER", "range": [1.0, 3.0], "source": {"kind": "none", "doi": null, "locator": "DESIGN.md 13.1 sensitivity sets", "publication_id": null, "safe_exp_ids": []}, "model_id": null, "fit_manifest_sha256": null, "note": "mol Nd per mol Pr at the feed total"}
+  },
+  "note": "open item U1 (DESIGN.md section 16): until the user confirms feed and spec every case table carries feed_status: assumed"
+}
