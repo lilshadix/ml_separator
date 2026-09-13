@@ -73,24 +73,58 @@ docs/figures/**/__pycache__/
 #
 # Fitted model blobs (102 MB for gen13, over GitHub's per-file limit; both are
 # version-fragile sklearn pickles).  Rebuild:
-#   .venv/Scripts/python.exe gen13_separation/scripts/g13_predict.py fit
-#   .venv/Scripts/python.exe gen14_direction/scripts/g14_predict.py fit
-gen13_separation/models/*.joblib
-gen14_direction/models/*.joblib
+#   .venv/Scripts/python.exe generations/gen13_separation/scripts/g13_predict.py fit
+#   .venv/Scripts/python.exe generations/gen14_direction/scripts/g14_predict.py fit
+generations/gen13_separation/models/*.joblib
+generations/gen14_direction/models/*.joblib
 
 # Per-arm out-of-fold prediction dumps (296 files, 134 MB) and the few-shot pair
 # tables (105 MB).  Rebuilt by scripts/g13_run_ladder.py and g13_fewshot_stage2.py.
-gen13_separation/predictions/**/*.parquet
-gen13_separation/metrics/**/fewshot_stage2_pairs.parquet
+generations/gen13_separation/predictions/**/*.parquet
+generations/gen13_separation/metrics/**/fewshot_stage2_pairs.parquet
 
 # Disk caches of the frozen bench (10 MB each, rebuilt in ~5 s by
 # gen14.dirbench.load / the verify_direction runner).
-gen14_direction/cache/
-gen13_separation/analysis/stage3/verify_direction/bench_cache.pkl
+generations/gen14_direction/cache/
+generations/gen13_separation/analysis/stage3/verify_direction/bench_cache.pkl
 
 # gen15: derived scoring tables, disk caches and agent scratch. Every one of these is rebuilt by
-# the scripts in gen15_curve/scripts/ from the frozen gen13 cohort; the boards and contrast CSVs
+# the scripts in generations/gen15_curve/scripts/ from the frozen gen13 cohort; the boards and contrast CSVs
 # that back the report are checked in, the per-unit intermediates behind them are not.
+generations/gen15_curve/cache/
+generations/gen15_curve/models/*.joblib
+generations/gen15_curve/results/*.parquet
+generations/gen15_curve/exp/**/*.pkl
+generations/gen15_curve/exp/embed/*_fp.parquet
+generations/gen15_curve/exp/embed/ligand_embeddings.parquet
+generations/gen15_curve/exp/**/per_extractant_*.csv
+generations/gen15_curve/exp/kernel/results/ad_cells.csv
+generations/gen15_curve/exp/kernel/results/publeak_cells.csv
+# gen15 agent arms: run logs and per-pair/per-extractant long tables. A 60 MB permutation log and
+# ~25 MB of long-format intermediates are rebuilt by the scripts beside them; the summary CSVs the
+# report quotes are checked in.
+generations/gen15_curve/exp/**/*_log.txt
+generations/gen15_curve/exp/**/*_long.csv
+generations/gen15_curve/exp/**/perext_*.csv
+generations/gen15_curve/exp/**/per_extractant_*.csv
+generations/gen15_curve/exp/**/s2s3_per_extractant_*.csv
+generations/gen15_curve/exp/decision/tables/*.parquet
+generations/gen15_curve/exp/**/*.csv.gz
+
+# Cached intermediate, 12 MB; digest in generations/gen16_anchor/PAIRS_BP_PKL.md
+generations/gen16_anchor/pairs_BP.pkl
+
+# --- Legacy locations (before the 2026-09 move into generations/) -------------
+# Generation directories used to sit at the repository root.  A clone that still
+# holds ignored artefacts at those old paths (fitted models, prediction dumps,
+# caches) must not see them become committable after pulling the move, so the old
+# rules stay until generations/migrate_local_artifacts.py has relocated them.
+gen13_separation/models/*.joblib
+gen14_direction/models/*.joblib
+gen13_separation/predictions/**/*.parquet
+gen13_separation/metrics/**/fewshot_stage2_pairs.parquet
+gen14_direction/cache/
+gen13_separation/analysis/stage3/verify_direction/bench_cache.pkl
 gen15_curve/cache/
 gen15_curve/models/*.joblib
 gen15_curve/results/*.parquet
@@ -100,9 +134,6 @@ gen15_curve/exp/embed/ligand_embeddings.parquet
 gen15_curve/exp/**/per_extractant_*.csv
 gen15_curve/exp/kernel/results/ad_cells.csv
 gen15_curve/exp/kernel/results/publeak_cells.csv
-# gen15 agent arms: run logs and per-pair/per-extractant long tables. A 60 MB permutation log and
-# ~25 MB of long-format intermediates are rebuilt by the scripts beside them; the summary CSVs the
-# report quotes are checked in.
 gen15_curve/exp/**/*_log.txt
 gen15_curve/exp/**/*_long.csv
 gen15_curve/exp/**/perext_*.csv
@@ -110,6 +141,4 @@ gen15_curve/exp/**/per_extractant_*.csv
 gen15_curve/exp/**/s2s3_per_extractant_*.csv
 gen15_curve/exp/decision/tables/*.parquet
 gen15_curve/exp/**/*.csv.gz
-
-# Cached intermediate, 12 MB; digest in gen16_anchor/PAIRS_BP_PKL.md
 gen16_anchor/pairs_BP.pkl
