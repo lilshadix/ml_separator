@@ -26,8 +26,8 @@ import pandas as pd
 
 HERE = Path(__file__).resolve().parent
 LEADS = HERE.parent
-ROOT = LEADS.parent
-for p in (ROOT / "gen13_separation", ROOT / "gen14_direction", ROOT / "gen15_curve",
+ROOT = LEADS.parent.parent
+for p in (ROOT / "generations" / "gen13_separation", ROOT / "generations" / "gen14_direction", ROOT / "generations" / "gen15_curve",
           LEADS, LEADS / "scripts"):
     if str(p) not in sys.path:
         sys.path.insert(0, str(p))

@@ -22,7 +22,7 @@ The three support strategies of the deployed protocol (widest, dopt, random) are
 because that is what fixes the scoring set gen15 §5 used, but only the ``dopt`` modes are scored:
 dopt is the registered support and scoring 153 modes instead of 55 buys nothing.
 
-Usage:  .venv/Scripts/python.exe gen16_leads/scripts/l5_covrun.py [designs]
+Usage:  .venv/Scripts/python.exe generations/gen16_leads/scripts/l5_covrun.py [designs]
 """
 from __future__ import annotations
 

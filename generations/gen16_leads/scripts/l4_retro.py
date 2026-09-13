@@ -11,7 +11,7 @@ averaged over its draws, chemotype-blocked paired bootstrap (gen13sep.inference.
 P1 with margin 0.02, five designs.  Registered: AOPT_vs_RANDOM, AOPT_vs_MAXMIN, UNCERT_vs_RANDOM,
 UNCERT_vs_MAXMIN.  Everything else written here is family=exploratory.
 
-    PYTHONIOENCODING=utf-8 OMP_NUM_THREADS=2 .venv/Scripts/python.exe gen16_leads/scripts/l4_retro.py
+    PYTHONIOENCODING=utf-8 OMP_NUM_THREADS=2 .venv/Scripts/python.exe generations/gen16_leads/scripts/l4_retro.py
 """
 from __future__ import annotations
 
@@ -23,9 +23,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
-for _p in (ROOT / "gen13_separation", ROOT / "gen14_direction", ROOT / "gen15_curve",
-           ROOT / "gen16_leads"):
+ROOT = Path(__file__).resolve().parents[3]
+for _p in (ROOT / "generations" / "gen13_separation", ROOT / "generations" / "gen14_direction", ROOT / "generations" / "gen15_curve",
+           ROOT / "generations" / "gen16_leads"):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
@@ -37,7 +37,7 @@ from gen15.valuebench import DESIGNS  # noqa: E402
 from gen16 import l4_acq as L  # noqa: E402
 
 LEAD = "L4"
-OUT = ROOT / "gen16_leads" / "results" / "L4"
+OUT = ROOT / "generations" / "gen16_leads" / "results" / "L4"
 OUT.mkdir(parents=True, exist_ok=True)
 LOG = OUT / "l4_retro.log"
 REGISTERED = {"AOPT_vs_RANDOM": ("RANDOM", "AOPT"), "AOPT_vs_MAXMIN": ("MAXMIN", "AOPT"),

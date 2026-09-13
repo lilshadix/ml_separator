@@ -34,14 +34,14 @@ runs/       артефакты запусков
 docs/       вся документация — начните с docs/README.md
 ```
 
-**Навигация по документации: [`docs/README.md`](docs/README.md).**
+**Навигация по документации: [`docs/README.md`](../README.md).**
 Там карта поколений (gen2–gen11), протоколы, результаты, аудиты и список
 устаревших утверждений — в том числе четыре числа в этом файле, которые
 исправлены (105 публикаций вместо 109; 0.10 % / 1.02 % загрязнения provenance
 вместо 0.57 % / 1.49 %; утверждение «287 из 313 ячеек» отозвано).
 
 Полное описание программы одним документом:
-[`HANDOFF_FOR_CHATGPT.md`](HANDOFF_FOR_CHATGPT.md).
+[`HANDOFF_FOR_CHATGPT.md`](../HANDOFF_FOR_CHATGPT.md).
 
 > Рендеры публикационных фигур удалены 2026-09-04 и будут пересобраны.
 > Скрипты, правила отбора, style guide и `METRIC_AUDIT.md` сохранены в
@@ -301,7 +301,7 @@ moments. Модель использует exact antisymmetry, group-balanced tr
 `2D + 2D` control, adaptive shrinkage и тот же seeded split protocol.
 
 Научная мотивация и семь направлений развития находятся в
-[`docs/3d_research_roadmap.md`](docs/3d_research_roadmap.md).
+[`docs/3d_research_roadmap.md`](3d_research_roadmap.md).
 
 ## Ограничение target provenance
 
@@ -328,8 +328,8 @@ bundle, так что опубликованный noise floor — это в о�
 гипотеза: ограничивающая переменная для zero-shot предсказания на новой химии —
 **химическое разнообразие обучающей выборки**, а не ёмкость модели.
 
-* протокол (pre-registration): [`docs/gen6_diversity_protocol_20260819.md`](docs/gen6_diversity_protocol_20260819.md)
-* результаты Phase 0 и Phase 1: [`docs/gen6_phase0_and_phase1_results_20260819.md`](docs/gen6_phase0_and_phase1_results_20260819.md)
+* протокол (pre-registration): [`docs/gen6_diversity_protocol_20260819.md`](../protocols/gen6_diversity_protocol_20260819.md)
+* результаты Phase 0 и Phase 1: [`docs/gen6_phase0_and_phase1_results_20260819.md`](../results/gen6_phase0_and_phase1_results_20260819.md)
 * код: `src/lanthanide_separation/gen6/` (chemistry / cohorts / metrics / manifest / provenance)
 
 Эксперимент A сравнивает BASE91 (`min_cells >= 10`, текущее правило отбора) и
@@ -352,8 +352,8 @@ Phase 2 (после исхода «case A»): эксперимент C — ие�
 компонента* не переносится на новый хемотип (уровень ячейки «лиганд × условия», а не
 отклик по металлам); эксперимент F — ретроспективный выбор следующего лиганда
 (`scripts/run_ligand_acquisition_sim.py`, модуль `gen6/acquisition.py`). Протокол:
-[`docs/gen6_phase2_protocol_20260819.md`](docs/gen6_phase2_protocol_20260819.md); результаты:
-[`docs/gen6_phase2_results_20260819.md`](docs/gen6_phase2_results_20260819.md).
+[`docs/gen6_phase2_protocol_20260819.md`](../protocols/gen6_phase2_protocol_20260819.md); результаты:
+[`docs/gen6_phase2_results_20260819.md`](../results/gen6_phase2_results_20260819.md).
 
 ## gen7 — упирается ли потолок в архитектуру
 
@@ -398,9 +398,9 @@ macro 1.067993 / offset 0.936996 / shape 0.502044 на split seed 104729 — с�
 `runs/gen6_expA_5seed/arm_metrics.csv` до последнего печатаемого знака. Код gen5/gen6
 не изменялся; gen7 добавляется поверх.
 
-* отчёт: [`gen7_architecture_results_20260819.md`](gen7_architecture_results_20260819.md)
-* решения: [`runs/gen7_architecture/decision_report.md`](runs/gen7_architecture/decision_report.md)
-* обзор литературы: [`runs/gen7_architecture/literature_review.md`](runs/gen7_architecture/literature_review.md)
+* отчёт: [`gen7_architecture_results_20260819.md`](../results/gen7_architecture_results_20260819.md)
+* решения: [`runs/gen7_architecture/decision_report.md`](../../runs/gen7_architecture/decision_report.md)
+* обзор литературы: [`runs/gen7_architecture/literature_review.md`](../../runs/gen7_architecture/literature_review.md)
 * код: `src/lanthanide_separation/gen7/`
 
 ## gen8 — сколько стоит один измеренный эксперимент
@@ -413,8 +413,8 @@ macro 1.067993 / offset 0.936996 / shape 0.502044 на split seed 104729 — с�
 незнакомую титрационную кривую слишком плоской — истинный медианный наклон по
 экстрагенту 2.57 против предсказанного 0.12.
 
-* отчёт: [`gen8_architecture_results_20260820.md`](gen8_architecture_results_20260820.md)
-* решения: [`runs/gen8_architecture/decision_report.md`](runs/gen8_architecture/decision_report.md)
+* отчёт: [`gen8_architecture_results_20260820.md`](../results/gen8_architecture_results_20260820.md)
+* решения: [`runs/gen8_architecture/decision_report.md`](../../runs/gen8_architecture/decision_report.md)
 * код: `src/lanthanide_separation/gen8/`
 
 ## gen9 — форма отклика: почему модель рисует плоско
@@ -473,7 +473,7 @@ recovery 0.756) стоит +1.17 macro MAE, разрушает внутрикр�
 конфигурации расходились на 0.14 log-единицы на **каждой** из 382 отложенных строк.
 Оба исправлены, всё затронутое перезапущено.
 
-* протокол: [`runs/gen9_shape/protocol.md`](runs/gen9_shape/protocol.md)
-* решения: [`runs/gen9_shape/decision_report.md`](runs/gen9_shape/decision_report.md)
-* разбор неудач: [`runs/gen9_shape/failure_analysis.md`](runs/gen9_shape/failure_analysis.md)
+* протокол: [`runs/gen9_shape/protocol.md`](../../runs/gen9_shape/protocol.md)
+* решения: [`runs/gen9_shape/decision_report.md`](../../runs/gen9_shape/decision_report.md)
+* разбор неудач: [`runs/gen9_shape/failure_analysis.md`](../../runs/gen9_shape/failure_analysis.md)
 * код: `src/lanthanide_separation/gen9/`

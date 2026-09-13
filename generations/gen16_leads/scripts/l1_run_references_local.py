@@ -19,7 +19,7 @@ Output `reference_energies.csv` has exactly the schema `l1_stage2_cycle.py` expe
 
 Run:
     export PATH="/c/Users/Bandai/opt/xtb-6.7.1/bin:$PATH"      # or pass --xtb
-    .venv/Scripts/python.exe gen16_leads/scripts/l1_run_references_local.py --workers 6
+    .venv/Scripts/python.exe generations/gen16_leads/scripts/l1_run_references_local.py --workers 6
 """
 from __future__ import annotations
 

@@ -36,8 +36,8 @@ import numpy as np
 import pandas as pd
 
 GEN16_ROOT = Path(__file__).resolve().parents[1]          # gen16_leads/
-REPO_ROOT = GEN16_ROOT.parent
-_GEN13 = REPO_ROOT / "gen13_separation"
+REPO_ROOT = GEN16_ROOT.parent.parent
+_GEN13 = REPO_ROOT / "generations" / "gen13_separation"
 if str(_GEN13) not in sys.path:
     sys.path.insert(0, str(_GEN13))
 

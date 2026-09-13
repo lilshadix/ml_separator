@@ -11,7 +11,7 @@ deployed route actually builds (leave-chemotype-out, publication-masked residual
 arm) and the fraction of measurable pair contrasts ``d = e_a - e_b`` with ``d' Sigma d <= 0`` or
 ``<= -noise_var``.  It scores nothing and enters no contrast; it explains a number.
 
-Usage:  .venv/Scripts/python.exe gen16_leads/scripts/l5_condition.py [designs]
+Usage:  .venv/Scripts/python.exe generations/gen16_leads/scripts/l5_condition.py [designs]
 """
 from __future__ import annotations
 

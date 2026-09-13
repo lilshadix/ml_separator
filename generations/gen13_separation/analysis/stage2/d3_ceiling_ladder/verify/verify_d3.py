@@ -15,9 +15,9 @@ import numpy as np
 import pandas as pd
 
 ROOT = "D:/ml_separator_gh"
-COHORT = os.path.join(ROOT, "gen13_separation/manifests/cohort_exact.parquet")
-PRED = os.path.join(ROOT, "gen13_separation/predictions/B_primary")
-OUT = os.path.join(ROOT, "gen13_separation/analysis/stage2/d3_ceiling_ladder/verify")
+COHORT = os.path.join(ROOT, "generations/gen13_separation/manifests/cohort_exact.parquet")
+PRED = os.path.join(ROOT, "generations/gen13_separation/predictions/B_primary")
+OUT = os.path.join(ROOT, "generations/gen13_separation/analysis/stage2/d3_ceiling_ladder/verify")
 os.makedirs(OUT, exist_ok=True)
 
 LN = ["La", "Ce", "Pr", "Nd", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu"]

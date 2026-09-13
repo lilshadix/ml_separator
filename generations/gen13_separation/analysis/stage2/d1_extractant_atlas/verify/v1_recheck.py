@@ -26,14 +26,14 @@ import sys
 import numpy as np
 import pandas as pd
 
-sys.path.insert(0, "gen13_separation")
+sys.path.insert(0, "generations/gen13_separation")
 from gen13sep.metals import LANTHANIDES, ATOMIC_NUMBER, SHANNON_RADIUS_CN8  # noqa: E402
 
-OUT = "gen13_separation/analysis/stage2/d1_extractant_atlas/verify"
+OUT = "generations/gen13_separation/analysis/stage2/d1_extractant_atlas/verify"
 os.makedirs(OUT, exist_ok=True)
 
-COHORT = "gen13_separation/manifests/cohort_exact.parquet"
-PRED = "gen13_separation/predictions/B_primary"
+COHORT = "generations/gen13_separation/manifests/cohort_exact.parquet"
+PRED = "generations/gen13_separation/predictions/B_primary"
 
 pd.set_option("display.width", 200)
 

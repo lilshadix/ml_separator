@@ -1,7 +1,7 @@
 """D7 follow-ups: noise floor, extra element shapes, reproducible amplitude, honest prize.
 
 Run from the repo root:
-    .venv/Scripts/python.exe gen13_separation/analysis/stage2/D7/d7_followups.py
+    .venv/Scripts/python.exe generations/gen13_separation/analysis/stage2/D7/d7_followups.py
 """
 from __future__ import annotations
 
@@ -12,8 +12,8 @@ import sys
 import numpy as np
 import pandas as pd
 
-sys.path.insert(0, "gen13_separation")
-sys.path.insert(0, "gen13_separation/analysis/stage2/D7")
+sys.path.insert(0, "generations/gen13_separation")
+sys.path.insert(0, "generations/gen13_separation/analysis/stage2/D7")
 from d7_residual_structure import (  # noqa: E402
     IDX, L, NL, OUT, Q, SHAPES, X_CUB, X_QUAD, Z, build_residuals, col_mean,
     project_shape, _centre, _std,
@@ -25,7 +25,7 @@ LAN = np.array(L)
 
 
 def main():
-    df = pd.read_parquet("gen13_separation/manifests/cohort_exact.parquet")
+    df = pd.read_parquet("generations/gen13_separation/manifests/cohort_exact.parquet")
     meta, R, OBS = build_residuals(df, MIN_METALS, X_QUAD)
     meta_c, RC, OBSC = build_residuals(df, MIN_METALS, X_CUB)
     n_cells = len(meta)
@@ -160,7 +160,7 @@ def main():
     grid = np.linspace(-1.0, 2.0, 31)
     rows = []
     for arm in arms:
-        d = pd.read_parquet(f"gen13_separation/predictions/B_primary/{arm}.parquet")
+        d = pd.read_parquet(f"generations/gen13_separation/predictions/B_primary/{arm}.parquet")
         cur = np.array([chem_curve.get(c, global_curve) for c in d["chemotype"]])
         ia = np.array([IDX[a] for a in d["A"]])
         ib = np.array([IDX[b] for b in d["B"]])
@@ -186,7 +186,7 @@ def main():
 
     # ---- E. ceiling: an oracle that knows the true common residual curve, on top of arms
     #        (fit the 14-element offset vector to minimise held-out macro MAE => upper bound)
-    d = pd.read_parquet("gen13_separation/predictions/B_primary/X_ENS_DIRECT+LOWRANK_K2.parquet")
+    d = pd.read_parquet("generations/gen13_separation/predictions/B_primary/X_ENS_DIRECT+LOWRANK_K2.parquet")
     ia = np.array([IDX[a] for a in d["A"]])
     ib = np.array([IDX[b] for b in d["B"]])
     res = (d["y"] - d["prediction"]).to_numpy()

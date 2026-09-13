@@ -9,10 +9,10 @@ import sys
 import numpy as np
 import pandas as pd
 
-sys.path.insert(0, "gen13_separation")
+sys.path.insert(0, "generations/gen13_separation")
 from gen13sep.metals import LANTHANIDES, SHANNON_RADIUS_CN8  # noqa: E402
 
-ROOT = "gen13_separation"
+ROOT = "generations/gen13_separation"
 OUT = os.path.join(ROOT, "analysis", "stage2", "d7_tetrad_residual", "verify")
 LN = list(LANTHANIDES)
 NEL = len(LN)

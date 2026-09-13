@@ -33,16 +33,16 @@ from typing import Callable, Sequence
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
-if str(ROOT / "gen13_separation") not in sys.path:
-    sys.path.insert(0, str(ROOT / "gen13_separation"))
+ROOT = Path(__file__).resolve().parents[3]
+if str(ROOT / "generations" / "gen13_separation") not in sys.path:
+    sys.path.insert(0, str(ROOT / "generations" / "gen13_separation"))
 
 from gen13sep.amplitude_bench import (ALL_BLOCKS, CHEM_BLOCKS, LEAN_BLOCKS,  # noqa: E402
                                       BenchData, cell_weights, load_bench)
 from gen13sep.splits import all_folds  # noqa: E402
 
-CACHE = ROOT / "gen14_direction" / "cache" / "bench.pkl"
-RESULTS = ROOT / "gen14_direction" / "results"
+CACHE = ROOT / "generations" / "gen14_direction" / "cache" / "bench.pkl"
+RESULTS = ROOT / "generations" / "gen14_direction" / "results"
 DESIGNS: tuple[str, ...] = ("B", "BR", "BQ", "A", "BP")
 MIN_METALS = 5                 # a cell's curve is "well determined" at >= 5 measured metals
 MIN_TRAIN = 40                 # stage-3 guard: a fold with fewer training cells is skipped

@@ -12,7 +12,7 @@ non-integrable part (pair predictions not consistent with any curve), then
   * splits the remaining absolute error into a magnitude part and a sign part per |y| band.
 
 Run from the repo root:
-    .venv/Scripts/python.exe gen13_separation/analysis/stage2/d4_amplitude_shape/d4_amplitude_shape.py
+    .venv/Scripts/python.exe generations/gen13_separation/analysis/stage2/d4_amplitude_shape/d4_amplitude_shape.py
 """
 from __future__ import annotations
 
@@ -22,8 +22,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[4]
-GEN13 = ROOT / "gen13_separation"
+ROOT = Path(__file__).resolve().parents[5]
+GEN13 = ROOT / "generations" / "gen13_separation"
 sys.path.insert(0, str(GEN13))
 from gen13sep.metals import LANTHANIDES, physics_basis  # noqa: E402
 

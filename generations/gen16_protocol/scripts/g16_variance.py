@@ -2,7 +2,7 @@
 plus the marginal / conditional R2 of the deployed model, plus an order-free Shapley split that
 replaces the order-dependent nested ANOVA.
 
-Usage:  python gen16_protocol/scripts/g16_variance.py [boot_reps]
+Usage:  python generations/gen16_protocol/scripts/g16_variance.py [boot_reps]
 """
 from __future__ import annotations
 
@@ -12,8 +12,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
-for p in (ROOT / "gen13_separation", ROOT / "gen14_direction", ROOT / "gen16_protocol"):
+ROOT = Path(__file__).resolve().parents[3]
+for p in (ROOT / "generations" / "gen13_separation", ROOT / "generations" / "gen14_direction", ROOT / "generations" / "gen16_protocol"):
     sys.path.insert(0, str(p))
 
 from gen14.dirbench import load                                        # noqa: E402
@@ -21,7 +21,7 @@ from gen16.variance import (indicator, lmg_bootstrap, lmg_shapley,     # noqa: E
                             nakagawa_r2, parametric_bootstrap_ci, profile_ci, reml_fit)
 
 BOOT = int(sys.argv[1]) if len(sys.argv) > 1 else 300
-OUT = ROOT / "gen16_protocol" / "results"
+OUT = ROOT / "generations" / "gen16_protocol" / "results"
 OUT.mkdir(parents=True, exist_ok=True)
 
 bench = load()
@@ -106,7 +106,7 @@ else:
 # Shapley (LMG) replacement for the order-dependent nested ANOVA
 # ------------------------------------------------------------------------------------
 print("\n=== Shapley / LMG split of R2 (order-free) ===")
-d6 = ROOT / "gen13_separation/analysis/stage2/d6_condition_law/d6_cell_amplitudes.csv"
+d6 = ROOT / "generations/gen13_separation/analysis/stage2/d6_condition_law/d6_cell_amplitudes.csv"
 core = sub
 if d6.exists():
     keep = pd.read_csv(d6)

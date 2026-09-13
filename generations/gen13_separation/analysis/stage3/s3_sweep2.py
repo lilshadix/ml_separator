@@ -10,7 +10,7 @@ spends capacity on it may be paying for nothing.
 Every feature choice that depends on the target is made INSIDE the training fold.
 """
 import sys, time, re
-sys.path.insert(0, "gen13_separation")
+sys.path.insert(0, "generations/gen13_separation")
 import numpy as np, pandas as pd
 from scipy.stats import spearmanr
 from gen13sep.amplitude_bench import (load_bench, compare, LEAN_BLOCKS, CHEM_BLOCKS)
@@ -93,5 +93,5 @@ cols = ["arm", "macro_mae_extractant", "macro_mae_extractant_seed_sd", "macro_ma
         "macro_mae_far", "macro_sign_acc_strong", "macro_pair_spearman"]
 print(f"\n{time.time()-t0:.0f}s\n")
 print(board[cols].round(4).to_string(index=False))
-board.to_csv(f"gen13_separation/analysis/stage3/s3_sweep2_{DESIGN}.csv", index=False)
-table.to_parquet(f"gen13_separation/analysis/stage3/s3_sweep2_{DESIGN}_pairs.parquet", index=False)
+board.to_csv(f"generations/gen13_separation/analysis/stage3/s3_sweep2_{DESIGN}.csv", index=False)
+table.to_parquet(f"generations/gen13_separation/analysis/stage3/s3_sweep2_{DESIGN}_pairs.parquet", index=False)

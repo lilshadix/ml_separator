@@ -1,7 +1,7 @@
 """Verification of the Phase-6 corrections to gen16_leads/DECISION_REPORT.md.
 
 Read-only over the committed artefacts; writes results/audit/verify/verification.csv.
-Run:  .venv/Scripts/python.exe gen16_leads/scripts/audit_verify.py
+Run:  .venv/Scripts/python.exe generations/gen16_leads/scripts/audit_verify.py
 """
 from __future__ import annotations
 

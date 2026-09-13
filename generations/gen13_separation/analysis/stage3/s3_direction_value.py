@@ -8,7 +8,7 @@ magnitude and a direction:
 against the corpus mean curve and a full model, on byte-identical pairs.
 """
 import sys, time
-sys.path.insert(0, "gen13_separation")
+sys.path.insert(0, "generations/gen13_separation")
 import numpy as np, pandas as pd
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.impute import SimpleImputer
@@ -65,7 +65,7 @@ board = summarise(per_extractant(table, names), table, names)
 print(f"design {DESIGN}  ({time.time()-t0:.0f}s)\n")
 print(board[["arm", "macro_mae_extractant", "macro_mae_extractant_seed_sd", "macro_mae_chemotype",
              "macro_mae_far", "macro_sign_acc_strong"]].round(4).to_string(index=False))
-board.to_csv(f"gen13_separation/analysis/stage3/s3_direction_value_{DESIGN}.csv", index=False)
+board.to_csv(f"generations/gen13_separation/analysis/stage3/s3_direction_value_{DESIGN}.csv", index=False)
 pe = per_extractant(table, names)
 comps = {"PREDICTED_vs_MAJORITY": ("DIR_TRAIN_MAJORITY", "DIR_PREDICTED"),
          "PREDICTED_vs_MEANCURVE": ("MEAN_CURVE", "DIR_PREDICTED"),
@@ -76,4 +76,4 @@ r = paired_contrasts(pe, comps, value="mae_all", replicates=10000)
 print()
 print(r[["comparison", "point", "ci95_low", "ci95_high", "p_two_sided", "seeds_positive",
          "units_improved", "n_units", "loco_sign_stable", "passes_P1"]].round(4).to_string(index=False))
-r.to_csv(f"gen13_separation/analysis/stage3/s3_direction_value_contrasts_{DESIGN}.csv", index=False)
+r.to_csv(f"generations/gen13_separation/analysis/stage3/s3_direction_value_contrasts_{DESIGN}.csv", index=False)

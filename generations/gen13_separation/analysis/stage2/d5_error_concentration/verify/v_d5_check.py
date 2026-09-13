@@ -1,7 +1,7 @@
 """Independent re-derivation of the numbers the D5 conclusion rests on.
 
 Written from scratch without reading the D5 scripts. Run from repo root:
-    .venv/Scripts/python.exe gen13_separation/analysis/stage2/d5_error_concentration/verify/v_d5_check.py
+    .venv/Scripts/python.exe generations/gen13_separation/analysis/stage2/d5_error_concentration/verify/v_d5_check.py
 """
 import json
 import os
@@ -10,7 +10,7 @@ import sys
 import numpy as np
 import pandas as pd
 
-ROOT = "gen13_separation"
+ROOT = "generations/gen13_separation"
 OUT = os.path.join(ROOT, "analysis", "stage2", "d5_error_concentration", "verify")
 os.makedirs(OUT, exist_ok=True)
 

@@ -34,7 +34,7 @@ Three things are computed, all cheap and all exact.
 Nothing here is a model.  It is a description of the design, and it bounds what every variance
 decomposition and every hold-out design in the programme can possibly claim.
 
-Usage:  python gen16_protocol/scripts/g16_identifiability.py
+Usage:  python generations/gen16_protocol/scripts/g16_identifiability.py
 """
 from __future__ import annotations
 
@@ -44,15 +44,15 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
-for _p in (ROOT / "gen13_separation", ROOT / "gen14_direction", ROOT / "gen16_protocol"):
+ROOT = Path(__file__).resolve().parents[3]
+for _p in (ROOT / "generations" / "gen13_separation", ROOT / "generations" / "gen14_direction", ROOT / "generations" / "gen16_protocol"):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
 from gen14.dirbench import MIN_METALS, load          # noqa: E402
 from gen16.variance import indicator                 # noqa: E402
 
-OUT = ROOT / "gen16_protocol" / "results"
+OUT = ROOT / "generations" / "gen16_protocol" / "results"
 OUT.mkdir(parents=True, exist_ok=True)
 REPLICATE_SD = 0.237        # corpus replicate sd of the amplitude, quoted throughout gen13/gen14
 

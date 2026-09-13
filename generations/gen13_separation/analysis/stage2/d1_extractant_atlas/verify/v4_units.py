@@ -6,11 +6,11 @@ import sys
 import numpy as np
 import pandas as pd
 
-sys.path.insert(0, "gen13_separation")
+sys.path.insert(0, "generations/gen13_separation")
 from gen13sep.metals import LANTHANIDES, ATOMIC_NUMBER  # noqa: E402
 
-OUT = "gen13_separation/analysis/stage2/d1_extractant_atlas/verify"
-df = pd.read_parquet("gen13_separation/manifests/cohort_exact.parquet")
+OUT = "generations/gen13_separation/analysis/stage2/d1_extractant_atlas/verify"
+df = pd.read_parquet("generations/gen13_separation/manifests/cohort_exact.parquet")
 LN = sorted([m for m in LANTHANIDES if f"logD__{m}" in df.columns],
             key=lambda m: ATOMIC_NUMBER[m])
 logD = df[[f"logD__{m}" for m in LN]].to_numpy(float)
@@ -71,7 +71,7 @@ sets = {"all 90 extractants": None,
 rows = []
 for arm in ["X_ENS_DIRECT+LOWRANK_K2", "C_DIRECT_ROW", "B1_MEAN_CURVE",
             "B4_HEAVIER_ALWAYS"]:
-    p = pd.read_parquet(f"gen13_separation/predictions/B_primary/{arm}.parquet")
+    p = pd.read_parquet(f"generations/gen13_separation/predictions/B_primary/{arm}.parquet")
     p["e"] = (p.y - p.prediction).abs()
     r = {"arm": arm}
     for lab, s in sets.items():

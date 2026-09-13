@@ -8,7 +8,7 @@ own estimator (`gen16.l3_decision`); nothing is re-implemented.
 
 Usage (repo root):
   PYTHONIOENCODING=utf-8 OMP_NUM_THREADS=2 .venv/Scripts/python.exe \
-      gen16_leads/scripts/refute_l3a_B_withinpub.py
+      generations/gen16_leads/scripts/refute_l3a_B_withinpub.py
 """
 from __future__ import annotations
 

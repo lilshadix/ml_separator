@@ -24,8 +24,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[3]
-for p in (ROOT / "gen15_curve", ROOT / "gen13_separation", ROOT / "gen14_direction"):
+ROOT = Path(__file__).resolve().parents[4]
+for p in (ROOT / "generations" / "gen15_curve", ROOT / "generations" / "gen13_separation", ROOT / "generations" / "gen14_direction"):
     if str(p) not in sys.path:
         sys.path.insert(0, str(p))
 

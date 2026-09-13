@@ -1,6 +1,6 @@
 """Facts gen14's design depends on, measured once on the frozen cohort."""
 import sys
-sys.path.insert(0, "gen13_separation")
+sys.path.insert(0, "generations/gen13_separation")
 import numpy as np, pandas as pd
 from gen13sep.amplitude_bench import load_bench, LEAN_BLOCKS
 

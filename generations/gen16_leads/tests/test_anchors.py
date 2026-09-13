@@ -1,7 +1,7 @@
 """Gen16 anchor regression tests: the frozen bench has not drifted.
 
-Run (cheap, ~30 s):  .venv/Scripts/python.exe -m pytest gen16_leads/tests -q -m "not slow"
-Run (all):           .venv/Scripts/python.exe -m pytest gen16_leads/tests -q
+Run (cheap, ~30 s):  .venv/Scripts/python.exe -m pytest generations/gen16_leads/tests -q -m "not slow"
+Run (all):           .venv/Scripts/python.exe -m pytest generations/gen16_leads/tests -q
 """
 from __future__ import annotations
 

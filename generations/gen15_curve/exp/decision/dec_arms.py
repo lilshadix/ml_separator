@@ -20,9 +20,9 @@ from pathlib import Path
 
 import numpy as np
 
-ROOT = Path(__file__).resolve().parents[3]
-if str(ROOT / "gen15_curve") not in sys.path:
-    sys.path.insert(0, str(ROOT / "gen15_curve"))
+ROOT = Path(__file__).resolve().parents[4]
+if str(ROOT / "generations" / "gen15_curve") not in sys.path:
+    sys.path.insert(0, str(ROOT / "generations" / "gen15_curve"))
 
 from gen15 import arms as A                       # noqa: E402
 from gen15.valuebench import Ctx                  # noqa: E402

@@ -2,7 +2,7 @@ from __future__ import annotations
 import pickle
 from pathlib import Path
 import numpy as np, pandas as pd
-OUT = Path("D:/ml_separator_gh/gen13_separation/analysis/stage3/verify_direction")
+OUT = Path("D:/ml_separator_gh/generations/gen13_separation/analysis/stage3/verify_direction")
 P = pickle.load(open(OUT / "bench_cache.pkl", "rb"))
 frame, coef, n_obs, frames = P["frame"], P["coef"], P["n_obs"], P["frames"]
 

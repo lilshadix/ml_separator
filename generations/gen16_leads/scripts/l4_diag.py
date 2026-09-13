@@ -15,7 +15,7 @@ the two objections a refuter will raise against the registered AOPT-vs-RANDOM co
 Inputs: ``results/L4/_pe_keep/_pe_<design>.parquet`` (per-extractant scores with the draw dimension
 intact, copied out of the main run) and ``results/L4/orders.parquet``.  No model is refitted here.
 
-    PYTHONIOENCODING=utf-8 OMP_NUM_THREADS=2 .venv/Scripts/python.exe gen16_leads/scripts/l4_diag.py
+    PYTHONIOENCODING=utf-8 OMP_NUM_THREADS=2 .venv/Scripts/python.exe generations/gen16_leads/scripts/l4_diag.py
 """
 from __future__ import annotations
 
@@ -25,9 +25,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
-for _p in (ROOT / "gen13_separation", ROOT / "gen14_direction", ROOT / "gen15_curve",
-           ROOT / "gen16_leads"):
+ROOT = Path(__file__).resolve().parents[3]
+for _p in (ROOT / "generations" / "gen13_separation", ROOT / "generations" / "gen14_direction", ROOT / "generations" / "gen15_curve",
+           ROOT / "generations" / "gen16_leads"):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
@@ -38,7 +38,7 @@ from gen15.valuebench import DESIGNS, MIN_METALS  # noqa: E402
 from gen16 import l4_acq as L  # noqa: E402
 
 LEAD = "L4"
-OUT = ROOT / "gen16_leads" / "results" / "L4"
+OUT = ROOT / "generations" / "gen16_leads" / "results" / "L4"
 KEEP = OUT / "_pe_keep"
 LOG = OUT / "l4_diag.log"
 REGISTERED = {"AOPT_vs_RANDOM": ("RANDOM", "AOPT"), "AOPT_vs_MAXMIN": ("MAXMIN", "AOPT"),

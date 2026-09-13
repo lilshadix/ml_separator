@@ -1,7 +1,7 @@
 # gen5 — log D level model: results analysis (run `gen5_levels_20260817T195411Z`)
 
 Analysis date 2026-08-18. Run stamp `20260817T195642Z`, SLURM job 6113126, wall time 3,393 s.
-Protocol: [`gen5_levels_protocol_20260817.md`](gen5_levels_protocol_20260817.md) (pre-registered,
+Protocol: [`gen5_levels_protocol_20260817.md`](../protocols/gen5_levels_protocol_20260817.md) (pre-registered,
 committed 12 minutes before the run started).
 
 All numbers below are in **log₁₀ D units** and were recomputed from

@@ -14,8 +14,8 @@ import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
 
-ROOT = Path(__file__).resolve().parents[2]
-for _p in (ROOT / "gen13_separation", ROOT / "gen14_direction", ROOT / "gen15_curve"):
+ROOT = Path(__file__).resolve().parents[3]
+for _p in (ROOT / "generations" / "gen13_separation", ROOT / "generations" / "gen14_direction", ROOT / "generations" / "gen15_curve"):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
@@ -23,7 +23,7 @@ from gen13sep.splits import all_folds  # noqa: E402
 from gen14.dirbench import load  # noqa: E402
 from gen15.valuebench import MIN_METALS  # noqa: E402
 
-OUT = ROOT / "gen16_leads" / "results" / "refutation" / "L4BP" / "A"
+OUT = ROOT / "generations" / "gen16_leads" / "results" / "refutation" / "L4BP" / "A"
 OUT.mkdir(parents=True, exist_ok=True)
 DESIGNS = ("B", "BR", "BQ", "A", "BP")
 BUDGETS = (6, 9, 12, 16, 20, 24)
@@ -35,7 +35,7 @@ def main() -> None:
     rich = bench.frame.n_metals.to_numpy() >= MIN_METALS
     n_metals = bench.frame.n_metals.to_numpy()
 
-    orders = pd.read_parquet(ROOT / "gen16_leads" / "results" / "L4" / "orders.parquet")
+    orders = pd.read_parquet(ROOT / "generations" / "gen16_leads" / "results" / "L4" / "orders.parquet")
     rows, share_rows = [], []
     for design in DESIGNS:
         for f in all_folds(bench.frame, design=design):

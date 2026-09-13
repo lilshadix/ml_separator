@@ -8,7 +8,7 @@ Two things have to be true before any gen14 candidate is believable:
   the *cheapest sensible alternative* (the 13-column gen6 donor census), not only against the
   constant "always heavy-selective" rule.
 
-Usage:  python gen14_direction/scripts/g14_baseline.py [design,design,...]
+Usage:  python generations/gen14_direction/scripts/g14_baseline.py [design,design,...]
 """
 from __future__ import annotations
 

@@ -32,9 +32,9 @@ from pathlib import Path
 import numpy as np
 from scipy.optimize import minimize
 
-ROOT = Path(__file__).resolve().parents[3]
-if str(ROOT / "gen15_curve") not in sys.path:
-    sys.path.insert(0, str(ROOT / "gen15_curve"))
+ROOT = Path(__file__).resolve().parents[4]
+if str(ROOT / "generations" / "gen15_curve") not in sys.path:
+    sys.path.insert(0, str(ROOT / "generations" / "gen15_curve"))
 
 from gen15.arms import _curve, _logistic_sign  # noqa: E402
 from gen15.valuebench import Ctx  # noqa: E402

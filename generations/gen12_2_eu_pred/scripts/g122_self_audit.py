@@ -22,6 +22,11 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from gen122 import coordination, paths  # noqa: E402
+import importlib.util  # noqa: E402
+_RELOCATION_SPEC = importlib.util.spec_from_file_location(
+    "verify_relocation", paths.REPO_ROOT / "generations" / "verify_relocation.py")
+verify_relocation = importlib.util.module_from_spec(_RELOCATION_SPEC)
+_RELOCATION_SPEC.loader.exec_module(verify_relocation)
 
 TARGET = "log_D"
 
@@ -57,7 +62,7 @@ def main() -> int:
             if entry.get("bytes") not in (None, path.stat().st_size):
                 drift.append(f"{name} (size)")
             continue
-        digest = hashlib.blake2b(path.read_bytes(), digest_size=16).hexdigest()
+        digest = hashlib.blake2b(verify_relocation.original_bytes(path), digest_size=16).hexdigest()
         if digest != entry["blake2b_128"]:
             drift.append(name)
     record("every Gen12 artefact is byte-identical to its own manifest", not drift,

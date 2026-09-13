@@ -10,16 +10,16 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path("D:/ml_separator_gh")
-sys.path.insert(0, str(ROOT / "gen13_separation"))
+sys.path.insert(0, str(ROOT / "generations" / "gen13_separation"))
 from gen13sep.metals import LANTHANIDES  # noqa: E402
 
-OUT = ROOT / "gen13_separation/analysis/stage2/d2_metal_dependency/verify"
+OUT = ROOT / "generations/gen13_separation/analysis/stage2/d2_metal_dependency/verify"
 M = list(LANTHANIDES)
 NM = len(M)
 IDX = {m: i for i, m in enumerate(M)}
 J = np.eye(NM) - np.ones((NM, NM)) / NM
 
-coh = pd.read_parquet(ROOT / "gen13_separation/manifests/cohort_exact.parquet")
+coh = pd.read_parquet(ROOT / "generations/gen13_separation/manifests/cohort_exact.parquet")
 X = coh[[f"logD__{m}" for m in M]].to_numpy(dtype=float)
 obs = ~np.isnan(X)
 C = X - np.nanmean(X, axis=1)[:, None]
@@ -60,7 +60,7 @@ w, v = np.linalg.eigh(Gs)
 pc1 = v[:, np.argsort(w)[::-1][0]]
 pc1 = (pc1 - pc1.mean()) / np.linalg.norm(pc1 - pc1.mean())
 
-PRED = ROOT / "gen13_separation/predictions/B_primary"
+PRED = ROOT / "generations/gen13_separation/predictions/B_primary"
 rows = []
 for arm_name in ["C_DIRECT_ROW", "X_ENS_DIRECT+LOWRANK_K2", "M_SELECTED"]:
     a = pd.read_parquet(PRED / f"{arm_name}.parquet")

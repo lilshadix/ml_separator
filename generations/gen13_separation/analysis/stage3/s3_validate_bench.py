@@ -1,6 +1,6 @@
 """Validate the amplitude bench against a locked arm: it must reproduce M_PHYSICS to 3 decimals."""
 import sys, time
-sys.path.insert(0, "gen13_separation")
+sys.path.insert(0, "generations/gen13_separation")
 import numpy as np
 from gen13sep.amplitude_bench import load_bench, run_candidate, score, ALL_BLOCKS
 from gen13sep.models import tree_pipeline

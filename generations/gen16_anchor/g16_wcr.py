@@ -16,7 +16,7 @@ from pathlib import Path
 import numpy as np, pandas as pd
 
 ROOT = Path(r"D:\ml_separator_gh")
-sys.path.insert(0, str(ROOT / "gen14_direction")); sys.path.insert(0, str(ROOT / "gen13_separation"))
+sys.path.insert(0, str(ROOT / "generations" / "gen14_direction")); sys.path.insert(0, str(ROOT / "generations" / "gen13_separation"))
 from gen14 import dirbench as db
 from gen13sep.amplitude_bench import LEAN_BLOCKS
 

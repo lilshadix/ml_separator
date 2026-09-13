@@ -1,9 +1,9 @@
 """Run the stage-2 exploratory ladder (``S2_*``) on the frozen cohort and fold plan.
 
-    .venv/Scripts/python.exe gen13_separation/scripts/g13_run_stage2.py --label S2_main
-    .venv/Scripts/python.exe gen13_separation/scripts/g13_run_stage2.py --label S2_lean \
+    .venv/Scripts/python.exe generations/gen13_separation/scripts/g13_run_stage2.py --label S2_main
+    .venv/Scripts/python.exe generations/gen13_separation/scripts/g13_run_stage2.py --label S2_lean \
         --blocks COND,MASSACT,PHYSCHEM,DONORS,COORD
-    .venv/Scripts/python.exe gen13_separation/scripts/g13_run_stage2.py --label S2_smoke --seeds 104729
+    .venv/Scripts/python.exe generations/gen13_separation/scripts/g13_run_stage2.py --label S2_smoke --seeds 104729
 
 The references ``C_DIRECT_ROW`` and ``M_PHYSICS_radius+radius_sq`` are always included so that
 every stage-2 contrast is paired pair-for-pair inside one run; ``--arms`` narrows the ladder.

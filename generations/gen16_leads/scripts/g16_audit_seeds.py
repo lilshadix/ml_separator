@@ -12,7 +12,7 @@ dataclass field or a local variable that merely happens to be called ``seeds`` i
 confirmation seeds are recomputed here from the public rule recorded in the pre-registration;
 they are used only for comparison and are never printed.
 
-Run:  .venv/Scripts/python.exe gen16_leads/scripts/g16_audit_seeds.py
+Run:  .venv/Scripts/python.exe generations/gen16_leads/scripts/g16_audit_seeds.py
 Exit 0 = clean, 1 = a violation (listed on stdout).
 """
 from __future__ import annotations

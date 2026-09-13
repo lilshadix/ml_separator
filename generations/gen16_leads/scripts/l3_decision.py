@@ -3,7 +3,7 @@ PRE_REGISTRATION.md section 3 L3.  Everything is computed on the discovery seeds
 bench; see gen16/l3_decision.py for the construction.
 
 Usage (from the repository root):
-  PYTHONIOENCODING=utf-8 OMP_NUM_THREADS=2 .venv/Scripts/python.exe gen16_leads/scripts/l3_decision.py
+  PYTHONIOENCODING=utf-8 OMP_NUM_THREADS=2 .venv/Scripts/python.exe generations/gen16_leads/scripts/l3_decision.py
       [--designs B,BR,BQ,A,BP] [--check-evaluate BP] [--report-only]
 
 Writes results/L3/{tasks_summary.csv, l3a_saved.csv, l3a_contrasts.csv, l3a_per_task.csv,

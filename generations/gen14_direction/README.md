@@ -14,18 +14,18 @@ Headline (design BP, publication-masked, the design deployment is chosen under):
 
 Run:
 
-    .venv/Scripts/python.exe gen14_direction/scripts/g14_baseline.py     # reproduce + five designs
-    .venv/Scripts/python.exe gen14_direction/scripts/g14_sweep.py        # candidate round 1
-    .venv/Scripts/python.exe gen14_direction/scripts/g14_sweep2.py       # candidate round 2
-    .venv/Scripts/python.exe gen14_direction/scripts/g14_value.py        # the MAE endpoint
-    .venv/Scripts/python.exe gen14_direction/scripts/g14_magnitude.py BP # amplitude priors
-    .venv/Scripts/python.exe gen14_direction/scripts/g14_ceiling.py BP   # ceilings
-    .venv/Scripts/python.exe gen14_direction/scripts/g14_steric.py       # the falsified post-hoc idea
-    .venv/Scripts/python.exe gen14_direction/scripts/g14_tables.py       # regenerate results/TABLES.md
+    .venv/Scripts/python.exe generations/gen14_direction/scripts/g14_baseline.py     # reproduce + five designs
+    .venv/Scripts/python.exe generations/gen14_direction/scripts/g14_sweep.py        # candidate round 1
+    .venv/Scripts/python.exe generations/gen14_direction/scripts/g14_sweep2.py       # candidate round 2
+    .venv/Scripts/python.exe generations/gen14_direction/scripts/g14_value.py        # the MAE endpoint
+    .venv/Scripts/python.exe generations/gen14_direction/scripts/g14_magnitude.py BP # amplitude priors
+    .venv/Scripts/python.exe generations/gen14_direction/scripts/g14_ceiling.py BP   # ceilings
+    .venv/Scripts/python.exe generations/gen14_direction/scripts/g14_steric.py       # the falsified post-hoc idea
+    .venv/Scripts/python.exe generations/gen14_direction/scripts/g14_tables.py       # regenerate results/TABLES.md
 
 Predict from a SMILES string:
 
-    .venv/Scripts/python.exe gen14_direction/scripts/g14_predict.py fit
-    .venv/Scripts/python.exe gen14_direction/scripts/g14_predict.py predict --smiles "CCN(CC)C(=O)COCC(=O)N(CC)CC"
+    .venv/Scripts/python.exe generations/gen14_direction/scripts/g14_predict.py fit
+    .venv/Scripts/python.exe generations/gen14_direction/scripts/g14_predict.py predict --smiles "CCN(CC)C(=O)COCC(=O)N(CC)CC"
 
 `cache/bench.pkl` is a disk cache of the frozen gen13 bench; delete it to rebuild.

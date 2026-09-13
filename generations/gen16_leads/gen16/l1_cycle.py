@@ -52,7 +52,7 @@ from gen16 import bootstrap  # noqa: F401  (sys.path + thread cap)
 
 ROOT = bootstrap.ROOT
 DATA = ROOT / "dataset with 3D structures"
-PHYS3D = ROOT / "gen15_curve" / "exp" / "phys3d"
+PHYS3D = ROOT / "generations" / "gen15_curve" / "exp" / "phys3d"
 RESULTS = bootstrap.RESULTS / "L1"
 if str(PHYS3D) not in sys.path:
     sys.path.insert(0, str(PHYS3D))

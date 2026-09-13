@@ -21,9 +21,9 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(ROOT / "gen15_curve"))
+sys.path.insert(0, str(ROOT / "generations" / "gen15_curve"))
 sys.path.insert(0, str(HERE))
 from build_block import load_geometries, main_blocks, _two_way_residual, _slope_fit  # noqa: E402
 from descriptor_stats import extractant_table, _rho  # noqa: E402

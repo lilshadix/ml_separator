@@ -1,6 +1,6 @@
 """Pre-registered invariants of Gen13, executable.
 
-Run:  .venv/Scripts/python.exe -m pytest gen13_separation/tests -q
+Run:  .venv/Scripts/python.exe -m pytest generations/gen13_separation/tests -q
 """
 from __future__ import annotations
 

@@ -1,8 +1,8 @@
 """Run the Gen13 separation ladder on the frozen cohort and folds.
 
-    .venv/Scripts/python.exe gen13_separation/scripts/g13_run_ladder.py --label B_primary
-    .venv/Scripts/python.exe gen13_separation/scripts/g13_run_ladder.py --label B_ecfp_only --blocks COND,MASSACT,ECFP
-    .venv/Scripts/python.exe gen13_separation/scripts/g13_run_ladder.py --arms M_LOWRANK_K2,C_DIRECT_ROW --seeds 104729
+    .venv/Scripts/python.exe generations/gen13_separation/scripts/g13_run_ladder.py --label B_primary
+    .venv/Scripts/python.exe generations/gen13_separation/scripts/g13_run_ladder.py --label B_ecfp_only --blocks COND,MASSACT,ECFP
+    .venv/Scripts/python.exe generations/gen13_separation/scripts/g13_run_ladder.py --arms M_LOWRANK_K2,C_DIRECT_ROW --seeds 104729
 """
 from __future__ import annotations
 

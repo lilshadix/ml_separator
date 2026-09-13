@@ -1,6 +1,6 @@
 """Which single descriptors carry the amplitude, and does a stoichiometric multiplier explain it?"""
 import sys
-sys.path.insert(0, "gen13_separation")
+sys.path.insert(0, "generations/gen13_separation")
 import numpy as np, pandas as pd
 from scipy.stats import spearmanr
 from gen13sep.amplitude_bench import load_bench, LEAN_BLOCKS, CHEM_BLOCKS
@@ -28,7 +28,7 @@ for c in Xr.columns:
                  "spearman_amp": float(spearmanr(v[ok], ext.amp[ok]).statistic),
                  "spearman_curv": float(spearmanr(v[ok], ext.curv[ok]).statistic)})
 cor = pd.DataFrame(rows).sort_values("spearman_amp", key=abs, ascending=False)
-cor.to_csv("gen13_separation/analysis/stage3/s3_amplitude_correlates.csv", index=False)
+cor.to_csv("generations/gen13_separation/analysis/stage3/s3_amplitude_correlates.csv", index=False)
 print("\ntop 18 by |Spearman| with the extractant-level amplitude:")
 print(cor.head(18).round(3).to_string(index=False))
 

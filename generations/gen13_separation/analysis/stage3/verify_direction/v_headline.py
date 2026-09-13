@@ -2,7 +2,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 import numpy as np, pandas as pd
-sys.path.insert(0, "D:/ml_separator_gh/gen13_separation/analysis/stage3/verify_direction")
+sys.path.insert(0, "D:/ml_separator_gh/generations/gen13_separation/analysis/stage3/verify_direction")
 from v_core import *
 
 P = load(); frame, coef, n_obs, frames = P["frame"], P["coef"], P["n_obs"], P["frames"]

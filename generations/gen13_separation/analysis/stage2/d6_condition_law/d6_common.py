@@ -12,13 +12,13 @@ import numpy as np
 import pandas as pd
 
 REPO = "D:/ml_separator_gh"
-sys.path.insert(0, REPO + "/gen13_separation")
+sys.path.insert(0, REPO + "/generations/gen13_separation")
 from gen13sep.metals import LANTHANIDES, SHANNON_RADIUS_CN8, ATOMIC_NUMBER  # noqa: E402
 
-COHORT = REPO + "/gen13_separation/manifests/cohort_exact.parquet"
-PRED_DIR = REPO + "/gen13_separation/predictions/B_primary"
-OUT = REPO + "/gen13_separation/analysis/stage2/d6_condition_law"
-FIG = REPO + "/gen13_separation/figures/stage2"
+COHORT = REPO + "/generations/gen13_separation/manifests/cohort_exact.parquet"
+PRED_DIR = REPO + "/generations/gen13_separation/predictions/B_primary"
+OUT = REPO + "/generations/gen13_separation/analysis/stage2/d6_condition_law"
+FIG = REPO + "/generations/gen13_separation/figures/stage2"
 
 MIN_METALS = 4  # need >=4 metals so the quadratic fit has >=1 residual dof
 MIN_RZ_SPAN = 1.5  # standardised-radius span of the observed metals (full La-Lu = 3.147).

@@ -11,8 +11,8 @@ import sys
 from pathlib import Path
 
 GEN122_ROOT = Path(__file__).resolve().parents[1]          # gen12_2_eu_pred/
-REPO_ROOT = GEN122_ROOT.parent
-GEN12_ROOT = REPO_ROOT / "gen12_eu_pred"
+REPO_ROOT = GEN122_ROOT.parent.parent
+GEN12_ROOT = REPO_ROOT / "generations" / "gen12_eu_pred"
 if str(GEN12_ROOT) not in sys.path:
     sys.path.insert(0, str(GEN12_ROOT))
 

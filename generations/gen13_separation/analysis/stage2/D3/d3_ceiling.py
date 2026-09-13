@@ -1,6 +1,6 @@
 """D3 - achievable-accuracy ceiling and variance decomposition for the gen13 separation task.
 
-Run:  .venv/Scripts/python.exe gen13_separation/analysis/stage2/D3/d3_ceiling.py
+Run:  .venv/Scripts/python.exe generations/gen13_separation/analysis/stage2/D3/d3_ceiling.py
 
 Builds a ladder of oracle-ish predictors of a held-out cell's centred lanthanide curve,
 scores each with the programme's convention (extractant-macro MAE over unordered pairs,
@@ -20,14 +20,14 @@ import pandas as pd
 
 warnings.filterwarnings("ignore", message="Mean of empty slice")
 
-ROOT = Path(__file__).resolve().parents[4]
-sys.path.insert(0, str(ROOT / "gen13_separation"))
+ROOT = Path(__file__).resolve().parents[5]
+sys.path.insert(0, str(ROOT / "generations" / "gen13_separation"))
 from gen13sep.metals import ATOMIC_NUMBER, LANTHANIDES, SHANNON_RADIUS_CN8  # noqa: E402
 
 OUT = Path(__file__).resolve().parent
-FIG = ROOT / "gen13_separation" / "figures" / "stage2"
-COHORT = ROOT / "gen13_separation" / "manifests" / "cohort_exact.parquet"
-PRED = ROOT / "gen13_separation" / "predictions" / "B_primary"
+FIG = ROOT / "generations" / "gen13_separation" / "figures" / "stage2"
+COHORT = ROOT / "generations" / "gen13_separation" / "manifests" / "cohort_exact.parquet"
+PRED = ROOT / "generations" / "gen13_separation" / "predictions" / "B_primary"
 
 N_LN = len(LANTHANIDES)
 IDX = {m: i for i, m in enumerate(LANTHANIDES)}

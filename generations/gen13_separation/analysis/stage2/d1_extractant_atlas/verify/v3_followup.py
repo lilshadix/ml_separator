@@ -6,11 +6,11 @@ import numpy as np
 import pandas as pd
 from scipy.stats import pearsonr
 
-sys.path.insert(0, "gen13_separation")
+sys.path.insert(0, "generations/gen13_separation")
 from gen13sep.metals import LANTHANIDES, ATOMIC_NUMBER  # noqa: E402
 
-OUT = "gen13_separation/analysis/stage2/d1_extractant_atlas/verify"
-df = pd.read_parquet("gen13_separation/manifests/cohort_exact.parquet")
+OUT = "generations/gen13_separation/analysis/stage2/d1_extractant_atlas/verify"
+df = pd.read_parquet("generations/gen13_separation/manifests/cohort_exact.parquet")
 LN = sorted([m for m in LANTHANIDES if f"logD__{m}" in df.columns],
             key=lambda m: ATOMIC_NUMBER[m])
 logD = df[[f"logD__{m}" for m in LN]].to_numpy(float)
@@ -60,7 +60,7 @@ for name, cond in [
     print(f"  {name:44s} {t}")
 
 print("\n=== D (finished): like-for-like scope for the 0.286-vs-0.481 headline ===")
-PRED = "gen13_separation/predictions/B_primary"
+PRED = "generations/gen13_separation/predictions/B_primary"
 # oracle-covered cells: cells with >=1 same-extractant sibling sharing >=2 metals
 cov = []
 for i in range(n):

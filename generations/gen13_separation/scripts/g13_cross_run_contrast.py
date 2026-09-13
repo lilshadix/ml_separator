@@ -1,6 +1,6 @@
 """Paired contrast of arms across two runs that share the frozen fold plan (S5 / H3 and helpers).
 
-    .venv/Scripts/python.exe gen13_separation/scripts/g13_cross_run_contrast.py \
+    .venv/Scripts/python.exe generations/gen13_separation/scripts/g13_cross_run_contrast.py \
         --candidate B_primary:M_SELECTED --reference B_abl_cond_only:M_SELECTED --name S5_all_blocks_vs_cond_only
 
 Both runs must have identical (split_seed, fold, cell_id, A, B) pair keys; the script asserts it.

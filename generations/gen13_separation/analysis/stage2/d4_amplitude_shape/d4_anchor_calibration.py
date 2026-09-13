@@ -7,7 +7,7 @@ fit g from a single held-out pair ("anchor") of the new extractant / cell, then 
 REMAINING pairs, always comparing against g = 1 on the identical evaluation set.
 
 Run from the repo root:
-    .venv/Scripts/python.exe gen13_separation/analysis/stage2/d4_amplitude_shape/d4_anchor_calibration.py
+    .venv/Scripts/python.exe generations/gen13_separation/analysis/stage2/d4_amplitude_shape/d4_anchor_calibration.py
 """
 from __future__ import annotations
 
@@ -16,8 +16,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[4]
-GEN13 = ROOT / "gen13_separation"
+ROOT = Path(__file__).resolve().parents[5]
+GEN13 = ROOT / "generations" / "gen13_separation"
 PRED = GEN13 / "predictions" / "B_primary"
 OUT = GEN13 / "analysis" / "stage2" / "d4_amplitude_shape"
 SLUG = "d4_amplitude_shape"

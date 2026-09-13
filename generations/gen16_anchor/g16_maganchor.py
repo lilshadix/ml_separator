@@ -19,7 +19,7 @@ from pathlib import Path
 import numpy as np, pandas as pd
 
 ROOT = Path(r"D:\ml_separator_gh")
-sys.path.insert(0, str(ROOT / "gen14_direction")); sys.path.insert(0, str(ROOT / "gen13_separation"))
+sys.path.insert(0, str(ROOT / "generations" / "gen14_direction")); sys.path.insert(0, str(ROOT / "generations" / "gen13_separation"))
 from gen14 import dirbench as db
 from gen14 import models as M
 from gen13sep.amplitude_bench import LEAN_BLOCKS, cell_weights
@@ -33,7 +33,7 @@ ALPHA = 10.0
 bench = db.load(); FS = db.feature_sets(bench)
 amp = bench.coef[:, 0]; pub_all = bench.frame["publication_id"].astype(str).to_numpy()
 rich = bench.frame.n_metals.to_numpy() >= db.MIN_METALS
-folds_cached = pickle.loads((ROOT / "gen16_anchor" / f"pairs_{DESIGN}.pkl").read_bytes())
+folds_cached = pickle.loads((ROOT / "generations" / "gen16_anchor" / f"pairs_{DESIGN}.pkl").read_bytes())
 print(f"{len(folds_cached)} folds", flush=True)
 
 # gen14's direction, out of fold
@@ -93,7 +93,7 @@ for fc in folds_cached:
 table = pd.concat(parts, ignore_index=True)
 names = [c for c in table.columns if c.startswith(("MAGANCH_", "G14_", "MEAN_", "DIR_"))]
 board = summarise(per_extractant(table, names), table, names)
-board.to_csv(ROOT / "gen16_anchor" / "g16_maganchor_BP.csv", index=False)
+board.to_csv(ROOT / "generations" / "gen16_anchor" / "g16_maganchor_BP.csv", index=False)
 print(f"\n=== MAGNITUDE anchor, design BP ({time.time()-t0:.0f}s), alpha={ALPHA} ===")
 print(board[["arm", "macro_mae_extractant", "macro_mae_extractant_seed_sd",
              "macro_mae_chemotype", "macro_sign_acc_strong"]].round(4).to_string(index=False))

@@ -3,7 +3,7 @@ from __future__ import annotations
 import pickle, sys, time
 from pathlib import Path
 import numpy as np, pandas as pd
-ROOT = Path("D:/ml_separator_gh/gen13_separation")
+ROOT = Path("D:/ml_separator_gh/generations/gen13_separation")
 OUT = ROOT / "analysis" / "stage3" / "verify_direction"
 sys.path.insert(0, str(ROOT))
 from sklearn.ensemble import ExtraTreesClassifier

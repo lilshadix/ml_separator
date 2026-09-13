@@ -42,7 +42,7 @@ from gen13sep.metals import LANTHANIDES  # noqa: E402
 from gen13sep.splits import all_folds  # noqa: E402
 from gen14.dirbench import feature_sets  # noqa: E402
 
-DEC = bootstrap.ROOT / "gen15_curve" / "exp" / "decision"
+DEC = bootstrap.ROOT / "generations" / "gen15_curve" / "exp" / "decision"
 if str(DEC) not in sys.path:
     sys.path.insert(0, str(DEC))
 import decmetrics as M  # noqa: E402

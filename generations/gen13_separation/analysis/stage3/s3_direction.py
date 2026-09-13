@@ -17,7 +17,7 @@ Predictors, from the cheapest up:
   * full lean set      conditions + physchem + donors + coordination
 """
 import sys, time
-sys.path.insert(0, "gen13_separation")
+sys.path.insert(0, "generations/gen13_separation")
 import numpy as np, pandas as pd
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.impute import SimpleImputer
@@ -94,7 +94,7 @@ for design in DESIGNS:
     print(f"  {design} done", flush=True)
 
 t = pd.DataFrame(rows)
-t.to_parquet("gen13_separation/analysis/stage3/s3_direction_predictions.parquet", index=False)
+t.to_parquet("generations/gen13_separation/analysis/stage3/s3_direction_predictions.parquet", index=False)
 
 
 def macro_acc(block):
@@ -122,6 +122,6 @@ for (design, model), block in t.groupby(["design", "model"]):
                 "pooled_accuracy": float(((block.p >= 0.5).astype(int) == block.y).mean()),
                 "auc_pooled": float(auc)})
 res = pd.DataFrame(out).sort_values(["design", "macro_accuracy"], ascending=[True, False])
-res.to_csv("gen13_separation/analysis/stage3/s3_direction_accuracy.csv", index=False)
+res.to_csv("generations/gen13_separation/analysis/stage3/s3_direction_accuracy.csv", index=False)
 print()
 print(res.round(4).to_string(index=False))

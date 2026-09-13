@@ -10,7 +10,7 @@ is a chemotype-blocked bootstrap; every claim is also checked with the dominant 
 chemotype removed, on chemotype means, and after controlling for the acid the cells were run in.
 """
 import sys
-sys.path.insert(0, "gen13_separation")
+sys.path.insert(0, "generations/gen13_separation")
 import numpy as np, pandas as pd
 from scipy.stats import spearmanr, rankdata
 from gen13sep.amplitude_bench import load_bench, LEAN_BLOCKS
@@ -99,6 +99,6 @@ for c in FEATURES:
                  "spearman_excl_sc009": rho_out, "n_excl_sc009": int(m2.sum()),
                  "partial_spearman_given_acid": rho_pa})
 res = pd.DataFrame(rows).sort_values("spearman", key=abs, ascending=False)
-res.to_csv("gen13_separation/analysis/stage3/s3_geometry_statistics.csv", index=False)
+res.to_csv("generations/gen13_separation/analysis/stage3/s3_geometry_statistics.csv", index=False)
 pd.set_option("display.width", 250)
 print(res.round(3).to_string(index=False))

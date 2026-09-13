@@ -18,9 +18,9 @@ import numpy as np
 import pandas as pd
 
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parents[2]
-if str(ROOT / "gen15_curve") not in sys.path:
-    sys.path.insert(0, str(ROOT / "gen15_curve"))
+ROOT = HERE.parents[3]
+if str(ROOT / "generations" / "gen15_curve") not in sys.path:
+    sys.path.insert(0, str(ROOT / "generations" / "gen15_curve"))
 
 EMB_PATH = HERE / "ligand_embeddings.parquet"
 MORGAN_PATH = HERE / "morgan_fp.parquet"

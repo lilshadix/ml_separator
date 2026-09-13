@@ -7,7 +7,7 @@ import os
 
 import pandas as pd
 
-OUT = "D:/ml_separator_gh/gen13_separation/analysis/stage2/d4_amplitude_vs_shape/verify"
+OUT = "D:/ml_separator_gh/generations/gen13_separation/analysis/stage2/d4_amplitude_vs_shape/verify"
 
 sh = pd.read_csv(os.path.join(OUT, "v_d4_shares.csv")).set_index("arm")
 mae = pd.read_csv(os.path.join(OUT, "v_d4_macro_mae.csv")).set_index("arm")

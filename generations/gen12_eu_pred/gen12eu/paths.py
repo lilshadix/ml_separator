@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 GEN12_ROOT = Path(__file__).resolve().parents[1]          # gen12_eu_pred/
-REPO_ROOT = GEN12_ROOT.parent
+REPO_ROOT = GEN12_ROOT.parent.parent
 SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))

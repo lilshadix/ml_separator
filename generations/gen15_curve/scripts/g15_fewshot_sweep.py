@@ -12,7 +12,7 @@ after one measurement.  This sweeps the parts of the estimator that could hold i
 This is a sensitivity study, not a selection: a variant is adopted only if it wins in ALL FIVE
 designs, which is the project's own rule.  Everything is reported.
 
-Usage:  python gen15_curve/scripts/g15_fewshot_sweep.py [designs]
+Usage:  python generations/gen15_curve/scripts/g15_fewshot_sweep.py [designs]
 """
 from __future__ import annotations
 

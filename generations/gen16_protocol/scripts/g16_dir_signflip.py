@@ -47,8 +47,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
-for _p in (ROOT / "gen13_separation", ROOT / "gen14_direction"):
+ROOT = Path(__file__).resolve().parents[3]
+for _p in (ROOT / "generations" / "gen13_separation", ROOT / "generations" / "gen14_direction"):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
@@ -59,7 +59,7 @@ from gen14 import models as M                   # noqa: E402
 DESIGN = sys.argv[1] if len(sys.argv) > 1 else "BP"
 ROPE = 0.02          # gen13sep.inference.MARGIN, the pre-registered practical margin
 REPS = 9999
-RESULTS = ROOT / "gen16_protocol" / "results"
+RESULTS = ROOT / "generations" / "gen16_protocol" / "results"
 
 
 def active_clusters(d: np.ndarray, g: np.ndarray, tol: float = 1e-12) -> dict:
@@ -139,7 +139,7 @@ def main() -> None:
 
     # claim 1 needs the per-extractant MAE table that g14_value.py currently discards; if a
     # previous run saved it, re-infer that too.
-    pe_path = ROOT / "gen14_direction" / "results" / f"g14_value_per_extractant_{DESIGN}.csv"
+    pe_path = ROOT / "generations" / "gen14_direction" / "results" / f"g14_value_per_extractant_{DESIGN}.csv"
     if pe_path.exists():
         pe = pd.read_csv(pe_path)
         tab = pe.groupby(["arm", "extractant"])["mae_all"].mean().unstack("arm")

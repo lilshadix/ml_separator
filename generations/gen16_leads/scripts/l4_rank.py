@@ -22,7 +22,7 @@ first.
 This file scores nothing and writes no contrast.  It is a deliverable list, and the caveats printed
 into ``L4_REPORT.md`` travel with it.
 
-    PYTHONIOENCODING=utf-8 OMP_NUM_THREADS=2 .venv/Scripts/python.exe gen16_leads/scripts/l4_rank.py
+    PYTHONIOENCODING=utf-8 OMP_NUM_THREADS=2 .venv/Scripts/python.exe generations/gen16_leads/scripts/l4_rank.py
 """
 from __future__ import annotations
 
@@ -33,9 +33,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
-for _p in (ROOT / "gen13_separation", ROOT / "gen14_direction", ROOT / "gen15_curve",
-           ROOT / "gen16_leads"):
+ROOT = Path(__file__).resolve().parents[3]
+for _p in (ROOT / "generations" / "gen13_separation", ROOT / "generations" / "gen14_direction", ROOT / "generations" / "gen15_curve",
+           ROOT / "generations" / "gen16_leads"):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
@@ -50,10 +50,10 @@ from gen15.fewshot import centred_residual, pick_support, residual_covariance  #
 from gen16 import l4_acq as L  # noqa: E402
 
 LEAD = "L4"
-OUT = ROOT / "gen16_leads" / "results" / "L4"
+OUT = ROOT / "generations" / "gen16_leads" / "results" / "L4"
 OUT.mkdir(parents=True, exist_ok=True)
 LOG = OUT / "l4_rank.log"
-SIDE_K = ROOT / "gen15_curve" / "exp" / "external" / "data" / "side_K_logk.parquet"
+SIDE_K = ROOT / "generations" / "gen15_curve" / "exp" / "external" / "data" / "side_K_logk.parquet"
 NEW_TANIMOTO = 0.7          # the chemotype clustering's own single-linkage threshold
 TOPO_PREFIXES = ("coord__dist__", "coord__arm__")
 CENSUS_COORD = ["coord__arm__topicity", "coord__arm__estimated_denticity_per_pocket",

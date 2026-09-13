@@ -28,8 +28,8 @@ from typing import Callable, Sequence
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
-for p in (ROOT / "gen13_separation", ROOT / "gen14_direction"):
+ROOT = Path(__file__).resolve().parents[3]
+for p in (ROOT / "generations" / "gen13_separation", ROOT / "generations" / "gen14_direction"):
     if str(p) not in sys.path:
         sys.path.insert(0, str(p))
 
@@ -42,7 +42,7 @@ from gen14.dirbench import load, feature_sets  # noqa: E402
 
 DESIGNS: tuple[str, ...] = ("B", "BR", "BQ", "A", "BP")
 MIN_METALS = 5
-RESULTS = ROOT / "gen15_curve" / "results"
+RESULTS = ROOT / "generations" / "gen15_curve" / "results"
 
 
 @dataclass

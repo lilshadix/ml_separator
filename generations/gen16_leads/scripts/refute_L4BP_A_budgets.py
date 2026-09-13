@@ -17,15 +17,15 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
-for _p in (ROOT / "gen13_separation", ROOT / "gen14_direction", ROOT / "gen15_curve"):
+ROOT = Path(__file__).resolve().parents[3]
+for _p in (ROOT / "generations" / "gen13_separation", ROOT / "generations" / "gen14_direction", ROOT / "generations" / "gen15_curve"):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
 from gen13sep.inference import paired_contrasts  # noqa: E402
 
-OUT = ROOT / "gen16_leads" / "results" / "refutation" / "L4BP" / "A"
-KEEP = ROOT / "gen16_leads" / "results" / "L4" / "_pe_keep"
+OUT = ROOT / "generations" / "gen16_leads" / "results" / "refutation" / "L4BP" / "A"
+KEEP = ROOT / "generations" / "gen16_leads" / "results" / "L4" / "_pe_keep"
 DESIGNS = ("B", "BR", "BQ", "A", "BP")
 SUBSETS = {"6..24 (registered)": (6, 9, 12, 16, 20, 24), "9..24": (9, 12, 16, 20, 24),
            "12..24": (12, 16, 20, 24), "16..24": (16, 20, 24), "20..24": (20, 24)}

@@ -16,8 +16,8 @@ Three things, in order:
 
 Usage
 -----
-    python gen13_separation/scripts/g13_inference_audit.py                 # calibration + gen13 BP
-    python gen13_separation/scripts/g13_inference_audit.py <per_extractant.csv> [value]
+    python generations/gen13_separation/scripts/g13_inference_audit.py                 # calibration + gen13 BP
+    python generations/gen13_separation/scripts/g13_inference_audit.py <per_extractant.csv> [value]
 """
 from __future__ import annotations
 
@@ -27,8 +27,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "gen13_separation"))
+ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT / "generations" / "gen13_separation"))
 from gen13sep import wildcluster as wc  # noqa: E402
 
 HIGHER_IS_BETTER = frozenset({"sign_acc_strong", "pair_spearman", "curve_spearman", "hit",
@@ -160,7 +160,7 @@ def reinfer(per_ext: pd.DataFrame, comparisons: dict[str, tuple[str, str]], *,
 def main() -> None:
     pos = [a for a in sys.argv[1:] if not a.startswith("--")]
     path = Path(pos[0]) if pos else \
-        ROOT / "gen13_separation" / "metrics" / "BP_all" / "per_extractant.csv"
+        ROOT / "generations" / "gen13_separation" / "metrics" / "BP_all" / "per_extractant.csv"
     value = pos[1] if len(pos) > 1 else "mae_all"
     pe = pd.read_csv(path)
     sizes = (pe.drop_duplicates("extractant").groupby("chemotype").size().to_numpy().astype(float))

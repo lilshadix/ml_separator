@@ -15,10 +15,10 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path("D:/ml_separator_gh")
-sys.path.insert(0, str(ROOT / "gen13_separation"))
+sys.path.insert(0, str(ROOT / "generations" / "gen13_separation"))
 from gen13sep.metals import LANTHANIDES, ATOMIC_NUMBER
 
-OUT = ROOT / "gen13_separation/analysis/stage2/d2_metal_dependency"
+OUT = ROOT / "generations/gen13_separation/analysis/stage2/d2_metal_dependency"
 M = list(LANTHANIDES); NM = len(M); IDX = {m: i for i, m in enumerate(M)}
 Z = np.array([ATOMIC_NUMBER[m] for m in M], float)
 log = []
@@ -30,7 +30,7 @@ def say(*a):
     log.append(s)
 
 
-df = pd.read_parquet(ROOT / "gen13_separation/manifests/cohort_exact.parquet")
+df = pd.read_parquet(ROOT / "generations/gen13_separation/manifests/cohort_exact.parquet")
 Yraw = df[["logD__" + m for m in M]].to_numpy(float)
 full = (~np.isnan(Yraw)).sum(axis=1) == NM
 Yf = Yraw[full]
@@ -45,7 +45,7 @@ cellrow = {c: i for i, c in enumerate(df["cell_id"])}
 
 allrows = []
 for arm in ["C_DIRECT_ROW", "X_ENS_DIRECT+LOWRANK_K2", "B1_MEAN_CURVE"]:
-    p = pd.read_parquet(ROOT / f"gen13_separation/predictions/B_primary/{arm}.parquet")
+    p = pd.read_parquet(ROOT / f"generations/gen13_separation/predictions/B_primary/{arm}.parquet")
     seed = int(p.split_seed.min())
     p = p[p.split_seed == seed].copy()
     p["resid"] = p.y - p.prediction

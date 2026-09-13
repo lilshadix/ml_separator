@@ -21,9 +21,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
-for _p in (ROOT / "gen13_separation", ROOT / "gen14_direction", ROOT / "gen15_curve",
-           ROOT / "gen16_leads" / "scripts"):
+ROOT = Path(__file__).resolve().parents[3]
+for _p in (ROOT / "generations" / "gen13_separation", ROOT / "generations" / "gen14_direction", ROOT / "generations" / "gen15_curve",
+           ROOT / "generations" / "gen16_leads" / "scripts"):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
@@ -36,7 +36,7 @@ from gen15.valuebench import MIN_METALS  # noqa: E402
 from refute_L4BP_A_rerun import (BUDGETS, N_DRAWS, RNG_BASE, fit, greedy_aopt,  # noqa: E402
                                  predict_pairs, standardise, thin)
 
-OUT = ROOT / "gen16_leads" / "results" / "refutation" / "L4BP" / "A"
+OUT = ROOT / "generations" / "gen16_leads" / "results" / "refutation" / "L4BP" / "A"
 VALUE = "mae_all"
 COMPS = {"AOPTR_vs_RANDOM": ("RANDOM", "AOPT_R"),
          "BIGGEST_vs_RANDOM": ("RANDOM", "BIGGEST"),

@@ -9,7 +9,7 @@ Every p-value here is a restricted wild cluster bootstrap-t over chemotypes (gen
 not the percentile block bootstrap, because g16_size.py shows the percentile bootstrap rejects a
 true null at 7-8 % on this corpus's own cluster membership.
 
-Usage:  python gen16_protocol/scripts/g16_bp1.py [--full]
+Usage:  python generations/gen16_protocol/scripts/g16_bp1.py [--full]
 """
 from __future__ import annotations
 
@@ -20,9 +20,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
-for p in (ROOT / "gen13_separation", ROOT / "gen14_direction",
-          ROOT / "gen15_curve", ROOT / "gen16_protocol"):
+ROOT = Path(__file__).resolve().parents[3]
+for p in (ROOT / "generations" / "gen13_separation", ROOT / "generations" / "gen14_direction",
+          ROOT / "generations" / "gen15_curve", ROOT / "generations" / "gen16_protocol"):
     sys.path.insert(0, str(p))
 
 from gen13sep.metrics import per_extractant, summarise      # noqa: E402
@@ -34,7 +34,7 @@ from gen16.clusterboot import wcr_test, percentile_block_p  # noqa: E402
 from gen16.designs import bp1_coverage, bp1_folds, run_folds  # noqa: E402
 
 FULL = "--full" in sys.argv
-OUT = ROOT / "gen16_protocol" / "results"
+OUT = ROOT / "generations" / "gen16_protocol" / "results"
 OUT.mkdir(parents=True, exist_ok=True)
 
 ARMS = {"FLAT": A.flat, "MEAN_CURVE": A.mean_curve, "G14": A.g14, "O_AMP": A.o_amp}

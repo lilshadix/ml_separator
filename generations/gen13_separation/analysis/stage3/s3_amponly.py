@@ -11,7 +11,7 @@ Designs: B (primary, comparable with gen2-gen12), BP (publication-masked, the ho
 same way in all of them.
 """
 import sys, time
-sys.path.insert(0, "gen13_separation")
+sys.path.insert(0, "generations/gen13_separation")
 import numpy as np, pandas as pd
 from gen13sep.amplitude_bench import load_bench, compare, LEAN_BLOCKS
 from gen13sep.inference import paired_contrasts
@@ -68,8 +68,8 @@ for design in DESIGNS:
                  "macro_mae_chemotype", "macro_mae_far", "macro_sign_acc_strong"]].round(4).to_string(index=False),
           flush=True)
 
-B = pd.concat(boards, ignore_index=True); B.to_csv("gen13_separation/analysis/stage3/s3_amponly_boards.csv", index=False)
-C = pd.concat(contrasts, ignore_index=True); C.to_csv("gen13_separation/analysis/stage3/s3_amponly_contrasts.csv", index=False)
+B = pd.concat(boards, ignore_index=True); B.to_csv("generations/gen13_separation/analysis/stage3/s3_amponly_boards.csv", index=False)
+C = pd.concat(contrasts, ignore_index=True); C.to_csv("generations/gen13_separation/analysis/stage3/s3_amponly_contrasts.csv", index=False)
 print("\n=== contrasts, mae_all (positive favours the amplitude-only arm) ===")
 cols = ["design", "comparison", "point", "ci95_low", "ci95_high", "bca_low", "p_two_sided",
         "seeds_positive", "units_improved", "n_units", "loco_sign_stable", "passes_intervals", "passes_P1"]

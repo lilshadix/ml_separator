@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
 
-ROOT = "D:/ml_separator_gh/gen16_leads"
+ROOT = "D:/ml_separator_gh/generations/gen16_leads"
 OUT = f"{ROOT}/results/audit/claims_scope_protocol"
 
 d = pd.read_csv(f"{ROOT}/results/refutation/L1NULL/B/checkD_composition_descriptors.csv")

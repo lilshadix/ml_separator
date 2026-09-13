@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, "gen13_separation")
+sys.path.insert(0, "generations/gen13_separation")
 import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np, pandas as pd
@@ -52,5 +52,5 @@ fig.suptitle("A compact donor set makes an extractant heavy-lanthanide selective
              "donor separations are counts of bonds along the molecular graph, so this is computable "
              "for any candidate ligand without a 3D structure", fontsize=11)
 fig.tight_layout()
-fig.savefig("gen13_separation/figures/stage2/s3_donor_compactness.png", dpi=160, bbox_inches="tight")
+fig.savefig("generations/gen13_separation/figures/stage2/s3_donor_compactness.png", dpi=160, bbox_inches="tight")
 print("written")

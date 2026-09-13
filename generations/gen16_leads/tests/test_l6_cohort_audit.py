@@ -1,6 +1,6 @@
 """L6 regression tests: the switched rebuild must reproduce gen13's frozen cohorts exactly.
 
-    /d/ml_separator_gh/.venv/Scripts/python.exe -m pytest gen16_leads/tests/test_l6_cohort_audit.py
+    /d/ml_separator_gh/.venv/Scripts/python.exe -m pytest generations/gen16_leads/tests/test_l6_cohort_audit.py
 
 Run from the repo root.  These are the guardrails for `gen16/cohort_audit.py`: if any of them
 fails, no number in results/L6_cohort_audit/ may be trusted.

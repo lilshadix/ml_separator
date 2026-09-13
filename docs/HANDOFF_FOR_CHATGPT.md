@@ -1,3 +1,5 @@
+> **Note (2026-09-13):** this report covers gen2–gen11 and was written before gen12; for gen12 onwards see [`generations/README.md`](../generations/README.md). Throughout this report, `README.md` means the gen2-era Russian README, now [`docs/design/README_gen2_simplicial_ru.md`](design/README_gen2_simplicial_ru.md); the repository-root README.md was rewritten in 2026-09.
+
 # `ml_separator` — full research-programme report
 
 **Prepared 2026-09-03 as a self-contained handoff.** The reader is assumed to know machine

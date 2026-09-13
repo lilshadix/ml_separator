@@ -18,10 +18,10 @@ import numpy as np
 import pandas as pd
 
 ROOT = "D:/ml_separator_gh"
-PRED = os.path.join(ROOT, "gen13_separation/predictions/B_primary")
-OUT = os.path.join(ROOT, "gen13_separation/analysis/stage2/d4_amplitude_vs_shape/verify")
+PRED = os.path.join(ROOT, "generations/gen13_separation/predictions/B_primary")
+OUT = os.path.join(ROOT, "generations/gen13_separation/analysis/stage2/d4_amplitude_vs_shape/verify")
 
-sys.path.insert(0, os.path.join(ROOT, "gen13_separation"))
+sys.path.insert(0, os.path.join(ROOT, "generations", "gen13_separation"))
 from gen13sep.metals import LANTHANIDES, SHANNON_RADIUS_CN8  # noqa: E402
 
 LN_IDX = {m: i for i, m in enumerate(LANTHANIDES)}
@@ -29,7 +29,7 @@ RADIUS = np.array([SHANNON_RADIUS_CN8[m] for m in LANTHANIDES], float)
 ARMS = ["C_DIRECT_ROW", "M_SELECTED", "M_PHYSICS_radius+radius_sq",
         "M_LOWRANK_K2", "X_ENS_DIRECT+LOWRANK_K2"]
 
-coh = pd.read_parquet(os.path.join(ROOT, "gen13_separation/manifests/cohort_exact.parquet"))
+coh = pd.read_parquet(os.path.join(ROOT, "generations/gen13_separation/manifests/cohort_exact.parquet"))
 logd_cols = [f"logD__{m}" for m in LANTHANIDES]
 coh_metals = {
     r.cell_id: frozenset(m for m, c in zip(LANTHANIDES, logd_cols)

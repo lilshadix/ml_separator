@@ -12,7 +12,7 @@ fold plan, so gen15 §7's training route has no publication leak *in BP*; the le
 route closes is a different one (the covariance is estimated from OTHER chemotypes' held-out
 residuals, which BP does not mask).
 
-Usage:  .venv/Scripts/python.exe gen16_leads/scripts/l5_mixrepro.py [designs]
+Usage:  .venv/Scripts/python.exe generations/gen16_leads/scripts/l5_mixrepro.py [designs]
 """
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ from gen13sep.metrics import per_extractant, summarise  # noqa: E402
 
 OUT = bootstrap.RESULTS / "L5"
 OUT.mkdir(parents=True, exist_ok=True)
-G15 = bootstrap.ROOT / "gen15_curve" / "results" / "g15_mixture_board_dopt.csv"
+G15 = bootstrap.ROOT / "generations" / "gen15_curve" / "results" / "g15_mixture_board_dopt.csv"
 DESIGNS = sys.argv[1].split(",") if len(sys.argv) > 1 else ["BP"]
 
 

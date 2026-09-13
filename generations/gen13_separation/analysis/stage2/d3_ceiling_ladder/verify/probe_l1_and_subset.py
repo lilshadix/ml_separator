@@ -5,13 +5,13 @@ import numpy as np
 import pandas as pd
 
 ROOT = "D:/ml_separator_gh"
-OUT = os.path.join(ROOT, "gen13_separation/analysis/stage2/d3_ceiling_ladder/verify")
-PRED = os.path.join(ROOT, "gen13_separation/predictions/B_primary")
+OUT = os.path.join(ROOT, "generations/gen13_separation/analysis/stage2/d3_ceiling_ladder/verify")
+PRED = os.path.join(ROOT, "generations/gen13_separation/predictions/B_primary")
 LN = ["La", "Ce", "Pr", "Nd", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu"]
 Zn = dict(zip(LN, [57, 58, 59, 60, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71]))
 IDX = {m: i for i, m in enumerate(LN)}
 
-coh = pd.read_parquet(os.path.join(ROOT, "gen13_separation/manifests/cohort_exact.parquet"))
+coh = pd.read_parquet(os.path.join(ROOT, "generations/gen13_separation/manifests/cohort_exact.parquet"))
 ext = coh["extractant"].to_numpy(); chemo = coh["chemotype"].to_numpy()
 pub = coh["publication_id"].to_numpy(); cells = coh["cell_id"].to_numpy()
 acid = coh["cond__acid_concentration_M"].to_numpy(dtype=float)

@@ -14,7 +14,7 @@ Two diagnostics, the same two the refuters used:
 * **jackknife** — leave one metal out at a time, take the standard error of the slope, and compare
   it with the between-extractant spread.  reliability = max(0, 1 - mean(SE^2) / var(slope)).
 
-Run:  .venv/Scripts/python.exe gen16_leads/scripts/l1_stage2_reliability.py
+Run:  .venv/Scripts/python.exe generations/gen16_leads/scripts/l1_stage2_reliability.py
 """
 from __future__ import annotations
 

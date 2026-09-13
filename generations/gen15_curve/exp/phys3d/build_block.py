@@ -27,10 +27,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 DATA = ROOT / "dataset with 3D structures"
 OUT = Path(__file__).resolve().parent
-sys.path.insert(0, str(ROOT / "gen13_separation"))
+sys.path.insert(0, str(ROOT / "generations" / "gen13_separation"))
 from gen13sep.metals import LANTHANIDES, SHANNON_RADIUS_CN8  # noqa: E402
 
 # standardised Shannon radius, the same axis the bench's basis row 0 uses

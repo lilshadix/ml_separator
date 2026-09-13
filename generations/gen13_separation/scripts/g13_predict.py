@@ -4,11 +4,11 @@ Fits the ensemble on all 521 cells (no hold-out) and predicts, for new (SMILES, 
 rows, the centred lanthanide-axis curve and every pairwise log SF(A/B) = log D(A) - log D(B).
 
     # fit once (writes gen13_separation/models/deploy.joblib)
-    .venv/Scripts/python.exe gen13_separation/scripts/g13_predict.py fit [--arms direct@lean,physics@lean,lowrank1@lean,lowrank2@lean]
+    .venv/Scripts/python.exe generations/gen13_separation/scripts/g13_predict.py fit [--arms direct@lean,physics@lean,lowrank1@lean,lowrank2@lean]
 
     # predict: CSV with columns smiles, any cond__* columns (missing -> NaN), optional DENTATE,
     #          optional measured_A, measured_B, measured_logSF (one pair for calibration)
-    .venv/Scripts/python.exe gen13_separation/scripts/g13_predict.py predict --input new.csv --output pred.csv
+    .venv/Scripts/python.exe generations/gen13_separation/scripts/g13_predict.py predict --input new.csv --output pred.csv
 
 The default configuration is `V2_BAG4@lean` (direct row model + physics-basis, rank-1 and rank-2
 curves, all on conditions + physchem + donors + coordination).  Blocks that do not transfer across
@@ -93,7 +93,7 @@ def fit(arms: list[str]) -> None:
         "train_fps": {s: fp[i] for s, i in zip(cohort.frame["extractant"], range(len(fp)))},
         "cohort_fingerprint": cohort.fingerprint(),
         "cond_medians": features.frame[list(features.blocks["COND"])].median().to_dict(),
-        "residual_cov": residual_cov, "residual_cov_source": str(cov_source.relative_to(paths.REPO_ROOT)) if residual_cov is not None else None,
+        "residual_cov": residual_cov, "residual_cov_source": str(cov_source.relative_to(paths.REPO_ROOT / "generations")) if residual_cov is not None else None,
         "suggested_pairs": [(LANTHANIDES[a], LANTHANIDES[b]) for a, b in design],
     }
     joblib.dump(payload, MODEL_DIR / "deploy.joblib")

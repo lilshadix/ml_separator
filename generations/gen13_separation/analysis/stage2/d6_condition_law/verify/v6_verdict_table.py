@@ -2,7 +2,7 @@
 import pandas as pd
 from pathlib import Path
 
-OUT = Path("D:/ml_separator_gh/gen13_separation/analysis/stage2/d6_condition_law/verify")
+OUT = Path("D:/ml_separator_gh/generations/gen13_separation/analysis/stage2/d6_condition_law/verify")
 
 rows = [
     # (number, claimed, reproduced, unit, n_units, verdict)

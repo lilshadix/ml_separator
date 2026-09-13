@@ -1,8 +1,8 @@
-import sys; sys.path.insert(0,"gen13_separation")
+import sys; sys.path.insert(0,"generations/gen13_separation")
 import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pandas as pd, numpy as np
-b = pd.read_csv("gen13_separation/analysis/stage3/s3_direction_value_BP.csv").set_index("arm")
+b = pd.read_csv("generations/gen13_separation/analysis/stage3/s3_direction_value_BP.csv").set_index("arm")
 order = ["DIR_TRAIN_MAJORITY","MEAN_CURVE","DIR_PREDICTED","FULL_MODEL","DIR_ORACLE"]
 lab = {"DIR_TRAIN_MAJORITY":"majority direction\n(2 d.o.f.)","MEAN_CURVE":"corpus mean curve\n(0 d.o.f.)",
        "DIR_PREDICTED":"direction from donor\ntopology (2 d.o.f.)","FULL_MODEL":"full regression\n(209 columns)",
@@ -25,5 +25,5 @@ ax.annotate("", xy=(3,0.68), xytext=(4,0.68), arrowprops=dict(arrowstyle="<->", 
 ax.text(3.5, 0.695, "+0.070, p = 0.006\nheadroom in the direction", ha="center", fontsize=8, color="0.25")
 ax.set_title("Almost all the transferable chemistry in this corpus is one bit per extractant:\n"
              "which end of the lanthanide series it prefers", fontsize=11)
-fig.tight_layout(); fig.savefig("gen13_separation/figures/stage2/s3_direction_value.png", dpi=160, bbox_inches="tight")
+fig.tight_layout(); fig.savefig("generations/gen13_separation/figures/stage2/s3_direction_value.png", dpi=160, bbox_inches="tight")
 print("written")

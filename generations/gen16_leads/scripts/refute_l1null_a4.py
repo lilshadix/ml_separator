@@ -20,11 +20,11 @@ from scipy import stats
 
 ROOT = Path(r"D:\ml_separator_gh")
 DATA = ROOT / "dataset with 3D structures"
-PHYS3D = ROOT / "gen15_curve" / "exp" / "phys3d"
-LEAD = ROOT / "gen16_leads" / "results" / "L1"
-OUT = ROOT / "gen16_leads" / "results" / "refutation" / "L1NULL" / "A"
+PHYS3D = ROOT / "generations" / "gen15_curve" / "exp" / "phys3d"
+LEAD = ROOT / "generations" / "gen16_leads" / "results" / "L1"
+OUT = ROOT / "generations" / "gen16_leads" / "results" / "refutation" / "L1NULL" / "A"
 OUT.mkdir(parents=True, exist_ok=True)
-sys.path.insert(0, str(ROOT / "gen13_separation"))
+sys.path.insert(0, str(ROOT / "generations" / "gen13_separation"))
 from gen13sep.metals import LANTHANIDES, SHANNON_RADIUS_CN8  # noqa: E402
 
 _r = np.array([SHANNON_RADIUS_CN8[m] for m in LANTHANIDES], dtype=float)

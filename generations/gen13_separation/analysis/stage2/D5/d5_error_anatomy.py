@@ -1,7 +1,7 @@
 """D5 - where the held-out error lives, and can it be predicted without the label.
 
 Run from repo root:
-    .venv/Scripts/python.exe gen13_separation/analysis/stage2/D5/d5_error_anatomy.py
+    .venv/Scripts/python.exe generations/gen13_separation/analysis/stage2/D5/d5_error_anatomy.py
 
 Writes CSVs into gen13_separation/analysis/stage2/D5/ and figures into
 gen13_separation/figures/stage2/ (filenames prefixed d5_).
@@ -15,13 +15,13 @@ import json
 import numpy as np
 import pandas as pd
 
-ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
-sys.path.insert(0, os.path.join(ROOT, "gen13_separation"))
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", ".."))
+sys.path.insert(0, os.path.join(ROOT, "generations", "gen13_separation"))
 from gen13sep.metals import LANTHANIDES, ATOMIC_NUMBER  # noqa: E402
 
-OUT = os.path.join(ROOT, "gen13_separation", "analysis", "stage2", "D5")
-FIG = os.path.join(ROOT, "gen13_separation", "figures", "stage2")
-PRED = os.path.join(ROOT, "gen13_separation", "predictions", "B_primary")
+OUT = os.path.join(ROOT, "generations", "gen13_separation", "analysis", "stage2", "D5")
+FIG = os.path.join(ROOT, "generations", "gen13_separation", "figures", "stage2")
+PRED = os.path.join(ROOT, "generations", "gen13_separation", "predictions", "B_primary")
 os.makedirs(OUT, exist_ok=True)
 os.makedirs(FIG, exist_ok=True)
 
@@ -92,7 +92,7 @@ def main() -> None:
     best["beats_inc"] = (best["ae"] < best["ae_inc"]).astype(float)
 
     # cell metadata
-    coh = pd.read_parquet(os.path.join(ROOT, "gen13_separation", "manifests", "cohort_exact.parquet"))
+    coh = pd.read_parquet(os.path.join(ROOT, "generations", "gen13_separation", "manifests", "cohort_exact.parquet"))
     meta_cols = ["cell_id", "extractant_name", "publication_id", "n_rows", "replicate_sd_median",
                  "chem_family", "ecfp_cluster", "cond__acid_concentration_M",
                  "cond__extractant_concentration_M", "cond__temperature_C",

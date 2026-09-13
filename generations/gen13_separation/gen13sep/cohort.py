@@ -236,7 +236,7 @@ def build_cohort(key_mode: str = "exact", *, require_publication: bool = True) -
 def write_cohort(cohort: Gen13Cohort, name: str = "cohort") -> dict:
     out = paths.MANIFEST_DIR / f"{name}_{cohort.key_mode}.parquet"
     cohort.frame.to_parquet(out, index=False)
-    record = {"path": str(out.relative_to(paths.REPO_ROOT)), "fingerprint": cohort.fingerprint(),
+    record = {"path": str(out.relative_to(paths.REPO_ROOT / "generations")), "fingerprint": cohort.fingerprint(),
               "sha256": paths.sha256_of(out), **cohort.audit}
     with open(paths.MANIFEST_DIR / f"{name}_{cohort.key_mode}.json", "w", encoding="utf-8") as fh:
         json.dump(record, fh, indent=2)

@@ -19,10 +19,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 OUT = Path(__file__).resolve().parent / "data"
-for p in (ROOT / "gen15_curve", ROOT / "gen13_separation", ROOT / "gen14_direction",
-          ROOT / "gen12_2_eu_pred"):
+for p in (ROOT / "generations" / "gen15_curve", ROOT / "generations" / "gen13_separation", ROOT / "generations" / "gen14_direction",
+          ROOT / "generations" / "gen12_2_eu_pred"):
     sys.path.insert(0, str(p))
 
 from gen15 import valuebench as V           # noqa: E402
@@ -63,7 +63,7 @@ def main() -> None:
           f"heavy base rate {E.y_heavy.mean():.3f}")
 
     # ---- side K: external aqueous logK series ------------------------------------------
-    K = pd.read_parquet(ROOT / "gen13_separation" / "features" / "logk_external_series.parquet")
+    K = pd.read_parquet(ROOT / "generations" / "gen13_separation" / "features" / "logk_external_series.parquet")
     K = K.reset_index(drop=True)
     K["y_heavy"] = (K.slope < 0).astype(int)
     print(f"side K: {len(K)} ligands, heavy base rate {K.y_heavy.mean():.3f}")

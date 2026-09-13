@@ -48,6 +48,9 @@ runs/gen9_shape/shape/per_ligand_shape.csv
 # --- Derived dataset builds -------------------------------------------------
 # 86 MB all-metals build; rebuilt by the dataset-builder repo, not authored here
 dataset_all_metals/
+# ...and the same path when a checkout links it in as a symlink (a trailing slash only matches
+# directories, so without this line `git add -A` would commit a link to an absolute local path)
+/dataset_all_metals
 
 # 4.8 MB pretrained ligand embeddings; rebuilt by scripts/build_gen7_ligand_embeddings.py
 # (its manifest IS committed so the build is reproducible and auditable)
@@ -142,3 +145,12 @@ gen15_curve/exp/**/s2s3_per_extractant_*.csv
 gen15_curve/exp/decision/tables/*.parquet
 gen15_curve/exp/**/*.csv.gz
 gen16_anchor/pairs_BP.pkl
+# Rules of the nested gen16_leads/.gitignore, which moved with the directory.
+gen16_leads/results/**/_*.pkl
+gen16_leads/results/**/_*.parquet
+gen16_leads/results/**/_pe_keep/
+gen16_leads/results/L4/per_extractant_by_budget.parquet
+gen16_leads/results/L3/l3c_per_task.csv
+gen16_leads/results/**/*.log
+!gen16_leads/results/**/run.log
+gen16_leads/results/L1/reference_species/out/

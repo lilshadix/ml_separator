@@ -15,8 +15,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
-for _p in (ROOT / "gen13_separation", ROOT / "gen14_direction", ROOT / "gen15_curve"):
+ROOT = Path(__file__).resolve().parents[3]
+for _p in (ROOT / "generations" / "gen13_separation", ROOT / "generations" / "gen14_direction", ROOT / "generations" / "gen15_curve"):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
@@ -28,11 +28,11 @@ from gen14.dirbench import feature_sets, load  # noqa: E402
 from gen15 import arms as A  # noqa: E402
 from gen15.valuebench import Ctx, MIN_METALS  # noqa: E402
 
-sys.path.insert(0, str(ROOT / "gen16_leads" / "scripts"))
+sys.path.insert(0, str(ROOT / "generations" / "gen16_leads" / "scripts"))
 from refute_L4BP_A_rerun import greedy_aopt, predict_pairs, standardise, thin  # noqa: E402
 
-OUT = ROOT / "gen16_leads" / "results" / "refutation" / "L4BP" / "A"
-LEAD = ROOT / "gen16_leads" / "results" / "L4"
+OUT = ROOT / "generations" / "gen16_leads" / "results" / "refutation" / "L4BP" / "A"
+LEAD = ROOT / "generations" / "gen16_leads" / "results" / "L4"
 pd.set_option("display.width", 260)
 
 

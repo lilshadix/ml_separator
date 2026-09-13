@@ -8,7 +8,7 @@ N2  observed vs predicted within-extractant amplitude sd   (claim obs 0.340; arm
 N3  rank-2 condition oracle vs extractant-level curve oracle gain in extractant-macro MAE
     (claim +0.030 vs +0.245 on 169 cells / 12 extractants / 8 arms)
 
-Run:  .venv/Scripts/python.exe gen13_separation/analysis/stage2/d6_condition_law/verify/v6_check.py
+Run:  .venv/Scripts/python.exe generations/gen13_separation/analysis/stage2/d6_condition_law/verify/v6_check.py
 """
 from __future__ import annotations
 
@@ -19,10 +19,10 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path("D:/ml_separator_gh")
-sys.path.insert(0, str(ROOT / "gen13_separation"))
+sys.path.insert(0, str(ROOT / "generations" / "gen13_separation"))
 from gen13sep.metals import LANTHANIDES, SHANNON_RADIUS_CN8  # noqa: E402
 
-OUT = ROOT / "gen13_separation/analysis/stage2/d6_condition_law/verify"
+OUT = ROOT / "generations/gen13_separation/analysis/stage2/d6_condition_law/verify"
 OUT.mkdir(parents=True, exist_ok=True)
 
 # standardised Shannon CN8 radius over the 14 lanthanides (same construction as physics_basis)
@@ -116,7 +116,7 @@ def fit_block(U: np.ndarray, r: np.ndarray, rank: int) -> np.ndarray:
 
 
 def main() -> None:
-    coh = pd.read_parquet(ROOT / "gen13_separation/manifests/cohort_exact.parquet")
+    coh = pd.read_parquet(ROOT / "generations/gen13_separation/manifests/cohort_exact.parquet")
     print(f"cohort {coh.shape}, rz span La-Lu = {RZ.max() - RZ.min():.4f}")
 
     amp = cell_amplitudes(coh)
@@ -194,7 +194,7 @@ def main() -> None:
     amp_map = acid.set_index("cell_id")
     spread_rows, oracle_rows = [], []
     for arm in ARMS:
-        p = pd.read_parquet(ROOT / f"gen13_separation/predictions/B_primary/{arm}.parquet")
+        p = pd.read_parquet(ROOT / f"generations/gen13_separation/predictions/B_primary/{arm}.parquet")
         p = p[p.cell_id.isin(cells_keep)].copy()
         U_all = pair_design(p.A, p.B)
         p["u1"], p["u2"] = U_all[:, 0], U_all[:, 1]
@@ -295,8 +295,8 @@ def main() -> None:
           f"{O.gain_within_rank2.mean() * len(acid_extr) / n_extr_total:.4f} (claim 0.004)")
 
     # ------------------------------------------------------------------- leaderboard cross-check
-    lb = pd.read_csv(ROOT / "gen13_separation/metrics/B_primary/leaderboard.csv").set_index("arm")
-    ab = pd.read_csv(ROOT / "gen13_separation/metrics/B_abl_cond_only/leaderboard.csv"
+    lb = pd.read_csv(ROOT / "generations/gen13_separation/metrics/B_primary/leaderboard.csv").set_index("arm")
+    ab = pd.read_csv(ROOT / "generations/gen13_separation/metrics/B_abl_cond_only/leaderboard.csv"
                      ).set_index("arm")
     print(f"\n[X] C_DIRECT_ROW primary {lb.loc['C_DIRECT_ROW','macro_mae_extractant']:.4f} vs "
           f"cond-only {ab.loc['C_DIRECT_ROW','macro_mae_extractant']:.4f} "

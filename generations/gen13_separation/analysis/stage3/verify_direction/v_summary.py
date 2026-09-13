@@ -1,6 +1,6 @@
 import pandas as pd
 from pathlib import Path
-OUT = Path("D:/ml_separator_gh/gen13_separation/analysis/stage3/verify_direction")
+OUT = Path("D:/ml_separator_gh/generations/gen13_separation/analysis/stage3/verify_direction")
 a = pd.read_csv(OUT/"v_attack_target_units.csv"); b = pd.read_csv(OUT/"v_baselines.csv")
 c = pd.read_csv(OUT/"v_contrasts.csv"); h = pd.read_csv(OUT/"v_headline.csv")
 print("== independent re-derivation (my own pipeline, L2 logistic) ==")

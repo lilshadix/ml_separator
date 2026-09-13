@@ -24,7 +24,7 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path("D:/ml_separator_gh")
-sys.path.insert(0, str(ROOT / "gen13_separation"))
+sys.path.insert(0, str(ROOT / "generations" / "gen13_separation"))
 from gen13sep.metals import (  # noqa: E402
     ATOMIC_NUMBER,
     LANTHANIDES,
@@ -32,7 +32,7 @@ from gen13sep.metals import (  # noqa: E402
     physics_basis,
 )
 
-OUT = ROOT / "gen13_separation/analysis/stage2/d2_metal_dependency/verify"
+OUT = ROOT / "generations/gen13_separation/analysis/stage2/d2_metal_dependency/verify"
 OUT.mkdir(parents=True, exist_ok=True)
 M = list(LANTHANIDES)
 NM = len(M)
@@ -47,7 +47,7 @@ def hdr(s: str) -> None:
 
 
 # --------------------------------------------------------------------------- data
-coh = pd.read_parquet(ROOT / "gen13_separation/manifests/cohort_exact.parquet")
+coh = pd.read_parquet(ROOT / "generations/gen13_separation/manifests/cohort_exact.parquet")
 X = coh[[f"logD__{m}" for m in M]].to_numpy(dtype=float)  # 521 x 14, NaN = unmeasured
 obs = ~np.isnan(X)
 n_obs = obs.sum(1)
@@ -183,7 +183,7 @@ print("\nsd of centred curve, complete-14 cells: " +
 # ------------------------------------------------- C2/C3: arm scoring and oracle
 hdr("C2/C3  extractant-macro MAE and the one-scalar amplitude oracle")
 
-PRED = ROOT / "gen13_separation/predictions/B_primary"
+PRED = ROOT / "generations/gen13_separation/predictions/B_primary"
 
 
 def load_arm(name: str) -> pd.DataFrame:

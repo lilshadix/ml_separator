@@ -6,7 +6,7 @@ is how many chemically independent units the model saw.  The slope of the result
 full corpus says whether collecting more chemotypes would buy anything, and how much.
 """
 import sys, time
-sys.path.insert(0, "gen13_separation")
+sys.path.insert(0, "generations/gen13_separation")
 import numpy as np, pandas as pd
 from gen13sep.amplitude_bench import (load_bench, cell_weights, _pair_frame, LEAN_BLOCKS)
 from gen13sep.metrics import per_extractant, summarise
@@ -53,7 +53,7 @@ for f in folds:
     print(f"  seed {f.seed} fold {f.fold} done ({time.time()-t0:.0f}s)", flush=True)
 
 table = pd.concat(rows, ignore_index=True)
-table.to_parquet(f"gen13_separation/analysis/stage3/s3_learning_curve_{DESIGN}_pairs.parquet", index=False)
+table.to_parquet(f"generations/gen13_separation/analysis/stage3/s3_learning_curve_{DESIGN}_pairs.parquet", index=False)
 
 out = []
 for (frac, draw), block in table.groupby(["fraction", "draw"]):
@@ -71,7 +71,7 @@ agg = curve.groupby("fraction").agg(n_chemotypes=("n_chemotypes", "mean"),
                                     macro_mae=("macro_mae", "mean"),
                                     sd=("macro_mae", "std"),
                                     macro_mae_far=("macro_mae_far", "mean")).reset_index()
-agg.to_csv(f"gen13_separation/analysis/stage3/s3_learning_curve_{DESIGN}.csv", index=False)
+agg.to_csv(f"generations/gen13_separation/analysis/stage3/s3_learning_curve_{DESIGN}.csv", index=False)
 print()
 print(agg.round(4).to_string(index=False))
 

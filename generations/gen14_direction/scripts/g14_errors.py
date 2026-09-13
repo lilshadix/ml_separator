@@ -2,8 +2,8 @@
 import sys
 from pathlib import Path
 import numpy as np, pandas as pd
-sys.path.insert(0, str(Path("gen14_direction").resolve()))
-sys.path.insert(0, str(Path("gen13_separation").resolve()))
+sys.path.insert(0, str(Path("generations/gen14_direction").resolve()))
+sys.path.insert(0, str(Path("generations/gen13_separation").resolve()))
 from gen14 import dirbench as db
 from gen14 import models as M
 from gen13sep.amplitude_bench import LEAN_BLOCKS

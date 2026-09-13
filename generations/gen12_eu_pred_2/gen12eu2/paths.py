@@ -5,8 +5,8 @@ import sys
 from pathlib import Path
 
 GEN122_ROOT = Path(__file__).resolve().parents[1]          # gen12_eu_pred_2/
-REPO_ROOT = GEN122_ROOT.parent
-GEN12_ROOT = REPO_ROOT / "gen12_eu_pred"                    # frozen, read-only
+REPO_ROOT = GEN122_ROOT.parent.parent
+GEN12_ROOT = REPO_ROOT / "generations" / "gen12_eu_pred"                    # frozen, read-only
 SRC_ROOT = REPO_ROOT / "src"
 for _p in (SRC_ROOT, GEN12_ROOT):
     if str(_p) not in sys.path:
@@ -58,13 +58,18 @@ def assert_gen12_untouched() -> None:
     import json
     manifest = json.loads((GEN12_MANIFESTS / "manifest.json").read_text())
     import hashlib
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "verify_relocation", REPO_ROOT / "generations" / "verify_relocation.py")
+    relocation = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(relocation)
     drift = []
     for rel, meta in manifest["artefacts"].items():
         path = GEN12_ROOT / rel
         if not path.exists():
             drift.append((rel, "missing"))
             continue
-        digest = hashlib.blake2b(path.read_bytes(), digest_size=16).hexdigest()
+        digest = hashlib.blake2b(relocation.original_bytes(path), digest_size=16).hexdigest()
         if digest != meta["blake2b_128"]:
             drift.append((rel, "changed"))
     # The manifest hashes itself last, and the report/README may legitimately have been

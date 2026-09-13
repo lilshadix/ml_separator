@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np, pandas as pd
 
 ROOT = Path(r"D:\ml_separator_gh")
-sys.path.insert(0, str(ROOT / "gen14_direction")); sys.path.insert(0, str(ROOT / "gen13_separation"))
+sys.path.insert(0, str(ROOT / "generations" / "gen14_direction")); sys.path.insert(0, str(ROOT / "generations" / "gen13_separation"))
 from gen14 import dirbench as db
 from gen13sep.amplitude_bench import LEAN_BLOCKS, _pair_frame, cell_weights
 from gen13sep.metrics import per_extractant, summarise
@@ -19,7 +19,7 @@ DESIGN = sys.argv[1] if len(sys.argv) > 1 else "BP"
 FEAT = sys.argv[2] if len(sys.argv) > 2 else "LEAN209"
 GAMMAS = [0.02, 0.1, 0.3, 0.6, 1.0, 2.0, 8.0, 1e6]
 ALPHAS = [1.0, 10.0, 100.0, 1000.0]
-CACHE = ROOT / "gen16_anchor" / f"pairs_{DESIGN}.pkl"
+CACHE = ROOT / "generations" / "gen16_anchor" / f"pairs_{DESIGN}.pkl"
 
 bench = db.load(); FS = db.feature_sets(bench)
 amp = bench.coef[:, 0]
@@ -87,7 +87,7 @@ table = pd.concat(parts, ignore_index=True)
 names = [c for c in table.columns if "_g" in c or c in ("MEAN_CURVE", "DIR_ORACLE")]
 board = summarise(per_extractant(table, names), table, names)
 board.insert(0, "design", DESIGN)
-board.to_csv(ROOT / "gen16_anchor" / f"g16_anchor2_{DESIGN}_{FEAT}.csv", index=False)
+board.to_csv(ROOT / "generations" / "gen16_anchor" / f"g16_anchor2_{DESIGN}_{FEAT}.csv", index=False)
 sel = board[["arm", "macro_mae_extractant", "macro_mae_extractant_seed_sd", "macro_sign_acc_strong"]]
 print(f"\n=== {DESIGN} / {FEAT}  ({time.time()-t0:.0f}s) === full arms (predicted magnitude)")
 print(sel[~sel.arm.str.endswith("_S")].round(4).to_string(index=False))

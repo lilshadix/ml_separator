@@ -5,12 +5,12 @@ import numpy as np
 import pandas as pd
 
 ROOT = "D:/ml_separator_gh"
-OUT = os.path.join(ROOT, "gen13_separation/analysis/stage2/d3_ceiling_ladder/verify")
+OUT = os.path.join(ROOT, "generations/gen13_separation/analysis/stage2/d3_ceiling_ladder/verify")
 LN = ["La", "Ce", "Pr", "Nd", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu"]
 Zn = dict(zip(LN, [57, 58, 59, 60, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71]))
 IDX = {m: i for i, m in enumerate(LN)}
 
-coh = pd.read_parquet(os.path.join(ROOT, "gen13_separation/manifests/cohort_exact.parquet"))
+coh = pd.read_parquet(os.path.join(ROOT, "generations/gen13_separation/manifests/cohort_exact.parquet"))
 ext = coh["extractant"].to_numpy(); chemo = coh["chemotype"].to_numpy()
 pub = coh["publication_id"].to_numpy(); cells = coh["cell_id"].to_numpy()
 X = coh[[f"logD__{m}" for m in LN]].to_numpy(dtype=float)
@@ -113,7 +113,7 @@ for nm, col in [("L3_naive", "p3n"), ("L3_twoway", "p3t")]:
     out.append(dict(predictor=nm, ext_macro=round(em(d), 4), pooled=round(float(d.ae.mean()), 4),
                     n_pairs=len(d)))
     print(f"  {nm:26s} ext-macro {em(d):.4f}  pooled {d.ae.mean():.4f}")
-PRED = os.path.join(ROOT, "gen13_separation/predictions/B_primary")
+PRED = os.path.join(ROOT, "generations/gen13_separation/predictions/B_primary")
 for a in ["X_ENS_DIRECT+LOWRANK_K2", "C_DIRECT_ROW", "M_SELECTED", "B1_MEAN_CURVE"]:
     pr = pd.read_parquet(os.path.join(PRED, a + ".parquet"))
     k = pd.Series(list(zip(pr.cell_id, pr.A, pr.B)))

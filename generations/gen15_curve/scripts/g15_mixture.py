@@ -4,7 +4,7 @@ Runs the pre-check first (how many nats separate the components' likelihoods, an
 posterior collapses onto one component), then scores the mixture against the pooled BLUP on a
 common pair set.
 
-Usage:  python gen15_curve/scripts/g15_mixture.py [designs] [--how dopt|widest] [--noshift]
+Usage:  python generations/gen15_curve/scripts/g15_mixture.py [designs] [--how dopt|widest] [--noshift]
 """
 from __future__ import annotations
 

@@ -3,7 +3,7 @@ import glob
 from pathlib import Path
 import pandas as pd
 
-R = Path("gen14_direction/results")
+R = Path("generations/gen14_direction/results")
 D = ["B", "BR", "BQ", "A", "BP"]
 out = []
 

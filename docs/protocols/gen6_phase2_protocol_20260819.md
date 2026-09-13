@@ -1,7 +1,7 @@
 # gen6 Phase 2 — pre-registered protocol for Experiments C and F (2026-08-19)
 
 **Status: pre-registration, written after Phase 1 reported case A and before any Phase 2 model was
-fitted.** Phase 1 ([results](gen6_phase0_and_phase1_results_20260819.md)) established that the
+fitted.** Phase 1 ([results](../results/gen6_phase0_and_phase1_results_20260819.md)) established that the
 binding constraint on new-ligand prediction is chemical coverage, that the whole gain lands in the
 per-ligand *level* offset, and that at equal row budget breadth beats depth. Case A of the decision
 tree licenses two next steps: a hierarchical level model aimed at the offset (C), and a retrospective

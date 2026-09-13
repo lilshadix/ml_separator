@@ -1,7 +1,7 @@
 """D5 part 2 - is the residual error noise or signal, and is abstention worth anything.
 
 Run from repo root:
-    .venv/Scripts/python.exe gen13_separation/analysis/stage2/D5/d5_signal_vs_noise.py
+    .venv/Scripts/python.exe generations/gen13_separation/analysis/stage2/D5/d5_signal_vs_noise.py
 """
 from __future__ import annotations
 
@@ -13,13 +13,13 @@ import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
 
-ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
-sys.path.insert(0, os.path.join(ROOT, "gen13_separation"))
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", ".."))
+sys.path.insert(0, os.path.join(ROOT, "generations", "gen13_separation"))
 from gen13sep.metals import LANTHANIDES  # noqa: E402
 
-OUT = os.path.join(ROOT, "gen13_separation", "analysis", "stage2", "D5")
-FIG = os.path.join(ROOT, "gen13_separation", "figures", "stage2")
-PRED = os.path.join(ROOT, "gen13_separation", "predictions", "B_primary")
+OUT = os.path.join(ROOT, "generations", "gen13_separation", "analysis", "stage2", "D5")
+FIG = os.path.join(ROOT, "generations", "gen13_separation", "figures", "stage2")
+PRED = os.path.join(ROOT, "generations", "gen13_separation", "predictions", "B_primary")
 BEST = "X_ENS_DIRECT+LOWRANK_K2"
 
 
@@ -37,7 +37,7 @@ def main():
     mc["ae_mc"] = (mc["y"] - mc["prediction"]).abs()
     k = ["split_seed", "cell_id", "A", "B"]
     d = d.merge(mc[k + ["ae_mc"]], on=k, how="left")
-    coh = pd.read_parquet(os.path.join(ROOT, "gen13_separation", "manifests", "cohort_exact.parquet"))
+    coh = pd.read_parquet(os.path.join(ROOT, "generations", "gen13_separation", "manifests", "cohort_exact.parquet"))
     d = d.merge(coh[["cell_id", "n_rows", "replicate_sd_median", "publication_id",
                      "cond__acid_concentration_M"]], on="cell_id", how="left")
     sim = pd.read_parquet(os.path.join(PRED, "similarity.parquet"))

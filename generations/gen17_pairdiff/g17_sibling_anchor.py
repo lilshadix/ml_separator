@@ -1,8 +1,8 @@
 """Is the sibling-anchor gain trivial (same extractant) or real (different extractant)?"""
 import sys,pickle,numpy as np
-sys.path.insert(0,"gen13_separation")
+sys.path.insert(0,"generations/gen13_separation")
 from gen13sep import basis as Bs
-d=pickle.load(open("gen14_direction/cache/bench.pkl","rb"))
+d=pickle.load(open("generations/gen14_direction/cache/bench.pkl","rb"))
 F=d.frame; coef=d.coef; bas=d.basis; C=Bs.centre_rows(d.Y); nobs=d.n_obs
 keep=np.flatnonzero(nobs>=5)
 pub=F["publication_id"].to_numpy(); ext=F["extractant"].to_numpy()

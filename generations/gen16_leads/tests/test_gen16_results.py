@@ -4,7 +4,7 @@ Fast tests pin every headline value to the committed artefact it was quoted from
 regenerated CSV cannot silently diverge from `DECISION_REPORT.md`.  Slow tests (`-m slow`) re-run
 the pipelines that produce them.
 
-Run:  .venv/Scripts/python.exe -m pytest gen16_leads/tests -q -m "not slow"
+Run:  .venv/Scripts/python.exe -m pytest generations/gen16_leads/tests -q -m "not slow"
 """
 from __future__ import annotations
 

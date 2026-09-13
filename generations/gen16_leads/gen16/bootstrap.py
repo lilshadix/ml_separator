@@ -17,9 +17,9 @@ from pathlib import Path
 
 os.environ.setdefault("LOKY_MAX_CPU_COUNT", "2")
 
-ROOT = Path(__file__).resolve().parents[2]
-G16 = ROOT / "gen16_leads"
+ROOT = Path(__file__).resolve().parents[3]
+G16 = ROOT / "generations" / "gen16_leads"
 RESULTS = G16 / "results"
-for _p in (ROOT / "gen15_curve", ROOT / "gen14_direction", ROOT / "gen13_separation"):
+for _p in (ROOT / "generations" / "gen15_curve", ROOT / "generations" / "gen14_direction", ROOT / "generations" / "gen13_separation"):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))

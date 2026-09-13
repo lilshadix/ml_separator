@@ -55,11 +55,11 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "gen13_separation"))
+ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT / "generations" / "gen13_separation"))
 from gen13sep import wildcluster as wc  # noqa: E402
 
-RESULTS = ROOT / "gen16_protocol" / "results"
+RESULTS = ROOT / "generations" / "gen16_protocol" / "results"
 ICC_AMPLITUDE = 0.72          # measured chemotype-level ICC of the cell amplitude
 REPLICATE_SD = 0.237          # corpus replicate sd of the amplitude -- the irreducible floor
 
@@ -73,7 +73,7 @@ def reliability_neff(n_g: np.ndarray, icc: float) -> tuple[float, np.ndarray]:
 
 def main() -> None:
     RESULTS.mkdir(parents=True, exist_ok=True)
-    pe = pd.read_csv(ROOT / "gen13_separation" / "metrics" / "BP_all" / "per_extractant.csv")
+    pe = pd.read_csv(ROOT / "generations" / "gen13_separation" / "metrics" / "BP_all" / "per_extractant.csv")
     n_g = pe.drop_duplicates("extractant").groupby("chemotype").size().to_numpy().astype(float)
     G, N = len(n_g), n_g.sum()
 

@@ -27,11 +27,11 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 ROOT = Path("D:/ml_separator_gh")
-sys.path.insert(0, str(ROOT / "gen13_separation"))
+sys.path.insert(0, str(ROOT / "generations" / "gen13_separation"))
 from gen13sep.metals import LANTHANIDES, ATOMIC_NUMBER, SHANNON_RADIUS_CN8, physics_basis
 
-OUT = ROOT / "gen13_separation/analysis/stage2/d2_metal_dependency"
-FIG = ROOT / "gen13_separation/figures/stage2"
+OUT = ROOT / "generations/gen13_separation/analysis/stage2/d2_metal_dependency"
+FIG = ROOT / "generations/gen13_separation/figures/stage2"
 M = list(LANTHANIDES)
 NM = len(M)
 IDX = {m: i for i, m in enumerate(M)}
@@ -47,7 +47,7 @@ def say(*a):
     log.append(s)
 
 
-df = pd.read_parquet(ROOT / "gen13_separation/manifests/cohort_exact.parquet")
+df = pd.read_parquet(ROOT / "generations/gen13_separation/manifests/cohort_exact.parquet")
 Yraw = df[["logD__" + m for m in M]].to_numpy(float)
 OBS = ~np.isnan(Yraw)
 nmet = OBS.sum(axis=1)
@@ -119,7 +119,7 @@ cellrow = {c: i for i, c in enumerate(df["cell_id"])}
 arm_rows, curve_store = [], {}
 ARMS = ["C_DIRECT_ROW", "X_ENS_DIRECT+LOWRANK_K2", "M_SELECTED", "B1_MEAN_CURVE"]
 for arm in ARMS:
-    p = pd.read_parquet(ROOT / f"gen13_separation/predictions/B_primary/{arm}.parquet")
+    p = pd.read_parquet(ROOT / f"generations/gen13_separation/predictions/B_primary/{arm}.parquet")
     seed = p.split_seed.min()
     p = p[p.split_seed == seed].copy()
     p["resid"] = p.y - p.prediction

@@ -14,7 +14,7 @@ Three fixes are tested against the untouched target, all on the frozen folds:
   * well-only   : train only on cells whose attenuation exceeds a threshold
 """
 import sys, time
-sys.path.insert(0, "gen13_separation")
+sys.path.insert(0, "generations/gen13_separation")
 import numpy as np, pandas as pd
 from gen13sep.amplitude_bench import load_bench, compare, LEAN_BLOCKS
 from gen13sep.basis import DEFAULT_RIDGE
@@ -102,10 +102,10 @@ for DESIGN in DESIGNS:
     print("=== " + DESIGN + f"  ({time.time()-t0:.0f}s)", flush=True)
     print(board[["arm", "macro_mae_extractant", "macro_mae_extractant_seed_sd", "macro_mae_chemotype",
                  "macro_mae_far", "macro_sign_acc_strong"]].round(4).to_string(index=False), flush=True)
-    board.to_csv("gen13_separation/analysis/stage3/s3_attenuation_" + DESIGN + ".csv", index=False)
+    board.to_csv("generations/gen13_separation/analysis/stage3/s3_attenuation_" + DESIGN + ".csv", index=False)
     pe = per_extractant(table, list(CAND))
     comps = {DESIGN + "|" + c + "_vs_BASE": ("AMP_BASE", c) for c in CAND if c != "AMP_BASE"}
     r = paired_contrasts(pe, comps, value="mae_all", replicates=10000)
     print(r[["comparison", "point", "ci95_low", "ci95_high", "p_two_sided", "seeds_positive",
              "loco_sign_stable", "passes_P1"]].round(4).to_string(index=False), flush=True)
-    r.to_csv("gen13_separation/analysis/stage3/s3_attenuation_contrasts_" + DESIGN + ".csv", index=False)
+    r.to_csv("generations/gen13_separation/analysis/stage3/s3_attenuation_contrasts_" + DESIGN + ".csv", index=False)

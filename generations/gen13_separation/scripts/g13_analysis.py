@@ -1,6 +1,6 @@
 """Score a finished ladder: per-extractant table, leaderboard, paired contrasts.
 
-    .venv/Scripts/python.exe gen13_separation/scripts/g13_analysis.py --label B_primary
+    .venv/Scripts/python.exe generations/gen13_separation/scripts/g13_analysis.py --label B_primary
 
 The registered contrast set (P1, S1-S4; PRE_REGISTRATION.md §5) is the default; anything
 passed through --extra-contrasts is labelled exploratory.  Outputs under metrics/<label>/

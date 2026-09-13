@@ -27,9 +27,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
-for _p in (ROOT / "gen13_separation", ROOT / "gen14_direction", ROOT / "gen15_curve",
-           ROOT / "gen16_leads"):
+ROOT = Path(__file__).resolve().parents[3]
+for _p in (ROOT / "generations" / "gen13_separation", ROOT / "generations" / "gen14_direction", ROOT / "generations" / "gen15_curve",
+           ROOT / "generations" / "gen16_leads"):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
@@ -40,8 +40,8 @@ from gen14.dirbench import load  # noqa: E402
 from gen15.valuebench import DESIGNS, MIN_METALS  # noqa: E402
 from gen16 import l4_acq as L  # noqa: E402
 
-L4 = ROOT / "gen16_leads" / "results" / "L4"
-OUT = ROOT / "gen16_leads" / "results" / "refutation" / "L4BP" / "B"
+L4 = ROOT / "generations" / "gen16_leads" / "results" / "L4"
+OUT = ROOT / "generations" / "gen16_leads" / "results" / "refutation" / "L4BP" / "B"
 OUT.mkdir(parents=True, exist_ok=True)
 LOG = OUT / "refute_L4BP_B.log"
 REG = {"AOPT_vs_RANDOM": ("RANDOM", "AOPT"), "AOPT_vs_MAXMIN": ("MAXMIN", "AOPT"),

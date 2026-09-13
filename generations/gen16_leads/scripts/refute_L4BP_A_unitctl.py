@@ -15,14 +15,14 @@ from pathlib import Path
 
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
-for _p in (ROOT / "gen13_separation", ROOT / "gen14_direction", ROOT / "gen15_curve"):
+ROOT = Path(__file__).resolve().parents[3]
+for _p in (ROOT / "generations" / "gen13_separation", ROOT / "generations" / "gen14_direction", ROOT / "generations" / "gen15_curve"):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
 from gen13sep.inference import paired_contrasts  # noqa: E402
 
-OUT = ROOT / "gen16_leads" / "results" / "refutation" / "L4BP" / "A"
+OUT = ROOT / "generations" / "gen16_leads" / "results" / "refutation" / "L4BP" / "A"
 COMPS = {"AOPTR_vs_RANDOM": ("RANDOM", "AOPT_R"), "BIGGEST_vs_RANDOM": ("RANDOM", "BIGGEST"),
          "AOPTR_vs_BIGGEST": ("BIGGEST", "AOPT_R"), "AOPTR_vs_RANDCM": ("RANDCM", "AOPT_R"),
          "RANDCM_vs_RANDOM": ("RANDOM", "RANDCM")}

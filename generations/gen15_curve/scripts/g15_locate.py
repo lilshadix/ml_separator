@@ -18,7 +18,7 @@ by scoring a ladder of oracles alongside the deployed arm under all five designs
   QUERY_SPAN        magnitude as a monotone function of the radius span of the metals asked about
   N_METALS          magnitude as a monotone function of how many metals are asked about
 
-Usage:  python gen15_curve/scripts/g15_locate.py [design,design,...]
+Usage:  python generations/gen15_curve/scripts/g15_locate.py [design,design,...]
 """
 from __future__ import annotations
 

@@ -22,7 +22,7 @@ stage1_coefficients.csv, stage1_identifiability.csv, stage1_slopes.csv, stage1_s
 stage1_loco.csv, stage1_perm_null.csv, contrasts_stage1.csv, stage1_decision.json}.
 
 Run from the repo root:
-    PYTHONIOENCODING=utf-8 OMP_NUM_THREADS=2 .venv/Scripts/python.exe gen16_leads/scripts/l1_stage1.py
+    PYTHONIOENCODING=utf-8 OMP_NUM_THREADS=2 .venv/Scripts/python.exe generations/gen16_leads/scripts/l1_stage1.py
 """
 from __future__ import annotations
 

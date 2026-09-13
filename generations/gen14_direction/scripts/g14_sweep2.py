@@ -13,7 +13,7 @@ choices around it, all of which are free:
 * **loss** -- hinge instead of log; L1 instead of L2 (which of 39 correlated columns survive?).
 * **balancing** -- one vote per chemotype (locked) or one vote per extractant.
 
-Usage:  python gen14_direction/scripts/g14_sweep2.py [design,design,...]
+Usage:  python generations/gen14_direction/scripts/g14_sweep2.py [design,design,...]
 """
 from __future__ import annotations
 

@@ -25,8 +25,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
-for _p in (ROOT / "gen13_separation", ROOT / "gen14_direction", ROOT / "gen15_curve"):
+ROOT = Path(__file__).resolve().parents[3]
+for _p in (ROOT / "generations" / "gen13_separation", ROOT / "generations" / "gen14_direction", ROOT / "generations" / "gen15_curve"):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
@@ -35,9 +35,9 @@ from gen13sep.splits import all_folds  # noqa: E402
 from gen14.dirbench import load  # noqa: E402
 from gen15.valuebench import MIN_METALS  # noqa: E402
 
-OUT = ROOT / "gen16_leads" / "results" / "refutation" / "L4BP" / "A"
+OUT = ROOT / "generations" / "gen16_leads" / "results" / "refutation" / "L4BP" / "A"
 OUT.mkdir(parents=True, exist_ok=True)
-LEAD = ROOT / "gen16_leads" / "results" / "L4"
+LEAD = ROOT / "generations" / "gen16_leads" / "results" / "L4"
 KEEP = LEAD / "_pe_keep"
 BUDGETS = (6, 9, 12, 16, 20, 24)
 pd.set_option("display.width", 260)
@@ -216,7 +216,7 @@ def main() -> None:
     # ---------------------------------------------------------------- 8  seeds= and determinism
     say()
     hits = []
-    for f in sorted((ROOT / "gen16_leads").rglob("*.py")):
+    for f in sorted((ROOT / "generations" / "gen16_leads").rglob("*.py")):
         try:
             txt = f.read_text(encoding="utf-8")
         except Exception:
@@ -232,8 +232,8 @@ def main() -> None:
     code = (
         "import sys;from pathlib import Path\n"
         f"R=Path(r'{ROOT}')\n"
-        "for p in (R/'gen13_separation',R/'gen14_direction',R/'gen15_curve'):sys.path.insert(0,str(p))\n"
-        "sys.path.insert(0,str(R/'gen16_leads'))\n"
+        "for p in (R/'generations'/'gen13_separation',R/'generations'/'gen14_direction',R/'generations'/'gen15_curve'):sys.path.insert(0,str(p))\n"
+        "sys.path.insert(0,str(R/'generations'/'gen16_leads'))\n"
         "import hashlib,numpy as np\n"
         "from gen13sep.splits import all_folds\n"
         "from gen14.dirbench import load\n"

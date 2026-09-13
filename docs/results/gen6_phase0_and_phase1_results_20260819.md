@@ -1,6 +1,6 @@
 # gen6 — Phase 0 and Phase 1 results (2026-08-19)
 
-Protocol: [`gen6_diversity_protocol_20260819.md`](gen6_diversity_protocol_20260819.md), written and
+Protocol: [`gen6_diversity_protocol_20260819.md`](../protocols/gen6_diversity_protocol_20260819.md), written and
 committed before any gen6 model was fitted. Runs:
 
 | what | run directory | command |

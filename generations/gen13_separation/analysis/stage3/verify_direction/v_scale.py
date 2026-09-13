@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, "D:/ml_separator_gh/gen13_separation/analysis/stage3/verify_direction")
+sys.path.insert(0, "D:/ml_separator_gh/generations/gen13_separation/analysis/stage3/verify_direction")
 from v_runner import *
 import numpy as np
 r = BASIS[0]

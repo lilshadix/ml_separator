@@ -6,7 +6,7 @@ commit that adds this file. The harness was adversarially reviewed before freezi
 ~38 findings; the design changes they forced are marked ★ below).
 
 > **Results and errata — read alongside this file.**
-> [`gen5_levels_results_20260818.md`](gen5_levels_results_20260818.md) analyses the first run
+> [`gen5_levels_results_20260818.md`](../results/gen5_levels_results_20260818.md) analyses the first run
 > (`runs/gen5_levels_20260817T195411Z`) and records nine harness defects found afterwards, all
 > fixed on 2026-08-18. Three of them affect how this protocol must be read:
 > * The first run executed **two of the four regimes below** — `unseen_chemotype` and

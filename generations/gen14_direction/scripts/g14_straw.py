@@ -31,9 +31,9 @@ tests (ICDM 2009, doi:10.1109/icdm.2009.108) and Wallach & Heifets' AVE bias
    structural train/test redundancy each design leaves behind.
 
 Usage:
-    python gen14_direction/scripts/g14_straw.py                    # all controls, 8 draws
-    python gen14_direction/scripts/g14_straw.py --draws 20         # publication-grade
-    python gen14_direction/scripts/g14_straw.py --only ave
+    python generations/gen14_direction/scripts/g14_straw.py                    # all controls, 8 draws
+    python generations/gen14_direction/scripts/g14_straw.py --draws 20         # publication-grade
+    python generations/gen14_direction/scripts/g14_straw.py --only ave
 """
 from __future__ import annotations
 

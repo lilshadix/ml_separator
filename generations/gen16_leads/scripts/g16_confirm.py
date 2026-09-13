@@ -15,7 +15,7 @@ Protocol enforced by this script:
   ``CONFIRMATION_RUN_ONCE.json`` refuses a second run unless ``--force`` is given, in which case
   the second run is written beside the first with an explicit ``rerun`` suffix (never over it).
 
-Run:  .venv/Scripts/python.exe gen16_leads/scripts/g16_confirm.py --seeds-file <path> [--claims id,id] [--force]
+Run:  .venv/Scripts/python.exe generations/gen16_leads/scripts/g16_confirm.py --seeds-file <path> [--claims id,id] [--force]
 """
 from __future__ import annotations
 
@@ -30,8 +30,8 @@ from pathlib import Path
 import pandas as pd
 
 HERE = Path(__file__).resolve().parent.parent
-ROOT = HERE.parent
-for p in (ROOT / "gen13_separation", ROOT / "gen14_direction", ROOT / "gen15_curve", HERE):
+ROOT = HERE.parent.parent
+for p in (ROOT / "generations" / "gen13_separation", ROOT / "generations" / "gen14_direction", ROOT / "generations" / "gen15_curve", HERE):
     if str(p) not in sys.path:
         sys.path.insert(0, str(p))
 

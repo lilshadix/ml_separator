@@ -1,6 +1,6 @@
 """Stage-2 one-pair calibration on a finished ladder's saved curves.
 
-    .venv/Scripts/python.exe gen13_separation/scripts/g13_fewshot_stage2.py --label B_primary \
+    .venv/Scripts/python.exe generations/gen13_separation/scripts/g13_fewshot_stage2.py --label B_primary \
         --arms C_DIRECT_ROW,X_ENS_DIRECT+LOWRANK_K2,M_SELECTED,B1_MEAN_CURVE
 
 Writes ``metrics/<label>/fewshot_stage2_leaderboard.csv`` (extractant-macro MAE before and after

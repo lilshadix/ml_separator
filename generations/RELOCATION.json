@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "commit_before": "fdb1e15",
+  "move_commit": "155dc6c",
+  "purpose": "Commit 155dc6c moved gen12_eu_pred/ and gen12_2_eu_pred/ from the repository root into generations/. Their manifests (manifests/manifest.json, key 'artefacts') hash nearly every file in those directories, code included. These entries record, as exact text substitutions, the only edits made to manifest-listed files so that the code resolves the same targets after the move. generations/verify_relocation.py undoes the substitutions and checks the result against the hashes read live from the manifests, so the frozen manifests stay verifiable without being rewritten. Hashes are deliberately not stored here.",
+  "entries": [
+    {
+      "path": "generations/gen12_eu_pred/gen12eu/paths.py",
+      "path_before": "gen12_eu_pred/gen12eu/paths.py",
+      "manifest": "generations/gen12_eu_pred/manifests/manifest.json",
+      "manifest_key": "gen12eu/paths.py",
+      "substitutions": [
+        {
+          "after": "REPO_ROOT = GEN12_ROOT.parent.parent\n",
+          "before": "REPO_ROOT = GEN12_ROOT.parent\n"
+        }
+      ],
+      "reason": "REPO_ROOT was GEN12_ROOT.parent, which was the repository root while gen12_eu_pred/ sat at the root; after the move it is generations/, so src/ on sys.path, the frozen bundle in 'dataset with 3D structures/', the runs/ caches and dataset_all_metals/ all resolved under generations/ and did not exist. One more .parent makes REPO_ROOT the repository root again; every path derived from it is then byte-for-byte the pre-move target."
+    },
+    {
+      "path": "generations/gen12_2_eu_pred/gen122/paths.py",
+      "path_before": "gen12_2_eu_pred/gen122/paths.py",
+      "manifest": "generations/gen12_2_eu_pred/manifests/manifest.json",
+      "manifest_key": "gen122/paths.py",
+      "substitutions": [
+        {
+          "after": "REPO_ROOT = GEN122_ROOT.parent.parent\n",
+          "before": "REPO_ROOT = GEN122_ROOT.parent\n"
+        },
+        {
+          "after": "GEN12_ROOT = REPO_ROOT / \"generations\" / \"gen12_eu_pred\"\n",
+          "before": "GEN12_ROOT = REPO_ROOT / \"gen12_eu_pred\"\n"
+        }
+      ],
+      "reason": "REPO_ROOT was GEN122_ROOT.parent, i.e. generations/ after the move. It gains one .parent so it names the repository root again, and GEN12_ROOT, which is derived from it, gains generations/ so it still names gen12_eu_pred/ (the sys.path entry for gen12eu and every frozen Gen12 artefact Gen12.2 reads)."
+    },
+    {
+      "path": "generations/gen12_2_eu_pred/scripts/g122_self_audit.py",
+      "path_before": "gen12_2_eu_pred/scripts/g122_self_audit.py",
+      "manifest": "generations/gen12_2_eu_pred/manifests/manifest.json",
+      "manifest_key": "scripts/g122_self_audit.py",
+      "substitutions": [
+        {
+          "after": "from gen122 import coordination, paths  # noqa: E402\nimport importlib.util  # noqa: E402\n_RELOCATION_SPEC = importlib.util.spec_from_file_location(\n    \"verify_relocation\", paths.REPO_ROOT / \"generations\" / \"verify_relocation.py\")\nverify_relocation = importlib.util.module_from_spec(_RELOCATION_SPEC)\n_RELOCATION_SPEC.loader.exec_module(verify_relocation)\n",
+          "before": "from gen122 import coordination, paths  # noqa: E402\n"
+        },
+        {
+          "after": "digest = hashlib.blake2b(verify_relocation.original_bytes(path), digest_size=16).hexdigest()",
+          "before": "digest = hashlib.blake2b(path.read_bytes(), digest_size=16).hexdigest()"
+        }
+      ],
+      "reason": "Check 1 compares every Gen12 artefact byte-for-byte with Gen12's manifest, and gen12eu/paths.py now carries a recorded relocation edit. The guard loads generations/verify_relocation.py by file location and hashes original_bytes(path), which undoes only the substitutions recorded here, so any other change is still drift."
+    },
+    {
+      "path": "generations/gen12_eu_pred/scripts/gen12_manifest.py",
+      "path_before": "gen12_eu_pred/scripts/gen12_manifest.py",
+      "manifest": "generations/gen12_eu_pred/manifests/manifest.json",
+      "manifest_key": "scripts/gen12_manifest.py",
+      "substitutions": [
+        {
+          "after": "from gen12eu import paths  # noqa: E402\nimport importlib.util  # noqa: E402\n_RELOCATION_SPEC = importlib.util.spec_from_file_location(\n    \"verify_relocation\", paths.REPO_ROOT / \"generations\" / \"verify_relocation.py\")\nverify_relocation = importlib.util.module_from_spec(_RELOCATION_SPEC)\n_RELOCATION_SPEC.loader.exec_module(verify_relocation)\n",
+          "before": "from gen12eu import paths  # noqa: E402\n"
+        },
+        {
+          "after": "hashlib.blake2b(\n                    verify_relocation.original_bytes(paths.GEN12_ROOT / path),\n                    digest_size=16).hexdigest()",
+          "before": "now.get(\"blake2b_128\")"
+        }
+      ],
+      "reason": "'gen12_manifest.py --verify' compares every Gen12 artefact byte-for-byte with Gen12's manifest, and gen12eu/paths.py now carries a recorded relocation edit, so after the move it reported a false 'DRIFT: artefact changed: gen12eu/paths.py' and exited 1. The --verify branch loads generations/verify_relocation.py by file location and hashes original_bytes(path), which undoes only the substitutions recorded here, so any other change is still drift. Stamping (collect) still hashes the bytes on disk."
+    }
+  ]
+}

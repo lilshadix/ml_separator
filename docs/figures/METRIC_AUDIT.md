@@ -198,7 +198,7 @@ adapter chain*, which is how Figure 5A's tercile split is validated.
 
 `span_recovery_median` (0.046445 for the baseline) applies a guard against near-zero
 measured spans; `span_recovery_median_unguarded` (0.050718) does not. The 0.051 / 0.210 /
-0.423 ladder quoted in `README.md` and the gen9 decision report is the **unguarded**
+0.423 ladder quoted in `docs/design/README_gen2_simplicial_ru.md` (the gen2-era README, formerly at the repository root) and the gen9 decision report is the **unguarded**
 one, and that is what Figure 3E plots. Both are recomputed and both agree with the table.
 
 ### 3.4 The acquisition effect size depends on which study is quoted
@@ -222,7 +222,7 @@ worth about 0.13 log units" uses 1.0995 − 0.9695 on C-FULL; on C-COMMON it is
 
 ### 3.6 The publication count is 105, not 109
 
-`README.md` reports 109 publications from the provenance reconstruction; the frozen
+`docs/design/README_gen2_simplicial_ru.md` (the gen2-era README, formerly at the repository root) reports 109 publications from the provenance reconstruction; the frozen
 artefact `runs/gen6_provenance/summary.json` records **105**, with the definition spelled
 out in the same file ("canonical set of DOIs from the upstream SAFE export, excluding the
 SAFE database self-citation"). The Methods text uses 105 and states the definition. The

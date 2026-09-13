@@ -11,7 +11,7 @@ Writes gen16_leads/results/L2/{gate_board.csv, gate_contrasts.csv, gate_perext_<
 gate_checks.json, L2_GATE.md}.
 
 Run from the repo root:
-    PYTHONIOENCODING=utf-8 OMP_NUM_THREADS=2 .venv/Scripts/python.exe gen16_leads/scripts/l2_gate.py
+    PYTHONIOENCODING=utf-8 OMP_NUM_THREADS=2 .venv/Scripts/python.exe generations/gen16_leads/scripts/l2_gate.py
 """
 from __future__ import annotations
 

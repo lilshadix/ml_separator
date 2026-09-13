@@ -23,7 +23,7 @@ resampling block = chemotype, gen13's frozen paired bootstrap) and ECE over 10 e
 Registered rule: the calibrated probability is a *deliverable* if PLATT's Brier beats CONST with a
 CI excluding zero in all five designs and its ECE <= 0.10.
 
-Usage:  .venv/Scripts/python.exe gen16_leads/scripts/l5_direction.py [designs]
+Usage:  .venv/Scripts/python.exe generations/gen16_leads/scripts/l5_direction.py [designs]
 """
 from __future__ import annotations
 

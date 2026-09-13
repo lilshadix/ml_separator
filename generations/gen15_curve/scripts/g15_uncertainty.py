@@ -11,7 +11,7 @@ used it.  This script asks the only questions that matter about it:
     "for this fraction of pairs the model tells you which lanthanide goes into the organic phase,
     and it is right this often."
 
-Usage:  python gen15_curve/scripts/g15_uncertainty.py [designs] [--arm G14]
+Usage:  python generations/gen15_curve/scripts/g15_uncertainty.py [designs] [--arm G14]
 """
 from __future__ import annotations
 

@@ -8,7 +8,7 @@
     to 4 decimals, and its pair table must equal the frozen gen15.fewshot.evaluate's on every
     shared column.
 
-Usage:  .venv/Scripts/python.exe gen16_leads/scripts/l5_verify.py
+Usage:  .venv/Scripts/python.exe generations/gen16_leads/scripts/l5_verify.py
 """
 from __future__ import annotations
 
@@ -31,7 +31,7 @@ from gen13sep.metrics import per_extractant, summarise  # noqa: E402
 
 OUT = bootstrap.RESULTS / "L5"
 OUT.mkdir(parents=True, exist_ok=True)
-G15 = bootstrap.ROOT / "gen15_curve" / "results" / "g15_support_board_empirical_BP.csv"
+G15 = bootstrap.ROOT / "generations" / "gen15_curve" / "results" / "g15_support_board_empirical_BP.csv"
 ARMS = {"G14": A.g14, "FLAT": A.flat}
 HOWS = ("widest", "dopt", "random")
 KS = (0, 1, 2, 3)

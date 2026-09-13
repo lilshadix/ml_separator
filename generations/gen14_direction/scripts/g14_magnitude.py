@@ -18,7 +18,7 @@ out by a long tail.  Two things are wrong with it and both are fixable without n
 Upper bounds are run alongside: the true magnitude behind the predicted direction, and the true
 coefficient (stage 2's "perfect amplitude" bound).
 
-Usage:  python gen14_direction/scripts/g14_magnitude.py [design,design,...]
+Usage:  python generations/gen14_direction/scripts/g14_magnitude.py [design,design,...]
 """
 from __future__ import annotations
 

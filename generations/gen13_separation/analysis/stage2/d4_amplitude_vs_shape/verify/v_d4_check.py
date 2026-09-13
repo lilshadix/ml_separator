@@ -31,11 +31,11 @@ import numpy as np
 import pandas as pd
 
 ROOT = "D:/ml_separator_gh"
-PRED = os.path.join(ROOT, "gen13_separation/predictions/B_primary")
-OUT = os.path.join(ROOT, "gen13_separation/analysis/stage2/d4_amplitude_vs_shape/verify")
+PRED = os.path.join(ROOT, "generations/gen13_separation/predictions/B_primary")
+OUT = os.path.join(ROOT, "generations/gen13_separation/analysis/stage2/d4_amplitude_vs_shape/verify")
 os.makedirs(OUT, exist_ok=True)
 
-sys.path.insert(0, os.path.join(ROOT, "gen13_separation"))
+sys.path.insert(0, os.path.join(ROOT, "generations", "gen13_separation"))
 from gen13sep.metals import LANTHANIDES, SHANNON_RADIUS_CN8  # noqa: E402
 
 LN_IDX = {m: i for i, m in enumerate(LANTHANIDES)}
@@ -294,7 +294,7 @@ anchor.to_csv(os.path.join(OUT, "v_d4_anchor.csv"), index=False)
 pd.concat(gain_curves).to_csv(os.path.join(OUT, "v_d4_gain_sweep.csv"), index=False)
 
 # ------------------------------------------------- replicate-noise floor
-coh = pd.read_parquet(os.path.join(ROOT, "gen13_separation/manifests/cohort_exact.parquet"))
+coh = pd.read_parquet(os.path.join(ROOT, "generations/gen13_separation/manifests/cohort_exact.parquet"))
 rep = [c for c in coh.columns if c.startswith("repsd__")]
 vals = coh[rep].stack().dropna()
 med = float(vals.median())

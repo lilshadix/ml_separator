@@ -9,9 +9,9 @@ import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
 
-ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
-OUT = os.path.join(ROOT, "gen13_separation", "analysis", "stage2", "D5")
-PRED = os.path.join(ROOT, "gen13_separation", "predictions", "B_primary")
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", ".."))
+OUT = os.path.join(ROOT, "generations", "gen13_separation", "analysis", "stage2", "D5")
+PRED = os.path.join(ROOT, "generations", "gen13_separation", "predictions", "B_primary")
 
 
 def macro(df, col):
@@ -31,7 +31,7 @@ def main():
             p[cols + [f"ae_{tag}"]], on=cols, how="left")
     d = base
     d["absy"] = d["y"].abs()
-    coh = pd.read_parquet(os.path.join(ROOT, "gen13_separation", "manifests", "cohort_exact.parquet"))
+    coh = pd.read_parquet(os.path.join(ROOT, "generations", "gen13_separation", "manifests", "cohort_exact.parquet"))
     ncell = coh.groupby("extractant").agg(n_cells=("cell_id", "size"),
                                           n_pubs=("publication_id", "nunique"))
     d = d.merge(ncell, on="extractant", how="left")

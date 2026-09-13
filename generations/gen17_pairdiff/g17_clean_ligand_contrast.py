@@ -1,10 +1,10 @@
 """The cleanest ligand contrast in the corpus: same publication, SAME conditions,
 DIFFERENT extractant.  Lab effect and condition effect both cancel exactly."""
 import sys,pickle,numpy as np,pandas as pd
-sys.path.insert(0,"gen13_separation")
+sys.path.insert(0,"generations/gen13_separation")
 from sklearn.ensemble import ExtraTreesRegressor
 from sklearn.linear_model import Ridge
-d=pickle.load(open("gen14_direction/cache/bench.pkl","rb"))
+d=pickle.load(open("generations/gen14_direction/cache/bench.pkl","rb"))
 F=d.frame; a=d.coef[:,0]; nobs=d.n_obs
 keep=np.flatnonzero(nobs>=5)
 pub=F["publication_id"].to_numpy(); ext=F["extractant"].to_numpy(); chem=F["chemotype"].to_numpy()

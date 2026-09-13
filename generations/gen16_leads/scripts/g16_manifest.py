@@ -9,7 +9,7 @@ generate."  This script applies that convention to `gen16_leads/results/`: every
 The files stay on disk; only their bytes leave the repository.  Anything a report cites by number
 lives in a small CSV or JSON that is committed.
 
-Run:  .venv/Scripts/python.exe gen16_leads/scripts/g16_manifest.py [--check]
+Run:  .venv/Scripts/python.exe generations/gen16_leads/scripts/g16_manifest.py [--check]
 ``--check`` recomputes the digests of the listed files that are still present and exits 1 on any
 mismatch, so a regenerated artefact cannot silently diverge from what the report was written from.
 """
@@ -90,7 +90,7 @@ def main() -> int:
         return 1 if bad else 0
     lines = ["# gen16 large artefacts: not committed, digests recorded (START_HERE.md section 8).",
              "# Regenerate with the script named in the owning lead's report; verify with",
-             "#   .venv/Scripts/python.exe gen16_leads/scripts/g16_manifest.py --check",
+             "#   .venv/Scripts/python.exe generations/gen16_leads/scripts/g16_manifest.py --check",
              f"# {len(rows)} files, {sum(r[1] for r in rows) / 1e6:.1f} MB total.",
              "# sha256  bytes  path"]
     lines += [f"{d}  {size}  {path}" for path, size, d in rows]

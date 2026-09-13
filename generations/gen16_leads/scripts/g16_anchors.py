@@ -8,7 +8,7 @@ plus G14 / FLAT under all five designs with per-design timing, and a subprocess 
 fold plan is byte-identical across processes.  Writes results/anchors/{anchors.json,
 g14_flat_five_designs.csv, g14_vs_flat_contrasts_five_designs.csv, ANCHORS.md}.
 
-Usage:  .venv/Scripts/python.exe gen16_leads/scripts/g16_anchors.py [--skip-g13] [--hash-runs N]
+Usage:  .venv/Scripts/python.exe generations/gen16_leads/scripts/g16_anchors.py [--skip-g13] [--hash-runs N]
 """
 from __future__ import annotations
 

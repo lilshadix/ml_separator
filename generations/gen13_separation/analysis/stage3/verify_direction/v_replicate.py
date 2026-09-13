@@ -1,5 +1,5 @@
 import sys, time
-sys.path.insert(0, "D:/ml_separator_gh/gen13_separation/analysis/stage3/verify_direction")
+sys.path.insert(0, "D:/ml_separator_gh/generations/gen13_separation/analysis/stage3/verify_direction")
 from v_runner import *
 t0 = time.time()
 rich = FRAME.n_metals.to_numpy() >= 5

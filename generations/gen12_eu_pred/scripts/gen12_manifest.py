@@ -24,6 +24,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from gen12eu import paths  # noqa: E402
+import importlib.util  # noqa: E402
+_RELOCATION_SPEC = importlib.util.spec_from_file_location(
+    "verify_relocation", paths.REPO_ROOT / "generations" / "verify_relocation.py")
+verify_relocation = importlib.util.module_from_spec(_RELOCATION_SPEC)
+_RELOCATION_SPEC.loader.exec_module(verify_relocation)
 
 HASHED = {".csv", ".parquet", ".json", ".md", ".py", ".npz"}
 LISTED = {".png", ".pdf", ".log", ".txt"}
@@ -125,7 +130,9 @@ def main() -> int:
             now = current["artefacts"].get(path)
             if now is None:
                 problems.append(f"artefact lost: {path}")
-            elif "blake2b_128" in entry and now.get("blake2b_128") != entry["blake2b_128"]:
+            elif "blake2b_128" in entry and hashlib.blake2b(
+                    verify_relocation.original_bytes(paths.GEN12_ROOT / path),
+                    digest_size=16).hexdigest() != entry["blake2b_128"]:
                 problems.append(f"artefact changed: {path}")
         for problem in problems:
             print("DRIFT:", problem)

@@ -5,8 +5,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(ROOT / "gen15_curve"))
+ROOT = Path(__file__).resolve().parents[4]
+sys.path.insert(0, str(ROOT / "generations" / "gen15_curve"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from gen15 import valuebench as V, arms as A          # noqa: E402

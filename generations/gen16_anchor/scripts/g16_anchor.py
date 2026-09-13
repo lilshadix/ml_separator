@@ -27,7 +27,7 @@ xi * ||Pi_A r||^2 / n with r the *score residuals* and xi = (gamma - 1) / 2.  Fo
 the score residual w.r.t. an extra intercept is exactly (y - p), so the arm below is their
 estimator specialised to a one-parameter transformation model.
 
-Usage:  python gen16_anchor/scripts/g16_anchor.py [design[,design...]] [--quick]
+Usage:  python generations/gen16_anchor/scripts/g16_anchor.py [design[,design...]] [--quick]
 """
 from __future__ import annotations
 

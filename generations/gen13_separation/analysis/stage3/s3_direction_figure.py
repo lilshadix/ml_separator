@@ -1,11 +1,11 @@
 import sys
-sys.path.insert(0, "gen13_separation")
+sys.path.insert(0, "generations/gen13_separation")
 import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np, pandas as pd
 
-A = pd.read_csv("gen13_separation/analysis/stage3/s3_direction_accuracy_fixed.csv")
-G = pd.read_csv("gen13_separation/analysis/stage3/s3_direction_gain.csv")
+A = pd.read_csv("generations/gen13_separation/analysis/stage3/s3_direction_accuracy_fixed.csv")
+G = pd.read_csv("generations/gen13_separation/analysis/stage3/s3_direction_gain.csv")
 order = ["always_heavy", "donor_pair_min", "lean_all", "donor_geometry"]
 label = {"always_heavy": "always predict\nheavy-selective",
          "donor_pair_min": "one number:\nshortest donor path",
@@ -38,5 +38,5 @@ fig.suptitle("Which end of the lanthanide series an extractant prefers is predic
              "held-out chemotypes; 39 topological columns lose nothing against the full 209-column compact set",
              fontsize=11)
 fig.tight_layout()
-fig.savefig("gen13_separation/figures/stage2/s3_direction_accuracy.png", dpi=160, bbox_inches="tight")
+fig.savefig("generations/gen13_separation/figures/stage2/s3_direction_accuracy.png", dpi=160, bbox_inches="tight")
 print("written")

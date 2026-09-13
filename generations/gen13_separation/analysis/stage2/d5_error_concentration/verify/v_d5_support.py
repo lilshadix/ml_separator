@@ -2,7 +2,7 @@
 
 Covers (a) how much DATA the 'worst 10' concentration actually covers, (b) the
 replicate-noise-floor statistics, (c) the label-free abstention controls.
-    .venv/Scripts/python.exe gen13_separation/analysis/stage2/d5_error_concentration/verify/v_d5_support.py
+    .venv/Scripts/python.exe generations/gen13_separation/analysis/stage2/d5_error_concentration/verify/v_d5_support.py
 """
 import json
 import os
@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
 
-ROOT = "gen13_separation"
+ROOT = "generations/gen13_separation"
 OUT = os.path.join(ROOT, "analysis", "stage2", "d5_error_concentration", "verify")
 LN = "La Ce Pr Nd Sm Eu Gd Tb Dy Ho Er Tm Yb Lu".split()
 res = {}

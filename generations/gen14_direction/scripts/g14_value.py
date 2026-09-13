@@ -14,7 +14,7 @@ Three decisions are separated so their contributions can be told apart:
   gen13 used, or the posterior mean ``(1 - 2p) * magnitude``, which shrinks toward the flat curve
   exactly as far as the classifier is unsure.
 
-Usage:  python gen14_direction/scripts/g14_value.py [design,design,...]
+Usage:  python generations/gen14_direction/scripts/g14_value.py [design,design,...]
 """
 from __future__ import annotations
 

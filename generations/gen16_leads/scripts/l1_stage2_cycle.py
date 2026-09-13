@@ -28,8 +28,8 @@ A missing, non-finite or non-converged reference **aborts the run**; it is never
 a missing reference silently reintroduces the composition step this lead exists to remove.
 
 Run from the repo root once ``reference_energies.csv`` exists:
-    PYTHONIOENCODING=utf-8 OMP_NUM_THREADS=2 .venv/Scripts/python.exe gen16_leads/scripts/l1_stage2_cycle.py \
-        --refs gen16_leads/results/L1/reference_species/reference_energies.csv
+    PYTHONIOENCODING=utf-8 OMP_NUM_THREADS=2 .venv/Scripts/python.exe generations/gen16_leads/scripts/l1_stage2_cycle.py \
+        --refs generations/gen16_leads/results/L1/reference_species/reference_energies.csv
 """
 from __future__ import annotations
 

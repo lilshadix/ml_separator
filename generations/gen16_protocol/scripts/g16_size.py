@@ -4,7 +4,7 @@ Generates data with zero mean and a chemotype random effect on the *real* 82-ext
 40-chemotype membership, then counts how often each test rejects at nominal 5 %.  Every rejection
 is a false positive.  Run this before rewriting any published p-value.
 
-Usage:  python gen16_protocol/scripts/g16_size.py [sims] [reps]
+Usage:  python generations/gen16_protocol/scripts/g16_size.py [sims] [reps]
 """
 from __future__ import annotations
 
@@ -13,8 +13,8 @@ from pathlib import Path
 
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
-for p in (ROOT / "gen13_separation", ROOT / "gen14_direction", ROOT / "gen16_protocol"):
+ROOT = Path(__file__).resolve().parents[3]
+for p in (ROOT / "generations" / "gen13_separation", ROOT / "generations" / "gen14_direction", ROOT / "generations" / "gen16_protocol"):
     sys.path.insert(0, str(p))
 
 from gen14.dirbench import load                       # noqa: E402
@@ -38,6 +38,6 @@ for icc in (0.0, 0.2, 0.4, 0.6, 0.72):
 
 out = pd.DataFrame(rows)
 out["mc_se"] = (out.size_percentile_bootstrap * (1 - out.size_percentile_bootstrap) / SIMS) ** 0.5
-(ROOT / "gen16_protocol" / "results").mkdir(parents=True, exist_ok=True)
-out.to_csv(ROOT / "gen16_protocol" / "results" / "g16_size_study.csv", index=False)
+(ROOT / "generations" / "gen16_protocol" / "results").mkdir(parents=True, exist_ok=True)
+out.to_csv(ROOT / "generations" / "gen16_protocol" / "results" / "g16_size_study.csv", index=False)
 print(out.round(4).to_string(index=False))

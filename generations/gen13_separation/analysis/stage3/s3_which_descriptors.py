@@ -9,7 +9,7 @@ Part 2: the same features against a three-way magnitude class -- strongly heavy-
 light-selective -- to see whether topology carries how much, not only which way.
 """
 import sys, time
-sys.path.insert(0, "gen13_separation")
+sys.path.insert(0, "generations/gen13_separation")
 import numpy as np, pandas as pd
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.impute import SimpleImputer
@@ -88,7 +88,7 @@ for c in GEOM:
                  "p_two_sided": float(2 * min((drop <= 0).mean(), (drop >= 0).mean()))})
     print(f"  {c[:52]:52s} drop {base_m - m:+.4f}", flush=True)
 imp = pd.DataFrame(rows).sort_values("importance", ascending=False)
-imp.to_csv(f"gen13_separation/analysis/stage3/s3_permutation_importance_{DESIGN}.csv", index=False)
+imp.to_csv(f"generations/gen13_separation/analysis/stage3/s3_permutation_importance_{DESIGN}.csv", index=False)
 print("\ntop 10 by permutation importance:")
 print(imp.head(10).round(4).to_string(index=False))
 

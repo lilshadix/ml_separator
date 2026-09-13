@@ -10,7 +10,7 @@ Cohort: 6 699 pairs, 34 extractants, 28 exact-ECFP clusters.
 ## 1. Family assignment
 
 Every model column is assigned to exactly one family by
-[`feature_registry.py`](src/lanthanide_separation/feature_registry.py), fail-closed: a column
+[`feature_registry.py`](../../src/lanthanide_separation/feature_registry.py), fail-closed: a column
 matching no explicit rule raises rather than being silently absorbed. Verified one-to-one and
 exhaustive.
 

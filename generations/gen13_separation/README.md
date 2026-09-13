@@ -26,12 +26,12 @@ metrics/ bootstrap/ headline_tables/ analysis/
 ## Reproducing
 
 ```bash
-.venv/Scripts/python.exe -m pytest gen13_separation/tests -q
-.venv/Scripts/python.exe gen13_separation/scripts/g13_run_ladder.py --label B_primary --with-exploratory
-.venv/Scripts/python.exe gen13_separation/scripts/g13_analysis.py --label B_primary \
+.venv/Scripts/python.exe -m pytest generations/gen13_separation/tests -q
+.venv/Scripts/python.exe generations/gen13_separation/scripts/g13_run_ladder.py --label B_primary --with-exploratory
+.venv/Scripts/python.exe generations/gen13_separation/scripts/g13_analysis.py --label B_primary \
     --contrasts "M_SELECTED:C_DIRECT_ROW,M_SELECTED:B1_MEAN_CURVE,M_SELECTED:B3_NN_TANIMOTO,M_SELECTED:B2_PAIRMEAN"
-.venv/Scripts/python.exe gen13_separation/scripts/g13_fewshot.py --label B_primary
-.venv/Scripts/python.exe gen13_separation/scripts/g13_headline_tables.py --primary B_primary --ablations ...
+.venv/Scripts/python.exe generations/gen13_separation/scripts/g13_fewshot.py --label B_primary
+.venv/Scripts/python.exe generations/gen13_separation/scripts/g13_headline_tables.py --primary B_primary --ablations ...
 ```
 
 Inputs are read-only: the frozen bundle (sha `fefbefc6…`), `runs/gen7_architecture/cache/chemistry_map.parquet`,
@@ -41,8 +41,8 @@ Inputs are read-only: the frozen bundle (sha `fefbefc6…`), `runs/gen7_architec
 ## Predicting for a new extractant
 
 ```bash
-.venv/Scripts/python.exe gen13_separation/scripts/g13_predict.py fit
-.venv/Scripts/python.exe gen13_separation/scripts/g13_predict.py predict --input my_ligands.csv --output pred.csv
+.venv/Scripts/python.exe generations/gen13_separation/scripts/g13_predict.py fit
+.venv/Scripts/python.exe generations/gen13_separation/scripts/g13_predict.py predict --input my_ligands.csv --output pred.csv
 ```
 
 The fitted ensemble is `V2_BAG4@lean`: a direct row model plus physics-basis, rank-1 and rank-2

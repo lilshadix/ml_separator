@@ -35,7 +35,7 @@ This script writes, under ``results/L1/reference_species/``:
 Nothing is submitted from here; cluster submission is the user's.
 
 Run from the repo root:
-    PYTHONIOENCODING=utf-8 OMP_NUM_THREADS=2 .venv/Scripts/python.exe gen16_leads/scripts/l1_build_references.py
+    PYTHONIOENCODING=utf-8 OMP_NUM_THREADS=2 .venv/Scripts/python.exe generations/gen16_leads/scripts/l1_build_references.py
 """
 from __future__ import annotations
 

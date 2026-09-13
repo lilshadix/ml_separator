@@ -34,8 +34,8 @@ Then send `reference_energies.csv` back, drop it into
 
 ```bash
 PYTHONIOENCODING=utf-8 OMP_NUM_THREADS=2 .venv/Scripts/python.exe \
-    gen16_leads/scripts/l1_stage2_cycle.py \
-    --refs gen16_leads/results/L1/reference_species/reference_energies.csv
+    generations/gen16_leads/scripts/l1_stage2_cycle.py \
+    --refs generations/gen16_leads/results/L1/reference_species/reference_energies.csv
 ```
 
 That script computes `dE`, aborts on any missing / non-converged reference, and runs **exactly** the

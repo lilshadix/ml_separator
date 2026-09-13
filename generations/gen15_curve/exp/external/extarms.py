@@ -25,9 +25,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 HERE = Path(__file__).resolve().parent
-for p in (ROOT / "gen15_curve", ROOT / "gen13_separation", ROOT / "gen14_direction"):
+for p in (ROOT / "generations" / "gen15_curve", ROOT / "generations" / "gen13_separation", ROOT / "generations" / "gen14_direction"):
     sys.path.insert(0, str(p))
 
 from sklearn.impute import SimpleImputer                    # noqa: E402
@@ -105,7 +105,7 @@ def _nn_slope_by_extractant() -> dict[str, float]:
     ks = np.array(ks)
     E = pd.read_parquet(HERE / "data" / "side_E_extraction.parquet")
     bench_smiles = set(E.smiles)
-    frame = pd.read_parquet(ROOT / "gen13_separation" / "features" / "logk_prior.parquet")
+    frame = pd.read_parquet(ROOT / "generations" / "gen13_separation" / "features" / "logk_prior.parquet")
     bench_smiles |= set(frame.index.astype(str))
     out = {}
     for s in sorted(bench_smiles):

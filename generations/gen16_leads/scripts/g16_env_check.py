@@ -4,7 +4,7 @@ Re-runnable.  Writes ``gen16_leads/results/env/env_check.json`` and ``ENV.md``.
 
 Run from the repo root with the venv interpreter::
 
-    PYTHONIOENCODING=utf-8 .venv/Scripts/python.exe gen16_leads/scripts/g16_env_check.py [--no-et]
+    PYTHONIOENCODING=utf-8 .venv/Scripts/python.exe generations/gen16_leads/scripts/g16_env_check.py [--no-et]
 
 What it checks (START_HERE.md section 4 traps, plus the fleet's practical limits):
 
@@ -39,8 +39,8 @@ import sys
 import time
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-OUT_DIR = ROOT / "gen16_leads" / "results" / "env"
+ROOT = Path(__file__).resolve().parents[3]
+OUT_DIR = ROOT / "generations" / "gen16_leads" / "results" / "env"
 PY = sys.executable
 MB = 1024 * 1024
 KEEP_FREE_MB = 1024
@@ -75,37 +75,37 @@ GEN_COMMITS = ["270ae5c", "bfad375", "5885607", "dbc84e4", "47499b7", "df63929"]
 #: Manually reviewed hash()/set() sites on the frozen import path.  The scan below re-lists every
 #: live hit; a hit not matched here is reported as UNREVIEWED so drift is visible.
 REVIEWED = [
-    ("gen13_separation/gen13sep/arms_stage2.py", r"hash\(row\.tobytes\(\)\)", "UNSAFE-IN-PRINCIPLE",
+    ("generations/gen13_separation/gen13sep/arms_stage2.py", r"hash\(row\.tobytes\(\)\)", "UNSAFE-IN-PRINCIPLE",
      "hash() of bytes is salted per process.  extractant_key() uses it only as an equality key. "
      "ExtractantBalancedArm consumes it through groupby transforms (per-row weights, order-free): safe. "
      "HierarchicalCurveArm (S3_HIER / S3_EXT_LEVEL) groups by the key, so the row order of its "
      "per-extractant matrix X_ext follows the salted hash order and the ExtraTrees fit is order-invariant "
      "only up to floating-point summation order.  Not on the gen14/gen15 bench path (gen15.arms.g13_full "
      "calls tree_pipeline directly).  Do not rely on cross-process bit-identity of those two gen13 arms."),
-    ("gen15_curve/gen15/fewshot.py", r"hash\(\(int\(ci\), int\(seed\)\)\)", "SAFE",
+    ("generations/gen15_curve/gen15/fewshot.py", r"hash\(\(int\(ci\), int\(seed\)\)\)", "SAFE",
      "tuple of ints: CPython salts str/bytes hashes only; int and tuple hashes are unsalted "
      "(verified empirically below under two PYTHONHASHSEED values).  Differs only across 32/64-bit builds."),
-    ("gen13_separation/gen13sep/fewshot.py", r"stable_hash|blake2b", "SAFE", "blake2b of the text, not hash()."),
-    ("gen13_separation/gen13sep/fewshot_stage2.py", r"stable_hash", "SAFE", "blake2b via stable_hash()."),
-    ("gen13_separation/gen13sep/cohort.py", r"blake2b|set\(", "SAFE",
+    ("generations/gen13_separation/gen13sep/fewshot.py", r"stable_hash|blake2b", "SAFE", "blake2b of the text, not hash()."),
+    ("generations/gen13_separation/gen13sep/fewshot_stage2.py", r"stable_hash", "SAFE", "blake2b via stable_hash()."),
+    ("generations/gen13_separation/gen13sep/cohort.py", r"blake2b|set\(", "SAFE",
      "blake2b cell ids; set() only inside sorted() or for error messages."),
-    ("gen13_separation/gen13sep/splits.py", r"set\(", "SAFE",
+    ("generations/gen13_separation/gen13sep/splits.py", r"set\(", "SAFE",
      "line 75 membership; 90 len; 94 len; 96 `dropped` membership only (candidates come from np.unique + "
      "seeded rng.shuffle, `remaining` is a list, min() over the list); 112 sorted; 133-146 counts/bools."),
     ("src/lanthanide_separation/gen6/cohorts.py", r"set\(|np\.unique", "SAFE",
      "seeded_group_kfold: np.unique (sorted) + default_rng(seed).permutation; dict used for lookup only.  "
      "Other set() uses are membership/len/sorted."),
-    ("gen13_separation/gen13sep/inference.py", r"frozenset|set\(", "SAFE", "membership / sorted."),
-    ("gen13_separation/gen13sep/models.py", r"set\(", "SAFE", "inside sorted()."),
-    ("gen13_separation/gen13sep/runner.py", r"set\(", "SAFE", "membership; glob() is sorted()."),
-    ("gen13_separation/gen13sep/features.py", r"set\(|sorted\(", "SAFE", "error message only."),
-    ("gen13_separation/gen13sep/basis.py", r"sorted\(", "SAFE", "error message only."),
-    ("gen14_direction/gen14/dirbench.py", r"set\(", "SAFE", "inside sorted()."),
-    ("gen15_curve/gen15/mixture.py", r"set\(", "SAFE", "membership only."),
+    ("generations/gen13_separation/gen13sep/inference.py", r"frozenset|set\(", "SAFE", "membership / sorted."),
+    ("generations/gen13_separation/gen13sep/models.py", r"set\(", "SAFE", "inside sorted()."),
+    ("generations/gen13_separation/gen13sep/runner.py", r"set\(", "SAFE", "membership; glob() is sorted()."),
+    ("generations/gen13_separation/gen13sep/features.py", r"set\(|sorted\(", "SAFE", "error message only."),
+    ("generations/gen13_separation/gen13sep/basis.py", r"sorted\(", "SAFE", "error message only."),
+    ("generations/gen14_direction/gen14/dirbench.py", r"set\(", "SAFE", "inside sorted()."),
+    ("generations/gen15_curve/gen15/mixture.py", r"set\(", "SAFE", "membership only."),
 ]
 
 SCAN_FILES = [
-    "gen13_separation/gen13sep", "gen14_direction/gen14", "gen15_curve/gen15",
+    "generations/gen13_separation/gen13sep", "generations/gen14_direction/gen14", "generations/gen15_curve/gen15",
     "src/lanthanide_separation/gen6/cohorts.py", "src/lanthanide_separation/gen8/inference.py",
 ]
 
@@ -212,10 +212,10 @@ def child_tabpfn():
 
 def child_frozen_path():
     """Import every module of the frozen packages and see what came along."""
-    for p in (ROOT / "gen13_separation", ROOT / "gen14_direction", ROOT / "gen15_curve"):
+    for p in (ROOT / "generations" / "gen13_separation", ROOT / "generations" / "gen14_direction", ROOT / "generations" / "gen15_curve"):
         sys.path.insert(0, str(p))
     imported, failed = [], {}
-    mods = ["gen13sep." + f.stem for f in sorted((ROOT / "gen13_separation" / "gen13sep").glob("*.py"))
+    mods = ["gen13sep." + f.stem for f in sorted((ROOT / "generations" / "gen13_separation" / "gen13sep").glob("*.py"))
             if f.stem not in ("__init__", "wildcluster")]           # wildcluster.py is untracked, not frozen
     mods += ["gen14.dirbench", "gen14.models", "gen15.valuebench", "gen15.arms", "gen15.fewshot",
              "gen15.mixture", "gen15.shape"]
@@ -238,7 +238,7 @@ def child_frozen_path():
 def child_folds():
     """Digest of every fold of every design, default (discovery) seeds, never passing seeds=."""
     import numpy as np
-    for p in (ROOT / "gen13_separation", ROOT / "gen14_direction", ROOT / "gen15_curve"):
+    for p in (ROOT / "generations" / "gen13_separation", ROOT / "generations" / "gen14_direction", ROOT / "generations" / "gen15_curve"):
         sys.path.insert(0, str(p))
     from gen15.valuebench import DESIGNS          # also what every fleet script imports first
     from gen14.dirbench import load
@@ -273,7 +273,7 @@ def child_bench(mode: str = "bench"):
     ``bench``    FLAT + G14 (cheap; also re-checks two anchors).
     ``bench_et`` gen13's 400-tree extra-trees regression, n_jobs=2 (``dec_arms.g13_full``): the heavy slot.
     """
-    sys.path.insert(0, str(ROOT / "gen15_curve"))
+    sys.path.insert(0, str(ROOT / "generations" / "gen15_curve"))
     # .venv/Scripts/python.exe is a launcher whose real interpreter is *this* process, a grandchild
     # of the parent; publish the pid so the parent can poll the right working set.
     (OUT_DIR / f"{mode}_child_pid.txt").write_text(str(os.getpid()), encoding="utf-8")
@@ -284,7 +284,7 @@ def child_bench(mode: str = "bench"):
     t_load = time.time() - t0
     mem_after_load = process_memory()
     if mode == "bench_et":
-        sys.path.insert(0, str(ROOT / "gen15_curve" / "exp" / "decision"))
+        sys.path.insert(0, str(ROOT / "generations" / "gen15_curve" / "exp" / "decision"))
         import dec_arms
         ARMS, comps = {"G13_FULL": dec_arms.g13_full}, None
     else:
@@ -351,7 +351,7 @@ def section_versions() -> dict:
                 mismatches.append({"source": src, "package": pkg, "recorded": v, "installed": have})
     tabpfn, rc_t, out_t, err_t = _child("tabpfn")
     frozen, rc_f, out_f, err_f = _child("frozen_path")
-    dec_arms = (ROOT / "gen15_curve" / "exp" / "decision" / "dec_arms.py")
+    dec_arms = (ROOT / "generations" / "gen15_curve" / "exp" / "decision" / "dec_arms.py")
     dec_txt = dec_arms.read_text(encoding="utf-8") if dec_arms.exists() else ""
     meta = next(iter(site.glob("tabpfn-*.dist-info/METADATA")), None)
     tabpfn_pins = [l.split(":", 1)[1].strip() for l in
@@ -522,13 +522,13 @@ def section_git() -> dict:
     entries = [(l[:2], l[3:]) for l in status.splitlines() if len(l) > 3]
     untracked = [p for s, p in entries if s == "??"]
     modified = [p for s, p in entries if s != "??"]
-    in_brief = [u for u in untracked if u.startswith("gen16_leads/")]
-    outside = [u for u in untracked if not u.startswith("gen16_leads/")]
-    tracked_gen16 = _git("ls-files", "gen16_leads").splitlines()
+    in_brief = [u for u in untracked if u.startswith("generations/gen16_leads/")]
+    outside = [u for u in untracked if not u.startswith("generations/gen16_leads/")]
+    tracked_gen16 = _git("ls-files", "generations/gen16_leads").splitlines()
     return {"head": _git("rev-parse", "--short", "HEAD"), "branch": _git("branch", "--show-current"),
             "modified_tracked": modified, "untracked_in_gen16_leads": in_brief,
             "untracked_outside_brief": outside, "tracked_under_gen16_leads": tracked_gen16,
-            "only_start_here_committed": tracked_gen16 == ["gen16_leads/START_HERE.md"]}
+            "only_start_here_committed": tracked_gen16 == ["generations/gen16_leads/START_HERE.md"]}
 
 
 # --------------------------------------------------------------------------------------

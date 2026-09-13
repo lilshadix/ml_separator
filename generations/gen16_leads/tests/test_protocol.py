@@ -1,6 +1,6 @@
 """Protocol invariants of gen16: the seal, the seed withholding, the confirmation commitment.
 
-Run:  .venv/Scripts/python.exe -m pytest gen16_leads/tests/test_protocol.py -q
+Run:  .venv/Scripts/python.exe -m pytest generations/gen16_leads/tests/test_protocol.py -q
 """
 from __future__ import annotations
 

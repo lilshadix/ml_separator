@@ -1,6 +1,6 @@
 # Figure plan — what the paper should show, and which file proves it
 
-Written after reading, in this order: `README.md`; `docs/gen5_levels_results_20260819_full4regimes.md`;
+Written after reading, in this order: `README.md` (the gen2-era README, now docs/design/README_gen2_simplicial_ru.md); `docs/gen5_levels_results_20260819_full4regimes.md`;
 `docs/gen6_phase0_and_phase1_results_20260819.md`; `docs/gen6_phase2_results_20260819.md`;
 `gen7_architecture_results_20260819.md`; `runs/gen7_architecture/decision_report.md`;
 `gen8_architecture_results_20260820.md`; `runs/gen8_architecture/decision_report.md`;

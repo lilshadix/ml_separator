@@ -14,8 +14,8 @@ from pathlib import Path
 import pandas as pd
 
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parents[2]
-sys.path.insert(0, str(ROOT / "gen15_curve"))
+ROOT = HERE.parents[3]
+sys.path.insert(0, str(ROOT / "generations" / "gen15_curve"))
 sys.path.insert(0, str(HERE))
 warnings.filterwarnings("ignore")
 

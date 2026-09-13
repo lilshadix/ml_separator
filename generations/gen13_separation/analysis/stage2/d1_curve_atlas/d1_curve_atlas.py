@@ -1,7 +1,7 @@
 """D1 - per-extractant lanthanide-curve atlas and curve reproducibility.
 
 Run from the repo root:
-    .venv/Scripts/python.exe gen13_separation/analysis/stage2/d1_curve_atlas/d1_curve_atlas.py
+    .venv/Scripts/python.exe generations/gen13_separation/analysis/stage2/d1_curve_atlas/d1_curve_atlas.py
 
 Writes CSVs into gen13_separation/analysis/stage2/d1_curve_atlas/ and figures into
 gen13_separation/figures/stage2/ with the prefix ``d1_``.
@@ -25,7 +25,7 @@ from matplotlib.lines import Line2D
 from scipy.stats import rankdata
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
-REPO = os.path.abspath(os.path.join(ROOT, ".."))
+REPO = os.path.abspath(os.path.join(ROOT, "..", ".."))
 sys.path.insert(0, ROOT)
 
 from gen13sep.metals import ATOMIC_NUMBER, LANTHANIDES, SHANNON_RADIUS_CN8  # noqa: E402

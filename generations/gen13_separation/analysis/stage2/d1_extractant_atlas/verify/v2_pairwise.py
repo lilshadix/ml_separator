@@ -18,12 +18,12 @@ import numpy as np
 import pandas as pd
 from scipy.stats import pearsonr, spearmanr
 
-sys.path.insert(0, "gen13_separation")
+sys.path.insert(0, "generations/gen13_separation")
 from gen13sep.metals import LANTHANIDES, ATOMIC_NUMBER  # noqa: E402
 
-OUT = "gen13_separation/analysis/stage2/d1_extractant_atlas/verify"
+OUT = "generations/gen13_separation/analysis/stage2/d1_extractant_atlas/verify"
 os.makedirs(OUT, exist_ok=True)
-df = pd.read_parquet("gen13_separation/manifests/cohort_exact.parquet")
+df = pd.read_parquet("generations/gen13_separation/manifests/cohort_exact.parquet")
 LN = sorted([m for m in LANTHANIDES if f"logD__{m}" in df.columns],
             key=lambda m: ATOMIC_NUMBER[m])
 logD = df[[f"logD__{m}" for m in LN]].to_numpy(float)

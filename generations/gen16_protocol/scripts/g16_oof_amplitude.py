@@ -35,7 +35,7 @@ two values per fold, so its marginal R2 is by construction the variance explaine
 bit alone*.  That is the point: gen14 says the bit is all that transfers, and this is that claim
 stated on the variance scale rather than the MAE scale.
 
-Usage:  python gen16_protocol/scripts/g16_oof_amplitude.py [designs...]
+Usage:  python generations/gen16_protocol/scripts/g16_oof_amplitude.py [designs...]
         (default: BP; pass e.g. ``BP A B BR BQ`` for the whole board)
 """
 from __future__ import annotations
@@ -46,15 +46,15 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
-for _p in (ROOT / "gen13_separation", ROOT / "gen14_direction", ROOT / "gen16_protocol"):
+ROOT = Path(__file__).resolve().parents[3]
+for _p in (ROOT / "generations" / "gen13_separation", ROOT / "generations" / "gen14_direction", ROOT / "generations" / "gen16_protocol"):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
 from gen14 import models as M                                    # noqa: E402
 from gen14.dirbench import DESIGNS, decision, feature_sets, load, run  # noqa: E402
 
-OUT = ROOT / "gen16_protocol" / "results"
+OUT = ROOT / "generations" / "gen16_protocol" / "results"
 OUT.mkdir(parents=True, exist_ok=True)
 
 #: the deployed arm and the two references the report already quotes next to it
@@ -137,7 +137,7 @@ def main(designs: tuple[str, ...]) -> None:
     pd.concat(frames, ignore_index=True).to_parquet(OUT / "g16_oof_amplitude_folds.parquet",
                                                     index=False)
     print(f"\nwrote g16_oof_amplitude_<design>.csv for {', '.join(designs)}")
-    print("now re-run:  python gen16_protocol/scripts/g16_variance.py 300")
+    print("now re-run:  python generations/gen16_protocol/scripts/g16_variance.py 300")
 
 
 if __name__ == "__main__":

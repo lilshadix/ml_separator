@@ -28,7 +28,7 @@ What this script prints
     anything left is pure ligand structure.
 
 Run from the repository root:
-    .venv/Scripts/python.exe -u gen17_pairdiff/g17_within_pub_pairs.py
+    .venv/Scripts/python.exe -u generations/gen17_pairdiff/g17_within_pub_pairs.py
 
 Runtime is a few minutes single-threaded on the i7-8750H; it needs ~1.5 GB of RAM
 because ``gen14_direction/cache/bench.pkl`` holds the 2048-column ECFP block.
@@ -44,13 +44,13 @@ import pandas as pd
 from sklearn.ensemble import ExtraTreesRegressor
 from sklearn.linear_model import Ridge
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "gen13_separation"))
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "generations" / "gen13_separation"))
 
 from gen13sep import basis as Bs  # noqa: E402
 from gen13sep.metals import LANTHANIDES  # noqa: E402
 
-BENCH = ROOT / "gen14_direction" / "cache" / "bench.pkl"
+BENCH = ROOT / "generations" / "gen14_direction" / "cache" / "bench.pkl"
 OUT = Path(__file__).resolve().parent / "results"
 MIN_METALS = 5
 N_BOOT = 400

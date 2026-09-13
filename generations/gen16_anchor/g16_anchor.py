@@ -23,7 +23,7 @@ from pathlib import Path
 import numpy as np, pandas as pd
 
 ROOT = Path(r"D:\ml_separator_gh")
-sys.path.insert(0, str(ROOT / "gen14_direction")); sys.path.insert(0, str(ROOT / "gen13_separation"))
+sys.path.insert(0, str(ROOT / "generations" / "gen14_direction")); sys.path.insert(0, str(ROOT / "generations" / "gen13_separation"))
 from gen14 import dirbench as db
 from gen13sep.amplitude_bench import LEAN_BLOCKS, _pair_frame, cell_weights
 from gen13sep.metrics import per_extractant, summarise
@@ -117,5 +117,5 @@ if __name__ == "__main__":
     t0 = time.time(); out = []
     for d in DESIGNS:
         for fn in FEATS: out.append(run(d, fn))
-    pd.concat(out).to_csv(ROOT / "gen16_anchor" / f"g16_anchor_{'_'.join(DESIGNS)}.csv", index=False)
+    pd.concat(out).to_csv(ROOT / "generations" / "gen16_anchor" / f"g16_anchor_{'_'.join(DESIGNS)}.csv", index=False)
     print(f"\n[{time.time()-t0:.0f}s]")

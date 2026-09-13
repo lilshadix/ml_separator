@@ -1,6 +1,6 @@
 """Compose the headline tables from the metrics/ and bootstrap/ directories.
 
-    .venv/Scripts/python.exe gen13_separation/scripts/g13_headline_tables.py --primary B_primary \
+    .venv/Scripts/python.exe generations/gen13_separation/scripts/g13_headline_tables.py --primary B_primary \
         --ablations B_abl_cond_only,B_abl_ecfp_only,B_abl_no_coord,B_abl_coord_donors
 
 Writes headline_tables/t1_leaderboard.{csv,md}, t2_contrasts, t3_bands, t4_ablations, t5_selection,

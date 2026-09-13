@@ -33,7 +33,7 @@ is explicitly a *restricted* randomisation, and Chuang & Keiser's adversarial-co
 (Science 362:eaat8603, 2018; ACS Chem Biol 13:2819, 2018).
 
 Usage:
-    python gen14_direction/scripts/g14_perm2.py --draws 20 --designs BP,A
+    python generations/gen14_direction/scripts/g14_perm2.py --draws 20 --designs BP,A
 """
 from __future__ import annotations
 

@@ -20,8 +20,8 @@ import numpy as np
 import pandas as pd
 
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parents[2]
-for _p in (str(ROOT / "gen15_curve"), str(HERE)):
+ROOT = HERE.parents[3]
+for _p in (str(ROOT / "generations" / "gen15_curve"), str(HERE)):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 

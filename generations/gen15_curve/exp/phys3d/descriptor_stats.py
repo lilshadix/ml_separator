@@ -30,9 +30,9 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(ROOT / "gen15_curve"))
+sys.path.insert(0, str(ROOT / "generations" / "gen15_curve"))
 from gen15 import valuebench as V  # noqa: E402
 
 MIN_METALS = 5

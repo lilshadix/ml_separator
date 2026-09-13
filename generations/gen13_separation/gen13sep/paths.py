@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 GEN13_ROOT = Path(__file__).resolve().parents[1]          # gen13_separation/
-REPO_ROOT = GEN13_ROOT.parent
+REPO_ROOT = GEN13_ROOT.parent.parent
 SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
@@ -23,9 +23,9 @@ BUNDLE_SHA256 = "fefbefc6fe993aa9ce9db1a0c338adb9e5f58a8b75bab084cc1df4e024faf5d
 LIG2D_PARQUET = BUNDLE_DIR / "ligand_2d_descriptors.parquet"
 CHEMISTRY_MAP_PARQUET = REPO_ROOT / "runs" / "gen7_architecture" / "cache" / "chemistry_map.parquet"
 GEN6_PROVENANCE_PARQUET = REPO_ROOT / "runs" / "gen6_provenance" / "provenance_table.parquet"
-GEN122_COORDINATION_PARQUET = (REPO_ROOT / "gen12_2_eu_pred" / "features"
+GEN122_COORDINATION_PARQUET = (REPO_ROOT / "generations" / "gen12_2_eu_pred" / "features"
                                / "coordination_descriptors.parquet")
-GEN122_COORDINATION_POSTHOC_PARQUET = (REPO_ROOT / "gen12_2_eu_pred" / "features"
+GEN122_COORDINATION_POSTHOC_PARQUET = (REPO_ROOT / "generations" / "gen12_2_eu_pred" / "features"
                                        / "coordination_descriptors_posthoc.parquet")
 
 # ---- Gen13 outputs ---------------------------------------------------------

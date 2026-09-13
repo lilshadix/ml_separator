@@ -10,7 +10,7 @@ an extractant are averaged, wholly or partly. That uses no label and no held-out
 knowledge of which ligand each cell contains, which a deployment always has.
 """
 import sys, time
-sys.path.insert(0, "gen13_separation")
+sys.path.insert(0, "generations/gen13_separation")
 import numpy as np, pandas as pd
 from gen13sep.amplitude_bench import (load_bench, cell_weights, _pair_frame, LEAN_BLOCKS, CHEM_BLOCKS)
 from gen13sep.inference import paired_contrasts
@@ -56,10 +56,10 @@ for design in DESIGNS:
     print("=== " + design + f"  ({time.time()-t0:.0f}s)", flush=True)
     print(board[["arm", "macro_mae_extractant", "macro_mae_extractant_seed_sd", "macro_mae_chemotype",
                  "macro_mae_far", "macro_sign_acc_strong"]].round(4).to_string(index=False), flush=True)
-    board.to_csv("gen13_separation/analysis/stage3/s3_smooth_" + design + ".csv", index=False)
+    board.to_csv("generations/gen13_separation/analysis/stage3/s3_smooth_" + design + ".csv", index=False)
     pe = per_extractant(table, names)
     comps = {design + "|" + n + "_vs_SMOOTH0": ("SMOOTH0", n) for n in names if n != "SMOOTH0"}
     r = paired_contrasts(pe, comps, value="mae_all", replicates=10000)
     print(r[["comparison", "point", "ci95_low", "ci95_high", "p_two_sided", "seeds_positive",
              "units_improved", "n_units", "loco_sign_stable", "passes_P1"]].round(4).to_string(index=False), flush=True)
-    r.to_csv("gen13_separation/analysis/stage3/s3_smooth_contrasts_" + design + ".csv", index=False)
+    r.to_csv("generations/gen13_separation/analysis/stage3/s3_smooth_contrasts_" + design + ".csv", index=False)

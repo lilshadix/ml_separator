@@ -1,6 +1,6 @@
 """L6 — cohort audit.  Runs everything and writes gen16_leads/results/L6_cohort_audit/.
 
-    python gen16_leads/scripts/g16_cohort_audit.py
+    python generations/gen16_leads/scripts/g16_cohort_audit.py
 
 Never writes the frozen cohort.  Every relaxed cohort is described, never persisted over
 ``gen13_separation/manifests/``.

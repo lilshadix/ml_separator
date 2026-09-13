@@ -27,7 +27,7 @@ removes a real confound in the naive version -- with alpha held fixed, scaling t
 sqrt(gamma) silently rescales the effective penalty to alpha/gamma, so a "gamma path" at fixed
 alpha is partly just a ridge path.  Alpha is re-selected at every gamma here.
 
-Usage:  python gen16_anchor/scripts/g16_anchor_fast.py [BP,A,B,BR,BQ] [--blocks COND_MA,TOPO39]
+Usage:  python generations/gen16_anchor/scripts/g16_anchor_fast.py [BP,A,B,BR,BQ] [--blocks COND_MA,TOPO39]
 """
 from __future__ import annotations
 
@@ -38,9 +38,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "gen14_direction"))
-sys.path.insert(0, str(ROOT / "gen13_separation"))
+ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT / "generations" / "gen14_direction"))
+sys.path.insert(0, str(ROOT / "generations" / "gen13_separation"))
 
 from gen14 import dirbench as db                                              # noqa: E402
 from gen14 import models as M                                                 # noqa: E402

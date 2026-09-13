@@ -10,16 +10,16 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path("D:/ml_separator_gh")
-sys.path.insert(0, str(ROOT / "gen13_separation"))
+sys.path.insert(0, str(ROOT / "generations" / "gen13_separation"))
 from gen13sep.metals import LANTHANIDES, physics_basis  # noqa: E402
 
-OUT = ROOT / "gen13_separation/analysis/stage2/d2_metal_dependency/verify"
+OUT = ROOT / "generations/gen13_separation/analysis/stage2/d2_metal_dependency/verify"
 M = list(LANTHANIDES)
 NM = len(M)
 IDX = {m: i for i, m in enumerate(M)}
 J = np.eye(NM) - np.ones((NM, NM)) / NM
 
-coh = pd.read_parquet(ROOT / "gen13_separation/manifests/cohort_exact.parquet")
+coh = pd.read_parquet(ROOT / "generations/gen13_separation/manifests/cohort_exact.parquet")
 X = coh[[f"logD__{m}" for m in M]].to_numpy(dtype=float)
 obs = ~np.isnan(X)
 n_obs = obs.sum(1)
@@ -73,7 +73,7 @@ print()
 print("=" * 78)
 print("E2  reveal-one-SF on the SAME subset the summary used (m>=4, revealed pair excluded)")
 print("=" * 78)
-PRED = ROOT / "gen13_separation/predictions/B_primary"
+PRED = ROOT / "generations/gen13_separation/predictions/B_primary"
 
 
 def unitise(v):

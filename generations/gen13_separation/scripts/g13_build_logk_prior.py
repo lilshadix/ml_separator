@@ -8,7 +8,7 @@ model from ECFP + RDKit scalars to (slope, curv) is fitted on those external lig
 its prediction for each bundle extractant — plus the nearest external ligand's slope/curv and
 Tanimoto — becomes the ``logk__*`` block.  Nothing here reads the bundle's log D.
 
-    .venv/Scripts/python.exe gen13_separation/scripts/g13_build_logk_prior.py --sdf-dir <dir with La.sdf ...>
+    .venv/Scripts/python.exe generations/gen13_separation/scripts/g13_build_logk_prior.py --sdf-dir <dir with La.sdf ...>
 """
 from __future__ import annotations
 

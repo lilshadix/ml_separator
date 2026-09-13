@@ -12,7 +12,7 @@ Here every strategy is run in one pass and the UNION of their support pairs is e
 for all of them, so the comparison is on byte-identical pairs and a difference can only come from
 which measurements were taken.
 
-Usage:  python gen15_curve/scripts/g15_support.py [designs] [--cov empirical|blend|smooth]
+Usage:  python generations/gen15_curve/scripts/g15_support.py [designs] [--cov empirical|blend|smooth]
 """
 from __future__ import annotations
 

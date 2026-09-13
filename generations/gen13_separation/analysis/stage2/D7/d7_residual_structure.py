@@ -6,7 +6,7 @@ has reproducible non-smooth structure (Gd break, Jorgensen tetrads, element anom
 and what that structure is worth in extractant-macro pairwise MAE.
 
 Run from the repo root:
-    .venv/Scripts/python.exe gen13_separation/analysis/stage2/D7/d7_residual_structure.py
+    .venv/Scripts/python.exe generations/gen13_separation/analysis/stage2/D7/d7_residual_structure.py
 """
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ import sys
 import numpy as np
 import pandas as pd
 
-sys.path.insert(0, "gen13_separation")
+sys.path.insert(0, "generations/gen13_separation")
 from gen13sep.metals import (  # noqa: E402
     ATOMIC_NUMBER,
     F_COUNT,
@@ -28,8 +28,8 @@ from gen13sep.metals import (  # noqa: E402
     jorgensen_e3,
 )
 
-OUT = "gen13_separation/analysis/stage2/D7"
-FIG = "gen13_separation/figures/stage2"
+OUT = "generations/gen13_separation/analysis/stage2/D7"
+FIG = "generations/gen13_separation/figures/stage2"
 os.makedirs(OUT, exist_ok=True)
 os.makedirs(FIG, exist_ok=True)
 RNG = np.random.default_rng(20260908)
@@ -122,7 +122,7 @@ def col_mean(mat):
 
 # ------------------------------------------------------------------------------ main
 def main():
-    df = pd.read_parquet("gen13_separation/manifests/cohort_exact.parquet")
+    df = pd.read_parquet("generations/gen13_separation/manifests/cohort_exact.parquet")
     print(f"cohort: {len(df)} cells, {df.extractant.nunique()} extractants, "
           f"{df.chemotype.nunique()} chemotypes, {df.publication_id.nunique()} publications")
 
@@ -461,7 +461,7 @@ def main():
     arm_rows = []
     err_curves = {}
     for arm in arms:
-        p = f"gen13_separation/predictions/B_primary/{arm}.parquet"
+        p = f"generations/gen13_separation/predictions/B_primary/{arm}.parquet"
         if not os.path.exists(p):
             continue
         d = pd.read_parquet(p)

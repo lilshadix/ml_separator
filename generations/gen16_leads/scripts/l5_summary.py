@@ -11,7 +11,7 @@ PRE_REGISTRATION §3 L5 in code rather than by eye:
 * Zero-shot probability: is the calibrated direction probability a *deliverable* -- Brier beating
   the constant training base rate with a CI excluding zero in all five designs, and ECE <= 0.10?
 
-Usage:  .venv/Scripts/python.exe gen16_leads/scripts/l5_summary.py
+Usage:  .venv/Scripts/python.exe generations/gen16_leads/scripts/l5_summary.py
 """
 from __future__ import annotations
 

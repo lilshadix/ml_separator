@@ -28,7 +28,7 @@ import pandas as pd
 
 from gen16 import bootstrap  # noqa: F401  (sys.path + thread cap)
 
-LABELERR = bootstrap.ROOT / "gen15_curve" / "exp" / "labelerr"
+LABELERR = bootstrap.ROOT / "generations" / "gen15_curve" / "exp" / "labelerr"
 if str(LABELERR) not in sys.path:
     sys.path.insert(0, str(LABELERR))
 

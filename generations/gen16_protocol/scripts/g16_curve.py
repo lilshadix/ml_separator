@@ -15,7 +15,7 @@ Three things are read off the curve.
   * the noise floor next to both: the replicate sd of the amplitude is 0.237, so any asymptote
     near the oracle-amplitude arm is measuring the corpus, not the model.
 
-Usage:  python gen16_protocol/scripts/g16_curve.py [draws]
+Usage:  python generations/gen16_protocol/scripts/g16_curve.py [draws]
 """
 from __future__ import annotations
 
@@ -26,9 +26,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
-for p in (ROOT / "gen13_separation", ROOT / "gen14_direction",
-          ROOT / "gen15_curve", ROOT / "gen16_protocol"):
+ROOT = Path(__file__).resolve().parents[3]
+for p in (ROOT / "generations" / "gen13_separation", ROOT / "generations" / "gen14_direction",
+          ROOT / "generations" / "gen15_curve", ROOT / "generations" / "gen16_protocol"):
     sys.path.insert(0, str(p))
 
 from gen13sep.amplitude_bench import LEAN_BLOCKS            # noqa: E402
@@ -42,7 +42,7 @@ from gen16.designs import run_folds, thin_folds             # noqa: E402
 DRAWS = int(sys.argv[1]) if len(sys.argv) > 1 else 5
 BUDGETS = (6, 9, 12, 16, 20, 24, 28, 32, None)      # None = every training chemotype
 ARMS = {"G14": A.g14, "MEAN_CURVE": A.mean_curve}   # both are seconds-cheap; no tree arm here
-OUT = ROOT / "gen16_protocol" / "results"
+OUT = ROOT / "generations" / "gen16_protocol" / "results"
 OUT.mkdir(parents=True, exist_ok=True)
 
 bench = load()

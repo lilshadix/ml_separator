@@ -22,14 +22,14 @@ corpus at all scores 0.240, so of the 0.207 the measurement is worth, the model 
 prior, the choice of which pair to measure next, and a calibrated interval on every prediction.
 
     # fit on the frozen corpus (writes gen15_curve/models/deploy_g15.joblib)
-    .venv/Scripts/python.exe gen15_curve/scripts/g15_predict.py fit
+    .venv/Scripts/python.exe generations/gen15_curve/scripts/g15_predict.py fit
 
     # structure only
-    .venv/Scripts/python.exe gen15_curve/scripts/g15_predict.py predict \
+    .venv/Scripts/python.exe generations/gen15_curve/scripts/g15_predict.py predict \
         --smiles "CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC"
 
     # structure plus one measured separation factor, log10 D(La) - log10 D(Lu)
-    .venv/Scripts/python.exe gen15_curve/scripts/g15_predict.py predict --smiles "..." \
+    .venv/Scripts/python.exe generations/gen15_curve/scripts/g15_predict.py predict --smiles "..." \
         --measured "La/Lu=-1.31"
 """
 from __future__ import annotations
@@ -42,9 +42,9 @@ import joblib
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
-for p in (ROOT / "gen15_curve", ROOT / "gen14_direction", ROOT / "gen13_separation",
-          ROOT / "gen12_2_eu_pred"):
+ROOT = Path(__file__).resolve().parents[3]
+for p in (ROOT / "generations" / "gen15_curve", ROOT / "generations" / "gen14_direction",
+          ROOT / "generations" / "gen13_separation", ROOT / "generations" / "gen12_2_eu_pred"):
     if str(p) not in sys.path:
         sys.path.insert(0, str(p))
 
@@ -53,7 +53,7 @@ from gen13sep.metals import ATOMIC_NUMBER, LANTHANIDES  # noqa: E402
 from gen14 import dirbench as db  # noqa: E402
 from gen15 import fewshot as FS  # noqa: E402
 
-MODEL = ROOT / "gen15_curve" / "models" / "deploy_g15.joblib"
+MODEL = ROOT / "generations" / "gen15_curve" / "models" / "deploy_g15.joblib"
 N_LN = len(LANTHANIDES)
 
 

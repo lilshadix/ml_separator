@@ -36,12 +36,12 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 ROOT = Path("D:/ml_separator_gh")
-sys.path.insert(0, str(ROOT / "gen13_separation"))
+sys.path.insert(0, str(ROOT / "generations" / "gen13_separation"))
 from gen13sep.metals import (LANTHANIDES, ATOMIC_NUMBER, SHANNON_RADIUS_CN8,
                              physics_basis)
 
-OUT = ROOT / "gen13_separation/analysis/stage2/d2_metal_dependency"
-FIG = ROOT / "gen13_separation/figures/stage2"
+OUT = ROOT / "generations/gen13_separation/analysis/stage2/d2_metal_dependency"
+FIG = ROOT / "generations/gen13_separation/figures/stage2"
 OUT.mkdir(parents=True, exist_ok=True)
 FIG.mkdir(parents=True, exist_ok=True)
 
@@ -61,7 +61,7 @@ def say(*a):
 
 
 # ----------------------------------------------------------------------------- load
-df = pd.read_parquet(ROOT / "gen13_separation/manifests/cohort_exact.parquet")
+df = pd.read_parquet(ROOT / "generations/gen13_separation/manifests/cohort_exact.parquet")
 Yraw = df[["logD__" + m for m in M]].to_numpy(float)          # 521 x 14, NaN = unmeasured
 OBS = ~np.isnan(Yraw)
 nmet = OBS.sum(axis=1)
@@ -517,7 +517,7 @@ plt.close(fig)
 # of one pair in a cell predicts the residual of another pair in the same cell.
 arm_rows = []
 for arm in ["C_DIRECT_ROW", "X_ENS_DIRECT+LOWRANK_K2", "M_LOWRANK_K2", "M_SELECTED"]:
-    p = pd.read_parquet(ROOT / f"gen13_separation/predictions/B_primary/{arm}.parquet")
+    p = pd.read_parquet(ROOT / f"generations/gen13_separation/predictions/B_primary/{arm}.parquet")
     p = p[p.split_seed == p.split_seed.min()].copy()      # one seed keeps memory small
     p["resid"] = p.y - p.prediction
     # within each cell, fit the residual to an additive metal curve  r_AB = u_A - u_B

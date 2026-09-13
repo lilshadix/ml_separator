@@ -8,7 +8,7 @@ at all) and ``FLAT`` (the same BLUP correction applied to a zero prior, i.e. the
 covariance with no ligand information).
 
 Usage:
-  python gen15_curve/scripts/g15_fewshot.py [designs] [--how widest|dopt|random]
+  python generations/gen15_curve/scripts/g15_fewshot.py [designs] [--how widest|dopt|random]
                                             [--cov empirical|smooth|blend] [--noise 0.09]
                                             [--maskpub] [--cellnoise]
 """

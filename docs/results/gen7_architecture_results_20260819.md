@@ -43,7 +43,7 @@ strongest statement gen7 can make is therefore not about any
 model: it is that **the quantity is barely there to be predicted**, and that measuring a
 new ligand once buys more than six generations of modelling.
 
-![Where the error lives](runs/gen7_architecture/figures/error_budget.png)
+![Where the error lives](../../runs/gen7_architecture/figures/error_budget.png)
 
 ## BEST OLD MODEL
 
@@ -237,7 +237,7 @@ by nearest-training-neighbour Tanimoto, the offset gain is +0.28 below 0.4, +0.0
 chemistry is *closest*. Whatever the ligand blocks are contributing to the level, it is
 not a similarity-driven signal.
 
-![Gain against chemical distance](runs/gen7_architecture/figures/gain_vs_similarity.png)
+![Gain against chemical distance](../../runs/gen7_architecture/figures/gain_vs_similarity.png)
 
 ### The full metric set
 
@@ -634,7 +634,7 @@ split, while the 13-column donor census + ridge wins under the chemotype split.
 High-capacity representations interpolate; low-capacity ones extrapolate. Any future
 work that tunes on a random split will pick the wrong model.
 
-![Predicting a ligand's level](runs/gen7_architecture/figures/level_capture.png)
+![Predicting a ligand's level](../../runs/gen7_architecture/figures/level_capture.png)
 
 ### The shape, partly
 

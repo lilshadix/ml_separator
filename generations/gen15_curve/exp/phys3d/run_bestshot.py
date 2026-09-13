@@ -23,9 +23,9 @@ from pathlib import Path
 
 import numpy as np
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(ROOT / "gen15_curve"))
+sys.path.insert(0, str(ROOT / "generations" / "gen15_curve"))
 sys.path.insert(0, str(HERE))
 from gen15 import arms as A, valuebench as V  # noqa: E402
 from gen15.arms import _curve, _logistic_sign, _fit_magnitude_1d  # noqa: E402

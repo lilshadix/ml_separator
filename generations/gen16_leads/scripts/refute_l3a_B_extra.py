@@ -8,7 +8,7 @@ headline against it, plus the remaining bookkeeping checks.
 
 Usage (repo root):
   PYTHONIOENCODING=utf-8 OMP_NUM_THREADS=2 .venv/Scripts/python.exe \
-      gen16_leads/scripts/refute_l3a_B_extra.py
+      generations/gen16_leads/scripts/refute_l3a_B_extra.py
 """
 from __future__ import annotations
 

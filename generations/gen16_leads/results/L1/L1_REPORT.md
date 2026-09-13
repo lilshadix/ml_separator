@@ -301,7 +301,7 @@ Full detail in `L1_STAGE2_HANDOVER.md`.  Summary:
 | `which xtb` | **not on PATH** (re-checked at build time) — cluster route, submission is the user's |
 | built | `results/L1/reference_species/` — 177 free-ligand xyz (ETKDGv3 + MMFF94s, 177/177, formula-verified), 168/177 ligand-at-complex-geometry xyz for strain single points, NO₃⁻, H₂O, 14 Ln³⁺, `manifest.csv`, `completeness.csv`, `jobs.tsv`, `reference_energies_TEMPLATE.csv` |
 | completeness | all **1155** distinct `(canonical_smiles, fill_ligand, n_fill, n_ligs, metal)` combinations have every reference they need — `complete = True` on every row |
-| submit | `sbatch gen16_leads/results/L1/reference_species/submit_xtb_references.sh` — **361 array tasks**, 1 core, 2 GB, `%20` concurrent, walltime cap 1 h |
+| submit | `sbatch generations/gen16_leads/results/L1/reference_species/submit_xtb_references.sh` — **361 array tasks**, 1 core, 2 GB, `%20` concurrent, walltime cap 1 h |
 | command per task | `xtb <file> --opt --gfn 2 --chrg <q> --uhf 0` (ligands, NO₃⁻, H₂O); `--sp` for the ions and the strain geometries; **no `--alpb`** — no solvation key exists anywhere in the dataset |
 | expected | **≈ 6.7 CPU-hours** total, ≈ 20 min wall at 20 concurrent; longest single task ≈ 7 min (largest ligand 169 atoms, median 80) |
 | analysis | `scripts/l1_stage2_cycle.py --refs …/reference_energies.csv` — computes `dE`, **aborts** on any missing / non-finite / non-converged reference, then runs exactly the Stage 1 models, sets, statistics and decision rule |

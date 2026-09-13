@@ -4,10 +4,10 @@ import pickle, sys
 from pathlib import Path
 import numpy as np, pandas as pd
 
-sys.path.insert(0, str(Path("D:/ml_separator_gh/gen13_separation").resolve()))
+sys.path.insert(0, str(Path("D:/ml_separator_gh/generations/gen13_separation").resolve()))
 from gen13sep.amplitude_bench import load_bench, ALL_BLOCKS
 
-OUT = Path("D:/ml_separator_gh/gen13_separation/analysis/stage3/verify_direction")
+OUT = Path("D:/ml_separator_gh/generations/gen13_separation/analysis/stage3/verify_direction")
 
 bench = load_bench("exact", ("radius", "radius_sq"), ALL_BLOCKS)
 payload = {

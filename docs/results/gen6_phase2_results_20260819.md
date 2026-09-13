@@ -1,9 +1,9 @@
 # gen6 — Phase 2 results: Experiments C and F (2026-08-19)
 
-Protocol: [`gen6_phase2_protocol_20260819.md`](gen6_phase2_protocol_20260819.md), written after
+Protocol: [`gen6_phase2_protocol_20260819.md`](../protocols/gen6_phase2_protocol_20260819.md), written after
 Phase 1 reported case A and before any Phase 2 model was fitted; one amendment (`C2_TRUECENTRE`) is
 recorded in it with its reason and its timing. Engineering contract:
-[`gen6_phase2_runner_contract.md`](gen6_phase2_runner_contract.md).
+[`gen6_phase2_runner_contract.md`](../protocols/gen6_phase2_runner_contract.md).
 
 | what | run directory | command |
 |---|---|---|

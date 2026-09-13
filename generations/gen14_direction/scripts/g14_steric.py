@@ -18,7 +18,7 @@ Rules kept: all five designs, the full table reported, and the increment stated 
 ``LOGIT_TOPO39`` as well as against the constant baseline.  A post-hoc candidate that passes here
 is a hypothesis for the next cohort, not a result.
 
-Usage:  python gen14_direction/scripts/g14_steric.py [design,design,...]
+Usage:  python generations/gen14_direction/scripts/g14_steric.py [design,design,...]
 """
 from __future__ import annotations
 

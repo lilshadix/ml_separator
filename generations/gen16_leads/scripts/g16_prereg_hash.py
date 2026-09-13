@@ -10,7 +10,7 @@ and appends the footer.  Without a flag the script verifies the footer and exits
 Every addendum added later goes ABOVE the footer and the file is re-sealed with ``--reseal``,
 which records the previous digest in the addendum so the history of seals is visible.
 
-Run:  .venv/Scripts/python.exe gen16_leads/scripts/g16_prereg_hash.py [--seal | --reseal]
+Run:  .venv/Scripts/python.exe generations/gen16_leads/scripts/g16_prereg_hash.py [--seal | --reseal]
 """
 from __future__ import annotations
 

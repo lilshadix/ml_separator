@@ -27,7 +27,7 @@ Four arms, all under the frozen gen14 fold plans:
                      nothing more; if it collapses, the *values* of the topology vector carry the
                      signal, not merely the partition they induce.
 
-Usage:  python gen14_direction/scripts/g14_capacity.py --designs A,B,BR,BQ,BP --draws 20
+Usage:  python generations/gen14_direction/scripts/g14_capacity.py --designs A,B,BR,BQ,BP --draws 20
 """
 from __future__ import annotations
 

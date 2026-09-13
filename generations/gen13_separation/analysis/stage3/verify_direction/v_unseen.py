@@ -1,6 +1,6 @@
 """How much of the accuracy survives on test cells whose exact topology vector is NOT in training?"""
 import sys, json
-sys.path.insert(0, "D:/ml_separator_gh/gen13_separation/analysis/stage3/verify_direction")
+sys.path.insert(0, "D:/ml_separator_gh/generations/gen13_separation/analysis/stage3/verify_direction")
 from v_runner import *
 import numpy as np, pandas as pd
 from gen13sep.splits import all_folds

@@ -1,11 +1,11 @@
 """Paired chemotype-blocked comparison of the direction models against 'always heavy-selective',
 using one shared resample per design, over every prediction file produced so far."""
 import sys, glob
-sys.path.insert(0, "gen13_separation")
+sys.path.insert(0, "generations/gen13_separation")
 import numpy as np, pandas as pd
 RNG = np.random.default_rng(8675309); REPS = 10000
 frames = [pd.read_parquet(p) for p in
-          glob.glob("gen13_separation/analysis/stage3/s3_direction_predictions*.parquet")]
+          glob.glob("generations/gen13_separation/analysis/stage3/s3_direction_predictions*.parquet")]
 t = pd.concat(frames, ignore_index=True)
 t = t[t.model != "always_heavy"].drop_duplicates(["design", "split_seed", "fold", "model", "cell_id"])
 rows, gains = [], []
@@ -37,7 +37,7 @@ for design, blk in t.groupby("design"):
                           units_worse=int((acc[m] < acc["always_heavy"]).sum())))
 A = pd.DataFrame(rows).sort_values(["design", "macro_accuracy"], ascending=[True, False])
 G = pd.DataFrame(gains).sort_values(["design", "gain"], ascending=[True, False])
-A.to_csv("gen13_separation/analysis/stage3/s3_direction_accuracy_all_designs.csv", index=False)
-G.to_csv("gen13_separation/analysis/stage3/s3_direction_gain_all_designs.csv", index=False)
+A.to_csv("generations/gen13_separation/analysis/stage3/s3_direction_accuracy_all_designs.csv", index=False)
+G.to_csv("generations/gen13_separation/analysis/stage3/s3_direction_gain_all_designs.csv", index=False)
 print(A.round(4).to_string(index=False)); print()
 print(G[G.model == "donor_geometry"].round(4).to_string(index=False))

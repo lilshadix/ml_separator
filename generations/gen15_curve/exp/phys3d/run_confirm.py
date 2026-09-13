@@ -10,9 +10,9 @@ import sys
 import time
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(ROOT / "gen15_curve"))
+sys.path.insert(0, str(ROOT / "generations" / "gen15_curve"))
 sys.path.insert(0, str(HERE))
 from gen15 import arms as A, valuebench as V  # noqa: E402
 import arms_phys3d as P  # noqa: E402

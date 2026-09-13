@@ -7,8 +7,8 @@ from pathlib import Path
 import numpy as np, pandas as pd
 
 ROOT = Path("D:/ml_separator_gh")
-sys.path.insert(0, str(ROOT/"gen16_anchor"/"scripts"))
-sys.path.insert(0, str(ROOT/"gen14_direction")); sys.path.insert(0, str(ROOT/"gen13_separation"))
+sys.path.insert(0, str(ROOT/"generations"/"gen16_anchor"/"scripts"))
+sys.path.insert(0, str(ROOT/"generations"/"gen14_direction")); sys.path.insert(0, str(ROOT/"generations"/"gen13_separation"))
 from gen14 import dirbench as db
 from gen13sep.amplitude_bench import LEAN_BLOCKS, cell_weights
 from gen13sep.splits import all_folds
@@ -55,7 +55,7 @@ for design in sys.argv[1:] or ["BP"]:
     print(f"[{design}] {time.time()-t0:.0f}s", flush=True)
 
 d = pd.DataFrame(rows)
-d.to_parquet(ROOT/"gen16_anchor"/"results"/"g16_gamma_probe.parquet")
+d.to_parquet(ROOT/"generations"/"gen16_anchor"/"results"/"g16_gamma_probe.parquet")
 # macro over extractants, averaged over seeds
 def macro(sub, col):
     per = sub.groupby(["seed","ext"])[col].mean().reset_index()

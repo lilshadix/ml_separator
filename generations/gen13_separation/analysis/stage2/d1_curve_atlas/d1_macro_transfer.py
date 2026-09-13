@@ -11,7 +11,7 @@ is "which extractant is this" - it is the error you make even when you know the
 extractant perfectly and have a real measured curve for it.
 
 Run from the repo root:
-    .venv/Scripts/python.exe gen13_separation/analysis/stage2/d1_curve_atlas/d1_macro_transfer.py
+    .venv/Scripts/python.exe generations/gen13_separation/analysis/stage2/d1_curve_atlas/d1_macro_transfer.py
 """
 
 from __future__ import annotations

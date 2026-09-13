@@ -16,8 +16,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
-RES = ROOT / "gen16_leads" / "results"
+ROOT = Path(__file__).resolve().parents[3]
+RES = ROOT / "generations" / "gen16_leads" / "results"
 OUT = RES / "audit" / "numbers"
 OUT.mkdir(parents=True, exist_ok=True)
 
@@ -55,7 +55,7 @@ def check(section, what, quoted, artefact, value, tol=None):
 
 
 def rel(p: Path) -> str:
-    return str(p.relative_to(ROOT)).replace("\\", "/")
+    return str(p.relative_to(ROOT / "generations")).replace("\\", "/")
 
 
 def bh(p):
@@ -70,7 +70,7 @@ def bh(p):
 
 
 # ---------------------------------------------------------------- seal / anchors
-prereg = (ROOT / "gen16_leads" / "PRE_REGISTRATION.md").read_bytes().replace(b"\r\n", b"\n")
+prereg = (ROOT / "generations" / "gen16_leads" / "PRE_REGISTRATION.md").read_bytes().replace(b"\r\n", b"\n")
 lines = prereg.split(b"\n")
 last = max(i for i, l in enumerate(lines) if l.strip() == b"---")
 body = b"\n".join(lines[:last]) + b"\n"
@@ -549,7 +549,7 @@ check("10.5", "energy-complete series", 39, prp,
       rp[(rp.subset.str.contains("ENERGY")) & (rp.construction == "naive") &
          (rp.target == "a")].n_gen16.iloc[0], 0)
 check("10.6", "complexes verified", 1155, pref, refs["distinct_composition_combinations"], 0)
-line330 = (ROOT / "gen13_separation" / "gen13sep" / "arms_stage2.py").read_text(
+line330 = (ROOT / "generations" / "gen13_separation" / "gen13sep" / "arms_stage2.py").read_text(
     encoding="utf-8", errors="replace").splitlines()[329]
 check("10.8", "arms_stage2.py:330 hashes bytes", "hash(row.tobytes())",
       "gen13_separation/gen13sep/arms_stage2.py:330",

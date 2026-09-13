@@ -12,10 +12,10 @@ import numpy as np
 import pandas as pd
 
 ROOT = "D:/ml_separator_gh"
-PRED = os.path.join(ROOT, "gen13_separation/predictions/B_primary")
-OUT = os.path.join(ROOT, "gen13_separation/analysis/stage2/d4_amplitude_vs_shape/verify")
+PRED = os.path.join(ROOT, "generations/gen13_separation/predictions/B_primary")
+OUT = os.path.join(ROOT, "generations/gen13_separation/analysis/stage2/d4_amplitude_vs_shape/verify")
 
-sys.path.insert(0, os.path.join(ROOT, "gen13_separation"))
+sys.path.insert(0, os.path.join(ROOT, "generations", "gen13_separation"))
 from gen13sep.metals import LANTHANIDES, SHANNON_RADIUS_CN8  # noqa: E402
 
 LN_IDX = {m: i for i, m in enumerate(LANTHANIDES)}

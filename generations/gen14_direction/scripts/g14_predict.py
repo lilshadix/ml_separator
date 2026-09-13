@@ -11,11 +11,11 @@ fitted, and nothing but the SMILES string is needed: the descriptors are bond co
 molecular graph, so there is no conformer, no DFT and no measurement in the path.
 
     # fit on all 289 well-determined cells (writes gen14_direction/models/deploy.joblib)
-    .venv/Scripts/python.exe gen14_direction/scripts/g14_predict.py fit
+    .venv/Scripts/python.exe generations/gen14_direction/scripts/g14_predict.py fit
 
     # predict for one ligand, or for a CSV with a `smiles` column
-    .venv/Scripts/python.exe gen14_direction/scripts/g14_predict.py predict --smiles "CCN(CC)C(=O)COCC(=O)N(CC)CC"
-    .venv/Scripts/python.exe gen14_direction/scripts/g14_predict.py predict --input new.csv --output pred.csv
+    .venv/Scripts/python.exe generations/gen14_direction/scripts/g14_predict.py predict --smiles "CCN(CC)C(=O)COCC(=O)N(CC)CC"
+    .venv/Scripts/python.exe generations/gen14_direction/scripts/g14_predict.py predict --input new.csv --output pred.csv
 
 What it is worth, out of fold, for a ligand whose whole chemical family *and* every publication
 that studied it are absent from training (design BP): the direction is right for 82 % of
@@ -35,17 +35,17 @@ import joblib
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "gen14_direction"))
-sys.path.insert(0, str(ROOT / "gen13_separation"))
-sys.path.insert(0, str(ROOT / "gen12_2_eu_pred"))
+ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT / "generations" / "gen14_direction"))
+sys.path.insert(0, str(ROOT / "generations" / "gen13_separation"))
+sys.path.insert(0, str(ROOT / "generations" / "gen12_2_eu_pred"))
 
 from gen14 import dirbench as db  # noqa: E402
 from gen14 import models as M  # noqa: E402
 from gen13sep.amplitude_bench import LEAN_BLOCKS, cell_weights  # noqa: E402
 from gen13sep.metals import ATOMIC_NUMBER, LANTHANIDES  # noqa: E402
 
-MODEL = ROOT / "gen14_direction" / "models" / "deploy.joblib"
+MODEL = ROOT / "generations" / "gen14_direction" / "models" / "deploy.joblib"
 
 
 def fit() -> None:

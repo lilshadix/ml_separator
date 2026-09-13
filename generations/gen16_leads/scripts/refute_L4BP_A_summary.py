@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
-OUT = ROOT / "gen16_leads" / "results" / "refutation" / "L4BP" / "A"
+ROOT = Path(__file__).resolve().parents[3]
+OUT = ROOT / "generations" / "gen16_leads" / "results" / "refutation" / "L4BP" / "A"
 
 ROWS = [
     dict(n=1, check="Diglycolamides (sc009) removed from TRAINING and scoring, not only scoring",

@@ -1,6 +1,6 @@
 """One-pair calibration study (H5) on a finished ladder's saved curves.
 
-    .venv/Scripts/python.exe gen13_separation/scripts/g13_fewshot.py --label B_primary --arms M_SELECTED,C_DIRECT_ROW,B1_MEAN_CURVE
+    .venv/Scripts/python.exe generations/gen13_separation/scripts/g13_fewshot.py --label B_primary --arms M_SELECTED,C_DIRECT_ROW,B1_MEAN_CURVE
 
 For every held-out cell with >= 3 metals, one observed pair is drawn (5 repeats, deterministic
 per cell), every arm's curve is adapted, and the remaining pairs are scored.  Outputs

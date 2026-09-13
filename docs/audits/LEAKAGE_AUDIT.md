@@ -54,12 +54,12 @@ at all: **A (CRITICAL)**, **B (CRITICAL)**, **C (HIGH)**, **D (LOW)**, **E (HIGH
 ### 1. Random `train_test_split` — SAFE
 No `train_test_split`, `ShuffleSplit`, or plain `KFold` anywhere in `src/` or `scripts/`.
 The only splitter is `StratifiedGroupKFold` inside
-[`_group_folds`](src/lanthanide_separation/evaluation.py:224), always called with
+[`_group_folds`](../../src/lanthanide_separation/evaluation.py:224), always called with
 `groups=` and `shuffle=True` plus an explicit `random_state`.
 
 ### 2. Preprocessing before group splitting — SAFE
 All learned preprocessing lives in a `Pipeline` constructed *inside*
-[`AntisymmetricExtraTreesRegressor.fit`](src/lanthanide_separation/evaluation.py:113).
+[`AntisymmetricExtraTreesRegressor.fit`](../../src/lanthanide_separation/evaluation.py:113).
 It is instantiated fresh per fit (`_new_pipeline`), so no state survives across folds.
 
 ### 3 / 5. Global `StandardScaler` / PCA — SAFE
@@ -70,18 +70,18 @@ dimensionality reduction step to leak.
 `SimpleImputer(strategy="median", add_indicator=True)` is the first pipeline step and is
 therefore fitted on the training fold only. The runner additionally persists
 `imputer_statistics` and their SHA-256 per arm per fold
-([`ablation.py:678`](src/lanthanide_separation/ablation.py:678)), so the claim is auditable
+([`ablation.py:678`](../../src/lanthanide_separation/ablation.py:678)), so the claim is auditable
 after the fact rather than merely asserted.
 
 ### 6. Feature selection before CV — LOW
 Feature sets are **pre-declared**, not data-driven: `FEATURE_FAMILIES` → `ABLATION_FAMILIES`
-A0–A6 in [`feature_registry.py`](src/lanthanide_separation/feature_registry.py:57), with
+A0–A6 in [`feature_registry.py`](../../src/lanthanide_separation/feature_registry.py:57), with
 fail-closed classification (an unrecognised column raises rather than being silently
 absorbed). No supervised selection occurs at any point.
 
 Two whole-cohort, **target-independent** decisions remain:
 - `usable_3d_cols` drops columns that are all-NaN across the entire dataset
-  ([`pairs.py:581`](src/lanthanide_separation/pairs.py:581));
+  ([`pairs.py:581`](../../src/lanthanide_separation/pairs.py:581));
 - `require_complete_3d` drops pairs with any missing selected 3D contrast (6 pairs here).
 
 Both are computed without the target and applied identically to every arm, so they cannot
@@ -95,7 +95,7 @@ Neither appears. No `.corr()` call, no `TargetEncoder`.
 `build_lanthanide_pair_dataset` enforces a forbidden-fragment check over the *entire*
 model contract and raises `AssertionError` if `log_D`, `log_SF`, `safe_exp_id`, `build_id`,
 `geometry_key`, `sample_weight`, `asset_index` or `xyz_path` ever appears
-([`pairs.py:780`](src/lanthanide_separation/pairs.py:780)). `feature_registry._classify_column`
+([`pairs.py:780`](../../src/lanthanide_separation/pairs.py:780)). `feature_registry._classify_column`
 repeats the check independently. The one feature that mixes a physical constant into a
 geometry value — `derived_invariant__shell_clearance_mean = ln_donor_distance_mean −
 Ionic Radius_metal` — uses a fixed tabulated ionic radius, not a fitted quantity.
@@ -104,7 +104,7 @@ Ionic Radius_metal` — uses a fixed tabulated ionic radius, not a fitted quanti
 
 Literal duplication is correctly prevented: `ablation.py` asserts zero overlap on
 `extractant`, `source_id`, `geometry_key`, `geometry_feature_build_id` and `vr_graph_index`
-and raises if any is non-zero ([`ablation.py:471`](src/lanthanide_separation/ablation.py:471)).
+and raises if any is non-zero ([`ablation.py:471`](../../src/lanthanide_separation/ablation.py:471)).
 Measured overlap is `[0, 0, 0, 0, 0]`.
 
 **But chemical duplication is not prevented under the default protocol.** The runner
@@ -147,7 +147,7 @@ asset and raises on any disagreement.
 
 ### 12. Hyperparameter optimisation against outer-test — SAFE
 Selection uses `inner_macro_group_mae` computed from inner-CV out-of-fold predictions on
-the outer-training rows only ([`ablation.py:623`](src/lanthanide_separation/ablation.py:623)).
+the outer-training rows only ([`ablation.py:623`](../../src/lanthanide_separation/ablation.py:623)).
 Outer-test rows are touched exactly once, by `final_model.predict(outer_test)`, after the
 arm is fully specified. Tie-breaking is deterministic (`candidate_index`), so no hidden
 test-driven choice enters.
@@ -209,8 +209,8 @@ extractant, so it can never combine a training extractant with a test extractant
 
 In `build_lanthanide_pair_dataset`:
 
-- 2D and conditions enter as **absolute** values: `base__X = X_A` ([`pairs.py:724`](src/lanthanide_separation/pairs.py:724))
-- 3D enters **only** as a contrast: `delta3d__X = X_A − X_B` ([`pairs.py:728`](src/lanthanide_separation/pairs.py:728))
+- 2D and conditions enter as **absolute** values: `base__X = X_A` ([`pairs.py:724`](../../src/lanthanide_separation/pairs.py:724))
+- 3D enters **only** as a contrast: `delta3d__X = X_A − X_B` ([`pairs.py:728`](../../src/lanthanide_separation/pairs.py:728))
 
 Because A and B are the *same ligand with a different lanthanide*, the difference removes
 almost everything about the coordination environment itself and retains only how that

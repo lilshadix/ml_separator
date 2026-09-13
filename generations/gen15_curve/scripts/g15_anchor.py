@@ -16,8 +16,8 @@ import sys, time
 from pathlib import Path
 import numpy as np, pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "gen15_curve"))
+ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT / "generations" / "gen15_curve"))
 from gen15 import valuebench as V           # noqa: E402
 from gen15 import arms as A                 # noqa: E402
 from gen15.valuebench import Ctx            # noqa: E402
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     bench = V.load()
     print(f"[anchor] bench loaded {time.time()-t0:.0f}s; {len(ARMS)} arms x {len(DESIGNS)} designs", flush=True)
     B, C, tables = V.score(bench, ARMS, DESIGNS, comps=COMPS)
-    out = ROOT / "gen15_curve" / "results"; out.mkdir(parents=True, exist_ok=True)
+    out = ROOT / "generations" / "gen15_curve" / "results"; out.mkdir(parents=True, exist_ok=True)
     B.to_csv(out / "g15_anchor_board.csv", index=False)
     C.to_csv(out / "g15_anchor_contrasts.csv", index=False)
     pd.set_option("display.width", 250)

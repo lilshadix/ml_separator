@@ -95,7 +95,7 @@ It is not. On the condition-adjusted level a 1-nearest-neighbour **Tanimoto** lo
 CI [+0.028, +0.137], 5 of 5 seeds. gen7's ceiling stands, reached now by a third
 independent route.
 
-![Where the error goes](runs/gen8_architecture/figures/oracle_gap.png)
+![Where the error goes](../../runs/gen8_architecture/figures/oracle_gap.png)
 
 ## SERIES RECONSTRUCTION — WHAT THE MODEL IS SUPPOSED TO REPRESENT
 
@@ -251,7 +251,7 @@ k = 5 the deployable best (0.474) is *below* the 1-shot oracle and essentially a
 oracle level (0.480): **once the budget reaches five, the level is solved and everything
 remaining is shape.**
 
-![Adaptation curve](runs/gen8_architecture/figures/adaptation_curve.png)
+![Adaptation curve](../../runs/gen8_architecture/figures/adaptation_curve.png)
 
 ## ADAPTATION CURVE AND THE MARGINAL VALUE OF EACH MEASUREMENT
 
@@ -284,7 +284,7 @@ strongest practical argument for the acquisition result — the reason to choose
 not only that the mean falls, it is that blind measurement actively harms a third of the
 population.
 
-![Which experiment to run](runs/gen8_architecture/figures/policy_comparison.png)
+![Which experiment to run](../../runs/gen8_architecture/figures/policy_comparison.png)
 
 ## HOW MANY DEGREES OF FREEDOM CAN k MEASUREMENTS SAFELY MOVE?
 
@@ -382,7 +382,7 @@ The deployment consequence is concrete and constraining: **measure in the system
 intend to predict.** One acid-titration point will not tell you the metal selectivity of
 the same ligand in a different diluent.
 
-![Cross-series transfer](runs/gen8_architecture/figures/cross_series_transfer.png)
+![Cross-series transfer](../../runs/gen8_architecture/figures/cross_series_transfer.png)
 
 ## THE MODEL DRAWS EVERY UNSEEN TITRATION TOO FLAT
 
@@ -401,7 +401,7 @@ is three times worse than simply guessing the corpus median slope.** It is not m
 imprecise about the response, it is systematically and one-signedly wrong about it. The
 same holds on the acid axis. Only the lanthanide series is roughly at par with the null.
 
-![Slope flattening](runs/gen8_architecture/figures/slope_flattening.png)
+![Slope flattening](../../runs/gen8_architecture/figures/slope_flattening.png)
 
 ### Repairing it is worth a real, mechanistic gain — where the physics is identifiable
 

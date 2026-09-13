@@ -1,5 +1,5 @@
 import pandas as pd, numpy as np
-t = pd.read_parquet("D:/ml_separator_gh/gen13_separation/analysis/stage3/s3_direction_predictions.parquet")
+t = pd.read_parquet("D:/ml_separator_gh/generations/gen13_separation/analysis/stage3/s3_direction_predictions.parquet")
 print(t.shape, t.columns.tolist())
 print(t.groupby(["design","model"]).size())
 bp = t[(t.design=="BP")&(t.model=="donor_geometry")]

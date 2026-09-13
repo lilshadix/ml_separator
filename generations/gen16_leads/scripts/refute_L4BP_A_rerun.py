@@ -20,7 +20,7 @@ Endpoint: ABC = mean over k in (6,9,12,16,20,24) of [MAE_ref(k) - MAE_cand(k)] p
 stochastic orders averaged over draws; gen13sep.inference.paired_contrasts, margin 0.02.
 
     PYTHONIOENCODING=utf-8 OMP_NUM_THREADS=2 .venv/Scripts/python.exe \
-        gen16_leads/scripts/refute_L4BP_A_rerun.py BP
+        generations/gen16_leads/scripts/refute_L4BP_A_rerun.py BP
 """
 from __future__ import annotations
 
@@ -31,8 +31,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
-for _p in (ROOT / "gen13_separation", ROOT / "gen14_direction", ROOT / "gen15_curve"):
+ROOT = Path(__file__).resolve().parents[3]
+for _p in (ROOT / "generations" / "gen13_separation", ROOT / "generations" / "gen14_direction", ROOT / "generations" / "gen15_curve"):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
@@ -44,7 +44,7 @@ from gen14.dirbench import feature_sets, load  # noqa: E402
 from gen15 import arms as A  # noqa: E402
 from gen15.valuebench import Ctx, MIN_METALS  # noqa: E402
 
-OUT = ROOT / "gen16_leads" / "results" / "refutation" / "L4BP" / "A"
+OUT = ROOT / "generations" / "gen16_leads" / "results" / "refutation" / "L4BP" / "A"
 OUT.mkdir(parents=True, exist_ok=True)
 BUDGETS = (6, 9, 12, 16, 20, 24)
 N_DRAWS = 6

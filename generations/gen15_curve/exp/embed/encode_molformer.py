@@ -22,8 +22,8 @@ import pandas as pd
 import torch
 
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parents[2]
-for p in (str(ROOT / "gen15_curve"), str(HERE)):
+ROOT = HERE.parents[3]
+for p in (str(ROOT / "generations" / "gen15_curve"), str(HERE)):
     if p not in sys.path:
         sys.path.insert(0, p)
 

@@ -3,7 +3,7 @@
 Run it twice as two separate processes and compare: ``hash()`` is salted per process, so an
 in-session comparison proves nothing.  Used by ``g16_anchors.py`` and ``tests/test_anchors.py``.
 
-Usage:  .venv/Scripts/python.exe gen16_leads/scripts/g16_fold_hash.py
+Usage:  .venv/Scripts/python.exe generations/gen16_leads/scripts/g16_fold_hash.py
 """
 from __future__ import annotations
 

@@ -15,7 +15,7 @@ Three ceilings, all measurable on the frozen cohort:
 3. **Confidence.**  What the model is worth if it is allowed to abstain -- accuracy against
    coverage, ordered by |2p - 1|, which is the form the result would be deployed in.
 
-Usage:  python gen14_direction/scripts/g14_ceiling.py [design]
+Usage:  python generations/gen14_direction/scripts/g14_ceiling.py [design]
 """
 from __future__ import annotations
 

@@ -18,7 +18,7 @@ from pathlib import Path
 import numpy as np, pandas as pd
 
 ROOT = Path(r"D:\ml_separator_gh")
-sys.path.insert(0, str(ROOT / "gen14_direction")); sys.path.insert(0, str(ROOT / "gen13_separation"))
+sys.path.insert(0, str(ROOT / "generations" / "gen14_direction")); sys.path.insert(0, str(ROOT / "generations" / "gen13_separation"))
 from gen14 import dirbench as db
 from gen13sep.amplitude_bench import LEAN_BLOCKS, cell_weights
 
@@ -70,7 +70,7 @@ for name in ["COND64", "MASSACT8", "TOPO39", "DONORS13", "PHYSCHEM10", "COORD114
     print(f"{name:28s} {len(FS[name]):5d} {pooled:8.3f} {within:8.3f} {between:9.3f}")
     rows.append({"block": name, "ncol": len(FS[name]), "pooled_r2": pooled,
                  "within_r2": within, "between_r2": between})
-pd.DataFrame(rows).to_csv(ROOT / "gen16_anchor" / "g16_within_between_r2.csv", index=False)
+pd.DataFrame(rows).to_csv(ROOT / "generations" / "gen16_anchor" / "g16_within_between_r2.csv", index=False)
 
 # ---- restricted wild cluster bootstrap: does COND64 add anything WITHIN publication? ----
 print("\n=== WCR bootstrap, H0: the condition block has no within-publication effect ===")

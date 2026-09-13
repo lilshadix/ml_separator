@@ -7,7 +7,7 @@ results/refutation/L3A/B/.
 
 Usage (repo root):
   PYTHONIOENCODING=utf-8 OMP_NUM_THREADS=2 .venv/Scripts/python.exe \
-      gen16_leads/scripts/refute_l3a_B.py --stage tabs
+      generations/gen16_leads/scripts/refute_l3a_B.py --stage tabs
   ... --stage main
 """
 from __future__ import annotations

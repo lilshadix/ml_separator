@@ -195,8 +195,8 @@ def main():
 
     # ---------------- matched competitor on the SAME 62 ---------------------------
     try:
-        sys.path.insert(0, str(ROOT / "gen15_curve"))
-        sys.path.insert(0, str(ROOT / "gen14_direction"))
+        sys.path.insert(0, str(ROOT / "generations" / "gen15_curve"))
+        sys.path.insert(0, str(ROOT / "generations" / "gen14_direction"))
         from gen14.dirbench import load as bload  # noqa: E402
         bench = bload()
         X = getattr(bench, "X", None)

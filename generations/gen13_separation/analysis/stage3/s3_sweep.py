@@ -2,7 +2,7 @@
 design.  Everything is scored on the frozen fold plan and byte-identical pairs, so the numbers are
 directly comparable with metrics/BP_*/leaderboard.csv."""
 import sys, time, json
-sys.path.insert(0, "gen13_separation")
+sys.path.insert(0, "generations/gen13_separation")
 import numpy as np, pandas as pd
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler
@@ -125,5 +125,5 @@ cols = ["arm", "macro_mae_extractant", "macro_mae_extractant_seed_sd", "macro_ma
         "macro_mae_far", "macro_sign_acc_strong", "macro_pair_spearman", "pooled_mae"]
 print(f"\n{time.time()-t0:.0f}s total\n")
 print(board[cols].round(4).to_string(index=False))
-board.to_csv(f"gen13_separation/analysis/stage3/s3_sweep_{DESIGN}.csv", index=False)
-table.to_parquet(f"gen13_separation/analysis/stage3/s3_sweep_{DESIGN}_pairs.parquet", index=False)
+board.to_csv(f"generations/gen13_separation/analysis/stage3/s3_sweep_{DESIGN}.csv", index=False)
+table.to_parquet(f"generations/gen13_separation/analysis/stage3/s3_sweep_{DESIGN}_pairs.parquet", index=False)

@@ -11,16 +11,16 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path("D:/ml_separator_gh")
-sys.path.insert(0, str(ROOT / "gen13_separation"))
+sys.path.insert(0, str(ROOT / "generations" / "gen13_separation"))
 from gen13sep.metals import LANTHANIDES, SHANNON_RADIUS_CN8  # noqa: E402
 
-OUT = ROOT / "gen13_separation/analysis/stage2/d6_condition_law/verify"
+OUT = ROOT / "generations/gen13_separation/analysis/stage2/d6_condition_law/verify"
 _r = np.array([SHANNON_RADIUS_CN8[m] for m in LANTHANIDES])
 RZ = pd.Series((_r - _r.mean()) / _r.std(), index=list(LANTHANIDES))
 ARMS = ["C_DIRECT_ROW", "M_SELECTED", "M_PHYSICS_radius+radius_sq", "M_LOWRANK_K2",
         "X_ENS_DIRECT+LOWRANK_K2", "X_ENS_DIRECT+PHYSICS", "B1_MEAN_CURVE", "B3_NN_TANIMOTO"]
 
-coh = pd.read_parquet(ROOT / "gen13_separation/manifests/cohort_exact.parquet")
+coh = pd.read_parquet(ROOT / "generations/gen13_separation/manifests/cohort_exact.parquet")
 amp = pd.read_csv(OUT / "v6_cell_amplitudes.csv")
 ana = amp[(amp.n_metals >= 4) & (amp.rz_span >= 1.5)]
 cnt = ana.extractant.value_counts()
@@ -69,7 +69,7 @@ def pair_design(A, B):
 
 res = []
 for arm in ARMS:
-    p = pd.read_parquet(ROOT / f"gen13_separation/predictions/B_primary/{arm}.parquet")
+    p = pd.read_parquet(ROOT / f"generations/gen13_separation/predictions/B_primary/{arm}.parquet")
     p = p[p.cell_id.isin(cells_keep)].copy()
     U = pair_design(p.A, p.B)
     p["u1"], p["u2"] = U[:, 0], U[:, 1]

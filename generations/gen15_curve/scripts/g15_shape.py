@@ -1,6 +1,6 @@
 """Gen15 step 2: is the second coefficient predictable, and what is each rung of the ladder worth?
 
-Usage:  python gen15_curve/scripts/g15_shape.py [design,design,...]
+Usage:  python generations/gen15_curve/scripts/g15_shape.py [design,design,...]
 """
 from __future__ import annotations
 
