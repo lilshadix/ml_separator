@@ -1,0 +1,232 @@
+{
+  "canonical_rows": 14866,
+  "class_counts_by_group": {
+    "A_EXACT_DATABASE_DUPLICATE": 716,
+    "B_SAME_MEASUREMENT_DIFF_PROV": 9,
+    "C_POSSIBLE_INDEPENDENT_REPLICATE": 10,
+    "E_VALUE_CONFLICT": 307,
+    "F_INSUFFICIENT_INFORMATION": 2082,
+    "UNIQUE": 10704
+  },
+  "class_counts_by_record": {
+    "A_EXACT_DATABASE_DUPLICATE": 2609,
+    "B_SAME_MEASUREMENT_DIFF_PROV": 20,
+    "C_POSSIBLE_INDEPENDENT_REPLICATE": 20,
+    "E_VALUE_CONFLICT": 1040,
+    "F_INSUFFICIENT_INFORMATION": 2377,
+    "UNIQUE": 10704
+  },
+  "collapsed_as_redundant": 1904,
+  "condition_conflict_candidate_groups": 192,
+  "identity_groups": 13828,
+  "level_ladder": [
+    {
+      "description": "byte-identical raw CSV payloads; this is the per-metal export fan-out",
+      "groups": 14835,
+      "level": 1,
+      "name": "exact_raw_duplicate_rows",
+      "population": "48,471 raw rows",
+      "redundant_rows": 31701,
+      "rows_in_groups": 46536
+    },
+    {
+      "description": "the 21 experimental variables as raw text, whitespace/case folded",
+      "groups": 918,
+      "level": 2,
+      "name": "whitespace_case_normalised",
+      "population": "16,770 records",
+      "redundant_rows": 2394,
+      "rows_in_groups": 3312
+    },
+    {
+      "description": "L2 plus canonical metal symbols, acid identities and diluent keys",
+      "groups": 918,
+      "level": 3,
+      "name": "canonical_chemical_names",
+      "population": "16,770 records",
+      "redundant_rows": 2394,
+      "rows_in_groups": 3312
+    },
+    {
+      "description": "L3 plus RDKit canonicalisation and order-invariant component ordering",
+      "groups": 920,
+      "level": 4,
+      "name": "canonical_structures",
+      "population": "16,770 records",
+      "redundant_rows": 2396,
+      "rows_in_groups": 3316
+    },
+    {
+      "description": "L4 with every numeric parsed into its canonical unit (M / min / C)",
+      "groups": 920,
+      "level": 5,
+      "name": "scientific_identity_exact_numerics",
+      "population": "16,770 records",
+      "redundant_rows": 2396,
+      "rows_in_groups": 3316
+    },
+    {
+      "description": "L5 with significant-figure quantisation of every numeric field",
+      "groups": 920,
+      "level": 6,
+      "name": "scientific_identity_sig6",
+      "population": "16,770 records",
+      "redundant_rows": 2396,
+      "rows_in_groups": 3316
+    },
+    {
+      "description": "identity groups whose members disagree on the measured log D",
+      "groups": 334,
+      "level": 7,
+      "name": "same_conditions_different_value",
+      "population": "16,770 records",
+      "redundant_rows": 0,
+      "rows_in_groups": 1238
+    }
+  ],
+  "numeric_field_policy": {
+    "acid_concentration_M": {
+      "canonical_unit": "M",
+      "conversion": "none",
+      "original_unit": "M",
+      "parser": "sae_normalize.parse_quantity(kind='concentration')",
+      "tolerance": "significant-figure quantisation"
+    },
+    "acid_concentration_organic_M": {
+      "canonical_unit": "M",
+      "conversion": "none",
+      "original_unit": "M",
+      "parser": "sae_normalize.parse_quantity(kind='concentration')",
+      "tolerance": "significant-figure quantisation"
+    },
+    "complexant_concentration_M": {
+      "canonical_unit": "M",
+      "conversion": "none",
+      "original_unit": "M (unitless number in comments)",
+      "parser": "sae_normalize.parse_quantity(kind='concentration', default_unit='M')",
+      "tolerance": "significant-figure quantisation"
+    },
+    "contact_time_min": {
+      "canonical_unit": "min",
+      "conversion": "h x 60, s / 60",
+      "original_unit": "min",
+      "parser": "sae_normalize.parse_quantity(kind='time', default_unit='min')",
+      "tolerance": "significant-figure quantisation"
+    },
+    "extractant_concentrations_M": {
+      "canonical_unit": "M",
+      "conversion": "none (already molar)",
+      "original_unit": "M (string suffix ' M')",
+      "parser": "sae_normalize.parse_quantity(kind='concentration')",
+      "tolerance": "significant-figure quantisation"
+    },
+    "holdback_concentration_M": {
+      "canonical_unit": "M",
+      "conversion": "none",
+      "original_unit": "M (unitless number in comments)",
+      "parser": "sae_normalize.parse_quantity(kind='concentration', default_unit='M')",
+      "tolerance": "significant-figure quantisation"
+    },
+    "log_D": {
+      "canonical_unit": "log10(D)",
+      "conversion": "log10",
+      "original_unit": "dimensionless D (obsDvaluesValue)",
+      "parser": "log10 of parsed D; non-positive D flagged, never logged",
+      "tolerance": "significant-figure quantisation"
+    },
+    "metal_concentration_M": {
+      "canonical_unit": "M",
+      "conversion": "x 1e-3",
+      "original_unit": "mM (column named *_mM)",
+      "parser": "sae_normalize.parse_quantity(kind='concentration', default_unit='mM')",
+      "tolerance": "significant-figure quantisation"
+    },
+    "modifier_concentration_M": {
+      "canonical_unit": "M",
+      "conversion": "none",
+      "original_unit": "M",
+      "parser": "sae_normalize.parse_quantity(kind='concentration')",
+      "tolerance": "significant-figure quantisation"
+    },
+    "nitrate_concentration_M": {
+      "canonical_unit": "M",
+      "conversion": "none",
+      "original_unit": "M (comments 'nitrate concentration(M)')",
+      "parser": "sae_normalize.parse_quantity(kind='concentration')",
+      "tolerance": "significant-figure quantisation"
+    },
+    "phase_ratio_org_aq": {
+      "canonical_unit": "ratio",
+      "conversion": "none",
+      "original_unit": "dimensionless (volType='Volume Ratio')",
+      "parser": "sae_normalize.parse_quantity(kind='ratio')",
+      "tolerance": "significant-figure quantisation"
+    },
+    "shaking_time_min": {
+      "canonical_unit": "min",
+      "conversion": "h x 60, s / 60",
+      "original_unit": "min",
+      "parser": "sae_normalize.parse_quantity(kind='time', default_unit='min')",
+      "tolerance": "significant-figure quantisation"
+    },
+    "temperature_C": {
+      "canonical_unit": "C",
+      "conversion": "K->C and F->C supported; not exercised by this export",
+      "original_unit": "C (obsTempUnit is 'C' for all 45,289 filled rows)",
+      "parser": "sae_normalize.parse_quantity(kind='temperature')",
+      "tolerance": "significant-figure quantisation"
+    }
+  },
+  "records_in": 16770,
+  "tolerance_default": "sig6",
+  "tolerance_sensitivity": [
+    {
+      "groups_with_conflicting_values": 334,
+      "groups_with_duplicates": 1128,
+      "identity_groups": 13828,
+      "records_in_duplicate_groups": 4070,
+      "significant_digits": null,
+      "tolerance_level": "exact"
+    },
+    {
+      "groups_with_conflicting_values": 334,
+      "groups_with_duplicates": 1128,
+      "identity_groups": 13828,
+      "records_in_duplicate_groups": 4070,
+      "significant_digits": 12,
+      "tolerance_level": "sig12"
+    },
+    {
+      "groups_with_conflicting_values": 334,
+      "groups_with_duplicates": 1128,
+      "identity_groups": 13828,
+      "records_in_duplicate_groups": 4070,
+      "significant_digits": 9,
+      "tolerance_level": "sig9"
+    },
+    {
+      "groups_with_conflicting_values": 334,
+      "groups_with_duplicates": 1128,
+      "identity_groups": 13828,
+      "records_in_duplicate_groups": 4070,
+      "significant_digits": 6,
+      "tolerance_level": "sig6"
+    },
+    {
+      "groups_with_conflicting_values": 324,
+      "groups_with_duplicates": 1139,
+      "identity_groups": 13817,
+      "records_in_duplicate_groups": 4092,
+      "significant_digits": 4,
+      "tolerance_level": "sig4"
+    },
+    {
+      "groups_with_conflicting_values": 372,
+      "groups_with_duplicates": 1331,
+      "identity_groups": 13527,
+      "records_in_duplicate_groups": 4574,
+      "significant_digits": 3,
+      "tolerance_level": "sig3"
+    }
+  ]
+}

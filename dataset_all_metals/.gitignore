@@ -1,0 +1,15 @@
+# Intermediate frames are derived: `scripts/run_all.py` rebuilds them from
+# `raw/` in about three minutes, and the run is verified byte-for-byte
+# reproducible. Checking them in would add ~13 MB of parquet that must not be
+# allowed to drift from the builder -- the same reasoning the repo root applies
+# to `runs/gen7_architecture/cache/`.
+intermediate/
+
+# Cached Crossref lookups are refetchable with `scripts/fetch_crossref.py`, but
+# they are small and keeping them makes the pipeline runnable offline and
+# deterministic, so they ARE tracked. Listed here only to say so explicitly:
+!cache/crossref_metadata.json
+
+# `raw/`, `clean/`, `audit/`, `reports/`, `scripts/` and `tests/` are all
+# tracked on purpose: raw/ is the immutable provenance root, and the rest are
+# the deliverables and the code that produced them.

@@ -1,0 +1,805 @@
+{
+  "accounting": {
+    "archive_records": 16770,
+    "balance_check": "ok",
+    "duplicate_groups": 13828,
+    "ledger": [
+      {
+        "note": "41 immutable per-metal CSV files",
+        "rows": 48471,
+        "step": "0_raw_csv_rows"
+      },
+      {
+        "note": "one archive record appears once per metal file whose metal was present in the system; all 37 raw columns were verified identical within each exp_id group before collapsing",
+        "rows_remaining": 16770,
+        "rows_removed": 31701,
+        "step": "1_export_fanout_collapsed"
+      },
+      {
+        "breakdown": {
+          "A_EXACT_DATABASE_DUPLICATE": 2609,
+          "B_SAME_MEASUREMENT_DIFF_PROV": 20,
+          "C_POSSIBLE_INDEPENDENT_REPLICATE": 20,
+          "E_VALUE_CONFLICT": 1040,
+          "F_INSUFFICIENT_INFORMATION": 2377,
+          "UNIQUE": 10704
+        },
+        "note": "no rows removed; every record keeps its own row",
+        "rows_remaining": 16770,
+        "step": "2_duplicate_classification"
+      },
+      {
+        "note": "only classes A and B collapse; C/D/E/F keep every member",
+        "rows_marked_non_canonical": 1904,
+        "rows_remaining_canonical": 14866,
+        "step": "3_redundant_duplicates_marked"
+      },
+      {
+        "breakdown": {
+          "A_model_ready": 11026,
+          "B_usable_with_caveats": 1385,
+          "C_not_modelable": 2455,
+          "D_redundant_duplicate": 1904
+        },
+        "note": "tiers are labels, not filters -- no row is dropped",
+        "step": "4_model_readiness_tiers"
+      }
+    ],
+    "raw_row_disposition": {
+      "A_model_ready": 33862,
+      "B_usable_with_caveats": 4113,
+      "C_not_modelable": 4517,
+      "D_redundant_duplicate": 5979
+    },
+    "raw_rows": 48471,
+    "record_disposition": {
+      "canonical_measurement": 11026,
+      "canonical_with_caveats": 1385,
+      "redundant_duplicate_member": 1904,
+      "unresolved_or_manual_review": 2455
+    }
+  },
+  "dedup": {
+    "canonical_rows": 14866,
+    "class_counts_by_group": {
+      "A_EXACT_DATABASE_DUPLICATE": 716,
+      "B_SAME_MEASUREMENT_DIFF_PROV": 9,
+      "C_POSSIBLE_INDEPENDENT_REPLICATE": 10,
+      "E_VALUE_CONFLICT": 307,
+      "F_INSUFFICIENT_INFORMATION": 2082,
+      "UNIQUE": 10704
+    },
+    "class_counts_by_record": {
+      "A_EXACT_DATABASE_DUPLICATE": 2609,
+      "B_SAME_MEASUREMENT_DIFF_PROV": 20,
+      "C_POSSIBLE_INDEPENDENT_REPLICATE": 20,
+      "E_VALUE_CONFLICT": 1040,
+      "F_INSUFFICIENT_INFORMATION": 2377,
+      "UNIQUE": 10704
+    },
+    "collapsed_as_redundant": 1904,
+    "condition_conflict_candidate_groups": 192,
+    "identity_groups": 13828,
+    "level_ladder": [
+      {
+        "description": "byte-identical raw CSV payloads; this is the per-metal export fan-out",
+        "groups": 14835,
+        "level": 1,
+        "name": "exact_raw_duplicate_rows",
+        "population": "48,471 raw rows",
+        "redundant_rows": 31701,
+        "rows_in_groups": 46536
+      },
+      {
+        "description": "the 21 experimental variables as raw text, whitespace/case folded",
+        "groups": 918,
+        "level": 2,
+        "name": "whitespace_case_normalised",
+        "population": "16,770 records",
+        "redundant_rows": 2394,
+        "rows_in_groups": 3312
+      },
+      {
+        "description": "L2 plus canonical metal symbols, acid identities and diluent keys",
+        "groups": 918,
+        "level": 3,
+        "name": "canonical_chemical_names",
+        "population": "16,770 records",
+        "redundant_rows": 2394,
+        "rows_in_groups": 3312
+      },
+      {
+        "description": "L3 plus RDKit canonicalisation and order-invariant component ordering",
+        "groups": 920,
+        "level": 4,
+        "name": "canonical_structures",
+        "population": "16,770 records",
+        "redundant_rows": 2396,
+        "rows_in_groups": 3316
+      },
+      {
+        "description": "L4 with every numeric parsed into its canonical unit (M / min / C)",
+        "groups": 920,
+        "level": 5,
+        "name": "scientific_identity_exact_numerics",
+        "population": "16,770 records",
+        "redundant_rows": 2396,
+        "rows_in_groups": 3316
+      },
+      {
+        "description": "L5 with significant-figure quantisation of every numeric field",
+        "groups": 920,
+        "level": 6,
+        "name": "scientific_identity_sig6",
+        "population": "16,770 records",
+        "redundant_rows": 2396,
+        "rows_in_groups": 3316
+      },
+      {
+        "description": "identity groups whose members disagree on the measured log D",
+        "groups": 334,
+        "level": 7,
+        "name": "same_conditions_different_value",
+        "population": "16,770 records",
+        "redundant_rows": 0,
+        "rows_in_groups": 1238
+      }
+    ],
+    "numeric_field_policy": {
+      "acid_concentration_M": {
+        "canonical_unit": "M",
+        "conversion": "none",
+        "original_unit": "M",
+        "parser": "sae_normalize.parse_quantity(kind='concentration')",
+        "tolerance": "significant-figure quantisation"
+      },
+      "acid_concentration_organic_M": {
+        "canonical_unit": "M",
+        "conversion": "none",
+        "original_unit": "M",
+        "parser": "sae_normalize.parse_quantity(kind='concentration')",
+        "tolerance": "significant-figure quantisation"
+      },
+      "complexant_concentration_M": {
+        "canonical_unit": "M",
+        "conversion": "none",
+        "original_unit": "M (unitless number in comments)",
+        "parser": "sae_normalize.parse_quantity(kind='concentration', default_unit='M')",
+        "tolerance": "significant-figure quantisation"
+      },
+      "contact_time_min": {
+        "canonical_unit": "min",
+        "conversion": "h x 60, s / 60",
+        "original_unit": "min",
+        "parser": "sae_normalize.parse_quantity(kind='time', default_unit='min')",
+        "tolerance": "significant-figure quantisation"
+      },
+      "extractant_concentrations_M": {
+        "canonical_unit": "M",
+        "conversion": "none (already molar)",
+        "original_unit": "M (string suffix ' M')",
+        "parser": "sae_normalize.parse_quantity(kind='concentration')",
+        "tolerance": "significant-figure quantisation"
+      },
+      "holdback_concentration_M": {
+        "canonical_unit": "M",
+        "conversion": "none",
+        "original_unit": "M (unitless number in comments)",
+        "parser": "sae_normalize.parse_quantity(kind='concentration', default_unit='M')",
+        "tolerance": "significant-figure quantisation"
+      },
+      "log_D": {
+        "canonical_unit": "log10(D)",
+        "conversion": "log10",
+        "original_unit": "dimensionless D (obsDvaluesValue)",
+        "parser": "log10 of parsed D; non-positive D flagged, never logged",
+        "tolerance": "significant-figure quantisation"
+      },
+      "metal_concentration_M": {
+        "canonical_unit": "M",
+        "conversion": "x 1e-3",
+        "original_unit": "mM (column named *_mM)",
+        "parser": "sae_normalize.parse_quantity(kind='concentration', default_unit='mM')",
+        "tolerance": "significant-figure quantisation"
+      },
+      "modifier_concentration_M": {
+        "canonical_unit": "M",
+        "conversion": "none",
+        "original_unit": "M",
+        "parser": "sae_normalize.parse_quantity(kind='concentration')",
+        "tolerance": "significant-figure quantisation"
+      },
+      "nitrate_concentration_M": {
+        "canonical_unit": "M",
+        "conversion": "none",
+        "original_unit": "M (comments 'nitrate concentration(M)')",
+        "parser": "sae_normalize.parse_quantity(kind='concentration')",
+        "tolerance": "significant-figure quantisation"
+      },
+      "phase_ratio_org_aq": {
+        "canonical_unit": "ratio",
+        "conversion": "none",
+        "original_unit": "dimensionless (volType='Volume Ratio')",
+        "parser": "sae_normalize.parse_quantity(kind='ratio')",
+        "tolerance": "significant-figure quantisation"
+      },
+      "shaking_time_min": {
+        "canonical_unit": "min",
+        "conversion": "h x 60, s / 60",
+        "original_unit": "min",
+        "parser": "sae_normalize.parse_quantity(kind='time', default_unit='min')",
+        "tolerance": "significant-figure quantisation"
+      },
+      "temperature_C": {
+        "canonical_unit": "C",
+        "conversion": "K->C and F->C supported; not exercised by this export",
+        "original_unit": "C (obsTempUnit is 'C' for all 45,289 filled rows)",
+        "parser": "sae_normalize.parse_quantity(kind='temperature')",
+        "tolerance": "significant-figure quantisation"
+      }
+    },
+    "records_in": 16770,
+    "tolerance_default": "sig6",
+    "tolerance_sensitivity": [
+      {
+        "groups_with_conflicting_values": 334,
+        "groups_with_duplicates": 1128,
+        "identity_groups": 13828,
+        "records_in_duplicate_groups": 4070,
+        "significant_digits": null,
+        "tolerance_level": "exact"
+      },
+      {
+        "groups_with_conflicting_values": 334,
+        "groups_with_duplicates": 1128,
+        "identity_groups": 13828,
+        "records_in_duplicate_groups": 4070,
+        "significant_digits": 12,
+        "tolerance_level": "sig12"
+      },
+      {
+        "groups_with_conflicting_values": 334,
+        "groups_with_duplicates": 1128,
+        "identity_groups": 13828,
+        "records_in_duplicate_groups": 4070,
+        "significant_digits": 9,
+        "tolerance_level": "sig9"
+      },
+      {
+        "groups_with_conflicting_values": 334,
+        "groups_with_duplicates": 1128,
+        "identity_groups": 13828,
+        "records_in_duplicate_groups": 4070,
+        "significant_digits": 6,
+        "tolerance_level": "sig6"
+      },
+      {
+        "groups_with_conflicting_values": 324,
+        "groups_with_duplicates": 1139,
+        "identity_groups": 13817,
+        "records_in_duplicate_groups": 4092,
+        "significant_digits": 4,
+        "tolerance_level": "sig4"
+      },
+      {
+        "groups_with_conflicting_values": 372,
+        "groups_with_duplicates": 1331,
+        "identity_groups": 13527,
+        "records_in_duplicate_groups": 4574,
+        "significant_digits": 3,
+        "tolerance_level": "sig3"
+      }
+    ]
+  },
+  "export": {
+    "raw_rows_mapped": 48471,
+    "readiness": {
+      "A_model_ready": 11026,
+      "B_usable_with_caveats": 1385,
+      "C_not_modelable": 2455,
+      "D_redundant_duplicate": 1904
+    },
+    "records": 16770,
+    "review_queue_cases": 610,
+    "review_records": 7255,
+    "subsets": {
+      "lanthanide": 8053,
+      "metal_unresolved": 1918,
+      "multi_component": 2564,
+      "non_lanthanide": 6799,
+      "single_component": 14112
+    },
+    "unique_extractant_systems": 262,
+    "unique_metals": 40,
+    "unique_solvents": 83
+  },
+  "fanout": {
+    "columns_varying_within_exp_id": [],
+    "distinct_exp_ids": 16770,
+    "exp_id_groups_with_variation": 0,
+    "fanout_size_histogram": {
+      "1": 1935,
+      "10": 28,
+      "11": 2,
+      "12": 3,
+      "2": 5535,
+      "3": 4969,
+      "4": 2928,
+      "5": 660,
+      "6": 205,
+      "7": 186,
+      "8": 194,
+      "9": 125
+    },
+    "payload_columns_checked": 37,
+    "raw_rows": 48471,
+    "raw_rows_folded_away": 31701,
+    "records_after_fanout_collapse": 16770
+  },
+  "normalization": {
+    "contested_names": {
+      "TPDGA": {
+        "CCCCCN(CCCCC)C(=O)COCC(=O)N(CCCCC)CCCCC": 142,
+        "CCCN(CCC)C(=O)CC(=O)N(CCC)CCC": 5
+      }
+    },
+    "crossref_cache": {
+      "dois_cached": 165,
+      "dois_resolved": 163,
+      "dois_unresolved": [
+        "10.1002/slct.202202610chemistryselect2022,7,e202202610(1of11)\u00a92022wiley-vchgmbhwileyvchfreitag,09.12.20222237-",
+        "10.1021/acssuschemeng.4c06166x"
+      ],
+      "path": "/Users/lilshadix/PycharmProjects/ml_separator/dataset_all_metals/cache/crossref_metadata.json"
+    },
+    "name_structure_consensus": {
+      "names_contested": 1,
+      "names_with_consensus": 279
+    },
+    "normalization": {
+      "examples": {
+        "acid.canonicalised": [
+          {
+            "after": "HCl",
+            "before": "Hcl"
+          },
+          {
+            "after": "HCl",
+            "before": "Hcl"
+          },
+          {
+            "after": "HCl",
+            "before": "Hcl"
+          },
+          {
+            "after": "HCl",
+            "before": "Hcl"
+          },
+          {
+            "after": "HCl",
+            "before": "Hcl"
+          }
+        ],
+        "aqueous_complexant.multi_component_expanded": [
+          {
+            "after": "2 components",
+            "before": "DTPA; NaNO3"
+          },
+          {
+            "after": "2 components",
+            "before": "DTPA; NaNO3"
+          },
+          {
+            "after": "2 components",
+            "before": "DTPA; NaNO3"
+          },
+          {
+            "after": "2 components",
+            "before": "DTPA; NaNO3"
+          },
+          {
+            "after": "2 components",
+            "before": "DTPA; NaNO3"
+          }
+        ],
+        "extractant.component_name_structure_mismatch": [
+          {
+            "after": "CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC,CCCCCCCCN(C)C(=O)C(CCCCCC)(C(=O)N(C)CCCCCCCC)OCC",
+            "before": "TODGA,DMDOHEMA"
+          },
+          {
+            "after": "CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC,CCCCCCCCN(C)C(=O)C(CCCCCC)(C(=O)N(C)CCCCCCCC)OCC",
+            "before": "TODGA,DMDOHEMA"
+          },
+          {
+            "after": "CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC,CCCCCCCCN(C)C(=O)C(CCCCCC)(C(=O)N(C)CCCCCCCC)OCC",
+            "before": "TODGA,DMDOHEMA"
+          },
+          {
+            "after": "CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC,CCCCCCCCN(C)C(=O)C(CCCCCC)(C(=O)N(C)CCCCCCCC)OCC",
+            "before": "TODGA,DMDOHEMA"
+          },
+          {
+            "after": "CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC,CCCCCCCCN(C)C(=O)C(CCCCCC)(C(=O)N(C)CCCCCCCC)OCC",
+            "before": "TODGA,DMDOHEMA"
+          }
+        ],
+        "extractant.component_order_resolved_by_consensus": [
+          {
+            "after": "CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC,CCCCOP(=O)(OCCCC)OCCCC",
+            "before": "TODGA, TBP"
+          },
+          {
+            "after": "CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC,CCCCOP(=O)(OCCCC)OCCCC",
+            "before": "TODGA, TBP"
+          },
+          {
+            "after": "CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC,CCCCOP(=O)(OCCCC)OCCCC",
+            "before": "TODGA, TBP"
+          },
+          {
+            "after": "CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC,CCCCOP(=O)(OCCCC)OCCCC",
+            "before": "TODGA, TBP"
+          },
+          {
+            "after": "CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC,CCCCOP(=O)(OCCCC)OCCCC",
+            "before": "TODGA, TBP"
+          }
+        ],
+        "extractant.list_length_mismatch": [
+          {
+            "after": null,
+            "before": "TODGA,DHOA || CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC,-"
+          },
+          {
+            "after": null,
+            "before": "TODGA,DHOA || CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC,-"
+          },
+          {
+            "after": null,
+            "before": "TODGA,DHOA || CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC,-"
+          },
+          {
+            "after": null,
+            "before": "TODGA,DHOA || CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC,-"
+          },
+          {
+            "after": null,
+            "before": "TODGA,DHOA || CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC,-"
+          }
+        ],
+        "extractant.name_structure_conflict": [
+          {
+            "after": "CCCCCCCCN(C)C(=O)C(CCOCCCCCC)C(=O)N(C)CCCCCCCC",
+            "before": "DMDOHEMA -> CCCCCCCCN(C)C(=O)C(CCCCCC)(OCC)C(=O)N(C)CCCCCCCC"
+          },
+          {
+            "after": "CCCCCCCCN(C)C(=O)C(CCOCCCCCC)C(=O)N(C)CCCCCCCC",
+            "before": "DMDOHEMA -> CCCCCCCCN(C)C(=O)C(CCCCCC)(OCC)C(=O)N(C)CCCCCCCC"
+          },
+          {
+            "after": "CCCCCCCCN(C)C(=O)C(CCOCCCCCC)C(=O)N(C)CCCCCCCC",
+            "before": "DMDOHEMA -> CCCCCCCCN(C)C(=O)C(CCCCCC)(OCC)C(=O)N(C)CCCCCCCC"
+          },
+          {
+            "after": "CCCCCCCCN(C)C(=O)C(CCOCCCCCC)C(=O)N(C)CCCCCCCC",
+            "before": "DMDOHEMA -> CCCCCCCCN(C)C(=O)C(CCCCCC)(OCC)C(=O)N(C)CCCCCCCC"
+          },
+          {
+            "after": "CCCCCCCCN(C)C(=O)C(CCOCCCCCC)C(=O)N(C)CCCCCCCC",
+            "before": "DMDOHEMA -> CCCCCCCCN(C)C(=O)C(CCCCCC)(OCC)C(=O)N(C)CCCCCCCC"
+          }
+        ],
+        "extractant.structure_filled_from_name_consensus": [
+          {
+            "after": "CCCCOP(=O)(OCCCC)OCCCC",
+            "before": "TBP"
+          },
+          {
+            "after": "CCCCOP(=O)(OCCCC)OCCCC",
+            "before": "TBP"
+          },
+          {
+            "after": "CCCCOP(=O)(OCCCC)OCCCC",
+            "before": "TBP"
+          },
+          {
+            "after": "CCCCOP(=O)(OCCCC)OCCCC",
+            "before": "TBP"
+          },
+          {
+            "after": "CCCCOP(=O)(OCCCC)OCCCC",
+            "before": "TBP"
+          }
+        ],
+        "metal.implausible_oxidation_state": [
+          {
+            "after": null,
+            "before": "Sr(3)"
+          },
+          {
+            "after": null,
+            "before": "Sr(3)"
+          },
+          {
+            "after": null,
+            "before": "Sr(3)"
+          },
+          {
+            "after": null,
+            "before": "Sr(3)"
+          },
+          {
+            "after": null,
+            "before": "Sr(3)"
+          }
+        ],
+        "metal.species_token_expanded": [
+          {
+            "after": "U(6)",
+            "before": "UO2+2"
+          },
+          {
+            "after": "U(6)",
+            "before": "UO2+2"
+          },
+          {
+            "after": "U(6)",
+            "before": "UO2+2"
+          },
+          {
+            "after": "U(6)",
+            "before": "UO2+2"
+          },
+          {
+            "after": "U(6)",
+            "before": "UO2+2"
+          }
+        ],
+        "reference.doi_repaired": [
+          {
+            "after": "10.1002/slct.202202610",
+            "before": "10.1002/slct.202202610chemistryselect2022,7,e202202610(1of11)\u00a92022wiley-vchgmbhwileyvchfreitag,09.12.20222237-"
+          },
+          {
+            "after": "10.1021/acssuschemeng.4c06166",
+            "before": "10.1021/acssuschemeng.4c06166x"
+          },
+          {
+            "after": "10.1021/acssuschemeng.4c06166",
+            "before": "10.1021/acssuschemeng.4c06166x"
+          },
+          {
+            "after": "10.1021/acssuschemeng.4c06166",
+            "before": "10.1021/acssuschemeng.4c06166x"
+          },
+          {
+            "after": "10.1021/acssuschemeng.4c06166",
+            "before": "10.1021/acssuschemeng.4c06166x"
+          }
+        ],
+        "solvent.ambiguous_kept_separate": [
+          {
+            "after": "total petroleum hydrocarbons",
+            "before": "total petroleum hydrocarbons"
+          },
+          {
+            "after": "total petroleum hydrocarbons",
+            "before": "total petroleum hydrocarbons"
+          },
+          {
+            "after": "total petroleum hydrocarbons",
+            "before": "total petroleum hydrocarbons"
+          },
+          {
+            "after": "total petroleum hydrocarbons",
+            "before": "total petroleum hydrocarbons"
+          },
+          {
+            "after": "total petroleum hydrocarbons",
+            "before": "total petroleum hydrocarbons"
+          }
+        ],
+        "solvent.split_fraction_list": [
+          {
+            "after": "tph:0.95|1-octanol:0.05",
+            "before": "tph 0.95, 1-octanol 0.05"
+          },
+          {
+            "after": "tph:0.95|1-octanol:0.05",
+            "before": "tph 0.95, 1-octanol 0.05"
+          },
+          {
+            "after": "tph:0.95|1-octanol:0.05",
+            "before": "tph 0.95, 1-octanol 0.05"
+          },
+          {
+            "after": "tph:0.95|1-octanol:0.05",
+            "before": "tph 0.95, 1-octanol 0.05"
+          },
+          {
+            "after": "tph:0.95|1-octanol:0.05",
+            "before": "tph 0.95, 1-octanol 0.05"
+          }
+        ],
+        "solvent.split_with_percent": [
+          {
+            "after": "isopar l:0.7|exxal 13:0.3",
+            "before": "Isopar L with 30 vol% Exxal 13"
+          },
+          {
+            "after": "isopar l:0.7|exxal 13:0.3",
+            "before": "Isopar L with 30 vol% Exxal 13"
+          },
+          {
+            "after": "isopar l:0.7|exxal 13:0.3",
+            "before": "Isopar L with 30 vol% Exxal 13"
+          },
+          {
+            "after": "isopar l:0.7|exxal 13:0.3",
+            "before": "Isopar L with 30 vol% Exxal 13"
+          },
+          {
+            "after": "isopar l:0.7|exxal 13:0.3",
+            "before": "Isopar L with 30 vol% Exxal 13"
+          }
+        ],
+        "solvent.strip_parenthetical": [
+          {
+            "after": "kerosene",
+            "before": "kerosene (solvent 70)"
+          },
+          {
+            "after": "kerosene",
+            "before": "kerosene (solvent 70)"
+          },
+          {
+            "after": "kerosene",
+            "before": "kerosene (solvent 70)"
+          },
+          {
+            "after": "kerosene",
+            "before": "kerosene (solvent 70)"
+          },
+          {
+            "after": "kerosene",
+            "before": "kerosene (solvent 70)"
+          }
+        ],
+        "solvent.synonym_merge": [
+          {
+            "after": "dodecane",
+            "before": "n-Dodecane"
+          },
+          {
+            "after": "dodecane",
+            "before": "n-Dodecane"
+          },
+          {
+            "after": "dodecane",
+            "before": "n-Dodecane"
+          },
+          {
+            "after": "dodecane",
+            "before": "n-Dodecane"
+          },
+          {
+            "after": "dodecane",
+            "before": "n-Dodecane"
+          }
+        ],
+        "target.implausible_extreme_D": [
+          {
+            "after": "-12.46716855883153",
+            "before": "3.41060513164848e-13"
+          },
+          {
+            "after": "-12.46716855883153",
+            "before": "3.41060513164848e-13"
+          },
+          {
+            "after": "-12.46716855883153",
+            "before": "3.41060513164848e-13"
+          }
+        ]
+      },
+      "rules": {
+        "acid.canonicalised": 1862,
+        "aqueous_complexant.multi_component_expanded": 166,
+        "extractant.component_name_structure_mismatch": 364,
+        "extractant.component_order_resolved_by_consensus": 244,
+        "extractant.list_length_mismatch": 60,
+        "extractant.name_structure_conflict": 243,
+        "extractant.structure_filled_from_name_consensus": 1537,
+        "metal.implausible_oxidation_state": 38,
+        "metal.species_token_expanded": 16,
+        "reference.doi_repaired": 2690,
+        "solvent.ambiguous_kept_separate": 1341,
+        "solvent.split_fraction_list": 1722,
+        "solvent.split_with_percent": 1461,
+        "solvent.strip_parenthetical": 8,
+        "solvent.synonym_merge": 6643,
+        "target.implausible_extreme_D": 3
+      }
+    },
+    "rdkit_version": "2026.03.5",
+    "records_in": 16770,
+    "records_out": 16770,
+    "structure_deduction_by_elimination": {
+      "deduced_structures": {
+        "Br-Cosan": "Cc1cc(Br)ccc1NC(=O)CCl",
+        "D2EHAA": "CCCCC(CC)CN(CC(CC)CCCC)C(C)=O",
+        "DHOA": "CCCCCCCC(=O)N(CCCCCC)CCCCCC",
+        "TBP": "CCCCOP(=O)(OCCCC)OCCCC"
+      },
+      "names_deduced": [
+        "Br-Cosan",
+        "D2EHAA",
+        "DHOA",
+        "TBP"
+      ],
+      "names_rejected_ambiguous": {
+        "2-bromodecanoic acid": {
+          "CCCCCCCCC(Br)C(=O)O": 18,
+          "c1cc(-n2cccn2)nc(-n2cccn2)c1": 20
+        },
+        "2-bromohexanoic acid": {
+          "CCCCC(Br)C(=O)O": 12,
+          "CCCCCCCCC(Br)C(=O)O": 12
+        },
+        "TWE-19": {
+          "O=C(COCC(=O)N(CCO)CCO)N(CCO)CCO": 1,
+          "O=C(COCC(=O)N(CCOCCO)CCOCCO)N(CCOCCO)CCOCCO": 1
+        },
+        "TWE-20": {
+          "O=C(COCC(=O)N(CCO)CCO)N(CCO)CCO": 1,
+          "O=C(COCC(=O)N(CCOCCO)CCOCCO)N(CCOCCO)CCOCCO": 1,
+          "O=C(COCC(=O)N(CCOCCOCCO)CCOCCOCCO)N(CCOCCOCCO)CCOCCOCCO": 1
+        },
+        "TWE-25": {
+          "O=C(COCC(=O)N(CCO)CCO)N(CCO)CCO": 1,
+          "O=C(COCC(=O)N(CCOCCO)CCOCCO)N(CCOCCO)CCOCCO": 1,
+          "O=C(COCC(=O)N(CCOCCOCCO)CCOCCOCCO)N(CCOCCOCCO)CCOCCOCCO": 1
+        }
+      }
+    }
+  },
+  "series": {
+    "canonical_records_used_for_curves": 14866,
+    "curves_by_axis": {
+      "acid": 826,
+      "complexant_concentration": 86,
+      "contact_time": 35,
+      "extractant": 664,
+      "metal_concentration": 73,
+      "metal_series": 575,
+      "modifier_concentration": 10,
+      "temperature": 62
+    },
+    "curves_total": 2490,
+    "curves_usable": 2331,
+    "min_curve_points": 3,
+    "points_per_curve": {
+      "max": 100,
+      "mean": 6.275418275418275,
+      "median": 5.0
+    },
+    "records": 16770,
+    "records_on_at_least_one_curve": 13446,
+    "series": 583,
+    "series_size_distribution": {
+      "1": 28,
+      "101-250": 20,
+      "11-25": 187,
+      "2": 61,
+      "251-500": 5,
+      "26-50": 69,
+      "3-5": 69,
+      "51-100": 37,
+      "6-10": 103,
+      ">500": 4
+    },
+    "series_size_max": 1164,
+    "series_size_median": 12.0
+  }
+}
