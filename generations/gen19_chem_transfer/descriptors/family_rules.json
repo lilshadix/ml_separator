@@ -1,0 +1,737 @@
+{
+  "families": [
+    {
+      "any_of": [
+        [
+          {
+            "descriptor": "n_carbon",
+            "max": 0
+          }
+        ],
+        [
+          {
+            "min": 1,
+            "smarts": "[N-](S(=O)(=O)C(F)(F)F)S(=O)(=O)C(F)(F)F"
+          },
+          {
+            "descriptor": "n_carbon",
+            "max": 2
+          }
+        ]
+      ],
+      "description": "inorganic salts / simple anions (nitrate, chloride, sulfate, Tf2N-)",
+      "name": "electrolyte_salt",
+      "overlay": true,
+      "subsumes": [
+        "__ALL__"
+      ]
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[#6]-[SX4](=[OX1])(=[OX1])[OX2H1,OX1-]"
+          }
+        ],
+        [
+          {
+            "min": 1,
+            "smarts": "[#7]([CH2][CX3](=[OX1])[OX2H1,OX1-])[CH2][CX3](=[OX1])[OX2H1,OX1-]"
+          }
+        ],
+        [
+          {
+            "descriptor": "logp_largest_fragment",
+            "max": 1.0
+          },
+          {
+            "descriptor": "largest_ring_size",
+            "max": 11
+          },
+          {
+            "descriptor": "heavy_atoms_largest_fragment",
+            "min": 5
+          },
+          {
+            "descriptor": "n_donor_sites",
+            "min": 1
+          }
+        ],
+        [
+          {
+            "descriptor": "aliphatic_OH",
+            "min": 2
+          },
+          {
+            "descriptor": "logp_largest_fragment",
+            "max": 2.5
+          }
+        ],
+        [
+          {
+            "descriptor": "aromatic_N",
+            "min": 1
+          },
+          {
+            "descriptor": "acid_groups",
+            "min": 1
+          },
+          {
+            "descriptor": "logp_largest_fragment",
+            "max": 2.0
+          }
+        ]
+      ],
+      "description": "water-soluble complexants / holdback agents: sulfonated N-donors, polyaminocarboxylates, hydrophilic (Crippen logP <= 1) donors such as TEDGA, polyols, hydrophilic N-heterocyclic acids",
+      "name": "hydrophilic_aqueous_agent",
+      "overlay": true,
+      "subsumes": [
+        "__ALL__"
+      ]
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[NX4+;H0](-[#6])(-[#6])(-[#6])-[#6]"
+          }
+        ]
+      ],
+      "description": "tetraalkylammonium cations (Aliquat 336)",
+      "name": "quaternary_ammonium",
+      "subsumes": [
+        "ionic_liquid",
+        "amine_basic"
+      ]
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[n+,P+,S+;!$([#7+]-[O-]);!$([#7+]=O);!$([#15+]-[O-])]"
+          },
+          {
+            "descriptor": "charged_or_multifragment",
+            "min": 1
+          }
+        ]
+      ],
+      "description": "organic cation (imidazolium/pyridinium, phosphonium, sulfonium) with a charge or counter-ion",
+      "name": "ionic_liquid",
+      "subsumes": [
+        "n_heterocyclic",
+        "amine_basic"
+      ]
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[PX4](=[SX1])(-[#6])(-[#6])-[SX2H1,SX1-]"
+          }
+        ]
+      ],
+      "description": "R2P(=S)SH (Cyanex 301 type)",
+      "name": "dithiophosphinic_acid",
+      "subsumes": [
+        "thiophosphorus_acid",
+        "sulfur_donor_other"
+      ]
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[PX4](=[SX1,OX1])-[SX2H1,SX1-]"
+          }
+        ],
+        [
+          {
+            "min": 1,
+            "smarts": "[PX4](=[SX1])-[OX2H1,OX1-]"
+          }
+        ]
+      ],
+      "description": "other P(=S)-OH / P-SH acids (Cyanex 302 type, thiophosphonic acids)",
+      "name": "thiophosphorus_acid",
+      "subsumes": [
+        "sulfur_donor_other"
+      ]
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[PX4;!$(P~[#6])](=[OX1])-[OX2H1,OX1-]"
+          }
+        ]
+      ],
+      "description": "(RO)2P(=O)OH / ROP(=O)(OH)2, no P-C bond (D2EHPA, HDEHP, P204)",
+      "name": "phosphoric_acid",
+      "subsumes": []
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[PX4](=[OX1])(-[#6])(-[OX2]-[#6])-[OX2H1,OX1-]"
+          }
+        ]
+      ],
+      "description": "R(RO)P(=O)OH (PC88A, P507, HEH[EHP])",
+      "name": "phosphonic_acid_monoester",
+      "subsumes": []
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[PX4](=[OX1])(-[#6])(-[OX2H1,OX1-])-[OX2H1,OX1-]"
+          }
+        ]
+      ],
+      "description": "RP(=O)(OH)2",
+      "name": "phosphonic_acid",
+      "subsumes": []
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[PX4](=[OX1])(-[#6])(-[#6])-[OX2H1,OX1-]"
+          }
+        ]
+      ],
+      "description": "R2P(=O)OH (Cyanex 272)",
+      "name": "phosphinic_acid",
+      "subsumes": []
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[PX4;!$(P-[OX2H1]);!$(P-[OX1-])](=[OX1])-[CX4]-[CX3](=[OX1])-[NX3]"
+          }
+        ]
+      ],
+      "description": "P(=O)-CH2-C(=O)N (CMPO; also carbamoylmethylphosphonates)",
+      "name": "carbamoylmethylphosphine_oxide",
+      "subsumes": [
+        "phosphine_oxide",
+        "phosphonate_phosphinate_neutral",
+        "neutral_organophosphate",
+        "monoamide",
+        "polyamide_other"
+      ]
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[PX4;!$(P-[OX2H1])](=[OX1])-[CX4]-[#8,#7]-[CX4]-[CX3](=[OX1])-[NX3]"
+          }
+        ]
+      ],
+      "description": "P(=O)-C-[O,N]-C-C(=O)N (DGA analogues with one amide replaced by a phosphoryl)",
+      "name": "amide_phosphoryl_hybrid",
+      "subsumes": [
+        "phosphine_oxide",
+        "phosphonate_phosphinate_neutral",
+        "monoamide",
+        "polyamide_other",
+        "amine_basic"
+      ]
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[PX4;!$(P~[#6])](=[OX1])(-[OX2]-[#6])(-[OX2]-[#6])-[OX2]-[#6]"
+          }
+        ]
+      ],
+      "description": "(RO)3P=O (TBP)",
+      "name": "neutral_organophosphate",
+      "subsumes": []
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[PX4](=[OX1])(-[#6])(-[OX2]-[#6])-[OX2]-[#6]"
+          }
+        ],
+        [
+          {
+            "min": 1,
+            "smarts": "[PX4](=[OX1])(-[#6])(-[#6])-[OX2]-[#6]"
+          }
+        ]
+      ],
+      "description": "R(RO)2P=O or R2(RO)P=O (DBBP)",
+      "name": "phosphonate_phosphinate_neutral",
+      "subsumes": []
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[PX4](=[OX1])(-[#6])(-[#6])-[#6]"
+          }
+        ]
+      ],
+      "description": "R3P=O (TOPO, Cyanex 923)",
+      "name": "phosphine_oxide",
+      "subsumes": []
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[#6]-[CX3](=[OX1])-[CX4;H1,H2]-[CX3](=[OX1])-[#6]"
+          }
+        ],
+        [
+          {
+            "min": 1,
+            "smarts": "[#6]-[CX3](=[OX1])-[CX3]=[CX3](-[OX2H1])-[#6]"
+          }
+        ]
+      ],
+      "description": "R-C(=O)-CH2-C(=O)-R and enol (HTTA, acetylacetone)",
+      "name": "beta_diketone",
+      "subsumes": []
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[OX2H1]-[#6]~[#6]-[#6X3]=[NX2]-[OX2H1]"
+          }
+        ],
+        [
+          {
+            "min": 1,
+            "smarts": "[OX2H1]-[#6X4]-[#6X3]=[NX2]-[OX2H1]"
+          }
+        ]
+      ],
+      "description": "hydroxy-oxime chelators (LIX 84/860 type, alpha-hydroxyoximes)",
+      "name": "hydroxyoxime",
+      "subsumes": []
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[#6]-[CX3](=[OX1])-[#6;R1]1~[#6;R1](~[OX1,OX2H1])~[#7;R1]~[#7;R1]~[#6;R1]~1"
+          }
+        ]
+      ],
+      "description": "4-acyl-5-pyrazolones, keto and enol forms (HPMBP / PMBP): beta-keto-lactam O,O chelators, acidic",
+      "name": "acylpyrazolone",
+      "subsumes": [
+        "beta_diketone",
+        "monoamide",
+        "polyamide_other",
+        "n_heterocyclic",
+        "amine_basic"
+      ]
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[OX2H1]-c1cccc2cccnc12"
+          }
+        ]
+      ],
+      "description": "8-hydroxyquinolines (N,O chelators, Kelex 100 type)",
+      "name": "hydroxyquinoline",
+      "subsumes": [
+        "n_heterocyclic"
+      ]
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[OX2H1]-[#6X3;!$([#6]=[OX1])]~[#6X3]=[OX1]"
+          }
+        ],
+        [
+          {
+            "min": 1,
+            "smarts": "[OX2H1]-c:c-[OX2H1]"
+          }
+        ]
+      ],
+      "description": "O,O chelators: alpha-hydroxy ketone on an sp2 carbon (3-hydroxyflavones such as quercetin, maltol, tropolone) or a catechol",
+      "name": "hydroxyketone_catechol",
+      "subsumes": []
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[NX3;!$(N-[CX3]=[OX1])](-[CH2]-[CX3](=[OX1])-[OX2H1,OX1-])-[CH2]-[CX3](=[OX1])-[OX2H1,OX1-]"
+          }
+        ]
+      ],
+      "description": "amine N carrying two CH2-COOH arms (EDTA, DTPA, HEDTA, CDTA, NTA)",
+      "name": "aminopolycarboxylic_acid",
+      "subsumes": [
+        "carboxylic_acid",
+        "amine_basic"
+      ]
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[#6]-[CX3](=[OX1])-[OX2H1,OX1-]"
+          }
+        ]
+      ],
+      "description": "R-COOH (Versatic, naphthenic, 2-bromoalkanoic acids)",
+      "name": "carboxylic_acid",
+      "subsumes": []
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[NX3]-[CX3](=[OX1])-[#6;X4,a]-[#8,#16;X2,a]-[#6;X4,a]-[CX3](=[OX1])-[NX3]"
+          }
+        ]
+      ],
+      "description": "N-C(=O)-C-X-C-C(=O)-N with X = ether O (incl. ring-ether THF/pyran and bis-DGA variants: TODGA, TEHDGA) or thioether S (thiodiglycolamides)",
+      "name": "diglycolamide",
+      "subsumes": [
+        "monoamide",
+        "polyamide_other",
+        "podand_ether",
+        "sulfur_donor_other"
+      ]
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[NX3]-[CX3](=[OX1])-[CX4]-[CX3](=[OX1])-[NX3]"
+          }
+        ]
+      ],
+      "description": "N-C(=O)-C-C(=O)-N (DMDOHEMA)",
+      "name": "malonamide",
+      "subsumes": [
+        "monoamide",
+        "polyamide_other"
+      ]
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[NX3;!$(N-[CX3]=[O,S])](-[CX4]-[CX3](=[OX1])-[NX3])-[CX4]-[CX3](=[OX1])-[NX3]"
+          }
+        ]
+      ],
+      "description": "amine N carrying two CH2-C(=O)N arms (MIDOA, NTAamide, ADAAM)",
+      "name": "amino_polyamide",
+      "subsumes": [
+        "monoamide",
+        "polyamide_other",
+        "amine_basic"
+      ]
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[nX2]:[c]-[CX3](=[OX1,SX1])-[NX3]"
+          }
+        ]
+      ],
+      "description": "aromatic N adjacent to a carboxamide/thioamide (picolinamides, pyridine-2,6-dicarboxamides, phenanthroline carboxamides)",
+      "name": "pyridine_carboxamide",
+      "subsumes": [
+        "n_heterocyclic",
+        "monoamide",
+        "polyamide_other",
+        "sulfur_donor_other"
+      ]
+    },
+    {
+      "any_of": [
+        [
+          {
+            "descriptor": "largest_ring_size",
+            "min": 12
+          },
+          {
+            "descriptor": "macro_ring_O",
+            "min": 4
+          }
+        ],
+        [
+          {
+            "descriptor": "largest_ring_size",
+            "min": 12
+          },
+          {
+            "descriptor": "macro_ring_aromatic",
+            "min": 4
+          },
+          {
+            "descriptor": "macro_ring_CH2",
+            "min": 3
+          }
+        ]
+      ],
+      "description": "macrocyclic polyethers (ring >= 12 atoms with >= 4 O) and calixarenes (ring >= 12 atoms with >= 4 aromatic atoms and >= 3 CH2)",
+      "name": "crown_ether_calixarene",
+      "subsumes": [
+        "podand_ether",
+        "monoamide",
+        "polyamide_other",
+        "n_heterocyclic"
+      ]
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[OX2;H0;!R](-[#6])-[CX4;!R]-[CX4;!R]-[OX2;H0;!R]-[#6]"
+          }
+        ]
+      ],
+      "description": "open-chain polyether donors: two acyclic ether O separated by C-C (DOODA)",
+      "name": "podand_ether",
+      "subsumes": [
+        "monoamide",
+        "polyamide_other"
+      ]
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[nX2]"
+          }
+        ]
+      ],
+      "description": "neutral aromatic N-donors (BTP, BTBP, BTPhen, bipyridine, phenanthroline, triazinyl/pyrazolyl/triazolyl pyridines)",
+      "name": "n_heterocyclic",
+      "subsumes": [],
+      "subsumes_when": [
+        {
+          "all_of": [
+            {
+              "descriptor": "aromatic_N_chelate_sites",
+              "min": 2
+            },
+            {
+              "descriptor": "carboxyl_O_near_aromatic_N",
+              "max": 0
+            }
+          ],
+          "note": "a chelating aromatic-N pocket (>= 2 ring-N sites 3-4 bonds apart) with a carboxylic acid that cannot close a 5/6-membered chelate with any ring N: the acid is a remote substituent (EsPyTri: CH2COOH on pyridine C4 of a bis-triazolylpyridine), not the donor",
+          "rule": "carboxylic_acid"
+        }
+      ]
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 2,
+            "smarts": "[CX3](=[OX1])-[NX3]"
+          }
+        ]
+      ],
+      "description": ">= 2 amide groups not in a DGA / malonamide / amino-polyamide / pyridine-carboxamide motif",
+      "name": "polyamide_other",
+      "subsumes": [
+        "monoamide"
+      ]
+    },
+    {
+      "any_of": [
+        [
+          {
+            "max": 1,
+            "min": 1,
+            "smarts": "[CX3](=[OX1])-[NX3]"
+          }
+        ]
+      ],
+      "description": "exactly one C(=O)N (DEHiBA, DHOA; the archive's 'DEHPA' is here)",
+      "name": "monoamide",
+      "subsumes": []
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[NX3;!$(N-[#6X3]=[O,S,N]);!$(N-a);!$(N-[#7,#8,#15,#16])]-[#6]"
+          }
+        ]
+      ],
+      "description": "aliphatic amines (tertiary amine extractants)",
+      "name": "amine_basic",
+      "subsumes": []
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[PX4;!$(P-[SX2H1]);!$(P-[OX2H1])]=[SX1]"
+          }
+        ],
+        [
+          {
+            "min": 1,
+            "smarts": "[CX3]=[SX1]"
+          }
+        ],
+        [
+          {
+            "min": 1,
+            "smarts": "[SX2;H0;!a;!R](-[#6])-[#6]"
+          }
+        ]
+      ],
+      "description": "neutral S donors: phosphine sulfides, thioamides, acyclic thioethers (a ring thioether in a saturated backbone ring, e.g. Cy5S-Me4-BTBP, does not fire)",
+      "name": "sulfur_donor_other",
+      "subsumes": []
+    },
+    {
+      "any_of": [
+        [
+          {
+            "min": 1,
+            "smarts": "[CX4]-[OX2H1]"
+          },
+          {
+            "max": 0,
+            "smarts": "[#7,#15,#16,$([#6]=[OX1])]"
+          }
+        ]
+      ],
+      "description": "alcohols without N/P/S or carbonyl (phase modifiers: 1-octanol, isodecanol)",
+      "name": "aliphatic_alcohol",
+      "subsumes": []
+    }
+  ],
+  "name_structure_checks": [
+    {
+      "id": "ACID_NAME_REQUIRES_ACID_GROUP",
+      "name_regex": "(?i)acid",
+      "requires": "acid_groups>=1"
+    },
+    {
+      "id": "BROMO_NAME_REQUIRES_Br",
+      "name_regex": "(?i)bromo",
+      "requires": "element:Br"
+    },
+    {
+      "id": "CHLORO_NAME_REQUIRES_Cl",
+      "name_regex": "(?i)chloro",
+      "requires": "element:Cl"
+    },
+    {
+      "id": "COSAN_NAME_REQUIRES_B",
+      "name_regex": "(?i)((^|[^a-z])cosan($|[^a-z])|dicarbollide|carborane)",
+      "requires": "element:B"
+    },
+    {
+      "id": "ALKANOIC_ACID_CHAIN_LENGTH",
+      "name_regex": "(?i)(hex|hept|oct|non|dec|undec|dodec)anoic acid",
+      "requires": "n_carbon==alkanoic_chain"
+    },
+    {
+      "id": "DGA_NAME_REQUIRES_DIGLYCOLYL",
+      "name_regex": "DGA",
+      "note": "a diglycolAMIDE (or S-bridged thiodiglycolamide): both carbonyls must be amides, so thiodiglycolic acid under 'TDGA' fails",
+      "requires": "smarts:[#7]-[#6](=[#8])~[#6]~[#8,#16]~[#6]~[#6](=[#8])-[#7]"
+    },
+    {
+      "id": "DIPIC_NAME_REQUIRES_PYRIDINE_DICARBOXAMIDE",
+      "name_regex": "(?i)dipic(?!olinic)",
+      "note": "'DIPIC' read as dipicolinamide = pyridine-2,6-dicarboxamide (INFERRED); dipicolinic acid names are excluded",
+      "requires": "smarts:[#7X3]-[CX3](=[OX1])-c1cccc(-[CX3](=[OX1])-[#7X3])n1"
+    },
+    {
+      "id": "BT_P_NAME_REQUIRES_TRIAZINE",
+      "name_regex": "(BTBP|BTP|BTPhen|BTTP)",
+      "requires": "triazine_N>=1"
+    },
+    {
+      "id": "PHEN_NAME_REQUIRES_AROMATIC_N",
+      "name_regex": "(PHEN|BTPhen|phenanthrolin)",
+      "requires": "aromatic_N>=2"
+    },
+    {
+      "id": "CMPO_NAME_REQUIRES_P_AND_AMIDE",
+      "name_regex": "CMPO",
+      "requires": "smarts:P(=O)-C-C(=O)N"
+    },
+    {
+      "id": "P_EXTRACTANT_NAME_REQUIRES_P",
+      "name_regex": "(?i)^(TBP|TOPO|HDEHP|D2EHPA|PC-?88A|P507|P204|Cyanex|HEH\\[EHP\\]|Ionquest)",
+      "note": "DEHPA is deliberately absent: in the monoamide literature DEHPA = N,N-di(2-ethylhexyl)propanamide, which is what the archive stores (the D2EHPA name trap)",
+      "requires": "element:P"
+    },
+    {
+      "id": "ALCOHOL_NAME_REQUIRES_OH",
+      "name_regex": "(?i)(alcohol|diol|tetraol|anol$|6OH)",
+      "requires": "hydroxyl_O>=1"
+    },
+    {
+      "id": "SULFONATE_NAME_REQUIRES_S",
+      "name_regex": "(SO3|(?i:sulfon))",
+      "requires": "element:S"
+    }
+  ],
+  "schema": "gen19.family_rules.v1",
+  "semantics": {
+    "ambiguous": "AMBIGUOUS is flagged when two or more fired rules remain after removing every rule listed in the 'subsumes' of another fired rule (non-nested rules)",
+    "descriptor_predicate": "see gen19ct.chemistry.ligands._rule_descriptors",
+    "fallback": "other",
+    "order": "rules are evaluated in list order; the label is the first fired rule not subsumed by another fired rule",
+    "overlay": "an overlay rule (hydrophilic_aqueous_agent, electrolyte_salt) replaces the label; the structural label computed without overlays is kept as core_family",
+    "smarts_predicate": "count of unique substructure matches on the whole molecule (all fragments) must lie in [min, max]",
+    "subsumes_when": "a fired rule also subsumes the named fired rule when every predicate of the entry holds (same predicate syntax as any_of clauses); used where the chemistry of one group dominates only in a stated structural situation"
+  },
+  "version": "2026-09-15.1"
+}

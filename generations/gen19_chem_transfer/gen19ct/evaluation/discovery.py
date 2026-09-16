@@ -1,0 +1,1949 @@
+"""``evaluation/discovery.py`` -- the discovery plan, the resumable per-fold records, the cost model and the scorer
+core (``preregistration.md``, sealed 2026-09-15: sections 0 item 3, 3, 4, 5, 6, 7, 8, 9 S1, 11 H3, 12, 13, 16, 19).
+
+Nothing here fits a model.  ``scripts/g19_run_discovery.py`` fits the arms and writes one prediction parquet plus one
+JSON record per (arm, design, variant, seed, outer fold); ``scripts/g19_score_discovery.py`` aggregates them with the
+functions below.
+
+Plan (:func:`enumerate_plan`; section 7 compute plan items 1-8)
+---------------------------------------------------------------
+A job is ``(kind, arm, design, variant, scheme, seed, half = S)``.  Order (item 3, applied within each pass --
+:data:`READINGS` ``plan_order``): the nested-certificate safeguard (section 2 resolution, "at the start of discovery")
+-> **B6 / B6r0** (V5-primary exact and batched per seed, the batched-vs-exact check; V1 exact and ten-fold per seed,
+the ten-fold check; V2 on seed 104729; the refit sensitivities of H1b / H4 on seed 104729) -> the deterministic
+comparators' multi-seed conformal intervals (section 15 resolution) -> the seed-104729 pass of the heavy arms in the
+registered arm order (**B5 = M0, FLAT_CAT, B8** -> **M1** -> **M2**, each on V5-primary batched, V1 ten-fold and V2;
+M1 / M2 also on the seed-104729 batched V5-PAIR folds of the S1(c) counterweight) -> the stop rule (evaluated by the
+scorer) -> the pass over the four other discovery seeds in the same arm order (R19 item 4) -> the seed-104729 refit
+sensitivities of the H1 / H4 arms -> conditional freezing-candidate runs (V5-P batched, section 3.1; V1 / V2 refit
+sensitivities) -> ``M3+ not implemented``.  Item 1 (3 inner folds on seed 104729, the first inner fold on the other
+seeds) is :attr:`JobSpec.inner_mode`.  Section 7 item 5: when the 60-hour budget is exhausted only M3-M7 are demoted
+(:func:`demotable`); every job of this plan keeps running.
+
+Guards (section 2)
+------------------
+Only the **selection half** is scored: :func:`selection_scored_ids` keeps the scored rows whose ``row_half`` is ``S``,
+:func:`assert_selection_rows` re-derives every row's registered half from ``feasibility_halves.csv`` independently and
+raises on a confirmation-half row; :func:`assert_v6_clean` passes every scoring index through
+``registered.assert_not_scored``.  The scorer reads pre-seal comparator predictions with a parquet row filter
+``half == "S"`` (confirmation rows are never materialised) and re-asserts both guards on every frame.
+
+Records and resume (section 16)
+-------------------------------
+``evaluation/discovery/<arm>/<design>__<variant>_<scheme>[_sr_iii_dropped]/s<seed>/<fold>.parquet`` + ``.json``.
+The JSON holds the job, the fold hash, the design hash, the selected configuration, inner scores, best iterations /
+epochs, fit and calibration seconds, peak RSS, the sealed pre-registration digest and the digest :func:`fold_digest`
+(code digest + job + fold id / hash + the runner's extras: guard mode, batching label, model fold number and seed,
+design hash, registration digest, M1's record digest for M2); a fold is skipped when both files exist, the digest
+matches and every requested step is recorded (:func:`resume_status`).  Every reader that decides something
+(:func:`read_discovery_predictions`: the scorer, the B6 checks) requires each record's digest and fold hash to equal
+the ones the current code, fold file and plan state produce, and the fold ids to be exactly the job's fittable folds.
+
+Scorer core
+-----------
+:func:`paired_units` (identical scored rows, the section 4 unit of each design, every registered cluster unit),
+:func:`evaluate_contrast` (``transfer.r19`` items 1-6 with item 4 over the discovery seeds and item 6 over the
+registered sensitivities, scoped verdicts for the stop rule / ladder / freezing screen, TOST), :func:`stop_rule`,
+:func:`ladder_step`, :func:`apply_bh`, :data:`REGISTERED_CONTRASTS` (section 19).
+
+Readings where the registration is silent are listed in :data:`READINGS` (printed with every output).
+"""
+from __future__ import annotations
+
+import ctypes
+import hashlib
+import inspect
+import json
+import math
+import re
+import sys
+from collections.abc import Callable, Iterable, Mapping, Sequence
+from dataclasses import asdict, dataclass, field, replace
+from pathlib import Path
+from typing import Any
+
+import numpy as np
+import pandas as pd
+
+from gen19ct import paths
+from gen19ct.chemistry import support_graph as SG
+from gen19ct.data import load as LOAD
+from gen19ct.evaluation import metrics as EM
+from gen19ct.evaluation import transfer as ET
+from gen19ct.folds import cell_holdout as CH
+from gen19ct.folds import io as FI
+from gen19ct.folds import registered as FR
+from gen19ct.folds import source_holdout as SH
+from gen19ct.models import interface as I
+
+SCHEMA = "gen19.discovery.v1"
+
+# --------------------------------------------------------------------------------------------- #
+# registered constants (sections 3, 6, 7, 15)
+# --------------------------------------------------------------------------------------------- #
+
+DISCOVERY_SEEDS: tuple[int, ...] = tuple(FI.DISCOVERY_SEEDS)
+#: section 7 compute plan items 1-2: the full inner design and every ladder decision
+PRIMARY_SEED = DISCOVERY_SEEDS[0]
+OTHER_SEEDS: tuple[int, ...] = DISCOVERY_SEEDS[1:]
+SELECTION, CONFIRMATION = "S", "C"
+#: the sealed pre-registration (``preregistration.md`` footer and ``manifests/prereg_sha256.txt``); discovery refuses
+#: any other text above the footer (task X finding V-LP-02)
+REGISTERED_PREREG_SHA256 = "135842499a86eb3d478ece01a45718ac5b9673a4134bb4acda550f975bb45641"
+#: section 7 compute plan item 5
+BUDGET_HOURS = 60.0
+DEMOTION_ORDER: tuple[str, ...] = ("M7", "M6", "M5", "M4", "M3")
+NEVER_DEMOTED: tuple[str, ...] = ("H1", "H1b", "H4")
+LADDER: tuple[str, ...] = ("M0", "M1", "M2", "M3", "M4", "M5", "M6", "M7")
+IMPLEMENTED_LADDER: tuple[str, ...] = ("M0", "M1", "M2")
+NOT_IMPLEMENTED = "M3+ not implemented"
+#: section 6: M0 is B5
+ARM_ALIASES: dict[str, str] = {"M0": "B5"}
+HEAVY_ARMS: tuple[str, ...] = ("B5", "FLAT_CAT", "B8", "M1", "M2")
+B6_ARMS: tuple[str, ...] = ("B6", "B6r0")
+FITTED_ARMS: tuple[str, ...] = B6_ARMS + HEAVY_ARMS
+#: section 15 resolution: the deterministic arms whose conformal inner folds are drawn per discovery seed, per design --
+#: the section 5 comparators of the designs a learned arm is scored on with every discovery seed (V5 / V2: B3x, B3i;
+#: V1: B3 = B4) plus B0 (every claim is quoted against B0).  V5-P (B4x) is not listed: every learned V5-P comparison is
+#: on seed 104729 only, where the resolution keeps the seed-104729 (pre-seal) intervals
+COMPARATOR_INTERVAL_JOBS: dict[str, tuple[str, ...]] = {"V5": ("B0", "B3x", "B3i"), "V1": ("B0", "B3"),
+                                                        "V2": ("B0", "B3x", "B3i")}
+COMPARATOR_INTERVAL_ARMS: tuple[str, ...] = tuple(dict.fromkeys(a for v in COMPARATOR_INTERVAL_JOBS.values() for a in v))
+#: the closed-form arm run in both guard modes by the nested-certificate safeguard (the pre-seal cross-check's arm)
+SAFEGUARD_PROBE_ARM = "B3x"
+KINDS: tuple[str, ...] = ("safeguard", "fit", "comparator_intervals", "marker", "h3_spec")
+STEPS: tuple[str, ...] = ("point", "intervals")
+V5_REFIT_VARIANTS: tuple[str, ...] = ("loose", "strict", "hno3_only", "cell_only", "parent_structure")
+#: the V1 / V2 refit sensitivities (``transfer.REGISTERED_SENSITIVITIES``): setting -> (fold-file variant, drop Sr(III),
+#: sensitivity name).  ``near_duplicate_key`` / ``compilation_doi`` have exact fold files only; a heavy arm on the ten
+#: grouped folds has no fold file or inner design under those groupings (open issue; UNTESTABLE until built)
+V1_REFIT_SETTINGS: dict[str, tuple[str, bool, str]] = {
+    "sr_iii_dropped": ("copy", True, "sr_iii_dropped_training"),
+    "near_duplicate_key": ("near_duplicate_key", False, "near_duplicate_key_groups_value_blind"),
+    "compilation_doi": ("compilation_doi", False, "compilation_doi_groups")}
+#: the V1 grouping sensitivities: a heavy arm needs outer folds AND an inner design under that grouping (not built)
+V1_GROUPING_SETTINGS: tuple[str, ...] = ("near_duplicate_key", "compilation_doi")
+V2_REFIT_SETTINGS: dict[str, tuple[str, bool, str]] = {
+    "state": ("state", False, "state_level_hiding"),
+    "sr_iii_dropped": ("element", True, "sr_iii_dropped_training")}
+SR_DROPPED_SUFFIX = "_sr_iii_dropped"
+#: fold-file design token -> the registered design label of metrics / transfer
+DESIGN_LABEL: dict[str, str] = {"V5": "V5", "V5P": "V5-P", "V5PAIR": "V5-PAIR", "V1": "V1", "V2": "V2", "V0": "V0"}
+#: which registered half table each design's rows take their half from (``feasibility_halves.csv``)
+HALF_TABLE: dict[str, str] = {"V5": "V5_system", "V5P": "V5_system", "V5PAIR": "V5_system", "V1": "V1",
+                              "V2": "V2_state"}
+#: the V5 settings a contrast is evaluated on: setting -> the registered R19 item 6 sensitivity name
+V5_SETTING_SENSITIVITY: dict[str, str] = {"loose": "loose_setting", "strict": "strict_setting",
+                                          "hno3_only": "HNO3_only_cells", "cell_only": "V5-cell-only",
+                                          "parent_structure": "parent_structure_hiding",
+                                          "sr_iii_dropped": "sr_iii_dropped_training", "V5P": "V5-P"}
+#: R19 item 6 sensitivities that re-score existing predictions (section 7 item 2: they apply to every contrast)
+SCORING_FILTER_SENSITIVITIES: tuple[str, ...] = ("non_DGA_stratum", "acid_grid_rows_excluded",
+                                                 "censoring_candidates_excluded_scoring", ET.WILDCARD_COPY_SENSITIVITY)
+REFIT_NOT_RUN = ("not run: section 7 compute plan item 2 evaluates the refit sensitivities only for freezing "
+                 "candidates and the registered H1, H1b and H4 contrasts")
+#: the arms of the never-demoted registered contrasts (section 7 item 2: their refit sensitivities always run)
+H_CONTRAST_ARMS: tuple[str, ...] = ("M2", "B6", "B6r0", "B5", "FLAT_CAT")
+#: the S1 families (section 9): reported UNDECIDED when the re-coloured batched-vs-exact check fails (section 7 item 6)
+S1_FAMILIES: tuple[str, ...] = ("primary", "S1(b)", "S1(c)")
+CHECK_FAILED_LABEL = "batched (check failed)"
+
+READINGS: dict[str, str] = {
+    "selection_half_only": "every fitted fold is restricted to its scored rows whose fold row_half is S; the registered "
+                           "half of every such row is re-derived from feasibility_halves.csv (V5 family: the system, "
+                           "V1: the row's outer-fold unit, V2: the metal state) and a confirmation-half row raises; "
+                           "confirmation-half predictions are never written; V0 is not run (its rows span both halves; "
+                           "section 10 F1 is evaluated at the report stage)",
+    "b6_batched_check": "section 3.1 / 7 item 6 check computed per discovery seed on the selection half (B6 exact vs B6 "
+                        "batched folds of that seed, identical scored cells); it passes only when every seed passes "
+                        "(the conservative reading of 'same seeds'); B6 on batched outer folds uses the batched V5 inner "
+                        "design ('batching follows the outer rule', section 7)",
+    "v1_tenfold_check": "section 3.2: B6 exact vs B6 ten-fold per discovery seed, identical scored rows, V1 outer-fold "
+                        "unit; passes only when every seed passes; a failure moves the heavy arms to the exact design",
+    "heavy_arm_intervals": "section 12, cross-fitted (task X finding V-LP-01; needs a POST-HOC addendum): no calibration "
+                           "residual comes from a row that chose the configuration or the stopping point it is a "
+                           "residual of. Seed 104729 (3 inner folds tuned): the residuals of inner fold j come from "
+                           "refits (fixed CatBoost iterations / network epochs, no early stopping) of the configuration "
+                           "and iteration / epoch count selected on the OTHER inner folds' recorded validation errors "
+                           "(boosted / neural select_excluding_folds), on fold j's inner splits. Other seeds (first inner "
+                           "fold tuned): the tuned configuration refitted on the inner splits of the NEXT inner fold "
+                           "holding a split. Fewer than two inner folds: not calibrated (NaN intervals, status "
+                           "recorded). B8 (no tuning) calibrates on the tuning splits of its inner mode. B6 / B6r0: "
+                           "factorized.B6TunedConformal(calibration='cross_fit'). M2's retained M1 values are the outer "
+                           "fold's (selected with every inner fold) -- a second-order reuse disclosed as open. The "
+                           "interval centre is the outer refit of the point step",
+    "first_inner_fold": "on seeds other than 104729 'the first inner fold' is the lowest inner fold index holding a "
+                        "validation / calibration split, for every arm. On V5 designs that fold holds up to 30 inner "
+                        "cells: the batched heavy arms and batched B6 fit every inner batch of it (about 8), exact B6 "
+                        "every cell (about 30) -- 'the first of the 3 inner folds only' is kept and '(one fit per "
+                        "configuration)' holds on V1 / V2 only (task X finding V-04; needs a POST-HOC addendum)",
+    "fold_ordinal": "the section 15 model seed 42 + fold * 1009 + 9,999,991 takes fold = the position of the (discovery "
+                    "seed, outer fold) pair when the design is enumerated once per discovery seed in the seed order "
+                    "104729, 130363, 155921, 196613, 262147: a seeded fold file contributes that seed's folds in file "
+                    "order, a seed-free file (V2, V5 exact, V5-P cell x group) all its folds. Seed 104729 keeps the file "
+                    "position (s104729_S_b007 -> 7); the other seeds get distinct numbers, so the discovery seeds drive "
+                    "model initialisation (section 15) on every design, V2 included. Every learned arm uses it: B5, "
+                    "FLAT_CAT, B8, M1, M2 and the B6 / B6r0 factor initialisation (task X finding V-02; needs a "
+                    "POST-HOC addendum)",
+    "plan_order": "section 7 item 3's arm order is applied within each pass: B6 / B6r0 on every seed and its refit "
+                  "sensitivities first (their checks gate the heavy-arm schemes), then the seed-104729 main designs "
+                  "B5, FLAT_CAT, B8 -> M1 -> M2 (with the M1 / M2 V5-PAIR S1(c) folds), then the four other discovery "
+                  "seeds in the same arm order, then the seed-104729 refit sensitivities, then the conditional "
+                  "freezing-candidate runs (task X finding V-01; needs a POST-HOC addendum)",
+    "budget": "section 7 item 5: when the ledger reaches 60 h only M3-M7 are demoted (in the order M7 -> M3); no other "
+              "step is named, so every job of this plan (H1, H1b, H4 and the rest) keeps running and the exhaustion is "
+              "recorded; --max-hours is an operator pause (resumable), never a demotion",
+    "b6_inner_units": "B6 / B6r0 select on the section 4 unit of the design (InnerSplit.row_units: V5 hidden cell, V1 "
+                      "publication group or REMAINDER, V2 metal state), the units of the heavy arms, not one value per "
+                      "inner split (task X finding V-03)",
+    "s1_check_failed": "section 7 item 6: when the re-coloured batched-vs-exact check still fails, every heavy-arm V5 "
+                       "contrast carries the label 'batched (check failed)' and every S1 component (primary, S1(b), "
+                       "S1(c)) is reported UNDECIDED whatever its R19 verdict; freezing candidates carry both",
+    "uncertainty_metrics": "no learned arm has a predictive SD (std_logD NaN; split-conformal intervals only): Gaussian "
+                           "CRPS, Spearman(|error|, SD), the SD-binned reliability curve and the 'knows when it does "
+                           "not know' test are NOT_RUN, and the section 12 methods other than split-conformal are not "
+                           "built (task X finding V-10; needs a POST-HOC addendum or the heads)",
+    "m_target_scaling": "M1 / M2 standardise the target with the mean / SD of each fit's own training rows (the outer "
+                        "refit: outer-training rows; an inner tuning or calibration fit: its inner-training rows); the "
+                        "section 6 resolution's 'outer-training mean and SD' read literally would put inner validation "
+                        "targets into inner fits, against section 2 (task X finding V-08; needs a POST-HOC addendum)",
+    "record_verification": "every decision reader requires each record's digest and fold hash to equal the ones the "
+                           "current code, fold file and plan state produce and the fold ids to be exactly the job's "
+                           "fittable folds (a stale or foreign record raises; a job with folds still missing is not "
+                           "scored); M2 requires the verified digest of M1's record of the same fold",
+    "m2_prerequisite": "M2 searches rank only, with the M1 values retained per outer fold (section 6 resolution), so M1 "
+                       "is tuned on every outer fold M2 runs on (V5-PAIR batched, the refit sensitivities) and M2 "
+                       "always builds on M1's per-fold values; the ladder compares M2 with the retained predecessor "
+                       "(M1 when kept, else M0)",
+    "inner_units": "M1 / M2 take their inner splits from the boosted inner design objects (the fold builders' "
+                   "functions), so every heavy arm tunes on identical inner splits; the V1 inner averaging unit is the "
+                   "V1 unit (publication group, or REMAINDER below 20 rows)",
+    "margins": "R19 item 1 margin: delta5 (difficulty.json -> V5.delta5) for H1 primary, H1b, H4, the V5 ladder steps "
+               "and every other V5 contrast; 0.05 for S1(b) (M2 vs B0, M2 vs B6r0) and for V1 / V2 contrasts (section "
+               "9 names no V1 / V2 margin; the floor of the delta5 formula)",
+    "r19_item4_availability": "R19 item 4 needs one Delta per discovery seed; with fewer seeds scored it is recorded "
+                              "NOT_RUN and the verdict is UNDECIDED unless another item fails (never PASS)",
+    "refit_sensitivities_not_run": "a registered refit sensitivity without predictions is recorded UNTESTABLE ('not "
+                                   "run'), so the full R19 verdict is UNDECIDED unless another item fails",
+    "decision_scopes": "stop rule: R19 items 1, 2, 3 and 5 (section 7 item 4); ladder and freezing screen: items 1, 2, 3, "
+                       "5 and the scoring-filter sensitivities of item 6 on seed 104729 (item 2); V5-P heavy runs: items "
+                       "1-5 on V5-primary (section 3.1 resolution); full: items 1-6",
+    "wildcard_filter_pairing": "the wildcard-copy scoring filter drops a scored row when its own fold's training rows "
+                               "hold a partner (folds/wildcard_copy_crossings.csv, per stem, fold and row); in a paired "
+                               "contrast a row dropped for either arm is dropped for both",
+    "bh_p": "Benjamini-Hochberg per family on the two-sided bootstrap p of the primary cluster unit on seed 104729 (V5: "
+            "system; V1: publication group; V2: metal state); S1(c) enters with its five paired contrasts (three "
+            "direction, two logSF MAE; system clusters). p_bh is over the contrasts evaluated; p_bh_full_family "
+            "counts every registered discovery contrast of section 19 (m printed), a contrast not run entering as p = 1 "
+            "(the conservative bound); neither decides",
+    "safeguard_probe": "the section 2 safeguard runs ConformalWrapper(B3x) with nested_certificate and with every_split "
+                       "on each drawn outer fold (the pre-seal cross-check's closed-form arm) and compares residuals, "
+                       "quantiles and guard verdicts; a difference makes every_split mandatory for that fold file",
+    "comparator_intervals": "section 15 resolution: the deterministic comparators' conformal intervals are recomputed "
+                            "with each of the four other discovery seeds (seed 104729 is the pre-seal run's) on the "
+                            "designs learned arms are scored on with every seed: V5 B0 / B3x / B3i, V1 B0 / B3, V2 B0 / "
+                            "B3x / B3i; V5-P (B4x) keeps seed 104729 alone, as every learned V5-P comparison is on seed "
+                            "104729 (the resolution's parenthesis); the pre-seal point predictions are unchanged",
+    "h3": "section 11 job specs only (WITH / WITHOUT / ACT_PERMUTED / ACT_METAL_SHUFFLED); not executed by this runner",
+    "v2_summary": "V2 contrasts (the secondary-design contrast and the ladder's V2 non-inferiority) are evaluated on the "
+                  "section 3.3 primary summary, the focus-7 lanthanides present in the selection half (Ce, Pr, Nd, Gd), "
+                  "the summary the V2 comparator was chosen on; every selection-half state is printed beside as an "
+                  "exploratory contrast (setting all_states)",
+    "power_check": "section 8 signal injection: the plan (which failed H1 / H1b contrasts need it, kappa grid, X(?) rows "
+                   "dropped, refits at the selected hyperparameters) is written to decisions.json; its execution is not "
+                   "implemented in this runner",
+}
+#: section 3.3 primary V2 summary
+V2_FOCUS7: tuple[str, ...] = ("La(III)", "Ce(III)", "Pr(III)", "Nd(III)", "Sm(III)", "Eu(III)", "Gd(III)")
+
+
+# --------------------------------------------------------------------------------------------- #
+# jobs and the plan
+# --------------------------------------------------------------------------------------------- #
+
+@dataclass(frozen=True)
+class JobSpec:
+    """One discovery job (module docstring).  ``fold_seed`` filters a multi-seed fold file (batched V5, V1 ten-fold) to
+    the folds drawn with that seed; ``seed`` is the run seed (inner designs, initialisation, calibration)."""
+
+    kind: str
+    arm: str
+    design: str = ""
+    variant: str = ""
+    scheme: str = ""
+    seed: int | None = None
+    fold_seed: int | None = None
+    drop_sr: bool = False
+    stage: str = ""
+    group: str = ""
+    purpose: str = ""
+    registered: bool = True
+    condition: str | None = None
+    writes: tuple[str, ...] = ()
+    stem_override: str = ""
+    message: str = ""
+
+    def __post_init__(self) -> None:
+        if self.kind not in KINDS:
+            raise ValueError(f"job kind {self.kind!r} not in {KINDS}")
+        if self.kind in ("fit", "comparator_intervals") and (not self.design or self.seed is None):
+            raise ValueError(f"{self.kind} job needs a design and a run seed")
+        if not self.writes and self.kind in ("fit", "comparator_intervals"):
+            object.__setattr__(self, "writes", (self.arm,))
+
+    @property
+    def stem(self) -> str:
+        if self.stem_override:
+            return self.stem_override
+        return FI.design_stem(self.design, self.variant, self.scheme) if self.design else ""
+
+    @property
+    def variant_label(self) -> str:
+        return f"{self.variant}_{self.scheme}" + (SR_DROPPED_SUFFIX if self.drop_sr else "")
+
+    @property
+    def design_dir(self) -> str:
+        return f"{self.design}__{self.variant_label}"
+
+    @property
+    def key(self) -> str:
+        if self.kind == "marker":
+            return f"marker:{self.arm}"
+        if self.kind == "safeguard":
+            return f"safeguard:{self.stem}"
+        return f"{self.kind}:{self.arm}:{self.design_dir}:s{self.seed}"
+
+    @property
+    def inner_mode(self) -> str:
+        """Section 7 compute plan item 1."""
+        return "full" if self.seed == PRIMARY_SEED else "first"
+
+    @property
+    def design_label(self) -> str:
+        return DESIGN_LABEL.get(self.design, self.design)
+
+    def record(self) -> dict[str, Any]:
+        rec = asdict(self)
+        rec.update(key=self.key, stem=self.stem, variant_label=self.variant_label, inner_mode=self.inner_mode)
+        return rec
+
+
+@dataclass
+class PlanState:
+    """Decisions the plan depends on (``evaluation/discovery/decisions/plan_state.json``): the B6 checks, the safeguard
+    guard modes, the freezing candidates of the scorer."""
+
+    v5_batched_check: str = "pending"          # pending | passed | recolour | passed_after_recolour | failed
+    v1_tenfold_check: str = "pending"          # pending | passed | failed
+    guard_mode: dict[str, str] = field(default_factory=dict)          # fold stem -> nested_certificate | every_split
+    freezing_candidates: list[dict[str, Any]] = field(default_factory=list)
+    notes: dict[str, Any] = field(default_factory=dict)
+
+    V5_STATES = ("pending", "passed", "recolour", "passed_after_recolour", "failed")
+    V1_STATES = ("pending", "passed", "failed")
+
+    def __post_init__(self) -> None:
+        if self.v5_batched_check not in self.V5_STATES:
+            raise ValueError(f"v5_batched_check {self.v5_batched_check!r}")
+        if self.v1_tenfold_check not in self.V1_STATES:
+            raise ValueError(f"v1_tenfold_check {self.v1_tenfold_check!r}")
+
+    @property
+    def heavy_v5_scheme(self) -> str | None:
+        """The V5 scheme of the heavy arms: ``batched`` after a passed check, ``batched_max4`` after the re-colouring
+        (passed or failed), ``None`` while the check is pending or the re-coloured check has not run."""
+        return {"passed": "batched", "passed_after_recolour": "batched_max4", "failed": "batched_max4"}.get(
+            self.v5_batched_check)
+
+    @property
+    def heavy_v5_label(self) -> str:
+        return CHECK_FAILED_LABEL if self.v5_batched_check == "failed" else "batched"
+
+    @property
+    def s1_forced_undecided(self) -> bool:
+        """Section 7 item 6: the re-coloured batched-vs-exact check failed, so S1 is reported UNDECIDED, never passed."""
+        return self.v5_batched_check == "failed"
+
+    @property
+    def heavy_v1_scheme(self) -> str | None:
+        return {"passed": "grouped10", "failed": "exact"}.get(self.v1_tenfold_check)
+
+    @classmethod
+    def read(cls, path: Path) -> "PlanState":
+        if not Path(path).exists():
+            return cls()
+        body = json.loads(Path(path).read_text(encoding="utf-8"))
+        keep = {k: body[k] for k in ("v5_batched_check", "v1_tenfold_check", "guard_mode", "freezing_candidates",
+                                     "notes") if k in body}
+        return cls(**keep)
+
+    def record(self) -> dict[str, Any]:
+        return {"schema": SCHEMA, "v5_batched_check": self.v5_batched_check, "v1_tenfold_check": self.v1_tenfold_check,
+                "guard_mode": dict(sorted(self.guard_mode.items())), "freezing_candidates": list(self.freezing_candidates),
+                "notes": dict(self.notes), "heavy_v5_scheme": self.heavy_v5_scheme, "heavy_v5_label": self.heavy_v5_label,
+                "heavy_v1_scheme": self.heavy_v1_scheme}
+
+
+def _fit(arm: str, design: str, variant: str, scheme: str, seed: int, *, stage: str, group: str, purpose: str,
+         multi_seed_file: bool = False, drop_sr: bool = False, writes: tuple[str, ...] = (), condition: str | None = None,
+         registered: bool = True) -> JobSpec:
+    return JobSpec(kind="fit", arm=arm, design=design, variant=variant, scheme=scheme, seed=int(seed),
+                   fold_seed=int(seed) if multi_seed_file else None, drop_sr=drop_sr, stage=stage, group=group,
+                   purpose=purpose, writes=writes or (arm,), condition=condition, registered=registered)
+
+
+def _seed_order() -> tuple[int, ...]:
+    return (PRIMARY_SEED,) + OTHER_SEEDS
+
+
+def demotable(job: JobSpec) -> bool:
+    """Section 7 item 5: only the ladder steps M3-M7 are demoted when the 60-hour budget is exhausted."""
+    return ARM_ALIASES.get(job.arm, job.arm) in DEMOTION_ORDER
+
+
+SAFEGUARD_STEMS_DEFAULT: tuple[str, ...] = (
+    "V5__primary__exact", "V5__primary__batched", "V5__cell_only__batched", "V5__parent_structure__batched",
+    "V5P__base__cell_x_group", "V5P__base__batched", "V5PAIR__primary__cell_pair", "V5PAIR__primary__batched",
+    "V1__copy__grouped10", "V2__element__exact")
+
+
+STAGES: dict[str, str] = {
+    "safeguard": "00_safeguard", "b6": "01_B6", "comparators": "02_comparator_intervals",
+    "p_b5": "03_B5_FLAT_CAT_B8", "p_m1": "04_M1", "p_m2": "05_M2", "stop": "06_stop_rule",
+    "other_seeds": "07_other_seeds", "refit": "08_refit_sensitivities", "candidates": "09_candidates",
+    "not_implemented": "10_not_implemented"}
+
+
+def enumerate_plan(state: PlanState | None = None, *, safeguard_stems: Sequence[str] = SAFEGUARD_STEMS_DEFAULT,
+                   include_h3_specs: bool = False, folds_dir: Path | None = None) -> list[JobSpec]:
+    """Every discovery job in section 7 order (module docstring, :data:`READINGS` ``plan_order``).  Jobs that depend on a
+    decision not yet taken are omitted and replaced by a ``marker`` job naming the missing decision.  ``folds_dir``
+    (default the registered folds) is consulted only for the conditional V1 grouping-sensitivity files."""
+    st = state or PlanState()
+    fdir = paths.FOLDS_DIR if folds_dir is None else Path(folds_dir)
+    jobs: list[JobSpec] = []
+    for stem in safeguard_stems:
+        jobs.append(JobSpec(kind="safeguard", arm=SAFEGUARD_PROBE_ARM, stem_override=stem, stage=STAGES["safeguard"],
+                            group="nested-certificate safeguard", purpose="section 2 resolution: every_split vs "
+                            "nested_certificate on the registered sample, once at the start of discovery"))
+    # ---- B6 / B6r0 and the batched-vs-exact checks
+    s1 = STAGES["b6"]
+    b6w = B6_ARMS
+    for seed in _seed_order():
+        tag = "seed 104729 decisions" if seed == PRIMARY_SEED else "R19 item 4 and the per-seed checks"
+        jobs.append(_fit("B6", "V5", "primary", "exact", seed, stage=s1, group=f"B6 V5 exact ({tag})", writes=b6w,
+                         purpose="H1b B6 vs B3i; H4 B6 - B6r0; S1(b) B6r0; stop rule (section 7 item 4)"))
+        jobs.append(_fit("B6", "V5", "primary", "batched", seed, stage=s1, group=f"B6 V5 batched ({tag})", writes=b6w,
+                         multi_seed_file=True, purpose="section 3.1 registered batched-vs-exact check (section 7 item 6)"))
+        jobs.append(_fit("B6", "V1", "copy", "exact", seed, stage=s1, group=f"B6 V1 exact ({tag})", writes=b6w,
+                         purpose="section 3.2 registered ten-fold-vs-exact check"))
+        jobs.append(_fit("B6", "V1", "copy", "grouped10", seed, stage=s1, group=f"B6 V1 ten-fold ({tag})", writes=b6w,
+                         multi_seed_file=True, purpose="section 3.2 registered ten-fold-vs-exact check"))
+        if seed == PRIMARY_SEED:
+            jobs.append(_fit("B6", "V2", "element", "exact", seed, stage=s1, group="B6 V2 (seed 104729)", writes=b6w,
+                             registered=False, purpose="reference arm (section 11 H3 references; descriptive)"))
+    for v in V5_REFIT_VARIANTS:
+        jobs.append(_fit("B6", "V5", v, "exact", PRIMARY_SEED, stage=s1, group="B6 refit sensitivities (seed 104729)",
+                         writes=b6w, purpose=f"R19 item 6 {V5_SETTING_SENSITIVITY[v]} of H1b / H4 (section 7 item 2)"))
+    jobs.append(_fit("B6", "V5", "primary", "exact", PRIMARY_SEED, stage=s1, drop_sr=True, writes=b6w,
+                     group="B6 refit sensitivities (seed 104729)", purpose="R19 item 6 sr_iii_dropped_training of H1b / H4"))
+    jobs.append(_fit("B6", "V5P", "base", "cell_x_group", PRIMARY_SEED, stage=s1, writes=b6w,
+                     group="B6 refit sensitivities (seed 104729)",
+                     purpose="R19 item 6 V5-P of H1b / H4 (closed-form arms run the unbatched V5-P folds, section 3.1)"))
+    if st.v5_batched_check in ("recolour", "passed_after_recolour", "failed"):
+        for seed in _seed_order():
+            jobs.append(_fit("B6", "V5", "primary", "batched_max4", seed, stage=s1, writes=b6w, multi_seed_file=True,
+                             condition="b6_check_recolour", group="B6 V5 re-coloured batches (section 7 item 6)",
+                             purpose="the repeated batched-vs-exact check with <= 4 cells per batch"))
+    # ---- the comparators' multi-seed conformal intervals (section 15 resolution; closed-form)
+    schemes = {"V5": ("primary", "exact"), "V1": ("copy", "exact"), "V2": ("element", "exact")}
+    for design, arms in COMPARATOR_INTERVAL_JOBS.items():
+        variant, scheme = schemes[design]
+        for arm in arms:
+            for seed in OTHER_SEEDS:
+                jobs.append(JobSpec(kind="comparator_intervals", arm=arm, design=design, variant=variant, scheme=scheme,
+                                    seed=seed, stage=STAGES["comparators"], group="deterministic comparators",
+                                    purpose="section 15: conformal inner folds drawn with each discovery seed"))
+    # ---- heavy arms
+    v5s, v1s = st.heavy_v5_scheme, st.heavy_v1_scheme
+    blocked: list[str] = []
+    if v5s is None:
+        blocked.append(f"heavy-arm V5 jobs wait for the B6 batched-vs-exact check (state {st.v5_batched_check!r})")
+    if v1s is None:
+        blocked.append(f"heavy-arm V1 jobs wait for the B6 ten-fold check (state {st.v1_tenfold_check!r})")
+
+    def heavy_main(arm: str, seed: int, stage: str, purpose: str) -> None:
+        tag = "seed 104729" if seed == PRIMARY_SEED else "other discovery seeds"
+        if v5s is not None:
+            jobs.append(_fit(arm, "V5", "primary", v5s, seed, stage=stage, group=f"{arm} main designs ({tag})",
+                             multi_seed_file=True, purpose=purpose))
+        if v1s is not None:
+            jobs.append(_fit(arm, "V1", "copy", v1s, seed, stage=stage, group=f"{arm} main designs ({tag})",
+                             multi_seed_file=v1s != "exact", purpose=purpose))
+        jobs.append(_fit(arm, "V2", "element", "exact", seed, stage=stage, group=f"{arm} main designs ({tag})",
+                         purpose=purpose))
+
+    def heavy_refit(arm: str, stage: str, purpose: str, group: str) -> None:
+        if v5s is None:
+            return
+        for v in V5_REFIT_VARIANTS:
+            jobs.append(_fit(arm, "V5", v, v5s, PRIMARY_SEED, stage=stage, group=group, multi_seed_file=True,
+                             purpose=f"{purpose}: R19 item 6 {V5_SETTING_SENSITIVITY[v]}"))
+        jobs.append(_fit(arm, "V5", "primary", v5s, PRIMARY_SEED, stage=stage, group=group, multi_seed_file=True,
+                         drop_sr=True, purpose=f"{purpose}: R19 item 6 sr_iii_dropped_training"))
+
+    purposes = {"B5": "M0 = B5: ladder base, H4 M2 - M0", "FLAT_CAT": "H4 M2 - FLAT_CAT",
+                "B8": "section 5 previous-generation baseline", "M1": "ladder step M1 vs M0; M2's per-fold M1 values",
+                "M2": "H1 primary; S1(a), S1(b); H4; ladder step M2"}
+    # seed-104729 pass (every ladder decision and the stop rule are taken on it)
+    for arm in ("B5", "FLAT_CAT", "B8"):
+        heavy_main(arm, PRIMARY_SEED, STAGES["p_b5"], purposes[arm])
+    heavy_main("M1", PRIMARY_SEED, STAGES["p_m1"], purposes["M1"])
+    jobs.append(_fit("M1", "V5PAIR", "primary", "batched", PRIMARY_SEED, stage=STAGES["p_m1"], multi_seed_file=True,
+                     group="M1 prerequisites of M2 (per-fold M1 values)", purpose="M2 on V5-PAIR needs M1's per-fold values"))
+    heavy_main("M2", PRIMARY_SEED, STAGES["p_m2"], purposes["M2"])
+    jobs.append(_fit("M2", "V5PAIR", "primary", "batched", PRIMARY_SEED, stage=STAGES["p_m2"], multi_seed_file=True,
+                     group="M2 V5-PAIR (seed 104729)",
+                     purpose="S1(c) selection-half counterweight on the seed-104729 batched V5-PAIR folds (section 9)"))
+    for msg in blocked:
+        jobs.append(JobSpec(kind="marker", arm=f"blocked:{msg}", stage=STAGES["p_m2"], group="blocked", message=msg))
+    jobs.append(JobSpec(kind="marker", arm="stop_rule", stage=STAGES["stop"], group="stop rule",
+                        message="section 7 item 4 stop rule: evaluated by scripts/g19_score_discovery.py "
+                                "(decisions/stop_rule.json) on seed 104729, R19 items 1-3 and 5 of M2 and B6 vs B3i"))
+    # the other discovery seeds (R19 item 4), same arm order
+    for seed in OTHER_SEEDS:
+        for arm in ("B5", "FLAT_CAT", "B8", "M1", "M2"):
+            heavy_main(arm, seed, STAGES["other_seeds"], purposes[arm] + " (R19 item 4)")
+    # the seed-104729 refit sensitivities of the H1 / H4 arms (section 7 item 2)
+    heavy_refit("B5", STAGES["refit"], "H4 M2 - M0", "B5 refit sensitivities (seed 104729)")
+    heavy_refit("FLAT_CAT", STAGES["refit"], "H4 M2 - FLAT_CAT", "FLAT_CAT refit sensitivities (seed 104729)")
+    heavy_refit("M1", STAGES["refit"], "prerequisite of the M2 refit sensitivities",
+                "M1 prerequisites of M2 (per-fold M1 values)")
+    heavy_refit("M2", STAGES["refit"], "H1 / H4", "M2 refit sensitivities (seed 104729)")
+    # ---- conditional: freezing candidates (section 3.1 resolution, section 7 items 2 and 7)
+    sc = STAGES["candidates"]
+    for cand in st.freezing_candidates:
+        design = cand.get("design") or _design_of_contrast_key(cand.get("contrast", ""))
+        arms = [ARM_ALIASES.get(a, a) for a in cand.get("arms", ())]
+        heavy = [a for a in arms if a in HEAVY_ARMS]
+        if design == "V5" and v5s is not None and cand.get("passed_items_1_5_v5_primary"):
+            need = set(heavy) | ({"M1"} if "M2" in heavy else set())
+            for arm in [a for a in HEAVY_ARMS if a in need]:
+                jobs.append(_fit(arm, "V5P", "base", "batched", PRIMARY_SEED, stage=sc, multi_seed_file=True,
+                                 condition="freezing_candidate", group="freezing-candidate V5-P runs",
+                                 purpose=f"V5-P sensitivity of {cand.get('contrast')} (passed R19 items 1-5)"))
+                if arm not in H_CONTRAST_ARMS:
+                    heavy_refit(arm, sc, f"freezing candidate {cand.get('contrast')}",
+                                "freezing-candidate refit sensitivities")
+        elif design in ("V1", "V2"):
+            need = set(heavy) | ({"M1"} if "M2" in heavy else set())
+            for arm in [a for a in HEAVY_ARMS if a in need]:
+                jobs += _v1v2_refit_jobs(arm, design, st, fdir, stage=sc, contrast=str(cand.get("contrast")))
+    jobs.append(JobSpec(kind="marker", arm="M3+", stage=STAGES["not_implemented"], group="ladder M3-M7",
+                        message=NOT_IMPLEMENTED))
+    if include_h3_specs:
+        jobs += h3_job_specs()
+    return dedupe_jobs(jobs)
+
+
+def _design_of_contrast_key(key: str) -> str:
+    """``"M2 vs B3@V1#ladder"`` -> ``"V1"``."""
+    return str(key).split("@", 1)[1].split("#", 1)[0] if "@" in str(key) else ""
+
+
+def _v1v2_refit_jobs(arm: str, design: str, st: PlanState, folds_dir: Path, *, stage: str, contrast: str) -> list[JobSpec]:
+    """Seed-104729 V1 / V2 refit-sensitivity jobs of a freezing candidate's heavy arm (section 7 item 2); a marker when
+    the heavy arm's fold file under a sensitivity grouping is not built."""
+    out: list[JobSpec] = []
+    if design == "V1":
+        v1s = st.heavy_v1_scheme
+        if v1s is None:
+            return [JobSpec(kind="marker", arm=f"blocked:V1 refit {arm}", stage=stage, group="blocked",
+                            message="V1 refit sensitivities wait for the B6 ten-fold check")]
+        for setting, (variant, drop, name) in V1_REFIT_SETTINGS.items():
+            stem = FI.design_stem("V1", variant, v1s)
+            if setting in V1_GROUPING_SETTINGS or not (Path(folds_dir) / f"{stem}.json").exists():
+                out.append(JobSpec(kind="marker", arm=f"untestable:{arm}:V1:{setting}", stage=stage, group="untestable",
+                                   message=f"{contrast}: R19 item 6 {name} of {arm} is UNTESTABLE -- the heavy-arm fold "
+                                           f"file {stem} and an inner design grouped by that grouping are not built "
+                                           "(the inner V1 design groups by the copy grouping)"))
+                continue
+            out.append(_fit(arm, "V1", variant, v1s, PRIMARY_SEED, stage=stage, multi_seed_file=v1s != "exact",
+                            drop_sr=drop, condition="freezing_candidate", group="freezing-candidate V1 refit sensitivities",
+                            purpose=f"R19 item 6 {name} of {contrast}"))
+    else:
+        for setting, (variant, drop, name) in V2_REFIT_SETTINGS.items():
+            out.append(_fit(arm, "V2", variant, "exact", PRIMARY_SEED, stage=stage, drop_sr=drop,
+                            condition="freezing_candidate", group="freezing-candidate V2 refit sensitivities",
+                            purpose=f"R19 item 6 {name} of {contrast}"))
+    return out
+
+
+def dedupe_jobs(jobs: Sequence[JobSpec]) -> list[JobSpec]:
+    """First occurrence of every job key (a conditional duplicate never runs twice)."""
+    seen, out = set(), []
+    for j in jobs:
+        if j.key in seen:
+            continue
+        seen.add(j.key)
+        out.append(j)
+    return out
+
+
+def filter_jobs(jobs: Sequence[JobSpec], only: str | None) -> list[JobSpec]:
+    """``--only`` tokens, comma separated: an arm (``B6``, ``M2``, ``M0`` = ``B5``), a design token (``V5``, ``V1``,
+    ``V2``, ``V5P``, ``V5PAIR``), ``arm:design``, or a kind (``safeguard``, ``comparator_intervals``).  Tokens of one
+    kind are OR-ed; kinds are AND-ed.  Markers always pass."""
+    if not only:
+        return list(jobs)
+    def arm_of(a: str) -> str:
+        a = ARM_ALIASES.get(a, a)
+        return "B6" if a == "B6r0" else a                     # B6r0 is written by the B6 job
+    toks = [t.strip() for t in only.split(",") if t.strip()]
+    arms, designs, pairs, kinds = set(), set(), set(), set()
+    for t in toks:
+        if ":" in t:
+            a, d = t.split(":", 1)
+            pairs.add((arm_of(a), d))
+        elif t in KINDS:
+            kinds.add(t)
+        elif t in DESIGN_LABEL:
+            designs.add(t)
+        else:
+            arms.add(arm_of(t))
+    out = []
+    for j in jobs:
+        if j.kind == "marker":
+            out.append(j)
+            continue
+        if kinds and j.kind not in kinds:
+            continue
+        if (arms or pairs) and not (j.arm in arms or (j.arm, j.design) in pairs):
+            continue
+        if designs and j.design not in designs:
+            continue
+        out.append(j)
+    return out
+
+
+# --------------------------------------------------------------------------------------------- #
+# folds, halves and the scoring guards (section 2)
+# --------------------------------------------------------------------------------------------- #
+
+def fold_ordinals(folds: Sequence[FI.Fold], seed: int | None = None,
+                  seed_set: Sequence[int] = DISCOVERY_SEEDS) -> dict[str, int]:
+    """Fold id -> the section 15 model fold number (:data:`READINGS` ``fold_ordinal``): the position of the (seed, fold)
+    pair in the design enumerated once per seed of ``seed_set`` (then any other seed of the file, sorted).  A seeded
+    file contributes each seed's folds in file order; a seed-free file contributes all its folds for every seed, so the
+    number depends on the run ``seed`` (a seed outside ``seed_set`` is enumerated after it).  ``seed=None``: a seeded
+    file maps every fold (each under its own seed); a seed-free file takes the first seed of ``seed_set``."""
+    folds = list(folds)
+    order = list(seed_set)
+    file_seeds = {f.seed for f in folds}
+    if file_seeds - {None} and None in file_seeds:
+        raise ValueError("a fold file mixes seeded and seed-free folds")
+    if file_seeds - {None}:
+        order += sorted(x for x in file_seeds if x is not None and x not in order)
+        numbers: dict[tuple[int, str], int] = {}
+        pos = 0
+        for sd in order:
+            for f in folds:
+                if f.seed == sd:
+                    numbers[(sd, f.fold_id)] = pos
+                    pos += 1
+        if seed is None:
+            return {f.fold_id: numbers[(f.seed, f.fold_id)] for f in folds}
+        return {f.fold_id: numbers[(int(seed), f.fold_id)] for f in folds if f.seed == int(seed)}
+    if seed is not None and int(seed) not in order:
+        order.append(int(seed))
+    idx = 0 if seed is None else order.index(int(seed))
+    return {f.fold_id: idx * len(folds) + k for k, f in enumerate(folds)}
+
+
+def selection_scored_ids(fold: FI.Fold) -> tuple[str, ...]:
+    """The fold's scored rows of the selection half (``row_half`` S; a fold without row halves uses its own half)."""
+    return tuple(r for r in fold.scored_row_ids if str(fold.row_half.get(r, fold.half)) == SELECTION)
+
+
+def job_folds(job: JobSpec, folds: Sequence[FI.Fold]) -> list[tuple[FI.Fold, int]]:
+    """``(fold, ordinal)`` of every fold the job fits: the job's fold seed (multi-seed files), not a confirmation-half
+    fold, and at least one selection-half scored row."""
+    seeds = {f.seed for f in folds}
+    if job.fold_seed is None and seeds != {None}:
+        if len(seeds) != 1:
+            raise ValueError(f"{job.key}: fold file {job.stem} holds seeds {sorted(map(str, seeds))}; give fold_seed")
+    key_seed = job.fold_seed if job.fold_seed is not None else (job.seed if seeds == {None} else next(iter(seeds)))
+    ords = fold_ordinals(folds, key_seed)
+    out = []
+    for f in folds:
+        if job.fold_seed is not None and f.seed != job.fold_seed:
+            continue
+        if f.half == CONFIRMATION:
+            continue
+        if selection_scored_ids(f):
+            out.append((f, ords[f.fold_id]))
+    return out
+
+
+def fittable_folds(job: JobSpec, folds: Sequence[FI.Fold], excluded_ids: Iterable[str]) -> list[tuple[FI.Fold, int]]:
+    """:func:`job_folds` minus the folds whose selection-half scored rows are all ``excluded_ids`` (the acidic
+    co-extractant rows): the folds the runner fits and every verified reader expects."""
+    ex = {str(r) for r in excluded_ids}
+    return [(f, k) for f, k in job_folds(job, folds) if any(str(r) not in ex for r in selection_scored_ids(f))]
+
+
+def registered_row_halves(frame: pd.DataFrame, design: str, *, halves: Mapping[str, Mapping[str, str]] | None = None
+                          ) -> pd.Series:
+    """The registered half (``S`` / ``C`` / ``NA``) of every row of ``frame`` under ``design``'s half table (V5 family:
+    the system's half; V1: the row's outer-fold unit; V2: the metal state), independent of any fold file."""
+    table = HALF_TABLE.get(design)
+    if table is None:
+        raise ValueError(f"design {design!r} has no registered halves")
+    h = dict((halves or {}).get(table) or FI.registered_halves(table))
+    if table == "V5_system":
+        return frame[SG.SYSTEM_COL].map(h).fillna("NA").astype(str)
+    if table == "V2_state":
+        return frame[SG.METAL_COL].map(h).fillna("NA").astype(str)
+    return SH.row_halves(frame, h).astype(str)
+
+
+def assert_selection_rows(ids: Iterable[str], row_half: Mapping[str, str] | pd.Series, what: str) -> None:
+    """Raise ``AssertionError`` unless every row id's registered half is the selection half (discovery never scores
+    the confirmation half)."""
+    ids = list(ids)
+    get = row_half.get if isinstance(row_half, Mapping) else (lambda r, d=None: row_half.get(r, d))
+    bad = [r for r in ids if get(r, "NA") != SELECTION]
+    if bad:
+        halves = sorted({str(get(r, "NA")) for r in bad})
+        raise AssertionError(f"{what}: {len(bad)} scored row(s) outside the selection half ({halves}; first {bad[0]!r}); "
+                             "discovery never scores the confirmation half")
+
+
+def guard_mode_source(stem: str) -> str:
+    """The safeguard sample (``folds/INDEX.json``) whose verdict governs a fold file's inner guard mode: the file itself
+    when sampled; loose / strict / HNO3-only take the primary file of their scheme (they build the certificate as the
+    primary does, ``folds.safeguard`` module docstring); cell-only and parent-structure exact files take their batched
+    sample; a re-coloured (``batched_max4``) file takes its registered batched file; V1 and V2 files take their (vacuous)
+    sample."""
+    parts = str(stem).split("__")
+    if len(parts) != 3:
+        raise ValueError(f"not a fold stem: {stem!r}")
+    design, variant, scheme = parts
+    scheme = scheme.replace("_max4", "") if scheme.startswith("batched") else scheme
+    if design in ("V5P", "V5PAIR"):
+        return f"{design}__{variant}__{scheme}"
+    if design == "V5":
+        if variant in ("cell_only", "parent_structure"):
+            return f"V5__{variant}__batched"
+        return "V5__primary__exact" if scheme == "exact" else "V5__primary__batched"
+    if design == "V1":
+        return "V1__copy__grouped10"
+    if design == "V2":
+        return "V2__element__exact"
+    return stem
+
+
+def assert_v6_clean(labels: Iterable[Any], v6_mask: pd.Series, what: str) -> None:
+    """``registered.assert_not_scored`` (no ``V6_TARGET_ROWS`` row in a scoring index)."""
+    FR.assert_not_scored(labels, v6_mask, what)
+
+
+def assert_no_provenance_features(columns: Iterable[str], what: str) -> None:
+    """Section 2 / brief section 12: no provenance column, publication / study id, DOI or row id is a feature -- checked on
+    the bare and block-prefixed names (``features.assert_feature_columns_allowed`` is applied by the arms as well)."""
+    from gen19ct.models import features as F
+
+    cols = [str(c) for c in columns]
+    forbidden = (set(LOAD.PROVENANCE_COLUMNS) | set(F.ID_COLUMNS) | {I.PUB_GROUP_COL, FI.GROUP_COL, SG.PUB_COL, I.ID_COL,
+                 "row_id", "fold_id"})
+    bare = set()
+    for c in cols:
+        b = c.split("__", 1)[1] if "__" in c else c
+        bare.add(b.split("=", 1)[0].removesuffix("__missing"))
+    hit = sorted((set(cols) | bare) & forbidden)
+    if hit:
+        raise AssertionError(f"{what}: provenance / publication / row-id columns among the features: {hit}")
+    F.assert_feature_columns_allowed(cols, what)
+
+
+# --------------------------------------------------------------------------------------------- #
+# records, digests and resume (section 16)
+# --------------------------------------------------------------------------------------------- #
+
+_SAFE_NAME = re.compile(r"^[A-Za-z0-9_.()\-]+$")
+
+
+def safe_fold_name(fold_id: str) -> str:
+    """A file-name-safe fold id (unchanged when already safe; otherwise sanitised plus a short hash)."""
+    s = str(fold_id)
+    if _SAFE_NAME.match(s) and len(s) <= 120:
+        return s
+    return re.sub(r"[^A-Za-z0-9_.()\-]", "_", s)[:80] + "__" + hashlib.sha1(s.encode("utf-8")).hexdigest()[:10]
+
+
+def discovery_root(out_root: Path) -> Path:
+    return Path(out_root) / "evaluation" / "discovery"
+
+
+def fold_paths(out_root: Path, job: JobSpec, arm: str, fold_id: str) -> tuple[Path, Path]:
+    """``(parquet, json)`` of one arm's record of one outer fold."""
+    d = discovery_root(out_root) / arm / job.design_dir / f"s{job.seed}"
+    name = safe_fold_name(fold_id)
+    return d / f"{name}.parquet", d / f"{name}.json"
+
+
+def sha256_text(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def code_digest(files: Iterable[Path], objects: Iterable[Any] = ()) -> dict[str, Any]:
+    """Digest of the prediction-affecting code: the LF-normalised SHA-256 of every file and the source of every object
+    (``inspect.getsource``); ``combined`` is the SHA-256 of the sorted parts."""
+    parts: dict[str, str] = {}
+    for p in sorted({Path(f).resolve() for f in files}):
+        try:
+            key = paths.rel(p)
+        except ValueError:
+            key = p.name
+        parts[key] = hashlib.sha256(Path(p).read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+    for obj in objects:
+        name = f"{obj.__module__}.{getattr(obj, '__qualname__', getattr(obj, '__name__', repr(obj)))}"
+        parts[name] = sha256_text(inspect.getsource(obj).replace("\r\n", "\n"))
+    return {"parts": dict(sorted(parts.items())),
+            "combined": sha256_text("\n".join(f"{k}={v}" for k, v in sorted(parts.items())))}
+
+
+#: job fields that label a job without changing what it predicts (left out of the resume digest)
+LABEL_FIELDS: tuple[str, ...] = ("stage", "group", "purpose", "registered", "condition", "message")
+
+
+def fold_digest(job: JobSpec, fold: FI.Fold, code: str, extra: Mapping[str, Any] | None = None) -> str:
+    """The resume key of one fold: code digest, the prediction-affecting job fields (:data:`LABEL_FIELDS` left out),
+    fold id and hash, plus ``extra`` (the runner's guard mode, batching label, model fold number and seed, design hash,
+    registration digest, M1's expected digest)."""
+    body = {"code": code, "job": {k: v for k, v in job.record().items() if k not in LABEL_FIELDS},
+            "fold_id": fold.fold_id, "fold_hash": fold.fold_hash, "extra": dict(extra or {})}
+    return sha256_text(json.dumps(body, sort_keys=True, default=str))
+
+
+def job_from_record(rec: Mapping[str, Any]) -> JobSpec:
+    """The :class:`JobSpec` a record was written by (its ``job`` block)."""
+    import dataclasses
+
+    names = {f.name for f in dataclasses.fields(JobSpec)}
+    body = {k: v for k, v in dict(rec["job"]).items() if k in names}
+    body["writes"] = tuple(body.get("writes") or ())
+    return JobSpec(**body)
+
+
+def read_record(path: Path) -> dict[str, Any] | None:
+    p = Path(path)
+    if not p.exists():
+        return None
+    try:
+        return json.loads(p.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+
+
+def resume_status(job: JobSpec, fold: FI.Fold, out_root: Path, digest: str, steps: Sequence[str]) -> dict[str, Any]:
+    """Whether every arm the job writes already holds a record of this fold with this digest and every step of
+    ``steps``.  ``stale`` names arms with a record of another digest (recomputed, and reported)."""
+    done, stale, missing = [], [], []
+    for arm in job.writes:
+        pq, js = fold_paths(out_root, job, arm, fold.fold_id)
+        rec = read_record(js)
+        if rec is None or not pq.exists():
+            missing.append(arm)
+        elif rec.get("digest") != digest:
+            stale.append(arm)
+        elif not all(s in (rec.get("steps") or {}) for s in steps):
+            missing.append(arm)
+        else:
+            done.append(arm)
+    return {"complete": len(done) == len(job.writes), "done": done, "stale": stale, "missing": missing,
+            "steps_done": {a: sorted((read_record(fold_paths(out_root, job, a, fold.fold_id)[1]) or {}).get("steps", {}))
+                           for a in job.writes}}
+
+
+def peak_rss_bytes() -> int | None:
+    """Peak resident set size of this process (Windows ``PeakWorkingSetSize``; ``ru_maxrss`` elsewhere)."""
+    if sys.platform == "win32":
+        class PMC(ctypes.Structure):
+            _fields_ = [("cb", ctypes.c_ulong), ("PageFaultCount", ctypes.c_ulong),
+                        ("PeakWorkingSetSize", ctypes.c_size_t), ("WorkingSetSize", ctypes.c_size_t),
+                        ("QuotaPeakPagedPoolUsage", ctypes.c_size_t), ("QuotaPagedPoolUsage", ctypes.c_size_t),
+                        ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t), ("QuotaNonPagedPoolUsage", ctypes.c_size_t),
+                        ("PagefileUsage", ctypes.c_size_t), ("PeakPagefileUsage", ctypes.c_size_t)]
+        try:
+            pmc = PMC()
+            pmc.cb = ctypes.sizeof(PMC)
+            k32, psapi = ctypes.windll.kernel32, ctypes.windll.psapi
+            k32.GetCurrentProcess.restype = ctypes.c_void_p
+            psapi.GetProcessMemoryInfo.argtypes = [ctypes.c_void_p, ctypes.POINTER(PMC), ctypes.c_ulong]
+            if psapi.GetProcessMemoryInfo(k32.GetCurrentProcess(), ctypes.byref(pmc), pmc.cb):
+                return int(pmc.PeakWorkingSetSize)
+        except (AttributeError, OSError):
+            return None
+        return None
+    try:
+        import resource
+
+        r = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        return int(r if sys.platform == "darwin" else r * 1024)
+    except (ImportError, OSError):
+        return None
+
+
+#: columns of every discovery prediction parquet (one row per selection-half scored row of one fold)
+PREDICTION_COLUMNS: tuple[str, ...] = (
+    "row_id", "fold_id", "arm", "design", "variant", "scheme", "variant_label", "seed", "fold_seed", "half", "unit",
+    "mean_logD", "std_logD", "lower_50", "upper_50", "lower_80", "upper_80", "lower_95", "upper_95", "conformal_q50",
+    "conformal_q80", "conformal_q95", "conformal_n_calibration", "fallback_level", "fallback_reason", "selected_config",
+    "fold_ordinal", "model_seed", "fit_seconds", "intervals_status", "batching_label")
+_INTERVAL_COLUMNS = ("lower_50", "upper_50", "lower_80", "upper_80", "lower_95", "upper_95", "conformal_q50",
+                     "conformal_q80", "conformal_q95")
+
+
+def prediction_frame(pred: pd.DataFrame, *, job: JobSpec, arm: str, fold: FI.Fold, ordinal: int, row_ids: Sequence[str],
+                     selected_config: str, model_seed: int | None, intervals_status: str,
+                     batching_label: str = "", fit_seconds: float = float("nan")) -> pd.DataFrame:
+    """The registered record layout (:data:`PREDICTION_COLUMNS`) of one arm's predictions of one fold's selection-half
+    rows; ``pred`` is an arm prediction frame in ``row_ids`` order (``interface.PREDICTION_COLUMNS`` at least)."""
+    if len(pred) != len(row_ids):
+        raise AssertionError(f"{arm}/{fold.fold_id}: {len(pred)} predictions for {len(row_ids)} rows")
+    mean = pd.to_numeric(pred["mean_logD"], errors="coerce").to_numpy(dtype=float)
+    if not np.isfinite(mean).all():
+        raise AssertionError(f"{arm}/{fold.fold_id}: non-finite prediction")
+    out = pd.DataFrame({"row_id": [str(r) for r in row_ids]})
+    out["fold_id"] = fold.fold_id
+    out["arm"] = arm
+    out["design"], out["variant"], out["scheme"] = job.design, job.variant, job.scheme
+    out["variant_label"] = job.variant_label
+    out["seed"] = int(job.seed)
+    out["fold_seed"] = -1 if fold.seed is None else int(fold.seed)
+    out["half"] = [str(fold.row_half.get(r, fold.half)) for r in out["row_id"]]
+    default_unit = fold.units[0] if fold.units else ""
+    out["unit"] = [str(fold.row_unit.get(r, default_unit)) for r in out["row_id"]]
+    out["mean_logD"] = mean
+    for c in ("std_logD",) + _INTERVAL_COLUMNS:
+        out[c] = pd.to_numeric(pred[c], errors="coerce").to_numpy(dtype=float) if c in pred.columns else np.nan
+    out["conformal_n_calibration"] = (pd.to_numeric(pred["conformal_n_calibration"], errors="coerce").to_numpy(dtype=float)
+                                      if "conformal_n_calibration" in pred.columns else np.nan)
+    out["fallback_level"] = pred["fallback_level"].astype(object).to_numpy() if "fallback_level" in pred.columns else arm
+    out["fallback_reason"] = (pred["fallback_reason"].astype(object).to_numpy() if "fallback_reason" in pred.columns
+                              else None)
+    out["selected_config"] = str(selected_config)
+    out["fold_ordinal"] = int(ordinal)
+    out["model_seed"] = -1 if model_seed is None else int(model_seed)
+    out["fit_seconds"] = float(fit_seconds)
+    out["intervals_status"] = intervals_status
+    out["batching_label"] = batching_label
+    if (out["half"] != SELECTION).any():
+        raise AssertionError(f"{arm}/{fold.fold_id}: a prediction of a non-selection-half row")
+    return out[list(PREDICTION_COLUMNS)]
+
+
+def attach_intervals(frame: pd.DataFrame, quantiles: Mapping[float, float], n_calibration: int) -> pd.DataFrame:
+    """``mean +- q_level`` on a stored prediction frame (the conformal interval of section 12)."""
+    out = frame.copy()
+    mean = out["mean_logD"].to_numpy(dtype=float)
+    for lv in I.LEVELS:
+        pct = int(round(lv * 100))
+        q = float(quantiles[lv])
+        out[f"lower_{pct}"] = mean - q
+        out[f"upper_{pct}"] = mean + q
+        out[f"conformal_q{pct}"] = q
+    out["conformal_n_calibration"] = float(n_calibration)
+    out["intervals_status"] = "split_conformal_inner"
+    return out
+
+
+# --------------------------------------------------------------------------------------------- #
+# inner splits for calibration (section 12, compute plan item 1)
+# --------------------------------------------------------------------------------------------- #
+
+class FirstInnerFold:
+    """A splitter restricted to its lowest inner fold index holding a split (section 7 compute plan item 1)."""
+
+    def __init__(self, splitter: Any):
+        self.splitter = splitter
+        self.name = f"first_inner_fold({getattr(splitter, 'name', type(splitter).__name__)})"
+
+    def splits(self, table: I.RowTable, mask: np.ndarray, context: I.FitContext) -> list[I.InnerSplit]:
+        sp = self.splitter.splits(table, mask, context)
+        if not sp:
+            return []
+        first = min(int(s.fold) for s in sp)
+        return [s for s in sp if int(s.fold) == first]
+
+
+class TuningSplitCalibration:
+    """The inner splits of a boosted inner design object (``boosted.V5InnerTuning`` / ``V1InnerTuning`` /
+    ``V2InnerTuning``, built on the fold builders' functions) as ``interface.InnerSplit`` s, so a heavy arm's conformal
+    calibration uses exactly the inner splits its tuning used.  ``frame`` is the arm frame over the table's rows; the
+    rows handed to the design take the table's targets.  Each split carries the certificate ``(train, every hidden row
+    of the split's cells / groups / state inside the training rows)`` -- the tuning guard's test side -- so
+    ``ConformalWrapper(guard="nested_certificate")`` checks exactly that split."""
+
+    def __init__(self, design: Any, frame: pd.DataFrame, mode: str = "full", inner_folds: Iterable[int] | None = None):
+        if mode not in ("full", "first"):
+            raise ValueError(f"mode {mode!r}")
+        self.design, self.frame, self.mode = design, frame, mode
+        self.inner_folds = None if inner_folds is None else tuple(sorted({int(f) for f in inner_folds}))
+        sel = mode if self.inner_folds is None else f"folds {list(self.inner_folds)}"
+        self.name = f"tuning_splits({type(design).__name__}, {sel})"
+        self._cache: tuple[tuple, list[Any]] | None = None
+
+    def all_splits(self, table: I.RowTable, mask: np.ndarray, context: I.FitContext) -> list[Any]:
+        """Every inner split of the design (one draw with ``context.seed``; cached for the same table, mask and seed)."""
+        m = np.asarray(mask, dtype=bool)
+        key = (id(table), hashlib.sha1(np.packbits(m).tobytes()).hexdigest(), int(m.sum()), context.seed)
+        if self._cache is not None and self._cache[0] == key:
+            return list(self._cache[1])
+        labels = table.index[m]
+        if not labels.isin(self.frame.index).all():
+            raise KeyError("TuningSplitCalibration: frame does not cover the training rows")
+        rows = self.frame.loc[labels].assign(**{I.TARGET_COL: table.y[m]})
+        sp = list(self.design.splits(rows, context))
+        self._cache = (key, sp)
+        return list(sp)
+
+    def tuning_splits(self, table: I.RowTable, mask: np.ndarray, context: I.FitContext) -> list[Any]:
+        sp = self.all_splits(table, mask, context)
+        if self.inner_folds is not None:
+            return [s for s in sp if int(s.inner_fold) in self.inner_folds]
+        if self.mode == "first" and sp:
+            first = min(int(s.inner_fold) for s in sp)
+            sp = [s for s in sp if int(s.inner_fold) == first]
+        return sp
+
+    def splits(self, table: I.RowTable, mask: np.ndarray, context: I.FitContext) -> list[I.InnerSplit]:
+        mask = np.asarray(mask, dtype=bool)
+        out = []
+        for s in self.tuning_splits(table, mask, context):
+            tr = table.mask_of(s.train_index) if len(s.train_index) else np.zeros(table.n, dtype=bool)
+            cal = np.sort(table.positions(s.val_index))
+            hid = np.sort(table.positions(s.hidden_index))
+            if (tr & ~mask).any() or not mask[cal].all() or tr[cal].any() or tr[hid].any():
+                raise AssertionError(f"inner split {s.split_id} is not a partition of the outer training rows")
+            guard_te = np.sort(table.positions(s.guard_test_index)) if len(s.guard_test_index) else cal
+            if not np.isin(cal, guard_te).all():
+                raise AssertionError(f"inner split {s.split_id}: calibration rows outside its guard test side")
+            vpos = table.positions(s.val_index)
+            units = pd.Series(np.asarray(s.val_units, dtype=object), index=vpos).loc[cal].to_numpy(dtype=object)
+            out.append(I.InnerSplit(unit=s.split_id, fold=int(s.inner_fold), train_mask=tr, cal_positions=cal,
+                                    hidden_positions=hid, certificate=(tr.copy(), guard_te), row_units=units))
+        return out
+
+
+class V5ExactInnerCells(I.InnerCellCalibration):
+    """``interface.InnerCellCalibration`` (exact leave-one-inner-cell-out, the V5 inner design of the exact-fold arms)
+    with the variant's medium: for the HNO3-only variant the inner cells are eligible on the HNO3 rows of the outer
+    training rows and only those rows are calibration rows; ``medium="all"`` is the parent class unchanged."""
+
+    def __init__(self, *args: Any, medium: str = "all", frame: pd.DataFrame | None = None, **kwargs: Any):
+        super().__init__(*args, **kwargs)
+        if medium != "all" and frame is None:
+            raise ValueError("a medium-restricted inner design needs the arm frame (acid_primary)")
+        self.medium, self.frame = medium, frame
+
+    def unit_assignment(self, table: I.RowTable, mask: np.ndarray, context: I.FitContext) -> list[list[tuple[str, str]]]:
+        if self.medium == "all":
+            return super().unit_assignment(table, mask, context)
+        # the parent's unit cache is keyed without the medium: never share it with an all-media splitter
+        seed = I._require_seed(context)
+        return CH.inner_cell_assignment(self._majority(table, mask, context), seed, self.n_folds, self.max_cells)
+
+    def _majority(self, table: I.RowTable, mask: np.ndarray, context: I.FitContext) -> dict[tuple[str, str], str]:
+        if self.medium == "all":
+            return super()._majority(table, mask, context)
+        if context.v6_mask is None:
+            raise ValueError("context.v6_mask is required: V6 cells are never inner validation cells")
+        uf = I.unit_frame(table, mask)
+        uf["acid_primary"] = self.frame.loc[uf.index, "acid_primary"].to_numpy(dtype=object)
+        v6 = pd.Series(table.aligned_bool(context.v6_mask, "v6_mask")[np.flatnonzero(mask)], index=uf.index)
+        return CH.inner_cell_majority(uf, CH.Thresholds(self.k, self.p, self.m), v6, self.medium)
+
+    def splits(self, table: I.RowTable, mask: np.ndarray, context: I.FitContext) -> list[I.InnerSplit]:
+        out = super().splits(table, mask, context)
+        if self.medium == "all":
+            return out
+        med = CH.medium_mask(self.frame.loc[table.index], self.medium)
+        keep = []
+        for sp in out:
+            sel = med[sp.cal_positions]
+            cal = sp.cal_positions[sel]
+            if len(cal):
+                keep.append(replace(sp, cal_positions=cal,
+                                    row_units=None if sp.row_units is None else sp.row_units[sel]))
+        return keep
+
+
+def calibration_folds(available: Iterable[int], inner_mode: str, *, tuned: bool = True) -> dict[str, Any]:
+    """Which inner folds a heavy arm's conformal calibration uses (:data:`READINGS` ``heavy_arm_intervals``).
+
+    ``tuned`` arms: ``full`` mode (every inner fold tuned) -> every inner fold, cross-fitted (``cross_fit`` True: fold
+    ``j`` takes the configuration selected without it); ``first`` mode (the lowest fold tuned) -> the next inner fold
+    holding a split, with the tuned configuration.  Fewer than two folds -> none (``status`` says why).  Untuned arms
+    (B8): the folds of the inner mode itself."""
+    avail = sorted({int(f) for f in available})
+    if inner_mode not in ("full", "first"):
+        raise ValueError(f"inner_mode {inner_mode!r}")
+    if not tuned:
+        use = avail if inner_mode == "full" else avail[:1]
+        return {"tuning_folds": [], "calibration_folds": use, "cross_fit": False,
+                "status": "calibrated" if use else "not_calibrated_no_inner_split"}
+    if inner_mode == "full":
+        ok = len(avail) >= 2
+        return {"tuning_folds": avail, "calibration_folds": avail if ok else [], "cross_fit": True,
+                "status": "calibrated" if ok else "not_calibrated_fewer_than_two_inner_folds"}
+    if len(avail) < 2:
+        return {"tuning_folds": avail[:1], "calibration_folds": [], "cross_fit": False,
+                "status": "not_calibrated_no_inner_fold_after_the_tuning_fold"}
+    return {"tuning_folds": avail[:1], "calibration_folds": [avail[1]], "cross_fit": False, "status": "calibrated"}
+
+
+class CrossFitResidualConformal(I.ConformalWrapper):
+    """Split-conformal calibration only (section 12): the absolute residuals of ``arms_by_fold[j]`` refitted on every
+    inner split of inner fold ``j`` (the splitter must yield splits of those folds only), and the quantiles; the
+    interval centre is the outer refit made by the point step (no second outer fit).  ``arms_by_fold`` carries, per
+    calibration fold, the frozen arm whose configuration was selected without that fold's rows
+    (:func:`calibration_folds`)."""
+
+    def __init__(self, arms_by_fold: Mapping[int, Any], splitter: Any, guard: str = "nested_certificate",
+                 selections: Mapping[int, Mapping[str, Any]] | None = None):
+        if not arms_by_fold:
+            raise ValueError("CrossFitResidualConformal needs at least one calibration fold")
+        self.arms_by_fold = {int(k): v for k, v in arms_by_fold.items()}
+        self.selections = {int(k): dict(v) for k, v in (selections or {}).items()}
+        super().__init__(next(iter(self.arms_by_fold.values())), splitter=splitter, guard=guard)
+
+    def _calibrate(self, table: I.RowTable, mask: np.ndarray, context: I.FitContext) -> tuple[np.ndarray, list[Any]]:
+        splits = self.splitter.splits(table, mask, context)
+        if not splits:
+            raise ValueError("the inner design produced no calibration split")
+        res, units = [], []
+        for sp in splits:
+            if int(sp.fold) not in self.arms_by_fold:
+                raise AssertionError(f"inner split {sp.unit} belongs to fold {sp.fold}, not a calibration fold "
+                                     f"{sorted(self.arms_by_fold)}")
+            if (sp.train_mask & ~mask).any() or not mask[sp.cal_positions].all() or sp.train_mask[sp.cal_positions].any():
+                raise AssertionError(f"inner split {sp.unit} is not inside the outer training rows")
+            self._verify(table, sp, context)
+            FR.assert_not_scored(table.index[sp.cal_positions], context.v6_mask, "conformal calibration set")
+            ctx = context.for_training(None, hidden_index=table.index[sp.hidden_positions])
+            arm = self.arms_by_fold[int(sp.fold)].clone().fit_table(table, sp.train_mask, ctx)
+            mean = arm.predict_positions(sp.cal_positions)["mean_logD"].to_numpy(dtype=float)
+            if not np.isfinite(mean).all():
+                raise AssertionError(f"{self.name}: non-finite calibration prediction in {sp.unit}")
+            res.append(np.abs(table.y[sp.cal_positions] - mean))
+            units.append(sp.unit)
+        return np.concatenate(res), units
+
+    def fit_table(self, table: I.RowTable, mask: np.ndarray, context: I.FitContext) -> "CrossFitResidualConformal":
+        if self.seeds is not None:
+            raise ValueError("CrossFitResidualConformal is single-seed (the job's run seed)")
+        self.fit_seed = context.seed
+        self.residuals, self.calibration_units = self._calibrate(table, mask, context)
+        self.quantiles = {lv: I.conformal_quantile(self.residuals, lv) for lv in I.LEVELS}
+        return self
+
+    def record(self) -> dict[str, Any]:
+        if self.residuals is None:
+            raise RuntimeError("fit first")
+        return {"n_calibration": int(len(self.residuals)), "quantiles": {str(k): v for k, v in self.quantiles.items()},
+                "n_inner_splits": len(self.calibration_units), "guard": self.guard, "seed": self.fit_seed,
+                "calibration_folds": sorted(self.arms_by_fold), "selections": {str(k): v for k, v in
+                                                                                sorted(self.selections.items())},
+                "splitter": getattr(self.splitter, "name", type(self.splitter).__name__)}
+
+
+# --------------------------------------------------------------------------------------------- #
+# budget (section 7 item 5) and the cost model
+# --------------------------------------------------------------------------------------------- #
+
+def ledger_from_records(out_root: Path) -> pd.DataFrame:
+    """One row per (record, step) of every discovery record under ``out_root``: job key, arm, stage, seconds."""
+    recs = []
+    root = discovery_root(out_root)
+    if not root.exists():
+        return pd.DataFrame(columns=["job", "arm", "stage", "fold_id", "step", "seconds"])
+    for js in sorted(root.rglob("*.json")):
+        body = read_record(js)
+        if not body or "steps" not in body or "job" not in body:
+            continue
+        for step, info in (body.get("steps") or {}).items():
+            if not isinstance(info, Mapping) or info.get("shared_with"):
+                continue
+            recs.append({"job": body["job"].get("key"), "arm": body.get("arm"), "stage": body["job"].get("stage"),
+                         "fold_id": body.get("fold_id"), "step": step, "seconds": float(info.get("seconds") or 0.0)})
+    return pd.DataFrame(recs, columns=["job", "arm", "stage", "fold_id", "step", "seconds"])
+
+
+def budget_status(total_seconds: float, *, budget_hours: float = BUDGET_HOURS) -> dict[str, Any]:
+    """Section 7 item 5: elapsed compute against the 60-hour budget and the demotion order."""
+    used_h = float(total_seconds) / 3600.0
+    exhausted = used_h >= budget_hours
+    return {"budget_hours": budget_hours, "used_hours": round(used_h, 4), "remaining_hours": round(budget_hours - used_h, 4),
+            "exhausted": exhausted, "demotion_order": list(DEMOTION_ORDER), "never_demoted": list(NEVER_DEMOTED),
+            "demoted_now": list(DEMOTION_ORDER) if exhausted else [],
+            "note": ("section 7 item 5: on exhaustion only M3-M7 are demoted (not implemented in this runner, so "
+                     "demoted to exploratory in the registered order); every other job -- H1, H1b, H4 and the rest -- "
+                     "keeps running (discovery.demotable)")}
+
+
+#: grid sizes (sections 5 and 6): configurations fitted per inner split during tuning
+CONFIGS_PER_SPLIT: dict[str, int] = {"B6": 12, "B5": 6, "FLAT_CAT": 6, "B8": 0, "M1": 9, "M2": 3}
+#: calibration refits per inner split (section 12 cross-fitted reading): B6 reuses its tuning predictions on seed 104729
+#: and, on the first-inner-fold seeds, re-runs the selected configurations on the next inner fold (costed as one joint
+#: fit per split, :meth:`UnitCost.fold_seconds`)
+CALIBRATION_FITS_PER_SPLIT: dict[str, int] = {"B6": 0, "B5": 1, "FLAT_CAT": 1, "B8": 1, "M1": 1, "M2": 1}
+#: the readings of "the first inner fold (one fit per configuration)" on V5 designs the cost model can price (task X
+#: finding V-04): every inner split of the first inner fold (implemented) or one split per configuration
+FIRST_FOLD_READINGS: tuple[str, ...] = ("all_splits_of_first_inner_fold", "one_split")
+
+
+@dataclass(frozen=True)
+class UnitCost:
+    """Measured (benchmark) or assumed cost of one arm on one design class.
+
+    ``inner_fit_s``    one tuning configuration on one inner split (B6: all 12 configurations of one split, solved jointly)
+    ``cal_fit_s``      one calibration refit on one inner split (fixed configuration)
+    ``outer_refit_s``  one refit on all outer-training rows
+    ``splits_full`` / ``splits_first``  inner splits per outer fold on seed 104729 / on the other seeds
+    ``guard_s``        seconds per inner split for its isolation check"""
+
+    arm: str
+    design_class: str
+    inner_fit_s: float
+    cal_fit_s: float
+    outer_refit_s: float
+    splits_full: float
+    splits_first: float
+    guard_s: float = 0.35
+    source: str = "benchmark"
+
+    def fold_seconds(self, mode: str, first_fold_reading: str = FIRST_FOLD_READINGS[0]) -> dict[str, float]:
+        if first_fold_reading not in FIRST_FOLD_READINGS:
+            raise ValueError(f"first_fold_reading {first_fold_reading!r}")
+        n = self.splits_full if mode == "full" else (self.splits_first if first_fold_reading == FIRST_FOLD_READINGS[0]
+                                                     else min(1.0, self.splits_first))
+        per_split_cfg = 1 if self.arm == "B6" else CONFIGS_PER_SPLIT.get(self.arm, 0)
+        tune = n * per_split_cfg * self.inner_fit_s
+        if self.arm == "B6":
+            cal = 0.0 if mode == "full" else n * self.inner_fit_s        # the selected configurations on the next fold
+        else:
+            cal = n * CALIBRATION_FITS_PER_SPLIT.get(self.arm, 0) * self.cal_fit_s
+        guard = n * self.guard_s
+        return {"tuning": tune, "calibration": cal, "outer_refit": self.outer_refit_s, "guard": guard,
+                "total": tune + cal + self.outer_refit_s + guard}
+
+
+def design_class(job: JobSpec) -> str:
+    """The benchmark class a job's per-fold cost is taken from."""
+    if job.design in ("V5", "V5P", "V5PAIR"):
+        return "V5_exact" if job.scheme in ("exact", "cell_x_group", "cell_pair") else "V5_batched"
+    return job.design
+
+
+def estimate_cost(jobs: Sequence[JobSpec], fold_counts: Mapping[str, int], unit_costs: Mapping[tuple[str, str], UnitCost],
+                  *, other_costs_s: Mapping[str, float] | None = None, workers: int = 2,
+                  budget_hours: float = BUDGET_HOURS, fold_overhead_s: float = 0.0,
+                  first_fold_reading: str = FIRST_FOLD_READINGS[0]) -> pd.DataFrame:
+    """Per-job cost = folds x per-fold cost (:meth:`UnitCost.fold_seconds` of the job's arm, design class and inner mode),
+    cumulative in plan order, with the 1-worker compute and the ``workers``-worker wall-clock estimate (compute /
+    workers) against the budget.  ``fold_counts`` maps job keys to fitted folds; ``other_costs_s`` maps job keys of
+    non-fit jobs (safeguard, comparator intervals) to seconds; ``fold_overhead_s`` is added per fitted fold (outer guard,
+    section 13 support file, I/O)."""
+    recs = []
+    cum = 0.0
+    for j in jobs:
+        if j.kind == "marker" or j.kind == "h3_spec":
+            continue
+        n = int(fold_counts.get(j.key, 0))
+        row = {"job": j.key, "kind": j.kind, "arm": j.arm, "design": j.design, "variant_label": j.variant_label,
+               "seed": j.seed, "stage": j.stage, "group": j.group, "registered": j.registered, "n_folds": n,
+               "inner_mode": j.inner_mode if j.kind == "fit" else "", "tuning_s": 0.0, "calibration_s": 0.0,
+               "outer_refit_s": 0.0, "guard_s": 0.0, "cost_source": ""}
+        if j.kind == "fit":
+            arm = j.arm
+            uc = unit_costs.get((arm, design_class(j)))
+            if uc is None:
+                raise KeyError(f"no unit cost for {arm} / {design_class(j)}")
+            per = uc.fold_seconds(j.inner_mode, first_fold_reading)
+            row.update(tuning_s=n * per["tuning"], calibration_s=n * per["calibration"],
+                       outer_refit_s=n * per["outer_refit"], guard_s=n * (per["guard"] + fold_overhead_s),
+                       cost_source=uc.source)
+            total = n * (per["total"] + fold_overhead_s)
+        else:
+            total = float((other_costs_s or {}).get(j.key, 0.0))
+            row["cost_source"] = "assumed"
+        cum += total
+        row.update(compute_s=total, cumulative_compute_h=cum / 3600.0,
+                   cumulative_wall_h=cum / 3600.0 / max(1, int(workers)),
+                   within_budget_wall=cum / 3600.0 / max(1, int(workers)) <= budget_hours)
+        recs.append(row)
+    return pd.DataFrame(recs)
+
+
+def cost_summary(table: pd.DataFrame, *, workers: int = 2, budget_hours: float = BUDGET_HOURS) -> dict[str, Any]:
+    """Totals per arm, per stage and overall, and where the cumulative wall clock crosses the budget."""
+    if table.empty:
+        return {"total_compute_h": 0.0, "total_wall_h": 0.0, "fits_budget": True}
+    by_arm = (table.groupby("arm")["compute_s"].sum() / 3600.0).round(3).to_dict()
+    by_stage = (table.groupby("stage")["compute_s"].sum() / 3600.0).round(3).to_dict()
+    tot = float(table["compute_s"].sum()) / 3600.0
+    over = table[~table["within_budget_wall"]]
+    return {"workers": int(workers), "budget_hours": budget_hours, "total_compute_h": round(tot, 3),
+            "total_wall_h": round(tot / max(1, workers), 3), "fits_budget": bool(tot / max(1, workers) <= budget_hours),
+            "compute_h_by_arm": by_arm, "compute_h_by_stage": by_stage,
+            "first_job_beyond_budget": None if over.empty else str(over["job"].iloc[0]),
+            "n_jobs_beyond_budget": int(len(over))}
+
+
+# --------------------------------------------------------------------------------------------- #
+# H3 (section 11): job specs and training-row transforms (not executed by this runner)
+# --------------------------------------------------------------------------------------------- #
+
+H3_ARMS: tuple[str, ...] = ("WITH", "WITHOUT", "ACT_PERMUTED", "ACT_METAL_SHUFFLED")
+H3_MODEL_ARMS: tuple[str, ...] = ("RETAINED_LADDER_CONFIGURATION", "B6", "B5")
+
+
+def h3_job_specs() -> list[JobSpec]:
+    """Section 11 design: {retained ladder configuration, B6, B5} x {WITH, WITHOUT, ACT_PERMUTED, ACT_METAL_SHUFFLED} x
+    {V5-primary Ln(III) selection cells, V2 selection Ln(III) states, V1 selection folds (Ln rows)} x the 5 discovery
+    seeds, same folds and batches as the main runs.  Specs only (kind ``h3_spec``)."""
+    out = []
+    for model in H3_MODEL_ARMS:
+        for h3 in H3_ARMS:
+            for design, variant, scheme in (("V5", "primary", "batched"), ("V2", "element", "exact"),
+                                            ("V1", "copy", "grouped10")):
+                for seed in _seed_order():
+                    out.append(JobSpec(kind="h3_spec", arm=f"{model}:{h3}", design=design, variant=variant,
+                                       scheme="exact" if model == "B6" and design == "V5" else scheme, seed=seed,
+                                       stage="11_h3_specs", group="section 11 actinide ablation (spec only)",
+                                       purpose="H3: Ln test set = Ln(III) scored rows of the selection half; "
+                                               f"training transform {h3}", registered=True, condition="spec_only"))
+    return out
+
+
+def actinide_rows(frame: pd.DataFrame) -> np.ndarray:
+    """Rows whose metal category is actinide, unknown-state actinide rows included (section 11 WITHOUT)."""
+    from gen19ct.chemistry import metals as MET
+
+    el = frame[SG.ELEMENT_COL].astype(object).to_numpy()
+    return np.array([isinstance(e, str) and e in MET.ACTINIDES for e in el], dtype=bool)
+
+
+def h3_training_rows(train: pd.DataFrame, arm: str, *, seed: int, pub_group_col: str = I.PUB_GROUP_COL) -> pd.DataFrame:
+    """The training rows of an H3 arm: WITH unchanged; WITHOUT drops every actinide row; ACT_PERMUTED permutes ``log_D``
+    among actinide rows within (system, publication group); ACT_METAL_SHUFFLED shuffles the metal-state labels (state
+    and element together) among actinide rows within a system.  Seeded (``default_rng(seed)``); target-free except the
+    permutation, which only moves training targets."""
+    if arm not in H3_ARMS:
+        raise ValueError(f"H3 arm {arm!r}")
+    if arm == "WITH":
+        return train
+    an = actinide_rows(train)
+    if arm == "WITHOUT":
+        return train[~an]
+    out = train.copy()
+    rng = np.random.default_rng(int(seed))
+    sub = out[an]
+    if arm == "ACT_PERMUTED":
+        keys = [SG.SYSTEM_COL, pub_group_col]
+        for _, g in sorted(sub.groupby(keys, sort=True).groups.items()):
+            idx = list(g)
+            out.loc[idx, I.TARGET_COL] = out.loc[idx, I.TARGET_COL].to_numpy()[rng.permutation(len(idx))]
+        return out
+    for _, g in sorted(sub.groupby(SG.SYSTEM_COL, sort=True).groups.items()):
+        idx = list(g)
+        perm = rng.permutation(len(idx))
+        for col in (SG.METAL_COL, SG.ELEMENT_COL):
+            out.loc[idx, col] = out.loc[idx, col].to_numpy(dtype=object)[perm]
+    return out
+
+
+# --------------------------------------------------------------------------------------------- #
+# scoring: frames, paired units, R19 (sections 4, 8, 9)
+# --------------------------------------------------------------------------------------------- #
+
+def read_preseal_selection(path: Path, arms: Sequence[str] | None = None) -> pd.DataFrame:
+    """Pre-seal predictions of the selection half only, via a parquet row filter (confirmation rows are never
+    materialised), optionally restricted to ``arms``."""
+    filters: list[tuple] = [("half", "==", SELECTION)]
+    if arms is not None:
+        filters.append(("arm", "in", list(arms)))
+    df = pd.read_parquet(path, filters=filters)
+    if (df["half"].astype(str) != SELECTION).any():
+        raise AssertionError(f"{path}: the parquet filter returned a non-selection-half row")
+    return df
+
+
+class StaleRecordError(AssertionError):
+    """A stored discovery record does not match what the current code, fold file and plan state produce."""
+
+
+def read_discovery_record_set(out_root: Path, arm: str, design_dir: str, seed: int, *,
+                              expected: Mapping[str, Mapping[str, str]], steps: Sequence[str] = ("point",)
+                              ) -> tuple[pd.DataFrame | None, dict[str, Any]]:
+    """The verified fold records of one (arm, design directory, seed) (:data:`READINGS` ``record_verification``).
+
+    ``expected`` maps every fittable fold id of the job to ``{"digest": ..., "fold_hash": ...}`` as the runner would
+    compute them now.  Raises :class:`StaleRecordError` on a record of a fold id the job does not fit, a digest or fold
+    hash that differs, a prediction without a JSON record or without one of ``steps``, or a parquet whose fold / half
+    columns disagree.  Returns ``(None, status)`` while folds are missing (an incomplete job is never scored) and
+    ``(frame, status)`` when the record set is exactly the expected one."""
+    if expected is None:
+        raise TypeError("records are read only against the digests the current code produces (expected=...)")
+    d = discovery_root(out_root) / arm / design_dir / f"s{seed}"
+    exp = {str(k): dict(v) for k, v in expected.items()}
+    status: dict[str, Any] = {"arm": arm, "design_dir": design_dir, "seed": int(seed), "n_expected": len(exp)}
+    if not d.exists():
+        return None, {**status, "status": "missing", "n_found": 0}
+    frames, found = [], set()
+    by_name = {safe_fold_name(k): k for k in exp}
+    for pq in sorted(d.glob("*.parquet")):
+        rec = read_record(pq.with_suffix(".json"))
+        if rec is None:
+            raise StaleRecordError(f"{pq}: prediction without a JSON record")
+        fid = str(rec.get("fold_id"))
+        if fid not in exp or by_name.get(pq.stem) != fid:
+            raise StaleRecordError(f"{pq}: fold {fid!r} is not a fittable fold of the current job ({arm}/{design_dir}/"
+                                   f"s{seed})")
+        if rec.get("digest") != exp[fid]["digest"]:
+            raise StaleRecordError(f"{pq}: record digest {str(rec.get('digest'))[:12]}... differs from the current "
+                                   f"{str(exp[fid]['digest'])[:12]}... (code, fold file or plan state changed; rerun the job)")
+        if "fold_hash" in exp[fid] and rec.get("fold_hash") != exp[fid]["fold_hash"]:
+            raise StaleRecordError(f"{pq}: fold hash differs from the registered fold")
+        missing_steps = [x for x in steps if x not in (rec.get("steps") or {})]
+        if missing_steps:
+            raise StaleRecordError(f"{pq}: record lacks step(s) {missing_steps}")
+        fr = pd.read_parquet(pq)
+        if len(fr) and (fr["fold_id"].astype(str) != fid).any():
+            raise StaleRecordError(f"{pq}: parquet rows of another fold")
+        frames.append(fr)
+        found.add(fid)
+    status.update(n_found=len(found))
+    if found != set(exp):
+        return None, {**status, "status": "incomplete", "missing_folds": sorted(set(exp) - found)[:10]}
+    out = pd.concat(frames, ignore_index=True) if frames else None
+    if out is not None and (out["half"].astype(str) != SELECTION).any():
+        raise AssertionError(f"{d}: a stored prediction of a non-selection-half row")
+    return out, {**status, "status": "complete"}
+
+
+def read_discovery_predictions(out_root: Path, arm: str, design_dir: str, seed: int, *,
+                               expected: Mapping[str, Mapping[str, str]], steps: Sequence[str] = ("point",)
+                               ) -> pd.DataFrame | None:
+    """:func:`read_discovery_record_set` without the status: the verified predictions, or ``None`` while incomplete."""
+    return read_discovery_record_set(out_root, arm, design_dir, seed, expected=expected, steps=steps)[0]
+
+
+def scoring_frame(pred: pd.DataFrame, attrs: pd.DataFrame, *, design: str, v6_mask: pd.Series, what: str,
+                  half_col: str | None = None) -> pd.DataFrame:
+    """One arm's predictions of one design and seed joined to the row attributes, indexed by ``row_id`` (a row scored
+    in two folds is refused), with the selection-half and ``V6_TARGET_ROWS`` guards applied."""
+    need = ["row_id", "fold_id", "mean_logD"]
+    missing = [c for c in need if c not in pred.columns]
+    if missing:
+        raise KeyError(f"{what}: prediction columns missing {missing}")
+    if "half" in pred.columns and (pred["half"].astype(str) != SELECTION).any():
+        raise AssertionError(f"{what}: prediction frame holds a non-selection-half row")
+    fr = pred.join(attrs.drop(columns=[c for c in ("row_id",) if c in attrs.columns]), on="row_id", rsuffix="_attr")
+    fr = fr.set_index("row_id", drop=False)
+    fr.index.name = None
+    if fr.index.has_duplicates:
+        raise AssertionError(f"{what}: a row is scored twice in one design and seed")
+    hc = half_col or f"registered_half_{design}"
+    if hc not in fr.columns:
+        raise KeyError(f"{what}: attrs lack {hc}")
+    assert_selection_rows(fr.index, fr[hc].astype(str), what)
+    assert_v6_clean(fr.index, v6_mask, what)
+    fr[EM.PRED_COL] = pd.to_numeric(fr["mean_logD"], errors="coerce").astype(float)
+    return fr
+
+
+def apply_scoring_filter(fr: pd.DataFrame, name: str, *, wildcard_col: str = "wildcard_copy_partner_in_training"
+                         ) -> pd.DataFrame:
+    """The rows a scoring-filter sensitivity keeps (section 8 R19 item 6; section 2 resolutions)."""
+    if name == "none":
+        return fr
+    if name == "non_DGA_stratum":
+        return fr[fr["dga_stratum"].astype(str) == "non_DGA"]
+    if name == "acid_grid_rows_excluded":
+        return fr[~fr["acid_grid_flag"].astype(bool)]
+    if name == "censoring_candidates_excluded_scoring":
+        return fr[~fr["censoring_candidate"].astype(bool)]
+    if name in (ET.WILDCARD_COPY_SENSITIVITY, ET.WILDCARD_COPY_STRICT_SENSITIVITY):
+        col = wildcard_col if name == ET.WILDCARD_COPY_SENSITIVITY else wildcard_col + "_strict"
+        return fr[~fr[col].astype(bool)]
+    raise ValueError(f"unknown scoring filter {name!r}")
+
+
+@dataclass
+class PairedUnits:
+    """Per-unit MAE of a candidate and a comparator on identical scored rows, with every registered cluster unit."""
+
+    design: str
+    candidate: str
+    comparator: str
+    cand_mae: pd.Series
+    comp_mae: pd.Series
+    clusters: dict[str, pd.Series]
+    n_rows: int
+
+    @property
+    def delta(self) -> float:
+        """Delta = metric(comparator) - metric(candidate) of the unit macro (positive favours the candidate)."""
+        return float(self.comp_mae.mean() - self.cand_mae.loc[self.comp_mae.index].mean())
+
+
+def unit_mae(fr: pd.DataFrame, design: str, *, v6_mask: pd.Series, v1_scheme: str = "exact",
+             remainder_groups: Iterable[str] | None = None) -> pd.Series:
+    """The section 4 per-unit MAE (``metrics.design_per_unit_table``): V5 / V5-P cell, V1 outer-fold unit (grouped
+    scheme: the row's exact-design unit), V2 metal state."""
+    kw: dict[str, Any] = {}
+    if design == "V1":
+        kw = dict(v1_scheme=v1_scheme, v1_group_col=EM.PUB_GROUP_COL, remainder_groups=remainder_groups)
+    return EM.design_per_unit_table(fr, design, v6_mask=v6_mask, **kw)["mae"]
+
+
+def paired_units(cand: pd.DataFrame, comp: pd.DataFrame, design: str, *, candidate: str, comparator: str,
+                 v6_mask: pd.Series, cand_v1_scheme: str = "exact", comp_v1_scheme: str = "exact",
+                 remainder_groups: Iterable[str] | None = None, pub_group_col: str = EM.PUB_GROUP_COL) -> PairedUnits:
+    """Identical scored rows are required (a paired contrast); per-unit MAE of both arms and the registered clusters."""
+    if set(cand.index) != set(comp.index):
+        raise ValueError(f"{candidate} vs {comparator} ({design}): the arms score different rows "
+                         f"({len(set(cand.index) - set(comp.index))} only in the candidate, "
+                         f"{len(set(comp.index) - set(cand.index))} only in the comparator)")
+    rem = None if remainder_groups is None else list(remainder_groups)
+    a = unit_mae(cand, design, v6_mask=v6_mask, v1_scheme=cand_v1_scheme, remainder_groups=rem)
+    b = unit_mae(comp.loc[cand.index], design, v6_mask=v6_mask, v1_scheme=comp_v1_scheme, remainder_groups=rem)
+    if set(a.index) != set(b.index):
+        raise ValueError(f"{candidate} vs {comparator} ({design}): different averaging units")
+    kw: dict[str, Any] = {"pub_group_col": pub_group_col}
+    if design == "V1":
+        kw.update(v1_scheme=cand_v1_scheme, v1_group_col=EM.PUB_GROUP_COL, remainder_groups=rem)
+    clusters = EM.design_unit_clusters(cand, design, **kw)
+    return PairedUnits(design=design, candidate=candidate, comparator=comparator, cand_mae=a, comp_mae=b.loc[a.index],
+                       clusters={k: v.loc[a.index] for k, v in clusters.items()}, n_rows=int(len(cand)))
+
+
+def filtered_pair(cand: pd.DataFrame, comp: pd.DataFrame, name: str) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """The same scoring filter on both arms; a row dropped for either arm is dropped for both."""
+    keep = apply_scoring_filter(cand, name).index.intersection(apply_scoring_filter(comp, name).index)
+    return cand.loc[keep], comp.loc[keep]
+
+
+def bootstraps(pu: PairedUnits, *, name: str, n_resamples: int = ET.N_RESAMPLES,
+               seed: int = ET.BOOTSTRAP_SEED) -> dict[str, ET.BootstrapResult]:
+    """A paired cluster bootstrap under every registered cluster unit of the design."""
+    units = ET.REGISTERED_CLUSTER_UNITS[pu.design]
+    out = {}
+    for u in units:
+        if u not in pu.clusters:
+            raise KeyError(f"{name}: no {u} clusters for {pu.design}")
+        out[u] = ET.paired_cluster_bootstrap(pu.comp_mae, pu.cand_mae, pu.clusters[u], n_resamples=n_resamples, seed=seed,
+                                             contrast=name, cluster_unit=u)
+    return out
+
+
+SCOPES: dict[str, tuple[Any, ...]] = {"stop_rule": (1, 2, 3, 5), "ladder": (1, 2, 3, 5, "6s"),
+                                      "freezing_screen": (1, 2, 3, 5, "6s"), "items_1_5": (1, 2, 3, 4, 5),
+                                      "full": (1, 2, 3, 4, 5, 6)}
+
+
+def _scope_verdict(items: Mapping[int, str], scope: Sequence[Any], sens: Mapping[str, Any], design: str) -> dict[str, Any]:
+    statuses = {}
+    for it in scope:
+        if it == "6s":
+            names = [n for n in ET.REGISTERED_SENSITIVITIES.get(design, ()) if n in SCORING_FILTER_SENSITIVITIES]
+            vals = [sens.get(n) for n in names]
+            if any(isinstance(v, str) or v is None for v in vals):
+                s = "FAIL" if any(v is None for v in vals) else "UNTESTABLE"
+            else:
+                s = "PASS" if all(np.isfinite(float(v)) and float(v) > 0 for v in vals) else "FAIL"
+            statuses["6_scoring_filters"] = s
+        else:
+            statuses[str(it)] = items[int(it)]
+    vals = list(statuses.values())
+    verdict = ("FAIL" if "FAIL" in vals else
+               "UNDECIDED" if any(v in ("UNTESTABLE", "NOT_RUN") for v in vals) else "PASS")
+    return {"verdict": verdict, "items": statuses}
+
+
+def evaluate_contrast(*, name: str, family: str, design: str, primary: PairedUnits, margin: float,
+                      seed_deltas: Mapping[int, float | None], sensitivities: Mapping[str, float | str],
+                      deterministic: bool = False, n_resamples: int = ET.N_RESAMPLES,
+                      bootstrap_seed: int = ET.BOOTSTRAP_SEED) -> dict[str, Any]:
+    """R19 (section 8) of one registered or exploratory contrast on the selection half.
+
+    ``primary`` is the seed-104729 paired units (items 1-3, 5 and the TOST come from them), ``seed_deltas`` the
+    per-discovery-seed Delta (item 4; a missing seed makes item 4 NOT_RUN), ``sensitivities`` every item 6 sensitivity
+    of the design (value, or ``transfer.UNTESTABLE`` for a refit sensitivity not run).  Returns the R19 result, the
+    bootstraps, the scoped verdicts (:data:`SCOPES`) and the TOST under the primary cluster unit."""
+    boots = bootstraps(primary, name=name, n_resamples=n_resamples, seed=bootstrap_seed)
+    sd = [seed_deltas.get(s) for s in DISCOVERY_SEEDS]
+    complete = all(v is not None and np.isfinite(float(v)) for v in sd)
+    sens = {k: (v if isinstance(v, str) else float(v)) for k, v in sensitivities.items()}
+    reg = ET.REGISTERED_SENSITIVITIES[design]
+    for n in reg:
+        sens.setdefault(n, ET.UNTESTABLE)
+    r = ET.r19(design=design, stage="discovery", point=primary.delta, margin=margin, bootstraps=boots,
+               seed_deltas=[float(v) if v is not None else float("nan") for v in sd], deterministic=deterministic,
+               sensitivity_deltas=sens, contrast=name)
+    items = list(r.items)
+    if not deterministic and not complete:
+        n_have = sum(1 for v in sd if v is not None and np.isfinite(float(v)))
+        items = [dict(i, status="NOT_RUN", detail=f"{n_have} of {ET.N_SEEDS} discovery seeds scored")
+                 if i["item"] == 4 else i for i in items]
+        st = [i["status"] for i in items]
+        verdict = "FAIL" if "FAIL" in st else "UNDECIDED"
+        r = replace(r, items=tuple(items), verdict=verdict)
+    statuses = {int(i["item"]): i["status"] for i in r.items}
+    scopes = {k: _scope_verdict(statuses, v, sens, design) for k, v in SCOPES.items()}
+    primary_unit = ET.REGISTERED_CLUSTER_UNITS[design][0]
+    tost = ET.tost(boots[primary_unit])
+    return {"name": name, "family": family, "design": design, "candidate": primary.candidate,
+            "comparator": primary.comparator, "margin": float(margin), "point": primary.delta, "r19": r,
+            "bootstraps": boots, "scopes": scopes, "tost": tost, "primary_cluster_unit": primary_unit,
+            "p_primary": boots[primary_unit].p_two_sided, "seed_deltas": {int(s): v for s, v in seed_deltas.items()},
+            "sensitivities": sens, "n_units": int(len(primary.cand_mae)), "n_rows": primary.n_rows,
+            "label": "discovery, optimistically biased (selection half)"}
+
+
+def contrast_rows(res: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Tidy rows (one per registered cluster unit) of an :func:`evaluate_contrast` result."""
+    base = {"family": res["family"], "contrast": res["name"], "design": res["design"], "candidate": res["candidate"],
+            "comparator": res["comparator"], "half": "selection", "seed_set": "discovery", "decision_seed": PRIMARY_SEED,
+            "margin": res["margin"], "r19_verdict_full": res["r19"].verdict,
+            **{f"verdict_{k}": v["verdict"] for k, v in res["scopes"].items()},
+            "tost_verdict_eps0.05": res["tost"]["verdict"], "tost_low_90": res["tost"]["low_90"],
+            "tost_high_90": res["tost"]["high_90"], "label": res["label"],
+            "batching_label": res.get("batching_label", ""),
+            "reported_verdict": res.get("reported_verdict", res["r19"].verdict),
+            "seed_deltas": json.dumps({str(k): v for k, v in sorted(res["seed_deltas"].items())}, sort_keys=True),
+            "sensitivities": json.dumps(res["sensitivities"], sort_keys=True, default=str)}
+    out = []
+    for u, br in res["bootstraps"].items():
+        rec = br.record(base)
+        rec["primary_cluster_unit"] = u == res["primary_cluster_unit"]
+        out.append(rec)
+    return out
+
+
+def r19_item_rows(res: Mapping[str, Any]) -> pd.DataFrame:
+    return res["r19"].to_frame({"family": res["family"], "half": "selection", "seed_set": "discovery"})
+
+
+def apply_bh(table: pd.DataFrame, *, p_col: str = "p_two_sided", family_col: str = "family",
+             registered_families: Iterable[str] | None = None, m_registered_full: int | None = None) -> pd.DataFrame:
+    """Benjamini-Hochberg separately for the registered family and the exploratory family (section 8), on the rows
+    flagged ``primary_cluster_unit``; ``p_bh`` stays NaN on the other rows.  ``m_registered_full`` (the number of
+    registered discovery contrasts of section 19, :func:`registered_family_accounting`) adds ``p_bh_full_family``: the
+    registered BH with every contrast not evaluated entering as p = 1 (never smaller than ``p_bh``).  Registered
+    contrasts are judged by R19; the adjusted p is shown, not used."""
+    reg = set(registered_families) if registered_families is not None else set(REGISTERED_FAMILIES)
+    out = table.copy()
+    out["bh_family"] = np.where(out[family_col].isin(reg), "registered", "exploratory")
+    out["p_bh"] = np.nan
+    out["p_bh_full_family"] = np.nan
+    out["bh_m"] = np.nan
+    prim = out["primary_cluster_unit"].astype(bool) if "primary_cluster_unit" in out.columns else pd.Series(True, index=out.index)
+    for fam in ("registered", "exploratory"):
+        sel = prim & (out["bh_family"] == fam)
+        if sel.any():
+            pv = out.loc[sel, p_col].to_numpy(dtype=float)
+            out.loc[sel, "p_bh"] = ET.benjamini_hochberg(pv)
+            out.loc[sel, "bh_m"] = float(len(pv))
+            if fam == "registered" and m_registered_full is not None:
+                pad = max(0, int(m_registered_full) - len(pv))
+                full = ET.benjamini_hochberg(np.concatenate([pv, np.ones(pad)]))[:len(pv)]
+                out.loc[sel, "p_bh_full_family"] = full
+    return out
+
+
+# --------------------------------------------------------------------------------------------- #
+# decisions: stop rule (section 7 item 4), ladder (section 6), S1(a) / (b) components (section 9)
+# --------------------------------------------------------------------------------------------- #
+
+def stop_rule(m2_vs_b3i: Mapping[str, Any] | None, b6_vs_b3i: Mapping[str, Any] | None) -> dict[str, Any]:
+    """If neither M2 nor B6 passes R19 items 1-3 and 5 against B3i on the V5-primary selection half (seed 104729), M3-M6
+    are not run as registered steps, M7 runs once for H6 and H7 is not run.  ``stop`` is None while an arm that could
+    still pass is missing."""
+    def passes(x: Mapping[str, Any] | None) -> bool | None:
+        return None if x is None else x["scopes"]["stop_rule"]["verdict"] == "PASS"
+    m2, b6 = passes(m2_vs_b3i), passes(b6_vs_b3i)
+    if m2 or b6:
+        stop = False
+    elif m2 is None or b6 is None:
+        stop = None
+    else:
+        stop = True
+    return {"rule": "section 7 compute plan item 4: stop when neither M2 nor B6 passes R19 items 1-3 and 5 against B3i "
+                    "on the V5-primary selection half (seed 104729)",
+            "evaluated_on": {"design": "V5", "variant": "primary", "half": "selection", "seed": PRIMARY_SEED,
+                             "items": [1, 2, 3, 5]},
+            "M2_vs_B3i": None if m2_vs_b3i is None else m2_vs_b3i["scopes"]["stop_rule"],
+            "B6_vs_B3i": None if b6_vs_b3i is None else b6_vs_b3i["scopes"]["stop_rule"],
+            "stop": stop,
+            "consequences": ([] if stop is not True else
+                             ["M3-M6 not run as registered steps (exploratory only, labelled)",
+                              "M7 run once on the retained configuration for H6", "H7 (process) not run: S1 cannot pass"]),
+            "pending": [a for a, v in (("M2", m2), ("B6", b6)) if v is None]}
+
+
+def ladder_step(step: str, predecessor: str, v5: Mapping[str, Any] | None, v1_tost: Mapping[str, Any] | None,
+                v2_tost: Mapping[str, Any] | None) -> dict[str, Any]:
+    """Section 6: a step is kept only if it passes R19 against its retained predecessor on the V5-primary selection half
+    (seed 104729: items 1-3, 5 and the scoring-filter sensitivities, section 7 item 2) and is non-inferior on the V1 and
+    V2 selection halves (TOST, epsilon 0.05).  ``kept`` is None while an input is missing."""
+    v5_ok = None if v5 is None else v5["scopes"]["ladder"]["verdict"] == "PASS"
+    ni = [None if t is None else bool(t.get("non_inferior")) for t in (v1_tost, v2_tost)]
+    if v5_ok is False or False in ni:
+        kept = False
+    elif v5_ok is None or None in ni:
+        kept = None
+    else:
+        kept = True
+    return {"step": step, "predecessor": predecessor, "kept": kept,
+            "v5_ladder_scope": None if v5 is None else v5["scopes"]["ladder"],
+            "v1_tost": None if v1_tost is None else {k: v1_tost[k] for k in ("verdict", "non_inferior", "low_90", "high_90")},
+            "v2_tost": None if v2_tost is None else {k: v2_tost[k] for k in ("verdict", "non_inferior", "low_90", "high_90")},
+            "label": "selection-half ladder decision (seed 104729), optimistically biased"}
+
+
+def retained_predecessor(ladder: Mapping[str, Mapping[str, Any]], step: str) -> str:
+    """The last kept step before ``step`` (M0 is the base and always retained)."""
+    i = LADDER.index(step)
+    for prev in reversed(LADDER[:i]):
+        if prev == "M0":
+            return "M0"
+        rec = ladder.get(prev)
+        if rec is not None and rec.get("kept"):
+            return prev
+    return "M0"
+
+
+@dataclass(frozen=True)
+class ContrastSpec:
+    """A registered (section 19) or exploratory contrast: candidate vs comparator on a design, its margin rule."""
+
+    family: str
+    candidate: str
+    comparator: str
+    design: str
+    margin: str          # "delta5" | "0.05"
+    note: str = ""
+
+    @property
+    def name(self) -> str:
+        return f"{self.candidate} vs {self.comparator}"
+
+
+REGISTERED_FAMILIES: tuple[str, ...] = ("primary", "H1b", "S1(b)", "S1(c)", "H4", "H5", "H3", "ladder",
+                                        "secondary designs", "confirmation")
+REGISTERED_CONTRASTS: tuple[ContrastSpec, ...] = (
+    ContrastSpec("primary", "M2", "B3i", "V5", "delta5", "S1(a): M2 vs the V5 lookup comparator (B3i, section 9)"),
+    ContrastSpec("H1b", "B6", "B3i", "V5", "delta5", "the same delta5 applies to H1b (section 9)"),
+    ContrastSpec("S1(b)", "M2", "B0", "V5", "0.05", "constant baseline"),
+    ContrastSpec("S1(b)", "M2", "B6r0", "V5", "0.05", "additive factorisation"),
+    ContrastSpec("H4", "M2", "FLAT_CAT", "V5", "delta5", "architecture question (section 6)"),
+    ContrastSpec("H4", "M2", "M0", "V5", "delta5", "architecture question (section 6)"),
+    ContrastSpec("H4", "M3", "M2", "V5", "delta5", "not run: M3+ not implemented"),
+    ContrastSpec("H4", "B6", "B6r0", "V5", "delta5", "the linear analogue (section 6)"),
+    ContrastSpec("secondary designs", "M2", "B3", "V1", "0.05", "V1 comparator B3 (= B4)"),
+    ContrastSpec("secondary designs", "M2", "B3i", "V2", "0.05", "V2 comparator fixed pre-seal: B3i (focus-7 summary)"),
+)
+#: exploratory contrasts printed beside (never deciding)
+EXPLORATORY_CONTRASTS: tuple[ContrastSpec, ...] = tuple(
+    ContrastSpec("exploratory", arm, comp, design, "delta5" if design == "V5" else "0.05")
+    for arm in ("B6r0", "B5", "FLAT_CAT", "B8", "M1") for comp, design in (("B3i", "V5"), ("B0", "V5"))
+) + tuple(ContrastSpec("exploratory", arm, "B3", "V1", "0.05") for arm in ("B5", "FLAT_CAT", "B8", "M1")) + tuple(
+    ContrastSpec("exploratory", arm, "B3i", "V2", "0.05") for arm in ("B5", "FLAT_CAT", "B8", "M1"))
+
+
+#: section 19 registered family, discovery stage: (family, contrast, design, how it is evaluated here)
+REGISTERED_FAMILY_TABLE: tuple[dict[str, str], ...] = (
+    {"family": "primary", "contrast": "M2 vs B3i", "design": "V5", "status": "evaluated"},
+    {"family": "H1b", "contrast": "B6 vs B3i", "design": "V5", "status": "evaluated"},
+    {"family": "S1(b)", "contrast": "M2 vs B0", "design": "V5", "status": "evaluated"},
+    {"family": "S1(b)", "contrast": "M2 vs B6r0", "design": "V5", "status": "evaluated"},
+    *({"family": "S1(c)", "contrast": f"direction M2 - {y}", "design": "V5-PAIR", "status": "evaluated"}
+      for y in ("HEAVIER", "B3x", "B3i")),
+    *({"family": "S1(c)", "contrast": f"logSF MAE {y} - M2", "design": "V5-PAIR", "status": "evaluated"}
+      for y in ("FLAT", "B3i")),
+    {"family": "H4", "contrast": "M2 vs FLAT_CAT", "design": "V5", "status": "evaluated"},
+    {"family": "H4", "contrast": "M2 vs M0", "design": "V5", "status": "evaluated"},
+    {"family": "H4", "contrast": "M3 vs M2", "design": "V5", "status": "not_run: M3+ not implemented"},
+    {"family": "H4", "contrast": "B6 vs B6r0", "design": "V5", "status": "evaluated"},
+    *({"family": "H5", "contrast": c, "design": d, "status": "not_run: M3-M6 not implemented"}
+      for c in ("M3 vs M2", "M4 on vs off", "M6a on vs off", "M6b on vs off") for d in ("V1", "V2", "V5")),
+    *({"family": "H3", "contrast": c, "design": d, "status": "not_run: section 11 job specs only"}
+      for c in ("WITH - WITHOUT", "WITH - ACT_PERMUTED") for d in ("V5 Ln", "V2 Ln", "V1 Ln")),
+    *({"family": "ladder", "contrast": f"{st} vs retained predecessor", "design": d,
+       "status": "evaluated" if st in ("M1", "M2") else "not_run: M3+ not implemented"}
+      for st in ("M1", "M2", "M3", "M4", "M5", "M6", "M7") for d in ("V5", "V1", "V2")),
+    {"family": "secondary designs", "contrast": "M2 vs B3", "design": "V1", "status": "evaluated"},
+    {"family": "secondary designs", "contrast": "M2 vs B3i", "design": "V2", "status": "evaluated"},
+    *({"family": "secondary designs", "contrast": "M2 vs design comparator", "design": d,
+       "status": "not_run: V3 / V4 / V7 folds and inner designs not built for learned arms"} for d in ("V3", "V4", "V7")),
+)
+#: section 19 confirmation family (never evaluated in discovery)
+CONFIRMATION_ONLY_CONTRASTS: tuple[str, ...] = ("S2(a)", "S2(b)", "S2(c)")
+
+
+def registered_family_accounting(evaluated_keys: Iterable[str]) -> dict[str, Any]:
+    """Section 19 accounting: every registered discovery contrast with whether it was evaluated in this scoring (a
+    registered 'evaluated' contrast whose arms are not yet run is ``not_run: predictions missing``), ``m_full`` (the
+    registered discovery family size BH ``p_bh_full_family`` uses) and the confirmation-only contrasts."""
+    keys = {str(k) for k in evaluated_keys}
+    rows = []
+    for r in REGISTERED_FAMILY_TABLE:
+        row = dict(r)
+        if r["status"] == "evaluated":
+            if r["family"] == "S1(c)":
+                present = "S1(c)" in keys
+            elif r["family"] == "ladder":
+                present = any(k.startswith(f"{r['contrast'].split(' ')[0]} vs ") and k.endswith(f"@{r['design']}#ladder")
+                              for k in keys)
+            else:
+                present = f"{r['contrast']}@{r['design']}" in keys
+            row["status"] = "evaluated" if present else "not_run: predictions missing or incomplete"
+        rows.append(row)
+    n_eval = sum(r["status"] == "evaluated" for r in rows)
+    return {"m_full": len(rows), "m_evaluated": n_eval, "contrasts": rows,
+            "confirmation_only": list(CONFIRMATION_ONLY_CONTRASTS),
+            "bh_note": READINGS["bh_p"]}
+
+
+#: section 4 / 12 uncertainty quantities that need a predictive SD or a method not built (task X finding V-10)
+UNCERTAINTY_NOT_RUN: dict[str, str] = {
+    "gaussian_crps": "NOT_RUN: no learned arm has a predictive SD (std_logD NaN; split-conformal intervals only)",
+    "spearman_abs_error_vs_sd": "NOT_RUN: no predictive SD",
+    "sd_binned_reliability_curve": "NOT_RUN: no predictive SD",
+    "knows_when_it_does_not_know": "NOT_RUN: its first condition needs Spearman(|error|, SD)",
+    "section_12_methods_not_built": ("bootstrap ensembles over publication groups, deep ensembles (M7), heteroscedastic "
+                                     "Gaussian head, CatBoost quantile loss, CV+ conformal, Mondrian conformal by "
+                                     "domain status, conjugate Bayesian ridge head (B6), MC dropout"),
+}
+
+
+def margin_value(spec: ContrastSpec, delta5: float) -> float:
+    if spec.margin == "delta5":
+        return float(delta5)
+    return float(spec.margin)
+
+
+def registered_delta5(difficulty_json: Path | None = None) -> float:
+    """``delta5`` of the pre-seal difficulty record (section 9), re-derived from L5 and asserted equal."""
+    p = difficulty_json or (paths.G19_ROOT / "evaluation" / "preseal" / "difficulty.json")
+    body = json.loads(Path(p).read_text(encoding="utf-8"))
+    d5, l5 = float(body["V5"]["delta5"]), float(body["V5"]["L5"])
+    if not math.isclose(d5, ET.delta5(l5), rel_tol=1e-12):
+        raise AssertionError(f"difficulty.json delta5 {d5} != max(0.05, 0.20 x (L5 - N0)) = {ET.delta5(l5)}")
+    if body["V5"]["lookup_comparator"]["choice"] != "B3i":
+        raise AssertionError("the registered V5 lookup comparator is B3i (section 9)")
+    return d5
+
+
+def s1ab_components(results: Mapping[str, Mapping[str, Any]], state: PlanState | None = None) -> dict[str, Any]:
+    """Section 9 S1(a) and S1(b) components from the evaluated contrasts ``M2 vs B3i`` (delta5), ``M2 vs B0`` and ``M2 vs
+    B6r0`` (0.05), labelled discovery / optimistically biased; the confirmation half decides S1.  When the re-coloured
+    batched-vs-exact check failed (``state.s1_forced_undecided``, section 7 item 6) every component's
+    ``reported_verdict`` is UNDECIDED and carries the label ``batched (check failed)``."""
+    forced = bool(state is not None and state.s1_forced_undecided)
+    label = state.heavy_v5_label if state is not None else ""
+
+    def comp(key: str) -> dict[str, Any] | None:
+        r = results.get(key)
+        if r is None:
+            return None
+        return {"point": r["point"], "margin": r["margin"], "r19_full": r["r19"].verdict,
+                "reported_verdict": "UNDECIDED" if forced else r["r19"].verdict, "batching_label": label,
+                "scopes": {k: v["verdict"] for k, v in r["scopes"].items()},
+                "items": [{"item": i["item"], "status": i["status"], "detail": i["detail"]} for i in r["r19"].items]}
+    return {"label": "discovery, optimistically biased (selection half; S1 is decided on the confirmation half with the "
+                     "withheld seeds, section 15)",
+            "S1_forced_undecided": forced,
+            "S1_forced_undecided_reason": ("section 7 item 6: the re-coloured batched-vs-exact check failed; every "
+                                           "heavy-arm V5 result is labelled 'batched (check failed)' and S1 is reported "
+                                           "UNDECIDED, never passed") if forced else None,
+            "S1a_M2_vs_B3i": comp("M2 vs B3i@V5"), "S1b_M2_vs_B0": comp("M2 vs B0@V5"),
+            "S1b_M2_vs_B6r0": comp("M2 vs B6r0@V5")}
+
+
+POWER_CHECK_FAMILIES: tuple[str, ...] = ("primary", "H1b", "S1(b)", "H3")
+
+
+def power_check_plan(results: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]:
+    """Section 8: before a failed H1, H1b or H3 contrast is reported as a null, the pipeline is re-run on injected
+    targets ``y' = y + kappa s`` (kappa in {0.1, 0.25, 0.5, 1.0}; X(?) rows dropped from every injected refit; models
+    refitted at their selected hyperparameters; the same scored rows).  Lists the contrasts that need it now."""
+    need = []
+    for key, r in sorted(results.items()):
+        if r["family"] in POWER_CHECK_FAMILIES and r["scopes"]["full"]["verdict"] != "PASS":
+            need.append({"contrast": key, "family": r["family"], "arms": [r["candidate"], r["comparator"]],
+                         "full_verdict": r["scopes"]["full"]["verdict"]})
+    return {"rule": "section 8 signal-injection power check (a null must be informative)", "kappas": list(ET.KAPPAS),
+            "kappa_min_informative": ET.KAPPA_MIN_INFORMATIVE, "required_before_reporting_a_null": need,
+            "status": "not implemented in this runner (open issue); a null without it is reported UNDECIDED",
+            "reading": READINGS["power_check"]}
+
+
+def heavy_v5_batching_label(arms: Iterable[str], design: str, state: PlanState | None) -> str:
+    """The section 7 item 6 label of a V5 contrast involving a heavy arm (``""`` otherwise)."""
+    if state is None or design not in ("V5", "V5-P", "V5P", "V5-PAIR", "V5PAIR"):
+        return ""
+    return state.heavy_v5_label if any(ARM_ALIASES.get(a, a) in HEAVY_ARMS for a in arms) else ""
+
+
+def freezing_candidates(results: Mapping[str, Mapping[str, Any]], state: PlanState | None = None) -> list[dict[str, Any]]:
+    """Registered contrasts that pass the freezing screen (R19 items 1-3, 5 and the scoring-filter sensitivities on seed
+    104729), with their design, whether they pass items 1-5 on V5-primary (the section 3.1 trigger of the V5-P heavy
+    runs), the section 7 item 6 batching label and whether S1 is forced UNDECIDED for an S1 family."""
+    out = []
+    for key, r in sorted(results.items()):
+        if r["family"] not in REGISTERED_FAMILIES or r["scopes"]["freezing_screen"]["verdict"] != "PASS":
+            continue
+        arms = [r["candidate"], r["comparator"]]
+        out.append({"contrast": key, "family": r["family"], "arms": arms, "design": r["design"],
+                    "passed_items_1_5_v5_primary": bool(r["design"] == "V5"
+                                                        and r["scopes"]["items_1_5"]["verdict"] == "PASS"),
+                    "batching_label": heavy_v5_batching_label(arms, r["design"], state),
+                    "s1_forced_undecided": bool(state is not None and state.s1_forced_undecided
+                                                and r["family"] in S1_FAMILIES)})
+    return out
+
+
+def b6_check(exact: Mapping[int, pd.Series], batched: Mapping[int, pd.Series], *,
+             threshold: float = 0.01) -> dict[str, Any]:
+    """The per-seed registered check (sections 3.1 / 3.2): ``factorized.batched_exact_check`` logic on per-unit MAE of
+    identical units; passes only when every discovery seed is present and passes."""
+    per = {}
+    for s in DISCOVERY_SEEDS:
+        if s not in exact or s not in batched:
+            continue
+        ex, ba = exact[s].astype(float), batched[s].astype(float)
+        if set(ex.index) != set(ba.index):
+            raise ValueError(f"seed {s}: the exact and batched designs score different units")
+        e, b = float(ex.mean()), float(ba.loc[ex.index].mean())
+        per[int(s)] = {"n_units": int(len(ex)), "exact_macro_mae": e, "batched_macro_mae": b, "delta": b - e,
+                       "abs_delta": abs(b - e), "passed": bool(abs(b - e) < threshold)}
+    complete = len(per) == len(DISCOVERY_SEEDS)
+    passed = complete and all(v["passed"] for v in per.values())
+    return {"threshold": threshold, "per_seed": per, "complete": complete,
+            "passed": passed if complete else None, "reading": READINGS["b6_batched_check"]}
+
+
+def next_v5_check_state(current: str, first: Mapping[str, Any], second: Mapping[str, Any] | None) -> str:
+    """Section 7 item 6 state machine: pending -> passed | recolour; recolour -> passed_after_recolour | failed."""
+    if first.get("passed") is None:
+        return "pending"
+    if first["passed"]:
+        return "passed"
+    if second is None or second.get("passed") is None:
+        return "recolour"
+    return "passed_after_recolour" if second["passed"] else "failed"

@@ -1,0 +1,955 @@
+{
+  "aggregation_rebuild": {
+    "compute_run": {
+      "arguments": {
+        "jobs": "V5__primary,V1__copy,V0__rows,V2__element,V5PAIR__primary,V5P__base,V5__loose,V5__hno3_only,V5__cell_only,V5__parent_structure,V5__sr_iii_dropped_training,V5__strict,V1__near_duplicate_key,V1__compilation_doi,V1__sr_iii_dropped_training,V2__state,V2__sr_iii_dropped_training",
+        "max_folds": 0,
+        "no_manifest": false,
+        "out_root": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer",
+        "skip_compute": false,
+        "verify_inner_guard_folds": 6,
+        "workers": 2
+      },
+      "code_sha256": {
+        "generations/gen19_chem_transfer/gen19ct/chemistry/support_graph.py": "65b6f17c59b227d7a577b2c0a3b06fd736584ccdcee8f6a687ff3b63522e414f",
+        "generations/gen19_chem_transfer/gen19ct/data/leakage.py": "f9a65a3aa38dc515b12cef5d485ddba2940548b242cdc75d1e88062d377d0a53",
+        "generations/gen19_chem_transfer/gen19ct/evaluation/calibration.py": "7f8d81a457636233721b05f1524f6ca3c1e48b6799b6375a7c3e23c443a3f17f",
+        "generations/gen19_chem_transfer/gen19ct/evaluation/metrics.py": "c599d1944f1159b36370744d1289ea5de9d458820ec40d21bf237004a5cf2cee",
+        "generations/gen19_chem_transfer/gen19ct/evaluation/pairs.py": "848016ab90755d65023f4404c99aca643abca4f595a18449dd71173f9af2bd67",
+        "generations/gen19_chem_transfer/gen19ct/evaluation/support.py": "c5acb8ab5a3e2e2eed2f5c3de923289450ee673e81e333148881f7acad1e33a0",
+        "generations/gen19_chem_transfer/gen19ct/evaluation/transfer.py": "dea0739d24bae9bd9b9388993a8d0bdc082a483a8357e9ac846f814ac426d596",
+        "generations/gen19_chem_transfer/gen19ct/folds/cell_holdout.py": "b44741fefac6765eef4be5c49f3e5f43346c27e9df30d957e31e057db97a2091",
+        "generations/gen19_chem_transfer/gen19ct/folds/io.py": "43e12e74c6daf466a9cf78914751ae74ab4aff60036116fe1d0efd34b15f9dfc",
+        "generations/gen19_chem_transfer/gen19ct/folds/metal_holdout.py": "068a40fbc5dba9bf021eb1ad7e833c9238bf1940154ec4b77f114e987e01c121",
+        "generations/gen19_chem_transfer/gen19ct/folds/source_holdout.py": "db5c325f1271c74f20a281716a0441ebdff91def5ec8c20d11811f715349720a",
+        "generations/gen19_chem_transfer/gen19ct/models/baselines.py": "3e9338d2dcfa603cd2d6ea22b9074928e775a513299c975f259ded03e93405eb",
+        "generations/gen19_chem_transfer/gen19ct/models/interface.py": "a4ae57819ec855ef34cdf54cb82c89ae09da70dab6f10d37534b79e21c65833a",
+        "generations/gen19_chem_transfer/gen19ct/models/mass_action.py": "a9172b955fca9a2a36484b8f3b2d17bb33bb65a524ec055216783095efd183ae",
+        "generations/gen19_chem_transfer/scripts/g19_run_preseal.py": "dc632271f08f3363a0a3f4c04344e694d2a14ef1db6197cd04656c9ac883c0b0"
+      },
+      "git_head": "40f6a75047275de8f690d61391935df4f916e226",
+      "tables_sha256": {
+        "generations/gen19_chem_transfer/tables/preseal_contrasts.csv": "e493d84c910192fa21f5f765faeefeb75dd3b3bc112d740960407a6347faee30",
+        "generations/gen19_chem_transfer/tables/preseal_coverage_by_domain_status.csv": "fca6226be613bc6f2bc0dfd832721841eb803e7ede1b5e40c661f719fb2e4807",
+        "generations/gen19_chem_transfer/tables/preseal_fallback_counts.csv": "184d5b910fccf3b7e3f7a0cb6e5f437bde7abc378e665efef14a93a45038fda1",
+        "generations/gen19_chem_transfer/tables/preseal_pair_summary.csv": "4fcad590035cdb8020c27564e20cdbd4c15e247307664c26aa0365e60ab8452a",
+        "generations/gen19_chem_transfer/tables/preseal_summary.csv": "70f519fc37b73b1ee31123b1e13f26c0f4d126c4986f4cb02d9c05296bd28c6f",
+        "generations/gen19_chem_transfer/tables/preseal_summary.md": "6c71426097a100113fae377623c4eba7f9580c45038d903fe4afbb78b759596a"
+      }
+    },
+    "later_manifests_checked": [
+      "generations/gen19_chem_transfer/manifests/g19_update_support_preseal.json"
+    ],
+    "n_compute_outputs_verified_unchanged": 23,
+    "outputs_superseded_before_this_run": {},
+    "replaced_manifest_sha256": "f41896edf7596404684acabbcc18c29a14d9b0de5ad81056175d9981bdabee12",
+    "rule": "--skip-compute: every output re-aggregated from the stored predictions and support feature files (verified unchanged against the replaced manifest; no fold fitted) under the resolutions of 2026-09-15; this manifest supersedes the replaced one and every later manifest listed under outputs_superseded_before_this_run",
+    "stored_files_unrecorded_by_replaced_manifest": {}
+  },
+  "archive_master_sha256": "7b32979383c5246f22d36ade6246231a347ea22490f4589a76e189af07b09b01",
+  "arguments": {
+    "jobs": "V5__primary,V1__copy,V0__rows,V2__element,V5PAIR__primary,V5P__base,V5__loose,V5__hno3_only,V5__cell_only,V5__parent_structure,V5__sr_iii_dropped_training,V5__strict,V1__near_duplicate_key,V1__compilation_doi,V1__sr_iii_dropped_training,V2__state,V2__sr_iii_dropped_training",
+    "max_folds": 0,
+    "no_manifest": false,
+    "out_root": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer",
+    "skip_compute": true,
+    "tables_only": true,
+    "verify_inner_guard_folds": 6,
+    "workers": 2
+  },
+  "arms": [
+    "B0",
+    "B1",
+    "B2",
+    "B3",
+    "B3x",
+    "B3i",
+    "B3l",
+    "B4",
+    "B4x",
+    "B4l",
+    "B7"
+  ],
+  "code_sha256": {
+    "generations/gen19_chem_transfer/gen19ct/chemistry/support_graph.py": "65b6f17c59b227d7a577b2c0a3b06fd736584ccdcee8f6a687ff3b63522e414f",
+    "generations/gen19_chem_transfer/gen19ct/data/leakage.py": "f9a65a3aa38dc515b12cef5d485ddba2940548b242cdc75d1e88062d377d0a53",
+    "generations/gen19_chem_transfer/gen19ct/evaluation/calibration.py": "4dda1ee90360c6f3330bea7df2f505c9b3d9715eb82cd25cec6e3791f2c1b9f3",
+    "generations/gen19_chem_transfer/gen19ct/evaluation/metrics.py": "84ad61a7fda0c883973d3b47f8288f7a85557b87c0cca25c1560d3321766649a",
+    "generations/gen19_chem_transfer/gen19ct/evaluation/pairs.py": "f2805fa44a9e4934c94d515bbe4e2683ff1e2877f8c7e908c3db39126bc6c064",
+    "generations/gen19_chem_transfer/gen19ct/evaluation/support.py": "1ae9786785ff6a5fc08aea95dce9ceff1495e21d10447cfa91866d7f0c4c68f2",
+    "generations/gen19_chem_transfer/gen19ct/evaluation/transfer.py": "ca7eeb0815501c3fa135bf51604e0ca432bdbd2a21c8687f269a0e84dccb6cbc",
+    "generations/gen19_chem_transfer/gen19ct/folds/cell_holdout.py": "a0c8e219c04c4c689d1c0a42ba4d37f6350c7769dbd1e42bea6687a1b74362f8",
+    "generations/gen19_chem_transfer/gen19ct/folds/io.py": "97defcdc99c0315fbc6cb6954bf8e2d336755b1f3bde2f34434e73bb5162b12f",
+    "generations/gen19_chem_transfer/gen19ct/folds/metal_holdout.py": "068a40fbc5dba9bf021eb1ad7e833c9238bf1940154ec4b77f114e987e01c121",
+    "generations/gen19_chem_transfer/gen19ct/folds/source_holdout.py": "ab2df90ee67a4cbf283287ebe24f067b7f3cce8b23da5ab0a4fb55dc473d282b",
+    "generations/gen19_chem_transfer/gen19ct/models/baselines.py": "3e9338d2dcfa603cd2d6ea22b9074928e775a513299c975f259ded03e93405eb",
+    "generations/gen19_chem_transfer/gen19ct/models/interface.py": "972c400216d851a09eea6f0d9a9c561f2a1391125a01bc9073a36837dc235415",
+    "generations/gen19_chem_transfer/gen19ct/models/mass_action.py": "a9172b955fca9a2a36484b8f3b2d17bb33bb65a524ec055216783095efd183ae",
+    "generations/gen19_chem_transfer/scripts/g19_run_preseal.py": "e856e58e20bb074aa8fcf14165e58f3c184bbd99c2c74ceb0540aa220ed39530",
+    "generations/gen19_chem_transfer/scripts/g19_update_support_preseal.py": "272200c15234fd13a25a09b5c3913d3d4825f5758cbc06510bf017566ea81dc6"
+  },
+  "difficulty_json": {
+    "byte_identical_to_section9": true,
+    "full_data_run": true,
+    "sha256_rendered": "bbdb72acff5be40b6de0bbd06f512719ea0aa7b05bebc1a9184709df9f28f1d2",
+    "sha256_section9": "bbdb72acff5be40b6de0bbd06f512719ea0aa7b05bebc1a9184709df9f28f1d2"
+  },
+  "discovery_seeds": [
+    104729,
+    130363,
+    155921,
+    196613,
+    262147
+  ],
+  "files_over_5MB": {
+    "generations/gen19_chem_transfer/evaluation/preseal/predictions/V0__rows.parquet": 15977984,
+    "generations/gen19_chem_transfer/tables/preseal_summary.csv": 6151134
+  },
+  "fold_build_manifests_sha256": {
+    "generations/gen19_chem_transfer/manifests/g19_build_folds.json": "4f097a8e7decdd85bc99361f957df0bbe7460f8ba184288d01c3f4668adc16c6",
+    "generations/gen19_chem_transfer/manifests/g19_build_folds_incremental.json": "d2b49cc0a008dc01c1d7731fe127782fc220a6c8abaa7290ea82e42c8d7ab28c"
+  },
+  "fold_design_hashes": {
+    "V0__rows__random5": "58aadf65da947743ec473f4889e63bdcd65b67d137586d29e62cb6495fbd83a5",
+    "V1__compilation_doi__exact": "d5a1accc0cd4413241f2c62f26035850c5a2a7db2707e230def891f76d2db4d9",
+    "V1__copy__exact": "8896284c0f0333b654112dd3680f4ea02fdd923f75a9329a5ae21f302a1ca276",
+    "V1__near_duplicate_key__exact": "9f6702635035c18057e016c2dcc4123c73c65d3e7600e9926399b0b5e07a54eb",
+    "V2__element__exact": "161ebdf276405dfd87b799b12041b107050d9048a3d8333fa72339b667f5a0c4",
+    "V2__state__exact": "c3e56f09a92b783bde571d1e8dc4248d0dd2701ea08363fc68fbb4579f3547cd",
+    "V5PAIR__primary__cell_pair": "16fd98d419656e8ddc8248d2c2e6b8141d71e229bc98285307083fcd4843bfd9",
+    "V5P__base__cell_x_group": "dc14cc30564b59e974c83a6ce78a8d1eb7b481c38dd1948b96559a6120272733",
+    "V5__cell_only__exact": "48fc0fefe87d9c8a00984714621e6e59c5908a7c9fcd7d8083bd2115202aa7de",
+    "V5__hno3_only__exact": "8a55328e1a9695c49cc54924155afe8c41c05c7b1491db611155ab6c5ae8fbe0",
+    "V5__loose__exact": "5020227e4ef2354a30e7f1eb188e396a049c717c4f891081a0dc234197ffd5d3",
+    "V5__parent_structure__exact": "835899aa439d58b4a2f5d931407c7170cf19f90b59d41da2d40fbb78a945c960",
+    "V5__primary__exact": "deefecd857dde81a2debd5a3213858bb759237c51009df5b67f318846950541e",
+    "V5__strict__exact": "d830b91ddf8f8fbeeb267b41bee49d440f953bf5655b5c98eef7ade77bc2ca81"
+  },
+  "git_head": "40f6a75047275de8f690d61391935df4f916e226",
+  "inputs": [
+    {
+      "bytes": 2389792,
+      "path": "dataset_all_metals/clean/master_clean.parquet",
+      "sha256": "7b32979383c5246f22d36ade6246231a347ea22490f4589a76e189af07b09b01",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 109660,
+      "path": "generations/gen19_chem_transfer/data_audit/feasibility.json",
+      "sha256": "5188cb2eb26b06c3abfbe495ae1cca00ae764049bc934485f4b7da88746a62c2",
+      "sha256_lf": "5188cb2eb26b06c3abfbe495ae1cca00ae764049bc934485f4b7da88746a62c2"
+    },
+    {
+      "bytes": 6722,
+      "path": "generations/gen19_chem_transfer/data_audit/feasibility_halves.csv",
+      "sha256": "eef289242852acf364e58562762bf7109cffae1cf15ba546e1efa0be2c391a7e",
+      "sha256_lf": "eef289242852acf364e58562762bf7109cffae1cf15ba546e1efa0be2c391a7e"
+    },
+    {
+      "bytes": 37404,
+      "path": "generations/gen19_chem_transfer/data_audit/leakage_publication_components.csv",
+      "sha256": "f78330255725d8fda1b74d5edd75aa67722b6f7c654f980c09024440d5bb361e",
+      "sha256_lf": "f78330255725d8fda1b74d5edd75aa67722b6f7c654f980c09024440d5bb361e"
+    },
+    {
+      "bytes": 253988,
+      "path": "generations/gen19_chem_transfer/descriptors/extractant_components.csv",
+      "sha256": "8ee9b8538c152dc9d894a2f4ea36610581b6554c0b00cbae31939af14622badc",
+      "sha256_lf": "8ee9b8538c152dc9d894a2f4ea36610581b6554c0b00cbae31939af14622badc"
+    },
+    {
+      "bytes": 154428,
+      "path": "generations/gen19_chem_transfer/descriptors/extractant_systems.csv",
+      "sha256": "c42c99ab6598ec191103448a6dc81a558c4418efafcbd154ea37ee0983b776d0",
+      "sha256_lf": "c42c99ab6598ec191103448a6dc81a558c4418efafcbd154ea37ee0983b776d0"
+    },
+    {
+      "bytes": 179448,
+      "path": "generations/gen19_chem_transfer/descriptors/metals.csv",
+      "sha256": "8efc283ca1c0567341ac51b1ec5dfb4a0a9822c133b1bcb33c94c803a1a2e985",
+      "sha256_lf": "8efc283ca1c0567341ac51b1ec5dfb4a0a9822c133b1bcb33c94c803a1a2e985"
+    },
+    {
+      "bytes": 339533,
+      "path": "generations/gen19_chem_transfer/folds/INDEX.json",
+      "sha256": "7a4cfd60fe1cdc6cc736bc59001373a6ba971098851ac3aee49829cedb2caf7d",
+      "sha256_lf": "7a4cfd60fe1cdc6cc736bc59001373a6ba971098851ac3aee49829cedb2caf7d"
+    },
+    {
+      "bytes": 14390,
+      "path": "generations/gen19_chem_transfer/folds/V0__rows__random5.json",
+      "sha256": "05ca12fea95cc931e68eb4460549732369cb1e7e94ec8f1a2d4685a70f673b62",
+      "sha256_lf": "05ca12fea95cc931e68eb4460549732369cb1e7e94ec8f1a2d4685a70f673b62"
+    },
+    {
+      "bytes": 147323,
+      "path": "generations/gen19_chem_transfer/folds/V0__rows__random5.parquet",
+      "sha256": "62e5dd1eeca818e599ff12f140efc674e7e181698356ca6bbd86ae45f91a1fca",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 46212,
+      "path": "generations/gen19_chem_transfer/folds/V1__compilation_doi__exact.json",
+      "sha256": "843d207ebdc72c732aa31c8fbbc2564284ec172b3b76a6501b2c5c9da4593fe7",
+      "sha256_lf": "843d207ebdc72c732aa31c8fbbc2564284ec172b3b76a6501b2c5c9da4593fe7"
+    },
+    {
+      "bytes": 37770,
+      "path": "generations/gen19_chem_transfer/folds/V1__compilation_doi__exact.parquet",
+      "sha256": "7a0a19201173896c292300d0fc81abbbe7dce0682b4218f5fc1d7ab9409e70d1",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 66793,
+      "path": "generations/gen19_chem_transfer/folds/V1__copy__exact.json",
+      "sha256": "107f21bee9dd03652e0114e75f831346361f2b2216de0d7f38daa01b8b141e57",
+      "sha256_lf": "107f21bee9dd03652e0114e75f831346361f2b2216de0d7f38daa01b8b141e57"
+    },
+    {
+      "bytes": 40011,
+      "path": "generations/gen19_chem_transfer/folds/V1__copy__exact.parquet",
+      "sha256": "3721a107d4ffd08e96a3da3a05a6cfa6a7eab3fc53a672553c01e03683b6e7c8",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 56124,
+      "path": "generations/gen19_chem_transfer/folds/V1__near_duplicate_key__exact.json",
+      "sha256": "98fe0f19795393483348e6523583d2c73047bc15fc0344a9e04a7ffc14f534a1",
+      "sha256_lf": "98fe0f19795393483348e6523583d2c73047bc15fc0344a9e04a7ffc14f534a1"
+    },
+    {
+      "bytes": 38486,
+      "path": "generations/gen19_chem_transfer/folds/V1__near_duplicate_key__exact.parquet",
+      "sha256": "da0388ee8296e03a632e8f43a97600b010531b7b26fdb1046069cf9489a82ec9",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 14769,
+      "path": "generations/gen19_chem_transfer/folds/V2__element__exact.json",
+      "sha256": "e384523613dfaeb461fd763cb2564be9ee5b3da1351bb73154c58185817e737f",
+      "sha256_lf": "e384523613dfaeb461fd763cb2564be9ee5b3da1351bb73154c58185817e737f"
+    },
+    {
+      "bytes": 52746,
+      "path": "generations/gen19_chem_transfer/folds/V2__element__exact.parquet",
+      "sha256": "5c65386e521b92d165378313d6fc7bf14a3077292612b67a55d8980589be0f95",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 14868,
+      "path": "generations/gen19_chem_transfer/folds/V2__state__exact.json",
+      "sha256": "ba8f99ac9301add6e3ec66974b11d403b031f108e4fe3ad00a59bd4d11da66bf",
+      "sha256_lf": "ba8f99ac9301add6e3ec66974b11d403b031f108e4fe3ad00a59bd4d11da66bf"
+    },
+    {
+      "bytes": 48490,
+      "path": "generations/gen19_chem_transfer/folds/V2__state__exact.parquet",
+      "sha256": "c41905d618e90c19aaec17283ff91a1a444e121d02b6aff0ddfad0006f48f3b9",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 200823,
+      "path": "generations/gen19_chem_transfer/folds/V5__cell_only__exact.json",
+      "sha256": "9acd2b31e1133a49a1d809531508967fa309e587d818f3be26520f730bc4b162",
+      "sha256_lf": "9acd2b31e1133a49a1d809531508967fa309e587d818f3be26520f730bc4b162"
+    },
+    {
+      "bytes": 38339,
+      "path": "generations/gen19_chem_transfer/folds/V5__cell_only__exact.parquet",
+      "sha256": "26f58ef2a22238c4a75e8dacb341cd3acdb4de9f3d4a6a48baa72dc0f7633142",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 195698,
+      "path": "generations/gen19_chem_transfer/folds/V5__hno3_only__exact.json",
+      "sha256": "c0a342b9bfdb8d666bdbb08b241de99de1c67ca4cbdd05d0fbe525c2f427ad29",
+      "sha256_lf": "c0a342b9bfdb8d666bdbb08b241de99de1c67ca4cbdd05d0fbe525c2f427ad29"
+    },
+    {
+      "bytes": 47289,
+      "path": "generations/gen19_chem_transfer/folds/V5__hno3_only__exact.parquet",
+      "sha256": "0888d12e3a8cf783a5dc9784973bce6a5dcb294e0e0c497afcb0807d87692689",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 317793,
+      "path": "generations/gen19_chem_transfer/folds/V5__loose__exact.json",
+      "sha256": "abcf52634f6998ad26d628ef3c3d98601ece8b58ebfb6d08a617320ffdeb633b",
+      "sha256_lf": "abcf52634f6998ad26d628ef3c3d98601ece8b58ebfb6d08a617320ffdeb633b"
+    },
+    {
+      "bytes": 53738,
+      "path": "generations/gen19_chem_transfer/folds/V5__loose__exact.parquet",
+      "sha256": "389052d2225136dd20a132425ed491047a88b53024054ab48d8ff7b47ea66cb1",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 200479,
+      "path": "generations/gen19_chem_transfer/folds/V5__parent_structure__exact.json",
+      "sha256": "bc0ff2549fde0892a3dd412505e36c873ce6adb4eb20d24da18c1e59953cad51",
+      "sha256_lf": "bc0ff2549fde0892a3dd412505e36c873ce6adb4eb20d24da18c1e59953cad51"
+    },
+    {
+      "bytes": 47819,
+      "path": "generations/gen19_chem_transfer/folds/V5__parent_structure__exact.parquet",
+      "sha256": "0578b43c3ac5ad930187745a708b9a70883c18f5e5c92fd5ab01482461566666",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 200685,
+      "path": "generations/gen19_chem_transfer/folds/V5__primary__exact.json",
+      "sha256": "1dc603495d281d376e3c86f4b204010e7e560bc4121efb2e40c22096ec5fcc8d",
+      "sha256_lf": "1dc603495d281d376e3c86f4b204010e7e560bc4121efb2e40c22096ec5fcc8d"
+    },
+    {
+      "bytes": 46650,
+      "path": "generations/gen19_chem_transfer/folds/V5__primary__exact.parquet",
+      "sha256": "35cd80d6b82c4d1d6bd0992439ce1decff7b2a03009c5423e62a7c1a997712cf",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 62729,
+      "path": "generations/gen19_chem_transfer/folds/V5__strict__exact.json",
+      "sha256": "325565b355ab3e6bacd6aa9cd513ec9eaf09abe59da053aeafb7561597e726a8",
+      "sha256_lf": "325565b355ab3e6bacd6aa9cd513ec9eaf09abe59da053aeafb7561597e726a8"
+    },
+    {
+      "bytes": 28505,
+      "path": "generations/gen19_chem_transfer/folds/V5__strict__exact.parquet",
+      "sha256": "07441d82c0f65778f77b607e6075d9ac0cf1687a5f64d19b10bf292db85dade7",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 407218,
+      "path": "generations/gen19_chem_transfer/folds/V5P__base__cell_x_group.json",
+      "sha256": "81b0759fc51d7bd4ed4552afd9babe3637085d3fbf289f11334ed900b63372b0",
+      "sha256_lf": "81b0759fc51d7bd4ed4552afd9babe3637085d3fbf289f11334ed900b63372b0"
+    },
+    {
+      "bytes": 223803,
+      "path": "generations/gen19_chem_transfer/folds/V5P__base__cell_x_group.parquet",
+      "sha256": "ceb4c371b3ae7786df7ea6598e02f3fa96cedc13ad2eee9bdbe5e9f0c16ad245",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 630198,
+      "path": "generations/gen19_chem_transfer/folds/V5PAIR__primary__cell_pair.json",
+      "sha256": "9201c1d19447fb04500b42c54a0e473403529332b21e9f5a3a35956e0c551f2f",
+      "sha256_lf": "9201c1d19447fb04500b42c54a0e473403529332b21e9f5a3a35956e0c551f2f"
+    },
+    {
+      "bytes": 130743,
+      "path": "generations/gen19_chem_transfer/folds/V5PAIR__primary__cell_pair.parquet",
+      "sha256": "ac27c42b99946f9fc97b76f24114ca26bfdc1e310113a384728e5325bbcd26f0",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 61846,
+      "path": "generations/gen19_chem_transfer/folds/V5PAIR__primary__pairs.parquet",
+      "sha256": "283ce2f9c6134ea36ed9ead13e5c30c1f1fac80fe19a929471c3b87832f19cd2",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 699329,
+      "path": "generations/gen19_chem_transfer/folds/wildcard_copy_crossings.csv",
+      "sha256": "7cc216c8406adeeb250d2b2dc4a63caae604b06a93127bcc341a32b33dc977f1",
+      "sha256_lf": "7cc216c8406adeeb250d2b2dc4a63caae604b06a93127bcc341a32b33dc977f1"
+    },
+    {
+      "bytes": 17231,
+      "path": "generations/gen19_chem_transfer/manifests/g19_build_folds.json",
+      "sha256": "4f097a8e7decdd85bc99361f957df0bbe7460f8ba184288d01c3f4668adc16c6",
+      "sha256_lf": "4f097a8e7decdd85bc99361f957df0bbe7460f8ba184288d01c3f4668adc16c6"
+    },
+    {
+      "bytes": 10646,
+      "path": "generations/gen19_chem_transfer/manifests/g19_build_folds_incremental.json",
+      "sha256": "d2b49cc0a008dc01c1d7731fe127782fc220a6c8abaa7290ea82e42c8d7ab28c",
+      "sha256_lf": "d2b49cc0a008dc01c1d7731fe127782fc220a6c8abaa7290ea82e42c8d7ab28c"
+    }
+  ],
+  "learned_arms_fitted_or_scored": [],
+  "not_run_pre_seal": {
+    "V1_grouped10": "not run (the exact design is registered for B0-B4, B7)",
+    "V3": "not run pre-seal",
+    "V4": "not run pre-seal",
+    "V5_batched": "not run (exact leave-one-cell-out is registered for B0-B4, B7)",
+    "V6": "never run pre-seal (section 3.4)",
+    "V7": "not run pre-seal"
+  },
+  "outputs": [
+    {
+      "bytes": 25762,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/difficulty.json",
+      "sha256": "bbdb72acff5be40b6de0bbd06f512719ea0aa7b05bebc1a9184709df9f28f1d2",
+      "sha256_lf": "bbdb72acff5be40b6de0bbd06f512719ea0aa7b05bebc1a9184709df9f28f1d2"
+    },
+    {
+      "bytes": 16867,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/difficulty_resolved.json",
+      "sha256": "76c0d15aa9d8d89d4e39e3437930abbe6bed3fc68ab021a9f0a2acd591b636be",
+      "sha256_lf": "76c0d15aa9d8d89d4e39e3437930abbe6bed3fc68ab021a9f0a2acd591b636be"
+    },
+    {
+      "bytes": 1935,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/domain_status_counts.csv",
+      "sha256": "eff269688a3c7ed06fe2ef997844dd3606191bdf871c98b7eca26a49eb71f093",
+      "sha256_lf": "eff269688a3c7ed06fe2ef997844dd3606191bdf871c98b7eca26a49eb71f093"
+    },
+    {
+      "bytes": 199849,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/guard_log.csv",
+      "sha256": "412ff48c5779f9d90cec3934816079c40f39202fc0a95ee3cf97a385372f60cd",
+      "sha256_lf": "412ff48c5779f9d90cec3934816079c40f39202fc0a95ee3cf97a385372f60cd"
+    },
+    {
+      "bytes": 2218,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/inner_guard_verification.json",
+      "sha256": "24770d0e4aa1decd19ea5be6b7793077bbf3c13076dd7a0f4b52fbadab5f5c1a",
+      "sha256_lf": "24770d0e4aa1decd19ea5be6b7793077bbf3c13076dd7a0f4b52fbadab5f5c1a"
+    },
+    {
+      "bytes": 744342,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/pairs/V5PAIR__primary__cell_pairs.csv",
+      "sha256": "103b77c47aaa880860263b5af3ee7401df8e5b69cc229acec77fae5faeb6226b",
+      "sha256_lf": "103b77c47aaa880860263b5af3ee7401df8e5b69cc229acec77fae5faeb6226b"
+    },
+    {
+      "bytes": 15977984,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/predictions/V0__rows.parquet",
+      "sha256": "dc083f17c998c85f76ab6ab857552baf4f1c5494e797b066748ddfaaf161e04c",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 179407,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/predictions/V1__compilation_doi.parquet",
+      "sha256": "dc33ffd9abf209828d23b8200e158a3218b9387aa0e5d8ced61052735e205596",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 1754005,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/predictions/V1__copy.parquet",
+      "sha256": "3816a0082b2837d09b88f363efdddd5261e97f74a2d95755bd3ee56ec3d182d2",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 211041,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/predictions/V1__near_duplicate_key.parquet",
+      "sha256": "9f35b68bd3e6bd1fce8adbd02c7660e62809458beaa292bbff696c4a1d331394",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 214683,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/predictions/V1__sr_iii_dropped_training.parquet",
+      "sha256": "6faecc7aca17ee96903743bf6d5a168ff5289e5169da6f93f37818ff43613849",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 2164192,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/predictions/V2__element.parquet",
+      "sha256": "5a74e2473b6f963b1b0369e7e182b5bee40c7b75fe89e3d56989a2a115b07005",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 307107,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/predictions/V2__sr_iii_dropped_training.parquet",
+      "sha256": "331f72fd9e09bc6ea25cc99d13d688804cdf9850ae80d3138ea65948cb10f661",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 307441,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/predictions/V2__state.parquet",
+      "sha256": "5847c27e39d64cb35e94451ea5541e16ec64dcd7013387a633033433b2b58237",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 200495,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/predictions/V5__cell_only.parquet",
+      "sha256": "059856edee553bc4178893fab11f218b4f6c8720f010241bc8cdd628ae110852",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 182551,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/predictions/V5__hno3_only.parquet",
+      "sha256": "6fb4b4992b3b8e486473cb7605f7681bf0e81e72266bfe2f857ea6e859a7dab3",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 236583,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/predictions/V5__loose.parquet",
+      "sha256": "5411d27330bf1b9cc08d2d703d01b697f44fc26b5bfea6b7b83167e1b4495f99",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 199971,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/predictions/V5__parent_structure.parquet",
+      "sha256": "95241af1637cfc84265c9f7ef3a83d4c61b6e3c95f5153713d4eee2637f8ce28",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 1542967,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/predictions/V5__primary.parquet",
+      "sha256": "23b9106ab215f38c53b4001dfb38317a1ac3bd4ebfb1abf9b9bf22cdb893000a",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 199647,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/predictions/V5__sr_iii_dropped_training.parquet",
+      "sha256": "dc14bf6be5d45254e0a88db41583d13730a493cf2f773c372a2f9c37cdd80388",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 118220,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/predictions/V5__strict.parquet",
+      "sha256": "911e2c19b6bebf3e7038767365bf3e13ff8c2fe574b9b29de7d708c717c59990",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 133952,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/predictions/V5P__base.parquet",
+      "sha256": "f99e4639b86da850507c0ac48808877a4c3d8fa57d60736778d0071987ef5af5",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 823218,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/predictions/V5PAIR__primary.parquet",
+      "sha256": "84a7e3c2c907cc30782f02709ecd4c4ea50b4e0a9627c4940139f5920879020e",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 5996,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/run_checks.json",
+      "sha256": "bc960bfa9656bbc1d6360a55b1f49e4eda077bf64cd434375ce2d697ac9a6454",
+      "sha256_lf": "bc960bfa9656bbc1d6360a55b1f49e4eda077bf64cd434375ce2d697ac9a6454"
+    },
+    {
+      "bytes": 1961674,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/support/V0__rows.parquet",
+      "sha256": "b85ae39d24e6af6ce97cd9cce74c7d9004e3039403ef3ab9cee1766090b8ea4d",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 854352,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/support/V0__rows__support_score.parquet",
+      "sha256": "6ad3a0c4c912b7393fb0d4420bed27c044bd1dd2b2b208a1ff054e9e462f0659",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 333655,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/support/V1__copy.parquet",
+      "sha256": "edece864ab18cb0a55b309254fc22ad26d69ed81fcdd0369ab80663bc52fff21",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 153842,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/support/V1__copy__support_score.parquet",
+      "sha256": "76d84058a4091b8163e517096f5b4e6623bfe412ec65a603f718ad8a24f2e3c3",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 201041,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/support/V2__element.parquet",
+      "sha256": "f2342c638d0d8e789a3aac68ae0b9ac03fc1326e8958b89431a896cfbf57709a",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 99493,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/support/V2__element__support_score.parquet",
+      "sha256": "27763f01d055f016f670f1fc6b4da75b263049b4e663e30b6bcce0d6370cb336",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 164526,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/support/V5__primary.parquet",
+      "sha256": "6cbac43c87af30db9b8ff3c7522e02b82046f6c0c25c738a006788ddef0c56ba",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 11100,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/support/V5__primary__cell_support_error_selection.csv",
+      "sha256": "05dcb3880ffd5f7527d54eec88a5ca77b0e627de8e3fa5aa96a4b4911ed484ed",
+      "sha256_lf": "05dcb3880ffd5f7527d54eec88a5ca77b0e627de8e3fa5aa96a4b4911ed484ed"
+    },
+    {
+      "bytes": 78758,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/support/V5__primary__support_score.parquet",
+      "sha256": "90f35b06c69bfc57700e70402aafc4ecfbf347b373425798948d2b4b245c25e7",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 7077,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/support_status.json",
+      "sha256": "1a8fe26ca336bdc61c868c1608714b3578246213ced2ac7f7d5475c649e759c3",
+      "sha256_lf": "1a8fe26ca336bdc61c868c1608714b3578246213ced2ac7f7d5475c649e759c3"
+    },
+    {
+      "bytes": 1270763,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/units/V0__rows__units.csv",
+      "sha256": "7a97a93b2c61a6af41320b7f6588269459de637df175fdd4fe62e5c64216898b",
+      "sha256_lf": "7a97a93b2c61a6af41320b7f6588269459de637df175fdd4fe62e5c64216898b"
+    },
+    {
+      "bytes": 243725,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/units/V1__compilation_doi__units.csv",
+      "sha256": "3713fbee7c3a3b35bdbdb91fc5b34ed742ac25357ffc8f533f561caa502faffe",
+      "sha256_lf": "3713fbee7c3a3b35bdbdb91fc5b34ed742ac25357ffc8f533f561caa502faffe"
+    },
+    {
+      "bytes": 421932,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/units/V1__copy__units.csv",
+      "sha256": "466dfe9d10c365ec1694d9c0ab4199911eb2ccce051dcf4f5329afc5e618ee7a",
+      "sha256_lf": "466dfe9d10c365ec1694d9c0ab4199911eb2ccce051dcf4f5329afc5e618ee7a"
+    },
+    {
+      "bytes": 303629,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/units/V1__near_duplicate_key__units.csv",
+      "sha256": "5cfd885f999d361ab53d420b1df7b6a6c0df5a686e1ee6ad23fd228593ccb50d",
+      "sha256_lf": "5cfd885f999d361ab53d420b1df7b6a6c0df5a686e1ee6ad23fd228593ccb50d"
+    },
+    {
+      "bytes": 331424,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/units/V1__sr_iii_dropped_training__units.csv",
+      "sha256": "95b99e701683858227c259996a47708c9644e1d161c7ff219ef4373306568dd1",
+      "sha256_lf": "95b99e701683858227c259996a47708c9644e1d161c7ff219ef4373306568dd1"
+    },
+    {
+      "bytes": 34503,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/units/V2__element__units.csv",
+      "sha256": "914d771e59014d4a86088bf7a9f3f2941f1532a82d5560580c425da8b75fed6b",
+      "sha256_lf": "914d771e59014d4a86088bf7a9f3f2941f1532a82d5560580c425da8b75fed6b"
+    },
+    {
+      "bytes": 21802,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/units/V2__sr_iii_dropped_training__units.csv",
+      "sha256": "a9f455f7769037bb704d641a30c5354f7cd4cc25cc80a3535a45869ef0431a7d",
+      "sha256_lf": "a9f455f7769037bb704d641a30c5354f7cd4cc25cc80a3535a45869ef0431a7d"
+    },
+    {
+      "bytes": 21808,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/units/V2__state__units.csv",
+      "sha256": "6339c918e5a2548e62e93d7b0730b8a6f32df38883fad4e002eb4964382dbd23",
+      "sha256_lf": "6339c918e5a2548e62e93d7b0730b8a6f32df38883fad4e002eb4964382dbd23"
+    },
+    {
+      "bytes": 321064,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/units/V5__cell_only__units.csv",
+      "sha256": "f069d321189c91e42cf1c6c2a373ffe6bfcad08c6bc507ab901ae1dfb25a9412",
+      "sha256_lf": "f069d321189c91e42cf1c6c2a373ffe6bfcad08c6bc507ab901ae1dfb25a9412"
+    },
+    {
+      "bytes": 312329,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/units/V5__hno3_only__units.csv",
+      "sha256": "fbee56ce8d7c4ed81ff2807a1a43ebe0352f9a66d9177f49cad81eaf734dd017",
+      "sha256_lf": "fbee56ce8d7c4ed81ff2807a1a43ebe0352f9a66d9177f49cad81eaf734dd017"
+    },
+    {
+      "bytes": 495281,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/units/V5__loose__units.csv",
+      "sha256": "cadd8a465e62747fece33d60c14ffdbac1803a443cf9d26e9cf4b16de78fa312",
+      "sha256_lf": "cadd8a465e62747fece33d60c14ffdbac1803a443cf9d26e9cf4b16de78fa312"
+    },
+    {
+      "bytes": 321097,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/units/V5__parent_structure__units.csv",
+      "sha256": "66a5e46b8ed899880b91e2a468f1289cd0a590122d8c4b2250ed463e768a133b",
+      "sha256_lf": "66a5e46b8ed899880b91e2a468f1289cd0a590122d8c4b2250ed463e768a133b"
+    },
+    {
+      "bytes": 415641,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/units/V5__primary__units.csv",
+      "sha256": "c28ab7af14e9ee1bab2ba7b274fea9fe5abef2e214965e29fbfac68c775b224d",
+      "sha256_lf": "c28ab7af14e9ee1bab2ba7b274fea9fe5abef2e214965e29fbfac68c775b224d"
+    },
+    {
+      "bytes": 321096,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/units/V5__sr_iii_dropped_training__units.csv",
+      "sha256": "36a6cb158cff2b43026b0b968ab93f15692a88c781614858e6d1b4737997f486",
+      "sha256_lf": "36a6cb158cff2b43026b0b968ab93f15692a88c781614858e6d1b4737997f486"
+    },
+    {
+      "bytes": 92867,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/units/V5__strict__units.csv",
+      "sha256": "61d852b5b8b9a81fe9bfb4d5bf6b296256161962a141689a0a5959bb9db8e801",
+      "sha256_lf": "61d852b5b8b9a81fe9bfb4d5bf6b296256161962a141689a0a5959bb9db8e801"
+    },
+    {
+      "bytes": 150237,
+      "path": "generations/gen19_chem_transfer/evaluation/preseal/units/V5P__base__units.csv",
+      "sha256": "a8887be32df8cbe09c939c58fd786c115bbd8be97d2364f9442868e2b0d310c9",
+      "sha256_lf": "a8887be32df8cbe09c939c58fd786c115bbd8be97d2364f9442868e2b0d310c9"
+    },
+    {
+      "bytes": 354064,
+      "path": "generations/gen19_chem_transfer/figures/F07_preseal_pred_vs_measured.png",
+      "sha256": "eae6b153e70aafa7d3bc325eeb3c90aaeb6f08a54a293e38d195e601c2eb891c",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 107118,
+      "path": "generations/gen19_chem_transfer/figures/F08_preseal_error_vs_support.png",
+      "sha256": "7131f0c8090d3761c4fabba8362919756403188b9298b47b77f5e3b6c9ae2d6c",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 124781,
+      "path": "generations/gen19_chem_transfer/tables/preseal_contrasts.csv",
+      "sha256": "7063fdbc191062c598b0f4fd439edf11580ab4d29e8670837b7adb2d2e9dd747",
+      "sha256_lf": "7063fdbc191062c598b0f4fd439edf11580ab4d29e8670837b7adb2d2e9dd747"
+    },
+    {
+      "bytes": 598121,
+      "path": "generations/gen19_chem_transfer/tables/preseal_coverage_by_domain_status.csv",
+      "sha256": "fca6226be613bc6f2bc0dfd832721841eb803e7ede1b5e40c661f719fb2e4807",
+      "sha256_lf": "fca6226be613bc6f2bc0dfd832721841eb803e7ede1b5e40c661f719fb2e4807"
+    },
+    {
+      "bytes": 44980,
+      "path": "generations/gen19_chem_transfer/tables/preseal_fallback_counts.csv",
+      "sha256": "184d5b910fccf3b7e3f7a0cb6e5f437bde7abc378e665efef14a93a45038fda1",
+      "sha256_lf": "184d5b910fccf3b7e3f7a0cb6e5f437bde7abc378e665efef14a93a45038fda1"
+    },
+    {
+      "bytes": 255501,
+      "path": "generations/gen19_chem_transfer/tables/preseal_pair_summary.csv",
+      "sha256": "9074ad44078b82f42d06d55993aed5308669ccecf2301369e36e72724f592ad2",
+      "sha256_lf": "9074ad44078b82f42d06d55993aed5308669ccecf2301369e36e72724f592ad2"
+    },
+    {
+      "bytes": 6151134,
+      "path": "generations/gen19_chem_transfer/tables/preseal_summary.csv",
+      "sha256": "4c7da05e571b72d98fbfe49037c5b56bfdb50bc01456a38e975dfa3fe6e5300f",
+      "sha256_lf": "4c7da05e571b72d98fbfe49037c5b56bfdb50bc01456a38e975dfa3fe6e5300f"
+    },
+    {
+      "bytes": 1797,
+      "path": "generations/gen19_chem_transfer/tables/preseal_summary.md",
+      "sha256": "bcf5a15cc52f309635d8a6b05c976d1e3712252863e9377cf26dd7e0e7bce1cd",
+      "sha256_lf": "bcf5a15cc52f309635d8a6b05c976d1e3712252863e9377cf26dd7e0e7bce1cd"
+    }
+  ],
+  "pair_yardsticks": [
+    "FLAT",
+    "HEAVIER"
+  ],
+  "readings": {
+    "B3x_B3i_anion_pool": "B3x / B3i (and B4x): the nearest-radius and radius-bracket pool is the training metal states of the query's system measured with the query's acid anion; the anion is dropped (flag radius_pool_anion_dropped) only when no other metal state of the system has a training row with it (baselines.REGISTRATION_CHOICES['B3x_pool_anion'], fixed in code before any score)",
+    "DIR5": "pairs.pair_summary convention: each yardstick's unit-macro direction accuracy over the cell pairs where it is defined (HEAVIER: Ln(III)-Ln(III) pairs only; undefined pairs excluded and counted); DIR5 = the max of the three. Alternatives printed beside: HEAVIER undefined counted 1/2 on all pairs, and all three on Ln-Ln pairs only",
+    "V0": "diagnostic; unit = publication group (copy group), per discovery seed and the mean over the 5 seeds",
+    "V0_inner_design": "section 7 names no V0 inner design; the publication-grouped 3-fold (section 12 'publication-grouped calibration folds') with a level-V1 guard",
+    "V1_unit_sensitivities": "labelled sensitivities of the V1 averaging unit (the halves were balanced with the pooled remainder fold as ONE unit, section 3.2; the registered scoring unit is the publication group, section 4): scoring_filter 'remainder_fold_as_one_unit' (the remainder fold's rows form one unit) and 'remainder_fold_excluded_scoring' (its rows are not scored); both exploratory",
+    "V1_units": "unit = the row's group under the fold's grouping (group_cross_publication_copy for the registered design); half = the registered V1 half of the row's copy-group unit",
+    "V2_comparator": "stronger of B3x / B3i = lower selection-half focus-7 macro MAE (section 3.3 primary summary)",
+    "V2_summaries": "focus-7 lanthanides (primary), all 23 states, Ln(III) 14, actinide 9, each within a half",
+    "V5_inner_guard": "nested_certificate: one fold_isolation_check (level V5, component-aware, tol 0.005) per inner cell on the superset split (MODEL rows minus the cell's registered hiding, test = every row of the cell), shared across outer folds; the inner split is asserted nested in it. Every violation class of fold_isolation_check needs a training row and a test row, so removing rows from either side cannot create one. Cross-checked against every_split on sampled outer folds",
+    "V5_units_clusters": "unit = hidden cell; clusters = extractant_system_key and the publication group holding most of the cell's scored rows (ties: smallest label)",
+    "acid_strata": "acid_primary HNO3 / HCl / organic_acid (malonic, lactic, tartaric, citric) / other_mineral (H2SO4, HClO4)",
+    "calibration_population": "conformal calibration rows = the rows a fold would score: known metal state, not Sr(III), not V6_TARGET_ROWS, not an acidic co-extractant row; X(?) rows are never calibration rows (they are scored in no design)",
+    "conformal_seed": "inner calibration designs draw from seed 104729 (first discovery seed); V0 from its fold seed; the deterministic arms' interval widths therefore depend on this seed",
+    "dga_stratum": "system_family == diglycolamide vs every other family (the feasibility non-DGA definition)",
+    "halves": "every table is labelled with its half; difficulty numbers and descriptive contrasts use the selection half (section 9); confirmation-half values are printed, labelled, and inform nothing",
+    "inner_units": "every conformal inner design takes its inner units from the fold builder's functions and random streams (folds.source_holdout.inner_group_assignment for V1 and V0, folds.cell_holdout.inner_cell_majority + inner_cell_assignment for V5, folds.metal_holdout.inner_state_pick for V2)",
+    "intervals": "split-conformal intervals (ConformalWrapper) are computed for the registered calibration designs of section 12 (V5 primary, V1 copy exact, V2 element) and for V0; sensitivity variants, V5-P and V5-PAIR carry point predictions only (their registered use, R19 item 6, is the MAE Delta)",
+    "scoring_exclusions": "fold scored rows (known state, not Sr(III), not V6_TARGET_ROWS) minus the acidic co-extractant modifier rows (section 2: never scored as rows of a neutral cell), in every design",
+    "sr_iii_dropped_training": "the Sr(III) MODEL rows are removed from every outer training set (and from the inner calibration of nothing: point predictions only)",
+    "support_score_domain_status": "computed per design only when the registration is unambiguous on every scored row (s4: query-system inclusion and missing descriptors; UNSUPPORTED anion clause read 'system when present, else family' vs 'neither system nor family'); otherwise written as not computed with the ambiguous-row counts",
+    "support_tau": "tau_in / tau_ext / tau_max are recomputed per fold by gen19ct.evaluation.support.tau_thresholds and must equal the support_tau written by the fold builder beside the fold hash",
+    "tau_percentiles": "numpy.percentile linear interpolation of the leave-one-row-out condition_distance_pair over training rows whose (state, system) pair has >= 2 training rows; query dimensions missing in the row are skipped, training values imputed as in SupportIndex",
+    "wildcard_copies": "leakage sensitivity (verification finding VL-04), exploratory: scoring filters 'wildcard_copies_excluded_scoring' (a scored row with any leakage.wildcard_copy_pairs partner in its fold's training rows, folds/wildcard_copy_crossings.csv) and 'wildcard_copies_strict_excluded_scoring' (only strict_copy partners), for V5-primary and V1-copy"
+  },
+  "resolved_readings": {
+    "DIR5": "descriptive difficulty number only: section 9 S1(c) is the paired rule on identical pairs (transfer.s1c_half / s1c_paired_verdict); 'same fitted folds' resolved 2026-09-15: B3x / B3i re-fitted on the candidate's batched V5-PAIR folds (transfer.S1C_REGISTERED_FOLD_READING, models.s1c_yardsticks)",
+    "V1_unit_sensitivities": "exploratory: 'remainder_fold_excluded_scoring' (the remainder fold's rows are not scored) under the registered unit; the as-run 'remainder_fold_as_one_unit' filter IS the registered reading now and is not printed separately (difficulty_resolved.json checks the equality)",
+    "V1_units": "section 3.2 resolution: the registered V1 scoring unit is the OUTER FOLD (each single-group fold one unit, the pooled remainder fold one unit; metrics.v1_scoring_units via design_logd_summary / design_interval_summary / design_per_unit_table, clusters via design_unit_clusters: the remainder fold is one publication-group cluster); the per-publication-group reading (the as-run unit) is printed beside it with status exploratory (column unit_reading)",
+    "conformal_seed": "section 15 resolution registers the mean over the 5 discovery seeds for the deterministic arms' intervals in discovery; the pre-seal intervals stay single-seed (104729; V0 its fold seed) and descriptive",
+    "scoring_filter_status": "status of a scoring-filter row = transfer.sensitivity_status of the design's registry (transfer.SCORING_FILTER_OF_SENSITIVITY maps the filter label to its sensitivity); V0 has no R19 registry and keeps the as-run rule (censoring and acid-grid filters registered)",
+    "support_score_domain_status": "section 13 s4 resolution: support_score is computed on every support job with support.s4_registered (the query's own system counts when it has training rows of the query's metal state; undefined d_desc skipped), through scripts/g19_update_support_preseal.apply_support_update; domain_status as before",
+    "wildcard_copies": "section 2 resolution: 'wildcard_copies_excluded_scoring' (any partner) is a registered R19 item 6 sensitivity of V1 and V5, and of V5-P and V5-PAIR by the section 8 R19 item 6 resolution of 2026-09-15 (transfer.sensitivity_status); the strict-partner filter stays exploratory"
+  },
+  "schema": "gen19.manifest.v1",
+  "script": "g19_run_preseal",
+  "seed": null,
+  "support_update": {
+    "as_run_status_equals_update_manifest_pre_update_sha256": true,
+    "as_run_status_sha256_rendered": {
+      "generations/gen19_chem_transfer/evaluation/preseal/domain_status_counts.csv": "72104bfe0490bc2af18e7a10fbfabef819d285b980ddf4a8aeeae1d3b040d2fd",
+      "generations/gen19_chem_transfer/evaluation/preseal/support_status.json": "33bcd453d855796329ff0d439a1c83e2c95ad2b18f7b62a3041661cc2348cbb0"
+    },
+    "checks": {
+      "V0__rows": {
+        "max_abs_s4_difference": 0.0,
+        "max_abs_support_score_difference": 0.0,
+        "n_folds": 25,
+        "n_rows": 52875,
+        "n_rows_query_system_counts_in_s4": 48448,
+        "n_rows_s4_changed_by_query_system_inclusion": 34254,
+        "n_rows_support_score_changed": 0,
+        "query_system_flags_equal_preseal_ambiguity_flags": true,
+        "s4_recomputed_equals_preseal_s4": true,
+        "support_score_equals_preseal_candidate": true,
+        "support_score_nonfinite_rows": 0,
+        "support_score_summary": {
+          "max": 0.9903895432983294,
+          "mean": 0.7455066383034953,
+          "median": 0.7669292618940424,
+          "min": 0.08221000280137082
+        }
+      },
+      "V1__copy": {
+        "max_abs_s4_difference": 0.0,
+        "max_abs_support_score_difference": 0.0,
+        "n_folds": 83,
+        "n_rows": 10575,
+        "n_rows_query_system_counts_in_s4": 5813,
+        "n_rows_s4_changed_by_query_system_inclusion": 3572,
+        "n_rows_support_score_changed": 0,
+        "query_system_flags_equal_preseal_ambiguity_flags": true,
+        "s4_recomputed_equals_preseal_s4": true,
+        "support_score_equals_preseal_candidate": true,
+        "support_score_nonfinite_rows": 0,
+        "support_score_summary": {
+          "max": 0.9903895432983294,
+          "mean": 0.5374163076826216,
+          "median": 0.5588653252759324,
+          "min": 0.0625
+        }
+      },
+      "V2__element": {
+        "max_abs_s4_difference": 0.0,
+        "max_abs_support_score_difference": 0.0,
+        "n_folds": 23,
+        "n_rows": 10146,
+        "n_rows_query_system_counts_in_s4": 0,
+        "n_rows_s4_changed_by_query_system_inclusion": 0,
+        "n_rows_support_score_changed": 0,
+        "query_system_flags_equal_preseal_ambiguity_flags": true,
+        "s4_recomputed_equals_preseal_s4": true,
+        "support_score_equals_preseal_candidate": true,
+        "support_score_nonfinite_rows": 0,
+        "support_score_summary": {
+          "max": 0.6153895432983294,
+          "mean": 0.4190423200587736,
+          "median": 0.47070175637275524,
+          "min": 0.028558872633068767
+        }
+      },
+      "V5__primary": {
+        "max_abs_s4_difference": 0.0,
+        "max_abs_support_score_difference": 0.0,
+        "n_folds": 210,
+        "n_rows": 6823,
+        "n_rows_query_system_counts_in_s4": 0,
+        "n_rows_s4_changed_by_query_system_inclusion": 0,
+        "n_rows_support_score_changed": 0,
+        "query_system_flags_equal_preseal_ambiguity_flags": true,
+        "s4_recomputed_equals_preseal_s4": true,
+        "support_score_equals_preseal_candidate": true,
+        "support_score_nonfinite_rows": 0,
+        "support_score_summary": {
+          "max": 0.8653895432983294,
+          "mean": 0.6739941668812109,
+          "median": 0.6878970868021534,
+          "min": 0.2567230722133712
+        }
+      }
+    },
+    "function": "scripts/g19_update_support_preseal.py apply_support_update",
+    "jobs": [
+      "V5__primary",
+      "V1__copy",
+      "V0__rows",
+      "V2__element"
+    ],
+    "s4_reading": {
+      "candidates": "training systems with >= 1 training row of the query's metal state",
+      "missing_descriptor": "a system with an undefined d_desc (or an undefined fingerprint) is skipped: undefined similarity is no support",
+      "query_system": "the query's own system counts when it has training rows of the query's metal state (legitimate in-domain support; under V5 the hidden cell has none, so it never counts there)"
+    }
+  },
+  "tables_only_rebuild": {
+    "compute_run": {
+      "arguments": {
+        "jobs": "V5__primary,V1__copy,V0__rows,V2__element,V5PAIR__primary,V5P__base,V5__loose,V5__hno3_only,V5__cell_only,V5__parent_structure,V5__sr_iii_dropped_training,V5__strict,V1__near_duplicate_key,V1__compilation_doi,V1__sr_iii_dropped_training,V2__state,V2__sr_iii_dropped_training",
+        "max_folds": 0,
+        "no_manifest": false,
+        "out_root": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer",
+        "skip_compute": false,
+        "verify_inner_guard_folds": 6,
+        "workers": 2
+      },
+      "code_sha256": {
+        "generations/gen19_chem_transfer/gen19ct/chemistry/support_graph.py": "65b6f17c59b227d7a577b2c0a3b06fd736584ccdcee8f6a687ff3b63522e414f",
+        "generations/gen19_chem_transfer/gen19ct/data/leakage.py": "f9a65a3aa38dc515b12cef5d485ddba2940548b242cdc75d1e88062d377d0a53",
+        "generations/gen19_chem_transfer/gen19ct/evaluation/calibration.py": "7f8d81a457636233721b05f1524f6ca3c1e48b6799b6375a7c3e23c443a3f17f",
+        "generations/gen19_chem_transfer/gen19ct/evaluation/metrics.py": "c599d1944f1159b36370744d1289ea5de9d458820ec40d21bf237004a5cf2cee",
+        "generations/gen19_chem_transfer/gen19ct/evaluation/pairs.py": "848016ab90755d65023f4404c99aca643abca4f595a18449dd71173f9af2bd67",
+        "generations/gen19_chem_transfer/gen19ct/evaluation/support.py": "c5acb8ab5a3e2e2eed2f5c3de923289450ee673e81e333148881f7acad1e33a0",
+        "generations/gen19_chem_transfer/gen19ct/evaluation/transfer.py": "dea0739d24bae9bd9b9388993a8d0bdc082a483a8357e9ac846f814ac426d596",
+        "generations/gen19_chem_transfer/gen19ct/folds/cell_holdout.py": "b44741fefac6765eef4be5c49f3e5f43346c27e9df30d957e31e057db97a2091",
+        "generations/gen19_chem_transfer/gen19ct/folds/io.py": "43e12e74c6daf466a9cf78914751ae74ab4aff60036116fe1d0efd34b15f9dfc",
+        "generations/gen19_chem_transfer/gen19ct/folds/metal_holdout.py": "068a40fbc5dba9bf021eb1ad7e833c9238bf1940154ec4b77f114e987e01c121",
+        "generations/gen19_chem_transfer/gen19ct/folds/source_holdout.py": "db5c325f1271c74f20a281716a0441ebdff91def5ec8c20d11811f715349720a",
+        "generations/gen19_chem_transfer/gen19ct/models/baselines.py": "3e9338d2dcfa603cd2d6ea22b9074928e775a513299c975f259ded03e93405eb",
+        "generations/gen19_chem_transfer/gen19ct/models/interface.py": "a4ae57819ec855ef34cdf54cb82c89ae09da70dab6f10d37534b79e21c65833a",
+        "generations/gen19_chem_transfer/gen19ct/models/mass_action.py": "a9172b955fca9a2a36484b8f3b2d17bb33bb65a524ec055216783095efd183ae",
+        "generations/gen19_chem_transfer/scripts/g19_run_preseal.py": "dc632271f08f3363a0a3f4c04344e694d2a14ef1db6197cd04656c9ac883c0b0"
+      },
+      "git_head": "40f6a75047275de8f690d61391935df4f916e226",
+      "tables_sha256": {
+        "generations/gen19_chem_transfer/tables/preseal_contrasts.csv": "e493d84c910192fa21f5f765faeefeb75dd3b3bc112d740960407a6347faee30",
+        "generations/gen19_chem_transfer/tables/preseal_coverage_by_domain_status.csv": "fca6226be613bc6f2bc0dfd832721841eb803e7ede1b5e40c661f719fb2e4807",
+        "generations/gen19_chem_transfer/tables/preseal_fallback_counts.csv": "184d5b910fccf3b7e3f7a0cb6e5f437bde7abc378e665efef14a93a45038fda1",
+        "generations/gen19_chem_transfer/tables/preseal_pair_summary.csv": "4fcad590035cdb8020c27564e20cdbd4c15e247307664c26aa0365e60ab8452a",
+        "generations/gen19_chem_transfer/tables/preseal_summary.csv": "70f519fc37b73b1ee31123b1e13f26c0f4d126c4986f4cb02d9c05296bd28c6f",
+        "generations/gen19_chem_transfer/tables/preseal_summary.md": "6c71426097a100113fae377623c4eba7f9580c45038d903fe4afbb78b759596a"
+      }
+    },
+    "n_non_table_outputs_checked_against_replaced_manifest": 52,
+    "other_outputs_rerendered_byte_identical_not_rewritten": [
+      "generations/gen19_chem_transfer/evaluation/preseal/difficulty.json",
+      "generations/gen19_chem_transfer/evaluation/preseal/difficulty_resolved.json",
+      "generations/gen19_chem_transfer/evaluation/preseal/domain_status_counts.csv",
+      "generations/gen19_chem_transfer/evaluation/preseal/pairs/V5PAIR__primary__cell_pairs.csv",
+      "generations/gen19_chem_transfer/evaluation/preseal/run_checks.json",
+      "generations/gen19_chem_transfer/evaluation/preseal/support/V0__rows__support_score.parquet",
+      "generations/gen19_chem_transfer/evaluation/preseal/support/V1__copy__support_score.parquet",
+      "generations/gen19_chem_transfer/evaluation/preseal/support/V2__element__support_score.parquet",
+      "generations/gen19_chem_transfer/evaluation/preseal/support/V5__primary__cell_support_error_selection.csv",
+      "generations/gen19_chem_transfer/evaluation/preseal/support/V5__primary__support_score.parquet",
+      "generations/gen19_chem_transfer/evaluation/preseal/support_status.json",
+      "generations/gen19_chem_transfer/evaluation/preseal/units/V0__rows__units.csv",
+      "generations/gen19_chem_transfer/evaluation/preseal/units/V1__compilation_doi__units.csv",
+      "generations/gen19_chem_transfer/evaluation/preseal/units/V1__copy__units.csv",
+      "generations/gen19_chem_transfer/evaluation/preseal/units/V1__near_duplicate_key__units.csv",
+      "generations/gen19_chem_transfer/evaluation/preseal/units/V1__sr_iii_dropped_training__units.csv",
+      "generations/gen19_chem_transfer/evaluation/preseal/units/V2__element__units.csv",
+      "generations/gen19_chem_transfer/evaluation/preseal/units/V2__sr_iii_dropped_training__units.csv",
+      "generations/gen19_chem_transfer/evaluation/preseal/units/V2__state__units.csv",
+      "generations/gen19_chem_transfer/evaluation/preseal/units/V5P__base__units.csv",
+      "generations/gen19_chem_transfer/evaluation/preseal/units/V5__cell_only__units.csv",
+      "generations/gen19_chem_transfer/evaluation/preseal/units/V5__hno3_only__units.csv",
+      "generations/gen19_chem_transfer/evaluation/preseal/units/V5__loose__units.csv",
+      "generations/gen19_chem_transfer/evaluation/preseal/units/V5__parent_structure__units.csv",
+      "generations/gen19_chem_transfer/evaluation/preseal/units/V5__primary__units.csv",
+      "generations/gen19_chem_transfer/evaluation/preseal/units/V5__sr_iii_dropped_training__units.csv",
+      "generations/gen19_chem_transfer/evaluation/preseal/units/V5__strict__units.csv",
+      "generations/gen19_chem_transfer/figures/F07_preseal_pred_vs_measured.png",
+      "generations/gen19_chem_transfer/figures/F08_preseal_error_vs_support.png"
+    ],
+    "rule": "tables/ rebuilt from the stored evaluation/preseal prediction and support files; no fold was fitted; every non-table output matched the replaced manifest, re-rendered byte-identical, and was not rewritten; only tables whose bytes changed were written",
+    "tables_byte_identical_not_rewritten": [
+      "generations/gen19_chem_transfer/tables/preseal_contrasts.csv",
+      "generations/gen19_chem_transfer/tables/preseal_coverage_by_domain_status.csv",
+      "generations/gen19_chem_transfer/tables/preseal_fallback_counts.csv",
+      "generations/gen19_chem_transfer/tables/preseal_pair_summary.csv",
+      "generations/gen19_chem_transfer/tables/preseal_summary.csv",
+      "generations/gen19_chem_transfer/tables/preseal_summary.md"
+    ],
+    "tables_differing_from_compute_run": [
+      "generations/gen19_chem_transfer/tables/preseal_contrasts.csv",
+      "generations/gen19_chem_transfer/tables/preseal_pair_summary.csv",
+      "generations/gen19_chem_transfer/tables/preseal_summary.csv",
+      "generations/gen19_chem_transfer/tables/preseal_summary.md"
+    ],
+    "tables_rewritten": []
+  }
+}
