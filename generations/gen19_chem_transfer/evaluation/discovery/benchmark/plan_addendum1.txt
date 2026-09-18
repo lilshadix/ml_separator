@@ -1,5 +1,5 @@
 # gen19 discovery plan under POST-HOC addendum 1 (scripts/g19_run_discovery.py --dry-run); seeds [104729]
-# 14 fit jobs, 562 outer folds, 9 markers (what is NOT run, named)
+# 20 fit jobs, 785 outer folds, 8 markers (what is NOT run, named)
             00_safeguard | safeguard            | safeguard:V5__primary__exact                                 | folds=20 | section 2 resolution: every_split vs nested_certificate on the registered sample, once at the start of discovery
             00_safeguard | safeguard            | safeguard:V5__primary__batched                               | folds=20 | section 2 resolution: every_split vs nested_certificate on the registered sample, once at the start of discovery
             00_safeguard | safeguard            | safeguard:V5__cell_only__batched                             | folds=20 | section 2 resolution: every_split vs nested_certificate on the registered sample, once at the start of discovery
@@ -15,14 +15,19 @@
                    01_B6 | fit                  | fit:B6:V1__copy_exact:s104729                                | folds=39 | section 3.2 registered ten-fold-vs-exact check
                    01_B6 | fit                  | fit:B6:V1__copy_grouped10:s104729                            | folds=10 | section 3.2 registered ten-fold-vs-exact check
                    01_B6 | fit                  | fit:B6:V2__element_exact:s104729                             | folds=12 | reference arm (section 11 H3 references; descriptive)
+                   01_B6 | fit                  | fit:B6:V5__primary_batched_max4:s104729                      | folds=28 | the repeated batched-vs-exact check with <= 4 cells per batch
  02_comparator_intervals | marker               | marker:comparator_intervals                                  |  | section 15 resolution as amended by addendum 1 item 3: every learned comparison is on seed 104729, so the deterministic comparators' conformal intervals are the seed-104729 ones of the pre-seal run on every design (the resolution's parenthesis), and no comparator-interval job is run in discovery; the point predictions were never seed-dependent. At confirmation they are drawn with each withheld seed and averaged, unchanged
+       03_B5_FLAT_CAT_B8 | fit                  | fit:B5:V1__copy_exact:s104729                                | folds=39 | M0 = B5: ladder base, H4 M2 - M0
        03_B5_FLAT_CAT_B8 | fit                  | fit:B5:V2__element_exact:s104729                             | folds=12 | M0 = B5: ladder base, H4 M2 - M0
+       03_B5_FLAT_CAT_B8 | fit                  | fit:FLAT_CAT:V1__copy_exact:s104729                          | folds=39 | H4 M2 - FLAT_CAT
        03_B5_FLAT_CAT_B8 | fit                  | fit:FLAT_CAT:V2__element_exact:s104729                       | folds=12 | H4 M2 - FLAT_CAT
+       03_B5_FLAT_CAT_B8 | fit                  | fit:B8:V1__copy_exact:s104729                                | folds=39 | section 5 previous-generation baseline
        03_B5_FLAT_CAT_B8 | fit                  | fit:B8:V2__element_exact:s104729                             | folds=12 | section 5 previous-generation baseline
+                   04_M1 | fit                  | fit:M1:V1__copy_exact:s104729                                | folds=39 | ladder step M1 vs M0; M2's per-fold M1 values
                    04_M1 | fit                  | fit:M1:V2__element_exact:s104729                             | folds=12 | ladder step M1 vs M0; M2's per-fold M1 values
+                   05_M2 | fit                  | fit:M2:V1__copy_exact:s104729                                | folds=39 | H1 primary; S1(a), S1(b); H4; ladder step M2
                    05_M2 | fit                  | fit:M2:V2__element_exact:s104729                             | folds=12 | H1 primary; S1(a), S1(b); H4; ladder step M2
-       03_B5_FLAT_CAT_B8 | marker               | marker:blocked:heavy-arm V5 jobs wait for the B6 batched-vs-exact check (state 'pending') |  | heavy-arm V5 jobs wait for the B6 batched-vs-exact check (state 'pending')
-       03_B5_FLAT_CAT_B8 | marker               | marker:blocked:heavy-arm V1 jobs wait for the B6 ten-fold check (state 'pending') |  | heavy-arm V1 jobs wait for the B6 ten-fold check (state 'pending')
+       03_B5_FLAT_CAT_B8 | marker               | marker:blocked:heavy-arm V5 jobs wait for the B6 batched-vs-exact check (state 'recolour') |  | heavy-arm V5 jobs wait for the B6 batched-vs-exact check (state 'recolour')
                    05_M2 | marker               | marker:not_run:other_seeds                                   |  | addendum 1 item 3: the pass over the discovery seeds 130363, 155921, 196613 and 262147 is NOT run; every learned arm runs seed 104729 only and R19 item 4 is NOT_EVALUATED in discovery (it is unchanged and required at confirmation)
             06_stop_rule | marker               | marker:stop_rule                                             |  | section 7 item 4 stop rule: evaluated by scripts/g19_score_discovery.py (decisions/stop_rule.json) on seed 104729, R19 items 1-3 and 5 of M2 and B6 vs B3i
            07_s1c_v5pair | fit                  | fit:M1:V5PAIR__primary_batched:s104729                       | folds=87 | M2 on V5-PAIR needs M1's per-fold values

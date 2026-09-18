@@ -22,6 +22,7 @@ under [Conventions](#conventions).
 | C — baselines B0–B8 on V1/V2/V5 | not started as a scored run: the closed-form pre-seal baselines exist; the learned arms (B5, B6/B6r0, B8, FLAT_CAT, M0–M2) are **built and planned, not run** |
 | discovery runner | built: `scripts/g19_run_discovery.py` (plan, seal gate, resumable per-fold records, cost model) and `scripts/g19_score_discovery.py` (R19, stop rule, ladder, S1 components) implement the sealed §7 plan **as amended by POST-HOC addendum 1**. The seal gate pins the footer digest, the addendum count AND the addendum text (`discovery.REGISTERED_ADDENDA_SHA256`), and every fold record's resume digest carries the addendum digest and the resolved inner design. `--dry-run` writes the job plan to `evaluation/discovery/benchmark/plan_addendum1.txt`. The addendum-1 cost estimate (`--benchmark-addendum1`, fit-only timings on the TRAINING rows of one V5-primary batched fold, no test row predicted) is **measured**: `cost_estimate_addendum1.{json,md}` price the plan at **90.2 CPU-h, 45.1 h wall clock on 2 workers against the 60 h budget -> FITS** (sealed plan: 1535.7 CPU-h / 767.9 h wall); cumulative wall-clock checkpoints by stage: 00_safeguard 0.2 h; 01_B6 0.5 h; 03_B5_FLAT_CAT_B8 15.4 h; 04_M1 17.9 h; 05_M2 19.0 h; 07_s1c_v5pair 27.6 h; 08_refit_sensitivities 45.1 h. Conditional runs (V5-P per heavy arm, further V5-PAIR candidates, the B6 re-colouring) are priced separately and are not in the total. The estimate is ideal wall clock (compute / workers) from single-fold timings |
 | D–H — models, uncertainty, process | not started |
+| report, figures 7–13 | built, not run (both runners refuse until the discovery run is COMPLETE): `scripts/g19_make_figures.py` + `gen19ct/evaluation/figures.py` (brief §25 items 7–13) and `scripts/g19_build_report.py` + `gen19ct/evaluation/report.py` (`GEN19_REPORT.md`, `SUMMARY.md`, `decisions/D02_factorization.md`, `tables/claims.json`; brief §20, §22, §29, §34; pre-registration §9, §10, §15–§17, §19). Everything is generated from files: every printed number cites a path and a key (`tables/report_numbers.csv`) and is re-resolved from that source after writing; an absent input prints `not computed (input missing: <path>)`. A dry in-memory build on the current tree re-resolves every one of its 65 pre-seal numbers and lists 21 inputs as missing. `tests/test_report.py` (11 tests, synthetic inputs only) |
 
 **No predictive model has been trained or fitted.** `log_D` is read only descriptively: to compare
 values of duplicate and near-duplicate records, to test whether source metadata leaks the target
@@ -71,10 +72,26 @@ gen19ct/       the package (the brief's src/, see Conventions)
                  random_split.py (outer folds and the ONE implementation of each section 7 inner design)
   models/        interface.py (arm protocol, RowTable, split-conformal wrapper and its inner splitters, which
                  take their units from folds/), baselines.py (B0-B4 family), mass_action.py (B7),
-                 s1c_yardsticks.py (B3x / B3i re-fitted on batched V5-PAIR folds for the section 9 S1(c) contrast)
+                 s1c_yardsticks.py (B3x / B3i re-fitted on batched V5-PAIR folds for the section 9 S1(c) contrast),
+                 neural.py (M1 / M2), ladder.py (M3-M7 composed on neural.py: mechanism experts, publication-group
+                 offset, pairwise loss, physics penalties, heteroscedastic 5-member ensemble with normalised
+                 split conformal; nothing in neural.py is edited)
   evaluation/    metrics.py, transfer.py, calibration.py, pairs.py, support.py (section 13 thresholds,
-                 support_score components, domain status)
-  losses/ process/   empty packages reserved for Phases D-H
+                 support_score components, domain status), discovery.py (plan, records, scorer core), h3.py,
+                 power.py, figures.py (brief section 25 figures 7-13 drawn from frames the runner assembles from
+                 files; every figure function returns the input files it used and writes its plotted points to
+                 figures/data/F*.csv; skipped with a logged reason when an input is missing), report.py
+                 (GEN19_REPORT.md, SUMMARY.md, decisions/D02_factorization.md, tables/claims.json GENERATED FROM
+                 FILES through one number ledger: every printed number carries its source path + key in
+                 tables/report_numbers.csv and is re-resolved from that source after writing; a missing input prints
+                 "not computed (input missing: <path>)", never a placeholder)
+  process/       gen18_adapter.py (Gen19 prediction records as a gen18 DModel: PredictionTable, Gen19DModel subclassing
+                 gen18proc.dmodel._ModelBase with analytic partials, ASSUMED-with-range provenance, the support gate),
+                 monte_carlo.py (64 seeded joint D draws through gen18's cascade on one paired LHS design; per
+                 operating-point medians, 5/50/95 %, P(purity), P(recovery), P(both), P(feasible)),
+                 robust_optimize.py (support rank -> P(both & feasible) -> P(feasible) -> consumption -> stages ->
+                 throughput; S2(d) bootstrap stability; F5 audit).  gen18 is imported read-only, never edited
+  losses/        empty package reserved for Phases D-G
 scripts/       g19_build_extractants.py  g19_build_metals.py  g19_audit_leakage.py
                g19_audit_corpus.py  g19_feasibility.py       (Phase A/B steps)
                g19_run_phaseAB.py      runs the five steps in order; --determinism
@@ -83,10 +100,33 @@ scripts/       g19_build_extractants.py  g19_build_metals.py  g19_audit_leakage.
                                        nested-certificate safeguard sample (--merge-index: partial rebuild)
                g19_run_preseal.py      the pre-seal closed-form baseline run (B0-B4, B7, FLAT, HEAVIER, intervals)
                g19_update_support_preseal.py   section 13 s4 update of support_score (also called by g19_run_preseal)
+               g19_run_discovery.py    the sealed section 7 plan as amended by POST-HOC addendum 1 (B6 -> M2)
+               g19_score_discovery.py  selection-half scorer: R19 contrasts, stop rule, ladder M1 / M2, S1 components
+               g19_run_ladder.py       the ladder M3 -> M7 AFTER discovery (refuses until discovery is complete and the
+                                       stop rule is decided); records under evaluation/ladder/, decisions D04 / D05
+               g19_run_process.py      Phase H: the Gen19-fed gen18 process chain for the TODGA Pr/Nd nitrate case
+                                       (refuses until discovery is complete, the stop rule is decided and the
+                                       confirmation run says S1 passed; --exploratory = labelled transfer-unsupported);
+                                       evaluation/process/, figures F14 / F15, decisions/D06
+               g19_make_figures.py     brief section 25 figures 7-13 from the discovery / ladder / power /
+                                       confirmation FILES after discovery (refuses until discovery is COMPLETE and
+                                       the scorer has run): figures/F07-F13, figures/data/*.csv,
+                                       tables/s1e_error_vs_support.csv, evaluation/figures/figures_index.json
+               g19_build_report.py     GEN19_REPORT.md, SUMMARY.md, decisions/D02_factorization.md, tables/claims.json,
+                                       tables/report_numbers.csv from the files (refuses until discovery is COMPLETE);
+                                       exit 3 if any printed number does not re-resolve from its cited source
 tests/         conftest.py, test_load, test_normalize, test_provenance, test_leakage, test_metals,
                test_ligands, test_support_graph, test_seal_prereg, test_manifest,
                test_registered_folds (marker: slow), test_folds, test_baselines, test_metrics,
-               test_transfer_stats, test_inner_designs, test_support, test_resolutions
+               test_transfer_stats, test_inner_designs, test_support, test_resolutions, test_neural,
+               test_discovery_runner, test_ladder (M3-M7 components and the ladder runner's gate, synthetic only),
+               test_process (adapter vs ConstantD, partials vs finite differences, mass balance on every draw,
+               Monte Carlo reproducibility, P(both) arithmetic, UNSUPPORTED never wins, S2(d), the runner's gate;
+               synthetic tables and gen18's test systems only),
+               test_report (the report / figure / D02 generators on synthetic input files shaped like the real
+               writers' outputs: every printed number traceable to a cited file or a sealed-text literal, a removed
+               input becomes "not computed (input missing: ...)", no number is invented when every input is absent,
+               the figures write PNG + data CSV and report their inputs, the two runners' gates refuse)
 descriptors/   metals.csv + metals_sources.md, extractant_components.csv, extractant_systems.csv,
                family_rules.json
 data_audit/    machine-readable Phase A/B tables (CSV/JSON), one family per script:
@@ -96,7 +136,11 @@ data_audit/    machine-readable Phase A/B tables (CSV/JSON), one family per scri
                ligand_alias_collisions / family_coverage / named_extractant_presence (g19_build_extractants)
                feasibility.json / feasibility_* (incl. feasibility_halves.csv)       (g19_feasibility)
 figures/       F01_observation_matrix, F02_density_by_metal, F03_density_by_family,
-               F04_lanthanide_coverage, F05_actinide_coverage, F06_condition_coverage (PNG, dpi 130)
+               F04_lanthanide_coverage, F05_actinide_coverage, F06_condition_coverage (PNG, dpi 130);
+               F07_pred_vs_measured, F08_error_vs_support, F09_uncertainty_calibration, F10_metal_embedding,
+               F11_extractant_embedding, F12_prnd_reconstruction, F13_direction_confusion (g19_make_figures, after
+               discovery; the pre-seal F07 / F08 are F07_preseal_* / F08_preseal_*), F14 / F15 (g19_run_process);
+               data/F*.csv = the plotted points of every generated figure
 manifests/     <script>.json (deterministic), run_info/<script>.json (volatile),
                phaseAB_determinism.json (the two-run byte comparison),
                g19_build_folds_incremental.json (partial fold builds; merge.full_build_link supersedes the full
@@ -105,6 +149,10 @@ folds/         registered outer folds, INDEX.json                               
 evaluation/preseal/  difficulty.json (as-run, quoted by §9), difficulty_resolved.json, support_status.json,
                support/<job>__support_score.parquet; tables/ (preseal_*)  figures F07, F08  (g19_run_preseal)
 models/ process/   empty output directories for later phases
+evaluation/figures/  figures_index.json (which figure was written or skipped, why, from which files)  (g19_make_figures)
+evaluation/report/   report_inputs.json (every input the report read: exists / missing)                (g19_build_report)
+GEN19_REPORT.md  SUMMARY.md  tables/claims.json  tables/report_numbers.csv  tables/report_numbers_verification.csv
+               generated by g19_build_report after discovery (not yet written: discovery is running)
 ```
 
 Empty directories are not tracked by git. No Phase A/B output is larger than 5 MB (the largest is
@@ -240,6 +288,161 @@ loose / cell-only / parent-structure / Sr(III)-dropped V5 refits, the heavy-arm 
 V1 / V2 refit sensitivities and the comparator-interval jobs — is emitted as a `marker` job naming
 it, so nothing is a silent absence. The 60-hour budget and its demotion order (M7 → M3 only) are
 unchanged; exhausting it demotes nothing else.
+
+**Ladder M3 -> M7** (`scripts/g19_run_ladder.py`; pre-registration section 6 ladder rows M3-M7 and the
+M-model training settings, section 7 items 3-6, section 12, addendum 1). Runs only after discovery: the gate
+requires `g19_seal_prereg.py --check` with the registered digests, a COMPLETE discovery run (the progress
+ledger `manifests/run_info/g19_run_discovery_progress.json` lists the final-stage marker `M3+ not implemented`
+without job errors, `evaluation/discovery/records_index.csv` exists, and every `fit` job of the current plan
+has a current record with steps `point` + `intervals` for every fittable fold), the scorer's
+`evaluation/discovery/decisions/stop_rule.json` with `stop` in {true, false} and `decisions.json` -> `ladder`
+with boolean `kept` for M1 and M2. `--check-only` prints the gate verdict.
+
+```
+.venv/Scripts/python.exe generations/gen19_chem_transfer/scripts/g19_run_ladder.py --check-only
+.venv/Scripts/python.exe generations/gen19_chem_transfer/scripts/g19_run_ladder.py --workers 2
+```
+
+Steps run in section 7 item 3 order on the seed-104729 main designs discovery gave M2 (identical JobSpecs with
+the arm renamed), each searching only its own hyperparameter with the outer fold's retained predecessor values
+fixed (M3 none; M4 tau in {0.1, 0.3, 1.0}; M5 lambda_pair in {0.3, 1}; M6 lambda_phys in {0.1, 1}; M7 none);
+after each step the section 6 keep / remove rule is evaluated with the scorer's R19 machinery (ladder scope on
+V5-primary, TOST epsilon 0.05 on V1 / V2, selection half, seed 104729) and a removed step is skipped by the next
+step's chain; an UNDECIDED step (a design frame missing) stops the ladder with status `undecided` -- nothing builds
+past it until the input is resolved (task X finding V-05). Under the stop rule M3-M6 are `exploratory_not_run` and
+only M7 runs. The 60 h budget counts the discovery wall clock; on exhaustion the remaining steps are demoted (M7 -> M3).
+After the H5 block, M3's strict / HNO3-only refit frames are consumed: the H4 / H5 / ladder rows of `M3 vs M2` are
+re-evaluated, `contrasts_M3.csv` rewritten and the earlier rows kept as `contrasts_M3_before_refits.csv` (finding
+V-04). The M6 physics terms record whether they acted on any row (`hinge_active`, `smoothness_active` in every fit
+record); an M6 decision or an H5 M6a / M6b toggle whose term acted on no fold is labelled `vacuous`, never read as a
+component on / off comparison (finding VL2-07). The gate's file checks (ledger marker, `records_index.csv`, the
+decision files) run before the corpus is loaded (finding VL2-04). Outputs: `evaluation/ladder/<arm>/...`
+records in the discovery schema, `evaluation/ladder/decisions/ladder.json` + `contrasts_<step>.csv`,
+`evaluation/ladder/M7/metrics.json` (coverage 50 / 80 / 95, width, CRPS, Spearman(|error|, SD), coverage by
+domain status, S1(d), F3, "knows when it does not know"), `tables/ladder_decisions.csv`,
+`decisions/D04_mechanism_experts.md`, `decisions/D05_uncertainty.md`. Every number is selection-half,
+optimistically biased and never confirmed.
+
+**Phase H process integration** (`scripts/g19_run_process.py`; pre-registration section 14 in full, section 13
+domain status, section 9 S2(d), section 10 F5; brief sections 1.6, 17-19, 25 items 14-15, 27, 29). The gen18 cascade
+solver is not rewritten: `gen19ct/process/gen18_adapter.py` subclasses `gen18proc.dmodel._ModelBase` so that
+`solve_cascade` uses the Gen19 D source through the same vectorised `core()` as gen18's own models, with analytic
+partials (bilinear table interpolation in log acid, gen18's ideal depletion term in the free ligand). gen18's
+`ProvStatus` has no model-predicted value, so Gen19 predictions enter as `ASSUMED` with `ASSUMED_PLACEHOLDER`, a
+declared range (the table-wide 95 % interval of log D), `source.kind = "model"` and a `MODEL_DERIVED` note; every
+Gen19-side record carries `model_derived = True`. The gate requires `g19_seal_prereg.py --check` with the registered
+digests, a COMPLETE discovery run (progress-ledger marker `M3+ not implemented` without job errors,
+`records_index.csv`, `wall_clock.json` at the final stage, and `h3.discovery_complete`'s verified record sets), the
+scorer's `stop_rule.json` with `stop` decided (`stop = true` refuses: "H7 not run"), and the confirmation run's
+`evaluation/confirmation/decisions/confirmation.json` (schema `gen19.confirmation.v1`, keys `S1.passed`,
+`S1.deployed_predictor`, `S2.passed`, `V6.run`, `seeds.verified`) saying `S1.passed = true`; `S1.passed = false`
+refuses always; a missing decision refuses unless `--exploratory`, and unless S1, S2 and V6 all hold every output is
+labelled `transfer-unsupported` (never a headline). `--check-only` prints the gate verdict.
+
+```
+.venv/Scripts/python.exe generations/gen19_chem_transfer/scripts/g19_run_process.py --check-only
+.venv/Scripts/python.exe generations/gen19_chem_transfer/scripts/g19_run_process.py            # 64 draws x 1000 LHS points
+.venv/Scripts/python.exe generations/gen19_chem_transfer/scripts/g19_run_process.py --exploratory --draws 64 --n-lhs 1000
+.venv/Scripts/python.exe generations/gen19_chem_transfer/scripts/g19_run_process.py --decision-only   # D06 from the files
+```
+
+Inputs (`evaluation/process/inputs/`): `todga_prnd_predictions.csv`, the deployed predictor's Gen19 prediction records
+for Pr and Nd on a (log acid, log ligand) grid (`gen18_adapter.PREDICTION_COLUMNS`; when absent the runner writes the
+exact conditions to predict to `todga_prnd_prediction_request.csv` and refuses), and `prnd_residual_correlation.json`
+(`{"rho": r, "n_pairs": n, "source": ...}`, the section 14 Pr/Nd residual correlation from inner-fold comparable-pair
+residuals; required in registered mode). The case is section 14's: system `sys_5cb78e5000d40860` (TODGA / nitrate /
+aliphatic), feed `gen18 cases/todga_prnd_feed.json`, spec grid `gen18 cases/prnd_spec.json` (purity {0.95, 0.97, 0.99} x
+recovery {0.80, 0.85, 0.90}; every value an assumed placeholder), design space `gen18 config/design_spaces.json`
+(diglycolamide family, the entry's `TODGA|20-30C` intervals, saponification / complexant / salting anion / dilution /
+bleed fixed at 0) intersected with the prediction table's supported box. Monte Carlo: 64 joint draws, each section
+14's "one ensemble member plus a residual drawn from the calibrated conformal scale": the prediction record carries the
+M7 member means `member_logD_0..4` and the calibrated normalised-conformal multiplier `conformal_q95` (columns of the
+request file the deployment step must fill); one member per draw, shared by Pr and Nd, plus one Gaussian residual per
+metal with scale `std_logD * conformal_q95 / 1.96` (common over the grid, Pr / Nd correlated with `rho` through a
+Gaussian copula). A table without member columns is refused in registered mode; `--exploratory` falls back to the
+truncated Gaussian on the record, flagged (`draw_mode`; task X finding V-07). Each draw goes through
+`optimize.lhs_pareto` with the SAME LHS seed (paired candidates); per operating point median and 5/50/95 % purity and
+recovery, P(purity >= t), P(recovery >= t), P(both), P(both & feasible), P(phase / loading constraints: no
+`THIRD_PHASE_RISK`, `LOADING_CAP_HIT`, `HIGH_LOADING`), consumption, stages, throughput. Objective per spec cell, the
+sealed order: support rank (any UNSUPPORTED or outside-table prediction = ineligible; CONDITION_ / FAMILY_EXTRAPOLATION
+ranks below clean) -> P(both targets) -> P(feasible) -> consumption -> stages -> throughput; the joint P(both & feasible)
+is printed beside and does not rank (finding V-06). A recipe whose D-source usage was not tracked (`statuses_used`
+absent or empty for a converged candidate) is refused, never ranked as clean (finding VL2-03). Checks: S2(d) (20
+bootstrap re-rankings of the draws, seed 19, top recipe kept
+= stage counts +- 1 and O/A within 10 %, pass >= 0.80), F5(i) (an UNSUPPORTED winner is an `AssertionError`), F5(ii)
+(barred UNSUPPORTED + CONDITION_EXTRAPOLATION vs allowed, per cell; the allowed variant is a second run with
+`allow_unsupported=True` when the table carries UNSUPPORTED cells), the gate-lifted re-ranking. Outputs:
+`evaluation/process/` (`process_table.csv` byte-identical for the same seed, `operating_points.csv`, `rankings.csv`,
+`winners.csv`, `stability.json`, `f5.json`, `summary.json`, `inputs_used.json`), `tables/process_*.csv`, figures
+`F14_process_pareto_uncertainty.png` and `F15_probability_of_specification_map.png`,
+`decisions/D06_process_integration.md`, `manifests/g19_run_process.json` (its own code digests and the digests of
+the gen18 files it imports). Readings that are not literally in section 14 are listed in
+`g19_run_process.REGISTRATION_READINGS` and written to `summary.json` -> `readings`. **Nothing has run**: no
+confirmation decision, prediction table or correlation file exists yet.
+
+**Order of the post-discovery steps** (each runner refuses to start unless `g19_seal_prereg.py --check` exits 0
+with the registered digests and the discovery run is COMPLETE — `h3.discovery_complete`: `wall_clock.json` reached
+stage `10_not_implemented`, every stage of the current plan done, every `fit` job's record set verified against the
+digests the current code, fold files and plan state produce; the scorer's decision files gate the steps that read
+them):
+
+1. `g19_score_discovery.py` — selection-half R19 contrasts, stop rule, ladder M1 / M2, S1 components, freezing screen
+   (`evaluation/discovery/contrasts_*.csv`, `decisions/decisions.json`, `stop_rule.json`);
+2. `g19_run_ladder.py` — M3 → M7 under the stop rule (`evaluation/ladder/`, D04, D05). **Required by steps 3, 4 and 7**:
+   the configuration deployed for lanthanide prediction is section 11's "retained ladder configuration", read by
+   `h3.deployed_configuration` from `evaluation/ladder/decisions/ladder.json` (highest kept step M7 > … > M3, from a
+   registered — not stop-rule — run) before the scorer's M2 / M1, the stop rule and B3i; the H3, figure and report
+   runners refuse until every step M3–M7 is in a done / skipped status (`h3.ladder_complete`; task X finding V-01);
+3. `g19_run_h3.py` — the section 11 actinide ablation and F4 (`evaluation/h3/`, D03); a deployed ladder step is refitted
+   with `h3.FrozenLadder` at its ladder record's configuration, epochs and seeds (M7: members + normalised conformal); a
+   closed-form comparator is fitted on the exact leave-one-cell-out folds as in discovery (finding V-03); a refit whose
+   inner folds differ from the WITH record's is recorded `not_calibrated_inner_folds_differ_from_the_with_record`
+   (finding VL2-05);
+4. `g19_run_power.py` — the section 8 signal-injection power check for every failed H1 / H1b / H3 contrast (the
+   closed-form comparator on the exact folds, both arms asserted to score the un-injected rows; finding V-03) and the
+   reliability-before-correlation report, per unit: split-half of the unit's own publication groups where it has ≥ 4,
+   the delete-one-publication jackknife for 2–3 groups, single-group units counted, the quantity's reliability the
+   minimum over the computed branches (finding V-02); no `V6_TARGET_ROWS` row is read and the observed-logSF amplitude
+   uses the selection half only (finding VL2-06) (`evaluation/power/`, `tables/power_kappa.csv`,
+   `tables/reliability_before_correlation.csv`);
+5. **confirmation (orchestrator, section 15)** — the ≤ 5 frozen claims on the withheld seeds and V6 once; writes
+   `evaluation/confirmation/decisions/confirmation.json` (schema `gen19.confirmation.v1`) and, for the report and
+   figure 12, the V6 tables (`evaluation/confirmation/v6_rows.csv`, `v6_pairs.csv`, `v6_systems.csv`) — no builder runs
+   this step;
+6. `g19_run_process.py` — Phase H (gated by the confirmation decision; `evaluation/process/`, F14 / F15, D06);
+7. `g19_make_figures.py` then `g19_build_report.py` — figures 7–13, `GEN19_REPORT.md`, `SUMMARY.md`, D02,
+   `tables/claims.json`; both require the ladder (step 2) and print every later step as `not computed (input missing:
+   ...)` / `not run`. Every runner's first gate is the cheap `wall_clock.json` check (`h3.refuse_unless_cheap_complete`),
+   before the feasibility frame or the corpus is loaded (finding VL2-04).
+
+**Figures 7–13 and the report** (`scripts/g19_make_figures.py`, `scripts/g19_build_report.py`; `--check-only` prints
+each gate). The figure runner assembles frames through the scorer's verified `Store` (stale records raise) for the
+deployed predictor (`h3.deployed_configuration` on `decisions.json`) and the V5 lookup comparator B3i: F07 predicted
+vs measured under V5 / V1 / V2, F08 cell error vs `support_score` per domain-status category with the S1(e) statistic
+(Spearman, system-cluster bootstrap 10,000 × seed 19) written to `tables/s1e_error_vs_support.csv`, F09 the
+reliability diagram by design and coverage by domain status, F10 / F11 the learned embeddings (from
+`evaluation/power/embeddings/*.csv`, which nothing writes yet — skipped with the reason until `g19_run_power.py
+--include-learned` is implemented), F12 the V6 Pr / Nd reconstruction from the confirmation files only, F13 the
+direction confusion matrices on the V5-PAIR pairs (from the verified M2 record + the pairs parquet) and the V6 pairs, one
+panel per (design, threshold): |logSF| >= 0.3 on every design (the registered primary reading) plus the additional
+>= 0.1 reading on V6 only, flagged `registered_primary` in `figures/data/F13_direction_confusion.csv` (finding V-08).
+The report answers the ten questions of brief §34 in order (one sentence first — "Under deliberately hidden
+chemistry, the system can / cannot / has not been shown to …" — then the evidence with regime columns: design, half,
+seeds, averaging unit, parameter status; both comparators — the constant baseline B0 and the cheapest sensible
+alternative B3i, gen13 Addendum 3; the FLAT floor for logSF; R19 verdicts with BH-adjusted p beside the raw p; TOST;
+the `reduced sensitivity set (addendum 1)` label; `status: discovery / confirmation / not run` per claim), then the
+S1 / S2 / F1–F6 verdict table, what was not run and why (addendum 1, stop rule, demotions), the §17 deviations and the
+POST-HOC addenda (parsed from the sealed text) with every runner reading that still needs an addendum, and
+reproducibility (git HEAD, sealed and addenda digests, dataset hash, seed commitment, manifests — the manifest and
+output counts and the digests are ledger entries citing `manifests/` and the files that hold them, finding VL2-01).
+Q10's support category refuses an unknown status token and maps `OUTSIDE_TABLE` to unsupported (finding VL2-02).
+
+```
+.venv/Scripts/python.exe generations/gen19_chem_transfer/scripts/g19_make_figures.py --check-only
+.venv/Scripts/python.exe generations/gen19_chem_transfer/scripts/g19_make_figures.py            # F07-F13 (+ --only F07,F08)
+.venv/Scripts/python.exe generations/gen19_chem_transfer/scripts/g19_build_report.py --check-only
+.venv/Scripts/python.exe generations/gen19_chem_transfer/scripts/g19_build_report.py            # exit 3 if a number does not re-resolve
+```
 
 ## Conventions
 
