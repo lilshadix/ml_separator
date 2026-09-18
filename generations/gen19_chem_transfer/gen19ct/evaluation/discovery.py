@@ -5,20 +5,31 @@ Nothing here fits a model.  ``scripts/g19_run_discovery.py`` fits the arms and w
 JSON record per (arm, design, variant, seed, outer fold); ``scripts/g19_score_discovery.py`` aggregates them with the
 functions below.
 
-Plan (:func:`enumerate_plan`; section 7 compute plan items 1-8)
----------------------------------------------------------------
-A job is ``(kind, arm, design, variant, scheme, seed, half = S)``.  Order (item 3, applied within each pass --
-:data:`READINGS` ``plan_order``): the nested-certificate safeguard (section 2 resolution, "at the start of discovery")
--> **B6 / B6r0** (V5-primary exact and batched per seed, the batched-vs-exact check; V1 exact and ten-fold per seed,
-the ten-fold check; V2 on seed 104729; the refit sensitivities of H1b / H4 on seed 104729) -> the deterministic
-comparators' multi-seed conformal intervals (section 15 resolution) -> the seed-104729 pass of the heavy arms in the
-registered arm order (**B5 = M0, FLAT_CAT, B8** -> **M1** -> **M2**, each on V5-primary batched, V1 ten-fold and V2;
-M1 / M2 also on the seed-104729 batched V5-PAIR folds of the S1(c) counterweight) -> the stop rule (evaluated by the
-scorer) -> the pass over the four other discovery seeds in the same arm order (R19 item 4) -> the seed-104729 refit
-sensitivities of the H1 / H4 arms -> conditional freezing-candidate runs (V5-P batched, section 3.1; V1 / V2 refit
-sensitivities) -> ``M3+ not implemented``.  Item 1 (3 inner folds on seed 104729, the first inner fold on the other
-seeds) is :attr:`JobSpec.inner_mode`.  Section 7 item 5: when the 60-hour budget is exhausted only M3-M7 are demoted
-(:func:`demotable`); every job of this plan keeps running.
+Plan (:func:`enumerate_plan`; section 7 compute plan items 3-8 as amended by **POST-HOC addendum 1**)
+-----------------------------------------------------------------------------------------------------
+The sealed section 7 plan was priced at 1,535.7 CPU-hours against a 60-hour budget, so the addendum below the sealed
+footer (2026-09-15; no learned-model outcome existed) replaced items 1-2, the discovery seed plan, the learned-arm
+refit set and the learned-arm V5-PAIR scope.  What this module implements (:data:`READINGS` ``addendum1_inner_design``,
+``addendum1_seeds``, ``addendum1_sensitivities``, ``addendum1_v5pair``, ``plan_order``):
+
+* **items 1-2** every V5 design and variant of every learned arm and of B6 tunes on three SIMULTANEOUS inner folds --
+  one inner fit per configuration per fold, all of the fold's inner cells (<= 30) hidden at once
+  (``gen19ct.models.inner_design.SimultaneousInnerCells``); V1 / V2 inner designs are unchanged; every job is
+  :attr:`JobSpec.inner_mode` ``full`` and the "first inner fold" reading is gone;
+* **item 3** learned arms (B5 = M0, FLAT_CAT, B6, B6r0, B8, M1-M7) run discovery seed **104729 only**
+  (:data:`PLAN_SEEDS`); R19 item 4 is NOT_EVALUATED in discovery; the comparators' intervals are the seed-104729 ones;
+* **item 4** a learned arm runs only the V5 strict and HNO3-only refits, and R19 item 6 is the reduced sensitivity set;
+* **item 5** V5-PAIR carries M2 (with its M1 prerequisite) plus the scorer's B3x / B3i re-fit, and freezing candidates
+  with a pair endpoint.
+
+A job is ``(kind, arm, design, variant, scheme, seed = 104729, half = S)``.  Passes: the nested-certificate safeguard
+-> **B6 / B6r0** (V5-primary exact and batched, the batched-vs-exact check; V1 exact and ten-fold, the ten-fold check;
+V2; the strict / HNO3-only refits of H1b / H4) -> the seed-104729 main designs in the registered arm order (**B5 = M0,
+FLAT_CAT, B8** -> **M1** -> **M2**, each on V5-primary batched, V1 ten-fold and V2) -> the stop rule (evaluated by the
+scorer) -> the S1(c) V5-PAIR run -> the strict / HNO3-only refits of the H1 / H4 arms -> conditional
+freezing-candidate runs -> ``M3+ not implemented``.  Everything the addendum drops is emitted as a ``marker`` job that
+names it, so nothing is a silent absence.  Section 7 item 5 is unchanged: when the 60-hour budget is exhausted only
+M3-M7 are demoted (:func:`demotable`); every job of this plan keeps running.
 
 Guards (section 2)
 ------------------
@@ -86,6 +97,10 @@ DISCOVERY_SEEDS: tuple[int, ...] = tuple(FI.DISCOVERY_SEEDS)
 #: section 7 compute plan items 1-2: the full inner design and every ladder decision
 PRIMARY_SEED = DISCOVERY_SEEDS[0]
 OTHER_SEEDS: tuple[int, ...] = DISCOVERY_SEEDS[1:]
+#: POST-HOC addendum 1 item 3: in DISCOVERY every fitted arm runs seed 104729 only (the other four discovery seeds are
+#: dropped; R19 item 4 is NOT_EVALUATED in discovery and unchanged at confirmation).  Every other module keeps
+#: :data:`DISCOVERY_SEEDS` -- the registered seed set the model fold numbers are enumerated over (addendum reading 6(b))
+PLAN_SEEDS: tuple[int, ...] = (PRIMARY_SEED,)
 SELECTION, CONFIRMATION = "S", "C"
 #: the sealed pre-registration (``preregistration.md`` footer and ``manifests/prereg_sha256.txt``); discovery refuses
 #: any other text above the footer (task X finding V-LP-02)
@@ -102,6 +117,26 @@ ARM_ALIASES: dict[str, str] = {"M0": "B5"}
 HEAVY_ARMS: tuple[str, ...] = ("B5", "FLAT_CAT", "B8", "M1", "M2")
 B6_ARMS: tuple[str, ...] = ("B6", "B6r0")
 FITTED_ARMS: tuple[str, ...] = B6_ARMS + HEAVY_ARMS
+#: addendum 1 items 1-4 "learned arms": B5 = M0, FLAT_CAT, B6, B6r0, B8 and M1-M7 -- the arms that are fitted, whose V5
+#: inner tuning is the simultaneous design, that run seed 104729 only and whose refit sensitivities are the reduced set.
+#: The closed-form arms (B0-B4 variants, B7, the pair yardsticks) keep the full registered sensitivity set
+LEARNED_ARMS: tuple[str, ...] = B6_ARMS + HEAVY_ARMS + ("M3", "M4", "M5", "M6", "M7")
+#: addendum 1 identity: the number of POST-HOC addenda the runner implements (the seal gate refuses another count
+#: unless ``--expect-addenda`` says so) and the label every reduced-sensitivity verdict carries
+N_ADDENDA_EXPECTED = 1
+#: the SHA-256 of the LF-normalised text BELOW the sealed footer (POST-HOC addendum 1) that this code implements
+#: (task X finding V-F01): the footer digest does not cover the addenda, so the seal gate pins their text as well as
+#: their count -- an edited or additional addendum is refused until the code implements it and registers its digest
+#: here (``--expect-addenda`` alone never passes); every fold record's resume digest carries it, so records fitted under
+#: another addendum text are stale
+REGISTERED_ADDENDA_SHA256 = "05f36fc0354adb75ae41655977115d827ffce1227b2bdbfeeba28a975f0e8e54"
+ADDENDUM_LABEL = "reduced sensitivity set (addendum 1)"
+#: addendum 1 item 1-2: the inner design of every V5 design and variant of every learned arm, on every seed -- three
+#: inner folds, each ONE inner fit per configuration with all of the fold's inner cells (<= 30) hidden simultaneously
+INNER_DESIGN_MODULE = "gen19ct.models.inner_design"
+INNER_DESIGN_NAME = "V5_inner_simultaneous"
+INNER_N_FOLDS = 3
+INNER_MAX_CELLS_PER_FOLD = 30
 #: section 15 resolution: the deterministic arms whose conformal inner folds are drawn per discovery seed, per design --
 #: the section 5 comparators of the designs a learned arm is scored on with every discovery seed (V5 / V2: B3x, B3i;
 #: V1: B3 = B4) plus B0 (every claim is quoted against B0).  V5-P (B4x) is not listed: every learned V5-P comparison is
@@ -114,6 +149,8 @@ SAFEGUARD_PROBE_ARM = "B3x"
 KINDS: tuple[str, ...] = ("safeguard", "fit", "comparator_intervals", "marker", "h3_spec")
 STEPS: tuple[str, ...] = ("point", "intervals")
 V5_REFIT_VARIANTS: tuple[str, ...] = ("loose", "strict", "hno3_only", "cell_only", "parent_structure")
+#: addendum 1 item 4: the ONLY V5 refits a learned arm runs (seed 104729) -- V5 strict and V5 HNO3-only
+LEARNED_REFIT_VARIANTS: tuple[str, ...] = ("strict", "hno3_only")
 #: the V1 / V2 refit sensitivities (``transfer.REGISTERED_SENSITIVITIES``): setting -> (fold-file variant, drop Sr(III),
 #: sensitivity name).  ``near_duplicate_key`` / ``compilation_doi`` have exact fold files only; a heavy arm on the ten
 #: grouped folds has no fold file or inner design under those groupings (open issue; UNTESTABLE until built)
@@ -142,6 +179,28 @@ SCORING_FILTER_SENSITIVITIES: tuple[str, ...] = ("non_DGA_stratum", "acid_grid_r
                                                  "censoring_candidates_excluded_scoring", ET.WILDCARD_COPY_SENSITIVITY)
 REFIT_NOT_RUN = ("not run: section 7 compute plan item 2 evaluates the refit sensitivities only for freezing "
                  "candidates and the registered H1, H1b and H4 contrasts")
+#: addendum 1 item 4: for a LEARNED arm these registered refit sensitivities are not run at all; R19 item 6 is
+#: evaluated over the refits that were run (V5 strict, V5 HNO3-only) plus every registered scoring-filter
+#: sensitivity, and the report names the ones below.  Design -> (sensitivity name -> why)
+LEARNED_REFITS_NOT_RUN: dict[str, dict[str, str]] = {
+    "V5": {"loose_setting": "addendum 1 item 4: the loose V5 refit is not run for a learned arm",
+           "V5-cell-only": "addendum 1 item 4: the V5-cell-only refit is not run for a learned arm",
+           "parent_structure_hiding": "addendum 1 item 4: the parent-structure V5 refit is not run for a learned arm",
+           "sr_iii_dropped_training": "addendum 1 item 4: the Sr(III)-dropped V5 refit is not run for a learned arm",
+           "V5-P": "addendum 1 item 4: the heavy-arm V5-P runs are not run"},
+    "V1": {"sr_iii_dropped_training": "addendum 1 item 4: the V1 refit sensitivities are not run for a learned arm",
+           "near_duplicate_key_groups_value_blind": "addendum 1 item 4: the V1 refit sensitivities are not run for a "
+                                                    "learned arm (and no fold file or inner design exists under that "
+                                                    "grouping)",
+           "compilation_doi_groups": "addendum 1 item 4: the V1 refit sensitivities are not run for a learned arm (and "
+                                     "no fold file or inner design exists under that grouping)"},
+    "V2": {"state_level_hiding": "addendum 1 item 4: the state-level V2 refit is not run for a learned arm",
+           "sr_iii_dropped_training": "addendum 1 item 4: the V2 refit sensitivities are not run for a learned arm"}}
+#: addendum 1 item 3: R19 item 4 in discovery
+ITEM4_NOT_EVALUATED = "NOT_EVALUATED"
+ITEM4_NOT_EVALUATED_DETAIL = ("addendum 1 item 3: learned arms run discovery seed 104729 only, so seed consistency is "
+                              "NOT_EVALUATED in discovery; at confirmation R19 item 4 (5 of 5 withheld seeds) is "
+                              "unchanged and required")
 #: the arms of the never-demoted registered contrasts (section 7 item 2: their refit sensitivities always run)
 H_CONTRAST_ARMS: tuple[str, ...] = ("M2", "B6", "B6r0", "B5", "FLAT_CAT")
 #: the S1 families (section 9): reported UNDECIDED when the re-coloured batched-vs-exact check fails (section 7 item 6)
@@ -155,28 +214,55 @@ READINGS: dict[str, str] = {
                            "confirmation-half predictions are never written; V0 is not run (its rows span both halves; "
                            "section 10 F1 is evaluated at the report stage)",
     "b6_batched_check": "section 3.1 / 7 item 6 check computed per discovery seed on the selection half (B6 exact vs B6 "
-                        "batched folds of that seed, identical scored cells); it passes only when every seed passes "
-                        "(the conservative reading of 'same seeds'); B6 on batched outer folds uses the batched V5 inner "
-                        "design ('batching follows the outer rule', section 7)",
-    "v1_tenfold_check": "section 3.2: B6 exact vs B6 ten-fold per discovery seed, identical scored rows, V1 outer-fold "
-                        "unit; passes only when every seed passes; a failure moves the heavy arms to the exact design",
+                        "batched folds of that seed, identical scored cells); it passes only when every seed that "
+                        "discovery runs passes (the conservative reading of 'same seeds'), which under addendum 1 item "
+                        "3 is seed 104729 alone (:data:`PLAN_SEEDS`); both sides of the check tune on the addendum's "
+                        "simultaneous inner design, so the check compares outer batching alone",
+    "v1_tenfold_check": "section 3.2: B6 exact vs B6 ten-fold per discovery seed (addendum 1: seed 104729), identical "
+                        "scored rows, V1 outer-fold unit; a failure moves the heavy arms to the exact design",
     "heavy_arm_intervals": "section 12, cross-fitted (task X finding V-LP-01; needs a POST-HOC addendum): no calibration "
                            "residual comes from a row that chose the configuration or the stopping point it is a "
                            "residual of. Seed 104729 (3 inner folds tuned): the residuals of inner fold j come from "
                            "refits (fixed CatBoost iterations / network epochs, no early stopping) of the configuration "
                            "and iteration / epoch count selected on the OTHER inner folds' recorded validation errors "
-                           "(boosted / neural select_excluding_folds), on fold j's inner splits. Other seeds (first inner "
-                           "fold tuned): the tuned configuration refitted on the inner splits of the NEXT inner fold "
-                           "holding a split. Fewer than two inner folds: not calibrated (NaN intervals, status "
+                           "(boosted / neural select_excluding_folds), on fold j's inner splits -- under addendum 1 "
+                           "items 1-2 every seed that is run is tuned this way, on the 3 simultaneous inner folds, so "
+                           "the first-inner-fold calibration path is unused in discovery. Fewer than two inner folds: "
+                           "not calibrated (NaN intervals, status "
                            "recorded). B8 (no tuning) calibrates on the tuning splits of its inner mode. B6 / B6r0: "
                            "factorized.B6TunedConformal(calibration='cross_fit'). M2's retained M1 values are the outer "
                            "fold's (selected with every inner fold) -- a second-order reuse disclosed as open. The "
                            "interval centre is the outer refit of the point step",
-    "first_inner_fold": "on seeds other than 104729 'the first inner fold' is the lowest inner fold index holding a "
-                        "validation / calibration split, for every arm. On V5 designs that fold holds up to 30 inner "
-                        "cells: the batched heavy arms and batched B6 fit every inner batch of it (about 8), exact B6 "
-                        "every cell (about 30) -- 'the first of the 3 inner folds only' is kept and '(one fit per "
-                        "configuration)' holds on V1 / V2 only (task X finding V-04; needs a POST-HOC addendum)",
+    "addendum1_inner_design": "POST-HOC addendum 1 items 1-2 (the compute-driven reduction, below the sealed footer): "
+                              "every V5 design and variant of every learned arm and of B6 tunes on the SIMULTANEOUS "
+                              "inner design (gen19ct.models.inner_design.SimultaneousInnerCells): 3 inner folds, each "
+                              "ONE inner fit per configuration with all of that fold's inner cells (<= 30) hidden at "
+                              "once under the registered hiding; eligibility is re-checked with all of them hidden and "
+                              "a cell that fails stays hidden but is dropped from the inner score. The inner batching "
+                              "of sections 3.1 / 7 is not used for tuning. Selection = mean over the 3 inner folds of "
+                              "the design's unit-macro MAE with the 0.005 tie rule; the outer refit uses the median "
+                              "best iteration / epoch count. V1 and V2 inner designs are unchanged (3 inner folds, one "
+                              "fit each). Every seed that is run uses this design, so JobSpec.inner_mode is always "
+                              "'full' and the 'first inner fold' reading is gone (FirstInnerFold and "
+                              "TuningSplitCalibration(mode='first') are deprecated and unused by the plan)",
+    "addendum1_seeds": "POST-HOC addendum 1 item 3: in discovery every learned arm (B5 = M0, FLAT_CAT, B6, B6r0, B8, "
+                       "M1-M7) runs discovery seed 104729 only (:data:`PLAN_SEEDS`); the pass over the other four "
+                       "discovery seeds is dropped. R19 item 4 is NOT_EVALUATED in every discovery table, and the "
+                       "deterministic comparators' conformal intervals are the seed-104729 (pre-seal) ones, since every "
+                       "learned comparison is on that seed. At confirmation R19 item 4 is unchanged and required. The "
+                       "registered batched-vs-exact and ten-fold checks are evaluated on the seeds discovery runs "
+                       "(seed 104729), the conservative reading of 'same seeds' applied to the seeds that exist",
+    "addendum1_sensitivities": "POST-HOC addendum 1 item 4: a learned arm runs only the V5 strict and V5 HNO3-only "
+                               "refits (seed 104729) for H1 (M2), H1b (B6), H4 (M0, FLAT_CAT, M2, B6, B6r0) and any "
+                               "freezing candidate. R19 item 6 of a learned-arm contrast is then evaluated over those "
+                               "refits plus every registered scoring-filter sensitivity (non-DGA, censoring-candidate, "
+                               "acid-grid, wildcard-copy) and labelled 'reduced sensitivity set (addendum 1)', with the "
+                               "sensitivities that were not run named (:data:`LEARNED_REFITS_NOT_RUN`). Such a contrast "
+                               "may still be frozen. The closed-form arms keep the full registered set",
+    "addendum1_v5pair": "POST-HOC addendum 1 item 5: learned arms run the seed-104729 batched V5-PAIR folds only for M2 "
+                        "(with its M1 prerequisite) and for any freezing candidate with a pair endpoint; B3x and B3i "
+                        "are re-fitted on the same folds by the scorer (models.s1c_yardsticks, the section 9 S1(c) "
+                        "counterweight), which needs no runner job",
     "fold_ordinal": "the section 15 model seed 42 + fold * 1009 + 9,999,991 takes fold = the position of the (discovery "
                     "seed, outer fold) pair when the design is enumerated once per discovery seed in the seed order "
                     "104729, 130363, 155921, 196613, 262147: a seeded fold file contributes that seed's folds in file "
@@ -185,11 +271,13 @@ READINGS: dict[str, str] = {
                     "model initialisation (section 15) on every design, V2 included. Every learned arm uses it: B5, "
                     "FLAT_CAT, B8, M1, M2 and the B6 / B6r0 factor initialisation (task X finding V-02; needs a "
                     "POST-HOC addendum)",
-    "plan_order": "section 7 item 3's arm order is applied within each pass: B6 / B6r0 on every seed and its refit "
-                  "sensitivities first (their checks gate the heavy-arm schemes), then the seed-104729 main designs "
-                  "B5, FLAT_CAT, B8 -> M1 -> M2 (with the M1 / M2 V5-PAIR S1(c) folds), then the four other discovery "
-                  "seeds in the same arm order, then the seed-104729 refit sensitivities, then the conditional "
-                  "freezing-candidate runs (task X finding V-01; needs a POST-HOC addendum)",
+    "plan_order": "section 7 item 3's arm order is applied within each pass (addendum 1 reading 6(a)): pass one is "
+                  "B6 / B6r0 on the primary exact / batched and V1 / V2 designs (their checks gate the heavy-arm "
+                  "schemes), pass two the seed-104729 main designs B5, FLAT_CAT, B8 -> M1 -> M2, then the stop rule "
+                  "and the S1(c) V5-PAIR run (M1 prerequisite, M2), pass three the seed-104729 strict / HNO3-only "
+                  "refits in arm order -- B6 / B6r0 first, then B5, FLAT_CAT, M1, M2 (task X finding V-F04: the B6 "
+                  "refits are refit sensitivities, no check reads them) -- then the conditional freezing-candidate "
+                  "runs. Exhausting the section 7 item 5 budget demotes only M3-M7",
     "budget": "section 7 item 5: when the ledger reaches 60 h only M3-M7 are demoted (in the order M7 -> M3); no other "
               "step is named, so every job of this plan (H1, H1b, H4 and the rest) keeps running and the exhaustion is "
               "recorded; --max-hours is an operator pause (resumable), never a demotion",
@@ -221,10 +309,14 @@ READINGS: dict[str, str] = {
     "margins": "R19 item 1 margin: delta5 (difficulty.json -> V5.delta5) for H1 primary, H1b, H4, the V5 ladder steps "
                "and every other V5 contrast; 0.05 for S1(b) (M2 vs B0, M2 vs B6r0) and for V1 / V2 contrasts (section "
                "9 names no V1 / V2 margin; the floor of the delta5 formula)",
-    "r19_item4_availability": "R19 item 4 needs one Delta per discovery seed; with fewer seeds scored it is recorded "
-                              "NOT_RUN and the verdict is UNDECIDED unless another item fails (never PASS)",
+    "r19_item4_availability": "R19 item 4 needs one Delta per discovery seed. For a learned arm it is NOT_EVALUATED in "
+                              "discovery (addendum 1 item 3) and the full verdict is therefore UNDECIDED, never PASS; "
+                              "the stop-rule, ladder and freezing scopes do not contain item 4, so decisions are "
+                              "unaffected. For any other contrast a missing seed is still recorded NOT_RUN",
     "refit_sensitivities_not_run": "a registered refit sensitivity without predictions is recorded UNTESTABLE ('not "
-                                   "run'), so the full R19 verdict is UNDECIDED unless another item fails",
+                                   "run'), so the full R19 verdict is UNDECIDED unless another item fails. For a "
+                                   "learned-arm contrast the sensitivities addendum 1 item 4 drops are named instead "
+                                   "(:data:`LEARNED_REFITS_NOT_RUN`) and item 6 is decided on the reduced set",
     "decision_scopes": "stop rule: R19 items 1, 2, 3 and 5 (section 7 item 4); ladder and freezing screen: items 1, 2, 3, "
                        "5 and the scoring-filter sensitivities of item 6 on seed 104729 (item 2); V5-P heavy runs: items "
                        "1-5 on V5-primary (section 3.1 resolution); full: items 1-6",
@@ -236,14 +328,50 @@ READINGS: dict[str, str] = {
             "direction, two logSF MAE; system clusters). p_bh is over the contrasts evaluated; p_bh_full_family "
             "counts every registered discovery contrast of section 19 (m printed), a contrast not run entering as p = 1 "
             "(the conservative bound); neither decides",
+    "full_family_60": "addendum 1 reading 6(f) counts 60 registered discovery contrasts; section 19 lists 57 discovery "
+                      "contrasts and 3 confirmation-only S2 contrasts (60 in all), so the full family is m = 60 with "
+                      "the S2 rows entered as p = 1 (the larger m is the conservative bound) and m_discovery = 57 is "
+                      "printed beside it (task X finding V-F05; needs POST-HOC addendum 2 to state which count 6(f) "
+                      "meant)",
+    "calibration_refits": "addendum 1 item 2 says the cross-fitted residuals of inner fold j 'reuse the fits already "
+                          "made (no extra fits)'. B6 / B6r0 do (B6TunedConformal.fit_from_tuning). For B5, FLAT_CAT, "
+                          "M1, M2 (and B8) the inner fit of fold j chose its tree count / epoch by early stopping on "
+                          "fold j's own validation rows, so its residuals on fold j are selection-touched; the runner "
+                          "therefore REFITS the configuration and count selected without fold j on fold j's inner "
+                          "training rows (CrossFitResidualConformal; 3 refits per outer fold, priced as "
+                          "CALIBRATION_FITS_PER_SPLIT = 1, about 10 CPU-h of the addendum estimate). This is the "
+                          "statistically conservative reading of the sentence, not its literal one (task X finding "
+                          "V-F02; needs POST-HOC addendum 2)",
+    "inner_recheck": "addendum 1 item 1 'eligibility is re-checked with all of them hidden': every condition of a cell, "
+                     "its own row and publication counts (k, p) included, is counted with the OTHER cells of the inner "
+                     "fold hidden and nothing restored -- the reading section 3.1 registered for the identical sentence "
+                     "of the batch re-check ('the literal and stricter reading the fold builder applied'), so a cell "
+                     "whose rows another cell's component-aware hiding removes stays hidden but is not scored "
+                     "(inner_design.REGISTRATION_CHOICES['recheck']; task X finding V-F03; measured on real training "
+                     "rows: 1 more cell of 90 dropped on V5 exact Eu(III)__a9ed8f70c7, 0 of 90 on batched "
+                     "s104729_S_b000, seed 104729)",
+    "inner_wildcard_copies": "section 2's 'copies the key cannot see' (folds/wildcard_copy_pairs.csv: the same "
+                             "conditions and log_D under another structure key or state token) can sit in an inner "
+                             "split's training rows while their partner is an inner calibration row; the registered "
+                             "hiding does not remove them and the near-duplicate key includes the system, so the guard "
+                             "passes them. The registration is silent on inner validation, so the inner selection score "
+                             "is NOT changed: every V5 fold record counts them per inner fold "
+                             "(inner_design.wildcard_copy_partners_in_inner_training) as a diagnostic (task X finding "
+                             "VL-A1-02; needs POST-HOC addendum 2 to say whether the registered wildcard exclusion "
+                             "applies to inner selection)",
+    "addenda_digest_gate": "the seal gate pins the footer digest, the number of POST-HOC addenda AND the SHA-256 of the "
+                           "below-footer text (REGISTERED_ADDENDA_SHA256); every fold record's resume digest carries "
+                           "the registered addenda digest and the resolved inner design (name, thresholds, medium, "
+                           "component rule, inner folds, cells per fold), so a record made under another addendum text "
+                           "or another inner design is stale (task X findings V-F01, VL-A1-01)",
     "safeguard_probe": "the section 2 safeguard runs ConformalWrapper(B3x) with nested_certificate and with every_split "
                        "on each drawn outer fold (the pre-seal cross-check's closed-form arm) and compares residuals, "
                        "quantiles and guard verdicts; a difference makes every_split mandatory for that fold file",
-    "comparator_intervals": "section 15 resolution: the deterministic comparators' conformal intervals are recomputed "
-                            "with each of the four other discovery seeds (seed 104729 is the pre-seal run's) on the "
-                            "designs learned arms are scored on with every seed: V5 B0 / B3x / B3i, V1 B0 / B3, V2 B0 / "
-                            "B3x / B3i; V5-P (B4x) keeps seed 104729 alone, as every learned V5-P comparison is on seed "
-                            "104729 (the resolution's parenthesis); the pre-seal point predictions are unchanged",
+    "comparator_intervals": "section 15 resolution as amended by addendum 1 item 3: every learned comparison is on seed "
+                            "104729, so the deterministic comparators' conformal intervals are the seed-104729 ones of "
+                            "the pre-seal run on every design (the resolution's parenthesis), and no comparator-interval "
+                            "job is run in discovery; the point predictions were never seed-dependent. At confirmation "
+                            "they are drawn with each withheld seed and averaged, unchanged",
     "h3": "section 11 job specs only (WITH / WITHOUT / ACT_PERMUTED / ACT_METAL_SHUFFLED); not executed by this runner",
     "v2_summary": "V2 contrasts (the secondary-design contrast and the ladder's V2 non-inferiority) are evaluated on the "
                   "section 3.3 primary summary, the focus-7 lanthanides present in the selection half (Ce, Pr, Nd, Gd), "
@@ -315,8 +443,9 @@ class JobSpec:
 
     @property
     def inner_mode(self) -> str:
-        """Section 7 compute plan item 1."""
-        return "full" if self.seed == PRIMARY_SEED else "first"
+        """Addendum 1 item 2: three inner folds on every seed that is run, with no 'first inner fold only' reading, so
+        every job tunes in ``full`` mode (:data:`READINGS` ``addendum1_inner_design``)."""
+        return "full"
 
     @property
     def design_label(self) -> str:
@@ -407,18 +536,28 @@ SAFEGUARD_STEMS_DEFAULT: tuple[str, ...] = (
     "V1__copy__grouped10", "V2__element__exact")
 
 
+#: the passes, in the order :func:`enumerate_plan` emits them (addendum 1 reading 6(a)).  ``comparators`` carries only a
+#: marker now (addendum 1 item 3), and the pass over the other discovery seeds is replaced by the S1(c) V5-PAIR pass
 STAGES: dict[str, str] = {
     "safeguard": "00_safeguard", "b6": "01_B6", "comparators": "02_comparator_intervals",
     "p_b5": "03_B5_FLAT_CAT_B8", "p_m1": "04_M1", "p_m2": "05_M2", "stop": "06_stop_rule",
-    "other_seeds": "07_other_seeds", "refit": "08_refit_sensitivities", "candidates": "09_candidates",
+    "s1c": "07_s1c_v5pair", "refit": "08_refit_sensitivities", "candidates": "09_candidates",
     "not_implemented": "10_not_implemented"}
 
 
 def enumerate_plan(state: PlanState | None = None, *, safeguard_stems: Sequence[str] = SAFEGUARD_STEMS_DEFAULT,
                    include_h3_specs: bool = False, folds_dir: Path | None = None) -> list[JobSpec]:
-    """Every discovery job in section 7 order (module docstring, :data:`READINGS` ``plan_order``).  Jobs that depend on a
-    decision not yet taken are omitted and replaced by a ``marker`` job naming the missing decision.  ``folds_dir``
-    (default the registered folds) is consulted only for the conditional V1 grouping-sensitivity files."""
+    """Every discovery job of POST-HOC addendum 1 in section 7 order (module docstring, :data:`READINGS`
+    ``plan_order`` and ``addendum1_seeds``).
+
+    Passes: the nested-certificate safeguard -> B6 / B6r0 on seed 104729 with the batched-vs-exact and ten-fold checks
+    -> the seed-104729 main designs (B5 = M0, FLAT_CAT, B8 -> M1 -> M2) -> the stop rule -> the S1(c) V5-PAIR run (M1
+    prerequisite, M2) -> the seed-104729 strict / HNO3-only refits (B6 / B6r0 first, then the H1 / H4 heavy arms) ->
+    the conditional freezing-candidate runs -> ``M3+ not implemented``.  Every fitted arm runs discovery
+    seed **104729 only** (addendum 1 item 3), tunes in ``full`` mode (items 1-2), and runs no sensitivity the addendum
+    dropped; what is not run is a ``marker`` job naming it, never a silent absence.  Jobs that depend on a decision not
+    yet taken are likewise replaced by a marker.  ``folds_dir`` (default the registered folds) is unused by the plan
+    now that no V1 grouping-sensitivity job is scheduled; it is kept for callers and for the fold-file checks."""
     st = state or PlanState()
     fdir = paths.FOLDS_DIR if folds_dir is None else Path(folds_dir)
     jobs: list[JobSpec] = []
@@ -426,45 +565,29 @@ def enumerate_plan(state: PlanState | None = None, *, safeguard_stems: Sequence[
         jobs.append(JobSpec(kind="safeguard", arm=SAFEGUARD_PROBE_ARM, stem_override=stem, stage=STAGES["safeguard"],
                             group="nested-certificate safeguard", purpose="section 2 resolution: every_split vs "
                             "nested_certificate on the registered sample, once at the start of discovery"))
-    # ---- B6 / B6r0 and the batched-vs-exact checks
+    # ---- B6 / B6r0 (seed 104729 only) and the batched-vs-exact / ten-fold checks
     s1 = STAGES["b6"]
     b6w = B6_ARMS
-    for seed in _seed_order():
-        tag = "seed 104729 decisions" if seed == PRIMARY_SEED else "R19 item 4 and the per-seed checks"
-        jobs.append(_fit("B6", "V5", "primary", "exact", seed, stage=s1, group=f"B6 V5 exact ({tag})", writes=b6w,
-                         purpose="H1b B6 vs B3i; H4 B6 - B6r0; S1(b) B6r0; stop rule (section 7 item 4)"))
-        jobs.append(_fit("B6", "V5", "primary", "batched", seed, stage=s1, group=f"B6 V5 batched ({tag})", writes=b6w,
-                         multi_seed_file=True, purpose="section 3.1 registered batched-vs-exact check (section 7 item 6)"))
-        jobs.append(_fit("B6", "V1", "copy", "exact", seed, stage=s1, group=f"B6 V1 exact ({tag})", writes=b6w,
-                         purpose="section 3.2 registered ten-fold-vs-exact check"))
-        jobs.append(_fit("B6", "V1", "copy", "grouped10", seed, stage=s1, group=f"B6 V1 ten-fold ({tag})", writes=b6w,
-                         multi_seed_file=True, purpose="section 3.2 registered ten-fold-vs-exact check"))
-        if seed == PRIMARY_SEED:
-            jobs.append(_fit("B6", "V2", "element", "exact", seed, stage=s1, group="B6 V2 (seed 104729)", writes=b6w,
-                             registered=False, purpose="reference arm (section 11 H3 references; descriptive)"))
-    for v in V5_REFIT_VARIANTS:
-        jobs.append(_fit("B6", "V5", v, "exact", PRIMARY_SEED, stage=s1, group="B6 refit sensitivities (seed 104729)",
-                         writes=b6w, purpose=f"R19 item 6 {V5_SETTING_SENSITIVITY[v]} of H1b / H4 (section 7 item 2)"))
-    jobs.append(_fit("B6", "V5", "primary", "exact", PRIMARY_SEED, stage=s1, drop_sr=True, writes=b6w,
-                     group="B6 refit sensitivities (seed 104729)", purpose="R19 item 6 sr_iii_dropped_training of H1b / H4"))
-    jobs.append(_fit("B6", "V5P", "base", "cell_x_group", PRIMARY_SEED, stage=s1, writes=b6w,
-                     group="B6 refit sensitivities (seed 104729)",
-                     purpose="R19 item 6 V5-P of H1b / H4 (closed-form arms run the unbatched V5-P folds, section 3.1)"))
+    tag = "seed 104729 decisions"
+    jobs.append(_fit("B6", "V5", "primary", "exact", PRIMARY_SEED, stage=s1, group=f"B6 V5 exact ({tag})", writes=b6w,
+                     purpose="H1b B6 vs B3i; H4 B6 - B6r0; S1(b) B6r0; stop rule (section 7 item 4)"))
+    jobs.append(_fit("B6", "V5", "primary", "batched", PRIMARY_SEED, stage=s1, group=f"B6 V5 batched ({tag})",
+                     writes=b6w, multi_seed_file=True,
+                     purpose="section 3.1 registered batched-vs-exact check (section 7 item 6)"))
+    jobs.append(_fit("B6", "V1", "copy", "exact", PRIMARY_SEED, stage=s1, group=f"B6 V1 exact ({tag})", writes=b6w,
+                     purpose="section 3.2 registered ten-fold-vs-exact check"))
+    jobs.append(_fit("B6", "V1", "copy", "grouped10", PRIMARY_SEED, stage=s1, group=f"B6 V1 ten-fold ({tag})",
+                     writes=b6w, multi_seed_file=True, purpose="section 3.2 registered ten-fold-vs-exact check"))
+    jobs.append(_fit("B6", "V2", "element", "exact", PRIMARY_SEED, stage=s1, group="B6 V2 (seed 104729)", writes=b6w,
+                     registered=False, purpose="reference arm (section 11 H3 references; descriptive)"))
     if st.v5_batched_check in ("recolour", "passed_after_recolour", "failed"):
-        for seed in _seed_order():
-            jobs.append(_fit("B6", "V5", "primary", "batched_max4", seed, stage=s1, writes=b6w, multi_seed_file=True,
-                             condition="b6_check_recolour", group="B6 V5 re-coloured batches (section 7 item 6)",
-                             purpose="the repeated batched-vs-exact check with <= 4 cells per batch"))
-    # ---- the comparators' multi-seed conformal intervals (section 15 resolution; closed-form)
-    schemes = {"V5": ("primary", "exact"), "V1": ("copy", "exact"), "V2": ("element", "exact")}
-    for design, arms in COMPARATOR_INTERVAL_JOBS.items():
-        variant, scheme = schemes[design]
-        for arm in arms:
-            for seed in OTHER_SEEDS:
-                jobs.append(JobSpec(kind="comparator_intervals", arm=arm, design=design, variant=variant, scheme=scheme,
-                                    seed=seed, stage=STAGES["comparators"], group="deterministic comparators",
-                                    purpose="section 15: conformal inner folds drawn with each discovery seed"))
-    # ---- heavy arms
+        jobs.append(_fit("B6", "V5", "primary", "batched_max4", PRIMARY_SEED, stage=s1, writes=b6w, multi_seed_file=True,
+                         condition="b6_check_recolour", group="B6 V5 re-coloured batches (section 7 item 6)",
+                         purpose="the repeated batched-vs-exact check with <= 4 cells per batch"))
+    # ---- the deterministic comparators' conformal intervals (section 15 resolution as amended by addendum 1 item 3)
+    jobs.append(JobSpec(kind="marker", arm="comparator_intervals", stage=STAGES["comparators"],
+                        group="deterministic comparators", message=READINGS["comparator_intervals"]))
+    # ---- heavy arms (seed 104729)
     v5s, v1s = st.heavy_v5_scheme, st.heavy_v1_scheme
     blocked: list[str] = []
     if v5s is None:
@@ -472,73 +595,103 @@ def enumerate_plan(state: PlanState | None = None, *, safeguard_stems: Sequence[
     if v1s is None:
         blocked.append(f"heavy-arm V1 jobs wait for the B6 ten-fold check (state {st.v1_tenfold_check!r})")
 
-    def heavy_main(arm: str, seed: int, stage: str, purpose: str) -> None:
-        tag = "seed 104729" if seed == PRIMARY_SEED else "other discovery seeds"
+    def heavy_main(arm: str, stage: str, purpose: str) -> None:
         if v5s is not None:
-            jobs.append(_fit(arm, "V5", "primary", v5s, seed, stage=stage, group=f"{arm} main designs ({tag})",
-                             multi_seed_file=True, purpose=purpose))
+            jobs.append(_fit(arm, "V5", "primary", v5s, PRIMARY_SEED, stage=stage, group=f"{arm} main designs (seed "
+                             "104729)", multi_seed_file=True, purpose=purpose))
         if v1s is not None:
-            jobs.append(_fit(arm, "V1", "copy", v1s, seed, stage=stage, group=f"{arm} main designs ({tag})",
-                             multi_seed_file=v1s != "exact", purpose=purpose))
-        jobs.append(_fit(arm, "V2", "element", "exact", seed, stage=stage, group=f"{arm} main designs ({tag})",
-                         purpose=purpose))
+            jobs.append(_fit(arm, "V1", "copy", v1s, PRIMARY_SEED, stage=stage, group=f"{arm} main designs (seed "
+                             "104729)", multi_seed_file=v1s != "exact", purpose=purpose))
+        jobs.append(_fit(arm, "V2", "element", "exact", PRIMARY_SEED, stage=stage,
+                         group=f"{arm} main designs (seed 104729)", purpose=purpose))
 
     def heavy_refit(arm: str, stage: str, purpose: str, group: str) -> None:
+        """Addendum 1 item 4: the V5 strict and HNO3-only refits of a learned arm, seed 104729."""
         if v5s is None:
             return
-        for v in V5_REFIT_VARIANTS:
+        for v in LEARNED_REFIT_VARIANTS:
             jobs.append(_fit(arm, "V5", v, v5s, PRIMARY_SEED, stage=stage, group=group, multi_seed_file=True,
-                             purpose=f"{purpose}: R19 item 6 {V5_SETTING_SENSITIVITY[v]}"))
-        jobs.append(_fit(arm, "V5", "primary", v5s, PRIMARY_SEED, stage=stage, group=group, multi_seed_file=True,
-                         drop_sr=True, purpose=f"{purpose}: R19 item 6 sr_iii_dropped_training"))
+                             purpose=f"{purpose}: R19 item 6 {V5_SETTING_SENSITIVITY[v]} (addendum 1 item 4)"))
+
+    def pair_run(arm: str, stage: str, purpose: str, group: str, condition: str | None = None) -> None:
+        """Addendum 1 item 5: a learned arm on the seed-104729 batched V5-PAIR folds (M2 needs M1's per-fold values)."""
+        for a in (("M1", arm) if arm == "M2" else (arm,)):
+            jobs.append(_fit(a, "V5PAIR", "primary", "batched", PRIMARY_SEED, stage=stage, multi_seed_file=True,
+                             condition=condition,
+                             group=group if a == arm else "M1 prerequisites of M2 (per-fold M1 values)",
+                             purpose=purpose if a == arm else "M2 on V5-PAIR needs M1's per-fold values"))
 
     purposes = {"B5": "M0 = B5: ladder base, H4 M2 - M0", "FLAT_CAT": "H4 M2 - FLAT_CAT",
                 "B8": "section 5 previous-generation baseline", "M1": "ladder step M1 vs M0; M2's per-fold M1 values",
                 "M2": "H1 primary; S1(a), S1(b); H4; ladder step M2"}
-    # seed-104729 pass (every ladder decision and the stop rule are taken on it)
     for arm in ("B5", "FLAT_CAT", "B8"):
-        heavy_main(arm, PRIMARY_SEED, STAGES["p_b5"], purposes[arm])
-    heavy_main("M1", PRIMARY_SEED, STAGES["p_m1"], purposes["M1"])
-    jobs.append(_fit("M1", "V5PAIR", "primary", "batched", PRIMARY_SEED, stage=STAGES["p_m1"], multi_seed_file=True,
-                     group="M1 prerequisites of M2 (per-fold M1 values)", purpose="M2 on V5-PAIR needs M1's per-fold values"))
-    heavy_main("M2", PRIMARY_SEED, STAGES["p_m2"], purposes["M2"])
-    jobs.append(_fit("M2", "V5PAIR", "primary", "batched", PRIMARY_SEED, stage=STAGES["p_m2"], multi_seed_file=True,
-                     group="M2 V5-PAIR (seed 104729)",
-                     purpose="S1(c) selection-half counterweight on the seed-104729 batched V5-PAIR folds (section 9)"))
+        heavy_main(arm, STAGES["p_b5"], purposes[arm])
+    heavy_main("M1", STAGES["p_m1"], purposes["M1"])
+    heavy_main("M2", STAGES["p_m2"], purposes["M2"])
     for msg in blocked:
-        jobs.append(JobSpec(kind="marker", arm=f"blocked:{msg}", stage=STAGES["p_m2"], group="blocked", message=msg))
+        jobs.append(JobSpec(kind="marker", arm=f"blocked:{msg}", stage=STAGES["p_b5"], group="blocked", message=msg))
+    jobs.append(JobSpec(kind="marker", arm="not_run:other_seeds", stage=STAGES["p_m2"], group="not run (addendum 1)",
+                        message="addendum 1 item 3: the pass over the discovery seeds 130363, 155921, 196613 and "
+                                "262147 is NOT run; every learned arm runs seed 104729 only and R19 item 4 is "
+                                "NOT_EVALUATED in discovery (it is unchanged and required at confirmation)"))
     jobs.append(JobSpec(kind="marker", arm="stop_rule", stage=STAGES["stop"], group="stop rule",
                         message="section 7 item 4 stop rule: evaluated by scripts/g19_score_discovery.py "
                                 "(decisions/stop_rule.json) on seed 104729, R19 items 1-3 and 5 of M2 and B6 vs B3i"))
-    # the other discovery seeds (R19 item 4), same arm order
-    for seed in OTHER_SEEDS:
-        for arm in ("B5", "FLAT_CAT", "B8", "M1", "M2"):
-            heavy_main(arm, seed, STAGES["other_seeds"], purposes[arm] + " (R19 item 4)")
-    # the seed-104729 refit sensitivities of the H1 / H4 arms (section 7 item 2)
+    # ---- S1(c): the seed-104729 batched V5-PAIR folds (addendum 1 item 5)
+    s1c = STAGES["s1c"]
+    pair_run("M2", s1c, "S1(c) selection-half counterweight on the seed-104729 batched V5-PAIR folds (section 9)",
+             "M2 V5-PAIR (seed 104729)")
+    jobs.append(JobSpec(kind="marker", arm="s1c_yardsticks", stage=s1c, group="S1(c) yardsticks",
+                        message="section 9 S1(c) 'same fitted folds': B3x and B3i are re-fitted on exactly these "
+                                "batched V5-PAIR folds by scripts/g19_score_discovery.py "
+                                "(models.s1c_yardsticks.refit_lookup_yardsticks; closed form, no runner job), and "
+                                "HEAVIER needs no fit. Addendum 1 item 5: no other learned arm runs V5-PAIR unless it "
+                                "is a freezing candidate with a pair endpoint"))
+    # ---- the seed-104729 strict / HNO3-only refits (addendum 1 item 4), the third pass of reading 6(a): section 7
+    # item 3's arm order within it puts B6 / B6r0 first (task X finding V-F04: no B6 check reads a refit)
+    for v in LEARNED_REFIT_VARIANTS:
+        jobs.append(_fit("B6", "V5", v, "exact", PRIMARY_SEED, stage=STAGES["refit"],
+                         group="B6 refit sensitivities (seed 104729)", writes=b6w,
+                         purpose=f"R19 item 6 {V5_SETTING_SENSITIVITY[v]} of H1b / H4 (addendum 1 item 4)"))
+    jobs.append(JobSpec(kind="marker", arm="not_run:B6_refit_sensitivities", stage=STAGES["refit"],
+                        group="not run (addendum 1)",
+                        message="addendum 1 item 4: B6 / B6r0 run the V5 strict and HNO3-only refits only; the loose, "
+                                "cell-only, parent-structure and Sr(III)-dropped V5 refits and the unbatched V5-P run "
+                                "are NOT run, and R19 item 6 of a B6 contrast is the reduced sensitivity set"))
     heavy_refit("B5", STAGES["refit"], "H4 M2 - M0", "B5 refit sensitivities (seed 104729)")
     heavy_refit("FLAT_CAT", STAGES["refit"], "H4 M2 - FLAT_CAT", "FLAT_CAT refit sensitivities (seed 104729)")
     heavy_refit("M1", STAGES["refit"], "prerequisite of the M2 refit sensitivities",
                 "M1 prerequisites of M2 (per-fold M1 values)")
     heavy_refit("M2", STAGES["refit"], "H1 / H4", "M2 refit sensitivities (seed 104729)")
-    # ---- conditional: freezing candidates (section 3.1 resolution, section 7 items 2 and 7)
+    jobs.append(JobSpec(kind="marker", arm="not_run:learned_refit_sensitivities", stage=STAGES["refit"],
+                        group="not run (addendum 1)",
+                        message="addendum 1 item 4: for a learned arm the loose, cell-only, parent-structure and "
+                                "Sr(III)-dropped V5 refits, the heavy-arm V5-P runs and the V1 / V2 refit "
+                                "sensitivities (state-level V2, Sr(III)-dropped, near-duplicate-key and "
+                                "compilation-DOI groupings) are NOT run; R19 item 6 is the reduced sensitivity set "
+                                "(addendum 1) and the report names them"))
+    # ---- conditional: freezing candidates (section 3.1 resolution, section 7 items 2 and 7; addendum 1 items 4-5)
     sc = STAGES["candidates"]
     for cand in st.freezing_candidates:
-        design = cand.get("design") or _design_of_contrast_key(cand.get("contrast", ""))
+        contrast = str(cand.get("contrast"))
+        design = cand.get("design") or _design_of_contrast_key(contrast)
         arms = [ARM_ALIASES.get(a, a) for a in cand.get("arms", ())]
         heavy = [a for a in arms if a in HEAVY_ARMS]
-        if design == "V5" and v5s is not None and cand.get("passed_items_1_5_v5_primary"):
-            need = set(heavy) | ({"M1"} if "M2" in heavy else set())
+        need = set(heavy) | ({"M1"} if "M2" in heavy else set())
+        if design == "V5":
+            for arm in [a for a in HEAVY_ARMS if a in need and a not in H_CONTRAST_ARMS]:
+                heavy_refit(arm, sc, f"freezing candidate {contrast}", "freezing-candidate refit sensitivities")
+            jobs.append(JobSpec(kind="marker", arm=f"not_run:V5P:{contrast}", stage=sc, group="not run (addendum 1)",
+                                message=f"{contrast}: addendum 1 item 4: the heavy-arm V5-P run of a freezing "
+                                        "candidate is NOT run (V5-P is named among the sensitivities not run); "
+                                        "section 3.1's trigger, R19 items 1-5 on V5-primary, cannot fire either, "
+                                        "because item 4 is NOT_EVALUATED in discovery"))
+        elif design in ("V5-PAIR", "V5PAIR"):
             for arm in [a for a in HEAVY_ARMS if a in need]:
-                jobs.append(_fit(arm, "V5P", "base", "batched", PRIMARY_SEED, stage=sc, multi_seed_file=True,
-                                 condition="freezing_candidate", group="freezing-candidate V5-P runs",
-                                 purpose=f"V5-P sensitivity of {cand.get('contrast')} (passed R19 items 1-5)"))
-                if arm not in H_CONTRAST_ARMS:
-                    heavy_refit(arm, sc, f"freezing candidate {cand.get('contrast')}",
-                                "freezing-candidate refit sensitivities")
+                pair_run(arm, sc, f"V5-PAIR endpoint of the freezing candidate {contrast} (addendum 1 item 5)",
+                         "freezing-candidate V5-PAIR runs", condition="freezing_candidate")
         elif design in ("V1", "V2"):
-            need = set(heavy) | ({"M1"} if "M2" in heavy else set())
-            for arm in [a for a in HEAVY_ARMS if a in need]:
-                jobs += _v1v2_refit_jobs(arm, design, st, fdir, stage=sc, contrast=str(cand.get("contrast")))
+            jobs += _v1v2_refit_markers(design, sorted(need), stage=sc, contrast=contrast)
     jobs.append(JobSpec(kind="marker", arm="M3+", stage=STAGES["not_implemented"], group="ladder M3-M7",
                         message=NOT_IMPLEMENTED))
     if include_h3_specs:
@@ -551,31 +704,20 @@ def _design_of_contrast_key(key: str) -> str:
     return str(key).split("@", 1)[1].split("#", 1)[0] if "@" in str(key) else ""
 
 
-def _v1v2_refit_jobs(arm: str, design: str, st: PlanState, folds_dir: Path, *, stage: str, contrast: str) -> list[JobSpec]:
-    """Seed-104729 V1 / V2 refit-sensitivity jobs of a freezing candidate's heavy arm (section 7 item 2); a marker when
-    the heavy arm's fold file under a sensitivity grouping is not built."""
+def _v1v2_refit_markers(design: str, arms: Sequence[str], *, stage: str, contrast: str) -> list[JobSpec]:
+    """Addendum 1 item 4: a learned arm runs NO V1 / V2 refit sensitivity, not even as a freezing candidate.  One marker
+    per (arm, sensitivity) so that the plan names every sensitivity that is not run instead of omitting it silently.
+    The near-duplicate-key and compilation-DOI groupings have in addition no heavy-arm fold file and no inner design."""
+    table = V1_REFIT_SETTINGS if design == "V1" else V2_REFIT_SETTINGS
     out: list[JobSpec] = []
-    if design == "V1":
-        v1s = st.heavy_v1_scheme
-        if v1s is None:
-            return [JobSpec(kind="marker", arm=f"blocked:V1 refit {arm}", stage=stage, group="blocked",
-                            message="V1 refit sensitivities wait for the B6 ten-fold check")]
-        for setting, (variant, drop, name) in V1_REFIT_SETTINGS.items():
-            stem = FI.design_stem("V1", variant, v1s)
-            if setting in V1_GROUPING_SETTINGS or not (Path(folds_dir) / f"{stem}.json").exists():
-                out.append(JobSpec(kind="marker", arm=f"untestable:{arm}:V1:{setting}", stage=stage, group="untestable",
-                                   message=f"{contrast}: R19 item 6 {name} of {arm} is UNTESTABLE -- the heavy-arm fold "
-                                           f"file {stem} and an inner design grouped by that grouping are not built "
-                                           "(the inner V1 design groups by the copy grouping)"))
-                continue
-            out.append(_fit(arm, "V1", variant, v1s, PRIMARY_SEED, stage=stage, multi_seed_file=v1s != "exact",
-                            drop_sr=drop, condition="freezing_candidate", group="freezing-candidate V1 refit sensitivities",
-                            purpose=f"R19 item 6 {name} of {contrast}"))
-    else:
-        for setting, (variant, drop, name) in V2_REFIT_SETTINGS.items():
-            out.append(_fit(arm, "V2", variant, "exact", PRIMARY_SEED, stage=stage, drop_sr=drop,
-                            condition="freezing_candidate", group="freezing-candidate V2 refit sensitivities",
-                            purpose=f"R19 item 6 {name} of {contrast}"))
+    for arm in arms:
+        for setting, (_, _, name) in table.items():
+            extra = ("; the heavy-arm fold file and an inner design under that grouping are not built either"
+                     if design == "V1" and setting in V1_GROUPING_SETTINGS else "")
+            out.append(JobSpec(kind="marker", arm=f"not_run:{arm}:{design}:{setting}", stage=stage,
+                               group="not run (addendum 1)",
+                               message=f"{contrast}: R19 item 6 {name} of {arm} on {design} is NOT run -- "
+                                       f"{LEARNED_REFITS_NOT_RUN[design][name]}{extra}"))
     return out
 
 
@@ -805,7 +947,10 @@ def code_digest(files: Iterable[Path], objects: Iterable[Any] = ()) -> dict[str,
             key = paths.rel(p)
         except ValueError:
             key = p.name
-        parts[key] = hashlib.sha256(Path(p).read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+        # a listed file that does not exist yet (a module still being written) is recorded as absent, so the digest
+        # changes -- and every record becomes stale, as it must -- the moment it lands
+        parts[key] = (hashlib.sha256(Path(p).read_bytes().replace(b"\r\n", b"\n")).hexdigest() if Path(p).exists()
+                      else "absent")
     for obj in objects:
         name = f"{obj.__module__}.{getattr(obj, '__qualname__', getattr(obj, '__name__', repr(obj)))}"
         parts[name] = sha256_text(inspect.getsource(obj).replace("\r\n", "\n"))
@@ -963,8 +1108,36 @@ def attach_intervals(frame: pd.DataFrame, quantiles: Mapping[float, float], n_ca
 # inner splits for calibration (section 12, compute plan item 1)
 # --------------------------------------------------------------------------------------------- #
 
+class FixedInnerSplits:
+    """A splitter returning inner splits drawn once (the addendum 1 design is drawn once per outer fold and shared by
+    tuning and calibration, so no arm redraws it)."""
+
+    def __init__(self, splits: Sequence[I.InnerSplit], name: str = "fixed_inner_splits"):
+        self._splits = list(splits)
+        self.name = name
+
+    def splits(self, table: I.RowTable, mask: np.ndarray, context: I.FitContext) -> list[I.InnerSplit]:
+        return list(self._splits)
+
+
+class InnerFoldSubset:
+    """A splitter restricted to the inner folds ``folds`` (addendum 1 item 2: the cross-fitted calibration of inner
+    fold ``j`` uses that fold's splits only).  Works for any splitter whose ``splits`` yields objects with ``fold``."""
+
+    def __init__(self, splitter: Any, folds: Iterable[int]):
+        self.splitter = splitter
+        self.folds = tuple(sorted({int(f) for f in folds}))
+        self.name = f"inner_folds({getattr(splitter, 'name', type(splitter).__name__)}, {list(self.folds)})"
+
+    def splits(self, table: I.RowTable, mask: np.ndarray, context: I.FitContext) -> list[I.InnerSplit]:
+        return [s for s in self.splitter.splits(table, mask, context) if int(s.fold) in self.folds]
+
+
 class FirstInnerFold:
-    """A splitter restricted to its lowest inner fold index holding a split (section 7 compute plan item 1)."""
+    """DEPRECATED (POST-HOC addendum 1 item 2: three inner folds on every seed, no 'first inner fold only' reading).
+    Kept for the sealed-plan tests and for any caller that still needs it; the discovery plan never builds one.
+
+    A splitter restricted to its lowest inner fold index holding a split (the sealed section 7 compute plan item 1)."""
 
     def __init__(self, splitter: Any):
         self.splitter = splitter
@@ -984,7 +1157,12 @@ class TuningSplitCalibration:
     calibration uses exactly the inner splits its tuning used.  ``frame`` is the arm frame over the table's rows; the
     rows handed to the design take the table's targets.  Each split carries the certificate ``(train, every hidden row
     of the split's cells / groups / state inside the training rows)`` -- the tuning guard's test side -- so
-    ``ConformalWrapper(guard="nested_certificate")`` checks exactly that split."""
+    ``ConformalWrapper(guard="nested_certificate")`` checks exactly that split.
+
+    Addendum 1 items 1-2: the V5 designs no longer come from here but from
+    ``gen19ct.models.inner_design.SimultaneousInnerCells``, which yields ``interface.InnerSplit`` directly.  This class
+    remains the bridge for the V1 and V2 inner designs, whose ``mode`` is always ``full``; ``mode="first"`` is
+    DEPRECATED and never built by the plan."""
 
     def __init__(self, design: Any, frame: pd.DataFrame, mode: str = "full", inner_folds: Iterable[int] | None = None):
         if mode not in ("full", "first"):
@@ -1038,7 +1216,12 @@ class TuningSplitCalibration:
 
 
 class V5ExactInnerCells(I.InnerCellCalibration):
-    """``interface.InnerCellCalibration`` (exact leave-one-inner-cell-out, the V5 inner design of the exact-fold arms)
+    """DEPRECATED by POST-HOC addendum 1 item 1 (every V5 design and variant of every learned arm and of B6 now tunes
+    on ``gen19ct.models.inner_design.SimultaneousInnerCells``, which hides a whole inner fold at once).  Kept because it
+    is the sealed exact leave-one-inner-cell-out design and the medium restriction it implements is the one the
+    simultaneous design inherits; the discovery plan builds none.
+
+    ``interface.InnerCellCalibration`` (exact leave-one-inner-cell-out, the V5 inner design of the exact-fold arms)
     with the variant's medium: for the HNO3-only variant the inner cells are eligible on the HNO3 rows of the outer
     training rows and only those rows are calibration rows; ``medium="all"`` is the parent class unchanged."""
 
@@ -1084,9 +1267,12 @@ def calibration_folds(available: Iterable[int], inner_mode: str, *, tuned: bool 
     """Which inner folds a heavy arm's conformal calibration uses (:data:`READINGS` ``heavy_arm_intervals``).
 
     ``tuned`` arms: ``full`` mode (every inner fold tuned) -> every inner fold, cross-fitted (``cross_fit`` True: fold
-    ``j`` takes the configuration selected without it); ``first`` mode (the lowest fold tuned) -> the next inner fold
-    holding a split, with the tuned configuration.  Fewer than two folds -> none (``status`` says why).  Untuned arms
-    (B8): the folds of the inner mode itself."""
+    ``j`` takes the configuration selected without it).  Fewer than two folds -> none (``status`` says why).  Untuned
+    arms (B8): the folds of the inner mode itself.
+
+    Addendum 1 item 2 leaves only ``full``: three inner folds on every seed that is run, so every job of the plan takes
+    the cross-fitted branch.  ``first`` is the DEPRECATED sealed-plan reading (``boosted`` and ``factorized`` now refuse
+    it); it is kept here for the sealed-plan tests and for an untuned arm's single-fold case."""
     avail = sorted({int(f) for f in available})
     if inner_mode not in ("full", "first"):
         raise ValueError(f"inner_mode {inner_mode!r}")
@@ -1195,9 +1381,10 @@ def budget_status(total_seconds: float, *, budget_hours: float = BUDGET_HOURS) -
 
 #: grid sizes (sections 5 and 6): configurations fitted per inner split during tuning
 CONFIGS_PER_SPLIT: dict[str, int] = {"B6": 12, "B5": 6, "FLAT_CAT": 6, "B8": 0, "M1": 9, "M2": 3}
-#: calibration refits per inner split (section 12 cross-fitted reading): B6 reuses its tuning predictions on seed 104729
-#: and, on the first-inner-fold seeds, re-runs the selected configurations on the next inner fold (costed as one joint
-#: fit per split, :meth:`UnitCost.fold_seconds`)
+#: calibration refits per inner split (section 12 cross-fitted reading, :data:`READINGS` ``calibration_refits``): B6
+#: reuses its tuning predictions (0); every other learned arm refits the configuration selected without the fold on that
+#: fold's inner training rows (1 per split, 3 per outer fold) -- the conservative reading of addendum 1 item 2's "no
+#: extra fits", priced here so that the estimate matches the runner
 CALIBRATION_FITS_PER_SPLIT: dict[str, int] = {"B6": 0, "B5": 1, "FLAT_CAT": 1, "B8": 1, "M1": 1, "M2": 1}
 #: the readings of "the first inner fold (one fit per configuration)" on V5 designs the cost model can price (task X
 #: finding V-04): every inner split of the first inner fold (implemented) or one split per configuration
@@ -1212,7 +1399,11 @@ class UnitCost:
     ``cal_fit_s``      one calibration refit on one inner split (fixed configuration)
     ``outer_refit_s``  one refit on all outer-training rows
     ``splits_full`` / ``splits_first``  inner splits per outer fold on seed 104729 / on the other seeds
-    ``guard_s``        seconds per inner split for its isolation check"""
+    ``guard_s``        seconds per inner split for its isolation check
+
+    Under POST-HOC addendum 1 (items 1-3) every job is priced in ``full`` mode and a V5 measurement has
+    ``splits_full = 3`` -- one simultaneous split per inner fold, each hiding up to 30 cells -- instead of the ~21
+    batched splits of the sealed plan; ``splits_first`` is then unused.  V1 and V2 measurements are unchanged (3)."""
 
     arm: str
     design_class: str
@@ -1287,6 +1478,24 @@ def estimate_cost(jobs: Sequence[JobSpec], fold_counts: Mapping[str, int], unit_
     return pd.DataFrame(recs)
 
 
+def stage_checkpoints(table: pd.DataFrame, *, workers: int = 2, budget_hours: float = BUDGET_HOURS) -> list[dict[str, Any]]:
+    """Cumulative wall clock at the end of every stage, in plan order (addendum 1: the checkpoints the operator watches
+    against the 60-hour budget).  One row per stage: its own compute, the cumulative compute and wall clock, and
+    whether the budget still holds there."""
+    if table.empty:
+        return []
+    out = []
+    for stage in [s for s in dict.fromkeys(table["stage"]) if s]:
+        sub = table[table["stage"] == stage]
+        cum_h = float(sub["cumulative_compute_h"].iloc[-1])
+        out.append({"stage": str(stage), "n_jobs": int(len(sub)), "n_folds": int(sub["n_folds"].sum()),
+                    "stage_compute_h": round(float(sub["compute_s"].sum()) / 3600.0, 3),
+                    "cumulative_compute_h": round(cum_h, 3),
+                    "cumulative_wall_h": round(cum_h / max(1, int(workers)), 3),
+                    "within_budget_wall": bool(cum_h / max(1, int(workers)) <= budget_hours)})
+    return out
+
+
 def cost_summary(table: pd.DataFrame, *, workers: int = 2, budget_hours: float = BUDGET_HOURS) -> dict[str, Any]:
     """Totals per arm, per stage and overall, and where the cumulative wall clock crosses the budget."""
     if table.empty:
@@ -1310,16 +1519,18 @@ H3_ARMS: tuple[str, ...] = ("WITH", "WITHOUT", "ACT_PERMUTED", "ACT_METAL_SHUFFL
 H3_MODEL_ARMS: tuple[str, ...] = ("RETAINED_LADDER_CONFIGURATION", "B6", "B5")
 
 
-def h3_job_specs() -> list[JobSpec]:
+def h3_job_specs(seeds: Sequence[int] = PLAN_SEEDS) -> list[JobSpec]:
     """Section 11 design: {retained ladder configuration, B6, B5} x {WITH, WITHOUT, ACT_PERMUTED, ACT_METAL_SHUFFLED} x
-    {V5-primary Ln(III) selection cells, V2 selection Ln(III) states, V1 selection folds (Ln rows)} x the 5 discovery
-    seeds, same folds and batches as the main runs.  Specs only (kind ``h3_spec``)."""
+    {V5-primary Ln(III) selection cells, V2 selection Ln(III) states, V1 selection folds (Ln rows)} x the seeds a
+    learned arm runs in discovery -- the sealed text's 5 discovery seeds reduced to seed 104729 by addendum 1 item 3
+    (:data:`PLAN_SEEDS`; task X finding V-F06), same folds and batches as the main runs.  Specs only (kind
+    ``h3_spec``); the sealed-plan enumeration is ``h3_job_specs(DISCOVERY_SEEDS)``."""
     out = []
     for model in H3_MODEL_ARMS:
         for h3 in H3_ARMS:
             for design, variant, scheme in (("V5", "primary", "batched"), ("V2", "element", "exact"),
                                             ("V1", "copy", "grouped10")):
-                for seed in _seed_order():
+                for seed in seeds:
                     out.append(JobSpec(kind="h3_spec", arm=f"{model}:{h3}", design=design, variant=variant,
                                        scheme="exact" if model == "B6" and design == "V5" else scheme, seed=seed,
                                        stage="11_h3_specs", group="section 11 actinide ablation (spec only)",
@@ -1555,6 +1766,45 @@ SCOPES: dict[str, tuple[Any, ...]] = {"stop_rule": (1, 2, 3, 5), "ladder": (1, 2
                                       "full": (1, 2, 3, 4, 5, 6)}
 
 
+#: item statuses that make a verdict UNDECIDED rather than PASS (never FAIL)
+INCONCLUSIVE_STATUSES: tuple[str, ...] = ("UNTESTABLE", "NOT_RUN", ITEM4_NOT_EVALUATED)
+
+
+def r19_verdict(items: Iterable[Mapping[str, Any]]) -> str:
+    """``transfer.r19``'s verdict rule over (possibly rewritten) items: FAIL beats UNDECIDED beats PASS."""
+    st = [str(i["status"]) for i in items]
+    if "FAIL" in st:
+        return "FAIL"
+    return "UNDECIDED" if any(s in INCONCLUSIVE_STATUSES for s in st) else "PASS"
+
+
+def reduced_item6(design: str, sensitivities: Mapping[str, Any], reduced: Sequence[str]) -> tuple[dict[str, Any],
+                                                                                                  dict[str, str]]:
+    """Addendum 1 item 4: R19 item 6 of a LEARNED-arm contrast, decided on ``reduced`` -- the refits that were run plus
+    every registered scoring-filter sensitivity -- and labelled :data:`ADDENDUM_LABEL`.  Returns the item and the
+    sensitivities that were not run, by name and reason (:data:`LEARNED_REFITS_NOT_RUN`), which the report prints."""
+    fail, untestable = [], []
+    for n in reduced:
+        if n not in sensitivities:
+            fail.append(f"{n}: missing")
+            continue
+        v = sensitivities[n]
+        if isinstance(v, str):
+            (untestable if v == ET.UNTESTABLE else fail).append(n if v == ET.UNTESTABLE else f"{n}: {v!r}")
+            continue
+        fv = float(v)
+        if not (np.isfinite(fv) and fv > 0):
+            fail.append(f"{n}: Delta={fv:.6g}")
+    registered = set(ET.REGISTERED_SENSITIVITIES[design])
+    not_run = {n: why for n, why in LEARNED_REFITS_NOT_RUN.get(design, {}).items() if n in registered}
+    body = "; ".join(fail + [f"{n}: UNTESTABLE" for n in untestable]) or \
+        f"positive in every sensitivity of the reduced set {list(reduced)}"
+    status = "FAIL" if fail else ("UNTESTABLE" if untestable else "PASS")
+    return ({"item": 6, "name": "positive_in_every_registered_sensitivity", "status": status,
+             "detail": f"{ADDENDUM_LABEL}: {body}; not run (addendum 1 item 4): {sorted(not_run)}",
+             "sensitivity_set": ADDENDUM_LABEL, "sensitivities_not_run": ", ".join(sorted(not_run))}, not_run)
+
+
 def _scope_verdict(items: Mapping[int, str], scope: Sequence[Any], sens: Mapping[str, Any], design: str) -> dict[str, Any]:
     statuses = {}
     for it in scope:
@@ -1570,20 +1820,29 @@ def _scope_verdict(items: Mapping[int, str], scope: Sequence[Any], sens: Mapping
             statuses[str(it)] = items[int(it)]
     vals = list(statuses.values())
     verdict = ("FAIL" if "FAIL" in vals else
-               "UNDECIDED" if any(v in ("UNTESTABLE", "NOT_RUN") for v in vals) else "PASS")
+               "UNDECIDED" if any(v in INCONCLUSIVE_STATUSES for v in vals) else "PASS")
     return {"verdict": verdict, "items": statuses}
 
 
 def evaluate_contrast(*, name: str, family: str, design: str, primary: PairedUnits, margin: float,
                       seed_deltas: Mapping[int, float | None], sensitivities: Mapping[str, float | str],
                       deterministic: bool = False, n_resamples: int = ET.N_RESAMPLES,
-                      bootstrap_seed: int = ET.BOOTSTRAP_SEED) -> dict[str, Any]:
+                      bootstrap_seed: int = ET.BOOTSTRAP_SEED, learned: bool = False,
+                      reduced_sensitivities: Sequence[str] | None = None) -> dict[str, Any]:
     """R19 (section 8) of one registered or exploratory contrast on the selection half.
 
     ``primary`` is the seed-104729 paired units (items 1-3, 5 and the TOST come from them), ``seed_deltas`` the
     per-discovery-seed Delta (item 4; a missing seed makes item 4 NOT_RUN), ``sensitivities`` every item 6 sensitivity
-    of the design (value, or ``transfer.UNTESTABLE`` for a refit sensitivity not run).  Returns the R19 result, the
-    bootstraps, the scoped verdicts (:data:`SCOPES`) and the TOST under the primary cluster unit."""
+    of the design (value, or ``transfer.UNTESTABLE`` for a refit sensitivity not run).
+
+    Addendum 1: ``learned`` (a contrast with a learned arm) makes item 4 **NOT_EVALUATED** in discovery (item 3), and
+    ``reduced_sensitivities`` decides item 6 on that reduced set, labelled :data:`ADDENDUM_LABEL`, naming the
+    sensitivities that were not run (item 4 of the addendum).  The verdict is recomputed by :func:`r19_verdict`, so a
+    learned-arm contrast is at best UNDECIDED in discovery -- the stop-rule, ladder and freezing scopes contain neither
+    R19 item 4 nor the refit sensitivities, so no decision changes.
+
+    Returns the R19 result, the bootstraps, the scoped verdicts (:data:`SCOPES`) and the TOST under the primary cluster
+    unit."""
     boots = bootstraps(primary, name=name, n_resamples=n_resamples, seed=bootstrap_seed)
     sd = [seed_deltas.get(s) for s in DISCOVERY_SEEDS]
     complete = all(v is not None and np.isfinite(float(v)) for v in sd)
@@ -1594,14 +1853,19 @@ def evaluate_contrast(*, name: str, family: str, design: str, primary: PairedUni
     r = ET.r19(design=design, stage="discovery", point=primary.delta, margin=margin, bootstraps=boots,
                seed_deltas=[float(v) if v is not None else float("nan") for v in sd], deterministic=deterministic,
                sensitivity_deltas=sens, contrast=name)
-    items = list(r.items)
-    if not deterministic and not complete:
+    items, not_run = list(r.items), {}
+    if not deterministic and learned:
+        items = [dict(i, status=ITEM4_NOT_EVALUATED, detail=ITEM4_NOT_EVALUATED_DETAIL) if i["item"] == 4 else i
+                 for i in items]
+    elif not deterministic and not complete:
         n_have = sum(1 for v in sd if v is not None and np.isfinite(float(v)))
         items = [dict(i, status="NOT_RUN", detail=f"{n_have} of {ET.N_SEEDS} discovery seeds scored")
                  if i["item"] == 4 else i for i in items]
-        st = [i["status"] for i in items]
-        verdict = "FAIL" if "FAIL" in st else "UNDECIDED"
-        r = replace(r, items=tuple(items), verdict=verdict)
+    if reduced_sensitivities is not None:
+        item6, not_run = reduced_item6(design, sens, list(reduced_sensitivities))
+        items = [item6 if i["item"] == 6 else i for i in items]
+    if items != list(r.items):
+        r = replace(r, items=tuple(items), verdict=r19_verdict(items))
     statuses = {int(i["item"]): i["status"] for i in r.items}
     scopes = {k: _scope_verdict(statuses, v, sens, design) for k, v in SCOPES.items()}
     primary_unit = ET.REGISTERED_CLUSTER_UNITS[design][0]
@@ -1611,6 +1875,9 @@ def evaluate_contrast(*, name: str, family: str, design: str, primary: PairedUni
             "bootstraps": boots, "scopes": scopes, "tost": tost, "primary_cluster_unit": primary_unit,
             "p_primary": boots[primary_unit].p_two_sided, "seed_deltas": {int(s): v for s, v in seed_deltas.items()},
             "sensitivities": sens, "n_units": int(len(primary.cand_mae)), "n_rows": primary.n_rows,
+            "learned_arm": bool(learned), "seeds_evaluated": list(PLAN_SEEDS) if learned else list(DISCOVERY_SEEDS),
+            "sensitivity_set": ADDENDUM_LABEL if reduced_sensitivities is not None else "registered (full)",
+            "sensitivities_not_run": not_run,
             "label": "discovery, optimistically biased (selection half)"}
 
 
@@ -1623,6 +1890,10 @@ def contrast_rows(res: Mapping[str, Any]) -> list[dict[str, Any]]:
             "tost_verdict_eps0.05": res["tost"]["verdict"], "tost_low_90": res["tost"]["low_90"],
             "tost_high_90": res["tost"]["high_90"], "label": res["label"],
             "batching_label": res.get("batching_label", ""),
+            "r19_item4": res["r19"].item(4)["status"],
+            "seeds_evaluated": ", ".join(str(s) for s in res.get("seeds_evaluated", DISCOVERY_SEEDS)),
+            "sensitivity_set": res.get("sensitivity_set", "registered (full)"),
+            "sensitivities_not_run": ", ".join(sorted(res.get("sensitivities_not_run") or {})),
             "reported_verdict": res.get("reported_verdict", res["r19"].verdict),
             "seed_deltas": json.dumps({str(k): v for k, v in sorted(res["seed_deltas"].items())}, sort_keys=True),
             "sensitivities": json.dumps(res["sensitivities"], sort_keys=True, default=str)}
@@ -1793,12 +2064,26 @@ REGISTERED_FAMILY_TABLE: tuple[dict[str, str], ...] = (
 )
 #: section 19 confirmation family (never evaluated in discovery)
 CONFIRMATION_ONLY_CONTRASTS: tuple[str, ...] = ("S2(a)", "S2(b)", "S2(c)")
+#: addendum 1 reading 6(f): "BH-adjusted p is also printed over all 60 registered discovery contrasts of section 19,
+#: with contrasts not run entered as p = 1".  Section 19 lists 57 discovery contrasts (ladder 21, H5 12, H3 6, S1(c) 5,
+#: secondary designs 5, H4 4, S1(b) 2, primary 1, H1b 1) and the 3 confirmation-only S2 contrasts: the registered 60
+#: counts the S2 rows, which are therefore entered as p = 1 rows of the full family (the conservative bound; task X
+#: finding V-F05).  ``m_discovery`` (57) is reported beside it.  Needs POST-HOC addendum 2 to state which count 6(f) meant
+REGISTERED_FULL_FAMILY_SIZE = 60
+CONFIRMATION_ONLY_STATUS = ("confirmation_only: S2 on V6 is never evaluated in discovery; entered as p = 1 in the "
+                            "60-contrast family of addendum 1 reading 6(f)")
+if len(REGISTERED_FAMILY_TABLE) + len(CONFIRMATION_ONLY_CONTRASTS) != REGISTERED_FULL_FAMILY_SIZE:
+    raise AssertionError("section 19 accounting: the family table plus the confirmation-only contrasts must number "
+                         f"{REGISTERED_FULL_FAMILY_SIZE} (addendum 1 reading 6(f)), got "
+                         f"{len(REGISTERED_FAMILY_TABLE)} + {len(CONFIRMATION_ONLY_CONTRASTS)}")
 
 
 def registered_family_accounting(evaluated_keys: Iterable[str]) -> dict[str, Any]:
     """Section 19 accounting: every registered discovery contrast with whether it was evaluated in this scoring (a
     registered 'evaluated' contrast whose arms are not yet run is ``not_run: predictions missing``), ``m_full`` (the
-    registered discovery family size BH ``p_bh_full_family`` uses) and the confirmation-only contrasts."""
+    :data:`REGISTERED_FULL_FAMILY_SIZE` = 60 of addendum 1 reading 6(f), the confirmation-only S2 contrasts entered as
+    p = 1 rows, which BH ``p_bh_full_family`` uses), ``m_discovery`` (the 57 discovery contrasts of the table) and the
+    confirmation-only contrasts."""
     keys = {str(k) for k in evaluated_keys}
     rows = []
     for r in REGISTERED_FAMILY_TABLE:
@@ -1813,10 +2098,15 @@ def registered_family_accounting(evaluated_keys: Iterable[str]) -> dict[str, Any
                 present = f"{r['contrast']}@{r['design']}" in keys
             row["status"] = "evaluated" if present else "not_run: predictions missing or incomplete"
         rows.append(row)
+    m_discovery = len(rows)
+    for c in CONFIRMATION_ONLY_CONTRASTS:
+        rows.append({"family": "confirmation", "contrast": c, "design": "V6", "status": CONFIRMATION_ONLY_STATUS})
     n_eval = sum(r["status"] == "evaluated" for r in rows)
-    return {"m_full": len(rows), "m_evaluated": n_eval, "contrasts": rows,
+    if len(rows) != REGISTERED_FULL_FAMILY_SIZE:
+        raise AssertionError(f"section 19 family: {len(rows)} rows, {REGISTERED_FULL_FAMILY_SIZE} registered")
+    return {"m_full": len(rows), "m_discovery": m_discovery, "m_evaluated": n_eval, "contrasts": rows,
             "confirmation_only": list(CONFIRMATION_ONLY_CONTRASTS),
-            "bh_note": READINGS["bh_p"]}
+            "full_family_reading": READINGS["full_family_60"], "bh_note": READINGS["bh_p"]}
 
 
 #: section 4 / 12 uncertainty quantities that need a predictive SD or a method not built (task X finding V-10)
@@ -1919,11 +2209,13 @@ def freezing_candidates(results: Mapping[str, Mapping[str, Any]], state: PlanSta
 
 
 def b6_check(exact: Mapping[int, pd.Series], batched: Mapping[int, pd.Series], *,
-             threshold: float = 0.01) -> dict[str, Any]:
+             threshold: float = 0.01, seeds: Sequence[int] = PLAN_SEEDS) -> dict[str, Any]:
     """The per-seed registered check (sections 3.1 / 3.2): ``factorized.batched_exact_check`` logic on per-unit MAE of
-    identical units; passes only when every discovery seed is present and passes."""
+    identical units; passes only when every seed of ``seeds`` is present and passes (:data:`READINGS`
+    ``b6_batched_check``).  ``seeds`` defaults to the seeds discovery runs -- under addendum 1 item 3 seed 104729
+    alone; pass :data:`DISCOVERY_SEEDS` for the five-seed reading of the sealed plan."""
     per = {}
-    for s in DISCOVERY_SEEDS:
+    for s in seeds:
         if s not in exact or s not in batched:
             continue
         ex, ba = exact[s].astype(float), batched[s].astype(float)
@@ -1932,9 +2224,10 @@ def b6_check(exact: Mapping[int, pd.Series], batched: Mapping[int, pd.Series], *
         e, b = float(ex.mean()), float(ba.loc[ex.index].mean())
         per[int(s)] = {"n_units": int(len(ex)), "exact_macro_mae": e, "batched_macro_mae": b, "delta": b - e,
                        "abs_delta": abs(b - e), "passed": bool(abs(b - e) < threshold)}
-    complete = len(per) == len(DISCOVERY_SEEDS)
+    want = [int(s) for s in seeds]
+    complete = len(per) == len(want)
     passed = complete and all(v["passed"] for v in per.values())
-    return {"threshold": threshold, "per_seed": per, "complete": complete,
+    return {"threshold": threshold, "per_seed": per, "seeds": want, "complete": complete,
             "passed": passed if complete else None, "reading": READINGS["b6_batched_check"]}
 
 

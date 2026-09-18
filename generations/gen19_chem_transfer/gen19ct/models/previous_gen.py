@@ -76,6 +76,8 @@ Public API
 :class:`B8Direction`                      the G14 direction arm: per-system probability, per-pair logSF and
                                           direction, and the TOPO39 coverage report
 :func:`fit_b8`                            both halves on one training set (:class:`B8Bundle`)
+:func:`conformal_b8_level`                the level arm with split-conformal intervals cross-fitted over the inner
+                                          splits of a learned-arm inner design (addendum 1 items 1-2; no tuning grid)
 
 Everything fitted -- the feature state, the ECFP clusters, the imputation medians, the forest, the TOPO39
 scaler, the logistic and the delta-Z magnitudes -- is fitted on the rows passed to ``fit`` only (brief section
@@ -106,6 +108,7 @@ from gen19ct.data import normalize as N
 from gen19ct.evaluation import metrics as EM
 from gen19ct.evaluation import pairs as EP
 from gen19ct.models import features as F
+from gen19ct.models import inner_design as ID
 from gen19ct.models import interface as I
 
 SCHEMA = "gen19.b8.v1"
@@ -193,6 +196,14 @@ REGISTRATION_CHOICES: dict[str, str] = {
     "variance_model": "B8 has no registered variance model: std_logD is NaN and the intervals come from the "
                       "split-conformal wrapper (section 12).  gen7's across-tree spread "
                       "(contenders.py:91-95) is not computed, so no unregistered SD enters a metric",
+    "conformal": "POST-HOC addendum 1 items 1-2: B8 has no tuning grid, so its calibration is the plain split-conformal "
+                 "rule over the learned arms' inner design -- under V5 inner_design.SimultaneousInnerCells (three "
+                 "inner splits, one per inner fold, all of the fold's cells hidden), under V1 / V2 the grouped / "
+                 "metal inner design -- the level refitted once per inner split on that split's training rows with the "
+                 "outer fold's model seed (reading 6(b)), the absolute residuals of the three splits pooled, the "
+                 "interval centre the refit on all outer-training rows; 'cross-fitted' is trivial without a selection "
+                 "step (no residual comes from a fit that saw its row).  The per-cell InnerCellCalibration is refused "
+                 "(conformal_b8_level)",
     "cell_key": "a gen14 cell is (publication, exactly matched conditions, extractant); Gen19 keys it with its "
                 "own registered units -- the section 2 publication group, extractant_system_key and "
                 "normalize.condition_key (the comparable-pair key, metal concentration included).  Replicates of "
@@ -1269,6 +1280,21 @@ class B8Bundle:
     @property
     def state_digest(self) -> str:
         return F.state_digest(self.state())
+
+
+def conformal_b8_level(frame: pd.DataFrame, splitter: Any, *, fold: int | None = None, random_state: int | None = None,
+                       cv: pd.DataFrame | None = None, config: MonoEtConfig | None = None, guard: str = "every_split",
+                       ecfp_format: str = "dense") -> I.ConformalWrapper:
+    """The B8 level with split-conformal intervals calibrated over the inner splits of ``splitter`` (addendum 1
+    items 1-2, :data:`REGISTRATION_CHOICES` ``conformal``): ``ConformalWrapper(B8Level(...))`` -- one level fit per
+    inner split (its training rows only), the residuals of the splits' calibration rows pooled, the arm refitted on all
+    outer-training rows.  ``splitter`` must be a learned-arm inner design (``inner_design.SimultaneousInnerCells`` for
+    V5; never the per-cell ``InnerCellCalibration``).  Fit with ``fit(train_rows, context)`` or
+    ``fit_table(table, mask, context)``; ``context.seed``, ``context.v6_mask`` and ``context.isolation_check`` are
+    required."""
+    ID.assert_learned_arm_design(splitter, ARM_NAME)
+    level = B8Level(frame, cv=cv, fold=fold, random_state=random_state, config=config, ecfp_format=ecfp_format)
+    return I.ConformalWrapper(level, splitter=splitter, guard=guard)
 
 
 def fit_b8(train_rows: pd.DataFrame, context: I.FitContext | None = None, *, fold: int | None = None,

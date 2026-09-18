@@ -43,18 +43,22 @@ ridge solve).  A :class:`Design` can hold ``S`` training sets over one universe 
 ``L`` lambdas, solved together; each member's solution is that of its own rows (tested equal to the single fit).
 BLAS is limited to :data:`BLAS_THREADS` inside a fit.
 
-Registered tuning (section 7) -- :func:`run_inner_tuning`, :class:`B6TunedConformal`, :func:`fit_b6_and_b6r0`
-    The inner splits are those of the design's registered inner splitter (``interface.InnerCellCalibration`` for V5 /
-    V5-P / V5-PAIR / V6, ``GroupKFoldCalibration`` for V1, ``InnerMetalCalibration`` for V2 -- the one implementation
-    per design the fold builder uses); every split passes the isolation guard (``ConformalWrapper._verify``) and
-    ``registered.assert_not_scored``.  All configurations ``k in {0,1,2,3} x lambda in {0.1, 1, 10}`` are fitted on
-    every split; the inner macro MAE averages the absolute errors per averaging unit of the design
-    (``InnerSplit.row_units``: an inner cell, a publication group or ``REMAINDER``, an inner metal state), then over
-    units; configurations within 0.005 of the best are resolved toward lower rank, then stronger penalty.  B6r0 is the
+Registered tuning (section 7; POST-HOC addendum 1 items 1-2) -- :func:`run_inner_tuning`, :class:`B6TunedConformal`,
+:func:`fit_b6_and_b6r0`
+    The inner splits are those of the learned arms' inner design (``models.inner_design.SimultaneousInnerCells`` for
+    V5 / V5-P / V5-PAIR / V6 -- the section 7 inner cells, all cells of an inner fold hidden in one split, addendum 1
+    item 1; ``GroupKFoldCalibration`` for V1, ``InnerMetalCalibration`` for V2 -- the one implementation per design the
+    fold builder uses); the per-cell ``InnerCellCalibration`` is refused (``inner_design.assert_learned_arm_design``).
+    Every split passes the isolation guard (``ConformalWrapper._verify``) and ``registered.assert_not_scored``.  All
+    configurations ``k in {0,1,2,3} x lambda in {0.1, 1, 10}`` are fitted on every split (one fit per configuration and
+    inner fold); a configuration's score on an inner fold is the unit-macro MAE (the absolute errors averaged per
+    averaging unit of the design -- ``InnerSplit.row_units``: an inner cell, a publication group or ``REMAINDER``, an
+    inner metal state -- then over units) and its selection score the mean over the three inner folds (addendum 1
+    item 2); configurations within 0.005 of the best are resolved toward lower rank, then stronger penalty.  B6r0 is the
     same selection restricted to ``k = 0`` (on the same inner fits).  The split-conformal intervals are cross-fitted
-    (:class:`B6TunedConformal` ``calibration="cross_fit"``): inner fold ``j``'s residuals come from the configuration
-    selected on the other inner folds, or -- when tuning used the first inner fold only -- from the selected
-    configuration on the next inner fold; the arm is then refitted on all training rows.  ``std_logD`` is NaN (no
+    (:class:`B6TunedConformal` ``calibration="cross_fit"``): inner fold ``j``'s residuals are those of the configuration
+    selected on the other inner folds, taken from the fits already made (no extra fit); the arm is then refitted on all
+    training rows.  No "first inner fold" reading exists (``inner_mode="first"`` is refused).  ``std_logD`` is NaN (no
     variance model; the section 12 Bayesian-ridge head is not built here).
 
 Also: :func:`select_config` (the tie rule), :func:`batched_exact_check` / :func:`batched_check_decision` (the section
@@ -92,6 +96,7 @@ from gen19ct.data import normalize as N
 from gen19ct.folds import io as FI
 from gen19ct.folds import registered as FR
 from gen19ct.models import features as F
+from gen19ct.models import inner_design as ID
 from gen19ct.models import interface as I
 
 #: registered grids (section 5 B6)
@@ -157,23 +162,27 @@ REGISTRATION_CHOICES: dict[str, str] = {
                       "init_seed the caller passes (discovery: the section 15 model seed 42 + fold * 1009 + 9,999,991 "
                       "of the outer fold, the same for every inner tuning, calibration and outer fit of that fold, as "
                       "for every other learned arm), else context.seed; INIT_SCALE = 0.3 chosen on synthetic data only",
-    "inner_macro_mae": "section 7 'inner macro MAE with the design's own averaging': the absolute errors of the inner "
-                       "calibration (scored) rows are averaged per averaging unit (InnerSplit.row_units: V5 hidden "
-                       "cell, V1 publication group or REMAINDER below 20 outer-training rows, V2 metal state -- the "
-                       "units of the boosted and neural inner designs), a unit pooled over the splits holding it, then "
-                       "over units; a split without row_units counts as one unit (discovery refuses such splits)",
+    "inner_macro_mae": "section 7 'inner macro MAE with the design's own averaging' under addendum 1 item 2: per inner "
+                       "fold, the absolute errors of the fold's calibration (scored) rows are averaged per averaging "
+                       "unit (InnerSplit.row_units: V5 hidden cell, V1 publication group or REMAINDER below 20 "
+                       "outer-training rows, V2 metal state -- the units of the boosted and neural inner designs; a "
+                       "unit pooled over the fold's splits), then over units; the selection score is the mean over the "
+                       "inner folds (B6InnerTuning.macro_mae = mean of fold_macro_mae); a split without row_units "
+                       "counts as one unit (discovery refuses such splits)",
+    "inner_design": "addendum 1 item 1: the V5 inner design is inner_design.SimultaneousInnerCells (one split per inner "
+                    "fold, all of the fold's cells hidden, failing cells hidden but unscored); run_inner_tuning and "
+                    "fit_b6_variants refuse the per-cell InnerCellCalibration",
     "tie_rule": "configurations with inner macro MAE <= best + 0.005 -> the smallest rank, then the largest lambda",
     "b6r0_tuning": "B6r0 selects lambda by the same inner rule restricted to k = 0, on the same inner fits as B6",
-    "conformal": "calibration='cross_fit' (discovery): no residual comes from a row that selected the configuration "
-                 "it is a residual of -- with every inner fold tuned, inner fold j's residuals are those of the "
-                 "configuration selected on the other inner folds (every configuration is fitted on every split, so "
-                 "no refit); with tuning on the first inner fold only, the residuals of the selected configuration on "
-                 "the next inner fold holding a split; fewer than two inner folds: not calibrated (NaN intervals). "
+    "conformal": "calibration='cross_fit' (discovery, addendum 1 item 2): no residual comes from a row that selected "
+                 "the configuration it is a residual of -- inner fold j's residuals are those of the configuration "
+                 "selected on the other inner folds (every configuration is fitted on every split, so the fits already "
+                 "made are reused, no refit); fewer than two inner folds: not calibrated (NaN intervals). "
                  "calibration='tuning_residuals' is the earlier reading (residuals of the selected configuration on the "
                  "tuning splits). The interval centre is the refit on all training rows",
-    "fold_subset": "run_inner_tuning(fold_subset=(f,)) / fit_b6_variants(inner_mode='first') restrict tuning to the "
-                   "lowest inner fold holding a split (section 7 compute plan item 1, seeds other than 104729); "
-                   "calibration then uses the next inner fold",
+    "fold_subset": "run_inner_tuning(fold_subset=...) is a diagnostic restriction of the inner folds fitted; the "
+                   "section 7 compute plan's 'first inner fold' reading (fit_b6_variants(inner_mode='first'), "
+                   "calibration on the next inner fold) was retired by addendum 1 item 2 and is refused",
     "batched_check": "section 7 item 6 (re-colour with <= 4 cells, repeat once, else label 'batched (check failed)' "
                      "and S1 UNDECIDED) is implemented; section 3.1's older 'otherwise every arm uses exact "
                      "leave-one-cell-out' is reported beside it",
@@ -1257,10 +1266,21 @@ class B6InnerTuning:
         units = np.concatenate([self._row_units(i) for i in members])
         return pd.Series(err).groupby(units, sort=True).mean()
 
+    def fold_macro_mae(self, config: Config, *, folds: Iterable[int] | None = None,
+                       exclude_folds: Iterable[int] | None = None) -> pd.Series:
+        """Per inner fold (index): the unit-macro MAE of the chosen splits of that fold -- a unit's rows pooled over the
+        fold's splits, the unit MAEs averaged (``inner_design.per_fold_unit_macro``)."""
+        members = self._members(folds, exclude_folds)
+        if not members:
+            return pd.Series(dtype=float)
+        return ID.per_fold_unit_macro([np.abs(self.y[i] - self.predictions[config][i]) for i in members],
+                                      [self._row_units(i) for i in members], [self.folds[i] for i in members])
+
     def macro_mae(self, config: Config, *, folds: Iterable[int] | None = None,
                   exclude_folds: Iterable[int] | None = None) -> float:
-        u = self.unit_mae(config, folds=folds, exclude_folds=exclude_folds)
-        return float(u.mean()) if len(u) else float("nan")
+        """The selection score (addendum 1 item 2): the mean over the chosen inner folds of :meth:`fold_macro_mae`."""
+        fm = self.fold_macro_mae(config, folds=folds, exclude_folds=exclude_folds)
+        return float(fm.mean()) if len(fm) else float("nan")
 
     def maes(self, *, folds: Iterable[int] | None = None, exclude_folds: Iterable[int] | None = None
              ) -> dict[Config, float]:
@@ -1279,10 +1299,20 @@ class B6InnerTuning:
 
     def summary(self) -> pd.DataFrame:
         return pd.DataFrame.from_records([
-            {"rank": c[0], "lambda": c[1], "inner_macro_mae": self.macro_mae(c), "n_splits": len(self.y),
+            {"rank": c[0], "lambda": c[1], "inner_macro_mae": self.macro_mae(c),
+             "pooled_unit_macro_mae_diagnostic": float(self.unit_mae(c).mean()) if len(self.y) else float("nan"),
+             "n_splits": len(self.y), "n_inner_folds": len(set(self.folds)),
              "n_units": int(len(self.unit_mae(c))), "n_not_converged": int(sum(not v for v in self.converged[c])),
              "max_sweeps_used": int(max(self.n_sweeps[c])), "mean_sweeps": float(np.mean(self.n_sweeps[c]))}
             for c in self.configs])
+
+    def fold_table(self) -> pd.DataFrame:
+        """One row per (configuration, inner fold): the fold's unit-macro MAE."""
+        recs = []
+        for c in self.configs:
+            for f, v in self.fold_macro_mae(c).items():
+                recs.append({"rank": c[0], "lambda": c[1], "inner_fold": int(f), "macro_mae": float(v)})
+        return pd.DataFrame.from_records(recs, columns=["rank", "lambda", "inner_fold", "macro_mae"])
 
 
 class FixedSplits:
@@ -1310,6 +1340,7 @@ def run_inner_tuning(table: I.RowTable, mask: np.ndarray, context: I.FitContext,
     initialisation uses ``init_seed`` (the section 15 model seed of the outer fold) when given, else ``context.seed``.
     ``require_row_units`` refuses a split without ``InnerSplit.row_units`` (the design's averaging unit)."""
     t0 = time.perf_counter()
+    ID.assert_learned_arm_design(splitter, "B6 inner tuning")
     if context.seed is None:
         raise ValueError("inner tuning draws its splits and initialisation from context.seed")
     seed = int(context.seed)
@@ -1389,18 +1420,18 @@ class B6TunedConformal(I.ConformalWrapper):
     of ``(rank, lambda)``, split-conformal intervals, refit on all training rows (module docstring).  One seed per
     wrapper: the selection depends on the inner draw.
 
-    ``calibration="cross_fit"`` (default; the discovery reading): no calibration residual comes from a row that chose
-    the configuration it is a residual of.  With every inner fold tuned, the residuals of inner fold ``j`` are those of
-    the configuration selected on the OTHER inner folds (no refit needed: every configuration was fitted on every
-    split); with tuning restricted to ``fold_subset`` (section 7 compute plan item 1), they are the residuals of the
-    selected configuration on the lowest inner fold outside the subset (``calibration_tuning``).  With no such fold
-    the arm is not calibrated (NaN quantiles, ``calibration_record['status']``).  ``calibration="tuning_residuals"`` is
-    the pre-discovery reading (residuals of the selected configuration on the tuning splits themselves; tested equal to
+    ``calibration="cross_fit"`` (default; the discovery reading, addendum 1 item 2): no calibration residual comes
+    from a row that chose the configuration it is a residual of.  The residuals of inner fold ``j`` are those of the
+    configuration selected on the OTHER inner folds, taken from the fits already made (every configuration was fitted
+    on every split, so nothing is refitted).  With fewer than two inner folds the arm is not calibrated (NaN quantiles,
+    ``calibration_record['status']``).  ``calibration="tuning_residuals"`` is the pre-discovery reading (residuals of
+    the selected configuration on the tuning splits themselves; tested equal to
     ``ConformalWrapper(B6Factorized(selected))``).  ``init_seed`` is the section 15 model seed of the factor
-    initialisation (``None``: ``context.seed``)."""
+    initialisation (``None``: ``context.seed``).  The splitter must be a learned-arm inner design
+    (``inner_design.assert_learned_arm_design``: never the per-cell ``InnerCellCalibration``)."""
 
     def __init__(self, variant: str = "B6", splitter: Any = None, guard: str = "every_split", *,
-                 lambdas: Sequence[float] = LAMBDAS, fold_subset: Sequence[int] | None = None,
+                 lambdas: Sequence[float] = LAMBDAS,
                  max_sweeps: int = MAX_SWEEPS, tol: float = REL_TOL, init_scale: float = INIT_SCALE,
                  tie_margin: float = TIE_MARGIN, side_categoricals: bool = False, chunk_size: int = TUNING_CHUNK,
                  blas: int | None = BLAS_THREADS, seeds: Sequence[int] | None = None,
@@ -1412,8 +1443,9 @@ class B6TunedConformal(I.ConformalWrapper):
                              "per seed (context.seed)")
         if calibration not in CALIBRATIONS:
             raise ValueError(f"calibration must be one of {CALIBRATIONS}")
+        if splitter is not None:
+            ID.assert_learned_arm_design(splitter, f"{variant} B6TunedConformal")
         self.variant, self.ranks, self.lambdas = variant, VARIANT_RANKS[variant], tuple(float(l) for l in lambdas)
-        self.fold_subset = None if fold_subset is None else tuple(int(f) for f in fold_subset)
         self.max_sweeps, self.tol, self.init_scale = int(max_sweeps), float(tol), float(init_scale)
         self.tie_margin, self.side_categoricals = float(tie_margin), bool(side_categoricals)
         self.chunk_size, self.blas = int(chunk_size), blas
@@ -1428,7 +1460,7 @@ class B6TunedConformal(I.ConformalWrapper):
 
     def clone(self) -> "B6TunedConformal":
         return B6TunedConformal(self.variant, self.splitter, self.guard, lambdas=self.lambdas,
-                                fold_subset=self.fold_subset, max_sweeps=self.max_sweeps, tol=self.tol,
+                                max_sweeps=self.max_sweeps, tol=self.tol,
                                 init_scale=self.init_scale, tie_margin=self.tie_margin,
                                 side_categoricals=self.side_categoricals, chunk_size=self.chunk_size, blas=self.blas,
                                 calibration=self.calibration, init_seed=self.init_seed,
@@ -1446,25 +1478,21 @@ class B6TunedConformal(I.ConformalWrapper):
 
     def fit_table(self, table: I.RowTable, mask: np.ndarray, context: I.FitContext) -> "B6TunedConformal":
         fitted = fit_b6_variants(table, mask, context, self.splitter, variants=(self.variant,), guard=self.guard,
-                                 lambdas=self.lambdas, fold_subset=self.fold_subset, tie_margin=self.tie_margin,
+                                 lambdas=self.lambdas, tie_margin=self.tie_margin,
                                  calibration=self.calibration, **self._tune_kw())[self.variant]
         self.__dict__.update({k: v for k, v in fitted.__dict__.items() if k != "splitter"})
         return self
 
     def fit_from_tuning(self, tuning: B6InnerTuning, table: I.RowTable, mask: np.ndarray,
-                        context: I.FitContext, *, calibration_tuning: B6InnerTuning | None = None,
-                        calibration_fold: int | None = None) -> "B6TunedConformal":
+                        context: I.FitContext) -> "B6TunedConformal":
         """Selection, calibration and refit from a :func:`run_inner_tuning` result of the SAME table, training mask
-        and seed (asserted), so B6 and B6r0 share one set of inner fits.  ``calibration_tuning`` is the run of the
-        selected configuration(s) on ``calibration_fold`` when ``tuning`` was restricted to a fold subset."""
+        and seed (asserted), so B6 and B6r0 share one set of inner fits."""
         want_init = context.seed if self.init_seed is None else self.init_seed
-        for t in (tuning, calibration_tuning):
-            if t is None:
-                continue
-            if t.table_id != id(table) or t.mask_digest != _mask_digest(mask) or t.seed != context.seed:
-                raise AssertionError("B6TunedConformal: the tuning was run on another training set or seed")
-            if t.init_seed != want_init:
-                raise AssertionError("B6TunedConformal: the tuning used another initialisation seed")
+        t = tuning
+        if t.table_id != id(table) or t.mask_digest != _mask_digest(mask) or t.seed != context.seed:
+            raise AssertionError("B6TunedConformal: the tuning was run on another training set or seed")
+        if t.init_seed != want_init:
+            raise AssertionError("B6TunedConformal: the tuning used another initialisation seed")
         missing = [c for c in ((k, l) for k in self.ranks for l in self.lambdas) if c not in tuning.predictions]
         if missing:
             raise ValueError(f"B6TunedConformal: the tuning lacks configurations {missing}")
@@ -1476,36 +1504,24 @@ class B6TunedConformal(I.ConformalWrapper):
             self.calibration_units = list(tuning.units)
             self.calibration_record = {"method": "tuning_residuals", "status": "calibrated",
                                        "n_calibration": int(len(self.residuals))}
-        elif tuning.fold_subset is None:
-            tuned_folds = sorted(set(tuning.folds))
+        else:
+            # addendum 1 item 2: inner fold j is calibrated by the configuration selected on the other inner folds, with
+            # the fits already made (every configuration was fitted on every split)
+            plan = ID.cross_fit_plan(tuning.folds)
             res, units, per = [], [], {}
-            if len(tuned_folds) >= 2:
-                for j in tuned_folds:
-                    cj = tuning.select(self.ranks, self.lambdas, self.tie_margin, exclude_folds=(j,))
-                    r = tuning.residuals(cj, folds=(j,))
-                    res.append(r)
-                    units += [u for u, f in zip(tuning.units, tuning.folds) if f == j]
-                    per[str(j)] = {"config": f"k{cj[0]}_lam{cj[1]:g}", "n_calibration": int(len(r))}
+            for j, others in plan.items():
+                cj = tuning.select(self.ranks, self.lambdas, self.tie_margin, folds=others)
+                r = tuning.residuals(cj, folds=(j,))
+                res.append(r)
+                units += [u for u, f in zip(tuning.units, tuning.folds) if f == j]
+                per[str(j)] = {"config": f"k{cj[0]}_lam{cj[1]:g}", "selected_on_folds": list(others),
+                               "n_calibration": int(len(r))}
             self.residuals = np.concatenate(res) if res else np.zeros(0)
             self.calibration_units = units
             self.calibration_record = {"method": "cross_fit", "per_inner_fold": per,
+                                       "inner_folds": sorted(set(tuning.folds)),
                                        "status": "calibrated" if res else "not_calibrated_fewer_than_two_inner_folds",
                                        "n_calibration": int(len(self.residuals))}
-        else:
-            if calibration_tuning is not None:
-                if cfg not in calibration_tuning.predictions:
-                    raise ValueError(f"B6TunedConformal: the calibration run lacks the selected configuration {cfg}")
-                if set(calibration_tuning.folds) & set(tuning.fold_subset):
-                    raise AssertionError("B6TunedConformal: calibration rows from a tuning fold")
-                self.residuals = calibration_tuning.residuals(cfg)
-                self.calibration_units = list(calibration_tuning.units)
-                status = "calibrated"
-            else:
-                self.residuals, self.calibration_units = np.zeros(0), []
-                status = "not_calibrated_no_inner_fold_outside_the_tuning_folds"
-            self.calibration_record = {"method": "cross_fit", "tuning_folds": list(tuning.fold_subset),
-                                       "calibration_fold": calibration_fold, "config": f"k{cfg[0]}_lam{cfg[1]:g}",
-                                       "status": status, "n_calibration": int(len(self.residuals))}
         if len(self.residuals):
             self.quantiles = {lv: I.conformal_quantile(self.residuals, lv) for lv in I.LEVELS}
         else:
@@ -1523,53 +1539,49 @@ class B6TunedConformal(I.ConformalWrapper):
         return {"variant": self.variant, "selected_rank": self.selected[0], "selected_lambda": self.selected[1],
                 "inner_macro_mae": {f"k{k}_lam{l:g}": v for (k, l), v in self.tuning.maes().items()
                                     if k in self.ranks and l in self.lambdas},
-                "n_inner_splits": len(self.tuning.units), "seed": self.tuning.seed, "init_seed": self.tuning.init_seed,
-                "tuning_folds": None if self.tuning.fold_subset is None else list(self.tuning.fold_subset),
+                "inner_fold_macro_mae": {f"k{k}_lam{l:g}": {str(int(f)): float(v) for f, v in
+                                                            self.tuning.fold_macro_mae((k, l)).items()}
+                                         for k in self.ranks for l in self.lambdas},
+                "selection_score": "mean over inner folds of the fold's unit-macro MAE (addendum 1 item 2)",
+                "n_inner_splits": len(self.tuning.units), "n_inner_folds": len(set(self.tuning.folds)),
+                "seed": self.tuning.seed, "init_seed": self.tuning.init_seed,
+                "tuning_folds": sorted(set(self.tuning.folds)),
                 "units_from_splits": self.tuning.units_from_splits, "calibration": self.calibration_record,
                 "outer_refit_sweeps": info["n_sweeps"], "outer_refit_converged": info["converged"]}
 
 
+#: the only inner mode of a learned arm (addendum 1 item 2: three inner folds on every seed)
+INNER_MODES: tuple[str, ...] = ("full",)
+
+
 def fit_b6_variants(table: I.RowTable, mask: np.ndarray, context: I.FitContext, splitter: Any, *,
                     variants: Sequence[str] = ("B6", "B6r0"), guard: str = "every_split", inner_mode: str | None = None,
-                    fold_subset: Sequence[int] | None = None, lambdas: Sequence[float] = LAMBDAS,
-                    tie_margin: float = TIE_MARGIN, calibration: str = "cross_fit", init_seed: int | None = None,
-                    require_row_units: bool = False, **kw: Any) -> dict[str, B6TunedConformal]:
+                    lambdas: Sequence[float] = LAMBDAS, tie_margin: float = TIE_MARGIN, calibration: str = "cross_fit",
+                    init_seed: int | None = None, require_row_units: bool = False,
+                    **kw: Any) -> dict[str, B6TunedConformal]:
     """B6 variants of one training set from ONE draw of the inner design and ONE set of inner fits (section 7 order of
-    discovery: B6 / B6r0 first).  ``inner_mode="first"`` (section 7 compute plan item 1) tunes on the lowest inner fold
-    holding a split; ``fold_subset`` names the tuning folds explicitly.  Under ``calibration="cross_fit"`` a restricted
-    tuning is calibrated on the lowest inner fold outside it, with the selected configurations only."""
-    if inner_mode not in (None, "full", "first"):
-        raise ValueError(f"inner_mode {inner_mode!r}")
-    if inner_mode == "first" and fold_subset is not None:
-        raise ValueError("give inner_mode='first' or fold_subset, not both")
+    discovery: B6 / B6r0 first).  Every inner fold of the design is tuned (``inner_mode`` accepts ``None`` / ``"full"``
+    only: the section 7 compute plan's ``"first"`` reading was retired by addendum 1 item 2); the cross-fitted
+    calibration of inner fold ``j`` reuses the fits of the configuration selected on the other inner folds."""
+    if inner_mode is not None and inner_mode not in INNER_MODES:
+        raise ValueError(f"inner_mode {inner_mode!r}: the learned arms tune on every inner fold under {ID.ADDENDUM} "
+                         f"(accepted: None or {INNER_MODES})")
     unknown = sorted(set(kw) - {"max_sweeps", "tol", "init_scale", "side_categoricals", "chunk_size", "blas"})
     if unknown:
         raise TypeError(f"fit_b6_variants: unexpected keyword(s) {unknown}")
+    ID.assert_learned_arm_design(splitter, "B6")
     lambdas = tuple(float(l) for l in lambdas)
     splits = list(splitter.splits(table, mask, context))
     if not splits:
         raise ValueError("the inner design produced no split")
     fixed = FixedSplits(splits, getattr(splitter, "name", type(splitter).__name__))
-    available = sorted({int(s.fold) for s in splits})
-    subset = (available[0],) if inner_mode == "first" else (None if fold_subset is None else tuple(fold_subset))
     ranks = tuple(sorted({k for v in variants for k in VARIANT_RANKS[v]}))
     tuning = run_inner_tuning(table, mask, context, fixed, guard=guard, ranks=ranks, lambdas=lambdas,
-                              fold_subset=subset, init_seed=init_seed, require_row_units=require_row_units, **kw)
-    wrappers = {v: B6TunedConformal(v, splitter, guard, lambdas=lambdas, fold_subset=subset, tie_margin=tie_margin,
+                              init_seed=init_seed, require_row_units=require_row_units, **kw)
+    wrappers = {v: B6TunedConformal(v, splitter, guard, lambdas=lambdas, tie_margin=tie_margin,
                                     calibration=calibration, init_seed=init_seed, require_row_units=require_row_units,
                                     **kw) for v in variants}
-    cal_tuning, cal_fold = None, None
-    if calibration == "cross_fit" and subset is not None:
-        rest = [f for f in available if f not in set(int(x) for x in subset)]
-        if rest:
-            cal_fold = rest[0]
-            sel = {v: tuning.select(VARIANT_RANKS[v], lambdas, tie_margin) for v in variants}
-            cal_tuning = run_inner_tuning(table, mask, context, fixed, guard=guard,
-                                          ranks=sorted({c[0] for c in sel.values()}),
-                                          lambdas=sorted({c[1] for c in sel.values()}), fold_subset=(cal_fold,),
-                                          init_seed=init_seed, require_row_units=require_row_units, **kw)
-    return {v: w.fit_from_tuning(tuning, table, mask, context, calibration_tuning=cal_tuning, calibration_fold=cal_fold)
-            for v, w in wrappers.items()}
+    return {v: w.fit_from_tuning(tuning, table, mask, context) for v, w in wrappers.items()}
 
 
 def fit_b6_and_b6r0(table: I.RowTable, mask: np.ndarray, context: I.FitContext, splitter: Any, *,

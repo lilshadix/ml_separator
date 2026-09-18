@@ -9,6 +9,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import sys
+from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -21,6 +22,7 @@ from gen19ct.chemistry import support_graph as SG
 from gen19ct.evaluation import discovery as D
 from gen19ct.evaluation import metrics as EM
 from gen19ct.evaluation import transfer as ET
+from gen19ct.folds import cell_holdout as CH
 from gen19ct.folds import io as FI
 from gen19ct.models import baselines as B
 from gen19ct.models import interface as I
@@ -312,8 +314,11 @@ def test_seal_check_refusal_stops_before_anything(tmp_path, monkeypatch):
     with pytest.raises(SystemExit, match="exited 2"):
         RD.refuse_unless_sealed()
     good = {"footer": D.REGISTERED_PREREG_SHA256, "recomputed": D.REGISTERED_PREREG_SHA256,
-            "digest_file": D.REGISTERED_PREREG_SHA256, "addenda_sha256": "x", "n_addenda": 0}
-    assert RD.refuse_unless_sealed(lambda: 0, lambda: good)["prereg_sha256"] == D.REGISTERED_PREREG_SHA256
+            "digest_file": D.REGISTERED_PREREG_SHA256, "addenda_sha256": D.REGISTERED_ADDENDA_SHA256, "n_addenda": 1}
+    rec = RD.refuse_unless_sealed(lambda: 0, lambda: good)
+    assert rec["prereg_sha256"] == D.REGISTERED_PREREG_SHA256
+    assert rec["addenda_sha256"] == rec["addenda_sha256_registered"] == D.REGISTERED_ADDENDA_SHA256
+    assert rec["n_addenda"] == rec["n_addenda_expected"] == D.N_ADDENDA_EXPECTED == 1
 
 
 def test_prereg_gate_pins_the_registered_digest(tmp_path):
@@ -337,6 +342,70 @@ def test_prereg_gate_pins_the_registered_digest(tmp_path):
     with pytest.raises(SystemExit, match="not the registered text"):
         SD.main(["--out-root", str(out), "--no-manifest"], check=lambda: 0,
                 digests=lambda: {"footer": resealed, "recomputed": resealed, "digest_file": resealed})
+
+
+def test_seal_gate_pins_the_number_of_posthoc_addenda(tmp_path):
+    """The footer digest does not cover the POST-HOC addenda below it, so the gate pins how many there are: this code
+    implements addendum 1 and refuses any other count unless the operator passes --expect-addenda."""
+    base = {"footer": D.REGISTERED_PREREG_SHA256, "recomputed": D.REGISTERED_PREREG_SHA256,
+            "digest_file": D.REGISTERED_PREREG_SHA256, "addenda_sha256": D.REGISTERED_ADDENDA_SHA256}
+    SD = _load_script("g19_score_discovery")
+    for n in (0, 2):
+        with pytest.raises(SystemExit, match=f"carries {n} POST-HOC"):
+            RD.refuse_unless_sealed(lambda: 0, lambda k=n: {**base, "n_addenda": k})
+        deliberate = RD.refuse_unless_sealed(lambda: 0, lambda k=n: {**base, "n_addenda": k}, expect_addenda=n)
+        assert deliberate["n_addenda"] == n and deliberate["addendum_implemented"] == D.N_ADDENDA_EXPECTED
+        # ... but --expect-addenda never passes an addendum text the code does not register (task X finding V-F01)
+        with pytest.raises(SystemExit, match="addendum text was edited or extended"):
+            RD.refuse_unless_sealed(lambda: 0, lambda k=n: {**base, "n_addenda": k, "addenda_sha256": "abc"},
+                                    expect_addenda=n)
+    out = tmp_path / "out"
+    with pytest.raises(SystemExit, match="carries 0 POST-HOC"):
+        RD.main(["--dry-run", "--out-root", str(out)], check=lambda: 0, digests=lambda: {**base, "n_addenda": 0})
+    assert not out.exists()
+    with pytest.raises(SystemExit, match="carries 2 POST-HOC"):
+        SD.main(["--out-root", str(out), "--no-manifest"], check=lambda: 0, digests=lambda: {**base, "n_addenda": 2})
+    # the sealed file on disk carries exactly the addendum this code implements, and its text is digested for the record
+    real = RD.prereg_digests()
+    assert real["n_addenda"] == D.N_ADDENDA_EXPECTED == 1 and len(str(real["addenda_sha256"])) == 64
+    assert real["addenda_sha256"] == D.REGISTERED_ADDENDA_SHA256
+    assert RD.refuse_unless_sealed(lambda: 0)["addenda_sha256"] == real["addenda_sha256"]
+
+
+def test_seal_gate_pins_the_addendum_text_not_only_its_count(tmp_path):
+    """Task X finding V-F01: an edit INSIDE the POST-HOC addendum (here the seed set of item 3) passes the seal script's
+    ``--check`` (the footer digest does not cover the addenda) and keeps the count at 1, so the gate must refuse on the
+    below-footer digest.  Run on a scratch copy; the real file is never touched."""
+    import shutil
+    S = RD._seal_module()
+    root = tmp_path / "tree"
+    (root / "manifests").mkdir(parents=True)
+    text = (paths.G19_ROOT / "preregistration.md").read_bytes().decode("utf-8")
+    needle = "**104729 only**"
+    assert text.count(needle) == 1
+    (root / "preregistration.md").write_bytes(text.replace(needle, "**104729 and 130363**").encode("utf-8"))
+    for f in ("prereg_sha256.txt", "confirmation_seeds_sha256.txt"):
+        shutil.copy(paths.G19_ROOT / "manifests" / f, root / "manifests" / f)
+    ok, msgs = S.check(S.PreregPaths(root=root, repo_root=paths.REPO_ROOT))
+    assert ok and any("addenda below the footer: 1" in m for m in msgs)          # the seal script alone accepts it
+    tam = RD.prereg_digests(root / "preregistration.md", root / "manifests" / "prereg_sha256.txt")
+    real = RD.prereg_digests()
+    assert tam["footer"] == tam["recomputed"] == tam["digest_file"] == D.REGISTERED_PREREG_SHA256
+    assert tam["n_addenda"] == real["n_addenda"] == 1 and tam["addenda_sha256"] != real["addenda_sha256"]
+    with pytest.raises(SystemExit, match="addendum text was edited or extended"):
+        RD.refuse_unless_sealed(lambda: 0, lambda: tam)
+    with pytest.raises(SystemExit, match="addendum text was edited or extended"):
+        RD.refuse_unless_sealed(lambda: 0, lambda: tam, expect_addenda=1)
+    out = tmp_path / "out"
+    with pytest.raises(SystemExit, match="addendum text was edited"):
+        RD.main(["--dry-run", "--out-root", str(out)], check=lambda: 0, digests=lambda: tam)
+    assert not out.exists()
+    SD = _load_script("g19_score_discovery")
+    with pytest.raises(SystemExit, match="addendum text was edited"):
+        SD.main(["--out-root", str(out), "--no-manifest"], check=lambda: 0, digests=lambda: tam)
+    # the real file is the registered addendum text, and the digest is fixed in the code
+    assert real["addenda_sha256"] == D.REGISTERED_ADDENDA_SHA256
+    assert RD.refuse_unless_sealed(lambda: 0, lambda: real)["addenda_sha256_registered"] == D.REGISTERED_ADDENDA_SHA256
 
 
 # --------------------------------------------------------------------------------------------- #
@@ -409,6 +478,9 @@ def test_provenance_columns_never_become_features():
 # --------------------------------------------------------------------------------------------- #
 
 def test_plan_order_and_conditional_jobs():
+    """POST-HOC addendum 1: discovery seed 104729 only, three simultaneous inner folds everywhere (``inner_mode``
+    ``full``), the V5 strict / HNO3-only refits only, V5-PAIR for M2 with its M1 prerequisite, and a marker naming
+    everything that is not run."""
     jobs = D.enumerate_plan(D.PlanState())
     kinds = [j.kind for j in jobs]
     assert kinds[0] == "safeguard" and jobs[-1].kind == "marker" and jobs[-1].message == D.NOT_IMPLEMENTED
@@ -420,65 +492,116 @@ def test_plan_order_and_conditional_jobs():
     assert not any(j.arm in D.HEAVY_ARMS and j.design in ("V5", "V1") for j in jobs)
     assert any(j.kind == "marker" and "batched-vs-exact" in j.message for j in jobs)
     passed = D.enumerate_plan(D.PlanState(v5_batched_check="passed", v1_tenfold_check="passed"))
-    order = [j.arm for j in passed if j.kind == "fit"]
+    fits = [j for j in passed if j.kind == "fit"]
+    # item 3: every fitted arm runs discovery seed 104729 only -- no learned-arm job on any other seed, anywhere
+    assert {j.seed for j in fits} == set(D.PLAN_SEEDS) == {D.PRIMARY_SEED}
+    assert all(j.fold_seed in (None, D.PRIMARY_SEED) for j in fits)
+    assert not any(j.kind == "comparator_intervals" for j in passed)
+    assert any(j.kind == "marker" and j.arm == "comparator_intervals" for j in passed)
+    # items 1-2: three inner folds on every job, no "first inner fold" reading left
+    assert {j.inner_mode for j in fits} == {"full"}
+    # item 4: only the V5 strict and HNO3-only refits are scheduled; no dropped sensitivity job is present
+    assert {j.variant for j in fits if j.variant in D.V5_REFIT_VARIANTS} == set(D.LEARNED_REFIT_VARIANTS)
+    assert set(D.LEARNED_REFIT_VARIANTS) == {"strict", "hno3_only"}
+    assert not any(j.drop_sr for j in fits)
+    assert not any(j.design == "V5P" for j in passed)
+    assert not any(j.design == "V2" and j.variant == "state" for j in fits)
+    assert not any(j.variant in ("loose", "cell_only", "parent_structure") for j in fits)
+    # ... and each of them is named by a marker, never silently absent
+    msgs = " ".join(j.message for j in passed if j.kind == "marker")
+    for token in ("loose", "cell-only", "parent-structure", "Sr(III)-dropped", "V5-P", "130363", "V1 / V2 refit"):
+        assert token in msgs
+    # item 5: V5-PAIR carries M2 (with its M1 prerequisite); B3x / B3i are the scorer's closed-form re-fit
+    pair = [j for j in fits if j.design == "V5PAIR"]
+    assert {j.arm for j in pair} == {"M1", "M2"} and {j.stage for j in pair} == {D.STAGES["s1c"]}
+    assert all(j.scheme == "batched" for j in pair)
+    assert any("B3x and B3i are re-fitted" in j.message for j in passed if j.kind == "marker")
+    # reading 6(a): the arm order inside each pass, and the pass order
+    order = [j.arm for j in fits]
     stage_of = {a: min(i for i, x in enumerate(order) if x == a) for a in ("B6", "B5", "FLAT_CAT", "B8", "M1", "M2")}
     assert stage_of["B6"] < stage_of["B5"] < stage_of["FLAT_CAT"] < stage_of["B8"] < stage_of["M1"] < stage_of["M2"]
-    m2 = [j for j in passed if j.arm == "M2" and j.kind == "fit"]
-    m1_keys = {(j.design_dir, j.seed) for j in passed if j.arm == "M1" and j.kind == "fit"}
-    assert all((j.design_dir, j.seed) in m1_keys for j in m2)     # M2 always has its per-fold M1 values
-    assert any(j.design == "V5PAIR" and j.seed == D.PRIMARY_SEED for j in m2)
-    assert all(j.seed == D.PRIMARY_SEED for j in passed if j.kind == "fit" and j.variant in D.V5_REFIT_VARIANTS)
-    assert {j.inner_mode for j in passed if j.kind == "fit" and j.seed == D.PRIMARY_SEED} == {"full"}
-    assert {j.inner_mode for j in passed if j.kind == "fit" and j.seed != D.PRIMARY_SEED} == {"first"}
-    assert not any(j.design == "V5P" and j.arm in D.HEAVY_ARMS for j in passed)
-    # conditional: re-coloured B6 batches, freezing-candidate V5-P runs, the failed ten-fold check
-    rec = D.enumerate_plan(D.PlanState(v5_batched_check="recolour"))
-    assert sum(j.scheme == "batched_max4" for j in rec) == 5
-    cand = D.enumerate_plan(D.PlanState(v5_batched_check="passed_after_recolour", v1_tenfold_check="failed",
-                                        freezing_candidates=[{"contrast": "M1 vs M0@V5", "arms": ["M1", "M0"],
-                                                              "passed_items_1_5_v5_primary": True}]))
-    assert {j.arm for j in cand if j.design == "V5P" and j.condition == "freezing_candidate"} == {"M1", "B5"}
-    assert all(j.scheme == "batched_max4" for j in cand if j.kind == "fit" and j.arm in D.HEAVY_ARMS and j.design == "V5")
-    assert all(j.scheme == "exact" for j in cand if j.kind == "fit" and j.arm in D.HEAVY_ARMS and j.design == "V1")
-    assert len({j.key for j in passed}) == len(passed)
-    assert len(D.h3_job_specs()) == 3 * 4 * 3 * 5 and {j.kind for j in D.h3_job_specs()} == {"h3_spec"}
-    # task X finding V-01: the seed-104729 pass (arm order B5, FLAT_CAT, B8 -> M1 -> M2) precedes the other seeds and
-    # the refit sensitivities, so H1 work is never queued behind them
-    fits = [j for j in passed if j.kind == "fit"]
     pos = {j.key: i for i, j in enumerate(fits)}
     m2_h1 = pos["fit:M2:V5__primary_batched:s104729"]
-    assert all(pos[j.key] > m2_h1 for j in fits if j.arm in D.HEAVY_ARMS and j.seed != D.PRIMARY_SEED)
-    assert all(pos[j.key] > m2_h1 for j in fits if j.arm in D.HEAVY_ARMS and (j.variant in D.V5_REFIT_VARIANTS or j.drop_sr))
-    order104729 = [j.arm for j in fits if j.arm in D.HEAVY_ARMS and j.seed == D.PRIMARY_SEED and j.variant == "primary"
-                   and not j.drop_sr]
-    firsts = {a: order104729.index(a) for a in D.HEAVY_ARMS}
-    assert firsts["B5"] < firsts["FLAT_CAT"] < firsts["B8"] < firsts["M1"] < firsts["M2"]
+    assert all(pos[j.key] < m2_h1 for j in fits if j.arm == "B6" and j.variant not in D.LEARNED_REFIT_VARIANTS)
+    assert all(pos[j.key] > m2_h1 for j in fits if j.design == "V5PAIR")
+    # reading 6(a) third pass: every strict / HNO3-only refit, B6's included, comes after the main designs and sits in
+    # the refit stage, B6 first within it (task X finding V-F04)
+    refits = [j for j in fits if j.variant in D.LEARNED_REFIT_VARIANTS]
+    assert all(pos[j.key] > m2_h1 for j in refits) and {j.stage for j in refits} == {D.STAGES["refit"]}
+    assert {j.arm for j in refits} == {"B6", "B5", "FLAT_CAT", "M1", "M2"}
+    assert min(pos[j.key] for j in refits if j.arm == "B6") < min(pos[j.key] for j in refits if j.arm != "B6")
+    assert not any(j.variant in D.LEARNED_REFIT_VARIANTS for j in fits if j.stage == D.STAGES["b6"])
+    assert {j.stage for j in passed if j.arm == "not_run:B6_refit_sensitivities"} == {D.STAGES["refit"]}
     stages = sorted({j.stage for j in passed})
     assert stages == sorted(stages) and stages[0] == D.STAGES["safeguard"] and stages[-1] == D.STAGES["not_implemented"]
+    assert D.STAGES["s1c"] == "07_s1c_v5pair" and not any(s.endswith("other_seeds") for s in stages)
+    m2 = [j for j in fits if j.arm == "M2"]
+    m1_keys = {(j.design_dir, j.seed) for j in fits if j.arm == "M1"}
+    assert all((j.design_dir, j.seed) in m1_keys for j in m2)     # M2 always has its per-fold M1 values
+    assert len({j.key for j in passed}) == len(passed)
+    # section 11 specs follow addendum 1 item 3 (task X finding V-F06): seed 104729 only; the sealed enumeration on request
+    assert len(D.h3_job_specs()) == 3 * 4 * 3 * len(D.PLAN_SEEDS) == 36 and {j.kind for j in D.h3_job_specs()} == {"h3_spec"}
+    assert {j.seed for j in D.h3_job_specs()} == {D.PRIMARY_SEED}
+    assert len(D.h3_job_specs(D.DISCOVERY_SEEDS)) == 3 * 4 * 3 * 5
+    assert {j.seed for j in D.enumerate_plan(passed and D.PlanState(), include_h3_specs=True)} <= {None, D.PRIMARY_SEED}
     assert not any(D.demotable(j) for j in passed) and D.demotable(D.JobSpec(kind="fit", arm="M3", design="V5", seed=1))
-    # task X finding V-07: the per-seed comparator intervals follow the section 5 comparators of each design
-    comp = {(j.design, j.arm) for j in passed if j.kind == "comparator_intervals"}
-    assert comp == {("V5", "B0"), ("V5", "B3x"), ("V5", "B3i"), ("V1", "B0"), ("V1", "B3"), ("V2", "B0"), ("V2", "B3x"),
-                    ("V2", "B3i")}
-    assert all(j.seed != D.PRIMARY_SEED for j in passed if j.kind == "comparator_intervals")
+    # conditional: the re-coloured B6 batches (seed 104729 only now) and a V5 freezing candidate
+    rec = D.enumerate_plan(D.PlanState(v5_batched_check="recolour"))
+    assert sum(j.scheme == "batched_max4" for j in rec) == 1
+    cand = D.enumerate_plan(D.PlanState(v5_batched_check="passed_after_recolour", v1_tenfold_check="failed",
+                                        freezing_candidates=[{"contrast": "M2 vs B8@V5", "arms": ["M2", "B8"],
+                                                              "passed_items_1_5_v5_primary": True}]))
+    cjobs = [j for j in cand if j.stage == D.STAGES["candidates"]]
+    # the candidate's own arm gets the two refits; M2's and M1's are already scheduled in the refit pass (deduped)
+    assert {j.arm for j in cjobs if j.kind == "fit"} == {"B8"}
+    assert all(j.variant in D.LEARNED_REFIT_VARIANTS for j in cjobs if j.kind == "fit")
+    assert not any(j.design == "V5P" for j in cjobs) and any("V5-P" in j.message for j in cjobs if j.kind == "marker")
+    assert all(j.scheme == "batched_max4" for j in cand if j.kind == "fit" and j.arm in D.HEAVY_ARMS and j.design == "V5")
+    assert all(j.scheme == "exact" for j in cand if j.kind == "fit" and j.arm in D.HEAVY_ARMS and j.design == "V1")
 
 
-def test_v1_and_v2_freezing_candidates_schedule_their_refit_sensitivities(tmp_path):
-    """Task X finding V-06: a V1 / V2 freezing candidate gets its seed-104729 refit sensitivities (M2 with its M1
-    prerequisite); the V1 grouping sensitivities of a heavy arm are markers (not built), never silently absent."""
+def test_dry_run_writes_the_addendum_plan(tmp_path):
+    """``--dry-run`` enumerates the addendum-1 plan, prices it with whichever benchmark exists and writes the plan to
+    ``evaluation/discovery/benchmark/plan_addendum1.txt`` -- the record of what the run will and will not do.  It fits
+    nothing (the registered fold files are only counted)."""
+    out = tmp_path / "out"
+
+    def digests():
+        return {"footer": D.REGISTERED_PREREG_SHA256, "recomputed": D.REGISTERED_PREREG_SHA256,
+                "digest_file": D.REGISTERED_PREREG_SHA256, "addenda_sha256": D.REGISTERED_ADDENDA_SHA256, "n_addenda": 1}
+    assert RD.main(["--dry-run", "--out-root", str(out)], check=lambda: 0, digests=digests) == 0
+    text = (D.discovery_root(out) / "benchmark" / "plan_addendum1.txt").read_text(encoding="utf-8")
+    assert f"seeds [{D.PRIMARY_SEED}]" in text and "markers (what is NOT run, named)" in text
+    assert "fit:B6:V5__primary_exact:s104729" in text and D.NOT_IMPLEMENTED in text
+    # no learned-arm entry on another seed anywhere in the record, the H3 specs included (task X finding V-F06)
+    assert "11_h3_specs" in text and "h3_spec:B6:WITH" in text
+    assert not any(f"s{s}" in text for s in D.DISCOVERY_SEEDS if s != D.PRIMARY_SEED)
+    jobs_part = text.split("11_h3_specs")[0]
+    assert "addendum 1 item 3" in jobs_part and "strict_setting" in jobs_part
+    assert not (D.discovery_root(out) / "B6").exists()   # nothing was fitted
+
+
+def test_v1_and_v2_freezing_candidates_get_markers_not_refit_jobs():
+    """Addendum 1 item 4: a learned arm runs no V1 / V2 refit sensitivity, not even as a freezing candidate; the plan
+    names every one of them as a marker (task X finding V-06 kept: never a silent absence)."""
     st = D.PlanState(v5_batched_check="passed", v1_tenfold_check="passed",
                      freezing_candidates=[{"contrast": "M2 vs B3@V1", "arms": ["M2", "B3"], "design": "V1"},
                                           {"contrast": "B5 vs B3i@V2", "arms": ["B5", "B3i"]}])
     jobs = D.enumerate_plan(st)
     cand = [j for j in jobs if j.stage == D.STAGES["candidates"]]
-    keys = {j.key for j in cand if j.kind == "fit"}
-    assert {"fit:M2:V1__copy_grouped10_sr_iii_dropped:s104729", "fit:M1:V1__copy_grouped10_sr_iii_dropped:s104729",
-            "fit:B5:V2__state_exact:s104729", "fit:B5:V2__element_exact_sr_iii_dropped:s104729"} <= keys
+    assert not [j for j in cand if j.kind == "fit"]
     marks = [j.message for j in cand if j.kind == "marker"]
-    assert sum("near_duplicate_key_groups_value_blind" in m for m in marks) == 2
-    assert sum("compilation_doi_groups" in m for m in marks) == 2 and all("UNTESTABLE" in m for m in marks)
-    assert all(j.seed == D.PRIMARY_SEED for j in cand if j.kind == "fit")
+    for name in ("sr_iii_dropped_training", "near_duplicate_key_groups_value_blind", "compilation_doi_groups",
+                 "state_level_hiding"):
+        assert any(name in m for m in marks)
+    assert all("NOT run" in m for m in marks) and any("M1" in m for m in marks)
     assert D._design_of_contrast_key("M1 vs M0@V2#ladder") == "V2"
+    # a V5-PAIR endpoint is the one learned V5-PAIR run a freezing candidate still gets (item 5)
+    pair_st = D.PlanState(v5_batched_check="passed", v1_tenfold_check="passed",
+                          freezing_candidates=[{"contrast": "M2 vs FLAT@V5-PAIR", "arms": ["M2", "FLAT"],
+                                                "design": "V5-PAIR"}])
+    pair = [j for j in D.enumerate_plan(pair_st) if j.kind == "fit" and j.design == "V5PAIR"]
+    assert {j.arm for j in pair} == {"M1", "M2"} and all(j.seed == D.PRIMARY_SEED for j in pair)
 
 
 def test_filter_jobs_and_labels():
@@ -547,6 +670,45 @@ def test_fold_digest_changes_with_code_job_and_fold():
     assert base != RD.fold_digest(j, f1, "c", state, stub, Path("."), ordinal=0, design_hash="h2")
     assert D.job_from_record({"job": j.record()}) == j
     assert any(str(paths.rel(f)).endswith("gen19ct/evaluation/support.py") for f in RD.CODE_FILES)
+
+
+def test_resume_digest_covers_the_addenda_digest_and_the_inner_design(monkeypatch):
+    """Task X findings V-F01 / VL-A1-01: a record fitted under another addendum text, or under another inner design
+    (``discovery.INNER_N_FOLDS`` / ``INNER_MAX_CELLS_PER_FOLD`` are module constants, not digested code), is stale."""
+    from gen19ct.models import inner_design as ID
+    df = _frame()
+    f1 = _cell_fold(df, "Nd(III)", "S1")
+    state, stub = D.PlanState(), StubRunner()
+    v5 = _job()
+    v1 = D.JobSpec(kind="fit", arm="B5", design="V1", variant="copy", scheme="exact", seed=D.PRIMARY_SEED, writes=("B5",))
+    kw = dict(ordinal=0, design_hash="h")
+    base5, base1 = (RD.fold_digest(v5, f1, "c", state, stub, Path("."), **kw),
+                    RD.fold_digest(v1, f1, "c", state, stub, Path("."), **kw))
+    monkeypatch.setattr(D, "INNER_MAX_CELLS_PER_FOLD", 5)
+    assert RD.fold_digest(v5, f1, "c", state, stub, Path("."), **kw) != base5
+    assert RD.fold_digest(v1, f1, "c", state, stub, Path("."), **kw) == base1        # V1 has no V5 inner design
+    monkeypatch.setattr(D, "INNER_MAX_CELLS_PER_FOLD", 30)
+    monkeypatch.setattr(D, "INNER_N_FOLDS", 2)
+    assert RD.fold_digest(v5, f1, "c", state, stub, Path("."), **kw) != base5
+    monkeypatch.setattr(D, "INNER_N_FOLDS", 3)
+    assert RD.fold_digest(v5, f1, "c", state, stub, Path("."), **kw) == base5
+    monkeypatch.setattr(D, "REGISTERED_ADDENDA_SHA256", "0" * 64)
+    assert RD.fold_digest(v5, f1, "c", state, stub, Path("."), **kw) != base5
+    assert RD.fold_digest(v1, f1, "c", state, stub, Path("."), **kw) != base1
+    monkeypatch.undo()
+    # the digested signature is the resolved design's own description, for every V5 variant and the V5-P / V5-PAIR jobs
+    frame = pd.DataFrame({"acid_primary": ["HNO3"]}, index=["r0"])
+    for variant in CH.VARIANTS:
+        job = replace(v5, variant=variant)
+        sig = RD.inner_design_signature(job)
+        desc = ID.SimultaneousInnerCells.for_variant(variant, frame=frame).describe()
+        assert sig["module"] == D.INNER_DESIGN_MODULE and sig["max_cells"] == D.INNER_MAX_CELLS_PER_FOLD == 30
+        assert all(desc[k] == sig[k] for k in sig if k != "module"), (variant, sig, desc)
+    for design, variant in (("V5P", "base"), ("V5PAIR", "primary")):
+        sig = RD.inner_design_signature(replace(v5, design=design, variant=variant))
+        assert sig["thresholds"] == "k10_p1_m3" and sig["medium"] == "all" and sig["component_aware"]
+    assert RD.inner_design_signature(v1) is None
+    assert RD.inner_design_signature(D.JobSpec(kind="safeguard", arm="B3x", stem_override="V5__primary__exact")) is None
 
 
 # --------------------------------------------------------------------------------------------- #
@@ -624,6 +786,100 @@ def test_v5_exact_inner_cells_medium_and_all_media_equivalence():
     assert {s.unit for s in hno3} < {s.unit for s in parent}
 
 
+def test_v5_tuning_and_calibration_use_the_simultaneous_inner_design(tmp_path):
+    """Addendum 1 items 1-2: every V5 design and variant tunes and calibrates on
+    ``inner_design.SimultaneousInnerCells`` -- one split per inner fold, drawn ONCE and shared by the tuner and the
+    conformal calibration -- while V1 and V2 keep the registered inner designs."""
+    from gen19ct.models import inner_design as ID
+
+    corpus = _corpus(tmp_path)
+    df = corpus.frame
+    _write([_cell_fold(df, "Nd(III)", "S1", variant="loose"), _cell_fold(df, "Eu(III)", "S2", variant="loose")],
+           corpus.folds_dir)
+    job = _job("loose")
+    fold = corpus.folds(job.stem)[0]
+    fc, _ = RD.prepare_fold(job, fold, 0, corpus, tmp_path / "out", D.PlanState(), _ok_guard, _ok_inner)
+    design = RD.simultaneous_inner_design(job, corpus)
+    assert isinstance(design, ID.SimultaneousInnerCells) and design.name == D.INNER_DESIGN_NAME == ID.NAME
+    thr = CH.VARIANTS["loose"].thresholds                      # the job's V5 variant, not the primary thresholds
+    assert (design.k, design.p, design.m) == (thr.k, thr.p, thr.m)
+    assert design.n_folds == D.INNER_N_FOLDS == 3 and design.max_cells == D.INNER_MAX_CELLS_PER_FOLD == 30
+    assert design.medium == CH.VARIANTS["loose"].medium
+    used, splits = RD.inner_splits_v5(fc)
+    assert splits and len(splits) <= D.INNER_N_FOLDS
+    assert [int(s.fold) for s in splits] == sorted({int(s.fold) for s in splits})
+    for sp in splits:
+        assert not (sp.train_mask & ~fc.mask).any() and not sp.train_mask[sp.cal_positions].any()
+        assert len(sp.row_units) == len(sp.cal_positions) and len(set(map(str, sp.row_units))) >= 1
+        assert np.isin(sp.cal_positions, sp.hidden_positions).all() and sp.certificate is not None
+    assert RD.inner_splits_v5(fc)[0] is used                   # one draw, shared by tuning and calibration
+    # the conformal calibration takes those splits, one inner fold at a time, cross-fitted
+    full, avail = RD._calibration_splits(fc)
+    assert isinstance(full, D.FixedInnerSplits) and avail == [int(s.fold) for s in splits]
+    one = RD._restricted(full, [avail[0]])
+    assert isinstance(one, D.InnerFoldSubset)
+    assert [int(s.fold) for s in one.splits(corpus.table, fc.mask, fc.ctx)] == [avail[0]]
+    plan = D.calibration_folds(avail, fc.job.inner_mode, tuned=True)
+    assert plan["cross_fit"] is True and plan["calibration_folds"] == plan["tuning_folds"] == avail
+    assert set(ID.cross_fit_plan(avail)) == set(avail)
+    # the tuner is handed the same design as TuningSplits, and the two draws agree cell for cell
+    rows = corpus.frame.loc[corpus.table.index[fc.mask]]
+    tuner_design = RD.inner_design_object(job, corpus)
+    assert type(tuner_design).__name__ == "V5SimultaneousTuning"
+    tsp = tuner_design.splits(rows, fc.ctx)
+    assert [int(t.inner_fold) for t in tsp] == [int(s.fold) for s in splits]
+    for t, s in zip(tsp, splits):
+        assert set(t.val_index) == set(corpus.table.index[s.cal_positions])
+        assert set(map(str, t.val_units)) == set(map(str, s.row_units))
+    # the neural arm sees the same splits as label indices
+    vs = RD.validation_splits(fc)
+    assert [v.inner_fold for v in vs] == [int(s.fold) for s in splits]
+    assert all(len(v.valid_units) == len(v.valid_index) for v in vs)
+    assert all(v.valid_index.isin(v.hidden_index).all() and not v.train_index.isin(v.hidden_index).any() for v in vs)
+    assert all("verify_inner_splits" in str(v.guard) for v in vs)
+    # B6 tunes on the same design, and the record says what the design did
+    assert isinstance(RD.B6Runner().splitter(fc), D.FixedInnerSplits)
+    rec = RD.inner_design_record(fc)
+    assert rec["design"] == D.INNER_DESIGN_NAME and rec["n_inner_folds"] == len(splits)
+    assert len(rec["splits"]) == len(splits) and rec["n_dropped_cells"] >= 0
+    assert set(rec["dropped_cells_per_fold"]) == {str(f) for f in avail}
+    # V1 and V2 are unchanged: never the simultaneous design
+    for name, variant in (("V1", "copy"), ("V2", "element")):
+        other = D.JobSpec(kind="fit", arm="B5", design=name, variant=variant, scheme="exact", seed=D.PRIMARY_SEED)
+        assert not isinstance(RD.inner_design_object(other, corpus), ID.SimultaneousInnerCells)
+        assert not RD.v5_family(other)
+    assert RD.v5_family(job) and RD.v5_family(D.JobSpec(kind="fit", arm="M2", design="V5PAIR", seed=1))
+    # a learned arm can never fall back to the per-cell design
+    with pytest.raises(ValueError, match="per-cell"):
+        ID.assert_learned_arm_design(I.InnerCellCalibration(), "M2")
+
+
+def test_verify_inner_splits_refuses_a_leaking_or_unscorable_split(tmp_path):
+    """The addendum's splits pass the same guards as the registered inner designs before any arm is fitted."""
+    corpus = _corpus(tmp_path)
+    _write([_cell_fold(corpus.frame, "Nd(III)", "S1", variant="loose")], corpus.folds_dir)
+    job = _job("loose")
+    fc, _ = RD.prepare_fold(job, corpus.folds(job.stem)[0], 0, corpus, tmp_path / "out", D.PlanState(), _ok_guard,
+                            _ok_inner)
+    _, splits = RD.inner_splits_v5(fc)
+    good = splits[0]
+    RD.verify_inner_splits(fc, [good])
+    leak = replace(good, train_mask=good.train_mask | np.isin(np.arange(corpus.table.n), good.cal_positions))
+    with pytest.raises(AssertionError, match="partition"):
+        RD.verify_inner_splits(fc, [leak])
+    with pytest.raises(AssertionError, match="two inner splits"):
+        RD.verify_inner_splits(fc, [good, good])
+    with pytest.raises(AssertionError, match="row_units"):
+        RD.verify_inner_splits(fc, [replace(good, row_units=None)])
+    with pytest.raises(ValueError, match="no validation split"):
+        RD.verify_inner_splits(fc, [])
+    # an inner split that fails the isolation check is refused
+    fc.ctx.guard_cache.clear()
+    fc.ctx.isolation_check = lambda tr, te: {"ok": False}
+    with pytest.raises(AssertionError, match="isolation check"):
+        RD.verify_inner_splits(fc, [good])
+
+
 # --------------------------------------------------------------------------------------------- #
 # R19, stop rule, ladder, BH on synthetic predictions
 # --------------------------------------------------------------------------------------------- #
@@ -646,7 +902,7 @@ def _v5_rows(noise: float, seed: int, n_systems: int = 18) -> pd.DataFrame:
 
 
 def _contrast(cand_noise: float, comp_noise: float, *, seeds=D.DISCOVERY_SEEDS, sens_value: float | str = 0.2,
-              margin: float = 0.1, name: str = "M2 vs B3i"):
+              margin: float = 0.1, name: str = "M2 vs B3i", learned: bool = False, reduced=None):
     v6 = pd.Series(False, index=_v5_rows(1, 0).index)
     per_seed = {}
     for s in seeds:
@@ -658,7 +914,8 @@ def _contrast(cand_noise: float, comp_noise: float, *, seeds=D.DISCOVERY_SEEDS, 
         c, k = D.filtered_pair(_v5_rows(cand_noise, D.PRIMARY_SEED), _v5_rows(comp_noise, 99), n)
         sens[n] = D.paired_units(c, k, "V5", candidate="M2", comparator="B3i", v6_mask=v6.loc[c.index]).delta
     return D.evaluate_contrast(name=name, family="primary", design="V5", primary=primary, margin=margin,
-                               seed_deltas={s: per_seed[s].delta for s in seeds}, sensitivities=sens)
+                               seed_deltas={s: per_seed[s].delta for s in seeds}, sensitivities=sens,
+                               learned=learned, reduced_sensitivities=reduced)
 
 
 def test_r19_and_stop_rule_wiring_on_synthetic_predictions():
@@ -724,13 +981,58 @@ def test_r19_and_stop_rule_wiring_on_synthetic_predictions():
     assert not D.s1ab_components({"M2 vs B3i@V5": good}, D.PlanState(v5_batched_check="passed"))["S1_forced_undecided"]
     # task X finding V-09: BH over the full registered family counts the contrasts not run as p = 1
     acc = D.registered_family_accounting(["M2 vs B3i@V5", "S1(c)", "M1 vs M0@V1#ladder"])
-    assert acc["m_full"] == len(D.REGISTERED_FAMILY_TABLE) and acc["m_evaluated"] == 1 + 5 + 1
+    # addendum 1 reading 6(f): m = 60 = the 57 discovery contrasts of section 19 + the 3 confirmation-only S2 contrasts
+    # entered as p = 1 (task X finding V-F05); the test asserts the registered number, not the table length
+    assert acc["m_full"] == D.REGISTERED_FULL_FAMILY_SIZE == 60 and acc["m_evaluated"] == 1 + 5 + 1
+    assert acc["m_discovery"] == len(D.REGISTERED_FAMILY_TABLE) == 57 and len(acc["contrasts"]) == 60
+    assert [c["contrast"] for c in acc["contrasts"] if c["family"] == "confirmation"] == list(D.CONFIRMATION_ONLY_CONTRASTS)
+    assert all(c["status"] == D.CONFIRMATION_ONLY_STATUS for c in acc["contrasts"] if c["family"] == "confirmation")
+    assert "60" in acc["full_family_reading"] and "addendum 2" in acc["full_family_reading"]
     assert {c["family"] for c in acc["contrasts"] if c["status"].startswith("not_run")} >= {"H3", "H5", "H4", "ladder",
                                                                                            "secondary designs", "H1b"}
     tab = D.apply_bh(pd.DataFrame(D.contrast_rows(good)), m_registered_full=acc["m_full"])
     pr = tab[tab["primary_cluster_unit"]]
     assert (pr["p_bh_full_family"] >= pr["p_bh"] - 1e-12).all() and (pr["bh_m"] == 1).all()
     assert set(D.UNCERTAINTY_NOT_RUN) >= {"gaussian_crps", "spearman_abs_error_vs_sd", "knows_when_it_does_not_know"}
+
+
+def test_r19_item4_not_evaluated_and_the_reduced_sensitivity_set():
+    """Addendum 1 items 3-4 inside R19: item 4 NOT_EVALUATED for a learned-arm contrast (so the full verdict is
+    UNDECIDED, never PASS), item 6 decided on the reduced set and labelled, the dropped sensitivities named -- and the
+    stop-rule, ladder and freezing scopes, which contain neither, unchanged."""
+    reduced = [n for n in ET.REGISTERED_SENSITIVITIES["V5"] if n not in D.LEARNED_REFITS_NOT_RUN["V5"]]
+    assert set(reduced) == {"strict_setting", "HNO3_only_cells", "non_DGA_stratum", "acid_grid_rows_excluded",
+                            "censoring_candidates_excluded_scoring", ET.WILDCARD_COPY_SENSITIVITY}
+    sens = {**{n: 0.2 for n in reduced}, **{n: ET.UNTESTABLE for n in D.LEARNED_REFITS_NOT_RUN["V5"]}}
+    item, not_run = D.reduced_item6("V5", sens, reduced)
+    assert item["status"] == "PASS" and item["sensitivity_set"] == D.ADDENDUM_LABEL
+    assert set(not_run) == set(D.LEARNED_REFITS_NOT_RUN["V5"])
+    assert "loose_setting" in item["sensitivities_not_run"] and "V5-P" in item["detail"]
+    assert D.reduced_item6("V5", {**sens, "strict_setting": -0.1}, reduced)[0]["status"] == "FAIL"
+    assert D.reduced_item6("V5", {**sens, "HNO3_only_cells": ET.UNTESTABLE}, reduced)[0]["status"] == "UNTESTABLE"
+    # a learned-arm contrast on seed 104729 alone
+    lea = _contrast(0.1, 1.5, seeds=D.PLAN_SEEDS, learned=True, reduced=reduced)
+    assert lea["r19"].item(4)["status"] == D.ITEM4_NOT_EVALUATED and "104729 only" in lea["r19"].item(4)["detail"]
+    assert lea["r19"].item(6)["status"] == "PASS" and lea["r19"].verdict == "UNDECIDED"
+    assert lea["sensitivity_set"] == D.ADDENDUM_LABEL and lea["seeds_evaluated"] == list(D.PLAN_SEEDS)
+    assert set(lea["sensitivities_not_run"]) == set(D.LEARNED_REFITS_NOT_RUN["V5"])
+    for scope in ("stop_rule", "ladder", "freezing_screen"):
+        assert lea["scopes"][scope]["verdict"] == "PASS"
+    assert lea["scopes"]["items_1_5"]["verdict"] == "UNDECIDED" and lea["scopes"]["full"]["verdict"] == "UNDECIDED"
+    assert D.freezing_candidates({"M2 vs B3i@V5": lea})[0]["passed_items_1_5_v5_primary"] is False
+    assert D.stop_rule(lea, lea)["stop"] is False                  # the stop rule is unchanged by the addendum
+    row = pd.DataFrame(D.contrast_rows(lea))
+    assert (row["r19_item4"] == D.ITEM4_NOT_EVALUATED).all() and (row["sensitivity_set"] == D.ADDENDUM_LABEL).all()
+    assert "loose_setting" in row["sensitivities_not_run"].iloc[0]
+    # a failing contrast still FAILS, and a closed-form contrast keeps the full set and all five seeds
+    bad = _contrast(1.5, 0.1, seeds=D.PLAN_SEEDS, learned=True, reduced=reduced)
+    assert bad["r19"].verdict == "FAIL" and bad["scopes"]["stop_rule"]["verdict"] == "FAIL"
+    det = _contrast(0.1, 1.5)
+    assert det["r19"].item(4)["status"] == "PASS" and det["sensitivity_set"] == "registered (full)"
+    assert det["r19"].verdict == "PASS" and not det["sensitivities_not_run"]
+    assert D.r19_verdict([{"status": "PASS"}, {"status": D.ITEM4_NOT_EVALUATED}]) == "UNDECIDED"
+    assert D.r19_verdict([{"status": "FAIL"}, {"status": D.ITEM4_NOT_EVALUATED}]) == "FAIL"
+    assert D.r19_verdict([{"status": "PASS"}, {"status": "VACUOUS"}]) == "PASS"
 
 
 def test_paired_units_refuses_different_rows_and_filters_pair_rows():
@@ -751,9 +1053,15 @@ def test_b6_check_and_state_machine():
     ex = {s: pd.Series(0.5, index=units) for s in D.DISCOVERY_SEEDS}
     ok = {s: pd.Series(0.505, index=units) for s in D.DISCOVERY_SEEDS}
     far = {**ok, 130363: pd.Series(0.53, index=units)}
-    assert D.b6_check(ex, ok)["passed"] is True
-    assert D.b6_check(ex, far)["passed"] is False and D.b6_check(ex, far)["per_seed"][130363]["passed"] is False
-    assert D.b6_check(ex, {104729: ok[104729]})["passed"] is None
+    # addendum 1 item 3: the registered check is decided on the seeds discovery runs -- seed 104729
+    first = D.b6_check(ex, ok)
+    assert first["passed"] is True and set(first["per_seed"]) == set(D.PLAN_SEEDS) == {D.PRIMARY_SEED}
+    assert D.b6_check(ex, far)["passed"] is True                    # a seed that is not run cannot decide it
+    assert D.b6_check(ex, {**ok, D.PRIMARY_SEED: pd.Series(0.53, index=units)})["passed"] is False
+    assert D.b6_check(ex, {})["passed"] is None and not D.b6_check(ex, {})["complete"]
+    # the five-seed reading of the sealed plan is still available to a caller
+    assert D.b6_check(ex, far, seeds=D.DISCOVERY_SEEDS)["passed"] is False
+    assert D.b6_check(ex, {104729: ok[104729]}, seeds=D.DISCOVERY_SEEDS)["passed"] is None
     assert D.next_v5_check_state("pending", {"passed": True}, None) == "passed"
     assert D.next_v5_check_state("pending", {"passed": False}, None) == "recolour"
     assert D.next_v5_check_state("recolour", {"passed": False}, {"passed": True}) == "passed_after_recolour"
@@ -766,37 +1074,81 @@ def test_b6_check_and_state_machine():
 # --------------------------------------------------------------------------------------------- #
 
 def test_cost_estimator_arithmetic():
-    uc = D.UnitCost("B5", "V5_batched", inner_fit_s=10, cal_fit_s=4, outer_refit_s=30, splits_full=12, splits_first=4,
+    """Addendum 1: three simultaneous inner splits per outer fold, every job in ``full`` mode, and the per-stage
+    cumulative wall clock the operator watches against the 60-hour budget."""
+    uc = D.UnitCost("B5", "V5_batched", inner_fit_s=10, cal_fit_s=4, outer_refit_s=30, splits_full=3, splits_first=3,
                     guard_s=0.5)
-    assert uc.fold_seconds("full") == {"tuning": 720, "calibration": 48, "outer_refit": 30, "guard": 6.0, "total": 804}
-    assert uc.fold_seconds("first")["total"] == 4 * 6 * 10 + 4 * 4 + 30 + 2
-    b6 = D.UnitCost("B6", "V5_exact", inner_fit_s=5, cal_fit_s=99, outer_refit_s=2, splits_full=90, splits_first=30,
+    assert uc.fold_seconds("full") == {"tuning": 180, "calibration": 12, "outer_refit": 30, "guard": 1.5,
+                                       "total": 223.5}
+    sealed = D.UnitCost("B5", "V5_batched", inner_fit_s=10, cal_fit_s=4, outer_refit_s=30, splits_full=21,
+                        splits_first=8, guard_s=0.5)
+    assert sealed.fold_seconds("full")["total"] == 21 * 6 * 10 + 21 * 4 + 30 + 10.5      # the sealed plan's price
+    b6 = D.UnitCost("B6", "V5_exact", inner_fit_s=5, cal_fit_s=99, outer_refit_s=2, splits_full=3, splits_first=3,
                     guard_s=0.35)
-    assert b6.fold_seconds("full")["total"] == pytest.approx(90 * 5 + 0 + 2 + 90 * 0.35)
+    assert b6.fold_seconds("full")["total"] == pytest.approx(3 * 5 + 0 + 2 + 3 * 0.35)
     m2 = D.UnitCost("M2", "V1", inner_fit_s=20, cal_fit_s=10, outer_refit_s=40, splits_full=3, splits_first=1, guard_s=1)
     assert m2.fold_seconds("full")["total"] == 3 * 3 * 20 + 3 * 10 + 40 + 3
-    j1 = D.JobSpec(kind="fit", arm="B5", design="V5", variant="primary", scheme="batched", seed=104729, fold_seed=104729)
-    j2 = D.JobSpec(kind="fit", arm="B5", design="V5", variant="primary", scheme="batched", seed=130363, fold_seed=130363)
-    j3 = D.JobSpec(kind="fit", arm="B6", design="V5", variant="primary", scheme="exact", seed=104729, writes=D.B6_ARMS)
-    j4 = D.JobSpec(kind="comparator_intervals", arm="B3i", design="V1", variant="copy", scheme="exact", seed=130363)
+    j1 = D.JobSpec(kind="fit", arm="B5", design="V5", variant="primary", scheme="batched", seed=D.PRIMARY_SEED,
+                   fold_seed=D.PRIMARY_SEED, stage=D.STAGES["p_b5"])
+    j2 = D.JobSpec(kind="fit", arm="B5", design="V5", variant="strict", scheme="batched", seed=D.PRIMARY_SEED,
+                   fold_seed=D.PRIMARY_SEED, stage=D.STAGES["refit"])
+    j3 = D.JobSpec(kind="fit", arm="B6", design="V5", variant="primary", scheme="exact", seed=D.PRIMARY_SEED,
+                   writes=D.B6_ARMS, stage=D.STAGES["b6"])
     mk = D.JobSpec(kind="marker", arm="M3+", message=D.NOT_IMPLEMENTED)
-    tab = D.estimate_cost([j1, j2, mk, j3, j4], {j1.key: 3, j2.key: 2, j3.key: 1},
-                          {("B5", "V5_batched"): uc, ("B6", "V5_exact"): b6}, other_costs_s={j4.key: 100.0}, workers=2)
-    assert tab["compute_s"].tolist() == pytest.approx([3 * 804, 2 * 288, 483.5, 100.0])
-    assert tab["cumulative_compute_h"].iloc[-1] == pytest.approx((2412 + 576 + 483.5 + 100) / 3600)
+    tab = D.estimate_cost([j3, j1, mk, j2], {j1.key: 3, j2.key: 2, j3.key: 1},
+                          {("B5", "V5_batched"): uc, ("B6", "V5_exact"): b6}, workers=2)
+    assert tab["compute_s"].tolist() == pytest.approx([18.05, 3 * 223.5, 2 * 223.5])
+    assert tab["inner_mode"].tolist() == ["full", "full", "full"]
+    assert tab["cumulative_compute_h"].iloc[-1] == pytest.approx((18.05 + 670.5 + 447.0) / 3600)
     assert tab["cumulative_wall_h"].iloc[-1] == pytest.approx(tab["cumulative_compute_h"].iloc[-1] / 2)
-    assert tab.loc[0, "tuning_s"] == 3 * 720 and tab.loc[1, "calibration_s"] == 2 * 16
+    assert tab.loc[1, "tuning_s"] == 3 * 180 and tab.loc[2, "calibration_s"] == 2 * 12
     summ = D.cost_summary(tab, workers=2)
-    assert summ["fits_budget"] and summ["compute_h_by_arm"]["B5"] == pytest.approx(round((2412 + 576) / 3600, 3))
+    assert summ["fits_budget"] and summ["compute_h_by_arm"]["B5"] == pytest.approx(round(1117.5 / 3600, 3))
+    cps = D.stage_checkpoints(tab, workers=2)
+    assert [c["stage"] for c in cps] == [D.STAGES["b6"], D.STAGES["p_b5"], D.STAGES["refit"]]
+    assert [c["n_folds"] for c in cps] == [1, 3, 2] and all(c["within_budget_wall"] for c in cps)
+    assert cps[-1]["cumulative_wall_h"] == pytest.approx(tab["cumulative_wall_h"].iloc[-1], abs=5e-4)  # rounded
+    assert cps[1]["stage_compute_h"] == pytest.approx(670.5 / 3600, abs=5e-4)
     tight = D.estimate_cost([j1, j2], {j1.key: 3, j2.key: 2}, {("B5", "V5_batched"): uc}, workers=1,
-                            budget_hours=2412 / 3600 + 1e-9)
-    s2 = D.cost_summary(tight, workers=1, budget_hours=2412 / 3600 + 1e-9)
+                            budget_hours=670.5 / 3600 + 1e-9)
+    s2 = D.cost_summary(tight, workers=1, budget_hours=670.5 / 3600 + 1e-9)
     assert not s2["fits_budget"] and s2["first_job_beyond_budget"] == j2.key
+    tight_cps = D.stage_checkpoints(tight, workers=1, budget_hours=670.5 / 3600 + 1e-9)
+    assert tight_cps[0]["within_budget_wall"] and not tight_cps[-1]["within_budget_wall"]
     with pytest.raises(KeyError):
         D.estimate_cost([j3], {j3.key: 1}, {("B5", "V5_batched"): uc})
     bs = D.budget_status(61 * 3600)
     assert bs["exhausted"] and bs["demoted_now"] == ["M7", "M6", "M5", "M4", "M3"] and "H1" in bs["never_demoted"]
     assert not D.budget_status(10 * 3600)["exhausted"]
+
+
+def test_addendum_cost_estimate_writes_checkpoints_and_a_verdict(tmp_path):
+    """The ``--benchmark-addendum1`` writer on stand-in timings (the measurement itself is a fit-only run, not part of
+    this test): the re-measured V5 unit costs, the sealed-plan V1 / V2 ones, the per-stage cumulative wall clock on 2
+    workers and the fits-in-60-h verdict."""
+    meas = [{"arm": a, "design_class": "V5_batched", "stem": "V5__primary__batched", "fold_id": "s104729_S_b000",
+             "n_train": 11000, "splits_full": D.INNER_N_FOLDS, "splits_first": D.INNER_N_FOLDS, "inner_fit_s": 10.0,
+             "cal_fit_s": 4.0, "outer_refit_s": 20.0, "inner_design": D.INNER_DESIGN_NAME,
+             "n_cells_per_split": [30, 30, 29], "peak_rss_bytes": 800_000_000, "n_test_rows_predicted": 0}
+            for a in RD.BENCH_ARMS]
+    body = RD.write_cost_estimate_addendum1(meas, tmp_path, workers=2)
+    ucs = RD.unit_costs_addendum1(meas, body["measurements_reused_from_sealed_plan"])
+    assert ucs[("B5", "V5_batched")].splits_full == D.INNER_N_FOLDS
+    assert ucs[("B6", "V5_exact")].inner_fit_s == ucs[("B6", "V5_batched")].inner_fit_s   # same inner design
+    assert ucs[("B6r0", "V5_batched")] is ucs[("B6", "V5_batched")]
+    assert all(m["design_class"] in ("V1", "V2") for m in body["measurements_reused_from_sealed_plan"])
+    assert "sealed-plan measurement" in ucs[("B5", "V1")].source
+    cps = body["stage_checkpoints"]
+    assert [c["stage"] for c in cps] == sorted(c["stage"] for c in cps)
+    assert cps[0]["stage"] == D.STAGES["safeguard"] and D.STAGES["s1c"] in [c["stage"] for c in cps]
+    assert all(a["cumulative_wall_h"] <= b["cumulative_wall_h"] for a, b in zip(cps, cps[1:]))
+    assert body["fits_in_60h"] == body["summary"]["fits_budget"] == cps[-1]["within_budget_wall"]
+    assert body["addendum"] == D.N_ADDENDA_EXPECTED and body["plan_state_assumed"]["v5_batched_check"] == "passed"
+    bdir = D.discovery_root(tmp_path) / "benchmark"
+    md = (bdir / "cost_estimate_addendum1.md").read_text(encoding="utf-8")
+    assert (bdir / "cost_estimate_addendum1.json").exists() and "60 h budget" in md
+    assert "Not run at all under addendum 1" in md and "V5-P" in md
+    assert "Cumulative wall clock by stage" in md and D.STAGES["s1c"] in md
 
 
 # --------------------------------------------------------------------------------------------- #
@@ -920,25 +1272,56 @@ def test_scorer_end_to_end_on_synthetic_records(tmp_path):
     con = res["contrasts"]
     prim = con[(con["contrast"] == "M2 vs B3i") & con["primary_cluster_unit"].astype(bool)].iloc[0]
     assert prim["family"] == "primary" and prim["margin"] == pytest.approx(0.1057) and prim["point"] > 1.0
-    assert prim["verdict_items_1_5"] == "PASS" and prim["r19_verdict_full"] == "UNDECIDED"   # refit sensitivities not run
+    # addendum 1 item 3: seed 104729 only, so R19 item 4 is NOT_EVALUATED and the full verdict is UNDECIDED; the
+    # stop-rule, ladder and freezing scopes (which contain neither item 4 nor the refits) still decide
+    assert prim["r19_item4"] == D.ITEM4_NOT_EVALUATED and prim["r19_verdict_full"] == "UNDECIDED"
+    assert prim["verdict_items_1_5"] == "UNDECIDED" and prim["verdict_stop_rule"] == "PASS"
+    assert prim["verdict_ladder"] == "PASS" and prim["verdict_freezing_screen"] == "PASS"
+    assert prim["seeds_evaluated"] == str(D.PRIMARY_SEED)
+    # addendum 1 item 4: item 6 is the reduced set, and the sensitivities that were not run are named
+    assert prim["sensitivity_set"] == D.ADDENDUM_LABEL
+    not_run = set(prim["sensitivities_not_run"].split(", "))
+    assert not_run == set(D.LEARNED_REFITS_NOT_RUN["V5"]) >= {"loose_setting", "V5-P", "V5-cell-only",
+                                                              "parent_structure_hiding", "sr_iii_dropped_training"}
     assert json.loads(prim["sensitivities"])["loose_setting"] == ET.UNTESTABLE
+    item6 = res["r19_items"][(res["r19_items"]["key"] == "M2 vs B3i@V5") & (res["r19_items"]["item"] == 6)].iloc[0]
+    # the two refits the addendum KEEPS are still required: without their predictions item 6 is UNTESTABLE, and the
+    # detail separates them from the sensitivities the addendum does not run at all
+    assert item6["status"] == "UNTESTABLE" and D.ADDENDUM_LABEL in item6["detail"]
+    assert "strict_setting: UNTESTABLE" in item6["detail"] and "HNO3_only_cells: UNTESTABLE" in item6["detail"]
+    assert "not run (addendum 1 item 4)" in item6["detail"] and "loose_setting" in item6["detail"]
+    reason = json.loads(prim["sensitivities"])  # values only; the reasons live in decisions.json
+    assert reason["strict_setting"] == reason["loose_setting"] == ET.UNTESTABLE
+    item4 = res["r19_items"][(res["r19_items"]["key"] == "M2 vs B3i@V5") & (res["r19_items"]["item"] == 4)].iloc[0]
+    assert item4["status"] == D.ITEM4_NOT_EVALUATED and "104729 only" in item4["detail"]
     s0 = json.loads(prim["seed_deltas"])
-    assert len(s0) == 5 and all(v > 0 for v in s0.values())
+    assert list(s0) == [str(D.PRIMARY_SEED)] and all(v > 0 for v in s0.values())
     assert con.loc[con["contrast"] == "M2 vs B0", "margin"].iloc[0] == pytest.approx(0.05)
     assert set(con["bh_family"]) <= {"registered", "exploratory"} and con["p_bh"].notna().any()
     assert dec["S1_components"]["S1a_M2_vs_B3i"]["scopes"]["stop_rule"] == "PASS"
     assert dec["ladder"]["M1"]["kept"] is None and dec["ladder"]["M3+"]["note"] == D.NOT_IMPLEMENTED
+    # the addendum block of decisions.json names what was reduced and what was not run
+    add = dec["addendum_1"]
+    assert add["addendum"] == 1 and add["seeds_run_in_discovery"] == [D.PRIMARY_SEED]
+    assert add["r19_item_4"]["status_in_discovery"] == D.ITEM4_NOT_EVALUATED
+    assert "M2 vs B3i@V5" in add["r19_item_4"]["contrasts"] and add["sensitivity_set"]["label"] == D.ADDENDUM_LABEL
+    assert dec["not_run"]["addendum_1"]["discovery_seeds"] == [s for s in D.DISCOVERY_SEEDS if s != D.PRIMARY_SEED]
+    assert "V5-P" in dec["not_run"]["addendum_1"]["sensitivities"]["V5"]
     cands = {c["contrast"]: c for c in res["freezing_candidates"]}
-    assert cands["M2 vs B3i@V5"]["passed_items_1_5_v5_primary"] is True and "B6 vs B3i@V5" not in cands
+    # the contrast may still be frozen (items 1-3, 5 and the scoring filters), but the V5-P trigger cannot fire
+    assert "M2 vs B3i@V5" in cands and "B6 vs B3i@V5" not in cands
+    assert cands["M2 vs B3i@V5"]["passed_items_1_5_v5_primary"] is False
     summ = res["summary"]
     mae = summ[(summ["arm"] == "M2") & (summ["metric"] == "mae") & (summ["aggregation"] == "unit_macro")
                & (summ["stratum"] == "all") & (summ["scoring_filter"] == "none")]
-    assert len(mae) == 5 and (mae["half"] == "selection").all() and (mae["n_units"] == 36).all()
+    assert len(mae) == 1 and (mae["seed"] == D.PRIMARY_SEED).all() and (mae["half"] == "selection").all()
+    assert (mae["n_units"] == 36).all()
     # the wildcard-copy filter removed exactly the flagged row of the M2 batched folds
     wc = summ[(summ["arm"] == "M2") & (summ["scoring_filter"] == ET.WILDCARD_COPY_SENSITIVITY)
               & (summ["metric"] == "mae") & (summ["aggregation"] == "row_pooled") & (summ["seed"] == D.PRIMARY_SEED)]
     assert int(wc["n_rows"].iloc[0]) == 179
-    assert dec["registered_family_accounting"]["m_full"] == len(D.REGISTERED_FAMILY_TABLE)
+    assert dec["registered_family_accounting"]["m_full"] == D.REGISTERED_FULL_FAMILY_SIZE == 60
+    assert dec["registered_family_accounting"]["m_discovery"] == len(D.REGISTERED_FAMILY_TABLE) == 57
     assert con["p_bh_full_family"].notna().any() and not dec["S1_components"]["S1_forced_undecided"]
     assert dec["not_run"]["uncertainty_metrics"] == D.UNCERTAINTY_NOT_RUN
     assert all(v["status"] in ("complete", "missing") for v in dec["record_sets"].values())

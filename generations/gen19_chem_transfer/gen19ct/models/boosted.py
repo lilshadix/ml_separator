@@ -9,13 +9,20 @@ Registered text (``preregistration.md``, sealed 2026-09-15)
   (``FeatureSet.for_arm("FLAT_CAT")``); B5 settings.  **M0** is B5 (section 6 ladder).
 * section 6 -- the ladder starts at M0 = B5; section 5 FLAT_CAT is the H4 flat reference.
 * section 7 -- inner folds only; inner grouping by publication group; the inner designs V1 (grouped 3-fold,
-  ``folds.source_holdout.inner_folds_V1``), V5 (inner hidden cells, batched by the outer rule,
-  ``folds.cell_holdout.inner_cells_V5``; also for V5-P / V5-PAIR / V6 heavy-arm fits) and V2 (leave-one-metal-out over
-  3 seeded eligible states, ``folds.metal_holdout.inner_metals_V2``); inner validation never scores
-  ``V6_TARGET_ROWS``; **selection criterion** = inner macro MAE with the design's own averaging, configurations within
-  0.005 of the best resolved toward the smaller configuration (:func:`select_config`); **compute plan item 1** -- 3 inner
-  folds on seed 104729, the first inner fold only on every other seed (:func:`inner_mode_for_seed`), nested per outer
-  fold, nothing carried across seeds or folds.
+  ``folds.source_holdout.inner_folds_V1``), V5 and V2 (leave-one-metal-out over 3 seeded eligible states,
+  ``folds.metal_holdout.inner_metals_V2``); inner validation never scores ``V6_TARGET_ROWS``; **selection criterion** =
+  inner macro MAE with the design's own averaging, configurations within 0.005 of the best resolved toward the smaller
+  configuration (:func:`select_config`); tuning nested per outer fold, nothing carried across seeds or folds.
+* **POST-HOC addendum 1 (2026-09-15), items 1-2** -- the V5 inner design of every learned arm is
+  ``models.inner_design.SimultaneousInnerCells`` (:class:`V5SimultaneousTuning` here): the section 7 inner cells (also
+  for V5-P / V5-PAIR / V6 heavy-arm fits), all cells of an inner fold hidden in ONE inner fit per configuration, the
+  eligibility re-check with all of them hidden, a failing cell hidden but not scored.  Three inner folds on every seed
+  (no "first inner fold" reading: :data:`INNER_MODES` is ``("full",)``); a configuration's score on a split is the
+  unit-macro MAE over the split's cells and the selection score is the mean over the three splits
+  (``inner_design.fold_mean_scores``); the conformal residuals of split ``j`` come from the configuration selected on
+  the other two splits (:func:`select_excluding_folds`, reusing the recorded fits); the outer refit iteration count is
+  the median over the three splits (:func:`median_iterations`).  The batched section 7 design (:class:`V5InnerTuning`,
+  ``folds.cell_holdout.inner_cells_V5``) is kept for the fold-builder equivalence tests and is no arm's default.
 * section 2 "Features" and brief section 12 -- every fitted preprocessing step (scaling, PCA, category vocabularies,
   CatBoost's own CTR statistics) is fitted on the rows passed to ``fit`` (an inner-training set during tuning, the
   outer-training set at the refit); provenance / id / target columns never become features
@@ -33,12 +40,13 @@ Flow of one outer fit (:class:`BoostedArm`)
 2. For each inner split, the feature set is fitted on the inner-training rows only, then for each configuration of the
    grid CatBoost is fitted on the inner-training rows with ``eval_set`` = the split's validation rows (early stopping
    after 200 rounds on MAE, ``use_best_model``); the validation rows are predicted by the shrunk model.
-3. Per configuration, the absolute errors of all validation rows of the used splits are averaged per averaging unit
+3. Per configuration and inner fold, the absolute errors of the fold's validation rows are averaged per averaging unit
    (V5: hidden cell; V1: the V1 unit -- the row's publication group, or ``REMAINDER`` for a group below 20 rows; V2:
-   metal state; V0: publication group) and then over units (macro MAE).  :func:`select_config` applies the tie rule.
+   metal state; V0: publication group) and then over units (the fold's unit-macro MAE); the selection score is the mean
+   over the inner folds (addendum 1 item 2).  :func:`select_config` applies the tie rule.
 4. Outer refit: the feature set is refitted on all outer-training rows and CatBoost is fitted with ``iterations`` = the
-   median over the selected configuration's inner fits of the number of trees kept by early stopping
-   (:func:`median_iterations`) -- the refit cannot early-stop, it has no validation rows of its own.
+   median over the selected configuration's inner fits (one per inner fold) of the number of trees kept by early
+   stopping (:func:`median_iterations`) -- the refit cannot early-stop, it has no validation rows of its own.
 5. :meth:`BoostedArm.frozen` returns a clone with the selected configuration and iteration count fixed (no tuning) that
    reuses the refit when it is fitted on the same rows: the arm ``interface.ConformalWrapper`` wraps, so its inner
    calibration fits use the selected configuration instead of re-tuning inside every calibration split.
@@ -51,7 +59,7 @@ import hashlib
 import math
 import time
 from collections.abc import Callable, Iterable, Mapping, Sequence
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from typing import Any, Protocol
 
 import numpy as np
@@ -66,18 +74,21 @@ from gen19ct.folds import metal_holdout as MH
 from gen19ct.folds import registered as FR
 from gen19ct.folds import source_holdout as SH
 from gen19ct.models import features as F
+from gen19ct.models import inner_design as ID
 from gen19ct.models import interface as I
 
-SCHEMA = "gen19.boosted.v1"
+SCHEMA = "gen19.boosted.v2"
 ARM_NAMES: tuple[str, ...] = ("B5", "M0", "FLAT_CAT")
 #: arm -> ``features.ARM_PRESETS`` key
 FEATURE_PRESET: dict[str, str] = {"B5": "B5", "M0": "M0", "FLAT_CAT": "FLAT_CAT"}
 TARGET_COL = I.TARGET_COL
 ID_COL = I.ID_COL
 
-#: section 7 compute plan item 1: the seed on which the full 3-fold inner design is used
+#: the discovery seed of the learned arms (addendum 1 item 3); every seed tunes on the full 3-fold inner design
 FULL_INNER_SEED = FI.DISCOVERY_SEEDS[0]
-INNER_MODES: tuple[str, ...] = ("full", "first")
+#: addendum 1 item 2: three inner folds on every seed -- "first" (section 7 compute plan item 1) is no longer a mode
+INNER_MODES: tuple[str, ...] = ("full",)
+RETIRED_INNER_MODES: tuple[str, ...] = ("first",)
 #: section 7 selection criterion: configurations within this of the best macro MAE are resolved toward the smaller one
 TIE_TOLERANCE = 0.005
 _TIE_EPS = 1e-12
@@ -100,17 +111,20 @@ REGISTRATION_CHOICES: dict[str, str] = {
     "early_stopping_metric": "CatBoost eval_metric MAE over the split's validation rows, unweighted (row-pooled); the "
                              "selection criterion is the design's macro MAE computed from the shrunk model's validation "
                              "predictions (use_best_model=True)",
-    "outer_iterations": "the outer refit uses iterations = median over the selected configuration's inner fits of the "
-                        "trees kept by early stopping (best_iteration + 1), rounded half up, >= 1; no early stopping at "
-                        "the refit (it would need the outer test rows); the M-model rule of section 6 (median best "
-                        "epoch) applied to CatBoost",
-    "v5_inner_fits": "batching follows the outer rule (section 7): each inner batch of cell_holdout.inner_cells_V5 is one "
-                     "inner fit whose validation rows are its cells' scored rows; the median of iterations is over those "
-                     "batch fits",
-    "first_inner_fold": "on seeds other than 104729 the first inner fold only: V1 inner fold 0 of inner_folds_V1, V2 the "
-                        "first (sorted) state of inner_metals_V2, V5 inner fold 0 with all its batches (so 'one fit per "
-                        "configuration' is one fit per inner batch); when that fold holds no validation row, the lowest "
-                        "inner fold index that does",
+    "outer_iterations": "the outer refit uses iterations = median over the selected configuration's inner fits (one per "
+                        "inner fold) of the trees kept by early stopping (best_iteration + 1), rounded half up, >= 1; no "
+                        "early stopping at the refit (it would need the outer test rows); the M-model rule of section 6 "
+                        "(median best epoch) applied to CatBoost, addendum 1 item 2",
+    "v5_inner_fits": "addendum 1 item 1: the V5 inner design is inner_design.SimultaneousInnerCells -- the section 7 "
+                     "inner cells (cell_holdout.inner_cell_majority + inner_cell_assignment), all cells of an inner fold "
+                     "hidden in one inner fit per configuration, eligibility re-checked with all of them hidden, a "
+                     "failing cell hidden but not scored; no inner batching; V5-P / V5-PAIR / V6 heavy-arm fits use the "
+                     "V5 primary inner design",
+    "inner_folds": "addendum 1 item 2: three inner folds on every seed that is run; the section 7 compute plan's 'first "
+                   "inner fold only' reading is retired (INNER_MODES = ('full',); mode 'first' is refused)",
+    "selection_score": "addendum 1 item 2: per inner fold the unit-macro MAE (the fold's validation rows averaged per "
+                       "averaging unit, then over units), then the mean over the inner folds; the tie rule applies to "
+                       "that mean (inner_design.fold_mean_scores)",
     "v1_inner_unit": "V1 inner averaging unit = the V1 unit of the section 3.2 resolution applied to the inner rows: the "
                      "row's publication group, or REMAINDER for groups below 20 rows of the outer-training rows (whole "
                      "groups under V1, so the corpus count); V0 (grouped 3-fold calibration design) averages by "
@@ -125,12 +139,13 @@ REGISTRATION_CHOICES: dict[str, str] = {
                   "the position of the (discovery seed, outer fold) pair in the design enumerated once per discovery "
                   "seed, evaluation.discovery.fold_ordinals, so the discovery seed enters the model seed as well as the "
                   "inner designs)",
-    "conformal": "discovery (scripts/g19_run_discovery.py) calibrates cross-fitted: the residuals of inner fold j come "
-                 "from refits whose configuration and iteration count were selected WITHOUT fold j's rows "
-                 "(select_excluding_folds on the recorded tuning; on seeds other than 104729, the configuration tuned "
-                 "on the first inner fold refitted on the next inner fold), so no calibration residual is an "
-                 "early-stopped or selection-minimised validation error.  ConformalWrapper(BoostedArm.frozen()) "
-                 "remains available and reuses the tuned configuration on every calibration split",
+    "conformal": "addendum 1 item 2: discovery calibrates cross-fitted -- the residuals of inner fold j come from the "
+                 "configuration and iteration count selected on the other two inner folds (select_excluding_folds on the "
+                 "recorded tuning: the fold-mean selection score over those folds, the median tree count over their "
+                 "fits), refitted on fold j's inner training rows (CatBoost's early-stopped inner fit cannot be reused: "
+                 "its tree count was chosen on fold j's own validation rows), so no calibration residual is an "
+                 "early-stopped or selection-minimised validation error.  ConformalWrapper(BoostedArm.frozen()) remains "
+                 "available and reuses the tuned configuration on every calibration split",
     "no_sample_weights": "no sample weights (section 5 names none for B5 / FLAT_CAT)",
     "catboost_defaults": "every CatBoost parameter not named by section 5 is the CatBoost 1.2.10 default "
                          "(boosting_type, bootstrap, border_count, nan_mode Min, ctr settings); allow_writing_files=False",
@@ -150,9 +165,18 @@ def model_seed_for_fold(fold_index: int) -> int:
 
 
 def inner_mode_for_seed(seed: int) -> str:
-    """Section 7 compute plan item 1: ``"full"`` (3 inner folds) on seed 104729, ``"first"`` on every other seed
-    (the four other discovery seeds and every withheld confirmation seed)."""
-    return "full" if int(seed) == FULL_INNER_SEED else "first"
+    """Addendum 1 item 2: ``"full"`` (three inner folds) on every seed -- the discovery seed and every withheld
+    confirmation seed alike.  The section 7 compute plan's ``"first"`` reading is retired."""
+    int(seed)
+    return "full"
+
+
+def _check_inner_mode(mode: Any, what: str) -> str:
+    if mode in RETIRED_INNER_MODES:
+        raise ValueError(f"{what}: inner mode {mode!r} was retired by {ID.ADDENDUM} (three inner folds on every seed)")
+    if mode not in INNER_MODES:
+        raise ValueError(f"{what}: inner mode must be one of {INNER_MODES}")
+    return str(mode)
 
 
 @dataclass(frozen=True)
@@ -238,27 +262,27 @@ def median_iterations(tree_counts: Iterable[int]) -> int:
 
 def select_excluding_folds(tuning_record: Mapping[str, Any], exclude_folds: Iterable[int], *,
                            tolerance: float = TIE_TOLERANCE) -> tuple[CatBoostConfig, int, dict[str, Any]]:
-    """The section 7 selection re-run on the inner splits OUTSIDE ``exclude_folds`` of a recorded tuning
-    (:meth:`TuningResult.record`): per configuration the macro MAE over the averaging units of those splits (a unit
-    pooled over the splits holding it), :func:`select_config`'s tie rule, and the median kept-tree count of the chosen
-    configuration's fits on those splits.  Used by the cross-fitted conformal calibration (section 12 reading): the
-    residuals of inner fold ``j`` come from the configuration and iteration count chosen without fold ``j``'s rows."""
+    """The section 7 / addendum 1 selection re-run on the inner folds OUTSIDE ``exclude_folds`` of a recorded tuning
+    (:meth:`TuningResult.record`): per configuration the mean over those folds of the fold's unit-macro MAE
+    (``inner_design.fold_mean_scores``), :func:`select_config`'s tie rule, and the median kept-tree count of the chosen
+    configuration's fits on those folds.  The cross-fitted conformal calibration (addendum 1 item 2) uses it: the
+    residuals of inner fold ``j`` come from the configuration and iteration count chosen on the other inner folds."""
     drop = {int(f) for f in exclude_folds}
     sue = pd.DataFrame(tuning_record.get("split_unit_errors") or [])
     fits = pd.DataFrame(tuning_record.get("fits") or [])
     if sue.empty or fits.empty:
         raise ValueError("select_excluding_folds: the tuning record lacks split_unit_errors / fits")
-    sue = sue[~sue["inner_fold"].astype(int).isin(drop)]
+    kept = sue[~sue["inner_fold"].astype(int).isin(drop)]
     fits = fits[~fits["inner_fold"].astype(int).isin(drop)]
-    if sue.empty:
+    if kept.empty:
         raise ValueError(f"select_excluding_folds: no inner split outside folds {sorted(drop)}")
     grid = {c["label"]: CatBoostConfig(**{k: v for k, v in c.items() if k != "label"}) for c in tuning_record["grid"]}
-    agg = sue.groupby(["config", "unit"], sort=True)[["n_rows", "sum_abs_error"]].sum()
-    macro = (agg["sum_abs_error"] / agg["n_rows"]).groupby(level="config").mean()
-    scores = {grid[label]: float(v) for label, v in macro.items()}
+    scores = {grid[label]: float(v) for label, v in ID.fold_mean_scores(sue, exclude_folds=drop).items()}
     chosen, selection = select_config(scores, tolerance)
     iters = median_iterations(fits.loc[fits["config"] == chosen.label, "n_trees"])
-    selection.update(excluded_inner_folds=sorted(drop), n_splits=int(sue["split_id"].nunique()), iterations=iters)
+    selection.update(excluded_inner_folds=sorted(drop), n_splits=int(kept["split_id"].nunique()),
+                     inner_folds_used=sorted(kept["inner_fold"].astype(int).unique().tolist()), iterations=iters,
+                     score="mean over inner folds of the fold's unit-macro MAE (addendum 1 item 2)")
     return chosen, iters, selection
 
 
@@ -357,6 +381,9 @@ class TuningSplit:
     val_index: pd.Index
     val_units: np.ndarray
     guard_test_index: pd.Index
+    #: units hidden in this split but not scored (addendum 1 item 1: a cell failing the re-check with the fold's other
+    #: cells hidden); empty for every other design
+    dropped_units: tuple[str, ...] = ()
 
 
 def _require_seed(context: I.FitContext) -> int:
@@ -482,6 +509,82 @@ class V5InnerTuning(_InnerDesign):
         return out
 
 
+class V5SimultaneousTuning(_InnerDesign):
+    """Addendum 1 item 1: the V5 inner design of the learned arms -- ``inner_design.SimultaneousInnerCells`` on the
+    outer-training rows, as :class:`TuningSplit` s.  One split per inner fold: its inner cells (the section 7 cells of
+    ``cell_holdout.inner_cell_majority`` / ``inner_cell_assignment`` under the variant's thresholds recomputed on the
+    outer-training rows, no ``V6_TARGET_ROWS`` cell, <= 30 per fold) all hidden under the registered rule in ONE training
+    set, the eligibility re-check with all of them hidden, a failing cell hidden but not scored (``dropped_units``);
+    validation rows = the surviving cells' scored rows minus ``context.exclude_from_scoring``; averaging unit = the
+    hidden cell; guard test side = every outer-training row of the fold's cells.  ``context.table`` is used when it holds
+    the training rows (the inner-unit cache is then shared by every arm of the outer fold), else a table is built on
+    them."""
+
+    design = "V5"
+
+    def __init__(self, thresholds: CH.Thresholds = CH.PRIMARY, *, medium: str = "all", component_aware: bool = True,
+                 component_map: Mapping[str, str] | None = None, n_inner: int = CH.INNER_N_FOLDS,
+                 max_cells: int = CH.INNER_MAX_CELLS, variant: str = "primary", require_all_folds: bool = True):
+        self.thresholds, self.medium, self.component_aware = thresholds, medium, bool(component_aware)
+        self.component_map, self.n_inner, self.max_cells = component_map, int(n_inner), int(max_cells)
+        self.variant, self.require_all_folds = variant, bool(require_all_folds)
+        self.last_design: ID.SimultaneousInnerCells | None = None
+
+    @classmethod
+    def for_variant(cls, variant: str = "primary", *, require_all_folds: bool = True) -> "V5SimultaneousTuning":
+        v = CH.VARIANTS[variant]
+        return cls(v.thresholds, medium=v.medium, component_aware=v.component_aware,
+                   component_map=CH.component_map_for(v), variant=variant, require_all_folds=require_all_folds)
+
+    def describe(self) -> dict[str, Any]:
+        return {"design": "V5", "inner_design": ID.NAME, "addendum": ID.ADDENDUM, "variant": self.variant,
+                "thresholds": self.thresholds.tag, "medium": self.medium, "component_aware": self.component_aware,
+                "parent_structure": self.component_map is not None, "n_inner": self.n_inner, "max_cells": self.max_cells,
+                "max_cells_per_batch": None, "one_fit_per_inner_fold": True,
+                "fold_function": "models.inner_design.SimultaneousInnerCells (cell_holdout.inner_cell_majority + "
+                                 "inner_cell_assignment)"}
+
+    def splitter(self, frame: pd.DataFrame | None = None) -> ID.SimultaneousInnerCells:
+        """The ``interface``-level design (for a conformal wrapper): the same cells, hiding and re-check."""
+        return ID.SimultaneousInnerCells(self.thresholds.k, self.thresholds.p, self.thresholds.m, self.n_inner,
+                                         self.max_cells, component_aware=self.component_aware,
+                                         component_map=self.component_map, medium=self.medium, frame=frame,
+                                         require_all_folds=self.require_all_folds)
+
+    def splits(self, rows: pd.DataFrame, context: I.FitContext) -> list[TuningSplit]:
+        seed = _require_seed(context)
+        fr = _fold_frame(rows, context)
+        v6, excl = _v6_series(fr, context), _excluded(fr, context)
+        table, mask = I.table_and_mask(fr, context)
+        design = self.splitter(fr if self.medium != "all" else None)
+        ctx = context if context.exclude_from_scoring is not None else replace(context, exclude_from_scoring=excl)
+        inner = design.splits(table, mask, ctx)
+        self.last_design = design
+        out = []
+        for sp in inner:
+            meta = dict(sp.meta or {})
+            cells = [tuple(c) for c in meta.get("cells", [])]
+            test = np.zeros(table.n, dtype=bool)
+            for st, sy in cells:
+                p = design.cell_positions(table, st, sy)
+                test[p[mask[p]]] = True
+            val = pd.Index(table.index[sp.cal_positions], dtype=object)
+            hidden = pd.Index(table.index[sp.hidden_positions], dtype=object)
+            train = pd.Index(table.index[sp.train_mask], dtype=object)
+            if len(val) and excl.reindex(val).to_numpy(dtype=bool).any():
+                raise AssertionError(f"inner fold {sp.fold}: an exclude_from_scoring row among the validation rows")
+            if len(val) and v6.reindex(val).to_numpy(dtype=bool).any():
+                raise AssertionError(f"inner fold {sp.fold}: a V6_TARGET_ROWS row among the validation rows")
+            out.append(TuningSplit(design=self.design, split_id=f"inner_s{seed}_i{int(sp.fold)}_simultaneous",
+                                   inner_fold=int(sp.fold),
+                                   units=tuple(CH.cell_label(c) for c in meta.get("scored_cells", cells)),
+                                   train_index=train, hidden_index=hidden, val_index=val,
+                                   val_units=np.asarray(sp.row_units, dtype=object),
+                                   guard_test_index=pd.Index(table.index[test], dtype=object),
+                                   dropped_units=tuple(CH.cell_label(c) for c in meta.get("dropped_cells", []))))
+        return out
+
+
 class V1InnerTuning(_InnerDesign):
     """Section 7 V1 inner design (``folds.source_holdout.inner_folds_V1``): grouped 3-fold over the publication groups of
     the outer-training rows, one fit per inner fold.  Averaging unit: ``"v1_unit"`` (group, or ``REMAINDER`` below 20
@@ -544,15 +647,20 @@ class V2InnerTuning(_InnerDesign):
         return out
 
 
-def inner_design_for(design: str, variant: str = "primary", *, max_cells_per_batch: int | None = None):
-    """The section 7 inner tuning design of an outer design: V5 (and its variants; V5-P, V5-PAIR and V6 heavy-arm fits
-    use the V5 primary inner design), V1, V2 (``variant="state"``: state-level sensitivity), V0 (the grouped 3-fold,
-    averaged by publication group).  V3 / V4 / V7 have no inner fold function in ``gen19ct.folds``."""
+def inner_design_for(design: str, variant: str = "primary", *, max_cells_per_batch: int | None = None,
+                     batched: bool = False):
+    """The inner tuning design of an outer design: V5 (and its variants; V5-P, V5-PAIR and V6 heavy-arm fits use the V5
+    primary inner design) -> :class:`V5SimultaneousTuning` (addendum 1 item 1; the inner design has no batches, so
+    ``max_cells_per_batch`` -- the section 7 item 6 cap of the OUTER batches -- is accepted and ignored), V1, V2
+    (``variant="state"``: state-level sensitivity), V0 (the grouped 3-fold, averaged by publication group).
+    ``batched=True`` returns the retired section 7 batched design (:class:`V5InnerTuning`, where the cap applies) for
+    the fold-builder equivalence tests only.  V3 / V4 / V7 have no inner fold function in ``gen19ct.folds``."""
     d = str(design).upper().replace("-", "")
-    if d == "V5":
-        return V5InnerTuning.for_variant(variant, max_cells_per_batch=max_cells_per_batch)
-    if d in ("V5P", "V5PAIR", "V6"):
-        return V5InnerTuning.for_variant("primary", max_cells_per_batch=max_cells_per_batch)
+    if d in ("V5", "V5P", "V5PAIR", "V6"):
+        v = variant if d == "V5" else "primary"
+        if batched:
+            return V5InnerTuning.for_variant(v, max_cells_per_batch=max_cells_per_batch)
+        return V5SimultaneousTuning.for_variant(v)
     if d == "V1":
         return V1InnerTuning(unit="v1_unit", design="V1")
     if d == "V0":
@@ -642,8 +750,12 @@ class TuningResult:
     #: one row per (configuration, inner split, averaging unit): ``n_rows`` and ``sum_abs_error`` of the split's
     #: validation rows -- what :func:`select_excluding_folds` re-selects from (the cross-fitted calibration)
     split_unit_errors: pd.DataFrame = field(default_factory=pd.DataFrame, repr=False)
+    #: one row per (configuration, inner fold): the fold's unit-macro MAE (``inner_design.fold_macro_table``); the
+    #: selection score of a configuration is the mean of its rows (addendum 1 item 2)
+    fold_scores: pd.DataFrame = field(default_factory=pd.DataFrame, repr=False)
 
     def scores(self) -> dict[str, float]:
+        """``{config label: selection score}`` -- the mean over the inner folds of the fold's unit-macro MAE."""
         return dict(zip(self.config_scores["config"], self.config_scores["macro_mae"]))
 
     def record(self) -> dict[str, Any]:
@@ -653,7 +765,9 @@ class TuningResult:
                 "grid": [c.record() for c in self.grid], "selected": self.selected.record(),
                 "selected_iterations": self.selected_iterations, "selection": self.selection,
                 "inner_folds_used": list(self.inner_folds_used), "n_inner_fits_per_config": int(len(self.splits)),
-                "config_scores": self.config_scores.to_dict(orient="records"), "timing": self.timing,
+                "selection_score": "mean over inner folds of the fold's unit-macro MAE (addendum 1 item 2)",
+                "config_scores": self.config_scores.to_dict(orient="records"),
+                "fold_scores": self.fold_scores.to_dict(orient="records"), "timing": self.timing,
                 "fits": self.fits[[c for c in ("config", "split_id", "inner_fold", "best_iteration", "n_trees")
                                    if c in self.fits.columns]].to_dict(orient="records"),
                 "split_unit_errors": self.split_unit_errors.to_dict(orient="records"),
@@ -670,8 +784,7 @@ class Tuner:
                  tie_tolerance: float = TIE_TOLERANCE):
         if arm not in ARM_NAMES:
             raise ValueError(f"unknown boosted arm {arm!r}; expected one of {ARM_NAMES}")
-        if mode not in INNER_MODES:
-            raise ValueError(f"mode must be one of {INNER_MODES}")
+        mode = _check_inner_mode(mode, f"{arm} Tuner")
         grid = tuple(grid)
         if not grid or len({c.complexity_key() for c in grid}) != len(grid):
             raise ValueError("grid must be non-empty with distinct configurations")
@@ -682,12 +795,10 @@ class Tuner:
         self.cv, self.tie_tolerance = cv, float(tie_tolerance)
 
     def select_splits(self, splits: list[TuningSplit]) -> tuple[list[TuningSplit], tuple[int, ...]]:
+        """Every inner split of every inner fold (addendum 1 item 2: no "first inner fold" restriction)."""
         if not splits:
             raise ValueError(f"{self.arm}: the inner design produced no inner split with validation rows")
-        if self.mode == "full":
-            return splits, tuple(sorted({s.inner_fold for s in splits}))
-        first = min(s.inner_fold for s in splits)
-        return [s for s in splits if s.inner_fold == first], (first,)
+        return list(splits), tuple(sorted({int(s.inner_fold) for s in splits}))
 
     def run(self, rows: pd.DataFrame, context: I.FitContext, model_seed: int) -> TuningResult:
         from catboost import CatBoostRegressor
@@ -732,6 +843,7 @@ class Tuner:
             split_recs.append({"split_id": sp.split_id, "inner_fold": sp.inner_fold, "n_train": len(sp.train_index),
                                "n_hidden": len(sp.hidden_index), "n_val": len(sp.val_index),
                                "n_units": int(len(set(sp.val_units))), "units": "; ".join(sp.units),
+                               "n_dropped_units": len(sp.dropped_units), "dropped_units": "; ".join(sp.dropped_units),
                                "n_features": int(Xtr.frame.shape[1]), "feature_state_digest": digest})
             for cfg in self.grid:
                 t0 = time.perf_counter()
@@ -760,17 +872,22 @@ class Tuner:
                                 "unit": str(unit), "n_rows": int(n), "sum_abs_error": float(tot)})
         split_unit_errors = pd.DataFrame(sue, columns=["config", "split_id", "inner_fold", "unit", "n_rows",
                                                        "sum_abs_error"])
+        fold_scores = ID.fold_macro_table(split_unit_errors)
+        fold_mean = ID.fold_mean_scores(split_unit_errors)
         scores, cfg_recs, unit_tabs = {}, [], []
         for cfg in self.grid:
             e, u = np.concatenate(errors[cfg]), np.concatenate(units[cfg])
-            macro, tab = macro_mae(e, u)
-            scores[cfg] = macro
+            pooled, tab = macro_mae(e, u)
+            scores[cfg] = float(fold_mean[cfg.label])
             unit_tabs.append(tab.assign(config=cfg.label))
             nt = fits.loc[fits["config"] == cfg.label, "n_trees"].to_numpy()
-            cfg_recs.append({"config": cfg.label, "depth": cfg.depth, "l2_leaf_reg": cfg.l2_leaf_reg, "macro_mae": macro,
+            cfg_recs.append({"config": cfg.label, "depth": cfg.depth, "l2_leaf_reg": cfg.l2_leaf_reg,
+                             "macro_mae": scores[cfg], "pooled_unit_macro_mae_diagnostic": pooled,
                              "row_pooled_mae_diagnostic": float(e.mean()), "n_units": int(len(tab)), "n_rows": int(len(e)),
+                             "n_inner_folds": int((fold_scores["config"] == cfg.label).sum()),
                              "median_n_trees": median_iterations(nt), "n_fits": int(len(nt))})
         chosen, selection = select_config(scores, self.tie_tolerance)
+        selection["score"] = "mean over inner folds of the fold's unit-macro MAE (addendum 1 item 2)"
         cs = pd.DataFrame(cfg_recs)
         cs["within_tolerance"] = cs["config"].isin(selection["candidates_within_tolerance"])
         cs["selected"] = cs["config"] == chosen.label
@@ -785,7 +902,7 @@ class Tuner:
                             unit_scores=pd.concat(unit_tabs, ignore_index=True)[["config", "unit", "n_rows", "mae"]],
                             config_scores=cs, selected=chosen, selected_iterations=iters, selection=selection,
                             timing=timing, touched_index=touched, inner_folds_used=folds_used,
-                            split_unit_errors=split_unit_errors)
+                            split_unit_errors=split_unit_errors, fold_scores=fold_scores)
 
 
 def _check_training_rows(rows: pd.DataFrame, context: I.FitContext, what: str) -> None:
@@ -832,7 +949,8 @@ class BoostedArm:
     ``fold_index`` / ``model_seed``  the section 15 model seed (one of them is required)
     ``design``                       the outer design (``"V5"``, ``"V1"``, ``"V2"``, ``"V0"``, ``"V5P"``, ``"V5PAIR"``,
                                      ``"V6"``) or an inner design object; ``variant`` selects the V5 variant
-    ``inner_mode``                   ``"full"`` / ``"first"``; ``None`` = :func:`inner_mode_for_seed` of ``context.seed``
+    ``inner_mode``                   ``"full"`` (three inner folds on every seed, addendum 1 item 2) or ``None`` (the
+                                     same); ``"first"`` is refused
     ``config`` + ``iterations``      fixed configuration (no tuning); both or neither
     ``cv``                           ``normalize.condition_vector`` over the frame's rows (row-wise, target-free; optional)
     """
@@ -849,8 +967,8 @@ class BoostedArm:
             raise ValueError("give exactly one of fold_index (section 15 rule) or model_seed")
         if (config is None) != (iterations is None):
             raise ValueError("config and iterations are fixed together (a tuned arm gets both from its inner folds)")
-        if inner_mode is not None and inner_mode not in INNER_MODES:
-            raise ValueError(f"inner_mode must be one of {INNER_MODES} or None")
+        if inner_mode is not None:
+            _check_inner_mode(inner_mode, f"{name} BoostedArm")
         self.name = name
         self.fold_index = fold_index
         self.model_seed = model_seed_for_fold(fold_index) if fold_index is not None else int(model_seed)

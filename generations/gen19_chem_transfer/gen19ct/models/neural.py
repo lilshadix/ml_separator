@@ -34,17 +34,22 @@ standardised units); gradient-norm clip 5.  With validation rows: the macro MAE 
 validation unit) after every epoch, patience 30, at most 300 epochs, the best epoch's parameters restored.  Without
 validation rows: exactly ``n_epochs`` epochs.
 
-Tuning (section 6 "Searched", section 7)
-----------------------------------------
+Tuning (section 6 "Searched", section 7; POST-HOC addendum 1 items 1-2)
+----------------------------------------------------------------------
 :func:`tune_m1` searches ``emb_dim in {4, 8, 16} x weight_decay in {1e-4, 1e-3, 1e-2}``; :func:`tune_m2` searches
-``rank in {2, 4, 8}`` with the M1 values retained for the same outer fold.  Every configuration is fitted with early
-stopping on each :class:`ValidationSplit` (an inner split of the outer training rows: its encoder, target scaling and
-network are fitted on the split's training rows only).  The configuration score is the macro MAE over the validation
-units of the pooled best-epoch predictions of all splits; configurations within 0.005 of the best are resolved toward
-the smaller configuration (lower rank, fewer parameters, stronger penalty).  The outer refit
-(:meth:`TuningResult.arm`) runs for the median best-epoch count of the selected configuration's inner fits.
-:func:`splits_from_folds` turns the fold builders' inner folds (``cell_holdout.inner_cells_V5``,
-``source_holdout.inner_folds_V1``, ``metal_holdout.inner_metals_V2``) into validation splits.
+``rank in {2, 4, 8}`` with the M1 values retained for the same outer fold (addendum 1 reading 6(d): also in M2's
+cross-fitted calibration, :func:`select_excluding_folds` on M2's own records keeps them).  Every configuration is
+fitted with early stopping on each :class:`ValidationSplit` (an inner split of the outer training rows: its encoder,
+target scaling and network are fitted on the split's training rows only -- reading 6(c)).  The configuration score is
+the mean over the inner folds of the fold's unit-macro MAE (the best-epoch predictions of the fold's validation rows
+averaged per validation unit, then over units; addendum 1 item 2, ``inner_design.fold_mean_scores``); configurations
+within 0.005 of the best are resolved toward the smaller configuration (lower rank, fewer parameters, stronger penalty).
+The outer refit (:meth:`TuningResult.arm`) runs for the median best-epoch count of the selected configuration's inner
+fits (one per inner fold).  Three inner folds on every seed: the V5 validation splits come from
+``inner_design.SimultaneousInnerCells`` (:func:`simultaneous_v5_splits` / :func:`splits_from_inner_splits`: one split
+per inner fold with all of the fold's cells hidden); :func:`splits_from_folds` turns fold-builder folds
+(``source_holdout.inner_folds_V1``, ``metal_holdout.inner_metals_V2``, and the retired batched
+``cell_holdout.inner_cells_V5`` for equivalence tests) into validation splits.
 
 Arm protocol (``models.interface``)
 -----------------------------------
@@ -74,9 +79,11 @@ from torch import nn
 
 from gen19ct.chemistry import support_graph as SG
 from gen19ct.data import load as LOAD
+from gen19ct.folds import cell_holdout as CH
 from gen19ct.folds import io as FI
 from gen19ct.folds import registered as FR
 from gen19ct.models import features as F
+from gen19ct.models import inner_design as ID
 from gen19ct.models import interface as I
 
 # --------------------------------------------------------------------------------------------- #
@@ -148,13 +155,22 @@ REGISTRATION_CHOICES: dict[str, str] = {
                       "no-leak reading is implemented and needs a POST-HOC addendum (task X finding V-08)",
     "early_stopping": "strict improvement of the validation macro MAE (first best epoch kept on ties); stop when 30 "
                       "epochs pass without one or after 300 epochs",
-    "validation_unit": "the unit of each validation row is the fold builder's row_unit (V5 inner: the hidden cell; V1 "
-                       "inner: the publication group; V2 inner: the metal state)",
-    "config_score": "macro MAE over validation units of the pooled best-epoch predictions of every inner split",
+    "validation_unit": "the unit of each validation row is the inner design's row unit (V5 inner: the hidden cell; V1 "
+                       "inner: the publication group or REMAINDER; V2 inner: the metal state)",
+    "config_score": "addendum 1 item 2: per inner fold the unit-macro MAE of the best-epoch predictions of the fold's "
+                    "validation rows (averaged per validation unit, then over units), then the mean over the inner "
+                    "folds; the pooled-over-splits macro MAE is kept as a diagnostic column",
+    "inner_design": "addendum 1 item 1: the V5 validation splits are inner_design.SimultaneousInnerCells -- one split "
+                    "per inner fold, all of the fold's inner cells hidden under the registered rule, a cell failing the "
+                    "re-check hidden but not scored; three inner folds on every seed (no 'first inner fold' reading)",
+    "cross_fit": "addendum 1 item 2: inner fold j's conformal residuals come from the configuration and epoch count "
+                 "selected on the other inner folds (select_excluding_folds), refitted on fold j's inner training rows "
+                 "for that epoch count (the early-stopped inner fit chose its epoch on fold j's own validation rows); "
+                 "M2's re-selection keeps the outer fold's retained M1 values (its grid varies rank only)",
     "tie_order": "within 0.005 of the best: smallest (rank, number of parameters on the outer-training dimensions, "
                  "-weight_decay)",
-    "refit_epochs": "median of the selected configuration's best-epoch counts over all its inner fits (every V5 inner "
-                    "batch is one fit), rounded half up, at least 1",
+    "refit_epochs": "median of the selected configuration's best-epoch counts over its inner fits (one per inner "
+                    "fold), rounded half up, at least 1",
     "model_seed": "42 + fold_index * 1009 + 9,999,991 with fold_index the caller's fold number (discovery: the position "
                   "of the (discovery seed, outer fold) pair in the design enumerated once per discovery seed, "
                   "evaluation.discovery.fold_ordinals, so seed 104729 keeps the fold's file position and the other "
@@ -817,9 +833,9 @@ def splits_from_folds(outer_train_rows: pd.DataFrame, folds: Sequence[FI.Fold], 
     Training rows: the outer-training rows minus the fold's hidden rows.  Validation rows: the fold's scored rows minus
     ``exclude_from_scoring`` (e.g. acidic co-extractant rows); every one passes ``registered.assert_not_scored`` and is
     a known state other than Sr(III).  Unit: ``fold.row_unit`` (default ``fold.units[0]``).  Inner fold: ``meta
-    ["inner_fold"]`` (V5 batches) or the fold's position (V1, V2).  ``inner_folds`` keeps only those inner folds (the
-    section 7 compute plan: ``[0]`` on the four other discovery seeds).  ``guard`` records how the folds were checked
-    (the builders run ``fold_isolation_check`` with ``check=True``)."""
+    ["inner_fold"]`` (V5 batches) or the fold's position (V1, V2).  ``inner_folds`` restricts to those inner folds (a
+    diagnostic; the learned arms tune on every inner fold, addendum 1 item 2).  ``guard`` records how the folds were
+    checked (the builders run ``fold_isolation_check`` with ``check=True``)."""
     if I.ID_COL not in outer_train_rows.columns:
         raise KeyError(f"outer training rows need {I.ID_COL}")
     ids = outer_train_rows[I.ID_COL].astype(str)
@@ -854,6 +870,68 @@ def splits_from_folds(outer_train_rows: pd.DataFrame, folds: Sequence[FI.Fold], 
     return out
 
 
+def splits_from_inner_splits(outer_train_rows: pd.DataFrame, table: I.RowTable, inner_splits: Sequence[I.InnerSplit],
+                             *, guard: str = "interface_inner_design") -> list[ValidationSplit]:
+    """Validation splits from ``interface.InnerSplit`` s over ``table`` (positions -> the outer-training labels).
+
+    Training rows: the split's ``train_mask``; validation rows: its ``cal_positions`` (already the scorable population
+    of the design: known state, not Sr(III), not ``V6_TARGET_ROWS``, not ``context.exclude_from_scoring``); unit: its
+    ``row_units`` (required); hidden rows: its ``hidden_positions``.  Every row must be an outer-training row."""
+    idx = outer_train_rows.index
+    out = []
+    for sp in inner_splits:
+        if sp.row_units is None:
+            raise ValueError(f"inner split {sp.unit}: no row_units (the design's averaging unit is required)")
+        train = pd.Index(table.index[np.asarray(sp.train_mask, dtype=bool)], dtype=object)
+        valid = pd.Index(table.index[np.asarray(sp.cal_positions, dtype=np.int64)], dtype=object)
+        hidden = pd.Index(table.index[np.asarray(sp.hidden_positions, dtype=np.int64)], dtype=object)
+        for what, lab in (("training", train), ("validation", valid), ("hidden", hidden)):
+            if not lab.isin(idx).all():
+                raise AssertionError(f"inner split {sp.unit}: {what} rows outside the outer training rows")
+        meta = dict(sp.meta or {})
+        name = f"inner_fold{int(sp.fold)}" if isinstance(sp.unit, tuple) and sp.unit and sp.unit[0] == "inner_fold" \
+            else str(sp.unit)
+        out.append(ValidationSplit(name=name, inner_fold=int(sp.fold), train_index=train, valid_index=valid,
+                                   valid_units=np.asarray(sp.row_units, dtype=object).astype(str), hidden_index=hidden,
+                                   guard=guard if not meta else f"{guard}:{meta.get('design', '')}"))
+    return out
+
+
+def simultaneous_v5_splits(outer_train_rows: pd.DataFrame, context: I.FitContext, *, variant: str = "primary",
+                           design: ID.SimultaneousInnerCells | None = None, table: I.RowTable | None = None,
+                           guard: str = "interface_inner_design") -> list[ValidationSplit]:
+    """The addendum-1 V5 validation splits of an outer training set: ``inner_design.SimultaneousInnerCells`` (the
+    variant's thresholds, hiding and medium; ``design`` overrides) drawn with ``context.seed`` on ``outer_train_rows``
+    (``context.table`` is used when it holds them, else ``table`` / a fresh ``RowTable``), one split per inner fold.
+    ``context.v6_mask`` and ``context.isolation_check`` are required as for every inner design; every split is passed
+    through the isolation check (``every_split``) before it is returned."""
+    if table is None:
+        table, mask = I.table_and_mask(outer_train_rows, context)
+    else:
+        mask = table.mask_of(outer_train_rows.index)
+    d = design if design is not None else ID.SimultaneousInnerCells.for_variant(
+        variant, frame=outer_train_rows if CH.VARIANTS[variant].medium != "all" else None)
+    if context.isolation_check is None:
+        raise ValueError("inner splits must pass fold_isolation_check: context.isolation_check is required")
+    splits = d.splits(table, mask, context)
+    verifier = I.ConformalWrapper(_NullArm(), splitter=d, guard="every_split")
+    for sp in splits:
+        if (sp.train_mask & ~mask).any() or not mask[sp.cal_positions].all() or sp.train_mask[sp.cal_positions].any():
+            raise AssertionError(f"inner split {sp.unit} is not inside the outer training rows")
+        verifier._verify(table, sp, context)
+        FR.assert_not_scored(table.index[sp.cal_positions], context.v6_mask, f"inner validation {sp.unit}")
+    return splits_from_inner_splits(outer_train_rows, table, splits, guard=f"{guard}:every_split")
+
+
+class _NullArm:
+    """A stand-in arm for ``ConformalWrapper._verify`` (never fitted)."""
+
+    name = "null"
+
+    def clone(self) -> "_NullArm":
+        return self
+
+
 @dataclass
 class TuningResult:
     step: str
@@ -866,6 +944,8 @@ class TuningResult:
     readings: dict[str, str] = field(default_factory=lambda: dict(REGISTRATION_CHOICES))
     #: one row per (configuration, split, validation unit): ``n_rows``, ``sum_abs_error`` of the best-epoch predictions
     split_unit_errors: pd.DataFrame = field(default_factory=pd.DataFrame)
+    #: one row per (configuration, inner fold): the fold's unit-macro MAE (``inner_design.fold_macro_table``)
+    fold_scores: pd.DataFrame = field(default_factory=pd.DataFrame)
 
     def arm(self, rows: pd.DataFrame | None = None, condition_vectors: pd.DataFrame | None = None) -> FactorisedArm:
         """The outer-refit arm: the selected configuration for the median best-epoch count."""
@@ -956,17 +1036,23 @@ def tune(outer_train_rows: pd.DataFrame, splits: Sequence[ValidationSplit], conf
             for unit, n, tot in zip(t.size().index, t.size().to_numpy(), t.sum().to_numpy()):
                 sue.append({"config": cfg.label(), "split": name, "inner_fold": fold_of_split.get(name, -1),
                             "unit": str(unit), "n_rows": int(n), "sum_abs_error": float(tot)})
+    sue_frame = pd.DataFrame(sue, columns=["config", "split", "inner_fold", "unit", "n_rows", "sum_abs_error"])
+    fold_scores = ID.fold_macro_table(sue_frame)
+    fold_mean = ID.fold_mean_scores(sue_frame)
     for ci, cfg in enumerate(configs):
         acc = per_cfg[ci]
         u = np.concatenate(acc["unit"])
         _, codes = np.unique(u, return_inverse=True)
         pr, yv = np.concatenate(acc["pred"]), np.concatenate(acc["y"])
-        score = macro_mae(yv, pr, codes)
+        pooled_score = macro_mae(yv, pr, codes)
+        score = float(fold_mean[cfg.label()])
         pooled[ci] = (pr, yv, u, np.concatenate(acc["split"]), np.concatenate(acc["label"]))
         best_epochs = [rec["best_epoch"] for rec in fit_recs if rec["config_pos"] == ci]
         score_recs.append({"config": cfg.label(), "emb_dim": cfg.emb_dim, "weight_decay": cfg.weight_decay,
                            "rank": cfg.rank, "n_parameters": parameter_count(outer_enc.dims, cfg),
-                           "inner_macro_mae": score, "n_units": int(codes.max()) + 1, "n_splits": len(splits),
+                           "inner_macro_mae": score, "pooled_unit_macro_mae_diagnostic": pooled_score,
+                           "n_units": int(codes.max()) + 1, "n_splits": len(splits),
+                           "n_inner_folds": int((fold_scores["config"] == cfg.label()).sum()),
                            "median_best_epoch": median_epochs(best_epochs)})
     scores = pd.DataFrame(score_recs)
     pos = select_config(scores, tolerance)
@@ -975,30 +1061,30 @@ def tune(outer_train_rows: pd.DataFrame, splits: Sequence[ValidationSplit], conf
     inner = pd.DataFrame({"split": sn, "row_label": lab, "unit": uv, "log_D": yv, "pred": pr})
     return TuningResult(step=next(iter(steps)), selected=configs[pos], n_epochs=int(scores["median_best_epoch"].iloc[pos]),
                         model_seed=int(model_seed), scores=scores, fits=pd.DataFrame(fit_recs), inner_predictions=inner,
-                        split_unit_errors=pd.DataFrame(sue, columns=["config", "split", "inner_fold", "unit", "n_rows",
-                                                                     "sum_abs_error"]))
+                        split_unit_errors=sue_frame, fold_scores=fold_scores)
 
 
 def select_excluding_folds(scores: Sequence[Mapping[str, Any]], fits: Sequence[Mapping[str, Any]],
                            split_unit_errors: Sequence[Mapping[str, Any]], exclude_folds: Iterable[int], *,
                            tolerance: float = SELECTION_TOLERANCE) -> tuple[NeuralConfig, int, dict[str, Any]]:
-    """The section 6 / 7 selection re-run on the inner splits OUTSIDE ``exclude_folds`` of a recorded tuning (the
-    ``scores`` / ``fits`` / ``split_unit_errors`` records of :func:`tune`): macro MAE over the validation units of those
-    splits (a unit pooled over the splits holding it), :func:`select_config`'s tie rule and the median best epoch of the
-    chosen configuration's fits on those splits.  The cross-fitted conformal calibration of the discovery runner uses
-    it: inner fold ``j``'s residuals come from a configuration and epoch count chosen without fold ``j``'s rows."""
+    """The section 6 / 7 selection re-run on the inner folds OUTSIDE ``exclude_folds`` of a recorded tuning (the
+    ``scores`` / ``fits`` / ``split_unit_errors`` records of :func:`tune`): the mean over those folds of the fold's
+    unit-macro MAE (``inner_design.fold_mean_scores``, addendum 1 item 2), :func:`select_config`'s tie rule and the
+    median best epoch of the chosen configuration's fits on those folds.  The cross-fitted conformal calibration of the
+    discovery runner uses it: inner fold ``j``'s residuals come from a configuration and epoch count chosen on the other
+    inner folds.  On M2's records every configuration carries the outer fold's retained M1 values, so the re-selection
+    varies the rank only (reading 6(d))."""
     drop = {int(f) for f in exclude_folds}
     sc = pd.DataFrame(list(scores))
     fi = pd.DataFrame(list(fits))
     ue = pd.DataFrame(list(split_unit_errors))
     if sc.empty or fi.empty or ue.empty:
         raise ValueError("select_excluding_folds: the tuning record lacks scores / fits / split_unit_errors")
-    ue = ue[~ue["inner_fold"].astype(int).isin(drop)]
+    kept = ue[~ue["inner_fold"].astype(int).isin(drop)]
     fi = fi[~fi["inner_fold"].astype(int).isin(drop)]
-    if ue.empty:
+    if kept.empty:
         raise ValueError(f"select_excluding_folds: no inner split outside folds {sorted(drop)}")
-    agg = ue.groupby(["config", "unit"], sort=True)[["n_rows", "sum_abs_error"]].sum()
-    macro = (agg["sum_abs_error"] / agg["n_rows"]).groupby(level="config").mean()
+    macro = pd.Series(ID.fold_mean_scores(ue, exclude_folds=drop), dtype=float)
     sub = sc.drop(columns=[c for c in ("inner_macro_mae", "selected") if c in sc.columns]).copy()
     sub["inner_macro_mae"] = sub["config"].map(macro).astype(float)
     sub = sub[np.isfinite(sub["inner_macro_mae"].to_numpy(dtype=float))].reset_index(drop=True)
@@ -1008,7 +1094,9 @@ def select_excluding_folds(scores: Sequence[Mapping[str, Any]], fits: Sequence[M
     epochs = median_epochs(fi.loc[fi["config"] == row["config"], "best_epoch"].astype(int).tolist())
     return cfg, epochs, {"excluded_inner_folds": sorted(drop), "config": str(row["config"]),
                          "inner_macro_mae": float(row["inner_macro_mae"]), "n_epochs": int(epochs),
-                         "n_splits": int(ue["split"].nunique())}
+                         "n_splits": int(kept["split"].nunique()),
+                         "inner_folds_used": sorted(kept["inner_fold"].astype(int).unique().tolist()),
+                         "score": "mean over inner folds of the fold's unit-macro MAE (addendum 1 item 2)"}
 
 
 def tune_m1(outer_train_rows: pd.DataFrame, splits: Sequence[ValidationSplit], *, fold_index: int,

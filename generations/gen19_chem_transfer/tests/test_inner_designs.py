@@ -25,6 +25,7 @@ from gen19ct.folds import io as FI
 from gen19ct.folds import metal_holdout as MH
 from gen19ct.folds import registered as FR
 from gen19ct.folds import source_holdout as SH
+from gen19ct.models import inner_design as ID
 from gen19ct.models import interface as I
 
 SEED = 104729
@@ -89,6 +90,40 @@ def test_v5_inner_cells_identical_on_synthetic_frame(seed: int) -> None:
                      sorted(built, key=lambda f: (f.meta["inner_fold"], tuple(f.meta["cells"][0])))):
         assert sorted(table.ids[sp.cal_positions]) == sorted(f.scored_row_ids)      # calibration rows = scored rows
         assert sorted(table.ids[sp.hidden_positions]) == sorted(f.hidden_row_ids)   # same hiding
+
+
+@pytest.mark.parametrize("seed", [SEED, 130363, 7])
+def test_v5_simultaneous_design_hides_the_fold_builders_inner_cells_fold_by_fold(seed: int) -> None:
+    """Addendum 1 item 1: the learned arms' V5 inner design takes the SAME inner cells and inner folds as the fold
+    builder (``inner_cells_V5``) and the per-cell calibration design; it only hides each inner fold's cells together."""
+    df = _synthetic()
+    v6 = pd.Series((df[SG.METAL_COL] == "Pr(III)") & (df[SG.SYSTEM_COL] == "S3"), index=df.index)
+    thr = CH.Thresholds(8, 1, 2)
+    table = I.RowTable(df)
+    mask = np.ones(table.n, dtype=bool)
+    mask[:40] = False
+    train = df[mask]
+    built = CH.inner_cells_V5(train, thr, seed, batched=False, max_cells=4, v6_ids=df.loc[v6, FI.ROW_ID], check=False)
+    by_fold = defaultdict(list)
+    for f in built:
+        by_fold[f.meta["inner_fold"]] += [tuple(c) for c in f.meta["cells"]]
+    sim = ID.SimultaneousInnerCells(k=thr.k, p=thr.p, m=thr.m, n_folds=3, max_cells_per_fold=4)
+    splits = sim.splits(table, mask, _ctx(table, v6, seed))
+    assert len(splits) == 3
+    assert {sp.fold: sorted(map(tuple, sp.meta["cells"])) for sp in splits} == {k: sorted(v) for k, v in by_fold.items()}
+    per_cell = I.InnerCellCalibration(k=thr.k, p=thr.p, m=thr.m, n_folds=3, max_cells_per_fold=4).splits(
+        table, mask, _ctx(table, v6, seed))
+    for sp in splits:
+        mine = [s for s in per_cell if s.fold == sp.fold]
+        # the per-cell splits' hidden rows united = the simultaneous split's hidden rows; calibration rows likewise
+        # (no cell of this synthetic frame fails the re-check)
+        assert not sp.meta["dropped_cells"]
+        assert set(sp.hidden_positions) == set(np.concatenate([s.hidden_positions for s in mine]))
+        assert sorted(sp.cal_positions) == sorted(np.concatenate([s.cal_positions for s in mine]))
+        assert set(sp.row_units) == {I.cell_unit_label(*s.unit) for s in mine}
+        # the fold builder's scored rows of the fold's cells = the split's calibration rows
+        scored = {r for f in built if f.meta["inner_fold"] == sp.fold for r in f.scored_row_ids}
+        assert set(table.ids[sp.cal_positions]) == scored
 
 
 @pytest.mark.parametrize("seed", [SEED, 196613])

@@ -1,26 +1,35 @@
 """``scripts/g19_run_discovery.py`` -- the resumable discovery runner (pre-registration section 0 order of work item 3;
 sections 2, 3, 5, 6, 7, 12, 15, 16; sealed 2026-09-15).
 
+This runner implements **POST-HOC addendum 1** of the sealed text (the compute-driven reduction; see
+``discovery.READINGS`` ``addendum1_*``): every V5 design and variant of every learned arm and of B6 tunes on three
+SIMULTANEOUS inner folds (``gen19ct.models.inner_design.SimultaneousInnerCells``, one inner fit per configuration per
+fold with up to 30 cells hidden at once); discovery runs seed **104729 only**; a learned arm runs only the V5 strict
+and HNO3-only refits; V5-PAIR carries M2 (with its M1 prerequisite).
+
 Refuses to start (and to begin each stage) unless ``scripts/g19_seal_prereg.py --check`` exits 0 AND the sealed digest
 of ``preregistration.md`` and ``manifests/prereg_sha256.txt`` equals the registered
-``discovery.REGISTERED_PREREG_SHA256`` (an edited-and-re-sealed text is refused); the digest is written into every fold
-record and the manifest.  Enumerates the jobs of ``gen19ct.evaluation.discovery.enumerate_plan`` (section 7 order, each
-pass in the registered arm order: the nested-certificate safeguard, B6 / B6r0 with the batched-vs-exact and ten-fold
-checks, the comparators' multi-seed intervals, the seed-104729 pass B5 = M0, FLAT_CAT, B8 -> M1 -> M2, the stop rule,
-the other discovery seeds, the refit sensitivities, conditional freezing-candidate runs; then prints ``M3+ not
-implemented`` and stops).  Every job is (arm, design, variant, seed, half = selection).  Per outer fold:
+``discovery.REGISTERED_PREREG_SHA256`` (an edited-and-re-sealed text is refused) AND the number of POST-HOC addenda
+below the footer is the one this code implements (``--expect-addenda`` overrides); the sealed digest, the addendum
+count and the SHA-256 of the addendum text are written into every fold record and the manifest.  Enumerates the jobs of
+``gen19ct.evaluation.discovery.enumerate_plan`` (section 7 order, each pass in the registered arm order: the
+nested-certificate safeguard, B6 / B6r0 with the batched-vs-exact and ten-fold checks and their strict / HNO3-only
+refits, the seed-104729 pass B5 = M0, FLAT_CAT, B8 -> M1 -> M2, the stop rule, the S1(c) V5-PAIR run, the strict /
+HNO3-only refits, conditional freezing-candidate runs; then prints ``M3+ not implemented`` and stops), with a marker
+job naming everything the addendum does not run.  Every job is (arm, design, variant, seed = 104729,
+half = selection).  Per outer fold:
 
 1. the fold's selection-half scored rows (confirmation-half rows are never predicted; every row's registered half is
    re-derived and asserted), minus the acidic co-extractant rows; ``registered.assert_not_scored`` on them;
 2. training rows = MODEL rows (minus Sr(III) for the Sr(III)-dropped sensitivity) minus the fold's hidden rows; the
    outer ``fold_isolation_check`` at the design level (``cell_holdout.guard_v5`` / ``guard_v5p``, ``source_holdout.
    guard_v1``, ``metal_holdout.guard_v2``) before any fit;
-3. the arm: nested section 7 tuning on the outer-training rows (3 inner folds on seed 104729, the first inner fold on
-   the other seeds) with the section 15 model seed of the (seed, fold) pair, the outer refit, predictions of the scored
-   rows ("point" step), then cross-fitted split-conformal intervals ("intervals" step: inner fold j's residuals from
-   refits of the configuration selected without fold j, or on the first-inner-fold seeds from the tuned configuration
-   on the next inner fold; B6 / B6r0 get theirs from ``factorized.B6TunedConformal(calibration="cross_fit")`` in the
-   point step);
+3. the arm: nested section 7 tuning on the outer-training rows (addendum 1 items 1-2: 3 inner folds, one inner fit per
+   configuration per fold, V5 folds hidden simultaneously by ``simultaneous_inner_design`` and verified by
+   ``verify_inner_splits``; the V1 / V2 inner designs unchanged) with the section 15 model seed of the (seed, fold)
+   pair, the outer refit, predictions of the scored rows ("point" step), then cross-fitted split-conformal intervals
+   ("intervals" step: inner fold j's residuals from refits of the configuration selected without fold j; B6 / B6r0 get
+   theirs from ``factorized.B6TunedConformal(calibration="cross_fit")`` in the point step);
 4. one parquet + one JSON record per arm (``discovery.fold_paths``) with the selected configuration, inner scores,
    best iterations / epochs, fit seconds, peak RSS and the resume digest; a fold whose record exists with the same
    digest and steps is skipped.
@@ -36,12 +45,16 @@ budget demotes only M3-M7 (not implemented), every job here keeps running.
     PYTHONIOENCODING=utf-8 PYTHONPATH=generations/gen19_chem_transfer \\
         .venv/Scripts/python.exe generations/gen19_chem_transfer/scripts/g19_run_discovery.py --workers 2
 
-``--dry-run`` enumerates the jobs with fold counts and the cost estimate; ``--benchmark`` times one inner-tuning
-configuration fit and one outer refit per arm on the TRAINING rows of one V5-primary batched, one V1 ten-fold and one V2
-fold (seed 104729; nothing is predicted on a test row) and writes ``evaluation/discovery/benchmark/cost_estimate.json``
-/ ``.md``.  ``--only`` filters (``B6``, ``M2:V5``, ``V1``, ``safeguard``); ``--max-hours`` is an operator pause (no new
-fold is dispatched once the wall-clock ledger reaches it; a later invocation resumes; never a registered demotion);
-``--steps point`` defers the intervals step.
+``--dry-run`` enumerates the jobs with fold counts and the cost estimate and writes the plan to
+``evaluation/discovery/benchmark/plan_addendum1.txt``.  ``--benchmark-addendum1`` times, per arm (B6, B5, FLAT_CAT, B8,
+M1, M2), one inner-tuning configuration fit, one calibration refit and one outer refit on the TRAINING rows of one
+V5-primary batched fold under the addendum's simultaneous inner design (seed 104729; nothing is predicted on a test
+row), reuses the sealed-plan V1 / V2 measurements, and writes
+``evaluation/discovery/benchmark/cost_estimate_addendum1.json`` / ``.md`` with per-stage cumulative wall-clock
+checkpoints on 2 workers and the fits-in-60-h verdict; ``--benchmark`` is the superseded sealed-plan measurement, kept
+so that the 1,535.7 CPU-hour estimate the addendum rests on stays reproducible.  ``--only`` filters (``B6``, ``M2:V5``,
+``V1``, ``safeguard``); ``--max-hours`` is an operator pause (no new fold is dispatched once the wall-clock ledger
+reaches it; a later invocation resumes; never a registered demotion); ``--steps point`` defers the intervals step.
 """
 from __future__ import annotations
 
@@ -88,7 +101,8 @@ PREDICTION_STEP, INTERVAL_STEP = "point", "intervals"
 CODE_FILES: tuple[Path, ...] = tuple(Path(paths.G19_ROOT / p) for p in (
     "gen19ct/models/interface.py", "gen19ct/models/features.py", "gen19ct/models/boosted.py",
     "gen19ct/models/factorized.py", "gen19ct/models/neural.py", "gen19ct/models/previous_gen.py",
-    "gen19ct/models/baselines.py", "gen19ct/folds/io.py", "gen19ct/folds/cell_holdout.py",
+    "gen19ct/models/baselines.py", "gen19ct/models/inner_design.py", "gen19ct/folds/io.py",
+    "gen19ct/folds/cell_holdout.py",
     "gen19ct/folds/source_holdout.py", "gen19ct/folds/metal_holdout.py", "gen19ct/folds/registered.py",
     "gen19ct/data/leakage.py", "gen19ct/data/normalize.py", "gen19ct/data/load.py",
     "gen19ct/chemistry/support_graph.py", "gen19ct/chemistry/metals.py", "gen19ct/chemistry/ligands.py",
@@ -96,7 +110,7 @@ CODE_FILES: tuple[Path, ...] = tuple(Path(paths.G19_ROOT / p) for p in (
     "descriptors/metals.csv", "descriptors/extractant_systems.csv", "descriptors/extractant_components.csv"))
 RUNNER_OBJECTS: tuple[Any, ...] = (D.JobSpec, D.selection_scored_ids, D.job_folds, D.fittable_folds, D.fold_ordinals,
                                    D.assert_selection_rows, D.registered_row_halves, D.prediction_frame,
-                                   D.attach_intervals, D.FirstInnerFold, D.TuningSplitCalibration, D.V5ExactInnerCells,
+                                   D.attach_intervals, D.TuningSplitCalibration, D.InnerFoldSubset, D.FixedInnerSplits,
                                    D.CrossFitResidualConformal, D.calibration_folds, D.assert_no_provenance_features,
                                    D.fold_digest, D.guard_mode_source, D.job_from_record)
 PREREG_SEALED = paths.G19_ROOT / "preregistration.md"
@@ -105,6 +119,14 @@ PREREG_SHA_FILE = paths.G19_ROOT / "manifests" / "prereg_sha256.txt"
 
 def log(msg: str) -> None:
     print(f"[{time.strftime('%H:%M:%S')}] {msg}", flush=True)
+
+
+def _rel(path: Path) -> str:
+    """``paths.rel`` where it applies (a repository file), the path itself otherwise (``--out-root`` elsewhere)."""
+    try:
+        return str(paths.rel(Path(path)))
+    except ValueError:
+        return str(path)
 
 
 # ============================================================================================= #
@@ -144,11 +166,20 @@ def prereg_digests(sealed: Path = PREREG_SEALED, sha_file: Path = PREREG_SHA_FIL
 
 
 def refuse_unless_sealed(check: Callable[[], int] | None = None,
-                         digests: Callable[[], Mapping[str, Any]] | None = None) -> dict[str, Any]:
+                         digests: Callable[[], Mapping[str, Any]] | None = None, *,
+                         expect_addenda: int | None = None) -> dict[str, Any]:
     """Section 0: fit scripts call ``--check`` and refuse to run when it fails; discovery also refuses unless the sealed
     digest (footer, recomputed and ``prereg_sha256.txt``) is the registered ``discovery.REGISTERED_PREREG_SHA256``
-    (task X finding V-LP-02: ``--check`` alone accepts any self-consistent re-sealed text).  Returns the digest record
-    written into every fold record and manifest."""
+    (task X finding V-LP-02: ``--check`` alone accepts any self-consistent re-sealed text).
+
+    The sealed text carries POST-HOC addenda BELOW the footer; ``--check`` accepts them (dated, consecutively numbered)
+    and the footer digest is unaffected by them, so the gate also pins how many there are -- this code implements
+    addendum 1 and refuses any other count (``expect_addenda`` / ``--expect-addenda N``) -- AND their text: the SHA-256
+    of the LF-normalised below-footer text must be ``discovery.REGISTERED_ADDENDA_SHA256`` (task X finding V-F01: an
+    edited seed set, refit list or V5-PAIR scope in the addendum would otherwise pass both ``--check`` and this gate).
+    An edited or additional addendum is therefore implemented and its digest registered in the code before anything
+    runs; ``--expect-addenda`` alone never passes it.  The digest goes into every fold record's resume digest and every
+    manifest.  Returns that digest record."""
     rc = (check or seal_check)()
     if rc != 0:
         raise SystemExit(f"refused: scripts/g19_seal_prereg.py --check exited {rc}; discovery never runs on an unsealed "
@@ -163,7 +194,22 @@ def refuse_unless_sealed(check: Callable[[], int] | None = None,
         raise SystemExit(f"refused: the sealed pre-registration is not the registered text {want[:12]}... "
                          f"({ {k: (str(v)[:12] + '...') if v else v for k, v in bad.items()} }); a change to the "
                          "registered analysis is a POST-HOC addendum below the footer, never a re-seal (section 0)")
-    return {"prereg_sha256": want, "addenda_sha256": dg.get("addenda_sha256"), "n_addenda": dg.get("n_addenda"),
+    want_n = D.N_ADDENDA_EXPECTED if expect_addenda is None else int(expect_addenda)
+    got_n = int(dg.get("n_addenda") or 0)
+    if got_n != want_n:
+        raise SystemExit(f"refused: the sealed pre-registration carries {got_n} POST-HOC addendum/addenda below the "
+                         f"footer, {want_n} expected; this code implements addendum {D.N_ADDENDA_EXPECTED} (the "
+                         "reduced discovery plan). Read the addenda, then rerun with --expect-addenda "
+                         f"{got_n} once the code implements them")
+    want_add, got_add = D.REGISTERED_ADDENDA_SHA256, dg.get("addenda_sha256")
+    if got_add != want_add:
+        raise SystemExit(f"refused: the POST-HOC addenda below the sealed footer digest to {str(got_add)[:12]}..., not "
+                         f"the registered addendum text {want_add[:12]}... (discovery.REGISTERED_ADDENDA_SHA256): the "
+                         "addendum text was edited or extended. Discovery never runs against an addendum the code does "
+                         "not implement; implement it, register its digest in the code and rerun (--expect-addenda "
+                         "alone never passes this check; task X finding V-F01)")
+    return {"prereg_sha256": want, "addenda_sha256": got_add, "addenda_sha256_registered": want_add,
+            "n_addenda": got_n, "n_addenda_expected": want_n, "addendum_implemented": D.N_ADDENDA_EXPECTED,
             "seal_check_exit": rc}
 
 
@@ -191,6 +237,15 @@ class Corpus:
     index_json: dict = field(default_factory=dict)
     _folds: dict = field(default_factory=dict, repr=False)
     guard_cache: dict = field(default_factory=dict, repr=False)
+    _wildcard: dict = field(default_factory=dict, repr=False)
+
+    def wildcard_pairs(self) -> pd.DataFrame | None:
+        """``folds/wildcard_copy_pairs.csv`` (section 2's wildcard copies: the same conditions and value under another
+        structure key or state token), read once; ``None`` when the folds directory has none (a synthetic corpus)."""
+        if "pairs" not in self._wildcard:
+            f = Path(self.folds_dir) / "wildcard_copy_pairs.csv"
+            self._wildcard["pairs"] = pd.read_csv(f) if f.exists() else None
+        return self._wildcard["pairs"]
 
     def __post_init__(self) -> None:
         ids = self.frame[FI.ROW_ID].astype(str)
@@ -346,6 +401,9 @@ class FoldContext:
     code: str = ""
     state: D.PlanState | None = None
     design_hash: str = ""
+    #: the fold's V5 inner design and its one draw of the splits, shared by tuning and calibration
+    #: (:func:`inner_splits_v5`)
+    inner_cache: dict = field(default_factory=dict, repr=False)
 
     @property
     def model_seed(self) -> int:
@@ -380,6 +438,8 @@ def max_cells_per_batch(job: D.JobSpec) -> int | None:
 
 
 def boosted_design(job: D.JobSpec):
+    """The registered V1 / V2 inner tuning design (``boosted.V1InnerTuning`` / ``V2InnerTuning``; addendum 1 item 1
+    leaves them unchanged).  V5 designs come from :func:`simultaneous_inner_design` instead."""
     from gen19ct.models import boosted as BO
     if job.design in ("V1", "V2"):
         return BO.inner_design_for(job.design, job.variant)
@@ -390,17 +450,150 @@ def exact_scheme(job: D.JobSpec) -> bool:
     return job.scheme in ("exact", "cell_x_group", "cell_pair")
 
 
-def _calibration_splits(fc: FoldContext) -> tuple[D.TuningSplitCalibration, list[int]]:
-    """The heavy arms' inner design of this fold (one draw with the run seed) and the inner folds holding a split."""
+def v5_family(job: D.JobSpec) -> bool:
+    """Whether the job's outer design is scored on V5 cells (V5, V5-P and V5-PAIR all tune on the V5 inner design)."""
+    return job.design in ("V5", "V5P", "V5PAIR")
+
+
+def simultaneous_inner_design(job: D.JobSpec, corpus: Corpus):
+    """POST-HOC addendum 1 items 1-2: the ``interface``-level V5 inner design of every learned arm and of B6, on every
+    seed -- ``gen19ct.models.inner_design.SimultaneousInnerCells`` with the job's V5 variant (thresholds, medium,
+    component rule), through ``inner_design.learned_arm_inner_design`` so that one implementation serves the fold
+    builder, the tuners and the conformal calibration.  Three inner folds, each ONE split with all of its inner cells
+    (<= 30) hidden simultaneously under the registered hiding, eligibility re-checked with all of them hidden, a
+    failing cell kept hidden but dropped from the inner score.  The inner batching of sections 3.1 / 7 is not used for
+    tuning, so ``max_cells_per_batch`` applies to the OUTER folds only."""
+    from gen19ct.models import inner_design as ID
+
+    design = ID.learned_arm_inner_design(job.design, inner_variant(job), frame=corpus.frame, n_folds=D.INNER_N_FOLDS,
+                                         max_cells_per_fold=D.INNER_MAX_CELLS_PER_FOLD)
+    ID.assert_learned_arm_design(design, f"{job.key}: the inner design of a learned arm")
+    sig, desc = inner_design_signature(job), design.describe()
+    drift = {k: (sig[k], desc.get(k)) for k in sig if k != "module" and desc.get(k) != sig[k]}
+    if drift:
+        raise AssertionError(f"{job.key}: the inner design differs from the digested signature {drift} (VL-A1-01)")
+    return design
+
+
+def inner_design_object(job: D.JobSpec, corpus: Corpus):
+    """The inner design a TUNER is handed (``boosted.inner_design_for``): ``boosted.V5SimultaneousTuning`` -- the same
+    simultaneous design as ``TuningSplit`` s -- for every V5 design and variant, and the registered V1 / V2 inner
+    designs, which addendum 1 leaves unchanged."""
+    return boosted_design(job)
+
+
+def verify_inner_splits(fc: FoldContext, splits: Sequence[I.InnerSplit]) -> None:
+    """Every inner split of a V5 fold before it is fitted: inside the outer training rows, a partition (no calibration
+    row in its own training rows), a scored calibration population (known state, not Sr(III), not ``V6_TARGET_ROWS``,
+    not an excluded row), one averaging unit per calibration row, no row scored in two inner splits, and the registered
+    isolation check under the fold's guard mode -- ``interface.ConformalWrapper._verify``, the check
+    ``factorized.run_inner_tuning`` and ``boosted.verify_split`` apply to the other designs."""
+    from gen19ct.models import baselines as B
+
+    if not splits:
+        raise ValueError(f"{fc.job.key}/{fc.fold.fold_id}: the inner design produced no validation split")
+    t, mask = fc.corpus.table, fc.mask
+    verifier = I.ConformalWrapper(B.BaselineArm("B0"), splitter=D.FixedInnerSplits(splits), guard=fc.guard_mode)
+    ok = I.scorable_mask(t, fc.ctx, known_state_only=True)
+    seen = np.zeros(t.n, dtype=bool)
+    for sp in splits:
+        what = f"{fc.job.key}/{fc.fold.fold_id}/inner {sp.unit}"
+        if (sp.train_mask & ~mask).any() or not mask[sp.cal_positions].all() or sp.train_mask[sp.cal_positions].any():
+            raise AssertionError(f"{what}: not a partition of the outer training rows")
+        if not ok[sp.cal_positions].all():
+            raise AssertionError(f"{what}: an X(?), Sr(III), V6_TARGET_ROWS or excluded row would be scored")
+        if seen[sp.cal_positions].any():
+            raise AssertionError(f"{what}: a calibration row is scored in two inner splits")
+        seen[sp.cal_positions] = True
+        if sp.row_units is None or len(sp.row_units) != len(sp.cal_positions):
+            raise AssertionError(f"{what}: no averaging unit per calibration row (InnerSplit.row_units)")
+        FR.assert_not_scored(t.index[sp.cal_positions], fc.ctx.v6_mask, what)
+        verifier._verify(t, sp, fc.ctx)
+
+
+def inner_splits_v5(fc: FoldContext) -> tuple[Any, list[I.InnerSplit]]:
+    """The addendum's V5 inner design of this fold and its splits, drawn once with the run seed, verified, and cached on
+    the fold context so tuning and calibration share one draw."""
+    if fc.inner_cache.get("splits") is None:
+        design = simultaneous_inner_design(fc.job, fc.corpus)
+        splits = list(design.splits(fc.corpus.table, fc.mask, fc.ctx))
+        verify_inner_splits(fc, splits)
+        fc.inner_cache.update(design=design, splits=splits)
+    return fc.inner_cache["design"], fc.inner_cache["splits"]
+
+
+def inner_design_record(fc: FoldContext) -> dict[str, Any]:
+    """What the fold's V5 inner design did, for the record (``inner_design.splits_summary``): the splits, their cells,
+    the calibration rows, the cells that failed the eligibility re-check with the whole inner fold hidden (kept
+    hidden, dropped from the inner score) and, per inner fold, the calibration rows whose section 2 wildcard copy sits
+    in that split's training rows (a diagnostic; the selection score is unchanged -- ``READINGS['inner_wildcard_copies']``,
+    task X finding VL-A1-02)."""
+    from gen19ct.models import inner_design as ID
+
+    if not v5_family(fc.job):
+        design = boosted_design(fc.job)
+        return {"design": getattr(design, "design", fc.job.design),
+                "note": "the registered V1 / V2 inner design, unchanged by addendum 1 (already one fit per inner fold)",
+                **({"describe": design.describe()} if hasattr(design, "describe") else {})}
+    design, splits = inner_splits_v5(fc)
+    dropped = dict(getattr(design, "last_dropped", None) or {})
+    checks = dict(getattr(design, "last_checks", None) or {})
+    pairs = fc.corpus.wildcard_pairs()
+    wildcard = (ID.wildcard_copy_partners_in_inner_training(splits, fc.corpus.table,
+                                                            fc.corpus.frame[FI.ROW_ID].astype(str), pairs)
+                if pairs is not None else {"status": "folds/wildcard_copy_pairs.csv absent: not counted"})
+    return {"design": getattr(design, "name", D.INNER_DESIGN_NAME), "n_inner_folds": len(splits),
+            "wildcard_copy_partners_in_inner_training": wildcard,
+            "wildcard_reading": D.READINGS["inner_wildcard_copies"],
+            "splits": ID.splits_summary(splits).to_dict(orient="records"),
+            "n_cells_per_fold": [int(len(set(map(str, sp.row_units)))) for sp in splits],
+            "n_calibration_rows_per_fold": [int(len(sp.cal_positions)) for sp in splits],
+            "n_hidden_rows_per_fold": [int(len(sp.hidden_positions)) for sp in splits],
+            "dropped_cells_per_fold": {str(k): [str(c) for c in v] for k, v in dropped.items()},
+            "n_dropped_cells": int(sum(len(v) for v in dropped.values())),
+            "eligibility_recheck": {str(k): v for k, v in checks.items()},
+            "registration_choices": ID.REGISTRATION_CHOICES, "reading": D.READINGS["addendum1_inner_design"]}
+
+
+def validation_splits(fc: FoldContext) -> list[Any]:
+    """The fold's inner splits as ``neural.ValidationSplit`` s (label indices): the addendum's simultaneous design on
+    V5, converted by ``neural.splits_from_inner_splits`` from the one draw this fold shares between tuning and
+    calibration; the registered boosted inner design on V1 / V2 (``boosted.verify_split`` guards those, as before)."""
+    from gen19ct.models import boosted as BO
+    from gen19ct.models import neural as NN
+
+    c = fc.corpus
+    if v5_family(fc.job):
+        _, splits = inner_splits_v5(fc)
+        return NN.splits_from_inner_splits(c.frame.loc[c.table.index[fc.mask]], c.table, splits,
+                                           guard=f"g19_run_discovery.verify_inner_splits:{fc.guard_mode}")
+    rows = c.frame.loc[c.table.index[fc.mask]]
+    tsplits = D.TuningSplitCalibration(boosted_design(fc.job), c.frame, "full").tuning_splits(c.table, fc.mask, fc.ctx)
+    if not tsplits:
+        raise ValueError(f"{fc.job.key}/{fc.fold.fold_id}: the inner design produced no validation split")
+    for sp in tsplits:
+        BO.verify_split(sp, rows, fc.ctx)
+    return [NN.ValidationSplit(name=sp.split_id, inner_fold=int(sp.inner_fold), train_index=sp.train_index,
+                               valid_index=sp.val_index, valid_units=sp.val_units, hidden_index=sp.hidden_index,
+                               guard="boosted.verify_split (fold_isolation_check on every inner split)")
+            for sp in tsplits]
+
+
+def _calibration_splits(fc: FoldContext) -> tuple[Any, list[int]]:
+    """The arm's inner splitter of this fold (one draw with the run seed) and the inner folds holding a split: the
+    addendum's simultaneous V5 design, or the tuning splits of the registered V1 / V2 inner design."""
+    if v5_family(fc.job):
+        _, splits = inner_splits_v5(fc)
+        return D.FixedInnerSplits(splits, D.INNER_DESIGN_NAME), sorted({int(s.fold) for s in splits})
     full = D.TuningSplitCalibration(boosted_design(fc.job), fc.corpus.frame, "full")
     avail = sorted({int(s.inner_fold) for s in full.all_splits(fc.corpus.table, fc.mask, fc.ctx)})
     return full, avail
 
 
-def _restricted(full: D.TuningSplitCalibration, folds: Sequence[int]) -> D.TuningSplitCalibration:
-    spl = D.TuningSplitCalibration(full.design, full.frame, "full", inner_folds=folds)
-    spl._cache = full._cache
-    return spl
+def _restricted(full: Any, folds: Sequence[int]) -> D.InnerFoldSubset:
+    """``full`` restricted to the calibration inner folds (addendum 1 item 2: fold ``j``'s residuals from fold ``j``'s
+    splits, under the configuration selected without it)."""
+    return D.InnerFoldSubset(full, folds)
 
 
 def _check_tuned_folds(fc: FoldContext, plan: Mapping[str, Any], used: Sequence[int]) -> None:
@@ -420,17 +613,12 @@ class B6Runner:
         self._registered: set[int] = set()
 
     def splitter(self, fc: FoldContext):
-        """The full inner design of the fold (the inner mode is applied by ``fit_b6_and_b6r0``); every split carries
-        its calibration rows' averaging units (``InnerSplit.row_units``)."""
-        job, c = fc.job, fc.corpus
-        if job.design in ("V5", "V5P", "V5PAIR"):
-            if exact_scheme(job):
-                v = CH.VARIANTS[inner_variant(job)] if job.design == "V5" else CH.VARIANTS["primary"]
-                return D.V5ExactInnerCells(k=v.thresholds.k, p=v.thresholds.p, m=v.thresholds.m, n_folds=3,
-                                           max_cells_per_fold=30, component_aware=v.component_aware,
-                                           component_map=c.pmap if v.parent_structure else None, medium=v.medium,
-                                           frame=c.frame)
-            return D.TuningSplitCalibration(boosted_design(job), c.frame, "full")
+        """The inner design of the fold (addendum 1 item 1: the simultaneous V5 design for every V5 design, variant and
+        outer scheme -- exact and batched alike; the registered V1 / V2 designs unchanged).  Every split carries its
+        calibration rows' averaging units (``InnerSplit.row_units``), which B6 selects on."""
+        job = fc.job
+        if v5_family(job):
+            return D.FixedInnerSplits(inner_splits_v5(fc)[1], D.INNER_DESIGN_NAME)
         return I.GroupKFoldCalibration(3, unit="v1_unit") if job.design == "V1" else I.InnerMetalCalibration(3, 100, 5)
 
     def point(self, fc: FoldContext) -> dict[str, ArmOutput]:
@@ -453,7 +641,7 @@ class B6Runner:
             cols = tuple(d.x_names) + tuple(d.zm_names) + tuple(d.zs_names)
             D.assert_no_provenance_features(cols, f"{v} inputs")
             rec = {"selection": w.selection_record(), "tuning_summary": w.tuning.summary().to_dict(orient="records"),
-                   "registration_choices": FZ.REGISTRATION_CHOICES}
+                   "inner_design": inner_design_record(fc), "registration_choices": FZ.REGISTRATION_CHOICES}
             cal = w.calibration_record
             out[v] = ArmOutput(pred=pred, selected_config=f"k{w.selected[0]}_lam{w.selected[1]:g}", model_seed=ms,
                                record=rec, feature_columns=cols, seconds=secs if v == "B6" else 0.0,
@@ -480,7 +668,10 @@ class BoostedRunner:
 
         c = fc.corpus
         rows = c.frame.loc[c.table.index[fc.mask]]
-        arm = BO.BoostedArm(self.name, fold_index=fc.ordinal, design=boosted_design(fc.job), inner_mode=fc.job.inner_mode,
+        design = inner_design_object(fc.job, c)
+        if v5_family(fc.job):
+            inner_splits_v5(fc)                         # one draw, verified, shared with the calibration step
+        arm = BO.BoostedArm(self.name, fold_index=fc.ordinal, design=design, inner_mode=fc.job.inner_mode,
                             frame=c.frame, cv=c.cv, max_cells_per_batch=max_cells_per_batch(fc.job))
         t0 = time.perf_counter()
         arm.fit(rows, fc.ctx)
@@ -490,7 +681,8 @@ class BoostedRunner:
         rec = arm.record()
         return {self.name: ArmOutput(pred=pred, selected_config=arm.fitted.config.label, model_seed=arm.model_seed,
                                      record={"arm": rec, "frozen": {"config": arm.fitted.config.record(),
-                                                                    "iterations": arm.fitted.iterations}},
+                                                                    "iterations": arm.fitted.iterations},
+                                             "inner_design": inner_design_record(fc)},
                                      feature_columns=tuple(arm.fitted.columns), seconds=secs)}
 
     def calibration(self, fc: FoldContext, rec: Mapping[str, Any]) -> tuple[D.CrossFitResidualConformal | None, dict]:
@@ -505,6 +697,7 @@ class BoostedRunner:
         if not plan["calibration_folds"]:
             return None, plan
         arms, sels = {}, {}
+        design = inner_design_object(fc.job, c)
         for j in plan["calibration_folds"]:
             if plan["cross_fit"]:
                 cfg, iters, sel = BO.select_excluding_folds(tuning, (j,))
@@ -512,7 +705,7 @@ class BoostedRunner:
                 cfg = BO.CatBoostConfig(**{k: v for k, v in rec["frozen"]["config"].items() if k != "label"})
                 iters = int(rec["frozen"]["iterations"])
                 sel = {"selected": cfg.label, "iterations": iters, "tuned_on_inner_folds": plan["tuning_folds"]}
-            arms[j] = BO.BoostedArm(self.name, fold_index=fc.ordinal, design=full.design, config=cfg, iterations=iters,
+            arms[j] = BO.BoostedArm(self.name, fold_index=fc.ordinal, design=design, config=cfg, iterations=iters,
                                     frame=c.frame, cv=c.cv, max_cells_per_batch=max_cells_per_batch(fc.job))
             sels[j] = sel
         return D.CrossFitResidualConformal(arms, _restricted(full, plan["calibration_folds"]), selections=sels), plan
@@ -536,7 +729,8 @@ class B8Runner:
         cols = tuple(arm.model.design_columns(arm.wide_columns))
         D.assert_no_provenance_features(cols, "B8 design columns")
         return {"B8": ArmOutput(pred=pred, selected_config="MONO_ET_registered", model_seed=arm.random_state,
-                                record={"state": arm.state(), "registration_choices": PG.REGISTRATION_CHOICES},
+                                record={"state": arm.state(), "inner_design": inner_design_record(fc),
+                                        "registration_choices": PG.REGISTRATION_CHOICES},
                                 feature_columns=(), seconds=secs)}
 
     def calibration(self, fc: FoldContext, rec: Mapping[str, Any]) -> tuple[D.CrossFitResidualConformal | None, dict]:
@@ -582,20 +776,11 @@ class NeuralRunner:
         return rec
 
     def point(self, fc: FoldContext) -> dict[str, ArmOutput]:
-        from gen19ct.models import boosted as BO
         from gen19ct.models import neural as NN
 
         c = fc.corpus
         rows = c.frame.loc[c.table.index[fc.mask]]
-        design = boosted_design(fc.job)
-        tsplits = D.TuningSplitCalibration(design, c.frame, fc.job.inner_mode).tuning_splits(c.table, fc.mask, fc.ctx)
-        if not tsplits:
-            raise ValueError(f"{fc.job.key}/{fc.fold.fold_id}: the inner design produced no validation split")
-        for sp in tsplits:
-            BO.verify_split(sp, rows, fc.ctx)
-        vs = [NN.ValidationSplit(name=sp.split_id, inner_fold=int(sp.inner_fold), train_index=sp.train_index,
-                                 valid_index=sp.val_index, valid_units=sp.val_units, hidden_index=sp.hidden_index,
-                                 guard="boosted.verify_split (fold_isolation_check on every inner split)") for sp in tsplits]
+        vs = validation_splits(fc)
         t0 = time.perf_counter()
         if self.step == "M1":
             res = NN.tune_m1(rows, vs, fold_index=fc.ordinal, condition_vectors=c.cv)
@@ -615,10 +800,10 @@ class NeuralRunner:
         rec = {"selected": asdict(res.selected), "n_epochs": int(res.n_epochs), "model_seed": int(res.model_seed),
                "scores": res.scores.to_dict(orient="records"), "fits": fits.to_dict(orient="records"),
                "split_unit_errors": res.split_unit_errors.to_dict(orient="records"),
-               "inner_folds_used": sorted({int(sp.inner_fold) for sp in tsplits}),
+               "inner_folds_used": sorted({int(sp.inner_fold) for sp in vs}),
                "fit_record": arm.fit_record(), "m1_config_used": None if m1_used is None else asdict(m1_used),
                "m1_record_digest": None if m1_used is None else m1.get("digest"),
-               "registration_choices": NN.REGISTRATION_CHOICES}
+               "inner_design": inner_design_record(fc), "registration_choices": NN.REGISTRATION_CHOICES}
         return {self.step: ArmOutput(pred=pred, selected_config=res.selected.label(), model_seed=int(res.model_seed),
                                      record=rec, feature_columns=cols, seconds=secs)}
 
@@ -857,14 +1042,32 @@ def guard_mode_for(job: D.JobSpec, state: D.PlanState) -> str:
     return "nested_certificate" if mode == "nested_certificate" else "every_split"
 
 
+def inner_design_signature(job: D.JobSpec) -> dict[str, Any] | None:
+    """What a fit job's V5 inner design is resolved from, for the resume digest (task X finding VL-A1-01: the two
+    module constants ``discovery.INNER_N_FOLDS`` / ``INNER_MAX_CELLS_PER_FOLD`` are not digested code, and the inner
+    cells, calibration rows and selection would change silently with them): the design's module and name, the
+    variant's thresholds, medium and component rule, the inner folds and the cells-per-fold cap -- the fields of
+    ``SimultaneousInnerCells.describe()`` that :func:`simultaneous_inner_design` checks it against.  ``None`` for a
+    job without a V5 inner design (V1 / V2 tune on the registered designs, which live in the digested ``boosted.py``;
+    safeguards and markers)."""
+    if job.kind != "fit" or not v5_family(job):
+        return None
+    v = CH.VARIANTS[inner_variant(job)]
+    return {"module": D.INNER_DESIGN_MODULE, "inner_design": D.INNER_DESIGN_NAME, "thresholds": v.thresholds.tag,
+            "medium": v.medium, "component_aware": bool(v.component_aware), "parent_structure": bool(v.parent_structure),
+            "n_inner": int(D.INNER_N_FOLDS), "max_cells": int(D.INNER_MAX_CELLS_PER_FOLD)}
+
+
 def fold_digest(job: D.JobSpec, fold: FI.Fold, code: str, state: D.PlanState, runner: Any, out_root: Path, *,
                 ordinal: int, design_hash: str) -> str:
     """The resume and verification digest of one fold (``discovery.fold_digest``) with the runner's extras: the inner
     guard mode, the batching label, the section 15 model fold number and model seed, the fold file's design hash, the
-    registered pre-registration digest and, for M2, M1's expected digest of the same fold."""
+    registered pre-registration digest AND the registered addenda digest (task X finding V-F01), the resolved V5 inner
+    design (:func:`inner_design_signature`; finding VL-A1-01) and, for M2, M1's expected digest of the same fold."""
     extra = {"guard_mode": guard_mode_for(job, state), "batching_label": batching_label(job, state),
              "model_fold_number": int(ordinal), "model_seed": model_seed_of(ordinal) if job.kind == "fit" else None,
-             "design_hash": str(design_hash), "prereg_sha256": D.REGISTERED_PREREG_SHA256}
+             "design_hash": str(design_hash), "prereg_sha256": D.REGISTERED_PREREG_SHA256,
+             "prereg_addenda_sha256": D.REGISTERED_ADDENDA_SHA256, "inner_design": inner_design_signature(job)}
     if hasattr(runner, "digest_extra"):
         extra.update(runner.digest_extra(job, fold, code, state, out_root, ordinal=ordinal, design_hash=design_hash))
     return D.fold_digest(job, fold, code, extra)
@@ -940,6 +1143,8 @@ def run_fold(job: D.JobSpec, fold: FI.Fold, ordinal: int, corpus: Corpus, out_ro
             "design_hash": design_hash, "digest": digest, "code_digest": code, "fold_ordinal": ordinal,
             "model_fold_number": ordinal, "model_seed": model_seed_of(ordinal) if job.kind == "fit" else None,
             "batching_label": fc.batching_label, "prereg_sha256": D.REGISTERED_PREREG_SHA256,
+            "prereg_addenda_sha256": (prereg or {}).get("addenda_sha256"),
+            "prereg_n_addenda": (prereg or {}).get("n_addenda"), "addendum_implemented": D.N_ADDENDA_EXPECTED,
             "prereg_gate": dict(prereg) if prereg else None, **info}
     need_point = any(PREDICTION_STEP not in (status["steps_done"].get(a) or []) for a in job.writes) or status["stale"]
     records: dict[str, dict] = {}
@@ -1051,12 +1256,14 @@ def current_code_digest() -> str:
 # ============================================================================================= #
 
 def safeguard_splitter(stem: str, corpus: Corpus):
-    design, variant, _ = stem.split("__")
+    """The inner design the safeguard probes: for the V5 family the addendum's simultaneous design -- the one every
+    learned arm and B6 now tune and calibrate on, whose certificate covers a whole inner fold at once -- and the
+    registered V1 / V2 designs otherwise."""
+    design, variant, scheme = stem.split("__")
     if design in ("V5", "V5P", "V5PAIR"):
-        v = CH.VARIANTS[variant if design == "V5" else "primary"]
-        return I.InnerCellCalibration(v.thresholds.k, v.thresholds.p, v.thresholds.m, 3, 30,
-                                      component_aware=v.component_aware,
-                                      component_map=corpus.pmap if v.parent_structure else None)
+        return simultaneous_inner_design(
+            D.JobSpec(kind="fit", arm=D.SAFEGUARD_PROBE_ARM, design=design, variant=variant, scheme=scheme,
+                      seed=D.PRIMARY_SEED), corpus)
     if design == "V1":
         return I.GroupKFoldCalibration(3)
     return I.InnerMetalCalibration(3, 100, 5)
@@ -1111,7 +1318,9 @@ def run_safeguard(job: D.JobSpec, corpus: Corpus, out_root: Path) -> dict:
                                                         and a["quantiles"] == b["quantiles"]))
         recs.append({"fold_id": fid, "fold_hash": f.fold_hash, "identical": bool(same),
                      **{f"{m}_{k}": v for m, r in res.items() for k, v in r.items() if k in ("ok", "checks", "seconds", "error")}})
+    spl = safeguard_splitter(stem, corpus)
     body = {"schema": D.SCHEMA, "stem": stem, "design_hash": sample["design_hash"], "probe_arm": D.SAFEGUARD_PROBE_ARM,
+            "inner_design": getattr(spl, "name", type(spl).__name__),
             "reading": D.READINGS["safeguard_probe"], "folds": recs, "complete": True,
             "every_split_mandatory": not all(r["identical"] for r in recs),
             "vacuous_under_current_code": bool(sample.get("vacuous_under_current_code"))}
@@ -1160,7 +1369,7 @@ def evaluate_b6_checks(out_root: Path, corpus: Corpus, state: D.PlanState, code:
         if not (corpus.folds_dir / f"{stem}.json").exists():
             return out
         multi = any(f.seed is not None for f in corpus.folds(stem))
-        for s in D.DISCOVERY_SEEDS:
+        for s in D.PLAN_SEEDS:                     # addendum 1 item 3: discovery runs seed 104729 only
             job = D.JobSpec(kind="fit", arm="B6", design=design, variant=variant, scheme=scheme, seed=s,
                             fold_seed=s if multi else None, writes=D.B6_ARMS)
             p, st = verified_predictions(out_root, "B6", job.design_dir, s, code=code, state=state,
@@ -1367,9 +1576,11 @@ def fold_counts(jobs: Sequence[D.JobSpec], folds_dir: Path) -> dict[str, int]:
 #: pre-seal per-(fold, arm) seconds with conformal inner calibration (manifests/run_info/g19_run_preseal_jobs.json:
 #: V5__primary 2468.1 s / (210 folds x 11 arms); V1__copy 724.6 / (83 x 11); V2__element 63.0 / (23 x 11))
 PRESEAL_CLOSED_FORM_S = {"V5": 2468.1 / (210 * 11), "V1": 724.6 / (83 * 11), "V2": 63.0 / (23 * 11)}
-#: safeguard seconds per drawn fold: two conformal calibrations of the probe arm, every_split checks every inner cell
-#: (about 90 fold_isolation_check calls at 0.35 s on V5 folds, 3 on V1 / V2)
-SAFEGUARD_S_PER_FOLD = {"V5": 90 * 0.35 + 2 * PRESEAL_CLOSED_FORM_S["V5"] * 4, "V1": 3 * 1.0 + 2, "V2": 3 * 1.0 + 2}
+#: safeguard seconds per drawn fold: two conformal calibrations of the probe arm over the inner splits of the design it
+#: probes.  Under addendum 1 item 1 a V5 fold has 3 simultaneous inner splits, not ~90 single-cell ones, so the probe
+#: costs 3 fold_isolation_check calls (about 0.35 s each) and 2 x 3 closed-form calibration fits
+SAFEGUARD_S_PER_FOLD = {"V5": D.INNER_N_FOLDS * 0.35 + 2 * PRESEAL_CLOSED_FORM_S["V5"] * D.INNER_N_FOLDS,
+                        "V1": 3 * 1.0 + 2, "V2": 3 * 1.0 + 2}
 
 
 #: per fitted fold: the outer fold_isolation_check (about 1 s on the MODEL rows), the section 13 support file (<= about 1.2
@@ -1395,6 +1606,12 @@ BENCH_FOLDS = {"V5_batched": ("V5__primary__batched", "s104729_S_b000"),
 BENCH_DESIGNS = {"B6": ("V5_exact", "V5_batched", "V1", "V2"), "B5": ("V5_batched", "V1", "V2"),
                  "FLAT_CAT": ("V5_batched", "V1", "V2"), "B8": ("V5_batched", "V1", "V2"),
                  "M1": ("V5_batched", "V1", "V2"), "M2": ("V5_batched", "V1", "V2")}
+#: the arms both benchmarks measure, in plan order
+BENCH_ARMS: tuple[str, ...] = ("B6", "B5", "FLAT_CAT", "B8", "M1", "M2")
+#: addendum 1: the design class re-measured per arm (one V5-primary batched fold, seed 104729).  The V1 and V2 inner
+#: designs are unchanged by the addendum, so their unit costs are reused from the sealed-plan measurements, and B6's
+#: exact V5 folds take the batched measurement (the same inner design, a similar training-row count)
+BENCH_DESIGN_ADDENDUM1 = "V5_batched"
 
 
 class _OneSplit:
@@ -1406,8 +1623,23 @@ class _OneSplit:
         return list(self._s)
 
 
+def sealed_plan_splitter(fc: FoldContext):
+    """The V5 inner design of the SEALED section 7 plan (exact leave-one-inner-cell-out on exact folds, the batched
+    inner design on batched folds), superseded by addendum 1 item 1 and kept only so that ``--benchmark`` can still
+    reproduce the measurement the sealed plan was priced with (``cost_estimate.md``)."""
+    job, c = fc.job, fc.corpus
+    if exact_scheme(job):
+        v = CH.VARIANTS[inner_variant(job)] if job.design == "V5" else CH.VARIANTS["primary"]
+        return D.V5ExactInnerCells(k=v.thresholds.k, p=v.thresholds.p, m=v.thresholds.m, n_folds=3,
+                                   max_cells_per_fold=30, component_aware=v.component_aware,
+                                   component_map=c.pmap if v.parent_structure else None, medium=v.medium, frame=c.frame)
+    return D.TuningSplitCalibration(boosted_design(job), c.frame, "full")
+
+
 def benchmark_arm(arm: str, corpus: Corpus) -> list[dict]:
-    """Fit-only timings of one arm (module docstring): never a prediction of a test row."""
+    """Fit-only timings of one arm under the SEALED section 7 inner design (module docstring): never a prediction of a
+    test row.  Superseded by :func:`benchmark_addendum1_arm`; kept so that the 1,535.7 CPU-hour estimate the addendum
+    rests on stays reproducible."""
     from gen19ct.models import boosted as BO
     from gen19ct.models import factorized as FZ
     from gen19ct.models import neural as NN
@@ -1433,7 +1665,7 @@ def benchmark_arm(arm: str, corpus: Corpus) -> list[dict]:
         t0 = time.perf_counter()
         if arm == "B6":
             FZ.register_table(corpus.table, corpus.frame)
-            spl = B6Runner().splitter(fc)
+            spl = sealed_plan_splitter(fc) if v5_family(job) else B6Runner().splitter(fc)
             full = spl.splits(corpus.table, fc.mask, fc.ctx)
             first = D.FirstInnerFold(_OneSplit(full)).splits(corpus.table, fc.mask, fc.ctx)
             rec.update(splits_full=len(full), splits_first=len(first), design_s=time.perf_counter() - t0)
@@ -1616,7 +1848,10 @@ def write_cost_estimate(meas: Sequence[Mapping[str, Any]], out_root: Path, worke
                       "closed_form_s_per_fold_arm": PRESEAL_CLOSED_FORM_S, "safeguard_s_per_fold": SAFEGUARD_S_PER_FOLD,
                       "fold_overhead_s": FOLD_OVERHEAD_S, "b6_first_mode_calibration": "one joint fit per next-fold split",
                       "wall_clock": "compute / workers"},
-            "readings": {k: D.READINGS[k] for k in ("heavy_arm_intervals", "first_inner_fold", "m2_prerequisite",
+            "superseded_by": ("POST-HOC addendum 1: this estimate prices the SEALED section 7 inner design (the "
+                              "1,535.7 CPU-hour figure the addendum rests on); the plan that is run is priced in "
+                              "cost_estimate_addendum1.json"),
+            "readings": {k: D.READINGS[k] for k in ("heavy_arm_intervals", "addendum1_inner_design", "m2_prerequisite",
                                                     "plan_order", "budget", "fold_ordinal")}}
     write_json(bdir / "cost_estimate.json", body)
     write_text(bdir / "cost_estimate.md", cost_markdown(summary, table, meas, cond, extra))
@@ -1629,6 +1864,245 @@ def _with_aliases(ucs: Mapping[tuple[str, str], D.UnitCost]) -> dict[tuple[str, 
         if arm == "B6":
             out[("B6r0", dc)] = uc
     return out
+
+
+
+# ============================================================================================= #
+# POST-HOC addendum 1: the re-priced cost estimate
+# ============================================================================================= #
+
+def benchmark_addendum1_arm(arm: str, corpus: Corpus) -> list[dict]:
+    """Fit-only timings of one arm under POST-HOC addendum 1, on the TRAINING rows of one V5-primary batched fold
+    (seed 104729, :data:`BENCH_FOLDS`): the fold's three simultaneous inner splits (each hiding a whole inner fold of
+    up to 30 cells), then ONE inner fit per configuration on one split, one calibration refit on its inner training
+    rows, and one outer refit on all outer-training rows.  No test row is predicted and no score is computed."""
+    from gen19ct.models import boosted as BO
+    from gen19ct.models import factorized as FZ
+    from gen19ct.models import neural as NN
+    from gen19ct.models import previous_gen as PG
+
+    stem, fid = BENCH_FOLDS[BENCH_DESIGN_ADDENDUM1]
+    folds = corpus.folds(stem)
+    design, variant, scheme = stem.split("__")
+    seed = D.PRIMARY_SEED
+    job = D.JobSpec(kind="fit", arm=arm, design=design, variant=variant, scheme=scheme, seed=seed, fold_seed=seed,
+                    writes=D.B6_ARMS if arm == "B6" else (arm,))
+    cand = corpus.fittable(job)
+    f, k = next((x for x in cand if x[0].fold_id == fid), cand[0])
+    fc, _ = prepare_fold(job, f, k, corpus, Path(tempfile.gettempdir()), D.PlanState(guard_mode={}))
+    rows = corpus.frame.loc[corpus.table.index[fc.mask]]
+    if rows.index.isin(fc.sc_labels).any() or rows.index.isin(fc.hidden).any():
+        raise AssertionError("benchmark: a hidden row among the training rows")
+    t0 = time.perf_counter()
+    _, splits = inner_splits_v5(fc)                          # drawn, verified and guarded exactly as in a real fold
+    design_s = time.perf_counter() - t0
+    rec = {"arm": arm, "design_class": BENCH_DESIGN_ADDENDUM1, "stem": stem, "fold_id": f.fold_id,
+           "n_train": int(fc.mask.sum()), "splits_full": len(splits), "splits_first": len(splits),
+           "inner_mode": "full", "inner_design": D.INNER_DESIGN_NAME, "design_s": design_s,
+           "n_cells_per_split": [int(len(set(map(str, sp.row_units)))) for sp in splits],
+           "n_hidden_rows_per_split": [int(len(sp.hidden_positions)) for sp in splits],
+           "n_calibration_rows_per_split": [int(len(sp.cal_positions)) for sp in splits]}
+    sp = splits[0]
+    tr = corpus.frame.loc[corpus.table.index[sp.train_mask]]
+    if arm == "B6":
+        FZ.register_table(corpus.table, corpus.frame)
+        t0 = time.perf_counter()
+        FZ.run_inner_tuning(corpus.table, fc.mask, fc.ctx, D.FixedInnerSplits([sp]), guard=fc.guard_mode,
+                            require_row_units=True)
+        rec["inner_fit_s"] = time.perf_counter() - t0          # all 12 (rank, lambda) configurations of one split
+        rec["cal_fit_s"] = 0.0                                 # cross-fitted from the tuning predictions, no refit
+        t0 = time.perf_counter()
+        FZ.B6Factorized(2, 1.0).fit_table(corpus.table, fc.mask, fc.ctx)
+        rec["outer_refit_s"] = time.perf_counter() - t0
+    elif arm in ("B5", "FLAT_CAT"):
+        cfg = BO.CatBoostConfig(6, 3.0)
+        dsg = inner_design_object(job, corpus)                  # boosted.V5SimultaneousTuning: the same design
+        tsp = dsg.splits(rows, fc.ctx)
+        if len(tsp) != len(splits):
+            raise AssertionError(f"benchmark: the tuner drew {len(tsp)} inner splits, the calibration design "
+                                 f"{len(splits)}")
+        tuner = BO.Tuner(arm, _FixedSplits(tsp[:1]), grid=(cfg,), mode="full", cv=corpus.cv)
+        t0 = time.perf_counter()
+        res = tuner.run(rows, fc.ctx, BO.model_seed_for_fold(k))
+        rec["inner_fit_s"] = time.perf_counter() - t0
+        iters = int(res.selected_iterations)
+        rec["inner_trees"] = iters
+        t0 = time.perf_counter()
+        BO.BoostedArm(arm, fold_index=k, design=dsg, config=cfg, iterations=iters, cv=corpus.cv).fit(tr, fc.ctx)
+        rec["cal_fit_s"] = time.perf_counter() - t0
+        t0 = time.perf_counter()
+        BO.BoostedArm(arm, fold_index=k, design=dsg, config=cfg, iterations=iters, cv=corpus.cv).fit(rows, fc.ctx)
+        rec["outer_refit_s"] = time.perf_counter() - t0
+    elif arm == "B8":
+        t0 = time.perf_counter()
+        PG.B8Level(corpus.frame, cv=corpus.cv, fold=k).fit(tr, fc.ctx)
+        rec["inner_fit_s"] = rec["cal_fit_s"] = time.perf_counter() - t0
+        t0 = time.perf_counter()
+        PG.B8Level(corpus.frame, cv=corpus.cv, fold=k).fit(rows, fc.ctx)
+        rec["outer_refit_s"] = time.perf_counter() - t0
+    else:
+        cfg = NN.NeuralConfig(8, 1e-3, 0 if arm == "M1" else 4)
+        vs = validation_splits(fc)[:1]
+        t0 = time.perf_counter()
+        res = NN.tune(rows, vs, [cfg], model_seed=NN.registered_model_seed(k), condition_vectors=corpus.cv)
+        rec["inner_fit_s"] = time.perf_counter() - t0
+        ep = int(res.n_epochs)
+        rec["inner_best_epoch"] = ep
+        t0 = time.perf_counter()
+        NN.FactorisedArm(cfg, n_epochs=ep, model_seed=NN.registered_model_seed(k), condition_vectors=corpus.cv).fit(tr)
+        rec["cal_fit_s"] = time.perf_counter() - t0
+        t0 = time.perf_counter()
+        NN.FactorisedArm(cfg, n_epochs=ep, model_seed=NN.registered_model_seed(k), condition_vectors=corpus.cv).fit(rows)
+        rec["outer_refit_s"] = time.perf_counter() - t0
+    rec["peak_rss_bytes"] = D.peak_rss_bytes()
+    rec["n_test_rows_predicted"] = 0
+    log(f"benchmark (addendum 1) {arm}: "
+        f"{json.dumps({k2: (round(v, 2) if isinstance(v, float) else v) for k2, v in rec.items()})}")
+    return [rec]
+
+
+def unit_costs_addendum1(meas: Sequence[Mapping[str, Any]], sealed: Sequence[Mapping[str, Any]]
+                         ) -> dict[tuple[str, str], D.UnitCost]:
+    """Unit costs of the addendum-1 plan: the re-measured V5 class per arm, the sealed-plan measurements for V1 and V2
+    (whose inner design the addendum leaves unchanged), and B6's exact V5 folds priced with its batched measurement
+    (the same inner design; the exact folds hide one cell of the outer training rows more)."""
+    from dataclasses import replace as _replace
+
+    ucs = dict(unit_costs_from_measurements(meas))
+    for m in sealed:
+        key = (m["arm"], m["design_class"])
+        if m["design_class"] in ("V1", "V2") and key not in ucs:
+            ucs[key] = D.UnitCost(arm=m["arm"], design_class=m["design_class"], inner_fit_s=float(m["inner_fit_s"]),
+                                  cal_fit_s=float(m["cal_fit_s"]), outer_refit_s=float(m["outer_refit_s"]),
+                                  splits_full=float(m["splits_full"]), splits_first=float(m["splits_first"]),
+                                  source="benchmark (sealed-plan measurement; the V1 / V2 inner design is unchanged "
+                                         "by addendum 1)")
+    for (arm, dc), uc in list(ucs.items()):
+        if dc == "V5_batched" and (arm, "V5_exact") not in ucs:
+            ucs[(arm, "V5_exact")] = _replace(uc, design_class="V5_exact",
+                                              source=uc.source + " (V5_batched measurement applied to the exact V5 "
+                                                                 "folds: the same simultaneous inner design)")
+    return _with_aliases(ucs)
+
+
+def addendum1_markdown(summary: Mapping[str, Any], table: pd.DataFrame, meas: Sequence[Mapping[str, Any]],
+                       checkpoints: Sequence[Mapping[str, Any]], conditional: Mapping[str, Any],
+                       sealed: Mapping[str, Any] | None = None) -> str:
+    lines = ["# Discovery cost estimate under POST-HOC addendum 1", "",
+             "Generated by `scripts/g19_run_discovery.py --benchmark-addendum1` from fit-only timings on the TRAINING "
+             "rows of one V5-primary batched fold (seed 104729). No test row was predicted; no score was computed. "
+             "Each arm was timed on the fold's simultaneous inner splits (addendum 1 items 1-2: three inner folds, each "
+             "ONE inner fit per configuration with all of that fold's inner cells hidden at once): one inner fit per "
+             "configuration on one split, one calibration refit, one outer refit. V1 and V2 unit costs are the "
+             "sealed-plan measurements, whose inner design the addendum leaves unchanged (`cost_estimate.json`). The "
+             "estimate multiplies them by the addendum-1 plan (`discovery.enumerate_plan`): folds x (3 inner splits x "
+             "configurations x inner fit + 3 calibration refits + outer refit + inner guard), every job on seed 104729 "
+             "in `full` mode. Wall clock = compute / workers.", "",
+             "## Measurements (seconds)", "",
+             "| arm | design | fold | train rows | inner splits | cells hidden per split | inner config fit | "
+             "calibration refit | outer refit | peak RSS (MB) |", "|---|---|---|---|---|---|---|---|---|---|"]
+    for m in meas:
+        rss = m.get("peak_rss_bytes")
+        cells = m.get("n_cells_per_split") or []
+        lines.append(f"| {m['arm']} | {m['design_class']} | {m['fold_id']} | {m['n_train']} | {m['splits_full']} | "
+                     f"{'/'.join(str(c) for c in cells)} | {m['inner_fit_s']:.1f} | {m['cal_fit_s']:.1f} | "
+                     f"{m['outer_refit_s']:.1f} | {'' if rss is None else f'{rss / 1e6:.0f}'} |")
+    lines += ["", "B6 'inner config fit' is all 12 (rank, lambda) configurations of one inner split (solved jointly); "
+                  "its calibration is cross-fitted from those predictions, so it needs no refit.", "",
+              "## Estimated compute by arm (hours, 1 worker)", "", "| arm | compute h |", "|---|---|"]
+    for a, h in sorted(summary["compute_h_by_arm"].items(), key=lambda kv: -kv[1]):
+        lines.append(f"| {a} | {h:.1f} |")
+    lines += ["", "## Cumulative wall clock by stage (2 workers)", "",
+              "| stage | jobs | folds | stage compute h | cumulative compute h | cumulative wall h | within 60 h |",
+              "|---|---|---|---|---|---|---|"]
+    for c in checkpoints:
+        lines.append(f"| {c['stage']} | {c['n_jobs']} | {c['n_folds']} | {c['stage_compute_h']:.1f} | "
+                     f"{c['cumulative_compute_h']:.1f} | {c['cumulative_wall_h']:.1f} | "
+                     f"{'yes' if c['within_budget_wall'] else 'NO'} |")
+    verdict = "FITS the 60 h budget" if summary["fits_budget"] else "does NOT fit the 60 h budget"
+    lines += ["", f"**Total: {summary['total_compute_h']:.1f} h compute; {summary['total_wall_h']:.1f} h wall clock on "
+                  f"{summary['workers']} workers against the {summary['budget_hours']:.0f} h budget -> {verdict}.**"]
+    if not summary["fits_budget"]:
+        lines.append(f"First job beyond the budget (plan order): `{summary['first_job_beyond_budget']}`. Section 7 item "
+                     "5 demotes only M3-M7 on exhaustion, so every job of this plan keeps running past it.")
+    if sealed is not None:
+        lines += ["", f"Sealed section 7 plan, for comparison: {sealed.get('total_compute_h', float('nan')):.1f} h "
+                      f"compute, {sealed.get('total_wall_h', float('nan')):.1f} h wall clock on 2 workers "
+                      "(`cost_estimate.md`)."]
+    lines += ["", "Conditional jobs not in the total: " + json.dumps(conditional, sort_keys=True), "",
+              "Not run at all under addendum 1 (each named in the plan as a marker job): the pass over the four other "
+              "discovery seeds; the loose, cell-only, parent-structure and Sr(III)-dropped V5 refits; the heavy-arm "
+              "V5-P runs; the V1 / V2 refit sensitivities; every comparator-interval job.", ""]
+    return "\n".join(lines) + "\n"
+
+
+def write_cost_estimate_addendum1(meas: Sequence[Mapping[str, Any]], out_root: Path, workers: int = 2,
+                                  sealed_meas: Sequence[Mapping[str, Any]] | None = None) -> dict:
+    """Price the addendum-1 plan with the re-measured unit costs and write
+    ``evaluation/discovery/benchmark/cost_estimate_addendum1.json`` / ``.md`` (per-stage cumulative wall-clock
+    checkpoints on 2 workers and the fits-in-60-h verdict)."""
+    bdir = paths.ensure_dir(D.discovery_root(out_root) / "benchmark")
+    # the V1 / V2 unit costs come from the sealed-plan measurement (unchanged by the addendum); it lives beside this
+    # estimate, or in the repository's own benchmark directory when --out-root points elsewhere
+    sealed_body = (D.read_record(bdir / "cost_estimate.json")
+                   or D.read_record(D.discovery_root(paths.G19_ROOT) / "benchmark" / "cost_estimate.json") or {})
+    sealed = list(sealed_meas if sealed_meas is not None else sealed_body.get("measurements") or [])
+    ucs = unit_costs_addendum1(meas, sealed)
+    state = D.PlanState(v5_batched_check="passed", v1_tenfold_check="passed")
+    jobs = D.enumerate_plan(state)
+    counts = fold_counts(jobs, paths.FOLDS_DIR)
+    table = D.estimate_cost(jobs, counts, ucs, other_costs_s=other_costs(jobs, counts), workers=workers,
+                            fold_overhead_s=FOLD_OVERHEAD_S)
+    summary = D.cost_summary(table, workers=workers)
+    checkpoints = D.stage_checkpoints(table, workers=workers)
+    v5p = D.JobSpec(kind="fit", arm="M2", design="V5P", variant="base", scheme="batched", seed=D.PRIMARY_SEED,
+                    fold_seed=D.PRIMARY_SEED)
+    pair = D.JobSpec(kind="fit", arm="M2", design="V5PAIR", variant="primary", scheme="batched", seed=D.PRIMARY_SEED,
+                     fold_seed=D.PRIMARY_SEED)
+    n_v5p, n_pair = fold_counts([v5p, pair], paths.FOLDS_DIR)[v5p.key], fold_counts([pair], paths.FOLDS_DIR)[pair.key]
+    cond = {f"V5-P batched per heavy arm ({n_v5p} folds), hours -- NOT run under addendum 1 item 4": {
+        a: round(n_v5p * ucs[(a, "V5_batched")].fold_seconds("full")["total"] / 3600, 2) for a in D.HEAVY_ARMS
+        if (a, "V5_batched") in ucs},
+        f"V5-PAIR batched per further freezing candidate ({n_pair} folds), hours": {
+            a: round(n_pair * ucs[(a, "V5_batched")].fold_seconds("full")["total"] / 3600, 2)
+            for a in D.HEAVY_ARMS if (a, "V5_batched") in ucs},
+        "B6 re-coloured batches (seed 104729), hours": round(
+            counts.get(D.JobSpec(kind="fit", arm="B6", design="V5", variant="primary", scheme="batched",
+                                 seed=D.PRIMARY_SEED, fold_seed=D.PRIMARY_SEED, writes=D.B6_ARMS).key, 0)
+            * ucs[("B6", "V5_batched")].fold_seconds("full")["total"] / 3600, 2) if ("B6", "V5_batched") in ucs else None}
+    body = {"schema": D.SCHEMA, "addendum": D.N_ADDENDA_EXPECTED, "measurements": list(meas),
+            "measurements_reused_from_sealed_plan": [m for m in sealed if m["design_class"] in ("V1", "V2")],
+            "summary": summary, "stage_checkpoints": checkpoints, "conditional_not_in_total": cond,
+            "fits_in_60h": bool(summary["fits_budget"]), "plan_state_assumed": state.record(),
+            "per_job": table.to_dict(orient="records"),
+            "sealed_plan_summary": sealed_body.get("summary"),
+            "model": {"configs_per_split": D.CONFIGS_PER_SPLIT,
+                      "calibration_fits_per_split": D.CALIBRATION_FITS_PER_SPLIT,
+                      "inner_folds": D.INNER_N_FOLDS, "max_cells_per_inner_fold": D.INNER_MAX_CELLS_PER_FOLD,
+                      "closed_form_s_per_fold_arm": PRESEAL_CLOSED_FORM_S, "safeguard_s_per_fold": SAFEGUARD_S_PER_FOLD,
+                      "fold_overhead_s": FOLD_OVERHEAD_S, "wall_clock": "compute / workers"},
+            "readings": {k: D.READINGS[k] for k in ("addendum1_inner_design", "addendum1_seeds",
+                                                    "addendum1_sensitivities", "addendum1_v5pair", "plan_order",
+                                                    "budget", "heavy_arm_intervals", "fold_ordinal")}}
+    write_json(bdir / "cost_estimate_addendum1.json", body)
+    write_text(bdir / "cost_estimate_addendum1.md",
+               addendum1_markdown(summary, table, meas, checkpoints, cond, sealed_body.get("summary")))
+    return body
+
+
+def write_plan_listing(jobs: Sequence[D.JobSpec], counts: Mapping[str, int], out_root: Path) -> Path:
+    """``--dry-run``: the addendum-1 job plan as text (one line per job, in plan order) for the record."""
+    lines = [f"# gen19 discovery plan under POST-HOC addendum {D.N_ADDENDA_EXPECTED} "
+             f"(scripts/g19_run_discovery.py --dry-run); seeds {list(D.PLAN_SEEDS)}",
+             f"# {sum(j.kind == 'fit' for j in jobs)} fit jobs, "
+             f"{sum(counts.get(j.key, 0) for j in jobs if j.kind == 'fit')} outer folds, "
+             f"{sum(j.kind == 'marker' for j in jobs)} markers (what is NOT run, named)"]
+    for j in jobs:
+        extra = "" if j.kind in ("marker", "h3_spec") else f"folds={counts.get(j.key, 0)}"
+        lines.append(f"{j.stage:>24} | {j.kind:<20} | {j.key:<60} | {extra} | {j.message or j.purpose}")
+    p = paths.ensure_dir(D.discovery_root(out_root) / "benchmark") / "plan_addendum1.txt"
+    write_text(p, "\n".join(lines) + "\n")
+    return p
 
 
 # ============================================================================================= #
@@ -1645,11 +2119,19 @@ def parse_args(argv=None) -> argparse.Namespace:
                          "(resumable; not the section 7 item 5 budget, which demotes only M3-M7)")
     ap.add_argument("--steps", default="point,intervals", help="point,intervals (default) or point")
     ap.add_argument("--out-root", default=str(paths.G19_ROOT))
-    ap.add_argument("--benchmark", action="store_true", help="fit-only timings and the cost estimate (no prediction)")
+    ap.add_argument("--benchmark", action="store_true",
+                    help="fit-only timings of the SEALED section 7 inner design and its cost estimate (no prediction)")
+    ap.add_argument("--benchmark-addendum1", action="store_true",
+                    help="fit-only timings of the POST-HOC addendum 1 inner design on one V5-primary batched fold "
+                         "(seed 104729) and the re-priced estimate in cost_estimate_addendum1.json / .md (no prediction)")
     ap.add_argument("--benchmark-force", action="store_true", help="re-measure arms already measured")
     ap.add_argument("--benchmark-arms", default=None, help="comma list of arms to re-measure with --benchmark-force")
     ap.add_argument("--benchmark-arm", default=None, help=argparse.SUPPRESS)
     ap.add_argument("--benchmark-out", default=None, help=argparse.SUPPRESS)
+    ap.add_argument("--benchmark-mode", default="sealed", choices=("sealed", "addendum1"), help=argparse.SUPPRESS)
+    ap.add_argument("--expect-addenda", type=int, default=None,
+                    help=f"POST-HOC addenda expected below the sealed footer (default {D.N_ADDENDA_EXPECTED}, the "
+                         "addendum this code implements); the run is refused on any other count")
     ap.add_argument("--no-manifest", action="store_true")
     ns = ap.parse_args(argv)
     ns.steps = [s for s in ns.steps.split(",") if s]
@@ -1661,15 +2143,18 @@ def parse_args(argv=None) -> argparse.Namespace:
 def main(argv=None, *, check: Callable[[], int] | None = None,
          digests: Callable[[], Mapping[str, Any]] | None = None) -> int:
     ns = parse_args(argv)
-    prereg = refuse_unless_sealed(check, digests)
+
+    def gate() -> dict:
+        return refuse_unless_sealed(check, digests, expect_addenda=ns.expect_addenda)
+    prereg = gate()
     out_root = Path(ns.out_root)
     if ns.benchmark_arm:
         coext = json.loads(Path(ns.benchmark_out).with_suffix(".coext.json").read_text(encoding="utf-8"))
         corpus = load_corpus(coext)
         import torch
         torch.set_num_threads(2)
-        meas = benchmark_arm(ns.benchmark_arm, corpus)
-        write_json(Path(ns.benchmark_out), meas)
+        measure = benchmark_addendum1_arm if ns.benchmark_mode == "addendum1" else benchmark_arm
+        write_json(Path(ns.benchmark_out), measure(ns.benchmark_arm, corpus))
         return 0
     state = D.PlanState.read(plan_state_path(out_root))
     apply_safeguard_records(state, out_root)
@@ -1679,29 +2164,37 @@ def main(argv=None, *, check: Callable[[], int] | None = None,
         for j in jobs:
             extra = "" if j.kind in ("marker", "h3_spec") else f"folds={counts.get(j.key, 0)}"
             print(f"{j.stage:>24} | {j.kind:<20} | {j.key:<60} | {extra} | {j.message or j.purpose}")
-        bench = D.discovery_root(out_root) / "benchmark" / "cost_estimate.json"
+        listing = write_plan_listing(jobs, counts, out_root)
+        print(f"plan written to {_rel(listing)}")
+        bdir = D.discovery_root(out_root) / "benchmark"
+        add1 = bdir / "cost_estimate_addendum1.json"
+        bench = add1 if add1.exists() else bdir / "cost_estimate.json"
         if bench.exists():
             body = json.loads(bench.read_text(encoding="utf-8"))
-            ucs = _with_aliases(unit_costs_from_measurements(body["measurements"]))
+            ucs = (unit_costs_addendum1(body["measurements"], body.get("measurements_reused_from_sealed_plan") or [])
+                   if bench == add1 else _with_aliases(unit_costs_from_measurements(body["measurements"])))
             try:
                 table = D.estimate_cost(jobs, counts, ucs, other_costs_s=other_costs(jobs, counts), workers=ns.workers,
                                         fold_overhead_s=FOLD_OVERHEAD_S)
-                print(json.dumps(D.cost_summary(table, workers=ns.workers), indent=2))
+                print(json.dumps({"priced_with": _rel(bench), **D.cost_summary(table, workers=ns.workers)}, indent=2))
+                print(json.dumps(D.stage_checkpoints(table, workers=ns.workers), indent=2))
             except KeyError as exc:
-                print(f"cost estimate unavailable: {exc}")
+                print(f"cost estimate unavailable: {exc} (run --benchmark-addendum1)")
         else:
-            print("no benchmark yet: run --benchmark for the cost estimate")
+            print("no benchmark yet: run --benchmark-addendum1 for the cost estimate")
         print(D.NOT_IMPLEMENTED)
         return 0
-    if ns.benchmark:
-        log("coextractant ids")
+    if ns.benchmark or ns.benchmark_addendum1:
+        mode = "addendum1" if ns.benchmark_addendum1 else "sealed"
+        prefix = "measurements_addendum1_" if mode == "addendum1" else "measurements_"
+        log(f"coextractant ids ({mode} benchmark)")
         coext = coextractant_ids()
         meas = []
         bdir = paths.ensure_dir(D.discovery_root(out_root) / "benchmark")
         force = set(a.strip() for a in (ns.benchmark_arms or "").split(",") if a.strip()) if ns.benchmark_force else set()
         with tempfile.TemporaryDirectory(prefix="g19_bench_") as td:
-            for arm in ("B6", "B5", "FLAT_CAT", "B8", "M1", "M2"):
-                kept = bdir / f"measurements_{arm}.json"             # timing outputs only (resumable per arm)
+            for arm in BENCH_ARMS:
+                kept = bdir / f"{prefix}{arm}.json"                  # timing outputs only (resumable per arm)
                 redo = ns.benchmark_force and (not force or arm in force)
                 if kept.exists() and not redo:
                     meas += json.loads(kept.read_text(encoding="utf-8"))
@@ -1710,27 +2203,33 @@ def main(argv=None, *, check: Callable[[], int] | None = None,
                 outp.with_suffix(".coext.json").write_text(json.dumps(coext), encoding="utf-8")
                 env = dict(os.environ, PYTHONIOENCODING="utf-8", PYTHONPATH=str(paths.G19_ROOT))
                 r = subprocess.run([sys.executable, str(Path(__file__).resolve()), "--benchmark-arm", arm,
-                                    "--benchmark-out", str(outp), "--out-root", str(out_root)], cwd=str(paths.REPO_ROOT),
-                                   env=env)
+                                    "--benchmark-mode", mode, "--benchmark-out", str(outp), "--out-root",
+                                    str(out_root)], cwd=str(paths.REPO_ROOT), env=env)
                 if r.returncode != 0:
                     raise SystemExit(f"benchmark of {arm} failed ({r.returncode})")
                 m = json.loads(outp.read_text(encoding="utf-8"))
                 write_json(kept, m)
                 meas += m
-        with (Run(f"{NAME}_benchmark", args={k: v for k, v in vars(ns).items()}, seed=D.PRIMARY_SEED,
+        with (Run(f"{NAME}_benchmark" + ("_addendum1" if mode == "addendum1" else ""),
+                  args={k: v for k, v in vars(ns).items()}, seed=D.PRIMARY_SEED,
                   extra={"rule": "fit-only timings on outer-TRAINING rows of one fold per design class (seed 104729); "
                                  "no test row predicted, no score computed",
+                         "inner_design": D.INNER_DESIGN_NAME if mode == "addendum1" else "sealed section 7 design",
                          "prereg_gate": prereg,
                          "n_test_rows_predicted": int(sum(int(m.get("n_test_rows_predicted", 0)) for m in meas))})
               if not ns.no_manifest else _Null()) as run:
-            body = write_cost_estimate(meas, out_root, workers=2)
+            body = (write_cost_estimate_addendum1(meas, out_root, workers=2) if mode == "addendum1"
+                    else write_cost_estimate(meas, out_root, workers=2))
+            names = (("cost_estimate_addendum1.json", "cost_estimate_addendum1.md") if mode == "addendum1"
+                     else ("cost_estimate.json", "cost_estimate.md"))
             if run is not None:
                 run.inputs(paths.FOLDS_DIR / "INDEX.json",
                            *sorted({paths.FOLDS_DIR / f"{m['stem']}.{e}" for m in meas for e in ("json", "parquet")}))
-                run.outputs(bdir / "cost_estimate.json", bdir / "cost_estimate.md",
-                            *sorted(bdir.glob("measurements_*.json")))
+                run.outputs(bdir / names[0], bdir / names[1], *sorted(bdir.glob(f"{prefix}*.json")))
                 run.extra["summary"] = body["summary"]
         log(json.dumps(body["summary"], indent=2))
+        if mode == "addendum1":
+            log(f"fits in {D.BUDGET_HOURS:g} h on 2 workers: {body['fits_in_60h']}")
         return 0
     code = D.code_digest(CODE_FILES + (Path(__file__).resolve(),), RUNNER_OBJECTS)
     log("coextractant ids and corpus")
@@ -1742,8 +2241,7 @@ def main(argv=None, *, check: Callable[[], int] | None = None,
         if not ns.no_manifest else None
     with (ctx_run or _Null()) as run:
         ledger = run_plan(corpus, out_root, steps=ns.steps, code=code["combined"], workers=ns.workers,
-                          max_hours=ns.max_hours, only=ns.only, coext_ids=coext,
-                          gate=lambda: refuse_unless_sealed(check, digests))
+                          max_hours=ns.max_hours, only=ns.only, coext_ids=coext, gate=gate)
         if run is not None:
             outs = [plan_state_path(out_root), D.discovery_root(out_root) / "decisions" / "b6_checks.json",
                     *sorted((D.discovery_root(out_root) / "safeguard").glob("*.json")),

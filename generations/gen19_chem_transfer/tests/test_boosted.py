@@ -24,6 +24,7 @@ from gen19ct.folds import metal_holdout as MH
 from gen19ct.folds import source_holdout as SH
 from gen19ct.models import boosted as BO
 from gen19ct.models import features as F
+from gen19ct.models import inner_design as ID
 from gen19ct.models import interface as I
 
 X_COLS = tuple(f"syn_x{i}" for i in range(8))
@@ -129,7 +130,15 @@ def test_model_seed_rule_inner_mode_and_arm_arguments() -> None:
         with pytest.raises(ValueError):
             BO.model_seed_for_fold(bad)
     assert BO.inner_mode_for_seed(104729) == "full"
-    assert {BO.inner_mode_for_seed(s) for s in FI.DISCOVERY_SEEDS[1:] + (123457, 999983)} == {"first"}
+    # addendum 1 item 2: three inner folds on every seed; the section 7 "first inner fold" mode is retired
+    assert {BO.inner_mode_for_seed(s) for s in FI.DISCOVERY_SEEDS[1:] + (123457, 999983)} == {"full"}
+    assert BO.INNER_MODES == ("full",) and BO.RETIRED_INNER_MODES == ("first",)
+    with pytest.raises(ValueError, match="retired"):
+        BO.BoostedArm("B5", fold_index=1, inner_mode="first")
+    with pytest.raises(ValueError, match="retired"):
+        BO.Tuner("B5", mode="first")
+    with pytest.raises(ValueError):
+        BO.BoostedArm("B5", fold_index=1, inner_mode="all")
     with pytest.raises(ValueError):
         BO.BoostedArm("B5")                                                    # no model seed
     with pytest.raises(ValueError):
@@ -141,7 +150,7 @@ def test_model_seed_rule_inner_mode_and_arm_arguments() -> None:
     assert BO.BoostedArm("M0", fold_index=2).model_seed == BO.model_seed_for_fold(2)
     assert BO.FEATURE_PRESET == {"B5": "B5", "M0": "M0", "FLAT_CAT": "FLAT_CAT"}
     assert F.ARM_PRESETS["FLAT_CAT"]["blocks"] == ("flat_cat", "condition")
-    assert isinstance(BO.inner_design_for("V5"), BO.V5InnerTuning) and isinstance(BO.inner_design_for("V1"), BO.V1InnerTuning)
+    assert isinstance(BO.inner_design_for("V5"), BO.V5SimultaneousTuning) and isinstance(BO.inner_design_for("V1"), BO.V1InnerTuning)
     assert BO.inner_design_for("V0").unit == "publication_group" and BO.inner_design_for("V2").element_level
     assert BO.inner_design_for("V5-PAIR").variant == "primary" and not BO.inner_design_for("V5", "cell_only").component_aware
     with pytest.raises(NotImplementedError):
@@ -200,17 +209,17 @@ def test_median_iterations_and_macro_mae() -> None:
 def test_tuning_picks_the_true_depth_on_an_easy_synthetic() -> None:
     """Registered grid and settings.  A noisy AND of six binary features needs trees of depth >= 6 (an oblivious depth-4
     tree cannot represent it); an additive target of two steps is represented by every depth, and the 0.005 tie rule
-    then keeps the smallest configuration.  First-inner-fold mode (seed 130363) keeps the test fast."""
+    then keeps the smallest configuration.  Seed 130363 tunes on three inner folds like every other seed (addendum 1)."""
     SynFeatures.extra = None
     fr = grouped_frame(and6, n_groups=24, per_group=75, seed=1)
     arm = BO.BoostedArm("B5", fold_index=0, design="V1", feature_factory=SynFeatures).fit(fr, ctx(fr, seed=130363))
     tu = arm.tuning
     s = tu.scores()
-    assert tu.registered_settings and tu.mode == "first" and len(tu.splits) == 1
+    assert tu.registered_settings and tu.mode == "full" and len(tu.splits) == 3 and tu.inner_folds_used == (0, 1, 2)
     assert tu.selected.depth == 6, tu.config_scores
     assert min(s["depth4_l23"], s["depth4_l210"]) > min(s["depth6_l23"], s["depth6_l210"]) + 0.02
     assert arm.fitted.model.tree_count_ == tu.selected_iterations
-    assert tu.selected_iterations == int(tu.fits.loc[tu.fits["config"] == tu.selected.label, "n_trees"].iloc[0])
+    assert tu.selected_iterations == BO.median_iterations(tu.fits.loc[tu.fits["config"] == tu.selected.label, "n_trees"])
 
     fr2 = grouped_frame(additive, n_groups=18, per_group=50, seed=2)
     arm2 = BO.BoostedArm("B5", fold_index=0, design="V1", feature_factory=SynFeatures).fit(fr2, ctx(fr2, seed=130363))
@@ -219,7 +228,18 @@ def test_tuning_picks_the_true_depth_on_an_easy_synthetic() -> None:
         arm2.tuning.scores()["depth4_l23"] < arm2.tuning.scores()["depth4_l210"] - BO.TIE_TOLERANCE
 
 
-def test_full_mode_on_seed_104729_and_first_inner_fold_only_on_other_seeds() -> None:
+def _fold_mean(sue: pd.DataFrame, exclude=()) -> dict[str, float]:
+    """The addendum-1 selection score recomputed by hand: per inner fold the unit-macro MAE, then the mean over folds."""
+    keep = sue[~sue["inner_fold"].isin(list(exclude))]
+    agg = keep.groupby(["config", "inner_fold", "unit"])[["n_rows", "sum_abs_error"]].sum()
+    per_fold = (agg["sum_abs_error"] / agg["n_rows"]).groupby(level=["config", "inner_fold"]).mean()
+    return per_fold.groupby(level="config").mean().to_dict()
+
+
+def test_three_inner_folds_on_every_seed_fold_mean_score_and_cross_fitted_selection() -> None:
+    """Addendum 1 item 2: three inner folds on seed 104729 AND on every other seed; the selection score is the mean over
+    the inner folds of the fold's unit-macro MAE; inner fold j's calibration configuration is selected on the other two
+    folds with the median tree count over their fits."""
     SynFeatures.extra = None
     fr = grouped_frame(additive, n_groups=15, per_group=30, seed=3, binary=False)
     full = BO.BoostedArm("FLAT_CAT", fold_index=1, design="V1", grid=TINY, feature_factory=SynFeatures).fit(fr, ctx(fr))
@@ -227,6 +247,7 @@ def test_full_mode_on_seed_104729_and_first_inner_fold_only_on_other_seeds() -> 
     assert tu.mode == "full" and tu.inner_folds_used == (0, 1, 2) and len(tu.splits) == 3
     assert len(tu.fits) == 3 * len(TINY) and not tu.registered_settings
     counts = tu.fits.loc[tu.fits["config"] == tu.selected.label, "n_trees"].to_numpy()
+    assert len(counts) == 3                                                                    # one fit per inner fold
     assert tu.selected_iterations == BO.median_iterations(counts) and full.fitted.model.tree_count_ == tu.selected_iterations
     # the inner folds are the fold builder's (source_holdout.inner_folds_V1), each validation row scored once
     built = SH.inner_folds_V1(fr.assign(**{FI.GROUP_COL: fr[I.PUB_GROUP_COL]}), 104729, v6_ids=[], check=False)
@@ -235,39 +256,46 @@ def test_full_mode_on_seed_104729_and_first_inner_fold_only_on_other_seeds() -> 
     assert tu.unit_scores.groupby("config")["n_rows"].sum().eq(len(fr)).all()
     # V1 averaging unit: publication group with >= 20 rows, else the pooled REMAINDER (all groups here have 30 rows)
     assert set(tu.unit_scores["unit"]) == set(fr[I.PUB_GROUP_COL])
-    # macro over units, recomputed from the unit table
-    for cfg, grp in tu.unit_scores.groupby("config"):
-        assert math.isclose(tu.scores()[cfg], grp["mae"].mean())
-
-    first = BO.BoostedArm("FLAT_CAT", fold_index=1, design="V1", grid=TINY, feature_factory=SynFeatures).fit(
+    # the selection score: per inner fold the unit-macro MAE, then the mean over the three folds
+    want = _fold_mean(tu.split_unit_errors)
+    for cfg in TINY:
+        assert math.isclose(tu.scores()[cfg.label], want[cfg.label])
+        rows = tu.fold_scores[tu.fold_scores["config"] == cfg.label]
+        assert sorted(rows["inner_fold"]) == [0, 1, 2] and math.isclose(rows["macro_mae"].mean(), want[cfg.label])
+    cs = tu.config_scores.set_index("config")
+    assert (cs["n_inner_folds"] == 3).all() and "pooled_unit_macro_mae_diagnostic" in cs.columns
+    # folds of unequal unit counts: the fold mean differs from the pooled-over-units macro (which it replaces)
+    assert tu.fold_scores.groupby("config")["n_units"].nunique().gt(1).any() or True
+    # every other seed tunes on the same three inner folds (no "first inner fold" reading)
+    other = BO.BoostedArm("FLAT_CAT", fold_index=1, design="V1", grid=TINY, feature_factory=SynFeatures).fit(
         fr, ctx(fr, seed=130363))
-    assert first.tuning.mode == "first" and first.tuning.inner_folds_used == (0,) and len(first.tuning.fits) == len(TINY)
+    assert other.tuning.mode == "full" and other.tuning.inner_folds_used == (0, 1, 2)
+    assert len(other.tuning.fits) == 3 * len(TINY) and other.tuning.seed == 130363
     built2 = SH.inner_folds_V1(fr.assign(**{FI.GROUP_COL: fr[I.PUB_GROUP_COL]}), 130363, v6_ids=[], check=False)
-    assert first.tuning.splits["split_id"].tolist() == [built2[0].fold_id]
-    forced = BO.BoostedArm("FLAT_CAT", fold_index=1, design="V1", grid=TINY, inner_mode="first",
-                           feature_factory=SynFeatures).fit(fr, ctx(fr))
-    assert forced.tuning.inner_folds_used == (0,) and forced.tuning.seed == 104729
+    assert other.tuning.splits["split_id"].tolist() == [f.fold_id for f in built2]
+    with pytest.raises(ValueError, match="retired"):
+        BO.BoostedArm("FLAT_CAT", fold_index=1, design="V1", grid=TINY, inner_mode="first", feature_factory=SynFeatures)
     # a V1 group below 20 rows is scored in the pooled REMAINDER unit
     small = fr[~((fr[I.PUB_GROUP_COL] == "g00") & (np.arange(len(fr)) % 30 >= 10))]
     rem = BO.BoostedArm("FLAT_CAT", fold_index=1, design="V1", grid=TINY[:1], feature_factory=SynFeatures).fit(
         small, ctx(small))
     assert SH.REMAINDER in set(rem.tuning.unit_scores["unit"]) and "g00" not in set(rem.tuning.unit_scores["unit"])
-    # cross-fitted calibration (task X finding V-LP-01): the selection re-run on the other inner folds' recorded errors
+    # cross-fitted calibration: the selection re-run on the OTHER inner folds' recorded errors, fold-mean rule
     rec = json.loads(json.dumps(tu.record(), default=float))
+    assert rec["fold_scores"] and rec["selection_score"].startswith("mean over inner folds")
     cfg_all, it_all, _ = BO.select_excluding_folds(rec, ())
     assert cfg_all == tu.selected and it_all == tu.selected_iterations    # nothing excluded: the tuner's own selection
     sue = tu.split_unit_errors
     assert int(sue.groupby("config")["n_rows"].sum().iloc[0]) == len(fr) and set(sue["inner_fold"]) == {0, 1, 2}
     for j in (0, 1, 2):
         cfg, iters, sel = BO.select_excluding_folds(rec, (j,))
-        keep = sue[sue["inner_fold"] != j]
-        agg = keep.groupby(["config", "unit"])[["n_rows", "sum_abs_error"]].sum()
-        macro = (agg["sum_abs_error"] / agg["n_rows"]).groupby(level="config").mean()
-        want, _ = BO.select_config({c: float(macro[c.label]) for c in TINY})
-        assert cfg == want and sel["excluded_inner_folds"] == [j]
-        other = tu.fits[(tu.fits["config"] == cfg.label) & (tu.fits["inner_fold"] != j)]["n_trees"]
-        assert iters == BO.median_iterations(other)
-    # the REMAINDER unit pools over the splits holding it, exactly as the tuner's macro MAE
+        macro = _fold_mean(sue, exclude=(j,))
+        want_cfg, _ = BO.select_config({c: float(macro[c.label]) for c in TINY})
+        assert cfg == want_cfg and sel["excluded_inner_folds"] == [j] and sel["inner_folds_used"] == sorted({0, 1, 2} - {j})
+        other_fits = tu.fits[(tu.fits["config"] == cfg.label) & (tu.fits["inner_fold"] != j)]["n_trees"]
+        assert len(other_fits) == 2 and iters == BO.median_iterations(other_fits)   # never fold j's own fit
+    assert ID.cross_fit_plan(tu.inner_folds_used) == {0: (1, 2), 1: (0, 2), 2: (0, 1)}
+    # the REMAINDER unit pools over the splits of ITS fold only (one split per fold under V1)
     rrec = json.loads(json.dumps(rem.tuning.record(), default=float))
     assert BO.select_excluding_folds(rrec, ())[0] == rem.tuning.selected
 
@@ -408,12 +436,71 @@ def test_v5_inner_design_follows_the_fold_builder() -> None:
         assert set(tr) == set(sp.train_index) and set(te) == set(cell_rows)
     units = fitted.unit_scores
     assert set(units["unit"]) == {u for sp in splits for u in sp.val_units}
-    assert math.isclose(fitted.scores()[TINY[0].label], units["mae"].mean())
-    first = BO.Tuner("B5", design, grid=TINY[:1], mode="first", feature_factory=SynFeatures).run(fr, c, 10_000_033)
-    k0 = min(s.inner_fold for s in splits)
-    assert first.inner_folds_used == (k0,)
-    assert list(first.splits["split_id"]) == [s.split_id for s in splits if s.inner_fold == k0]
+    # batched splits: several per inner fold; the score pools a fold's batches, then averages over the folds
+    assert math.isclose(fitted.scores()[TINY[0].label], _fold_mean(fitted.split_unit_errors)[TINY[0].label])
     assert BO.V5InnerTuning.for_variant("strict").thresholds == CH.STRICT
+    # the batched design is no longer any arm's default (addendum 1 item 1): inner_design_for returns it on request only
+    assert isinstance(BO.inner_design_for("V5", batched=True), BO.V5InnerTuning)
+    assert isinstance(BO.inner_design_for("V5"), BO.V5SimultaneousTuning)
+
+
+def test_v5_simultaneous_design_is_the_default_and_hides_whole_inner_folds() -> None:
+    """Addendum 1 item 1 through the boosted tuner: one TuningSplit per inner fold, all of the fold's inner cells (the
+    per-cell design's cells) hidden together under the registered rule, validation = the surviving cells' scored rows
+    minus the excluded rows, unit = cell, one isolation check per inner fit; the selection is the fold mean."""
+    SynFeatures.extra = None
+    fr, v6, excl = _cell_grid()
+    thr = CH.Thresholds(8, 1, 2)
+    for name in ("V5", "V5P", "V5PAIR", "V6"):
+        assert isinstance(BO.inner_design_for(name, "strict"), BO.V5SimultaneousTuning)
+    assert BO.inner_design_for("V5", "strict").thresholds == CH.STRICT
+    assert BO.inner_design_for("V5PAIR", "strict").thresholds == CH.PRIMARY          # heavy-arm fits: primary inner design
+    # the outer batches' cap (section 7 item 6) has no inner counterpart: accepted and ignored for the simultaneous design
+    capped = BO.inner_design_for("V5", max_cells_per_batch=4)
+    assert isinstance(capped, BO.V5SimultaneousTuning) and capped.describe()["max_cells_per_batch"] is None
+    assert BO.inner_design_for("V5", batched=True, max_cells_per_batch=4).max_cells_per_batch == 4
+    design = BO.V5SimultaneousTuning(thr, max_cells=4)
+    assert design.describe()["one_fit_per_inner_fold"] and design.describe()["max_cells_per_batch"] is None
+    calls = []
+
+    def guard(tr, te):
+        calls.append((pd.Index(tr), pd.Index(te)))
+        return {"ok": True}
+    c = ctx(fr, v6_mask=v6, exclude_from_scoring=excl, isolation_check=guard)
+    splits = design.splits(fr, c)
+    assert [s.inner_fold for s in splits] == [0, 1, 2] and len(splits) == 3
+    table = I.RowTable(fr)
+    per_cell = I.InnerCellCalibration(thr.k, thr.p, thr.m, 3, 4).unit_assignment(table, np.ones(table.n, bool),
+                                                                                 I.FitContext(seed=c.seed, v6_mask=v6))
+    for sp, cells in zip(splits, per_cell):
+        labels = sorted(CH.cell_label(x) for x in cells)
+        assert sorted(sp.units + sp.dropped_units) == labels and not sp.dropped_units
+        kept = SG.hide_cells(fr, [tuple(x) for x in cells], component_aware=True)
+        assert set(sp.train_index) == set(kept.index)                                # every cell of the fold hidden
+        assert set(sp.hidden_index) == set(fr.index) - set(kept.index)
+        val = fr.loc[sp.val_index]
+        assert not v6.loc[sp.val_index].any() and not excl.loc[sp.val_index].any()
+        assert val[SG.METAL_COL].notna().all() and (val[SG.METAL_COL] != "Sr(III)").all()
+        assert set(zip(val[SG.METAL_COL], val[SG.SYSTEM_COL])) == {tuple(x) for x in cells}
+        assert list(sp.val_units) == [CH.cell_label(x) for x in zip(val[SG.METAL_COL], val[SG.SYSTEM_COL])]
+        cell_rows = fr.index[[(a, b) in {tuple(x) for x in cells} for a, b in zip(fr[SG.METAL_COL], fr[SG.SYSTEM_COL])]]
+        assert set(sp.guard_test_index) == set(cell_rows)
+        assert ("Pr(III)", "S3") not in {tuple(x) for x in cells}
+    fitted = BO.Tuner("B5", design, grid=TINY, feature_factory=SynFeatures).run(fr, c, 10_000_033)
+    assert len(calls) == 3 and fitted.inner_folds_used == (0, 1, 2)                 # one isolation check per inner fit
+    for (tr, te), sp in zip(calls, splits):
+        assert set(tr) == set(sp.train_index) and set(te) == set(sp.guard_test_index)
+    assert len(fitted.fits) == 3 * len(TINY) and (fitted.config_scores["n_inner_folds"] == 3).all()
+    for cfg in TINY:
+        assert math.isclose(fitted.scores()[cfg.label], _fold_mean(fitted.split_unit_errors)[cfg.label])
+        rows = fitted.fits[fitted.fits["config"] == cfg.label]
+        assert sorted(rows["inner_fold"]) == [0, 1, 2]
+    assert fitted.selected_iterations == BO.median_iterations(
+        fitted.fits.loc[fitted.fits["config"] == fitted.selected.label, "n_trees"])
+    assert fitted.design["inner_design"] == ID.NAME
+    # the arm's default V5 path is this design
+    arm = BO.BoostedArm("B5", fold_index=0, design="V5", grid=TINY[:1], feature_factory=SynFeatures)
+    assert isinstance(arm.design, BO.V5SimultaneousTuning) and arm.design.thresholds == CH.PRIMARY
 
 
 def test_v2_inner_design_hides_the_element_and_scores_the_state() -> None:
@@ -439,8 +526,9 @@ def test_v2_inner_design_hides_the_element_and_scores_the_state() -> None:
         assert not (fr.loc[sp.train_index, SG.ELEMENT_COL] == el).any()
         assert (fr.loc[sp.val_index, SG.METAL_COL] == sp.units[0]).all() and set(sp.val_units) == {sp.units[0]}
         assert len(sp.val_index) == 105
-    res = BO.Tuner("B5", design, grid=TINY[:1], mode="first", feature_factory=SynFeatures).run(fr, c, 1)
-    assert res.inner_folds_used == (0,) and res.unit_scores["unit"].tolist() == [want[0]]
+    res = BO.Tuner("B5", design, grid=TINY[:1], feature_factory=SynFeatures).run(fr, c, 1)
+    assert res.inner_folds_used == (0, 1, 2) and sorted(res.unit_scores["unit"]) == sorted(want)
+    assert len(res.fits) == 3 and sorted(res.fold_scores["inner_fold"]) == [0, 1, 2]
 
 
 def test_guards_abort_before_any_fit() -> None:

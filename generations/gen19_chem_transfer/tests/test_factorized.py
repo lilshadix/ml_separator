@@ -18,9 +18,13 @@ from gen19ct.data import normalize as N
 from gen19ct.folds import io as FI
 from gen19ct.models import factorized as FZ
 from gen19ct.models import features as F
+from gen19ct.models import inner_design as ID
 from gen19ct.models import interface as I
 
 SEED = 104729
+#: real metal-state labels for the synthetic metal units (the addendum-1 inner design hides by state and element)
+REAL_STATES = ("La(III)", "Ce(III)", "Pr(III)", "Nd(III)", "Sm(III)", "Eu(III)", "Gd(III)", "Tb(III)", "Dy(III)",
+               "Ho(III)", "Er(III)", "Tm(III)", "Yb(III)", "Lu(III)", "Am(III)", "Cm(III)")
 
 
 # --------------------------------------------------------------------------------------------- #
@@ -29,9 +33,10 @@ SEED = 104729
 
 def planted(seed: int = 0, n_m: int = 16, n_s: int = 30, p_m: int = 3, p_s: int = 4, rank: int = 2,
             rows_per_cell: int = 4, density: float = 0.6, noise: float = 0.1, delta: float = 0.3,
-            mixture_systems: int = 0):
+            mixture_systems: int = 0, real_states: bool = False):
     """``y = 1 + a_m + b_s + u_m'v_s + beta'x + anion + noise`` with ``u = A z_m + delta_m``, ``v = B z_s + delta_s``,
-    ``a`` / ``b`` partly explained by ``z``; ``mixture_systems`` systems get a second z_s pattern on half their rows."""
+    ``a`` / ``b`` partly explained by ``z``; ``mixture_systems`` systems get a second z_s pattern on half their rows.
+    ``real_states`` labels the metal units with :data:`REAL_STATES` (needs ``n_m <= 16``)."""
     rng = np.random.default_rng(seed)
     Zm, Zs = rng.standard_normal((n_m, p_m)), rng.standard_normal((n_s, p_s))
     A, B = rng.standard_normal((rank, p_m)), rng.standard_normal((rank, p_s))
@@ -55,8 +60,11 @@ def planted(seed: int = 0, n_m: int = 16, n_s: int = 30, p_m: int = 3, p_s: int 
         rows = np.flatnonzero(s_idx == s)[::2]
         zs_rows[rows, 0] += 0.5
     idx = [f"r{i:05d}" for i in range(n)]
+    if real_states and n_m > len(REAL_STATES):
+        raise ValueError("real_states needs n_m <= 16")
+    labels_m = [REAL_STATES[m] if real_states else f"M{m:02d}" for m in m_idx]
     inputs = FZ.B6Inputs.from_arrays(
-        idx, [f"M{m:02d}" for m in m_idx], [f"S{s:03d}" for s in s_idx],
+        idx, labels_m, [f"S{s:03d}" for s in s_idx],
         metal_numeric=pd.DataFrame(Zm[m_idx], columns=[f"zm{j}" for j in range(p_m)]),
         extractant_numeric=pd.DataFrame(zs_rows, columns=[f"zs{j}" for j in range(p_s)]),
         condition_numeric=pd.DataFrame(x, columns=["x0", "x1"]),
@@ -109,8 +117,8 @@ class CellSplitter:
         return out
 
 
-def labels(truth, cells):
-    return [(f"M{m:02d}", f"S{s:03d}") for m, s in cells]
+def labels(truth, cells, real_states: bool = False):
+    return [(REAL_STATES[m] if real_states else f"M{m:02d}", f"S{s:03d}") for m, s in cells]
 
 
 def explicit_design(enc: FZ.Encoded, d: FZ.Design, inputs: FZ.B6Inputs, pos: np.ndarray) -> np.ndarray:
@@ -468,9 +476,13 @@ def test_tuned_conformal_equals_the_plain_wrapper_at_the_selected_configuration(
         FZ.B6TunedConformal("B6", spl).fit_from_tuning(other, table, mask, c)
     with pytest.raises(ValueError):
         FZ.B6TunedConformal("B6", spl, seeds=[1, 2])
-    # section 7 compute plan item 1: tuning restricted to the first inner fold
+    # fold_subset is a diagnostic restriction of run_inner_tuning only (no "first inner fold" reading, addendum 1)
     first = FZ.run_inner_tuning(table, mask, c, spl, fold_subset=(0,))
     assert set(first.folds) == {0} and len(first.units) == sum(1 for i in range(len(inner)) if i % 3 == 0)
+    with pytest.raises(ValueError, match="every inner fold"):
+        FZ.fit_b6_and_b6r0(table, mask, c, spl, inner_mode="first")
+    with pytest.raises(TypeError):
+        FZ.fit_b6_and_b6r0(table, mask, c, spl, fold_subset=(0,))
 
 
 class _Only:
@@ -484,9 +496,9 @@ class _Only:
 
 
 def test_cross_fitted_calibration_never_reuses_the_selecting_rows() -> None:
-    """Task X finding V-LP-01: with every inner fold tuned, inner fold j's residuals are those of the configuration
-    selected on the other folds; with the first inner fold tuned, the selected configuration on the next fold; with no
-    second fold the arm is not calibrated."""
+    """Addendum 1 item 2 (task X finding V-LP-01): inner fold j's residuals are those of the configuration selected on
+    the OTHER inner folds (fold-mean score over those folds), taken from the fits already made; with a single inner fold
+    the arm is not calibrated; the retired "first inner fold" mode is refused."""
     inputs, y, truth = planted(seed=4, mixture_systems=2)
     table = table_for(inputs, y)
     outer = labels(truth, truth["cells"][:3])
@@ -500,31 +512,37 @@ def test_cross_fitted_calibration_never_reuses_the_selecting_rows() -> None:
         tun = w.tuning
         assert w.calibration == "cross_fit" and w.calibration_record["status"] == "calibrated"
         want = []
-        for j in sorted(set(tun.folds)):
-            cj = tun.select(w.ranks, w.lambdas, w.tie_margin, exclude_folds=(j,))
-            assert w.calibration_record["per_inner_fold"][str(j)]["config"] == f"k{cj[0]}_lam{cj[1]:g}"
+        plan = ID.cross_fit_plan(tun.folds)
+        assert plan == {0: (1, 2), 1: (0, 2), 2: (0, 1)} and w.calibration_record["inner_folds"] == [0, 1, 2]
+        for j, others in plan.items():
+            cj = tun.select(w.ranks, w.lambdas, w.tie_margin, folds=others)
+            assert cj == tun.select(w.ranks, w.lambdas, w.tie_margin, exclude_folds=(j,))
+            per = w.calibration_record["per_inner_fold"][str(j)]
+            assert per["config"] == f"k{cj[0]}_lam{cj[1]:g}" and per["selected_on_folds"] == list(others)
+            # the selecting score is the mean over the other two folds of their unit-macro MAE
+            fm = tun.fold_macro_mae(cj, folds=others)
+            assert sorted(fm.index) == sorted(others) and np.isclose(tun.macro_mae(cj, folds=others), fm.mean())
             plain = I.ConformalWrapper(FZ.B6Factorized(cj[0], cj[1], name=variant),
                                        splitter=_Only(spl, [j])).fit_table(table, mask, c)
             want.append(plain.residuals)
         assert np.allclose(w.residuals, np.concatenate(want), atol=1e-8)
         assert np.isfinite(w.predict_positions(q)["upper_95"]).all()
-    # first inner fold tuned: calibration on the next fold with the selected configuration only
-    firsts = FZ.fit_b6_and_b6r0(table, mask, c, spl, inner_mode="first")
-    for variant, w in firsts.items():
-        assert set(w.tuning.folds) == {0} and w.calibration_record["calibration_fold"] == 1
-        k, lam = w.selected
-        plain = I.ConformalWrapper(FZ.B6Factorized(k, lam, name=variant),
-                                   splitter=_Only(spl, [1])).fit_table(table, mask, c)
-        assert np.allclose(w.residuals, plain.residuals, atol=1e-8)
-        assert w.selected == FZ.run_inner_tuning(table, mask, c, spl, fold_subset=(0,)).select(w.ranks, w.lambdas)
+        rec = w.selection_record()
+        assert rec["n_inner_folds"] == 3 and rec["tuning_folds"] == [0, 1, 2] and rec["selection_score"].startswith("mean")
+        assert set(rec["inner_fold_macro_mae"][f"k{w.selected[0]}_lam{w.selected[1]:g}"]) == {"0", "1", "2"}
+    # the retired "first inner fold" reading is refused
+    with pytest.raises(ValueError, match="every inner fold"):
+        FZ.fit_b6_and_b6r0(table, mask, c, spl, inner_mode="first")
     # a single inner fold: not calibrated (NaN intervals), never residuals of the selecting rows
     one = FZ.fit_b6_and_b6r0(table, mask, c, _Only(spl, [0]))
     for w in one.values():
         assert w.calibration_record["status"].startswith("not_calibrated") and len(w.residuals) == 0
         pw = w.predict_positions(q)
         assert pw["lower_80"].isna().all() and np.isfinite(pw["mean_logD"]).all()
-    lone = FZ.fit_b6_and_b6r0(table, mask, c, _Only(spl, [0]), inner_mode="first")
-    assert all(w.calibration_record["status"].startswith("not_calibrated") for w in lone.values())
+    # two inner folds: each calibrated by the configuration selected on the other
+    two = FZ.fit_b6_and_b6r0(table, mask, c, _Only(spl, [0, 2]))["B6"]
+    assert two.calibration_record["status"] == "calibrated" and set(two.calibration_record["per_inner_fold"]) == {"0", "2"}
+    assert two.calibration_record["per_inner_fold"]["0"]["selected_on_folds"] == [2]
 
 
 def test_inner_selection_averages_over_the_design_units_and_the_init_seed() -> None:
@@ -557,10 +575,14 @@ def test_inner_selection_averages_over_the_design_units_and_the_init_seed() -> N
     err = np.concatenate([np.abs(yy - pp) for yy, pp in zip(tun.y, tun.predictions[cfg])])
     units = np.concatenate(tun.row_units)
     per_cell = pd.Series(err).groupby(units).mean()
-    assert np.isclose(tun.macro_mae(cfg), per_cell.mean())
+    # addendum 1 item 2: per inner fold the mean over ITS cells, then the mean over the folds
+    fold_of_unit = {u: f for ru, f in zip(tun.row_units, tun.folds) for u in set(ru)}
+    per_fold = per_cell.groupby(per_cell.index.map(fold_of_unit)).mean()
+    assert sorted(per_fold.index) == [0, 1, 2] and np.isclose(tun.macro_mae(cfg), per_fold.mean())
+    assert np.allclose(tun.fold_macro_mae(cfg).sort_index().to_numpy(), per_fold.sort_index().to_numpy())
     per_split = np.mean([np.mean(np.abs(yy - pp)) for yy, pp in zip(tun.y, tun.predictions[cfg])])
     assert len(per_cell) > len(tun.y) and not np.isclose(tun.macro_mae(cfg), per_split)
-    assert np.isclose(tun.macro_mae(cfg, exclude_folds=(0,)), per_cell.drop(sorted(set(tun.row_units[0]))).mean())
+    assert np.isclose(tun.macro_mae(cfg, exclude_folds=(0,)), per_fold.drop(0).mean())
     with pytest.raises(ValueError, match="row_units"):
         FZ.run_inner_tuning(table, mask, ctx(table), CellSplitter(cells), require_row_units=True)
     # a splitter without row units counts one unit per split
@@ -578,6 +600,79 @@ def test_inner_selection_averages_over_the_design_units_and_the_init_seed() -> N
     assert not np.array_equal(a.predictions[(2, 0.1)][0], b.predictions[(2, 0.1)][0])
     w = FZ.fit_b6_and_b6r0(table, mask, ctx(table), Batched(), init_seed=10_000_033)["B6"]
     assert w.selection_record()["init_seed"] == 10_000_033 and w.arm.seed == 10_000_033
+
+
+def test_selection_score_is_the_mean_over_inner_folds_of_the_unit_macro_mae() -> None:
+    """Addendum 1 item 2: folds with 3, 1 and 1 cells weigh the same; a 3-cell fold's cells weigh a third each."""
+    inputs, y, truth = planted(seed=8)
+    table = table_for(inputs, y)
+    mask = np.ones(table.n, bool)
+    cells = labels(truth, truth["cells"][::13][:5])
+    per_fold = {0: cells[:3], 1: cells[3:4], 2: cells[4:5]}
+
+    class Uneven:
+        name = "uneven"
+
+        def splits(self, tab, m, context):
+            out = []
+            for f, cs in per_fold.items():
+                hid = m & cell_mask(tab, cs)
+                cal = np.flatnonzero(hid)
+                units = np.array([f"{tab.state_labels[tab.state[p]]} x {tab.sys_labels[tab.sys[p]]}" for p in cal],
+                                 dtype=object)
+                out.append(I.InnerSplit(unit=f"f{f}", fold=f, train_mask=m & ~hid, cal_positions=cal,
+                                        hidden_positions=cal, row_units=units))
+            return out
+    tun = FZ.run_inner_tuning(table, mask, ctx(table), Uneven(), require_row_units=True)
+    cfg = (1, 1.0)
+    fm = tun.fold_macro_mae(cfg)
+    assert sorted(fm.index) == [0, 1, 2]
+    err = np.concatenate([np.abs(yy - pp) for yy, pp in zip(tun.y, tun.predictions[cfg])])
+    units = np.concatenate(tun.row_units)
+    per_cell = pd.Series(err).groupby(units).mean()
+    assert len(per_cell) == 5
+    fold0 = per_cell[[f"{a} x {b}" for a, b in cells[:3]]].mean()
+    assert np.isclose(fm[0], fold0) and np.isclose(fm[1], per_cell[f"{cells[3][0]} x {cells[3][1]}"])
+    assert np.isclose(tun.macro_mae(cfg), fm.mean()) and not np.isclose(tun.macro_mae(cfg), per_cell.mean())
+    assert np.isclose(tun.summary().set_index(["rank", "lambda"]).loc[cfg, "pooled_unit_macro_mae_diagnostic"], per_cell.mean())
+    assert len(tun.fold_table()) == 3 * len(tun.configs)
+    assert np.isclose(tun.macro_mae(cfg, exclude_folds=(0,)), fm[[1, 2]].mean())
+    # the selection uses that score and the tie rule
+    assert tun.select() == FZ.select_config(tun.maes())
+
+
+def test_b6_tunes_and_calibrates_on_the_simultaneous_inner_cells() -> None:
+    """The learned-arm inner design end to end on B6: three splits, every cell of a fold absent from its inner training
+    set, cross-fitted per-fold calibration from the fits already made, the per-cell design refused."""
+    inputs, y, truth = planted(seed=21, n_m=16, n_s=24, density=0.75, rows_per_cell=5, real_states=True)
+    table = table_for(inputs, y, n_groups=7)
+    outer = labels(truth, truth["cells"][:2], real_states=True)
+    mask = ~cell_mask(table, outer)
+    c = ctx(table, mask)
+    design = ID.SimultaneousInnerCells(4, 1, 3, 3, 6)
+    splits = design.splits(table, mask, c)
+    assert len(splits) == 3 and all(1 <= len(sp.meta["cells"]) <= 6 for sp in splits)
+    for sp in splits:
+        for st, sy in map(tuple, sp.meta["cells"]):
+            assert not (sp.train_mask & cell_mask(table, [(st, sy)])).any()
+        assert not (sp.train_mask & ~mask).any() and sp.row_units is not None
+    fits = FZ.fit_b6_and_b6r0(table, mask, c, design, chunk_size=3, init_seed=10_000_033, require_row_units=True)
+    for variant, w in fits.items():
+        rec = w.selection_record()
+        assert rec["n_inner_splits"] == 3 and rec["n_inner_folds"] == 3 and rec["units_from_splits"]
+        assert w.calibration_record["status"] == "calibrated" and set(w.calibration_record["per_inner_fold"]) == {"0", "1", "2"}
+        assert len(w.calibration_units) == 3 and w.calibration_units == [("inner_fold", 0), ("inner_fold", 1), ("inner_fold", 2)]
+        assert len(w.residuals) == sum(len(sp.cal_positions) for sp in splits)
+        q = np.flatnonzero(~mask)
+        assert np.isfinite(w.predict_positions(q)["upper_95"]).all()
+    assert fits["B6r0"].selected[0] == 0
+    bad = I.InnerCellCalibration(4, 1, 3)
+    with pytest.raises(ValueError, match="per-cell"):
+        FZ.fit_b6_and_b6r0(table, mask, c, bad)
+    with pytest.raises(ValueError, match="per-cell"):
+        FZ.B6TunedConformal("B6", bad)
+    with pytest.raises(ValueError, match="per-cell"):
+        FZ.run_inner_tuning(table, mask, c, bad)
 
 
 def test_inner_tuning_guards_isolation_and_v6_rows() -> None:

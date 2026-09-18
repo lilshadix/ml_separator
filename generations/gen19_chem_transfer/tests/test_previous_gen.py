@@ -23,6 +23,7 @@ from gen19ct.chemistry import support_graph as SG
 from gen19ct.data import load as L
 from gen19ct.evaluation import pairs as EP
 from gen19ct.models import features as F
+from gen19ct.models import inner_design as ID
 from gen19ct.models import interface as I
 from gen19ct.models import previous_gen as P
 
@@ -336,6 +337,49 @@ def test_b8_level_table_fast_path_and_conformal_wrapper(level_data):
     assert np.array_equal(out["mean_logD"].to_numpy(), fast["mean_logD"].to_numpy())
     assert (out["upper_80"] - out["lower_80"] > 0).all() and out["conformal_n_calibration"].iloc[0] > 0
     assert len(wrap.calibration_units) >= 1
+
+
+def test_conformal_b8_level_calibrates_over_the_three_simultaneous_inner_splits():
+    """Addendum 1 items 1-2 for B8 (no tuning grid): the level is refitted once per simultaneous inner split (all of the
+    fold's cells hidden), the three splits' residuals are pooled, the centre is the refit on all training rows; the
+    per-cell design is refused."""
+    heavy = topo_systems(6)
+    systems = {s: (-0.4 if i % 2 else 0.3) for i, s in enumerate(heavy)}
+    systems[TODGA] = -0.5
+    fr = synth_rows(systems, seed=3, pubs=("g1", "g2", "g3"), n_cond=2)
+    # one majority publication group per cell (the fixture's groups are equal in every cell, which would tie them all)
+    cells = list(zip(fr[SG.SYSTEM_COL], fr[SG.METAL_COL]))
+    code = {c: i for i, c in enumerate(sorted(set(cells)))}
+    fr[I.PUB_GROUP_COL] = [f"g{code[c] % 5}" if k % 3 else "g9" for k, c in enumerate(cells)]
+    cv = synth_cv(fr)
+    train_sys = sorted(systems)[:5]
+    tr = fr[fr[SG.SYSTEM_COL].isin(train_sys)]
+    qu = fr[~fr[SG.SYSTEM_COL].isin(train_sys)]
+    table = I.RowTable(fr)
+    mask = table.mask_of(tr.index)
+    calls = []
+
+    def guard(a, b):
+        calls.append((set(a), set(b)))
+        return {"ok": True}
+    ctx = I.FitContext(table=table, seed=104729, v6_mask=pd.Series(False, index=fr.index), isolation_check=guard)
+    design = ID.SimultaneousInnerCells(6, 1, 2, 3, 4)
+    splits = design.splits(table, mask, ctx)
+    assert len(splits) == 3
+    wrap = P.conformal_b8_level(fr, design, cv=cv, fold=5, config=FAST).fit_table(table, mask, ctx)
+    assert wrap.calibration_units == [("inner_fold", 0), ("inner_fold", 1), ("inner_fold", 2)]
+    assert len(wrap.residuals) == sum(len(sp.cal_positions) for sp in splits) and np.isfinite(wrap.residuals).all()
+    assert len(calls) == 3 and all(a == set(table.index[sp.train_mask]) for (a, _), sp in zip(calls, splits))
+    out = wrap.predict_positions(table.positions(qu.index))
+    plain = P.B8Level(fr, cv=cv, fold=5, config=FAST).fit(tr).predict(qu)
+    assert np.array_equal(out["mean_logD"].to_numpy(), plain["mean_logD"].to_numpy())        # centre = the full refit
+    assert (out["upper_80"] - out["lower_80"] > 0).all() and (out["conformal_n_calibration"] == len(wrap.residuals)).all()
+    # the three inner fits saw their own training rows only: a split's calibration rows are never in its training set
+    for sp in splits:
+        assert not sp.train_mask[sp.cal_positions].any()
+    with pytest.raises(ValueError, match="per-cell"):
+        P.conformal_b8_level(fr, I.InnerCellCalibration(6, 1, 2), cv=cv, fold=5, config=FAST)
+    assert "conformal" in P.REGISTRATION_CHOICES and "SimultaneousInnerCells" in P.REGISTRATION_CHOICES["conformal"]
 
 
 # ------------------------------------------------------------------------------------------------ gen14 quantities

@@ -131,6 +131,11 @@ CONFORMAL_CHOICES: dict[str, str] = {
              "seed of ConformalWrapper(seeds=[...]) (the 5 discovery seeds; seed 104729 alone where a learned arm's "
              "comparison is on it; each withheld seed at confirmation) and coverage / width are averaged over the "
              "seeds; seeds=None keeps the single context.seed draw of the disclosed pre-seal run",
+    "learned_arm_inner_design": "POST-HOC addendum 1 (2026-09-15) item 1: every learned arm and B6 tunes and calibrates "
+                                "on models.inner_design.SimultaneousInnerCells -- one inner fit per inner fold with "
+                                "all of the fold's inner cells hidden together (the same cells as InnerCellCalibration); "
+                                "InnerCellCalibration (one split per cell) stays the registered calibration design of "
+                                "the deterministic comparators B0-B4 and B7 only",
 }
 
 
@@ -556,8 +561,8 @@ class InnerSplit:
     ``(train_mask, test_positions)`` that contains this split on both sides.  ``row_units`` (optional) holds the
     section 4 / section 7 averaging unit of every calibration row, aligned with ``cal_positions`` (V5: the hidden cell,
     V1: the publication group or ``REMAINDER`` below 20 outer-training rows, V2: the metal state): a tuned arm's inner
-    macro MAE averages over these units (section 7 "the design's own averaging"), not over splits.  Conformal residuals
-    never depend on it."""
+    macro MAE averages over these units within an inner fold (section 7 "the design's own averaging"; addendum 1 item 2:
+    the selection score is then the mean over the inner folds).  Conformal residuals never depend on it."""
 
     unit: Any
     fold: int
@@ -566,6 +571,9 @@ class InnerSplit:
     hidden_positions: np.ndarray
     certificate: tuple[np.ndarray, np.ndarray] | None = None
     row_units: np.ndarray | None = None
+    #: optional design bookkeeping (e.g. the inner cells of a simultaneous split and the cells dropped from its score);
+    #: never read by a fit or a calibration
+    meta: Mapping[str, Any] | None = None
 
     def __post_init__(self) -> None:
         if self.row_units is not None:

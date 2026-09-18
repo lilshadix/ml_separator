@@ -18,6 +18,13 @@ predictions of the deterministic comparators (``evaluation/preseal/predictions``
   S1(b) components labelled "discovery, optimistically biased", the freezing screen; ``decisions/stop_rule.json``; and
   the freezing candidates merged into ``decisions/plan_state.json`` (the runner's conditional jobs).
 
+**POST-HOC addendum 1** (below the sealed footer): discovery runs seed 104729 only, so R19 item 4 is NOT_EVALUATED for
+every learned-arm contrast in every table, and R19 item 6 of such a contrast is the *reduced sensitivity set (addendum
+1)* -- the V5 strict and HNO3-only refits that were run plus every registered scoring-filter sensitivity -- with the
+sensitivities that were not run named in the contrast tables and in ``decisions.json`` -> ``addendum_1`` /
+``not_run.addendum_1``.  Closed-form arms keep the full registered set.  The stop rule, the ladder and the freezing
+screen are unchanged: their scopes contain neither item 4 nor the refit sensitivities.
+
 Every scoring frame passes the selection-half assertion and ``registered.assert_not_scored``; nothing reads V6.  The
 scorer refuses to run unless the pre-registration seal check passes with the registered digest
 (``g19_run_discovery.refuse_unless_sealed``), and reads a discovery record only when its digest, fold hash and fold set
@@ -271,9 +278,19 @@ def _pair(store: Store, cand: str, comp: str, design: str, setting: str, seed: i
                           remainder_groups=store.remainder_groups)
 
 
+def is_learned(*arms: str) -> bool:
+    """Whether a contrast involves a learned arm (addendum 1 items 3-4: seed 104729 only, reduced sensitivity set)."""
+    return any(D.ARM_ALIASES.get(a, a) not in DETERMINISTIC_ARMS for a in arms)
+
+
 def evaluate_spec(store: Store, spec: D.ContrastSpec, delta5: float, *, v2_summary: str = "focus7"
                   ) -> dict[str, Any] | None:
-    """R19 of one contrast on the selection half (``discovery.evaluate_contrast``); ``None`` when an arm is not run."""
+    """R19 of one contrast on the selection half (``discovery.evaluate_contrast``); ``None`` when an arm is not run.
+
+    Addendum 1: a contrast with a learned arm is evaluated on discovery seed 104729 only (item 3, R19 item 4
+    NOT_EVALUATED), and its R19 item 6 on the reduced sensitivity set -- the V5 strict and HNO3-only refits that were
+    run plus every registered scoring-filter sensitivity (item 4) -- with the sensitivities that were not run named.
+    A contrast between closed-form arms keeps the full registered set and all five discovery seeds."""
     if "M3" in (spec.candidate, spec.comparator):
         return None
     design = spec.design
@@ -281,33 +298,47 @@ def evaluate_spec(store: Store, spec: D.ContrastSpec, delta5: float, *, v2_summa
     primary = _pair(store, spec.candidate, spec.comparator, design, "primary", D.PRIMARY_SEED, **kw)
     if primary is None:
         return None
+    learned = is_learned(spec.candidate, spec.comparator)
     seeds = {}
-    for s in D.DISCOVERY_SEEDS:
+    for s in (D.PLAN_SEEDS if learned else D.DISCOVERY_SEEDS):
         pu = primary if s == D.PRIMARY_SEED else _pair(store, spec.candidate, spec.comparator, design, "primary", s, **kw)
         seeds[s] = None if pu is None else pu.delta
     sens: dict[str, Any] = {}
     reg = ET.REGISTERED_SENSITIVITIES[design]
+    reduced: list[str] = []
     for name in D.SCORING_FILTER_SENSITIVITIES:
         if name in reg:
             pu = _pair(store, spec.candidate, spec.comparator, design, "primary", D.PRIMARY_SEED, filt=name, **kw)
             sens[name] = ET.UNTESTABLE if pu is None else pu.delta
+            reduced.append(name)
     reasons: dict[str, str] = {}
+    not_run = D.LEARNED_REFITS_NOT_RUN.get(design, {}) if learned else {}
     if design == "V5":
         for setting, name in D.V5_SETTING_SENSITIVITY.items():
+            if name in not_run:                       # addendum 1 item 4: not run at all for a learned arm
+                sens[name] = ET.UNTESTABLE
+                reasons[name] = not_run[name]
+                continue
             pu = _pair(store, spec.candidate, spec.comparator, design, setting, D.PRIMARY_SEED)
             sens[name] = ET.UNTESTABLE if pu is None else pu.delta
+            reduced.append(name)
     elif design in ("V1", "V2"):
         table = D.V1_REFIT_SETTINGS if design == "V1" else D.V2_REFIT_SETTINGS
-        learned = any(D.ARM_ALIASES.get(a, a) not in DETERMINISTIC_ARMS for a in (spec.candidate, spec.comparator))
         for setting, (_, _, name) in table.items():
+            if name in not_run:
+                sens[name] = ET.UNTESTABLE
+                reasons[name] = not_run[name]
+                continue
             if design == "V1" and setting in D.V1_GROUPING_SETTINGS and learned:
                 sens[name] = ET.UNTESTABLE
                 reasons[name] = GROUPING_UNTESTABLE
                 continue
             pu = _pair(store, spec.candidate, spec.comparator, design, setting, D.PRIMARY_SEED, **kw)
             sens[name] = ET.UNTESTABLE if pu is None else pu.delta
+            reduced.append(name)
     res = D.evaluate_contrast(name=spec.name, family=spec.family, design=design, primary=primary,
-                              margin=D.margin_value(spec, delta5), seed_deltas=seeds, sensitivities=sens)
+                              margin=D.margin_value(spec, delta5), seed_deltas=seeds, sensitivities=sens,
+                              learned=learned, reduced_sensitivities=sorted(set(reduced)) if learned else None)
     res["note"] = spec.note
     res["untestable_reason"] = {k: reasons.get(k, D.REFIT_NOT_RUN) for k, v in res["sensitivities"].items()
                                 if v == ET.UNTESTABLE}
@@ -347,10 +378,11 @@ def summary_tables(store: Store) -> pd.DataFrame:
     parts = []
     arms = D.FITTED_ARMS
     for arm in arms:
-        for design, settings in (("V5", ("primary",) + D.V5_REFIT_VARIANTS + ("sr_iii_dropped", "V5P")),
+        # addendum 1 items 3-4: a learned arm runs seed 104729 and the V5 strict / HNO3-only refits only
+        for design, settings in (("V5", ("primary",) + D.LEARNED_REFIT_VARIANTS),
                                  ("V1", ("primary",)), ("V2", ("primary",))):
             for setting in settings:
-                for s in D.DISCOVERY_SEEDS:
+                for s in D.PLAN_SEEDS:
                     fr = store.frame(arm, design, setting, s)
                     if fr is None:
                         continue
@@ -390,24 +422,20 @@ def summary_tables(store: Store) -> pd.DataFrame:
 
 
 def comparator_intervals(store: Store) -> pd.DataFrame:
-    """Section 15: B0 / B3x / B3i coverage and width per discovery seed and their mean (selection half)."""
+    """Section 15 as amended by addendum 1 item 3: every learned comparison is on seed 104729, so the deterministic
+    comparators' coverage and width are the seed-104729 (pre-seal) ones on every design and no comparator-interval job
+    is run in discovery (selection half).  At confirmation they are drawn with each withheld seed and averaged."""
     rows = []
-    dirs = {"V5": "V5__primary_exact", "V1": "V1__copy_exact", "V2": "V2__element_exact"}
     for design, arms in D.COMPARATOR_INTERVAL_JOBS.items():
-        dd = dirs[design]
         for arm in arms:
             base = store.frame(arm, design, "primary", None)
             if base is None:
                 continue
+            cols = [c for lv in EC.LEVELS for c in EM.interval_columns(lv)]
+            if any(c not in base.columns for c in cols) or \
+                    not np.isfinite(base[cols].to_numpy(dtype=float)).any():
+                continue                                   # no intervals stored for this arm and design
             frames = {D.PRIMARY_SEED: base}
-            for s in D.OTHER_SEEDS:
-                p = store.verified(arm, dd, s)
-                if p is not None:
-                    p = p.set_index("row_id", drop=False)
-                    p.index.name = None
-                    frames[s] = p
-            if set(frames) != set(D.DISCOVERY_SEEDS):
-                continue
             idx = base.index
             if any(set(f.index) != set(idx) for f in frames.values()):
                 raise AssertionError(f"{arm}/{design}: comparator interval seeds score different rows")
@@ -419,6 +447,7 @@ def comparator_intervals(store: Store) -> pd.DataFrame:
             met.insert(0, "arm", arm)
             met.insert(1, "design", design)
             met["half"] = "selection"
+            met["seed_set"] = "discovery seed 104729 only (addendum 1 item 3)"
             rows.append(met)
     return pd.concat(rows, ignore_index=True) if rows else pd.DataFrame()
 
@@ -430,7 +459,7 @@ def coverage_by_domain_status(store: Store) -> pd.DataFrame:
     parts = []
     for arm in D.FITTED_ARMS:
         dd = store.design_dir(arm, "V5", "primary")
-        for s in D.DISCOVERY_SEEDS:
+        for s in D.PLAN_SEEDS:
             fr = store.frame(arm, "V5", "primary", s)
             sup_dir = D.discovery_root(store.out_root) / "_support" / str(dd) / f"s{s}"
             if fr is None or not sup_dir.exists() or not np.isfinite(fr["lower_80"].to_numpy(dtype=float)).all():
@@ -588,16 +617,39 @@ def score(out_root: Path, attrs: pd.DataFrame, *, crossings: pd.DataFrame | None
     accounting = D.registered_family_accounting(evaluated + (["S1(c)"] if s1c_rows else []))
     contrasts = D.apply_bh(pd.DataFrame(rows), m_registered_full=accounting["m_full"]) if rows else pd.DataFrame()
     cands = D.freezing_candidates(results, state)
+    learned_keys = sorted(k for k, r in results.items() if r.get("learned_arm"))
+    addendum = {
+        "addendum": D.N_ADDENDA_EXPECTED,
+        "label": "POST-HOC addendum 1 (below the sealed footer, 2026-09-15): the compute-driven reduction",
+        "seeds_run_in_discovery": list(D.PLAN_SEEDS),
+        "r19_item_4": {"status_in_discovery": D.ITEM4_NOT_EVALUATED, "detail": D.ITEM4_NOT_EVALUATED_DETAIL,
+                       "contrasts": learned_keys},
+        "sensitivity_set": {"label": D.ADDENDUM_LABEL,
+                            "refits_run_for_a_learned_arm": list(D.LEARNED_REFIT_VARIANTS),
+                            "not_run_by_design": {d: sorted(v) for d, v in D.LEARNED_REFITS_NOT_RUN.items()},
+                            "reasons": D.LEARNED_REFITS_NOT_RUN,
+                            "closed_form_arms": "keep the full registered sensitivity set"},
+        "v5pair": D.READINGS["addendum1_v5pair"], "inner_design": D.READINGS["addendum1_inner_design"],
+        "comparator_intervals": D.READINGS["comparator_intervals"],
+        "unchanged": ("designs, folds, halves, hiding and guards; the V6 carve-out; metrics and averaging units; "
+                      "comparators; margins; S1, S2 and F1-F6; R19 items 1-3 and 5; the stop rule; the grids of "
+                      "sections 5 and 6; confirmation on the withheld seeds")}
     decisions = {
         "schema": D.SCHEMA, "label": "discovery, selection half, optimistically biased; decisions on seed 104729",
-        "delta5": d5, "stop_rule": stop, "ladder": lad,
+        "addendum_1": addendum, "delta5": d5, "stop_rule": stop, "ladder": lad,
         "S1_components": {**D.s1ab_components(results, state), "S1c_selection": s1c},
         "heavy_v5_batching_label": state.heavy_v5_label, "freezing_candidates": cands,
         "power_check": D.power_check_plan(results), "plan_state": state.record(), "readings": D.READINGS,
         "not_run": {"M3+": D.NOT_IMPLEMENTED, "V0": D.READINGS["selection_half_only"],
                     "confirmation": "the confirmation half and V6 are never read by discovery",
                     "registered_family": [c for c in accounting["contrasts"] if c["status"] != "evaluated"],
-                    "uncertainty_metrics": D.UNCERTAINTY_NOT_RUN},
+                    "uncertainty_metrics": D.UNCERTAINTY_NOT_RUN,
+                    "addendum_1": {"discovery_seeds": [s for s in D.DISCOVERY_SEEDS if s not in D.PLAN_SEEDS],
+                                   "r19_item_4": D.ITEM4_NOT_EVALUATED_DETAIL,
+                                   "sensitivities": {d: sorted(v) for d, v in D.LEARNED_REFITS_NOT_RUN.items()},
+                                   "v5p_heavy_arm_runs": "addendum 1 item 4: not run",
+                                   "comparator_interval_jobs": "addendum 1 item 3: not run (seed 104729 pre-seal "
+                                                               "intervals are used)"}},
         "registered_family_accounting": accounting,
         "record_sets": store.record_sets, "prereg_gate": None if prereg is None else dict(prereg),
         "available_contrasts": sorted(results), "n_registered_contrasts": sum(r["family"] in D.REGISTERED_FAMILIES
@@ -614,9 +666,16 @@ def contrasts_markdown(con: pd.DataFrame, decisions: Mapping[str, Any]) -> str:
              "macro MAE (positive favours the candidate), seed 104729, primary cluster unit; verdict columns are the R19 "
              "scopes of `gen19ct.evaluation.discovery.SCOPES`. The confirmation half and V6 were not read.", "",
              f"Stop rule (section 7 item 4): stop = {decisions['stop_rule']['stop']}.", "",
+             "POST-HOC addendum 1: discovery runs seed 104729 only, so **R19 item 4 is NOT_EVALUATED** for every "
+             "learned-arm contrast (column `r19 item 4`) and the full R19 verdict of such a contrast is at best "
+             "UNDECIDED; the stop-rule, ladder and freezing scopes contain neither item 4 nor the refit sensitivities, "
+             "so no decision changes. Item 6 of a learned-arm contrast is the *reduced sensitivity set (addendum 1)* "
+             "(column `sensitivity set`): the V5 strict and HNO3-only refits plus every registered scoring-filter "
+             "sensitivity; the sensitivities that were not run are named in `sensitivities not run` and in "
+             "`decisions.json` -> `addendum_1`. Closed-form arms keep the full registered set.", "",
              "| family | contrast | design | Delta | margin | pct 95% | p | p_BH | p_BH (full family) | stop-rule scope | "
-             "ladder scope | full R19 | reported | batching | TOST |",
-             "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
+             "ladder scope | full R19 | r19 item 4 | sensitivity set | sensitivities not run | reported | batching | TOST |",
+             "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
 
     def cell(r, k, fmt="{}"):
         v = r.get(k)
@@ -630,10 +689,13 @@ def contrasts_markdown(con: pd.DataFrame, decisions: Mapping[str, Any]) -> str:
                          f"[{r['percentile_low']:.3f}, {r['percentile_high']:.3f}] | {r['p_two_sided']:.4f} | "
                          f"{cell(r, 'p_bh', '{:.4f}')} | {cell(r, 'p_bh_full_family', '{:.4f}')} | "
                          f"{cell(r, 'verdict_stop_rule')} | {cell(r, 'verdict_ladder')} | {cell(r, 'r19_verdict_full')} | "
+                         f"{cell(r, 'r19_item4')} | {cell(r, 'sensitivity_set')} | {cell(r, 'sensitivities_not_run')} | "
                          f"{cell(r, 'reported_verdict')} | {cell(r, 'batching_label')} | {cell(r, 'tost_verdict_eps0.05')} |")
     acc = decisions.get("registered_family_accounting") or {}
     if acc:
-        lines += ["", f"Registered discovery family (section 19): m = {acc['m_full']}, evaluated {acc['m_evaluated']}; "
+        lines += ["", f"Registered family (section 19, addendum 1 reading 6(f)): m = {acc['m_full']} "
+                      f"({acc.get('m_discovery')} discovery contrasts + {len(acc.get('confirmation_only') or [])} "
+                      f"confirmation-only S2 contrasts entered as p = 1), evaluated {acc['m_evaluated']}; "
                       "p_BH is over the contrasts evaluated, p_BH (full family) counts every registered contrast, a "
                       "contrast not run entering as p = 1. Adjusted p is shown, never used."]
     if decisions.get("S1_components", {}).get("S1_forced_undecided"):
@@ -650,10 +712,10 @@ def summary_markdown(summ: pd.DataFrame) -> str:
         return "\n".join(lines + ["No discovery predictions yet."]) + "\n"
     s = summ[(summ["metric"] == "mae") & (summ["aggregation"] == "unit_macro") & (summ["stratum"] == "all")
              & (summ["scoring_filter"] == "none") & (summ["status"] == "registered")]
-    lines += ["| arm | design | variant | " + " | ".join(f"s{x}" for x in D.DISCOVERY_SEEDS) + " |",
-              "|---|---|---|" + "---|" * len(D.DISCOVERY_SEEDS)]
+    lines += ["| arm | design | variant | " + " | ".join(f"s{x}" for x in D.PLAN_SEEDS) + " |",
+              "|---|---|---|" + "---|" * len(D.PLAN_SEEDS)]
     for (arm, design, variant), g in s.groupby(["arm", "design", "variant"], sort=True):
-        vals = [g.loc[g["seed"] == sd, "value"] for sd in D.DISCOVERY_SEEDS]
+        vals = [g.loc[g["seed"] == sd, "value"] for sd in D.PLAN_SEEDS]
         lines.append(f"| {arm} | {design} | {variant} | " + " | ".join(f"{v.iloc[0]:.3f}" if len(v) else "" for v in vals)
                      + " |")
     return "\n".join(lines) + "\n"
@@ -663,10 +725,13 @@ def main(argv=None, *, check=None, digests=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--out-root", default=str(paths.G19_ROOT))
     ap.add_argument("--no-pairs", action="store_true", help="skip the V5-PAIR / S1(c) block")
+    ap.add_argument("--expect-addenda", type=int, default=None,
+                    help=f"POST-HOC addenda expected below the sealed footer (default {D.N_ADDENDA_EXPECTED}, the "
+                         "addendum this code implements); scoring is refused on any other count")
     ap.add_argument("--no-manifest", action="store_true")
     ns = ap.parse_args(argv)
     out_root = Path(ns.out_root)
-    prereg = _runner_module().refuse_unless_sealed(check, digests)
+    prereg = _runner_module().refuse_unless_sealed(check, digests, expect_addenda=ns.expect_addenda)
     log("row attributes")
     attrs = build_attrs()
     with (Run(NAME, args=vars(ns), extra={"readings": D.READINGS, "prereg_gate": prereg})

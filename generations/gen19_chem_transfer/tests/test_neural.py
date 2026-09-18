@@ -18,6 +18,7 @@ from gen19ct.chemistry import support_graph as SG
 from gen19ct.data import load as LOAD
 from gen19ct.folds import io as FI
 from gen19ct.models import features as F
+from gen19ct.models import inner_design as ID
 from gen19ct.models import interface as I
 from gen19ct.models import neural as NN
 
@@ -400,6 +401,71 @@ def test_splits_from_folds_and_tuning_end_to_end(frame):
     assert ep0 == int(only1.loc[only1["config"] == cfg0.label(), "best_epoch"].iloc[0])
     with pytest.raises(ValueError):
         NN.select_excluding_folds(rec["scores"], rec["fits"], rec["sue"], (0, 1))
+
+
+def test_simultaneous_v5_splits_fold_mean_selection_and_m2_keeps_m1_values():
+    """Addendum 1 items 1-2 through the neural tuner: the V5 validation splits are the simultaneous inner cells (one per
+    inner fold, every cell of the fold absent from the split's training rows, isolation check on each), the selection
+    score is the mean over the three folds of the fold's unit-macro MAE, the cross-fitted re-selection of M2 keeps the
+    outer fold's M1 values (reading 6(d)), the refit epoch count is the median over the three fits."""
+    fr = synthetic_frame(seed=2, rows_per_cell=12)
+    first_sys = next(iter(SYSTEMS))
+    outer = fr[~((fr[SG.METAL_COL] == "Eu(III)") & (fr[SG.SYSTEM_COL] == first_sys))]
+    calls = []
+
+    def guard(tr, te):
+        calls.append((pd.Index(tr), pd.Index(te)))
+        return {"ok": True}
+    c = I.FitContext(seed=104729, v6_mask=pd.Series(False, index=fr.index), isolation_check=guard)
+    design = ID.SimultaneousInnerCells(8, 1, 3, 3, 6)
+    vs = NN.simultaneous_v5_splits(outer, c, design=design)
+    assert [sp.inner_fold for sp in vs] == [0, 1, 2] and len(calls) == 3
+    table = I.RowTable(outer)
+    inner = design.splits(table, np.ones(table.n, bool), c)
+    for sp, isp in zip(vs, inner):
+        cells = {tuple(x) for x in isp.meta["cells"]}
+        tr = outer.loc[sp.train_index]
+        assert not any(((tr[SG.METAL_COL] == a) & (tr[SG.SYSTEM_COL] == b)).any() for a, b in cells)
+        va = outer.loc[sp.valid_index]
+        assert set(zip(va[SG.METAL_COL], va[SG.SYSTEM_COL])) == {tuple(x) for x in isp.meta["scored_cells"]}
+        assert len(set(sp.valid_units)) == len(isp.meta["scored_cells"]) and sp.guard.startswith("interface_inner_design")
+        assert not len(sp.train_index.intersection(sp.hidden_index)) and sp.valid_index.isin(sp.hidden_index).all()
+    # every split passed the isolation check before it was returned (training rows vs calibration rows)
+    for (tr, te), sp in zip(calls, vs):
+        assert set(tr) == set(sp.train_index) and set(te) == set(sp.valid_index)
+    with pytest.raises(ValueError, match="isolation_check"):
+        NN.simultaneous_v5_splits(outer, I.FitContext(seed=104729, v6_mask=pd.Series(False, index=fr.index)), design=design)
+    configs = [NN.NeuralConfig(4, 1e-2), NN.NeuralConfig(8, 1e-4)]
+    res = NN.tune(outer, vs, configs, model_seed=NN.registered_model_seed(0), patience=2, max_epochs=6)
+    assert len(res.fits) == 3 * len(configs) and (res.scores["n_inner_folds"] == 3).all()
+    ue = res.split_unit_errors
+    agg = ue.groupby(["config", "inner_fold", "unit"])[["n_rows", "sum_abs_error"]].sum()
+    per_fold = (agg["sum_abs_error"] / agg["n_rows"]).groupby(level=["config", "inner_fold"]).mean()
+    for cfg in configs:
+        want = per_fold.loc[cfg.label()].mean()
+        got = float(res.scores.loc[res.scores["config"] == cfg.label(), "inner_macro_mae"].iloc[0])
+        assert got == pytest.approx(want)
+        rows = res.fold_scores[res.fold_scores["config"] == cfg.label()]
+        assert sorted(rows["inner_fold"]) == [0, 1, 2] and rows["macro_mae"].mean() == pytest.approx(want)
+        fits = res.fits[res.fits["config"] == cfg.label()]
+        assert sorted(fits["inner_fold"]) == [0, 1, 2]
+    assert res.n_epochs == NN.median_epochs(res.fits.loc[res.fits["config"] == res.selected.label(), "best_epoch"].tolist())
+    # M2 on the same splits with the retained M1 values; its cross-fitted re-selection keeps them for every excluded fold
+    m2 = NN.tune_m2(outer, vs, res.selected, fold_index=0, patience=2, max_epochs=4)
+    assert set(m2.scores["rank"]) == {2, 4, 8} and (m2.scores["emb_dim"] == res.selected.emb_dim).all()
+    rec = {"scores": m2.scores.to_dict(orient="records"), "fits": m2.fits.to_dict(orient="records"),
+           "sue": m2.split_unit_errors.to_dict(orient="records")}
+    for j in (0, 1, 2):
+        cfg, epochs, info = NN.select_excluding_folds(rec["scores"], rec["fits"], rec["sue"], (j,))
+        assert cfg.emb_dim == res.selected.emb_dim and cfg.weight_decay == res.selected.weight_decay
+        assert cfg.rank in (2, 4, 8) and info["inner_folds_used"] == sorted({0, 1, 2} - {j})
+        others = m2.fits[(m2.fits["config"] == cfg.label()) & (m2.fits["inner_fold"] != j)]["best_epoch"]
+        assert len(others) == 2 and epochs == NN.median_epochs(others.tolist())
+    # splits_from_inner_splits refuses a split without row units
+    bare = I.InnerSplit(unit="x", fold=0, train_mask=inner[0].train_mask, cal_positions=inner[0].cal_positions,
+                        hidden_positions=inner[0].hidden_positions)
+    with pytest.raises(ValueError, match="row_units"):
+        NN.splits_from_inner_splits(outer, table, [bare])
 
 
 def test_conformal_wrapper_fast_path_fills_intervals(frame):
