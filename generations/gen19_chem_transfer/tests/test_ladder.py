@@ -982,3 +982,74 @@ def test_fit_record_flags_an_inactive_hinge(frame):
     assert rec2["hinge_active"] is True and rec2["smoothness_active"] is True and "L_hinge" in rec2["loss_terms_last_batch"]
     assert LAD.LadderArm(_cfg("M2"), n_epochs=1, model_seed=3, rows=frame).fit(frame.drop(index=hidden)).component_activity() == \
         {"hinge_active": None, "smoothness_active": None}
+
+
+# ---- POST-HOC addendum 2, "2. Ladder M3-M7" > "Budget": the ladder's own 40 h ledger -------------------------------- #
+
+def test_ladder_budget_is_its_own_40h_ledger_and_the_discovery_clock_does_not_count(tmp_path):
+    """Addendum 2: 'the ladder has its own budget of 40 h of wall clock (evaluation/ladder/decisions/wall_clock.json),
+    checked before each step; the demotion order M7 -> M6 -> M5 -> M4 -> M3 and every other rule of section 7 items 3-6
+    are unchanged; the discovery ledger stays as registered for the discovery stages.'"""
+    out = tmp_path / "out"
+    assert RL.LADDER_BUDGET_HOURS == 40.0 and RL.BUDGET_HOURS == 40.0 and RL.DISCOVERY_BUDGET_HOURS == D.BUDGET_HOURS == 60.0
+    assert RL.DEMOTION_ORDER == D.DEMOTION_ORDER == ("M7", "M6", "M5", "M4", "M3")
+    assert RL.demote_from("M3") == ["M7", "M6", "M5", "M4", "M3"] and RL.demote_from("M7") == ["M7"]
+    assert "addendum 2" in RL.READINGS["budget"] and "40 h" in RL.READINGS["budget"] and "never added" in RL.READINGS["budget"]
+    # a discovery ledger of 57 h (the two registered fallbacks fired) counts for nothing in the ladder budget
+    RD.record_wall_clock(out, "2026-09-16T00:00:00+00:00", 57 * 3600.0, ["01_B6", "05_M2"])
+    assert RD.wall_clock_total(out) == pytest.approx(57 * 3600.0)
+    assert RL.budget_used_seconds(out) == 0.0 and RL.ladder_wall_clock_total(out) == 0.0
+    RL.record_ladder_wall_clock(out, "2026-09-20T00:00:00+00:00", 3600.0, ["M3"])
+    body = json.loads(RL.ladder_wall_clock_path(out).read_text(encoding="utf-8"))
+    assert body["ladder_hours"] == 1.0 and body["discovery_hours_not_counted"] == 57.0 and body["budget_hours"] == 40.0
+    b = body["budget"]
+    assert b["budget_hours"] == 40.0 and b["used_hours"] == 1.0 and b["remaining_hours"] == 39.0 and not b["exhausted"]
+    assert b["discovery_hours_not_counted"] == 57.0 and b["discovery_budget_hours_unchanged"] == 60.0
+    assert b["demotion_order"] == ["M7", "M6", "M5", "M4", "M3"] and "addendum 2" in b["note"] and "addendum 2" in body["reading"]
+    assert RL.budget_used_seconds(out) == pytest.approx(3600.0)
+    # the same invocation re-recorded replaces its entry; another invocation adds
+    RL.record_ladder_wall_clock(out, "2026-09-20T00:00:00+00:00", 7200.0, ["M3", "M4"])
+    assert RL.budget_used_seconds(out) == pytest.approx(7200.0)
+    RL.record_ladder_wall_clock(out, "2026-09-21T00:00:00+00:00", 38 * 3600.0, ["M5"])
+    assert RL.budget_used_seconds(out) == pytest.approx(40 * 3600.0)
+    body = json.loads(RL.ladder_wall_clock_path(out).read_text(encoding="utf-8"))
+    assert body["budget"]["exhausted"] and body["budget"]["used_hours"] == 40.0 and body["budget"]["demoted_now"] == ["M7", "M6", "M5", "M4", "M3"]
+    # the arithmetic in one place: 39.99 h is not exhausted, 40 h is; the discovery hours never enter
+    assert not RL.ladder_budget_status(39.99 * 3600.0, 57 * 3600.0)["exhausted"]
+    assert RL.ladder_budget_status(40 * 3600.0)["exhausted"] and RL.ladder_budget_status(40 * 3600.0)["discovery_hours_not_counted"] is None
+    assert RL.ladder_budget_status(0.0, 59.9 * 3600.0)["remaining_hours"] == 40.0
+
+
+def test_run_ladder_checks_its_own_ledger_before_each_step_and_ignores_the_discovery_clock(tmp_path, monkeypatch):
+    """A 57 h discovery run does not demote M3 (addendum 2); a 40 h ladder ledger demotes M3-M7 before the first step in
+    the registered order with the addendum-2 note."""
+    monkeypatch.setattr(RL, "run_step_jobs", lambda jobs, *a, **k: {"jobs": {j.key: {"complete": True} for j in jobs},
+                                                                    "stopped": None})
+    monkeypatch.setattr(RL, "component_activity", lambda *a, **k: {"hinge": {"n_configured": 0, "n_active": 0},
+                                                                   "smoothness": {"n_configured": 0, "n_active": 0}})
+    gate = {"stop_rule": {"stop": False}, "discovery_ladder": {"M1": True, "M2": True}}
+    corpus = SimpleNamespace(fittable=lambda job: [])
+    codes = {"own": "o", "discovery": "d", "combined": "c"}
+    out = tmp_path / "out"
+    RD.record_wall_clock(out, "2026-09-16T00:00:00+00:00", 57 * 3600.0, ["01_B6"])            # 57 h of discovery
+    store = _FakeStore(_m2_m3_frames(np.random.default_rng(5)))
+    ledger = RL.run_ladder(corpus, out, _plan_state(), codes, gate, steps=("point", "intervals"), workers=1,
+                           store_factory=lambda ls: store, delta5=0.1, with_h5=False, only="M3")
+    assert ledger["stopped"] is None and ledger["budget"] is None
+    assert ledger["steps"] == [{"step": "M3", "kept": True, "status": "kept"}]
+    lstate = RL.LadderState.read(RL.ladder_state_path(out))
+    assert lstate.demoted == [] and lstate.steps["M3"]["status"] == "kept"
+    wc = json.loads(RL.ladder_wall_clock_path(out).read_text(encoding="utf-8"))
+    assert wc["discovery_hours_not_counted"] == 57.0 and wc["budget"]["budget_hours"] == 40.0 and not wc["budget"]["exhausted"]
+    # the ladder's own ledger at 40 h: everything not yet run is demoted before the first step
+    out2 = tmp_path / "out2"
+    RL.record_ladder_wall_clock(out2, "2026-09-19T00:00:00+00:00", 40 * 3600.0, [])
+    ledger2 = RL.run_ladder(corpus, out2, _plan_state(), codes, gate, steps=("point", "intervals"), workers=1,
+                            store_factory=lambda ls: store, delta5=0.1, with_h5=False)
+    assert ledger2["budget"]["exhausted_before"] == "M3" and ledger2["budget"]["demoted"] == ["M7", "M6", "M5", "M4", "M3"]
+    assert ledger2["budget"]["budget_hours"] == 40.0 and ledger2["budget"]["used_hours"] >= 40.0 and ledger2["steps"] == []
+    lstate2 = RL.LadderState.read(RL.ladder_state_path(out2))
+    assert lstate2.demoted == ["M7", "M6", "M5", "M4", "M3"]
+    for s in ("M3", "M4", "M5", "M6", "M7"):
+        assert lstate2.steps[s]["status"] == "demoted" and "addendum 2" in lstate2.steps[s]["note"] and "40 h" in lstate2.steps[s]["note"]
+    assert "demoted" in RL.STATUS_SKIPPED

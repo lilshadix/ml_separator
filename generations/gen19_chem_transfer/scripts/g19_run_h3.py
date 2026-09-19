@@ -28,8 +28,21 @@ else M2 / B6 by the stop rule, else B3i; ``h3.deployed_configuration``) plus B6 
 * the Ln(III) scored rows of the V5-primary, V2 and V1 selection folds are scored, and the deltas (macro MAE under R19,
   rank accuracy, calibration, logSF MAE on V5-PAIR Ln-Ln pairs) are written with the section 8 paired cluster bootstrap;
 * the section 11 verdicts, the F4 failure condition and the descriptive negative-transfer tables follow;
+* **POST-HOC addendum 2 item 4** -- section 11's last bullet, "the WITH arm re-run with a shared-only metal embedding (no
+  ``e_series``, ``e_ox``) against the full section 15 embedding": the deployed arm is refitted with
+  ``models.shared_only`` (``h3.FrozenSharedOnly``: the WITH record's SELECTED hyperparameters, stopping count and model
+  seed, the WITH training rows, the cross-fitted calibration) ONLY when ``h3.shared_only_condition`` holds on the deployed
+  arm's verdict -- section 11's "run if WITHOUT is better, point estimate or passed": ``hurts == true`` (WITHOUT passes
+  R19 on the freezing-screen scope against WITH on the V5 Ln cells) OR ``v5_without_vs_with_point > 0`` (the reversed V5
+  contrast's Delta macro MAE, MAE(WITH) - MAE(WITHOUT)).  Its records live under ``evaluation/h3/records/<arm>/SHARED_ONLY``,
+  its contrasts (Delta = MAE(shared-only) - MAE(WITH), exploratory BH family) under ``evaluation/h3/shared_only/``, and D03
+  says ``not run (condition not met)`` otherwise;
 * ``decisions/D03_actinide_transfer.md`` is generated from those files (brief section 29 format, "not computed" where a
   quantity is absent).
+
+Digest registry (addendum 2 item 5): the seal gate and the discovery code digest prefer ``manifests/digest_registry.json``
+(``gen19ct.evaluation.registry``, stage ``h3``) when it exists and fall back to the constants of ``evaluation.discovery``
+otherwise, so nothing changes until the registry is created.
 
 Outputs (new directories only): ``evaluation/h3/`` (records, contrasts, deltas, per-unit deltas, summary, verdicts, F4,
 negative_transfer/), ``tables/h3_*.csv`` and ``decisions/D03_actinide_transfer.md``.  Every run is wrapped in
@@ -63,17 +76,23 @@ from gen19ct.chemistry import support_graph as SG  # noqa: E402
 from gen19ct.evaluation import discovery as D  # noqa: E402
 from gen19ct.evaluation import h3 as H3  # noqa: E402
 from gen19ct.evaluation import metrics as EM  # noqa: E402
+from gen19ct.evaluation import registry as REG  # noqa: E402
 from gen19ct.evaluation import transfer as ET  # noqa: E402
 from gen19ct.folds import io as FI  # noqa: E402
 from gen19ct.manifest import Run, git_head, write_csv, write_json, write_text  # noqa: E402
 from gen19ct.models import interface as I  # noqa: E402
 
 NAME = "g19_run_h3"
+#: the registry stage of this runner (addendum 2 item 5)
+STAGE = "h3"
 #: the files whose content changes an H3 prediction, beyond the discovery code digest every record already carries
-CODE_FILES: tuple[Path, ...] = (paths.G19_ROOT / "gen19ct" / "evaluation" / "h3.py", Path(__file__).resolve())
+#: (``models/shared_only.py``: the shared-only embedding of addendum 2 item 4)
+CODE_FILES: tuple[Path, ...] = (paths.G19_ROOT / "gen19ct" / "evaluation" / "h3.py",
+                                paths.G19_ROOT / "gen19ct" / "models" / "shared_only.py", Path(__file__).resolve())
 CODE_OBJECTS: tuple[Any, ...] = (H3.FrozenNeural, H3.FrozenBoosted, H3.FrozenB6, H3.FrozenComparator,
                                  H3.transformed_frame, H3.without_mask, H3.selected_hyperparameters,
-                                 H3.b6_cross_fit_configs, H3.fold_digest, H3.ln_rows)
+                                 H3.b6_cross_fit_configs, H3.fold_digest, H3.ln_rows, H3.FrozenSharedOnly,
+                                 H3.shared_only_job, H3.shared_only_condition)
 
 
 def log(msg: str) -> None:
@@ -117,9 +136,12 @@ def refuse_unless_ready(out_root: Path, *, check: Callable[[], int] | None = Non
     """The four gates of the module docstring; raises ``SystemExit`` with what is missing.  ``require_ladder=False`` is
     for tests of the earlier gates only: the runner always requires the ladder."""
     rd = runner_module()
-    prereg = rd.refuse_unless_sealed(check, digests, expect_addenda=expect_addenda)
+    # addendum 2 item 5: the registry's expectations for stage 'h3' when manifests/digest_registry.json exists, the
+    # constants (g19_run_discovery.refuse_unless_sealed) otherwise; likewise the code digest discovery records are
+    # verified with (the registry's discovery entry, else the live current_code_digest())
+    prereg = REG.refuse_unless_sealed(STAGE, check, digests, expect_addenda=expect_addenda)
     st = state if state is not None else D.PlanState.read(rd.plan_state_path(out_root))
-    code = discovery_code if discovery_code is not None else rd.current_code_digest()
+    code = discovery_code if discovery_code is not None else REG.discovery_code_digest()
     done = H3.discovery_complete(out_root, code=code, state=st, excluded_ids=excluded_ids, folds_dir=folds_dir,
                                  runners=runners, jobs=jobs)
     if not done["complete"]:
@@ -206,6 +228,21 @@ def plan_jobs(model_arms: Sequence[str], state: D.PlanState, *, designs: Sequenc
     return out
 
 
+def shared_only_plan(deployed_arm: str, state: D.PlanState, *, designs: Sequence[str] = tuple(H3.DESIGNS),
+                     seed: int = D.PRIMARY_SEED) -> list[dict[str, Any]]:
+    """Addendum 2 item 4: one entry per design of the deployed arm's shared-only re-run (``transform`` SHARED_ONLY); empty
+    when the deployed arm has no metal embedding.  Never the pair design (section 11 names the Ln test set only)."""
+    arm = D.ARM_ALIASES.get(deployed_arm, deployed_arm)
+    if not H3.shared_only_applicable(arm):
+        return []
+    out = []
+    for design in designs:
+        base = H3.with_job(arm, design, state, seed=seed)
+        out.append({"model_arm": arm, "transform": H3.SHARED_ONLY, "design": design, "with_job": base,
+                    "job": H3.shared_only_job(base, arm)})
+    return out
+
+
 def filter_plan(plan: Sequence[Mapping[str, Any]], only: str | None) -> list[dict[str, Any]]:
     if not only:
         return list(plan)
@@ -274,7 +311,7 @@ def fold_context(entry: Mapping[str, Any], fold: FI.Fold, ordinal: int, corpus: 
     fc, info = rd.prepare_fold(job, fold, ordinal, corpus, out_root, state, code=code, **kw)
     info = dict(info)
     info["transform"] = transform
-    if transform == "WITH":
+    if transform in ("WITH", H3.SHARED_ONLY):                   # the shared-only re-run trains on the WITH rows unchanged
         return fc, info
     if transform == "WITHOUT":
         mask, n_dropped = H3.without_mask(corpus.frame, fc.mask)
@@ -320,7 +357,8 @@ def run_fold(entry: Mapping[str, Any], fold: FI.Fold, ordinal: int, corpus: Any,
     t0 = time.perf_counter()
     fc, info = fold_context(entry, fold, ordinal, corpus, out_root, state, code=code, guard_fn=guard_fn,
                             inner_check=inner_check)
-    runner = H3.frozen_runner(arm)
+    # addendum 2 item 4: the shared-only re-run is its own frozen arm (the WITH record's selections, zero offsets)
+    runner = H3.shared_only_runner(arm) if transform == H3.SHARED_ONLY else H3.frozen_runner(arm)
     outputs = runner.point(fc, wrec)
     if len(outputs) != 1:
         raise AssertionError(f"{job.key}: an H3 runner writes exactly one arm, got {sorted(outputs)}")
@@ -337,8 +375,10 @@ def run_fold(entry: Mapping[str, Any], fold: FI.Fold, ordinal: int, corpus: Any,
            "digest": digest, "code_digest": code, "fold_ordinal": ordinal, "model_seed": o.model_seed,
            "selected_config": o.selected_config, "with_record_digest": None if wrec is None else wrec.get("digest"),
            "with_selected_config": None if wrec is None else wrec.get("selected_config"),
-           "prereg_sha256": D.REGISTERED_PREREG_SHA256, "prereg_addenda_sha256": D.REGISTERED_ADDENDA_SHA256,
+           "prereg_sha256": D.REGISTERED_PREREG_SHA256, "prereg_addenda_sha256": REG.below_footer_sha256(STAGE),
+           "prereg_n_addenda": REG.addenda_count(STAGE), "registry_stage": STAGE,
            "prereg_gate": dict(prereg) if prereg else None, "arm_record": o.record, "readings": H3.READINGS["tuning"],
+           "shared_only": transform == H3.SHARED_ONLY,
            **info,
            "steps": {"point": {"seconds": round(o.seconds, 3), "peak_rss_bytes": D.peak_rss_bytes(),
                                "date_utc": _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")}}}
@@ -354,9 +394,13 @@ def run_fold(entry: Mapping[str, Any], fold: FI.Fold, ordinal: int, corpus: Any,
                                          "plan": cplan, "n_calibration": 0,
                                          "method": "not calibrated (discovery.calibration_folds)"}
         else:
+            import contextlib
+
             from gen19ct.models import ladder as LAD
 
-            cal.fit_table(fc.corpus.table, fc.mask, fc.ctx)
+            # a runner may need its fits wrapped (the shared-only ladder re-run builds LadderNet by name)
+            with getattr(runner, "training_context", contextlib.nullcontext)():
+                cal.fit_table(fc.corpus.table, fc.mask, fc.ctx)
             if isinstance(cal, LAD.NormalisedCrossFitConformal):
                 frame = LAD.attach_normalised_intervals(frame, cal.quantiles, len(cal.residuals))
                 method = "models.ladder.NormalisedCrossFitConformal (section 12 normalised split conformal, inner folds)"
@@ -474,8 +518,11 @@ class Frames:
             fr = self._scoring(pred, design, f"WITH/{arm}/{design}")
         else:
             job = entry["with_job"]
+            # the code digest of the WITH record set's own registry stage (registry.record_dir_code; the discovery
+            # entry for every deployed arm's main-design and V5-PAIR records, the gate's digest without a registry)
+            wcode = REG.record_dir_code(self.out_root, arm, job.design_dir, int(job.seed), default=self.discovery_code)
             pred, st = self.rd.verified_predictions(self.out_root, arm, job.design_dir, int(job.seed),
-                                                    code=self.discovery_code, state=self.state,
+                                                    code=wcode, state=self.state,
                                                     excluded_ids=self.excluded_ids, folds_dir=self.folds_dir,
                                                     runners=self.runners)
             self.record_sets[f"WITH/{arm}/{job.design_dir}/s{job.seed}"] = st
@@ -493,7 +540,10 @@ class Frames:
                                       what=f"{arm}:{transform}@{design}")
         self.record_sets[f"{transform}/{arm}/{job.design_dir}/s{job.seed}"] = st
         fr = self._scoring(pred, design, f"{arm}:{transform}/{design}")
-        self._cache[key] = fr
+        # an ABSENT record set is not cached: the same Frames scores again after ``main`` fits the shared-only
+        # records in the same invocation (task X verifier finding 1), so absence must be re-read from disk
+        if fr is not None:
+            self._cache[key] = fr
         return fr
 
     def kw(self, arm: str, design: str) -> dict[str, Any]:
@@ -556,6 +606,8 @@ def score(out_root: Path, attrs: pd.DataFrame, corpus: Any, *, deployed: Mapping
     verdicts = {arm: H3.h3_verdict(helps=results.get(arm) or {}, hurts=(hurts.get(arm) or {}).get("V5", {}))
                 for arm in arms}
     dep = D.ARM_ALIASES.get(deployed["arm"] or "", "")
+    shared = score_shared_only(fr, dep, state, delta5=delta5, designs=designs, n_resamples=n_resamples, seed=seed,
+                               verdict=verdicts.get(dep))
     f4 = H3.f4_check({d: (hurts.get(dep) or {}).get(d, {}).get("WITHOUT") for d in designs}, deployed_arm=dep,
                      trained_with_actinides=True)
     contrasts = pd.DataFrame(contrast_rows)
@@ -581,15 +633,63 @@ def score(out_root: Path, attrs: pd.DataFrame, corpus: Any, *, deployed: Mapping
                "plan_state": state.record(), "heavy_v5_batching_label": state.heavy_v5_label,
                "heavy_v5_scheme": state.heavy_v5_scheme, "heavy_v1_scheme": state.heavy_v1_scheme,
                "s1_forced_undecided": state.s1_forced_undecided,
-               "readings": H3.READINGS, "not_computed": {
+               "readings": H3.READINGS, "shared_only": {k: v for k, v in shared.items() if k != "frame"},
+               "not_computed": {
                    "crps": D.UNCERTAINTY_NOT_RUN["gaussian_crps"],
-                   "shared_only_embedding_rerun": H3.READINGS["shared_only_embedding"],
+                   "shared_only_embedding_rerun": (None if shared["status"] == "run" else
+                                                   f"{shared['status']}: {H3.READINGS['shared_only_embedding']}"),
                    "v6_deltas": "section 11: the V6 deltas are computed at confirmation only",
                    "power_check": "kappa_min comes from scripts/g19_run_power.py (section 8)"},
                "label": "discovery, optimistically biased (selection half, seed 104729)"}
     return {"contrasts": contrasts, "r19_items": pd.concat(item_rows, ignore_index=True) if item_rows else pd.DataFrame(),
             "deltas": pd.DataFrame(delta_rows), "per_unit": cells, "negative_transfer": neg,
-            "actinide_dependent": dependent, "verdicts": verdicts, "f4": f4, "summary": summary}
+            "actinide_dependent": dependent, "verdicts": verdicts, "f4": f4, "summary": summary,
+            "shared_only": shared, "frames": fr}
+
+
+def score_shared_only(fr: "Frames", deployed_arm: str, state: D.PlanState, *, delta5: float, verdict: Mapping[str, Any] | None,
+                      designs: Sequence[str] = tuple(H3.DESIGNS), n_resamples: int = ET.N_RESAMPLES,
+                      seed: int = D.PRIMARY_SEED) -> dict[str, Any]:
+    """Addendum 2 item 4: the shared-only re-run "executes only under section 11's condition that WITHOUT beats WITH;
+    otherwise D03 reports it as not run".  Evaluates :func:`h3.shared_only_condition` on the deployed arm's verdict and,
+    when met, scores whatever complete SHARED_ONLY record sets exist: Delta = MAE(shared-only) - MAE(WITH) on each
+    design's Ln set (positive favours the full section 15 embedding), exploratory BH family.  Returns the condition, the
+    status (``run`` / ``not run (condition not met)`` / ``records absent`` per design) and the labelled rows."""
+    cond = H3.shared_only_condition(verdict, deployed_arm=deployed_arm)
+    out: dict[str, Any] = {"condition": cond, "status": cond["status"], "designs": {}, "contrasts": [],
+                           "records_complete": False, "label": "exploratory: section 11 negative-transfer investigation, "
+                                                                "shared-only embedding vs the full section 15 embedding"}
+    if not cond["met"]:
+        return {**out, "frame": pd.DataFrame()}
+    arm = D.ARM_ALIASES.get(deployed_arm, deployed_arm)
+    rows: list[dict[str, Any]] = []
+    complete = True
+    for entry in shared_only_plan(arm, state, designs=designs, seed=seed):
+        design = entry["design"]
+        w = fr.with_frame(entry)
+        o = fr.h3_frame(entry)
+        if w is None or o is None:
+            out["designs"][design] = {"status": "records absent (run scripts/g19_run_h3.py; the re-run fits only when the "
+                                                "condition holds)"}
+            complete = False
+            continue
+        margin = H3.margin_of(design, delta5)
+        res = H3.h3_contrast(w, o, design=design, model_arm=arm, transform=H3.SHARED_ONLY, margin=margin,
+                             n_resamples=n_resamples, seed=seed, family=H3.SHARED_ONLY_FAMILY, **fr.kw(arm, design))
+        res["batching_label"] = D.heavy_v5_batching_label(H3.batching_arms(arm), H3._label(design), state)
+        for row in D.contrast_rows(res):
+            row.update(model_arm=arm, transform=H3.SHARED_ONLY, key=res["key"], negative_transfer_investigation=True,
+                       direction="shared-only embedding candidate; Delta = MAE(shared-only) - MAE(WITH), positive favours "
+                                 "the full section 15 embedding", condition_met=True, label=out["label"])
+            rows.append(row)
+        out["designs"][design] = {"status": "scored", "point": res["point"], "key": res["key"]}
+    out["records_complete"] = complete
+    out["status"] = "run" if complete else "condition met; records incomplete"
+    out["contrasts"] = [{k: v for k, v in r.items() if isinstance(v, (str, int, float, bool)) or v is None} for r in rows]
+    frame = pd.DataFrame(rows)
+    if not frame.empty:
+        frame = D.apply_bh(frame, registered_families=(H3.FAMILY,))
+    return {**out, "frame": frame}
 
 
 # ============================================================================================= #
@@ -620,7 +720,7 @@ def main(argv=None, *, check: Callable[[], int] | None = None, digests: Callable
     ns = parse_args(argv)
     out_root = Path(ns.out_root)
     rd = runner_module()
-    rd.refuse_unless_sealed(check, digests, expect_addenda=ns.expect_addenda)
+    REG.refuse_unless_sealed(STAGE, check, digests, expect_addenda=ns.expect_addenda)
     H3.refuse_unless_cheap_complete(out_root)                   # before any heavy load (task X finding VL2-04)
     log("coextractant ids")
     coext = rd.coextractant_ids()
@@ -662,13 +762,30 @@ def main(argv=None, *, check: Callable[[], int] | None = None, digests: Callable
         res = score(out_root, attrs, corpus, deployed=deployed, state=state, code=code["combined"],
                     discovery_code=gate["discovery_code_sha256"], delta5=delta5, with_pairs=ns.with_pairs,
                     negative_transfer=not ns.no_negative_transfer)
+        # addendum 2 item 4: the shared-only re-run fits ONLY once the condition is read from the scored verdicts
+        so = res["shared_only"]
+        if so["condition"]["met"] and not so["records_complete"] and not ns.score_only:
+            splan = filter_plan(shared_only_plan(deployed["arm"], state, seed=D.PRIMARY_SEED), ns.only)
+            log(f"section 11 condition met ({so['condition']['reason']}): shared-only re-run of {deployed['arm']} on "
+                f"{[e['design'] for e in splan]}")
+            ledger = {**ledger, "shared_only": run_plan(splan, corpus, out_root, state, code=code["combined"], steps=ns.steps,
+                                                        prereg=gate["prereg_gate"], max_hours=ns.max_hours)}
+            so = score_shared_only(res["frames"], deployed["arm"], state, delta5=delta5,
+                                   verdict=res["verdicts"].get(D.ARM_ALIASES.get(deployed["arm"], deployed["arm"])))
+            res["shared_only"] = so
+            res["summary"]["shared_only"] = {k: v for k, v in so.items() if k != "frame"}
+            res["summary"]["not_computed"]["shared_only_embedding_rerun"] = None if so["status"] == "run" else so["status"]
+        else:
+            log(f"shared-only re-run (addendum 2 item 4): {so['status']}")
         outs = write_outputs(out_root, res, ledger=ledger, gate=gate)
         if run is not None:
             run.outputs(*outs)
             run.extra.update({"ledger": H3.json_safe(ledger), "verdicts": H3.json_safe(res["verdicts"]),
                               "f4": H3.json_safe(res["f4"]), "confirmation_half_read": False,
-                              "v6_target_rows_scored": 0})
-    log(f"H3 verdicts: { {a: v['verdict'] for a, v in res['verdicts'].items()} }; F4 failure: {res['f4'].get('failure')}")
+                              "v6_target_rows_scored": 0,
+                              "shared_only": H3.json_safe({k: v for k, v in res["shared_only"].items() if k != "frame"})})
+    log(f"H3 verdicts: { {a: v['verdict'] for a, v in res['verdicts'].items()} }; F4 failure: {res['f4'].get('failure')}; "
+        f"shared-only re-run: {res['shared_only']['status']}")
     return 0
 
 
@@ -696,6 +813,13 @@ def write_outputs(out_root: Path, res: Mapping[str, Any], *, ledger: Mapping[str
     outs.append(write_json(root / "h3_summary.json", H3.json_safe(summary)))
     outs.append(write_json(root / "h3_verdicts.json", H3.json_safe(res["verdicts"])))
     outs.append(write_json(root / "h3_f4.json", H3.json_safe(res["f4"])))
+    so = res.get("shared_only")
+    if so is not None:                                      # addendum 2 item 4: the condition and status are always written
+        outs.append(write_json(root / "shared_only" / "shared_only.json", H3.json_safe({k: v for k, v in so.items() if k != "frame"})))
+        sf = so.get("frame")
+        if isinstance(sf, pd.DataFrame) and not sf.empty:
+            outs.append(write_csv(sf, root / "shared_only" / "contrasts.csv"))
+            outs.append(write_csv(sf, tables / "h3_shared_only_contrasts.csv"))
     if ledger is not None:
         outs.append(write_json(root / "h3_run_ledger.json", H3.json_safe({"ledger": ledger, "gate": gate or {}})))
     if not res["contrasts"].empty:

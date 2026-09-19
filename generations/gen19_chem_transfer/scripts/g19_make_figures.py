@@ -56,10 +56,14 @@ from gen19ct.evaluation import discovery as D  # noqa: E402
 from gen19ct.evaluation import figures as FG  # noqa: E402
 from gen19ct.evaluation import h3 as H3  # noqa: E402
 from gen19ct.evaluation import metrics as EM  # noqa: E402
+from gen19ct.evaluation import registry as REG  # noqa: E402
 from gen19ct.evaluation import transfer as ET  # noqa: E402
 from gen19ct.manifest import Run, git_head, write_csv, write_json  # noqa: E402
 
 NAME = "g19_make_figures"
+#: the registry stage of this runner (addendum 2 item 5: the seal gate and the discovery code digest prefer
+#: manifests/digest_registry.json when it exists and fall back to the constants of evaluation.discovery otherwise)
+STAGE = "figures"
 CODE_FILES: tuple[Path, ...] = (paths.G19_ROOT / "gen19ct" / "evaluation" / "figures.py", Path(__file__).resolve())
 EMBEDDINGS_DIR = "evaluation/power/embeddings"
 CONFIRMATION_DIR = "evaluation/confirmation"
@@ -107,9 +111,9 @@ def refuse_unless_ready(out_root: Path, *, check: Callable[[], int] | None = Non
     the ladder has run every step M3-M7 to a done / skipped status (``h3.ladder_complete``), because the deployed
     predictor the figures are drawn for is 'the retained ladder configuration' (task X finding V-01)."""
     rd = runner_module()
-    prereg = rd.refuse_unless_sealed(check, digests, expect_addenda=expect_addenda)
+    prereg = REG.refuse_unless_sealed(STAGE, check, digests, expect_addenda=expect_addenda)
     st = state if state is not None else D.PlanState.read(rd.plan_state_path(out_root))
-    code = discovery_code if discovery_code is not None else rd.current_code_digest()
+    code = discovery_code if discovery_code is not None else REG.discovery_code_digest()
     done = H3.discovery_complete(out_root, code=code, state=st, excluded_ids=excluded_ids, folds_dir=folds_dir,
                                  runners=runners, jobs=jobs)
     if not done["complete"]:
@@ -381,7 +385,7 @@ def main(argv=None, *, check: Callable[[], int] | None = None, digests: Callable
     ns = parse_args(argv)
     out_root = Path(ns.out_root)
     rd = runner_module()
-    rd.refuse_unless_sealed(check, digests, expect_addenda=ns.expect_addenda)
+    REG.refuse_unless_sealed(STAGE, check, digests, expect_addenda=ns.expect_addenda)
     H3.refuse_unless_cheap_complete(out_root)                   # before any heavy load (task X finding VL2-04)
     log("coextractant ids")
     coext = rd.coextractant_ids()

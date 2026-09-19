@@ -104,6 +104,7 @@ INPUTS: dict[str, str] = {
     "prereg_sha": "manifests/prereg_sha256.txt",
     "seed_commitment": "manifests/confirmation_seeds_sha256.txt",
     "dataset_hashes": "data_audit/dataset_hashes.csv",
+    "digest_registry": "manifests/digest_registry.json",
 }
 CONFIRMATION_FILES: tuple[str, ...] = ("confirmation", "confirmation_contrasts", "v6_systems", "v6_pairs", "f1_check")
 PROCESS_FILES: tuple[str, ...] = ("process_summary", "process_stability", "process_f5", "process_winners")
@@ -1602,6 +1603,35 @@ def deviations_section(L: Ledger) -> list[str]:
     return lines
 
 
+def digest_registry_lines(L: Ledger, registry: Mapping[str, Any] | None) -> list[str]:
+    """Addendum 2 item 5, "the report prints every registry entry": one line per stage (below-footer digest, code digest,
+    addenda count, git head, note) and one per logged code change, every token through the ledger; absent registry ->
+    one line saying the constants govern (nothing invented)."""
+    rel = L.rel("digest_registry")
+    if registry is None:
+        return [f"- digest registry (`{rel}`): absent -- the gate constants of `gen19ct/evaluation/discovery.py` govern "
+                "every stage (addendum 2 item 5 replaces them by the registry once it is created)"]
+    stages = registry.get("stages") or {}
+    lines = [f"- digest registry (`{rel}`, addendum 2 item 5): {L.count(len(stages), rel, 'len:stages')} stage entr"
+             f"{'y' if len(stages) == 1 else 'ies'}, {L.count(len(registry.get('code_changes') or []), rel, 'len:code_changes')} "
+             "logged code change(s); a record is verified against the entry of its stage, never against the live text or code"]
+    for stage, e in sorted(stages.items()):
+        bf, cd = str(e.get("below_footer_sha256")), str(e.get("code_digest"))
+        lines.append(f"  - stage `{stage}`: below-footer SHA-256 `{L.text(bf, rel, jpath('stages', stage, 'below_footer_sha256'))}`, "
+                     f"code digest `{L.text(cd, rel, jpath('stages', stage, 'code_digest'))}`, "
+                     f"{L.value(int(e.get('addenda_count', 0)), rel, jpath('stages', stage, 'addenda_count'), 0)} addenda, "
+                     f"git head `{e.get('git_head') or 'unknown'}`, registered {e.get('registered_utc') or 'unknown'}: "
+                     f"{e.get('note') or ''}")
+    for i, ch in enumerate(registry.get("code_changes") or []):
+        files = ", ".join(f"`{f.get('path')}`" for f in (ch.get("files") or []))
+        lines.append(f"  - code change {i + 1} (commit `{ch.get('commit') or 'uncommitted'}`, {ch.get('logged_utc') or 'undated'}): "
+                     f"{files} -- {ch.get('reason') or ''}; {ch.get('effect_on_records') or 'validates or invalidates no record'}")
+    for s in registry.get("superseded") or []:
+        lines.append(f"  - superseded entry of stage `{s.get('stage')}` ({s.get('superseded_utc') or 'undated'}): "
+                     f"{s.get('superseded_by_note') or ''}")
+    return lines
+
+
 def reproducibility_section(L: Ledger, extra: Mapping[str, Any]) -> list[str]:
     lines = ["## Reproducibility", ""]
     lines.append(f"- git HEAD at report build: `{extra.get('git_head') or 'unknown (git not available)'}`")
@@ -1610,15 +1640,28 @@ def reproducibility_section(L: Ledger, extra: Mapping[str, Any]) -> list[str]:
         lines.append(f"- sealed pre-registration SHA-256 (`{L.rel('prereg_sha')}`): `{L.text(sha, L.rel('prereg_sha'), sha)}`")
     else:
         lines.append(f"- sealed pre-registration digest: {L.missing(L.rel('prereg_sha'))}")
+    registry = L.json("digest_registry") if (L.root / INPUTS["digest_registry"]).exists() else None
     if extra.get("addenda_sha256"):
-        # the registered addenda digest is a code constant (discovery.REGISTERED_ADDENDA_SHA256, carried by every fold
-        # record) and the recomputed footer digest must equal the sealed one: each is printed only against a file that
-        # holds the literal, else the disagreement is stated without the token (task X finding VL2-01)
-        adds_src, adds_lit = "gen19ct/evaluation/discovery.py", str(extra["addenda_sha256"])
-        if literal_in_file(L.root, adds_src, adds_lit):
-            adds_txt = f"`{L.text(adds_lit, adds_src, adds_lit)}` (= `REGISTERED_ADDENDA_SHA256` in `{adds_src}`)"
+        # the live addenda digest is printed only against a file that holds the literal, else the disagreement is stated
+        # without the token (task X finding VL2-01).  Addendum 2 item 5: when manifests/digest_registry.json exists, that
+        # file is the reference (the stage entries whose below-footer digest equals the live text are named); otherwise
+        # the code constant discovery.REGISTERED_ADDENDA_SHA256 is, as before
+        adds_lit = str(extra["addenda_sha256"])
+        if registry is not None:
+            reg_src = L.rel("digest_registry")
+            stages = [s for s, e in sorted((registry.get("stages") or {}).items()) if e.get("below_footer_sha256") == adds_lit]
+            if stages and literal_in_file(L.root, reg_src, adds_lit):
+                adds_txt = (f"`{L.text(adds_lit, reg_src, adds_lit)}` (= the below-footer digest of registry stage(s) "
+                            f"{', '.join(f'`{s}`' for s in stages)} in `{reg_src}`)")
+            else:
+                adds_txt = (f"matches NO stage entry of `{reg_src}` (not printed: the live text differs from every registered "
+                            "below-footer digest; a post-discovery stage must be registered under it before its runner starts)")
         else:
-            adds_txt = f"DIFFERS from `REGISTERED_ADDENDA_SHA256` in `{adds_src}` (not printed: no file holds it)"
+            adds_src = "gen19ct/evaluation/discovery.py"
+            if literal_in_file(L.root, adds_src, adds_lit):
+                adds_txt = f"`{L.text(adds_lit, adds_src, adds_lit)}` (= `REGISTERED_ADDENDA_SHA256` in `{adds_src}`)"
+            else:
+                adds_txt = f"DIFFERS from `REGISTERED_ADDENDA_SHA256` in `{adds_src}` (not printed: no file holds it)"
         n_add = len(parse_addenda(L.path("prereg").read_text(encoding="utf-8"))) if L.exists("prereg") else None
         n_txt = (f"{L.count(n_add, L.rel('prereg'), 'addenda')} addendum heading(s) in `{L.rel('prereg')}`" if n_add is not None
                  else L.missing(L.rel("prereg")))
@@ -1629,6 +1672,7 @@ def reproducibility_section(L: Ledger, extra: Mapping[str, Any]) -> list[str]:
             rec_txt = f"DIFFERS from `{L.rel('prereg_sha')}` (not printed)"
         lines.append(f"- SHA-256 of the POST-HOC addenda text (below the footer, LF-normalised): {adds_txt}; {n_txt}; "
                      f"footer digest recomputed from the text: {rec_txt}")
+    lines += digest_registry_lines(L, registry)
     if L.exists("seed_commitment"):
         c = L.path("seed_commitment").read_text(encoding="utf-8").strip().split()[0]
         lines.append(f"- confirmation-seed commitment (`{L.rel('seed_commitment')}`): `{L.text(c, L.rel('seed_commitment'), c)}`; the seeds are "

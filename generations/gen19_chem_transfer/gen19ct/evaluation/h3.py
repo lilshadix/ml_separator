@@ -60,6 +60,7 @@ from gen19ct.chemistry import support_graph as SG
 from gen19ct.evaluation import discovery as D
 from gen19ct.evaluation import metrics as EM
 from gen19ct.evaluation import pairs as EP
+from gen19ct.evaluation import registry as REG
 from gen19ct.evaluation import transfer as ET
 from gen19ct.folds import cell_holdout as CH
 from gen19ct.folds import io as FI
@@ -95,6 +96,20 @@ STAGE = "11_h3"
 REFIT_NOT_RUN = "not run: section 11 names no refit sensitivity for the ablation; the scoring-filter sensitivities apply"
 NOT_COMPUTED = "not computed"
 STEPS = D.STEPS
+#: section 11's last bullet (addendum 2 item 4): the WITH arm re-run with a shared-only metal embedding; its records live
+#: under ``evaluation/h3/records/<arm>/SHARED_ONLY`` and its rows are labelled with this transform token
+SHARED_ONLY = "SHARED_ONLY"
+#: the BH family of the re-run's contrasts: the negative-transfer investigation is descriptive (section 11), so its rows
+#: are exploratory beside the registered H3 family
+SHARED_ONLY_FAMILY = "H3 negative-transfer investigation (shared-only embedding)"
+SHARED_ONLY_NOT_RUN = "not run (condition not met)"
+#: the arms with a section 15 metal embedding the re-run applies to (M1 / M2 and the ladder steps built on them)
+EMBEDDING_ARMS: tuple[str, ...] = ("M1", "M2") + LADDER_ARMS
+SHARED_ONLY_CONDITION = ("section 11, negative-transfer investigation: 'run if WITHOUT is better, point estimate or passed' "
+                         "-- read on the deployed arm's V5 Ln-cell contrast WITHOUT vs WITH (h3_verdicts.json): "
+                         "hurts == true (WITHOUT passes R19 on the freezing_screen scope against WITH; the 'passed' half) "
+                         "OR v5_without_vs_with_point > 0 (the reversed contrast's Delta macro MAE = MAE(WITH) - "
+                         "MAE(WITHOUT) under the primary cluster unit; the 'point estimate' half)")
 
 READINGS: dict[str, str] = {
     "deployed_rule": "the configuration deployed for lanthanide prediction ('the retained ladder configuration', section "
@@ -150,8 +165,21 @@ READINGS: dict[str, str] = {
     "equivalent": "TOST (90 % interval, epsilon 0.05, primary cluster) of WITH - WITHOUT on the V5 Ln cells",
     "helps_non_inferior": "non-inferiority on V1 / V2 is the TOST 'non_inferior' flag of WITH - WITHOUT and WITH - "
                           "ACT_PERMUTED on the V1 and V2 Ln sets",
-    "shared_only_embedding": "the WITH arm re-run with a shared-only metal embedding (no e_series, e_ox) is not "
-                             "implemented: neural.FactorisedNet has no option to disable the offsets (deferred edit)",
+    "shared_only_embedding": "POST-HOC addendum 2 item 4 ('it is implemented in a NEW module (an H3-side subclass of "
+                             "neural.FactorisedNet with the e_series and e_ox offsets held at zero; no existing file "
+                             "edited) before scripts/g19_run_h3.py runs, and executes only under section 11's condition "
+                             "that WITHOUT beats WITH; otherwise D03 reports it as not run'): the WITH arm re-run with a "
+                             "shared-only metal embedding (no e_series, e_ox) is models.shared_only (FrozenSharedOnly), "
+                             "refitted at the WITH record's SELECTED hyperparameters, stopping count and model seed with "
+                             "the cross-fitted calibration at the WITH record's selections, scored against the full "
+                             "section 15 embedding (WITH) on the V5 Ln cells and the V1 / V2 Ln sets as an exploratory "
+                             "negative-transfer contrast; it runs only when " + SHARED_ONLY_CONDITION + "; otherwise "
+                             "D03 says '" + SHARED_ONLY_NOT_RUN + "'; a deployed arm without a metal embedding (B6, B5, "
+                             "a closed-form comparator) makes it not applicable. Reading of the item's 'no existing file "
+                             "edited': no file of the DISCOVERY import closure was edited (neural.FactorisedNet has no "
+                             "switch; the zeroed offsets live in the new models/shared_only.py); the H3-side files "
+                             "evaluation/h3.py and scripts/g19_run_h3.py, outside that closure and part of no discovery "
+                             "record's digest, were extended to plan, fit, score and report the re-run",
     "crps": "CRPS is NOT_RUN: no arm has a predictive SD (discovery.UNCERTAINTY_NOT_RUN)",
 }
 
@@ -313,6 +341,61 @@ def h3_arm_name(model_arm: str, transform: str) -> str:
     return f"{D.ARM_ALIASES.get(model_arm, model_arm)}:{transform}"
 
 
+def shared_only_applicable(model_arm: str) -> bool:
+    """The re-run applies to an arm with a section 15 metal embedding (M1 / M2, a ladder step); B6, B5 and the closed-form
+    comparators have no ``e_series`` / ``e_ox`` to remove."""
+    return D.ARM_ALIASES.get(model_arm, model_arm) in EMBEDDING_ARMS
+
+
+def shared_only_job(base: D.JobSpec, model_arm: str) -> D.JobSpec:
+    """The job of the shared-only re-run of ``model_arm`` (addendum 2 item 4): the WITH job's design, scheme and seed
+    under the arm name ``<arm>:SHARED_ONLY``; the training rows are the WITH rows unchanged (no transform)."""
+    if not shared_only_applicable(model_arm):
+        raise ValueError(f"the shared-only embedding re-run applies to {EMBEDDING_ARMS}, not {model_arm!r}")
+    name = h3_arm_name(model_arm, SHARED_ONLY)
+    return replace(base, arm=name, writes=(name,), stage=STAGE, group="section 11 negative-transfer investigation",
+                   purpose=f"H3 shared-only-embedding re-run of {model_arm} (section 11 last bullet; addendum 2 item 4)")
+
+
+def shared_only_condition(verdict: Mapping[str, Any] | None, *, deployed_arm: str) -> dict[str, Any]:
+    """Addendum 2 item 4: the re-run "executes only under section 11's condition that WITHOUT beats WITH; otherwise D03
+    reports it as not run".  Section 11 states the condition as "run if WITHOUT is better, point estimate or passed", read
+    on the deployed arm's :func:`h3_verdict`: ``hurts`` (WITHOUT passes R19 on :data:`VERDICT_SCOPE` against WITH on the
+    V5 Ln cells) OR ``v5_without_vs_with_point > 0`` (the reversed V5 contrast's Delta macro MAE, MAE(WITH) -
+    MAE(WITHOUT), primary cluster unit).  A missing verdict leaves the condition undecided (not run, reason named)."""
+    arm = D.ARM_ALIASES.get(deployed_arm, deployed_arm)
+    applicable = shared_only_applicable(arm)
+    out: dict[str, Any] = {"condition": SHARED_ONLY_CONDITION, "deployed_arm": arm, "applicable": applicable,
+                           "without_passed_r19_v5": None, "v5_without_vs_with_point": None,
+                           "point_estimate_favours_without": None, "met": False, "status": SHARED_ONLY_NOT_RUN,
+                           "reading": READINGS["shared_only_embedding"]}
+    if not applicable:
+        out.update(status=f"not run (not applicable: {arm} has no section 15 metal embedding)",
+                   reason=f"{arm} has no e_series / e_ox offsets to remove")
+        return out
+    if verdict is None:
+        out.update(status="not run (condition undecided: the deployed arm's H3 verdict is absent)",
+                   reason="h3_verdict of the deployed arm missing")
+        return out
+    passed = verdict.get("hurts")
+    point = verdict.get("v5_without_vs_with_point")
+    pt = None
+    if point is not None:
+        try:
+            pt = float(point)
+        except (TypeError, ValueError):
+            pt = None
+    favours = bool(pt is not None and np.isfinite(pt) and pt > 0)
+    met = bool(passed) or favours
+    out.update(without_passed_r19_v5=None if passed is None else bool(passed), v5_without_vs_with_point=pt,
+               point_estimate_favours_without=favours if pt is not None else None, met=met,
+               status="run" if met else SHARED_ONLY_NOT_RUN,
+               reason=("WITHOUT passes R19 against WITH on the V5 Ln cells" if passed else
+                       ("the V5 point estimate favours WITHOUT" if favours else
+                        "WITHOUT neither passes R19 against WITH nor has the better V5 point estimate")))
+    return out
+
+
 def v1_scheme_of(arm: str, design: str, state: D.PlanState) -> str:
     """``metrics.v1_scoring_units`` scheme of the arm's V1 records (the scorer's ``Store.v1_scheme``)."""
     arm = D.ARM_ALIASES.get(arm, arm)
@@ -394,7 +477,7 @@ def _paired(a: pd.DataFrame, b: pd.DataFrame, what: str) -> None:
 def h3_contrast(with_fr: pd.DataFrame, other_fr: pd.DataFrame, *, design: str, model_arm: str, transform: str,
                 margin: float, v6_mask: pd.Series, v1_scheme: str = "exact",
                 remainder_groups: Iterable[str] | None = None, hurts: bool = False, seed: int = D.PRIMARY_SEED,
-                n_resamples: int = ET.N_RESAMPLES) -> dict[str, Any]:
+                n_resamples: int = ET.N_RESAMPLES, family: str = FAMILY) -> dict[str, Any]:
     """R19 of WITH vs the transform (``hurts=False``: Delta = MAE(transform) - MAE(WITH), positive favours WITH) or of
     the transform vs WITH (``hurts=True``) on the design's Ln test set, through ``discovery.evaluate_contrast``: the
     section 8 paired cluster bootstrap under every registered cluster unit, R19 items 1-6 (item 4 NOT_EVALUATED for a
@@ -427,7 +510,7 @@ def h3_contrast(with_fr: pd.DataFrame, other_fr: pd.DataFrame, *, design: str, m
     for n in not_run:
         sens[n] = ET.UNTESTABLE
     det = is_deterministic(model_arm)
-    res = D.evaluate_contrast(name=f"{cand_name} vs {comp_name}", family=FAMILY, design=label, primary=pu, margin=margin,
+    res = D.evaluate_contrast(name=f"{cand_name} vs {comp_name}", family=family, design=label, primary=pu, margin=margin,
                               seed_deltas={int(seed): pu.delta}, sensitivities=sens, deterministic=det, learned=not det,
                               reduced_sensitivities=reduced if not det else None, n_resamples=n_resamples)
     res.update({"model_arm": D.ARM_ALIASES.get(model_arm, model_arm), "transform": transform,
@@ -661,8 +744,13 @@ def h3_verdict(*, helps: Mapping[str, Mapping[str, Mapping[str, Any]]], hurts: M
         verdict = "UNDECIDED"
     inputs_missing = [k for k, v in (("V5 WITH vs WITHOUT", h_wo), ("V5 WITH vs ACT_PERMUTED", h_pm),
                                      ("V5 WITHOUT vs WITH", hurts_wo)) if v is None]
+    rev = hurts.get("WITHOUT")
+    rev_point = None if rev is None or rev.get("point") is None else float(rev["point"])
     return {"verdict": verdict, "helps": helps_ok, "hurts": bool(hurts_wo), "equivalent": equivalent,
             "v5_with_beats_without": h_wo, "v5_with_beats_permuted": h_pm, "v1_v2_non_inferior": ni,
+            # the reversed V5 contrast's point estimate (MAE(WITH) - MAE(WITHOUT), primary cluster unit): with ``hurts``
+            # it is the section 11 condition of the negative-transfer investigation (addendum 2 item 4)
+            "v5_without_vs_with_point": rev_point,
             "tost_v5_with_minus_without": None if tost is None else {k: tost[k] for k in ("verdict", "low_90", "high_90",
                                                                                           "equivalent", "non_inferior")},
             "kappa_min": kappa_min, "kappa_status": kappa_status if verdict == "UNDECIDED" else "not needed",
@@ -838,12 +926,13 @@ def fold_digest(job: D.JobSpec, fold: FI.Fold, code: str, *, transform: str, wit
                 design_hash: str, ordinal: int, model_seed: int | None) -> str:
     """The resume / verification digest of one H3 fold: ``discovery.fold_digest`` of the H3 job with the transform, the
     WITH record's digest (the hyperparameters it supplies), the guard mode, the fold file's design hash, the model fold
-    number and seed and the registered pre-registration and addenda digests."""
+    number and seed and the registered pre-registration and addenda digests.  The addenda digest is the H3 stage's
+    registry entry when ``manifests/digest_registry.json`` exists (addendum 2 item 5), else ``REGISTERED_ADDENDA_SHA256``."""
     return D.fold_digest(job, fold, code, {"schema": SCHEMA, "transform": transform, "with_record_digest": with_digest,
                                            "guard_mode": guard_mode, "design_hash": str(design_hash),
                                            "model_fold_number": int(ordinal), "model_seed": model_seed,
                                            "prereg_sha256": D.REGISTERED_PREREG_SHA256,
-                                           "prereg_addenda_sha256": D.REGISTERED_ADDENDA_SHA256})
+                                           "prereg_addenda_sha256": REG.below_footer_sha256("h3")})
 
 
 def resume_status(pq: Path, js: Path, digest: str, steps: Sequence[str]) -> dict[str, Any]:
@@ -1216,6 +1305,94 @@ class FrozenLadder:
         return runner.calibration(fc, with_arm_record)
 
 
+class FrozenSharedOnly:
+    """Addendum 2 item 4: "an H3-side subclass of ``neural.FactorisedNet`` with the ``e_series`` and ``e_ox`` offsets
+    held at zero" -- the WITH arm re-run with the shared-only metal embedding, on the :class:`FrozenNeural` pattern: the
+    WITH record's SELECTED hyperparameters, stopping count and model seed, the WITH training rows unchanged, the
+    cross-fitted calibration at the WITH record's selections.  M1 / M2 fit ``models.shared_only.SharedOnlyArm`` directly
+    and calibrate with the discovery runner's cross-fitted plan whose inner arms are converted to shared-only twins; a
+    ladder step M3-M7 refits through :class:`FrozenLadder` inside ``shared_only.shared_only_ladder_training`` (the
+    ``LadderNet`` built by name is the shared-only subclass), which :meth:`training_context` also supplies for the
+    calibration's fits.  Every fit asserts the offsets zero afterwards; a missing WITH record is refused."""
+
+    has_interval_step = True
+    transform = SHARED_ONLY
+
+    def __init__(self, arm: str, **ladder_kw: Any):
+        arm = D.ARM_ALIASES.get(arm, arm)
+        if not shared_only_applicable(arm):
+            raise ValueError(f"the shared-only embedding re-run applies to {EMBEDDING_ARMS}, not {arm!r} (no metal embedding)")
+        self.step, self.arms = arm, (arm,)
+        self.is_ladder = arm in LADDER_ARMS
+        self.inner = FrozenLadder(arm, **ladder_kw) if self.is_ladder else FrozenNeural(arm)
+
+    def training_context(self):
+        """The context every fit of this arm runs in (the H3 runner wraps the calibration's ``fit_table`` with it)."""
+        import contextlib
+
+        from gen19ct.models import shared_only as SO
+
+        return SO.shared_only_ladder_training() if self.is_ladder else contextlib.nullcontext()
+
+    def point(self, fc: Any, with_record: Mapping[str, Any] | None) -> dict[str, Any]:
+        from gen19ct.models import shared_only as SO
+
+        if not with_record:
+            raise ValueError(f"refused: the shared-only re-run of {self.step} needs the WITH record (its SELECTED "
+                             "hyperparameters, stopping count and model seed); no record, no refit")
+        if self.is_ladder:
+            with self.training_context() as made:
+                out = self.inner.point(fc, with_record)
+            if not made:
+                # the by-name patch saw no LadderNet built: the fit did not go through the shared-only subclass, so the
+                # record would be labelled shared-only with nothing checked (n_networks 0) -- refuse, never label
+                raise AssertionError(f"{self.step} shared-only re-run: the ladder fit built no network inside "
+                                     "shared_only_ladder_training (models.ladder no longer builds LadderNet by name?); "
+                                     "no offset was checked, so the record is not written")
+            checks = [SO.assert_offsets_zero(n) for n in made]
+            o = out[self.step]
+            o.record.update({"shared_only": {"label": SO.LABEL, "reading": SO.READING, "n_networks": len(made),
+                                             "offset_checks": checks}, "refit": READINGS["tuning"]})
+            return {self.step: rd_replace(o, selected_config=f"{o.selected_config}; shared-only embedding")}
+        from gen19ct.models import neural as NN
+
+        rd = _runner_module()
+        hp = selected_hyperparameters(self.step, with_record)
+        cfg = NN.NeuralConfig(hp["emb_dim"], hp["weight_decay"], hp["rank"])
+        c = fc.corpus
+        rows = _training_rows(fc)
+        t0 = time.perf_counter()
+        arm = SO.SharedOnlyArm(cfg, n_epochs=hp["n_epochs"], model_seed=hp["model_seed"], rows=c.frame,
+                               condition_vectors=c.cv).fit(rows, fc.ctx)
+        check = SO.assert_offsets_zero(arm.result.net)
+        pred = arm.predict(c.frame.loc[fc.sc_labels])
+        secs = time.perf_counter() - t0
+        cols = tuple(col for cs in arm.encoder.block_columns.values() for col in cs)
+        D.assert_no_provenance_features(cols, f"{self.step} H3 shared-only inputs")
+        rec = {"selected_hyperparameters": hp, "fit_record": arm.fit_record(), "refit": READINGS["tuning"],
+               "shared_only": {"label": SO.LABEL, "reading": SO.READING, "offset_check": check}}
+        return {self.step: rd.ArmOutput(pred=pred, selected_config=f"{cfg.label()}; shared-only embedding",
+                                        model_seed=hp["model_seed"], record=rec, feature_columns=cols, seconds=secs)}
+
+    def calibration(self, fc: Any, with_arm_record: Mapping[str, Any]):
+        cal, plan = self.inner.calibration(fc, with_arm_record)
+        if cal is None:
+            return None, plan
+        if not self.is_ladder:
+            from gen19ct.models import shared_only as SO
+
+            cal.arms_by_fold = {j: SO.SharedOnlyArm.from_arm(a) for j, a in cal.arms_by_fold.items()}
+        return cal, dict(plan, shared_only=True)
+
+
+def rd_replace(o: Any, **changes: Any) -> Any:
+    return replace(o, **changes)
+
+
+def shared_only_runner(arm: str, **ladder_kw: Any) -> FrozenSharedOnly:
+    return FrozenSharedOnly(arm, **ladder_kw)
+
+
 def frozen_runner(arm: str):
     arm = D.ARM_ALIASES.get(arm, arm)
     if arm in ("M1", "M2"):
@@ -1238,8 +1415,9 @@ def frozen_runner(arm: str):
 def transformed_frame(frame: pd.DataFrame, train_index: pd.Index, transform: str, *, seed: int) -> pd.DataFrame:
     """The corpus frame with ``discovery.h3_training_rows`` applied to the fold's TRAINING rows only (a permutation or
     shuffle never touches a hidden row): ACT_PERMUTED moves ``log_D`` among actinide training rows, ACT_METAL_SHUFFLED
-    the (state, element) labels.  WITH / WITHOUT return the frame unchanged (WITHOUT acts on the mask)."""
-    if transform in ("WITH", "WITHOUT"):
+    the (state, element) labels.  WITH / WITHOUT / SHARED_ONLY return the frame unchanged (WITHOUT acts on the mask;
+    the shared-only re-run changes the network, not a training row)."""
+    if transform in ("WITH", "WITHOUT", SHARED_ONLY):
         return frame
     train = frame.loc[train_index]
     new = D.h3_training_rows(train, transform, seed=int(seed))
@@ -1303,8 +1481,9 @@ def discovery_complete(out_root: Path, *, code: str, state: D.PlanState, exclude
        stage of the current plan is in the union of the recorded ``stages_done``;
     2. every ``fit`` job of ``discovery.enumerate_plan(state)`` (the plan under the final plan state, freezing-candidate
        runs included) has, for every arm it writes, a COMPLETE verified record set
-       (``g19_run_discovery.verified_predictions``: digest, fold hash and fold set exactly what the current code, fold
-       files and plan state produce; a stale record raises).
+       (``g19_run_discovery.verified_predictions``: digest, fold hash and fold set exactly what the code the record set's
+       stage is registered under -- ``registry.record_dir_code``: the ``discovery`` or ``discovery_candidates`` entry,
+       else ``code`` -- the fold files and the plan state produce; a stale record raises).
 
     ``jobs`` overrides the enumerated plan (tests)."""
     rd = _runner_module()
@@ -1324,7 +1503,10 @@ def discovery_complete(out_root: Path, *, code: str, state: D.PlanState, exclude
         if j.kind != "fit":
             continue
         for arm in j.writes:
-            _, st = rd.verified_predictions(out_root, arm, j.design_dir, int(j.seed), code=code, state=state,
+            # the code digest of the record set's OWN stage (a freezing-candidate set is verified against the
+            # discovery_candidates entry, never the discovery one); ``code`` is the no-registry fallback
+            jcode = REG.record_dir_code(out_root, arm, j.design_dir, int(j.seed), default=code)
+            _, st = rd.verified_predictions(out_root, arm, j.design_dir, int(j.seed), code=jcode, state=state,
                                             excluded_ids=list(excluded_ids), folds_dir=folds_dir, runners=runners,
                                             fold_cache=cache)
             (complete if st.get("status") == "complete" else incomplete).append(
@@ -1454,6 +1636,7 @@ def d03_markdown(summary: Mapping[str, Any], contrasts: pd.DataFrame | None, del
             lines.append("")
     else:
         lines += [f"Negative-transfer investigation: {NOT_COMPUTED} (run when WITHOUT is better, section 11).", ""]
+    lines += shared_only_lines(summary.get("shared_only"))
     lines += ["## Decision", "",
               (f"Actinide rows enter the deployed Ln configuration: **{'yes' if ver.get(dep.get('arm') or '', {}).get('verdict') == 'helps' else 'no'}** "
                "(section 11: only on *helps*)."), "",
@@ -1462,6 +1645,34 @@ def d03_markdown(summary: Mapping[str, Any], contrasts: pd.DataFrame | None, del
               "- a POST-HOC addendum for every reading in `h3_summary.json -> readings` before a result is quoted as registered;",
               "- the section 8 power check (`scripts/g19_run_power.py`) for every UNDECIDED contrast (kappa_min above).", ""]
     return "\n".join(lines)
+
+
+def shared_only_lines(so: Mapping[str, Any] | None) -> list[str]:
+    """The D03 paragraph of section 11's last bullet (addendum 2 item 4): the condition, whether it was met, and the
+    re-run's contrasts when it ran -- otherwise exactly "not run (condition not met)" (or the named reason)."""
+    lines = ["Shared-only-embedding re-run (section 11 last bullet; addendum 2 item 4 -- the WITH arm with `e_series` and "
+             "`e_ox` held at zero against the full section 15 embedding):", ""]
+    if not so:
+        lines += [f"- {NOT_COMPUTED} (the H3 summary carries no `shared_only` block)", ""]
+        return lines
+    cond = so.get("condition") or {}
+    lines.append(f"- condition: {cond.get('condition', SHARED_ONLY_CONDITION)}")
+    lines.append(f"- read on the deployed arm `{cond.get('deployed_arm', NOT_COMPUTED)}`: WITHOUT passes R19 against WITH on V5 = "
+                 f"{cond.get('without_passed_r19_v5')}; V5 point estimate MAE(WITH) - MAE(WITHOUT) = "
+                 f"{_fmt(cond.get('v5_without_vs_with_point'))}; condition met = {cond.get('met')}")
+    status = so.get("status") or cond.get("status") or SHARED_ONLY_NOT_RUN
+    lines.append(f"- status: **{status}**")
+    rows = so.get("contrasts")
+    if isinstance(rows, list) and rows:
+        lines += ["", "| model arm | contrast | design | Delta MAE (positive favours the full embedding) | pct 95 % | BCa 95 % | p | scope verdict | TOST |",
+                  "|---|---|---|---|---|---|---|---|---|"]
+        for r in rows:
+            lines.append(f"| {r.get('model_arm')} | {r.get('contrast')} | {r.get('design')} | {_fmt(r.get('point'))} | "
+                         f"[{_fmt(r.get('percentile_low'))}, {_fmt(r.get('percentile_high'))}] | [{_fmt(r.get('bca_low'))}, "
+                         f"{_fmt(r.get('bca_high'))}] | {_fmt(r.get('p_two_sided'), '{:.4f}')} | "
+                         f"{r.get(f'verdict_{VERDICT_SCOPE}', NOT_COMPUTED)} | {r.get('tost_verdict_eps0.05', NOT_COMPUTED)} |")
+    lines.append("")
+    return lines
 
 
 def json_safe(obj: Any) -> Any:

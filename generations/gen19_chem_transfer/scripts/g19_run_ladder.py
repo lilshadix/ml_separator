@@ -43,9 +43,18 @@ What runs
   ``vacuous`` instead of being read as a component on / off comparison (task X finding VL2-07).
 * stop = true: M3-M6 are marked ``exploratory_not_run`` (section 7 item 4) and only M7 runs, on the retained
   configuration of discovery (M2 if kept, else M1); H7 is not run (the process chain is another runner).
-* Budget (section 7 item 5): discovery wall clock (``evaluation/discovery/decisions/wall_clock.json``) plus this
-  runner's (``evaluation/ladder/decisions/wall_clock.json``) against 60 h; on exhaustion the steps not yet run are
-  demoted in the order M7 -> M6 -> M5 -> M4 -> M3 (i.e. everything after the current point) and reported so.
+* Budget -- **POST-HOC addendum 2, "2. Ladder M3-M7" > "Budget"**: "the ladder has its own budget of 40 h of wall clock
+  (``evaluation/ladder/decisions/wall_clock.json``), checked before each step; the demotion order M7 -> M6 -> M5 -> M4 ->
+  M3 and every other rule of section 7 items 3-6 are unchanged; the discovery ledger stays as registered for the discovery
+  stages."  This runner's own ledger alone (:func:`budget_used_seconds`) is compared with :data:`LADDER_BUDGET_HOURS`
+  before each step; the discovery wall clock (``evaluation/discovery/decisions/wall_clock.json``) is recorded beside it
+  for information and is NOT added (the earlier one-ledger reading is replaced, :data:`READINGS` ``budget``).  On
+  exhaustion the steps not yet run are demoted in the order M7 -> M6 -> M5 -> M4 -> M3 (everything after the current
+  point) and reported so.
+
+Digest registry (addendum 2 item 5): the seal gate and the discovery code digest prefer ``manifests/digest_registry.json``
+(``gen19ct.evaluation.registry``, stage ``ladder``) when it exists and fall back to the constants of
+``evaluation.discovery`` otherwise.
 
 Records: ``evaluation/ladder/<arm>/<design>__<variant>_<scheme>/s<seed>/<fold>.parquet + .json`` in the discovery
 record schema (``discovery.PREDICTION_COLUMNS``; JSON with ``job``, ``digest``, ``fold_hash``, ``arm_record``,
@@ -87,6 +96,7 @@ from gen19ct import paths  # noqa: E402
 from gen19ct.evaluation import calibration as EC  # noqa: E402
 from gen19ct.evaluation import discovery as D  # noqa: E402
 from gen19ct.evaluation import metrics as EM  # noqa: E402
+from gen19ct.evaluation import registry as REG  # noqa: E402
 from gen19ct.evaluation import transfer as ET  # noqa: E402
 from gen19ct.folds import io as FI  # noqa: E402
 from gen19ct.manifest import Run, write_csv, write_json, write_text  # noqa: E402
@@ -104,9 +114,29 @@ STAGES: dict[str, str] = {"M3": "L03_M3", "M4": "L04_M4", "M5": "L05_M5", "M6": 
 LADDER_ORDER: tuple[str, ...] = ("M0", "M1", "M2", "M3", "M4", "M5", "M6", "M7")
 STATUS_DONE: tuple[str, ...] = ("kept", "removed", "complete", "judged")
 STATUS_SKIPPED: tuple[str, ...] = ("exploratory_not_run", "not_run", "demoted")
-DEMOTION_ORDER: tuple[str, ...] = D.DEMOTION_ORDER          # M7 -> M6 -> M5 -> M4 -> M3
-BUDGET_HOURS = D.BUDGET_HOURS
+DEMOTION_ORDER: tuple[str, ...] = D.DEMOTION_ORDER          # M7 -> M6 -> M5 -> M4 -> M3 (addendum 2: unchanged)
+#: POST-HOC addendum 2, "2. Ladder M3-M7" > "Budget": "the ladder has its own budget of 40 h of wall clock
+#: (evaluation/ladder/decisions/wall_clock.json), checked before each step" -- this runner's ledger alone; the discovery
+#: ledger (``discovery.BUDGET_HOURS`` = 60 h) "stays as registered for the discovery stages" and is no longer added
+LADDER_BUDGET_HOURS = 40.0
+BUDGET_HOURS = LADDER_BUDGET_HOURS
+DISCOVERY_BUDGET_HOURS = D.BUDGET_HOURS
 SCHEMA = "gen19.ladder.v1"
+#: the registry stage of this runner (addendum 2 item 5)
+REGISTRY_STAGE = "ladder"
+#: readings of this runner where the sealed text is silent or was changed by an addendum (written with every output)
+READINGS: dict[str, str] = {
+    "budget": "POST-HOC addendum 2, '2. Ladder M3-M7' > 'Budget' (a compute-driven change to section 7 item 5, chosen by "
+              "the user on 2026-09-19 before any registered contrast was scored): 'the ladder has its own budget of 40 h of "
+              "wall clock (evaluation/ladder/decisions/wall_clock.json), checked before each step; the demotion order M7 -> "
+              "M6 -> M5 -> M4 -> M3 and every other rule of section 7 items 3-6 are unchanged; the discovery ledger stays as "
+              "registered for the discovery stages' -- budget_used_seconds is this runner's ledger alone; the discovery wall "
+              "clock is recorded as discovery_hours_not_counted and never added; --max-hours stays an operator pause, "
+              "never a demotion",
+    "digest_registry": "addendum 2 item 5: the seal gate and the discovery code digest are read from "
+                       "manifests/digest_registry.json (stage 'ladder' / 'discovery') when it exists, else from the "
+                       "constants of evaluation.discovery (gen19ct.evaluation.registry)",
+}
 
 
 def _load_script(name: str):
@@ -169,7 +199,7 @@ def ladder_code_digest() -> dict[str, str]:
     """``own`` = this script + ``models/ladder.py``; ``discovery`` = the discovery runner's code digest (every record
     carries both; ``combined`` is their SHA-256)."""
     own = D.code_digest(LADDER_CODE_FILES)["combined"]
-    disc = RD.current_code_digest()
+    disc = REG.discovery_code_digest()          # the registry's discovery entry when it exists, else the live digest
     return {"own": own, "discovery": disc, "combined": D.sha256_text(f"{disc}|{own}")}
 
 
@@ -595,7 +625,8 @@ def run_ladder_fold(job: D.JobSpec, fold: FI.Fold, ordinal: int, corpus: Any, ou
             "ladder_code_digest": runner.codes["own"], "fold_ordinal": ordinal, "model_fold_number": ordinal,
             "model_seed": RD.model_seed_of(ordinal), "batching_label": fc.batching_label,
             "prereg_sha256": D.REGISTERED_PREREG_SHA256, "prereg_addenda_sha256": (prereg or {}).get("addenda_sha256"),
-            "prereg_n_addenda": (prereg or {}).get("n_addenda"), "addendum_implemented": D.N_ADDENDA_EXPECTED,
+            "prereg_n_addenda": (prereg or {}).get("n_addenda"), "addendum_implemented": REG.addenda_count(REGISTRY_STAGE),
+            "registry_stage": REGISTRY_STAGE,
             "prereg_gate": dict(prereg) if prereg else None, "ladder_decisions_digest": runner.lstate.decision_digest(runner.step),
             "stop_rule": runner.lstate.stop_rule, **info}
     need_point = any(PREDICTION_STEP not in (status["steps_done"].get(a) or []) for a in job.writes) or status["stale"]
@@ -1064,12 +1095,27 @@ def uncertainty_metrics(store: SC.Store, lstate: LadderState, out_root: Path, de
 
 
 # ============================================================================================= #
-# budget and wall clock (section 7 item 5)
+# budget and wall clock (section 7 item 5 as changed by POST-HOC addendum 2, "2. Ladder M3-M7" > "Budget")
 # ============================================================================================= #
 
 def ladder_wall_clock_total(out_root: Path) -> float:
+    """Seconds of every earlier invocation of THIS runner (``evaluation/ladder/decisions/wall_clock.json``)."""
     body = D.read_record(ladder_wall_clock_path(out_root)) or {}
     return float(sum(float(i.get("seconds", 0.0)) for i in body.get("invocations", [])))
+
+
+def ladder_budget_status(ladder_seconds: float, discovery_seconds: float | None = None) -> dict[str, Any]:
+    """Addendum 2: "the ladder has its own budget of 40 h of wall clock ... checked before each step; the demotion order
+    M7 -> M6 -> M5 -> M4 -> M3 ... unchanged; the discovery ledger stays as registered for the discovery stages" -- the
+    ladder seconds against :data:`LADDER_BUDGET_HOURS`; the discovery hours are reported beside, never added."""
+    st = D.budget_status(float(ladder_seconds), budget_hours=LADDER_BUDGET_HOURS)
+    st.update({"ledger": "evaluation/ladder/decisions/wall_clock.json (this runner alone)",
+               "discovery_hours_not_counted": None if discovery_seconds is None else round(float(discovery_seconds) / 3600.0, 4),
+               "discovery_budget_hours_unchanged": DISCOVERY_BUDGET_HOURS, "reading": READINGS["budget"],
+               "note": ("addendum 2 ('2. Ladder M3-M7' > 'Budget'): the ladder's own 40 h ledger; on exhaustion the steps "
+                        "not yet run are demoted in the order M7 -> M6 -> M5 -> M4 -> M3 (section 7 item 5, unchanged); "
+                        "--max-hours is an operator pause, never a demotion")})
+    return st
 
 
 def record_ladder_wall_clock(out_root: Path, started: str, seconds: float, steps_done: Sequence[str]) -> None:
@@ -1077,15 +1123,20 @@ def record_ladder_wall_clock(out_root: Path, started: str, seconds: float, steps
     inv = [i for i in body.get("invocations", []) if i.get("started_utc") != started]
     inv.append({"started_utc": started, "seconds": round(float(seconds), 1), "steps_done": list(steps_done)})
     body["invocations"] = inv
-    body["ladder_hours"] = round(sum(float(i["seconds"]) for i in inv) / 3600.0, 4)
-    body["discovery_hours"] = round(RD.wall_clock_total(out_root) / 3600.0, 4)
-    body["budget"] = D.budget_status(RD.wall_clock_total(out_root) + sum(float(i["seconds"]) for i in inv))
+    ladder_s = sum(float(i["seconds"]) for i in inv)
+    disc_s = RD.wall_clock_total(out_root)
+    body["ladder_hours"] = round(ladder_s / 3600.0, 4)
+    body["discovery_hours_not_counted"] = round(disc_s / 3600.0, 4)
+    body["budget_hours"] = LADDER_BUDGET_HOURS
+    body["budget"] = ladder_budget_status(ladder_s, disc_s)
+    body["reading"] = READINGS["budget"]
     paths.ensure_dir(ladder_wall_clock_path(out_root).parent)
     RD._atomic_json(body, ladder_wall_clock_path(out_root))
 
 
 def budget_used_seconds(out_root: Path) -> float:
-    return RD.wall_clock_total(out_root) + ladder_wall_clock_total(out_root)
+    """Addendum 2: the ladder's own ledger alone -- the discovery wall clock is no longer added."""
+    return ladder_wall_clock_total(out_root)
 
 
 def demote_from(step: str) -> list[str]:
@@ -1257,14 +1308,17 @@ def run_ladder(corpus: Any, out_root: Path, state: D.PlanState, codes: Mapping[s
             lstate.write(lpath)
             done_steps.append(step)
             continue
-        if used_s() / 3600.0 >= BUDGET_HOURS:
+        if used_s() / 3600.0 >= LADDER_BUDGET_HOURS:      # addendum 2: the ladder's own 40 h ledger, checked before each step
             dem = demote_from(step)
-            ledger["budget"] = {**D.budget_status(used_s()), "exhausted_before": step, "demoted": dem}
+            ledger["budget"] = {**ladder_budget_status(used_s(), RD.wall_clock_total(out_root)), "exhausted_before": step,
+                                "demoted": dem}
             for s in dem:
                 if lstate.steps.get(s, {}).get("status") not in STATUS_DONE:
                     lstate.steps[s] = {"step": s, "status": "demoted", "kept": None,
-                                       "note": f"section 7 item 5: the {BUDGET_HOURS:g} h budget was exhausted before {step}; "
-                                               f"demoted to exploratory in the order {list(D.DEMOTION_ORDER)}"}
+                                       "note": f"section 7 item 5 as changed by POST-HOC addendum 2 ('2. Ladder M3-M7' > "
+                                               f"'Budget'): the ladder's own {LADDER_BUDGET_HOURS:g} h wall-clock budget was "
+                                               f"exhausted before {step}; demoted to exploratory in the order "
+                                               f"{list(D.DEMOTION_ORDER)} (unchanged)"}
                     if s not in lstate.demoted:
                         lstate.demoted.append(s)
             lstate.write(lpath)
@@ -1349,8 +1403,9 @@ def run_ladder(corpus: Any, out_root: Path, state: D.PlanState, codes: Mapping[s
     if not ledger["stopped"] and with_h5 and not lstate.stop_rule and lstate.kept("M7") is not None and (only is None):
         extra: dict[str, Any] = lstate.steps.setdefault("H5", {"step": "H5", "status": "running", "jobs": []})
         if extra.get("status") not in STATUS_DONE:
-            if used_s() / 3600.0 >= BUDGET_HOURS:
-                extra.update(status="not_run", note="budget exhausted (section 7 item 5): H5 ablations not run")
+            if used_s() / 3600.0 >= LADDER_BUDGET_HOURS:
+                extra.update(status="not_run", note=f"the ladder's own {LADDER_BUDGET_HOURS:g} h budget (addendum 2, '2. Ladder "
+                                                    "M3-M7' > 'Budget') is exhausted: H5 ablations not run")
             else:
                 jobs = [j for arm in LAD.H5_ABLATION_ARMS for j in ladder_jobs(arm, state)]
                 refit_jobs = ladder_jobs("M3", state, refits=True) if lstate.kept("M3") else []
@@ -1450,7 +1505,8 @@ def d04_text(lstate: LadderState | None, metrics: Mapping[str, Any] | None) -> s
         L += [f"- H5 component ablations (M6a / M6b toggled): {h5.get('status') if h5 else 'not computed'}"
               + (f"; {h5.get('n_contrast_rows')} contrast rows in contrasts_H5.csv" if h5 and h5.get("n_contrast_rows") is not None else "")]
         if lstate.demoted:
-            L += [f"- demoted (section 7 item 5 budget): {lstate.demoted}"]
+            L += [f"- demoted (the ladder's own {LADDER_BUDGET_HOURS:g} h wall-clock budget of POST-HOC addendum 2, '2. Ladder "
+                  f"M3-M7' > 'Budget'; demotion order {list(DEMOTION_ORDER)} unchanged): {lstate.demoted}"]
     L += ["", "## metrics", "",
           "Delta = macro MAE(predecessor) - macro MAE(step), log D, per design; R19 items 1-3, 5 and the scoring-filter "
           "sensitivities (ladder scope) on V5-primary; TOST epsilon 0.05 on V1 / V2 (section 8). R19 item 4 is "
@@ -1584,7 +1640,8 @@ def parse_args(argv=None) -> argparse.Namespace:
 
 def main(argv=None, *, check: Callable[[], int] | None = None, digests: Callable[[], Mapping[str, Any]] | None = None) -> int:
     ns = parse_args(argv)
-    prereg = RD.refuse_unless_sealed(check, digests, expect_addenda=ns.expect_addenda)
+    # addendum 2 item 5: the registry's expectations for stage 'ladder' when it exists, else the constants
+    prereg = REG.refuse_unless_sealed(REGISTRY_STAGE, check, digests, expect_addenda=ns.expect_addenda)
     out_root = Path(ns.out_root)
     codes = ladder_code_digest()
     # gate items 2(a)-(b) and 3 are file reads: refuse before the corpus-sized allocation (task X finding VL2-04)
@@ -1613,6 +1670,7 @@ def main(argv=None, *, check: Callable[[], int] | None = None, digests: Callable
         return 0
     ctx_run = Run(NAME, args={k: v for k, v in vars(ns).items()}, seed=D.PRIMARY_SEED,
                   extra={"code_sha256": codes, "prereg_gate": prereg, "gate": _json(gate), "readings": LAD.REGISTRATION_CHOICES,
+                         "runner_readings": READINGS, "ladder_budget_hours": LADDER_BUDGET_HOURS,
                          "model_seed_rule": "42 + fold * 1009 + 9,999,991; M7 member k adds k"}) if not ns.no_manifest else None
     with (ctx_run or RD._Null()) as run:
         ledger = run_ladder(corpus, out_root, state, codes, gate, steps=ns.steps, workers=ns.workers, max_hours=ns.max_hours,
@@ -1622,7 +1680,8 @@ def main(argv=None, *, check: Callable[[], int] | None = None, digests: Callable
             run.outputs(ladder_state_path(out_root), ladder_wall_clock_path(out_root), *outs,
                         *sorted((ladder_root(out_root) / "decisions").glob("contrasts_*.csv")),
                         *[p for p in [ladder_root(out_root) / "M7" / "metrics.json"] if p.exists()])
-            run.extra.update({"ledger": _json(ledger), "budget": D.budget_status(budget_used_seconds(out_root)),
+            run.extra.update({"ledger": _json(ledger),
+                              "budget": ladder_budget_status(budget_used_seconds(out_root), RD.wall_clock_total(out_root)),
                               "confirmation_half_read": False, "v6_target_rows_scored": 0})
     log(f"ladder: {json.dumps(_json(ledger.get('steps')))}; stopped: {ledger.get('stopped')}")
     return 0

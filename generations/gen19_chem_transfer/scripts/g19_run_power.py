@@ -64,12 +64,16 @@ from gen19ct.evaluation import discovery as D  # noqa: E402
 from gen19ct.evaluation import h3 as H3  # noqa: E402
 from gen19ct.evaluation import metrics as EM  # noqa: E402
 from gen19ct.evaluation import power as PW  # noqa: E402
+from gen19ct.evaluation import registry as REG  # noqa: E402
 from gen19ct.evaluation import transfer as ET  # noqa: E402
 from gen19ct.folds import io as FI  # noqa: E402
 from gen19ct.manifest import Run, write_csv, write_json  # noqa: E402
 from gen19ct.models import interface as I  # noqa: E402
 
 NAME = "g19_run_power"
+#: the registry stage of this runner (addendum 2 item 5: the seal gate prefers manifests/digest_registry.json when it
+#: exists and falls back to the constants of evaluation.discovery otherwise)
+STAGE = "power"
 CODE_FILES: tuple[Path, ...] = (paths.G19_ROOT / "gen19ct" / "evaluation" / "power.py",
                                 paths.G19_ROOT / "gen19ct" / "evaluation" / "h3.py", Path(__file__).resolve())
 CODE_OBJECTS: tuple[Any, ...] = (PW.injected_run, PW.fold_inputs, PW.h3_u_share, PW.kappa_min,
@@ -493,7 +497,7 @@ def main(argv=None, *, check: Callable[[], int] | None = None, digests: Callable
     ns = parse_args(argv)
     out_root = Path(ns.out_root)
     rd = runner_module()
-    rd.refuse_unless_sealed(check, digests, expect_addenda=ns.expect_addenda)
+    REG.refuse_unless_sealed(STAGE, check, digests, expect_addenda=ns.expect_addenda)
     H3.refuse_unless_cheap_complete(out_root)                   # before any heavy load (task X finding VL2-04)
     log("coextractant ids")
     coext = rd.coextractant_ids()

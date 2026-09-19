@@ -43,10 +43,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from gen19ct import paths  # noqa: E402
 from gen19ct.evaluation import discovery as D  # noqa: E402
 from gen19ct.evaluation import h3 as H3  # noqa: E402
+from gen19ct.evaluation import registry as REG  # noqa: E402
 from gen19ct.evaluation import report as R  # noqa: E402
 from gen19ct.manifest import Run, git_head, write_csv, write_json  # noqa: E402
 
 NAME = "g19_build_report"
+#: the registry stage of this runner (addendum 2 item 5: the seal gate and the discovery code digest prefer
+#: manifests/digest_registry.json when it exists and fall back to the constants of evaluation.discovery otherwise; the
+#: report prints every registry entry, evaluation.report.reproducibility_section)
+STAGE = "report"
 CODE_FILES: tuple[Path, ...] = (paths.G19_ROOT / "gen19ct" / "evaluation" / "report.py", Path(__file__).resolve())
 
 
@@ -82,9 +87,9 @@ def refuse_unless_ready(out_root: Path, *, check: Callable[[], int] | None = Non
     has run every step M3-M7 to a done / skipped status (``h3.ladder_complete``) -- the report's deployed predictor is
     'the retained ladder configuration' and Q5 reads the same file (task X finding V-01)."""
     rd = runner_module()
-    prereg = rd.refuse_unless_sealed(check, digests, expect_addenda=expect_addenda)
+    prereg = REG.refuse_unless_sealed(STAGE, check, digests, expect_addenda=expect_addenda)
     st = state if state is not None else D.PlanState.read(rd.plan_state_path(out_root))
-    code = discovery_code if discovery_code is not None else rd.current_code_digest()
+    code = discovery_code if discovery_code is not None else REG.discovery_code_digest()
     done = H3.discovery_complete(out_root, code=code, state=st, excluded_ids=excluded_ids, folds_dir=folds_dir,
                                  runners=runners, jobs=jobs)
     if not done["complete"]:
@@ -143,7 +148,7 @@ def main(argv=None, *, check: Callable[[], int] | None = None, digests: Callable
     ns = parse_args(argv)
     out_root = Path(ns.out_root)
     rd = runner_module()
-    rd.refuse_unless_sealed(check, digests, expect_addenda=ns.expect_addenda)
+    REG.refuse_unless_sealed(STAGE, check, digests, expect_addenda=ns.expect_addenda)
     H3.refuse_unless_cheap_complete(out_root)                   # before any heavy load (task X finding VL2-04)
     log("coextractant ids")
     coext = rd.coextractant_ids()
@@ -157,6 +162,9 @@ def main(argv=None, *, check: Callable[[], int] | None = None, digests: Callable
         log("warning: the scorer's decision files are missing or stale; the report will say so (not computed)")
     code = code_digest()
     extra = {"git_head": git_head(), **prereg_extra(out_root)}
+    registry = REG.read_registry(Path(out_root) / REG.REGISTRY_REL)     # addendum 2 item 5: printed in full when present
+    if registry is not None:
+        extra["digest_registry"] = registry
     with (Run(NAME, args={k: v for k, v in vars(ns).items()}, seed=D.PRIMARY_SEED,
               extra={"prereg_gate": gate["prereg_gate"], "gate": {k: v for k, v in gate.items() if k != "prereg_gate"},
                      "code_sha256": code["combined"], "code_parts": code["parts"], "prereg_digests": extra,

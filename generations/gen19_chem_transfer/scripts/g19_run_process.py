@@ -90,6 +90,7 @@ import pandas as pd  # noqa: E402
 
 from gen19ct import paths  # noqa: E402
 from gen19ct.evaluation import discovery as D  # noqa: E402
+from gen19ct.evaluation import registry as REG  # noqa: E402
 from gen19ct.manifest import Run, git_head, write_csv, write_json, write_text  # noqa: E402
 from gen19ct.process import gen18_adapter as GA  # noqa: E402
 from gen19ct.process import monte_carlo as MC  # noqa: E402
@@ -104,6 +105,9 @@ from gen18proc.systems import load_system  # noqa: E402
 from gen18proc.types import AqStream, Sourced  # noqa: E402
 
 NAME = "g19_run_process"
+#: the registry stage of this runner (addendum 2 item 5: the seal gate and the discovery code digest prefer
+#: manifests/digest_registry.json when it exists and fall back to the constants of evaluation.discovery otherwise)
+REGISTRY_STAGE = "process"
 SCRIPTS = Path(__file__).resolve().parent
 SCHEMA = "gen19.process.v1"
 NOT_COMPUTED = "not computed"
@@ -273,7 +277,7 @@ def default_heavy_discovery_check(out_root: Path) -> Callable[[], dict[str, Any]
 
         RD = _load_script("g19_run_discovery")
         state = D.PlanState.read(RD.plan_state_path(out_root))
-        return H3.discovery_complete(out_root, code=RD.current_code_digest(), state=state,
+        return H3.discovery_complete(out_root, code=REG.discovery_code_digest(), state=state,
                                      excluded_ids=RD.coextractant_ids())
     return run
 
@@ -333,9 +337,11 @@ def refuse_unless_ready(out_root: Path, *, exploratory: bool = False, check: Cal
                         digests: Callable[[], Mapping[str, Any]] | None = None, expect_addenda: int | None = None,
                         heavy_discovery_check: Callable[[], dict[str, Any]] | None = None,
                         seal: Callable[..., Mapping[str, Any]] | None = None) -> dict[str, Any]:
-    """The gate of the module docstring (items 1-5).  ``seal`` defaults to ``g19_run_discovery.refuse_unless_sealed``;
-    ``heavy_discovery_check`` to :func:`default_heavy_discovery_check` (tests pass stubs)."""
-    seal_fn = seal or _load_script("g19_run_discovery").refuse_unless_sealed
+    """The gate of the module docstring (items 1-5).  ``seal`` defaults to the registry-preferring seal gate of stage
+    ``process`` (``registry.refuse_unless_sealed``, which is ``g19_run_discovery.refuse_unless_sealed`` until
+    ``manifests/digest_registry.json`` exists); ``heavy_discovery_check`` to :func:`default_heavy_discovery_check` (tests
+    pass stubs)."""
+    seal_fn = seal or (lambda c, d, expect_addenda=None: REG.refuse_unless_sealed(REGISTRY_STAGE, c, d, expect_addenda=expect_addenda))
     prereg = dict(seal_fn(check, digests, expect_addenda=expect_addenda))
     heavy = heavy_discovery_check if heavy_discovery_check is not None else default_heavy_discovery_check(out_root)
     comp = discovery_complete(out_root, heavy=heavy)
@@ -945,8 +951,7 @@ def main(argv: Sequence[str] | None = None, *, check: Callable[[], int] | None =
     ns = parse_args(argv)
     out_root = Path(ns.out_root)
     if ns.decision_only:
-        RD = _load_script("g19_run_discovery")
-        RD.refuse_unless_sealed(check, digests, expect_addenda=ns.expect_addenda)
+        REG.refuse_unless_sealed(REGISTRY_STAGE, check, digests, expect_addenda=ns.expect_addenda)
         p = write_d06(out_root)
         log(f"wrote {p}")
         return 0
