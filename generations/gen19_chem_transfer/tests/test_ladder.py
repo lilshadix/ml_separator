@@ -992,6 +992,9 @@ def test_ladder_budget_is_its_own_40h_ledger_and_the_discovery_clock_does_not_co
     are unchanged; the discovery ledger stays as registered for the discovery stages.'"""
     out = tmp_path / "out"
     assert RL.LADDER_BUDGET_HOURS == 40.0 and RL.BUDGET_HOURS == 40.0 and RL.DISCOVERY_BUDGET_HOURS == D.BUDGET_HOURS == 60.0
+    # one source for the figure, so the runner and the scorer's budget block cannot drift (task X finding V-BUD-03)
+    assert RL.LADDER_BUDGET_HOURS == D.LADDER_BUDGET_HOURS
+    assert RL.ladder_wall_clock_path(tmp_path) == tmp_path / D.LADDER_WALL_CLOCK_REL
     assert RL.DEMOTION_ORDER == D.DEMOTION_ORDER == ("M7", "M6", "M5", "M4", "M3")
     assert RL.demote_from("M3") == ["M7", "M6", "M5", "M4", "M3"] and RL.demote_from("M7") == ["M7"]
     assert "addendum 2" in RL.READINGS["budget"] and "40 h" in RL.READINGS["budget"] and "never added" in RL.READINGS["budget"]

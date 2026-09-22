@@ -601,11 +601,19 @@ def test_figures_skip_with_a_reason_when_inputs_are_absent(tmp_path: Path) -> No
 def test_runners_refuse_without_the_seal_or_a_complete_discovery(tmp_path: Path) -> None:
     BR = _load("g19_build_report")
     MF = _load("g19_make_figures")
-    good = {"footer": "135842499a86eb3d478ece01a45718ac5b9673a4134bb4acda550f975bb45641",
-            "recomputed": "135842499a86eb3d478ece01a45718ac5b9673a4134bb4acda550f975bb45641",
-            "digest_file": "135842499a86eb3d478ece01a45718ac5b9673a4134bb4acda550f975bb45641",
-            "addenda_sha256": "05f36fc0354adb75ae41655977115d827ffce1227b2bdbfeeba28a975f0e8e54", "n_addenda": 1}
-    for mod in (BR, MF):
+    from gen19ct.evaluation import discovery as _D
+    from gen19ct.evaluation import registry as REG
+
+    def _sealed(stage: str) -> dict:
+        """The sealed digests a runner of ``stage`` expects: its registry entry (addendum 2 item 5), not a literal."""
+        exp = REG.gate_expectations(stage)
+        return {"footer": _D.REGISTERED_PREREG_SHA256, "recomputed": _D.REGISTERED_PREREG_SHA256,
+                "digest_file": _D.REGISTERED_PREREG_SHA256, "addenda_sha256": exp["below_footer_sha256"],
+                "n_addenda": exp["n_addenda"]}
+    good = _sealed("report")
+    assert _sealed("figures") == good        # both are registered under the same sealed text
+    for mod, stage in ((BR, "report"), (MF, "figures")):
+        good = _sealed(stage)
         with pytest.raises(SystemExit, match="--check exited 1"):
             mod.refuse_unless_ready(tmp_path, check=lambda: 1, digests=lambda: good, jobs=[], discovery_code="c")
         # the seal passes but no wall_clock.json reached the final stage: not COMPLETE

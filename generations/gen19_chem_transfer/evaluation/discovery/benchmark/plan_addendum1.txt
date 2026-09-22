@@ -1,5 +1,5 @@
 # gen19 discovery plan under POST-HOC addendum 1 (scripts/g19_run_discovery.py --dry-run); seeds [104729]
-# 20 fit jobs, 785 outer folds, 8 markers (what is NOT run, named)
+# 33 fit jobs, 1105 outer folds, 10 markers (what is NOT run, named)
             00_safeguard | safeguard            | safeguard:V5__primary__exact                                 | folds=20 | section 2 resolution: every_split vs nested_certificate on the registered sample, once at the start of discovery
             00_safeguard | safeguard            | safeguard:V5__primary__batched                               | folds=20 | section 2 resolution: every_split vs nested_certificate on the registered sample, once at the start of discovery
             00_safeguard | safeguard            | safeguard:V5__cell_only__batched                             | folds=20 | section 2 resolution: every_split vs nested_certificate on the registered sample, once at the start of discovery
@@ -17,17 +17,21 @@
                    01_B6 | fit                  | fit:B6:V2__element_exact:s104729                             | folds=12 | reference arm (section 11 H3 references; descriptive)
                    01_B6 | fit                  | fit:B6:V5__primary_batched_max4:s104729                      | folds=28 | the repeated batched-vs-exact check with <= 4 cells per batch
  02_comparator_intervals | marker               | marker:comparator_intervals                                  |  | section 15 resolution as amended by addendum 1 item 3: every learned comparison is on seed 104729, so the deterministic comparators' conformal intervals are the seed-104729 ones of the pre-seal run on every design (the resolution's parenthesis), and no comparator-interval job is run in discovery; the point predictions were never seed-dependent. At confirmation they are drawn with each withheld seed and averaged, unchanged
+       03_B5_FLAT_CAT_B8 | fit                  | fit:B5:V5__primary_batched_max4:s104729                      | folds=28 | M0 = B5: ladder base, H4 M2 - M0
        03_B5_FLAT_CAT_B8 | fit                  | fit:B5:V1__copy_exact:s104729                                | folds=39 | M0 = B5: ladder base, H4 M2 - M0
        03_B5_FLAT_CAT_B8 | fit                  | fit:B5:V2__element_exact:s104729                             | folds=12 | M0 = B5: ladder base, H4 M2 - M0
+       03_B5_FLAT_CAT_B8 | fit                  | fit:FLAT_CAT:V5__primary_batched_max4:s104729                | folds=28 | H4 M2 - FLAT_CAT
        03_B5_FLAT_CAT_B8 | fit                  | fit:FLAT_CAT:V1__copy_exact:s104729                          | folds=39 | H4 M2 - FLAT_CAT
        03_B5_FLAT_CAT_B8 | fit                  | fit:FLAT_CAT:V2__element_exact:s104729                       | folds=12 | H4 M2 - FLAT_CAT
+       03_B5_FLAT_CAT_B8 | fit                  | fit:B8:V5__primary_batched_max4:s104729                      | folds=28 | section 5 previous-generation baseline
        03_B5_FLAT_CAT_B8 | fit                  | fit:B8:V1__copy_exact:s104729                                | folds=39 | section 5 previous-generation baseline
        03_B5_FLAT_CAT_B8 | fit                  | fit:B8:V2__element_exact:s104729                             | folds=12 | section 5 previous-generation baseline
+                   04_M1 | fit                  | fit:M1:V5__primary_batched_max4:s104729                      | folds=28 | ladder step M1 vs M0; M2's per-fold M1 values
                    04_M1 | fit                  | fit:M1:V1__copy_exact:s104729                                | folds=39 | ladder step M1 vs M0; M2's per-fold M1 values
                    04_M1 | fit                  | fit:M1:V2__element_exact:s104729                             | folds=12 | ladder step M1 vs M0; M2's per-fold M1 values
+                   05_M2 | fit                  | fit:M2:V5__primary_batched_max4:s104729                      | folds=28 | H1 primary; S1(a), S1(b); H4; ladder step M2
                    05_M2 | fit                  | fit:M2:V1__copy_exact:s104729                                | folds=39 | H1 primary; S1(a), S1(b); H4; ladder step M2
                    05_M2 | fit                  | fit:M2:V2__element_exact:s104729                             | folds=12 | H1 primary; S1(a), S1(b); H4; ladder step M2
-       03_B5_FLAT_CAT_B8 | marker               | marker:blocked:heavy-arm V5 jobs wait for the B6 batched-vs-exact check (state 'recolour') |  | heavy-arm V5 jobs wait for the B6 batched-vs-exact check (state 'recolour')
                    05_M2 | marker               | marker:not_run:other_seeds                                   |  | addendum 1 item 3: the pass over the discovery seeds 130363, 155921, 196613 and 262147 is NOT run; every learned arm runs seed 104729 only and R19 item 4 is NOT_EVALUATED in discovery (it is unchanged and required at confirmation)
             06_stop_rule | marker               | marker:stop_rule                                             |  | section 7 item 4 stop rule: evaluated by scripts/g19_score_discovery.py (decisions/stop_rule.json) on seed 104729, R19 items 1-3 and 5 of M2 and B6 vs B3i
            07_s1c_v5pair | fit                  | fit:M1:V5PAIR__primary_batched:s104729                       | folds=87 | M2 on V5-PAIR needs M1's per-fold values
@@ -36,7 +40,18 @@
   08_refit_sensitivities | fit                  | fit:B6:V5__strict_exact:s104729                              | folds=41 | R19 item 6 strict_setting of H1b / H4 (addendum 1 item 4)
   08_refit_sensitivities | fit                  | fit:B6:V5__hno3_only_exact:s104729                           | folds=99 | R19 item 6 HNO3_only_cells of H1b / H4 (addendum 1 item 4)
   08_refit_sensitivities | marker               | marker:not_run:B6_refit_sensitivities                        |  | addendum 1 item 4: B6 / B6r0 run the V5 strict and HNO3-only refits only; the loose, cell-only, parent-structure and Sr(III)-dropped V5 refits and the unbatched V5-P run are NOT run, and R19 item 6 of a B6 contrast is the reduced sensitivity set
+  08_refit_sensitivities | fit                  | fit:B5:V5__strict_batched_max4:s104729                       | folds=18 | H4 M2 - M0: R19 item 6 strict_setting (addendum 1 item 4)
+  08_refit_sensitivities | fit                  | fit:B5:V5__hno3_only_batched_max4:s104729                    | folds=27 | H4 M2 - M0: R19 item 6 HNO3_only_cells (addendum 1 item 4)
+  08_refit_sensitivities | fit                  | fit:FLAT_CAT:V5__strict_batched_max4:s104729                 | folds=18 | H4 M2 - FLAT_CAT: R19 item 6 strict_setting (addendum 1 item 4)
+  08_refit_sensitivities | fit                  | fit:FLAT_CAT:V5__hno3_only_batched_max4:s104729              | folds=27 | H4 M2 - FLAT_CAT: R19 item 6 HNO3_only_cells (addendum 1 item 4)
+  08_refit_sensitivities | fit                  | fit:M1:V5__strict_batched_max4:s104729                       | folds=18 | prerequisite of the M2 refit sensitivities: R19 item 6 strict_setting (addendum 1 item 4)
+  08_refit_sensitivities | fit                  | fit:M1:V5__hno3_only_batched_max4:s104729                    | folds=27 | prerequisite of the M2 refit sensitivities: R19 item 6 HNO3_only_cells (addendum 1 item 4)
+  08_refit_sensitivities | fit                  | fit:M2:V5__strict_batched_max4:s104729                       | folds=18 | H1 / H4: R19 item 6 strict_setting (addendum 1 item 4)
+  08_refit_sensitivities | fit                  | fit:M2:V5__hno3_only_batched_max4:s104729                    | folds=27 | H1 / H4: R19 item 6 HNO3_only_cells (addendum 1 item 4)
   08_refit_sensitivities | marker               | marker:not_run:learned_refit_sensitivities                   |  | addendum 1 item 4: for a learned arm the loose, cell-only, parent-structure and Sr(III)-dropped V5 refits, the heavy-arm V5-P runs and the V1 / V2 refit sensitivities (state-level V2, Sr(III)-dropped, near-duplicate-key and compilation-DOI groupings) are NOT run; R19 item 6 is the reduced sensitivity set (addendum 1) and the report names them
+           09_candidates | marker               | marker:not_run:V5P:M2 vs B0@V5                               |  | M2 vs B0@V5: addendum 1 item 4: the heavy-arm V5-P run of a freezing candidate is NOT run (V5-P is named among the sensitivities not run); section 3.1's trigger, R19 items 1-5 on V5-primary, cannot fire either, because item 4 is NOT_EVALUATED in discovery
+           09_candidates | marker               | marker:not_run:V5P:M2 vs B3i@V5                              |  | M2 vs B3i@V5: addendum 1 item 4: the heavy-arm V5-P run of a freezing candidate is NOT run (V5-P is named among the sensitivities not run); section 3.1's trigger, R19 items 1-5 on V5-primary, cannot fire either, because item 4 is NOT_EVALUATED in discovery
+           09_candidates | marker               | marker:not_run:V5P:M2 vs B6r0@V5                             |  | M2 vs B6r0@V5: addendum 1 item 4: the heavy-arm V5-P run of a freezing candidate is NOT run (V5-P is named among the sensitivities not run); section 3.1's trigger, R19 items 1-5 on V5-primary, cannot fire either, because item 4 is NOT_EVALUATED in discovery
       10_not_implemented | marker               | marker:M3+                                                   |  | M3+ not implemented
              11_h3_specs | h3_spec              | h3_spec:RETAINED_LADDER_CONFIGURATION:WITH:V5__primary_batched:s104729 |  | H3: Ln test set = Ln(III) scored rows of the selection half; training transform WITH
              11_h3_specs | h3_spec              | h3_spec:RETAINED_LADDER_CONFIGURATION:WITH:V2__element_exact:s104729 |  | H3: Ln test set = Ln(III) scored rows of the selection half; training transform WITH

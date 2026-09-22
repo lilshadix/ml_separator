@@ -157,7 +157,18 @@ def register_stage(stage: str, *, below_footer_sha256: str, code_digest: str, gi
     if old is not None:
         same = all(old.get(k) == entry[k] for k in ("below_footer_sha256", "code_digest", "addenda_count"))
         if same:
-            return dict(old)
+            # the digests ARE the record; the descriptive fields are not, so an identical re-registration may correct
+            # them (task X finding V-REG-08: 'source: current tree' read as if the code digest came from the tree, while
+            # for the scorer and the ladder stage_code_digest() deliberately gives the DISCOVERY entry's digest)
+            amended = {k: v for k, v in entry.items()
+                       if k not in ("registered_utc",) and old.get(k) != v}
+            if not amended:
+                return dict(old)
+            stages[stage] = {**old, **amended, "amended_utc": _now(),
+                             "amendment": "descriptive fields corrected; the below-footer digest, code digest and "
+                                          "addenda count are unchanged, so no record's verification changes"}
+            _write(body, path)
+            return dict(stages[stage])
         if not force:
             raise ValueError(f"stage {stage!r} is already registered with other digests (below-footer "
                              f"{str(old.get('below_footer_sha256'))[:12]}..., code {str(old.get('code_digest'))[:12]}...); "
@@ -568,16 +579,42 @@ def stage_code_digest(stage: str) -> str:
     raise ValueError(f"no code digest rule for stage {stage!r}")
 
 
+#: where :func:`stage_code_digest` takes each stage's code digest from -- recorded in the entry as
+#: ``code_digest_source``, because "source: current tree" describes the SEALED TEXT side only and the scorer's and the
+#: ladder's code digest is deliberately the ``discovery`` entry's (task X finding V-REG-08)
+CODE_DIGEST_SOURCE: dict[str, str] = {
+    DISCOVERY: "the completed run's record fields (register_discovery_from_records)",
+    CANDIDATES: "the tree: g19_run_discovery.current_code_digest()",
+    "scorer": "the registry's 'discovery' entry: the scorer verifies discovery records and writes none of its own, so "
+              "its entry carries the digest those records were written under, NOT a digest of the scorer's own code "
+              "(editing the scorer therefore changes no entry, and the seal gate does not compare code digests)",
+    "ladder": "the registry's 'discovery' entry (g19_run_ladder.ladder_code_digest()['discovery']): a ladder record "
+              "carries the discovery digest beside its own 'ladder_code_digest', and the runner compares the live value "
+              "with this entry, so the two agree by construction",
+    "h3": "the tree: g19_run_h3.code_digest()['combined']", "power": "the tree: g19_run_power.code_digest()['combined']",
+    "figures": "the tree: g19_make_figures.code_digest()['combined']",
+    "report": "the tree: g19_build_report.code_digest()['combined']",
+    "process": "the tree: g19_run_process.code_digests()['own']",
+    "confirmation": "the tree (the confirmation runner's own digest)"}
+
+
 def register_stage_from_tree(stage: str, *, note: str, path: Path | None = None, code_digest: str | None = None,
                              sealed: Path | None = None, sha_file: Path | None = None) -> dict[str, Any]:
     """Register a post-discovery stage under the CURRENT sealed text (below-footer digest and addenda count from the
-    tree) and the code digest its records will carry (:func:`stage_code_digest` unless given)."""
+    tree) and the code digest its records will carry (:func:`stage_code_digest` unless given).
+
+    The entry records WHERE each of the two digests came from: ``source`` for the sealed text and
+    ``code_digest_source`` (:data:`CODE_DIGEST_SOURCE`) for the code digest."""
     if stage == DISCOVERY:
         raise ValueError("the discovery stage is registered from its records (register_discovery_from_records)")
     dg = below_footer_digest(sealed, sha_file)
     code = stage_code_digest(stage) if code_digest is None else code_digest
+    src = ("passed explicitly (--code-digest)" if code_digest is not None
+           else CODE_DIGEST_SOURCE.get(stage, "the stage's own runner (stage_code_digest)"))
     return register_stage(stage, below_footer_sha256=dg["below_footer_sha256"], code_digest=code, git_head=_git_head(),
-                          addenda_count=dg["n_addenda"], note=note, path=path, extra={"source": "current tree"})
+                          addenda_count=dg["n_addenda"], note=note, path=path,
+                          extra={"source": "current tree (below-footer digest and addenda count)",
+                                 "code_digest_source": src})
 
 
 # --------------------------------------------------------------------------------------------- #

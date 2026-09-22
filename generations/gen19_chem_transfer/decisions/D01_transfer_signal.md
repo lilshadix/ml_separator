@@ -343,7 +343,30 @@ evaluator is built for the confirmation run, not now.
 
 ## Next action
 
-1. `g19_seal_prereg.py --commit-seeds`, replace the banner, tick §20, `--check`, and seal (orchestrator).
-2. Then discovery starts, per the §7 compute plan: B6 / B6r0 (with the batched-vs-exact check), then B5 = M0, FLAT_CAT and
-   B8, then the M1–M7 ladder, on the discovery seeds and the selection halves only, judged against B3i on V5 with
-   δ5 = 0.106.
+*Both steps below are DONE; this section was written before the seal and is kept as the record of what D01 asked for.
+What follows them is in `decisions/D02_factorization.md` and the README status table.*
+
+1. ~~`g19_seal_prereg.py --commit-seeds`, replace the banner, tick §20, `--check`, and seal (orchestrator).~~ **Done
+   2026-09-15**: sealed, footer digest `135842499a86…5641`, `manifests/prereg_sha256.txt`; two POST-HOC addenda below
+   the footer since (1: the compute-driven plan reduction, 2: the ladder budget and the digest registry).
+2. ~~Then discovery starts, per the §7 compute plan: B6 / B6r0 (with the batched-vs-exact check), then B5 = M0, FLAT_CAT
+   and B8, then the M1–M7 ladder, on the discovery seeds and the selection halves only, judged against B3i on V5 with
+   δ5 = 0.106.~~ **Done 2026-09-22**, with two registered departures the run itself recorded: the discovery seeds became
+   seed 104729 alone (addendum 1 item 3, so R19 item 4 is NOT_EVALUATED in discovery), and M3–M7 were never fitted —
+   the 60 h budget was exhausted at 76.6 h of recorded work, so the §7 item 5 rule demoted them
+   (`evaluation/discovery/decisions/decisions.json` → `budget.discovery`), and addendum 2 gives the ladder its own 40 h.
+   B6 / B6r0, B5 = M0, FLAT_CAT, B8, M1 and M2 ran; the stop rule is **not** triggered (M2 vs B3i@V5 passes R19 items
+   1–3 and 5, Δ = +0.263 ≥ δ5 = 0.10569; B6 vs B3i fails), and because item 4 cannot be evaluated on one seed the full
+   R19 verdict of that contrast is UNDECIDED, so nothing is frozen as confirmed.
+
+**What D01's own question needs next** (it asked whether there is transferable signal *before* advanced architecture,
+and the discovery run answered the architecture half but not this one):
+
+3. `scripts/g19_run_power.py` — the §8 signal-injection power check. `decisions.json` → `power_check.status` is **not
+   implemented**, and it is required before B6 vs B3i, M2 vs B0, M2 vs B3i and M2 vs B6r0 are reported as nulls. Until
+   it runs, every FAIL in D01 and D02 is "no detected difference", not "no difference".
+4. `scripts/g19_run_ladder.py` (M3 → M7) then `g19_run_h3.py` — H3 is the actinide-transfer question D01 could not
+   answer with closed-form baselines, and D03 is written from it.
+5. Confirmation (orchestrator, §15) — the ≤ 5 frozen claims on the withheld seeds and the confirmation half, V6 once.
+   No pre-seal or discovery number in this file is confirmed; the halves differ strongly (item 8 above), so the
+   selection-half values here are the optimistic end of the range.

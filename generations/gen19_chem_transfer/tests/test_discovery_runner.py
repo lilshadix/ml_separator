@@ -21,6 +21,7 @@ from gen19ct import paths
 from gen19ct.chemistry import support_graph as SG
 from gen19ct.evaluation import discovery as D
 from gen19ct.evaluation import metrics as EM
+from gen19ct.evaluation import registry as REG
 from gen19ct.evaluation import transfer as ET
 from gen19ct.folds import cell_holdout as CH
 from gen19ct.folds import io as FI
@@ -44,6 +45,20 @@ def _load_script(name: str):
 
 
 RD = _load_script("g19_run_discovery")
+
+
+@pytest.fixture(autouse=True)
+def _isolated_registry(request, tmp_path_factory, monkeypatch):
+    """POST-HOC addendum 2 item 5: ``manifests/digest_registry.json`` governs the records of the REAL discovery run.
+    These tests fit synthetic jobs into ``tmp_path`` under code digests of their own, so unless a test is marked
+    ``real_registry`` (the seal-gate tests, which compare the sealed file with the stage it is registered under), every
+    registry lookup here sees no file and falls back to the constants and the live digest -- the behaviour before the
+    registry existed (``registry.READINGS['fallback']``).  A test that needs its own entries monkeypatches
+    ``REG.registry_path`` again."""
+    if "real_registry" in request.keywords:
+        return
+    absent = tmp_path_factory.mktemp("no_registry") / "digest_registry.json"
+    monkeypatch.setattr(REG, "registry_path", lambda root=None: absent)
 
 
 # --------------------------------------------------------------------------------------------- #
@@ -154,9 +169,9 @@ def _job(variant: str = "primary", arm: str = "B5", seed: int = D.PRIMARY_SEED) 
     return D.JobSpec(kind="fit", arm=arm, design="V5", variant=variant, scheme="exact", seed=seed, stage="t")
 
 
-def _run(job, corpus, out, runner, *, code="code-A", steps=("point", "intervals")):
+def _run(job, corpus, out, runner, *, code="code-A", steps=("point", "intervals"), prereg=None):
     return RD.run_jobs([job], corpus, out, steps=list(steps), code=code, state=D.PlanState(), runners={job.arm: runner},
-                       guard_fn=_ok_guard, inner_check=_ok_inner, with_support=False)
+                       guard_fn=_ok_guard, inner_check=_ok_inner, with_support=False, prereg=prereg)
 
 
 # --------------------------------------------------------------------------------------------- #
@@ -304,6 +319,7 @@ def test_cross_fit_residual_conformal_uses_each_folds_arm():
     assert D.calibration_folds([0, 1], "first", tuned=False)["calibration_folds"] == [0]
 
 
+@pytest.mark.real_registry
 def test_seal_check_refusal_stops_before_anything(tmp_path, monkeypatch):
     out = tmp_path / "out"
     with pytest.raises(SystemExit, match="refused"):
@@ -313,12 +329,15 @@ def test_seal_check_refusal_stops_before_anything(tmp_path, monkeypatch):
     monkeypatch.setattr(RD, "seal_check", lambda: 2)
     with pytest.raises(SystemExit, match="exited 2"):
         RD.refuse_unless_sealed()
+    exp = REG.gate_expectations("discovery")                  # the registry's discovery entry (addendum-1 values)
     good = {"footer": D.REGISTERED_PREREG_SHA256, "recomputed": D.REGISTERED_PREREG_SHA256,
-            "digest_file": D.REGISTERED_PREREG_SHA256, "addenda_sha256": D.REGISTERED_ADDENDA_SHA256, "n_addenda": 1}
+            "digest_file": D.REGISTERED_PREREG_SHA256, "addenda_sha256": exp["below_footer_sha256"],
+            "n_addenda": exp["n_addenda"]}
     rec = RD.refuse_unless_sealed(lambda: 0, lambda: good)
     assert rec["prereg_sha256"] == D.REGISTERED_PREREG_SHA256
-    assert rec["addenda_sha256"] == rec["addenda_sha256_registered"] == D.REGISTERED_ADDENDA_SHA256
-    assert rec["n_addenda"] == rec["n_addenda_expected"] == D.N_ADDENDA_EXPECTED == 1
+    assert rec["addenda_sha256"] == rec["addenda_sha256_registered"] == exp["below_footer_sha256"]
+    assert exp["below_footer_sha256"] == D.REGISTERED_ADDENDA_SHA256
+    assert rec["n_addenda"] == rec["n_addenda_expected"] == exp["n_addenda"] == 1 and rec["stage"] == "discovery"
 
 
 def test_prereg_gate_pins_the_registered_digest(tmp_path):
@@ -344,18 +363,21 @@ def test_prereg_gate_pins_the_registered_digest(tmp_path):
                 digests=lambda: {"footer": resealed, "recomputed": resealed, "digest_file": resealed})
 
 
+@pytest.mark.real_registry
 def test_seal_gate_pins_the_number_of_posthoc_addenda(tmp_path):
-    """The footer digest does not cover the POST-HOC addenda below it, so the gate pins how many there are: this code
-    implements addendum 1 and refuses any other count unless the operator passes --expect-addenda."""
+    """The footer digest does not cover the POST-HOC addenda below it, so the gate pins how many there are: the count of
+    the RUNNER'S REGISTRY STAGE (addendum 2 item 5), and any other count is refused unless the operator passes
+    --expect-addenda."""
+    exp = REG.gate_expectations("discovery")
     base = {"footer": D.REGISTERED_PREREG_SHA256, "recomputed": D.REGISTERED_PREREG_SHA256,
-            "digest_file": D.REGISTERED_PREREG_SHA256, "addenda_sha256": D.REGISTERED_ADDENDA_SHA256}
+            "digest_file": D.REGISTERED_PREREG_SHA256, "addenda_sha256": exp["below_footer_sha256"]}
     SD = _load_script("g19_score_discovery")
     for n in (0, 2):
         with pytest.raises(SystemExit, match=f"carries {n} POST-HOC"):
             RD.refuse_unless_sealed(lambda: 0, lambda k=n: {**base, "n_addenda": k})
         deliberate = RD.refuse_unless_sealed(lambda: 0, lambda k=n: {**base, "n_addenda": k}, expect_addenda=n)
-        assert deliberate["n_addenda"] == n and deliberate["addendum_implemented"] == D.N_ADDENDA_EXPECTED
-        # ... but --expect-addenda never passes an addendum text the code does not register (task X finding V-F01)
+        assert deliberate["n_addenda"] == n and deliberate["addendum_implemented"] == exp["n_addenda"] == 1
+        # ... but --expect-addenda never passes an addendum text the stage is not registered under (finding V-F01)
         with pytest.raises(SystemExit, match="addendum text was edited or extended"):
             RD.refuse_unless_sealed(lambda: 0, lambda k=n: {**base, "n_addenda": k, "addenda_sha256": "abc"},
                                     expect_addenda=n)
@@ -363,15 +385,21 @@ def test_seal_gate_pins_the_number_of_posthoc_addenda(tmp_path):
     with pytest.raises(SystemExit, match="carries 0 POST-HOC"):
         RD.main(["--dry-run", "--out-root", str(out)], check=lambda: 0, digests=lambda: {**base, "n_addenda": 0})
     assert not out.exists()
-    with pytest.raises(SystemExit, match="carries 2 POST-HOC"):
-        SD.main(["--out-root", str(out), "--no-manifest"], check=lambda: 0, digests=lambda: {**base, "n_addenda": 2})
-    # the sealed file on disk carries exactly the addendum this code implements, and its text is digested for the record
+    sc = REG.gate_expectations("scorer")                       # the scorer is gated on its own stage (addendum 2's text)
+    with pytest.raises(SystemExit, match=f"carries {sc['n_addenda'] + 1} POST-HOC"):
+        SD.main(["--out-root", str(out), "--no-manifest"], check=lambda: 0,
+                digests=lambda: {**base, "addenda_sha256": sc["below_footer_sha256"], "n_addenda": sc["n_addenda"] + 1})
+    # the sealed file on disk is the text the SCORER stage is registered under; the discovery entry keeps addendum 1's
     real = RD.prereg_digests()
-    assert real["n_addenda"] == D.N_ADDENDA_EXPECTED == 1 and len(str(real["addenda_sha256"])) == 64
-    assert real["addenda_sha256"] == D.REGISTERED_ADDENDA_SHA256
-    assert RD.refuse_unless_sealed(lambda: 0)["addenda_sha256"] == real["addenda_sha256"]
+    assert real["n_addenda"] == sc["n_addenda"] and len(str(real["addenda_sha256"])) == 64
+    assert real["addenda_sha256"] == sc["below_footer_sha256"]
+    assert RD.refuse_unless_sealed(lambda: 0, stage="scorer")["addenda_sha256"] == real["addenda_sha256"]
+    if real["n_addenda"] != exp["n_addenda"]:                  # addendum 2 appended: the discovery runner itself refuses
+        with pytest.raises(SystemExit, match="POST-HOC addendum/addenda below the footer"):
+            RD.refuse_unless_sealed(lambda: 0)
 
 
+@pytest.mark.real_registry
 def test_seal_gate_pins_the_addendum_text_not_only_its_count(tmp_path):
     """Task X finding V-F01: an edit INSIDE the POST-HOC addendum (here the seed set of item 3) passes the seal script's
     ``--check`` (the footer digest does not cover the addenda) and keeps the count at 1, so the gate must refuse on the
@@ -386,26 +414,95 @@ def test_seal_gate_pins_the_addendum_text_not_only_its_count(tmp_path):
     (root / "preregistration.md").write_bytes(text.replace(needle, "**104729 and 130363**").encode("utf-8"))
     for f in ("prereg_sha256.txt", "confirmation_seeds_sha256.txt"):
         shutil.copy(paths.G19_ROOT / "manifests" / f, root / "manifests" / f)
+    sc = REG.gate_expectations("scorer")
     ok, msgs = S.check(S.PreregPaths(root=root, repo_root=paths.REPO_ROOT))
-    assert ok and any("addenda below the footer: 1" in m for m in msgs)          # the seal script alone accepts it
+    assert ok and any(f"addenda below the footer: {sc['n_addenda']}" in m for m in msgs)   # the seal script accepts it
     tam = RD.prereg_digests(root / "preregistration.md", root / "manifests" / "prereg_sha256.txt")
     real = RD.prereg_digests()
     assert tam["footer"] == tam["recomputed"] == tam["digest_file"] == D.REGISTERED_PREREG_SHA256
-    assert tam["n_addenda"] == real["n_addenda"] == 1 and tam["addenda_sha256"] != real["addenda_sha256"]
+    assert tam["n_addenda"] == real["n_addenda"] == sc["n_addenda"] and tam["addenda_sha256"] != real["addenda_sha256"]
     with pytest.raises(SystemExit, match="addendum text was edited or extended"):
-        RD.refuse_unless_sealed(lambda: 0, lambda: tam)
+        RD.refuse_unless_sealed(lambda: 0, lambda: tam, stage="scorer")
     with pytest.raises(SystemExit, match="addendum text was edited or extended"):
-        RD.refuse_unless_sealed(lambda: 0, lambda: tam, expect_addenda=1)
+        RD.refuse_unless_sealed(lambda: 0, lambda: tam, expect_addenda=sc["n_addenda"], stage="scorer")
     out = tmp_path / "out"
-    with pytest.raises(SystemExit, match="addendum text was edited"):
+    with pytest.raises(SystemExit, match="refused"):      # stage 'discovery': the count already refuses the edited text
         RD.main(["--dry-run", "--out-root", str(out)], check=lambda: 0, digests=lambda: tam)
     assert not out.exists()
     SD = _load_script("g19_score_discovery")
     with pytest.raises(SystemExit, match="addendum text was edited"):
         SD.main(["--out-root", str(out), "--no-manifest"], check=lambda: 0, digests=lambda: tam)
-    # the real file is the registered addendum text, and the digest is fixed in the code
-    assert real["addenda_sha256"] == D.REGISTERED_ADDENDA_SHA256
-    assert RD.refuse_unless_sealed(lambda: 0, lambda: real)["addenda_sha256_registered"] == D.REGISTERED_ADDENDA_SHA256
+    # the real file is the text the scorer stage is registered under; the discovery entry keeps the addendum-1 digest
+    assert real["addenda_sha256"] == sc["below_footer_sha256"]
+    gate = RD.refuse_unless_sealed(lambda: 0, lambda: real, stage="scorer")
+    assert gate["addenda_sha256_registered"] == sc["below_footer_sha256"]
+    assert REG.gate_expectations("discovery")["below_footer_sha256"] == D.REGISTERED_ADDENDA_SHA256
+
+
+# --------------------------------------------------------------------------------------------- #
+# the digest registry: the runner's two stages, one text and one code per stage (addendum 2 item 5)
+# --------------------------------------------------------------------------------------------- #
+
+def test_runner_stage_is_the_candidates_stage_once_the_scorer_wrote_freezing_candidates(tmp_path):
+    """``registry.READINGS['candidates']``: the invocations before the scorer are gated on stage 'discovery', the one
+    after it -- the plan state then holds freezing candidates, whose jobs are the only fit jobs left -- on
+    'discovery_candidates'."""
+    out = tmp_path / "out"
+    assert RD.runner_stage(out) == REG.DISCOVERY == "discovery"           # no plan state on disk at all
+    sp = RD.plan_state_path(out)
+    sp.parent.mkdir(parents=True, exist_ok=True)
+    state = D.PlanState()
+    sp.write_text(json.dumps(state.record()), encoding="utf-8")
+    assert RD.runner_stage(out) == REG.DISCOVERY                          # the runner's own state, no candidate yet
+    state.freezing_candidates = [{"contrast": "H1:B5-vs-B3i@V5", "family": "H1", "arms": ["B8", "B3i"], "design": "V5"}]
+    sp.write_text(json.dumps(state.record()), encoding="utf-8")
+    assert RD.runner_stage(out) == REG.CANDIDATES == "discovery_candidates"
+
+
+def test_a_record_carries_its_own_stages_digests_and_a_registered_stage_is_never_refitted(tmp_path, monkeypatch):
+    """Addendum 2 item 5 and the freezing-candidate pass: a fold record carries the registry stage of its job, that
+    stage's below-footer digest and that stage's code digest; a job of a registered stage is fitted only under the code
+    the stage was registered with -- a complete record set is skipped, an incomplete one is an error, never a refit."""
+    corpus = _corpus(tmp_path)
+    _write([_cell_fold(corpus.frame, "Nd(III)", "S1"), _cell_fold(corpus.frame, "Eu(III)", "S2")], corpus.folds_dir)
+    _write([_cell_fold(corpus.frame, "Nd(III)", "S1", variant="strict"),
+            _cell_fold(corpus.frame, "Eu(III)", "S2", variant="strict")], corpus.folds_dir)
+    out, stub = tmp_path / "out", StubRunner()
+    disc = _job()
+    cand = replace(_job("strict"), stage=D.STAGES["candidates"])     # a V5 strict refit of the freezing-candidate pass
+    assert REG.job_stage(disc) == REG.DISCOVERY and REG.job_stage(cand) == REG.CANDIDATES
+    d1, d2, code_a, code_b, moved = "d1" * 32, "d2" * 32, "a1" * 32, "b2" * 32, "ff" * 32
+    reg = tmp_path / "reg.json"
+    monkeypatch.setattr(REG, "registry_path", lambda root=None: reg)
+    REG.register_stage(REG.DISCOVERY, below_footer_sha256=d1, code_digest=code_a, git_head=None, addenda_count=1,
+                       note="the completed run")
+    REG.register_stage(REG.CANDIDATES, below_footer_sha256=d2, code_digest=code_b, git_head=None, addenda_count=2,
+                       note="the freezing-candidate pass")
+    # ``prereg`` is the seal gate's record: the runner is gated on the stage of the pass it is running
+    _run(disc, corpus, out, stub, code=code_a, prereg={"addenda_sha256": d1, "n_addenda": 1})
+    rec = json.loads(D.fold_paths(out, disc, "B5", "Nd(III)__S1")[1].read_text(encoding="utf-8"))
+    assert rec["registry_stage"] == REG.DISCOVERY and rec["code_digest"] == code_a
+    assert rec["prereg_addenda_sha256"] == d1 and rec["prereg_n_addenda"] == rec["addendum_implemented"] == 1
+    _run(cand, corpus, out, stub, code=code_b, prereg={"addenda_sha256": d2, "n_addenda": 2})
+    rc = json.loads(D.fold_paths(out, cand, "B5", "Nd(III)__S1")[1].read_text(encoding="utf-8"))
+    assert rc["registry_stage"] == REG.CANDIDATES and rc["code_digest"] == code_b
+    assert rc["prereg_addenda_sha256"] == d2 and rc["prereg_n_addenda"] == rc["addendum_implemented"] == 2
+    assert REG.verify_record(rec, None, reg)["ok"] and REG.verify_record(rc, None, reg)["ok"]
+    assert not REG.verify_record({**rc, "registry_stage": REG.DISCOVERY}, None, reg)["ok"]
+    # a record set is verified against the entry of ITS stage, not the live code of the invocation
+    kw = dict(state=D.PlanState(), excluded_ids=[], folds_dir=corpus.folds_dir, runners={cand.arm: stub},
+              fold_cache={cand.stem: corpus.folds(cand.stem)})
+    pred, st = RD.verified_predictions(out, "B5", cand.design_dir, cand.seed, **kw)
+    assert pred is not None and st["status"] == "complete"
+    with pytest.raises(D.StaleRecordError):                     # ... and refused under the discovery entry's code
+        RD.verified_predictions(out, "B5", cand.design_dir, cand.seed, code=REG.code_digest_for(REG.DISCOVERY), **kw)
+    # the closure was patched after the run: the complete discovery set is skipped, never refitted
+    led = _run(disc, corpus, out, stub, code=moved)
+    assert led["jobs"][disc.key]["skipped"] == 2 and led["jobs"][disc.key]["fitted"] == 0
+    # an INCOMPLETE job of a registered stage is an error, not a refit
+    D.fold_paths(out, disc, "B5", "Eu(III)__S2")[1].unlink()
+    with pytest.raises(SystemExit, match="written only under the code"):
+        _run(disc, corpus, out, stub, code=moved)
 
 
 # --------------------------------------------------------------------------------------------- #
@@ -567,8 +664,10 @@ def test_dry_run_writes_the_addendum_plan(tmp_path):
     out = tmp_path / "out"
 
     def digests():
+        exp = REG.gate_expectations("discovery")      # the discovery entry's values (equal to the constants)
         return {"footer": D.REGISTERED_PREREG_SHA256, "recomputed": D.REGISTERED_PREREG_SHA256,
-                "digest_file": D.REGISTERED_PREREG_SHA256, "addenda_sha256": D.REGISTERED_ADDENDA_SHA256, "n_addenda": 1}
+                "digest_file": D.REGISTERED_PREREG_SHA256, "addenda_sha256": exp["below_footer_sha256"],
+                "n_addenda": exp["n_addenda"]}
     assert RD.main(["--dry-run", "--out-root", str(out)], check=lambda: 0, digests=digests) == 0
     text = (D.discovery_root(out) / "benchmark" / "plan_addendum1.txt").read_text(encoding="utf-8")
     assert f"seeds [{D.PRIMARY_SEED}]" in text and "markers (what is NOT run, named)" in text
@@ -692,7 +791,8 @@ def test_resume_digest_covers_the_addenda_digest_and_the_inner_design(monkeypatc
     assert RD.fold_digest(v5, f1, "c", state, stub, Path("."), **kw) != base5
     monkeypatch.setattr(D, "INNER_N_FOLDS", 3)
     assert RD.fold_digest(v5, f1, "c", state, stub, Path("."), **kw) == base5
-    monkeypatch.setattr(D, "REGISTERED_ADDENDA_SHA256", "0" * 64)
+    # addendum 2 item 5: the digest is the one registered for the JOB'S stage, not a constant of the live text
+    monkeypatch.setattr(REG, "below_footer_sha256", lambda stage, path=None: "0" * 64)
     assert RD.fold_digest(v5, f1, "c", state, stub, Path("."), **kw) != base5
     assert RD.fold_digest(v1, f1, "c", state, stub, Path("."), **kw) != base1
     monkeypatch.undo()
@@ -977,7 +1077,12 @@ def test_r19_and_stop_rule_wiring_on_synthetic_predictions():
     assert comp_f["S1a_M2_vs_B3i"]["batching_label"] == D.CHECK_FAILED_LABEL
     cf = D.freezing_candidates({"M2 vs B3i@V5": good}, failed)[0]
     assert cf["batching_label"] == "batched (check failed)" and cf["s1_forced_undecided"]
-    assert D.heavy_v5_batching_label(["B6", "B3i"], "V5", failed) == ""
+    # task X finding V-H1B-05: a B6 / B6r0 V5 contrast is scored on the exact leave-one-cell-out folds and now SAYS so
+    # (a blank label read as if H1 and H1b shared the heavy arms' batched regime); the failed-check label is heavy-arm only
+    assert D.heavy_v5_batching_label(["B6", "B3i"], "V5", failed) == "exact"
+    assert D.heavy_v5_batching_label(["B6", "B6r0"], "V5", D.PlanState(v5_batched_check="passed")) == "exact"
+    assert D.heavy_v5_batching_label(["B3i", "B0"], "V5", failed) == "" and \
+        D.heavy_v5_batching_label(["M2", "B3"], "V1", failed) == ""
     assert not D.s1ab_components({"M2 vs B3i@V5": good}, D.PlanState(v5_batched_check="passed"))["S1_forced_undecided"]
     # task X finding V-09: BH over the full registered family counts the contrasts not run as p = 1
     acc = D.registered_family_accounting(["M2 vs B3i@V5", "S1(c)", "M1 vs M0@V1#ladder"])
@@ -994,6 +1099,131 @@ def test_r19_and_stop_rule_wiring_on_synthetic_predictions():
     pr = tab[tab["primary_cluster_unit"]]
     assert (pr["p_bh_full_family"] >= pr["p_bh"] - 1e-12).all() and (pr["bh_m"] == 1).all()
     assert set(D.UNCERTAINTY_NOT_RUN) >= {"gaussian_crps", "spearman_abs_error_vs_sd", "knows_when_it_does_not_know"}
+
+
+def test_bh_is_per_family_and_flags_a_shared_section_19_slot():
+    """Task X findings V-S03 / V-BH-06: prereg `bh_p` registers "BH per family on the primary-cluster p", so p_bh is
+    adjusted inside the contrast's own family and bh_m is that family's size; the pooled adjustment over every evaluated
+    registered contrast is printed beside it, and a computed contrast holding two section 19 slots (H4 'M2 vs M0' AND the
+    ladder step M2) is flagged instead of being counted once."""
+    good = _contrast(0.1, 1.5)                                                       # family primary, M2 vs B3i
+    m2_m0 = _contrast(1.5, 0.1, name="M2 vs M0")     # ONE computed contrast holding two section 19 slots (H4, ladder)
+    s1b = _contrast(0.1, 1.5, name="M2 vs B0")
+    expl = _contrast(1.5, 0.1, name="B5 vs B3i")
+    rows = (D.contrast_rows(good) + D.contrast_rows(dict(m2_m0, family="H4"))
+            + D.contrast_rows(dict(m2_m0, family="ladder")) + D.contrast_rows(dict(s1b, family="S1(b)"))
+            + D.contrast_rows(dict(expl, family="exploratory")))
+    bh = D.apply_bh(pd.DataFrame(rows), m_registered_full=60)
+    prim = bh[bh["primary_cluster_unit"].astype(bool)]
+    m = prim.groupby("family")["bh_m"].first().to_dict()
+    assert m == {"primary": 1.0, "H4": 1.0, "ladder": 1.0, "S1(b)": 1.0, "exploratory": 1.0}
+    # within a one-contrast family BH is the raw p; the pooled adjustment over the 4 registered rows is >= it
+    one = prim[prim["family"] == "H4"].iloc[0]
+    assert one["p_bh"] == pytest.approx(one["p_two_sided"]) and one["bh_m_pooled_registered"] == 4
+    assert one["p_bh_pooled_registered"] >= one["p_bh"] and one["p_bh_full_family"] >= one["p_bh_pooled_registered"]
+    assert prim.loc[prim["family"].isin(("H4", "ladder")), "bh_shared_computed_contrast"].all()
+    assert not prim.loc[prim["family"] == "primary", "bh_shared_computed_contrast"].any()
+    assert set(bh["bh_family"]) == {"registered", "exploratory"} and (prim["bh_family_name"] == prim["family"]).all()
+    # a two-contrast family adjusts within itself: m = 2
+    rows2 = D.contrast_rows(dict(s1b, family="S1(b)")) + D.contrast_rows(dict(expl, family="S1(b)"))
+    p2 = D.apply_bh(pd.DataFrame(rows2))
+    assert (p2.loc[p2["primary_cluster_unit"].astype(bool), "bh_m"] == 2).all()
+
+
+def test_contrast_rows_disclose_the_tost_envelope_and_a_degenerate_cluster_unit():
+    """Task X findings V-S07 / V-S04: the TOST bounds are the envelope of the 90 % percentile and BCa intervals, so the
+    construction and the cluster count travel with them; a bootstrap with one cluster per scoring unit is the unclustered
+    unit bootstrap the registration says never decides, and is labelled as such."""
+    good = _contrast(0.1, 1.5)
+    rows = {r["cluster_unit"]: r for r in D.contrast_rows(good)}
+    r = rows[good["primary_cluster_unit"]]
+    assert r["tost_interval_construction"] == D.TOST_ENVELOPE["both"] and "envelope" in r["tost_interval_construction"]
+    assert r["tost_cluster_unit"] == good["primary_cluster_unit"]
+    assert r["tost_n_clusters"] == good["bootstraps"][good["primary_cluster_unit"]].n_clusters
+    lo = min(good["bootstraps"][good["primary_cluster_unit"]].percentile_interval(ET.TOST_LEVEL)[0],
+             good["bootstraps"][good["primary_cluster_unit"]].bca_interval(ET.TOST_LEVEL)[0])
+    assert r["tost_low_90"] == pytest.approx(lo)
+    for rec in rows.values():
+        assert rec["cluster_equals_scoring_unit"] is (rec["n_clusters"] == rec["n_units"])
+        assert rec["clustering"] == ("unclustered_equivalent" if rec["n_clusters"] == rec["n_units"] else "clustered")
+
+
+def test_s1d_and_s1e_components_are_decided_or_explicitly_not_evaluated():
+    """Task X finding V-S1-01: section 9 S1 is "All of" (a)-(e), so no component may be silent."""
+    bands = {0.50: 0.548793, 0.80: 0.834762, 0.95: 0.963741}
+    cats = {"CROSS_METAL_LIGAND_TRANSFER": (0.835003, 105), "UNSUPPORTED": (0.10, 4)}
+    ok = D.s1d_component(bands, cats, arm="M2", source="tables/discovery_summary.csv")
+    assert ok["verdict"] == "PASS" and set(ok["items"]) == {"coverage_50", "coverage_80", "coverage_95",
+                                                           "category_CROSS_METAL_LIGAND_TRANSFER_coverage_80"}
+    assert ok["categories_below_scope"] == {"UNSUPPORTED": 4}       # 4 cells: outside the >= 20-cell band
+    assert D.s1d_component({**bands, 0.80: 0.40}, cats, arm="M2", source="x")["verdict"] == "FAIL"
+    assert D.s1d_component({**bands, 0.80: float("nan")}, cats, arm="M2", source="x")["verdict"] == D.NOT_EVALUATED
+    assert D.s1d_component({}, {}, arm="M2", source="x")["verdict"] == D.NOT_EVALUATED
+    # a category inside the scope but outside the band fails
+    assert D.s1d_component(bands, {"UNSUPPORTED": (0.10, 40)}, arm="M2", source="x")["verdict"] == "FAIL"
+    e = D.s1e_component(-0.42, n_cells=105, arm="M2", source="_support")
+    assert e["verdict"] == D.NOT_EVALUATED and e["components_reliable"] is None
+    assert e["descriptive_spearman"]["decides"] is False and e["descriptive_spearman"]["n_cells"] == 105
+    assert e["threshold"] == ET.S1E_MAX_SPEARMAN and "reliability floor" in e["reason"]
+    assert "descriptive_spearman" not in D.s1e_component(float("nan"))
+    comp = D.s1ab_components({}, None, s1d=ok, s1e=e)
+    assert comp["S1d_calibration"]["verdict"] == "PASS" and comp["S1e_support_distance"]["verdict"] == D.NOT_EVALUATED
+    assert comp["S1_components_registered"] == ["S1(a)", "S1(b)", "S1(c)", "S1(d)", "S1(e)"]
+    assert D.s1ab_components({})["S1d_calibration"]["verdict"] == D.NOT_EVALUATED    # omitted -> NOT_EVALUATED, never silent
+
+
+def test_budget_block_names_the_exhaustion_the_demotion_and_the_ladders_own_budget(tmp_path):
+    """Task X finding V-BUD-03: the section 7 item 5 exhaustion and the rule-driven demotion of M3-M7 are recorded in the
+    decision record, beside the empty ``ledger.demoted`` (no step was removed on evidence) and addendum 2's 40 h ladder
+    budget."""
+    ev = D.discovery_root(tmp_path) / "decisions"
+    ev.mkdir(parents=True)
+    (ev / "wall_clock.json").write_text(json.dumps({
+        "total_hours": 76.5955, "invocations": [{"seconds": 1.0}, {"seconds": 2.0}],
+        "budget": {"budget_hours": 60.0, "used_hours": 76.5955, "exhausted": True,
+                   "demoted_now": ["M7", "M6", "M5", "M4", "M3"], "demotion_order": list(D.DEMOTION_ORDER),
+                   "never_demoted": list(D.NEVER_DEMOTED)}}), encoding="utf-8")
+    man = tmp_path / "manifest.json"
+    man.write_text(json.dumps({"ledger": {"demoted": [], "stopped": D.NOT_IMPLEMENTED,
+                                          "budget": {"exhausted_before": "safeguard:V5__primary__exact"}}}),
+                   encoding="utf-8")
+    b = D.budget_block(tmp_path, run_manifest=man)
+    assert b["discovery"]["used_hours"] == 76.5955 and b["discovery"]["exhausted"] is True
+    assert b["discovery"]["demoted_now"] == ["M7", "M6", "M5", "M4", "M3"] and b["discovery"]["ledger_demoted"] == []
+    assert b["discovery"]["exhausted_before"] == "safeguard:V5__primary__exact" and b["discovery"]["n_invocations"] == 2
+    assert b["ladder"]["budget_hours"] == 40.0 and b["ladder"]["ledger_exists"] is False
+    assert b["m3_m7_absence"]["removed_on_evidence"] == [] and "not implemented" in b["m3_m7_absence"]["disclosure"]
+    assert "76.5955" in b["m3_m7_absence"]["disclosure"] and "40 h" in b["ladder_reading"]
+    # the ladder's own ledger, once it exists, is reported without ever being added to the discovery hours
+    lp = tmp_path / D.LADDER_WALL_CLOCK_REL
+    lp.parent.mkdir(parents=True)
+    lp.write_text(json.dumps({"total_hours": 3.5, "budget_hours": 40.0}), encoding="utf-8")
+    b2 = D.budget_block(tmp_path, run_manifest=man)
+    assert b2["ladder"]["ledger_exists"] and b2["ladder"]["used_hours"] == 3.5
+    assert b2["discovery"]["used_hours"] == 76.5955
+
+
+def test_guard_counters_measure_what_the_guards_saw(tmp_path):
+    """Task X finding V-MAN-09: ``confirmation_half_read`` and ``v6_target_rows_scored`` are derived from counters the
+    guards increment, not written as literals -- and the guards still raise, so a completed pass proves both."""
+    D.reset_guard_counts()
+    assert D.guard_counts()["rows_half_rederived"] == 0
+    attrs = pd.DataFrame({"registered_half_V5": ["S", "S", "C"], "row_id": ["r1", "r2", "r3"]},
+                         index=["r1", "r2", "r3"])
+    v6 = pd.Series([False, False, False], index=["r1", "r2", "r3"])
+    pred = pd.DataFrame({"row_id": ["r1", "r2"], "fold_id": ["f", "f"], "mean_logD": [0.1, 0.2]})
+    D.scoring_frame(pred, attrs, design="V5", v6_mask=v6, what="ok")
+    g = D.guard_counts()
+    assert g["scoring_frames_checked"] == 1 and g["rows_half_rederived"] == 2
+    assert g["confirmation_half_rows_seen"] == 0 and g["v6_target_rows_scored"] == 0
+    bad = pd.DataFrame({"row_id": ["r1", "r3"], "fold_id": ["f", "f"], "mean_logD": [0.1, 0.2]})
+    with pytest.raises(AssertionError, match="selection half"):
+        D.scoring_frame(bad, attrs, design="V5", v6_mask=v6, what="confirmation row")
+    assert D.guard_counts()["confirmation_half_rows_seen"] == 1        # counted, and refused
+    with pytest.raises(AssertionError):
+        D.scoring_frame(pred, attrs, design="V5", v6_mask=pd.Series([True, False, False], index=attrs.index),
+                        what="v6 row")
+    assert D.guard_counts()["v6_target_rows_scored"] == 1
 
 
 def test_r19_item4_not_evaluated_and_the_reduced_sensitivity_set():
@@ -1143,7 +1373,8 @@ def test_addendum_cost_estimate_writes_checkpoints_and_a_verdict(tmp_path):
     assert cps[0]["stage"] == D.STAGES["safeguard"] and D.STAGES["s1c"] in [c["stage"] for c in cps]
     assert all(a["cumulative_wall_h"] <= b["cumulative_wall_h"] for a, b in zip(cps, cps[1:]))
     assert body["fits_in_60h"] == body["summary"]["fits_budget"] == cps[-1]["within_budget_wall"]
-    assert body["addendum"] == D.N_ADDENDA_EXPECTED and body["plan_state_assumed"]["v5_batched_check"] == "passed"
+    assert body["addendum"] == REG.addenda_count("discovery") == 1
+    assert body["plan_state_assumed"]["v5_batched_check"] == "passed"
     bdir = D.discovery_root(tmp_path) / "benchmark"
     md = (bdir / "cost_estimate_addendum1.md").read_text(encoding="utf-8")
     assert (bdir / "cost_estimate_addendum1.json").exists() and "60 h budget" in md
@@ -1324,8 +1555,42 @@ def test_scorer_end_to_end_on_synthetic_records(tmp_path):
     assert dec["registered_family_accounting"]["m_discovery"] == len(D.REGISTERED_FAMILY_TABLE) == 57
     assert con["p_bh_full_family"].notna().any() and not dec["S1_components"]["S1_forced_undecided"]
     assert dec["not_run"]["uncertainty_metrics"] == D.UNCERTAINTY_NOT_RUN
-    assert all(v["status"] in ("complete", "missing") for v in dec["record_sets"].values())
+    assert all(v["status"] in ("complete", "missing", "not_planned") for v in dec["record_sets"].values())
     assert dec["record_sets"][f"M2/V5__primary_batched/s{D.PRIMARY_SEED}"]["status"] == "complete"
+    # task X finding V-REC-07: a record set the registered plan never scheduled is not_planned, not missing -- B8 has no
+    # registered strict / HNO3-only refit (addendum 1 item 4 registers them for H1, H1b, H4 and freezing candidates)
+    rs = dec["record_sets_summary"]
+    assert rs["by_status"]["not_planned"] == [f"B8/V5__hno3_only_batched/s{D.PRIMARY_SEED}",
+                                             f"B8/V5__strict_batched/s{D.PRIMARY_SEED}"]
+    assert dec["record_sets"][f"B8/V5__strict_batched/s{D.PRIMARY_SEED}"]["status"] == "not_planned"
+    assert rs["n_planned"] == rs["n_requested"] - 2 and rs["complete_of_planned"].endswith(f"/{rs['n_planned']}")
+    # task X finding V-MAN-09: the guards' counters are what the manifest's two claims are derived from
+    g = dec["guard_counters"]
+    assert g["scoring_frames_checked"] > 0 and g["rows_half_rederived"] > 0 and g["preseal_rows_read"] > 0
+    assert g["confirmation_half_rows_seen"] == 0 and g["v6_target_rows_scored"] == 0
+    # task X finding V-S1-01: S1 is "All of" (a)-(e), so (d) and (e) carry a verdict or an explicit NOT_EVALUATED
+    s1 = dec["S1_components"]
+    assert s1["S1_components_registered"] == ["S1(a)", "S1(b)", "S1(c)", "S1(d)", "S1(e)"]
+    assert s1["S1d_calibration"]["verdict"] == D.NOT_EVALUATED and "coverage" in s1["S1d_calibration"]["reason"]
+    assert s1["S1e_support_distance"]["verdict"] == D.NOT_EVALUATED
+    assert "reliability floor" in s1["S1e_support_distance"]["reason"]
+    # task X finding V-BUD-03: the budget block names the exhaustion, the demotion by rule and the empty ledger.demoted
+    bud = dec["budget"]
+    assert bud["ladder"]["budget_hours"] == D.LADDER_BUDGET_HOURS == 40.0
+    assert bud["m3_m7_absence"]["not_implemented"] == D.NOT_IMPLEMENTED
+    assert "budget" in dec["not_run"]["M3+"] and D.NOT_IMPLEMENTED in dec["not_run"]["M3+"]
+    # task X findings V-S02 / V-S03 / V-S04 / V-S07: the disclosures that travel with every contrast row
+    assert (prim["candidate_fold_scheme"], prim["comparator_fold_scheme"]) == ("batched", "exact (pre-seal)")
+    h1b = con[(con["contrast"] == "B6 vs B3i") & con["primary_cluster_unit"].astype(bool)].iloc[0]
+    assert h1b["candidate_fold_scheme"] == "exact" and h1b["batching_label"] == "exact"
+    assert set(res["summary"]["fold_scheme"]) == {"batched", "exact"}
+    assert prim["clustering"] == "clustered" and prim["tost_n_clusters"] > 0
+    assert prim["tost_cluster_unit"] == "system" and "envelope" in prim["tost_interval_construction"]
+    fams = con[con["primary_cluster_unit"].astype(bool)].groupby("family")["bh_m"].nunique()
+    assert (fams == 1).all()                      # one m per family: BH is per family, not pooled
+    reg_rows = con[con["primary_cluster_unit"].astype(bool) & (con["bh_family"] == "registered")]
+    assert (reg_rows["bh_m"] <= reg_rows["bh_m_pooled_registered"]).all()
+    assert (reg_rows.groupby("family")["bh_m"].first() == reg_rows.groupby("family").size()).all()
     # task X finding V-LP-03: records of other code are refused, not scored
     with pytest.raises(D.StaleRecordError, match="digest"):
         SD.score(out, attrs, **dict(kw, code="code-after-a-change"))
@@ -1360,6 +1625,85 @@ def test_scorer_end_to_end_on_synthetic_records(tmp_path):
         SD.score(out, attrs, **kw)
 
 
+def test_s1c_disclosures_and_persisted_yardstick_records(tmp_path):
+    """Task X findings V-S01, V-S05, V-S06: the binding S1(c) number carries its OWN cluster count and interval, the
+    direction gate's float tolerance and the boundary pairs it admits are recorded, and the closed-form B3x / B3i refits
+    of "same fitted folds" are persisted as a verifiable record set instead of living only in memory."""
+    SD = _load_script("g19_score_discovery")
+    half = {"min_delta": -0.016846877, "min_delta_yardstick": "HEAVIER", "n_pairs": 9802,
+            "direction": {"HEAVIER": {"n_systems": 5, "n_cell_pairs": 242, "n_pairs": 6166, "n_pairs_qualifying": 6679,
+                                      "percentile_low": -0.029909, "percentile_high": -0.006510,
+                                      "bca_low": -0.027593, "bca_high": -0.004822},
+                          "B3x": {"n_systems": 14, "n_cell_pairs": 280, "n_pairs": 7000, "n_pairs_qualifying": 6679,
+                                  "percentile_low": 0.020969, "percentile_high": 0.141826,
+                                  "bca_low": 0.006025, "bca_high": 0.112561}}}
+    disc = SD.s1c_min_delta_disclosure(half)
+    assert disc["min_delta_threshold"] == ET.S1C_SELECTION_MIN_DELTA == -0.02
+    assert disc["min_delta_n_systems"] == 5 and disc["n_systems_by_yardstick"] == {"HEAVIER": 5, "B3x": 14}
+    # the point is inside the threshold by 0.0032 and its interval straddles -0.02: not interval-separated
+    assert disc["min_delta_margin_inside_threshold"] == pytest.approx(0.003153123)
+    assert disc["min_delta_interval_separated_from_threshold"] is False and "is NOT" in disc["min_delta_disclosure"]
+    sep = SD.s1c_min_delta_disclosure({**half, "direction": {"HEAVIER": {**half["direction"]["HEAVIER"],
+                                                                        "percentile_high": -0.021}}})
+    assert sep["min_delta_interval_separated_from_threshold"] is True
+    # the >= 0.3 gate is applied with a tolerance: a stored 0.3 can be 0.29999999999999993
+    pairs = pd.DataFrame({"logsf_obs": [0.5, 0.3 - 1e-16, -(0.3 - 1e-16), 0.25, 0.9],
+                          "category_class": ["Ln-Ln", "Ln-Ln", "An-Ln", "Ln-Ln", "An-An"]})
+    assert (np.abs(pairs["logsf_obs"].to_numpy()) >= 0.3).sum() == 2        # a strict test would drop two pairs
+    gate = SD.direction_gate_disclosure(pairs, half)
+    assert gate["threshold"] == 0.3 and gate["tolerance"] == EM.FLOAT_TOL == 1e-9
+    assert gate["n_pairs_admitted_by_tolerance"] == 2 and gate["n_ln_ln_pairs_admitted_by_tolerance"] == 1
+    assert "0.29999999999999993" in gate["reading"] and gate["n_pairs_qualifying"]["HEAVIER"] == 6679
+    # the yardstick refit is written once, then verified; another code digest or other values are refused
+    pred = pd.DataFrame({"label": ["f|r1", "f|r2", "f|r1", "f|r2"], "fold_id": "f", "row_id": ["r1", "r2", "r1", "r2"],
+                         "half": "S", "seed": D.PRIMARY_SEED, "arm": ["B3x", "B3x", "B3i", "B3i"],
+                         "mean_logD": [0.1, 0.2, 0.3, 0.4], "fallback_level": 0, "fallback_reason": ""})
+    refit = SimpleNamespace(predictions=pred, design_hash="dh", fold_design="V5PAIR__primary__batched@dh",
+                            seed=D.PRIMARY_SEED, arms=("B3x", "B3i"), halves=("S",))
+    store = SimpleNamespace(out_root=tmp_path, code="c" * 64)
+    first = SD.write_yardstick_records(store, refit, "V5PAIR__primary__batched")
+    assert first["status"] == "written" and first["n_rows"] == 4 and first["code_digest"] == "c" * 64
+    assert (D.discovery_root(tmp_path) / "_s1c_yardsticks" / "V5PAIR__primary__batched" /
+            f"s{D.PRIMARY_SEED}" / "yardsticks.parquet").exists()
+    again = SD.write_yardstick_records(store, refit, "V5PAIR__primary__batched")
+    assert again["status"] == "verified" and again["digest"] == first["digest"]
+    with pytest.raises(D.StaleRecordError, match="another code"):
+        SD.write_yardstick_records(SimpleNamespace(out_root=tmp_path, code="d" * 64), refit,
+                                   "V5PAIR__primary__batched")
+    moved = refit.predictions.copy()
+    moved.loc[0, "mean_logD"] = 9.9
+    with pytest.raises(D.StaleRecordError, match="no longer reproduces"):
+        SD.write_yardstick_records(store, SimpleNamespace(predictions=moved, design_hash="dh",
+                                                          fold_design=refit.fold_design, seed=D.PRIMARY_SEED,
+                                                          arms=("B3x", "B3i"), halves=("S",)),
+                                   "V5PAIR__primary__batched")
+
+
+def test_s1d_inputs_and_record_set_summary_read_the_scorers_own_tables():
+    """Task X findings V-S1-01 / V-REC-07: S1(d) is decided on the scorer's own V5-primary coverage rows, and a record
+    set the plan never scheduled is separated from a missing one in the completeness summary."""
+    SD = _load_script("g19_score_discovery")
+    base = {"arm": "M2", "design": "V5", "variant": "primary", "aggregation": "unit_macro", "stratum": "all",
+            "scoring_filter": "none", "status": "registered", "seed": D.PRIMARY_SEED, "unit_reading": "registered"}
+    summ = pd.DataFrame([{**base, "metric": "coverage_50", "value": 0.548793},
+                         {**base, "metric": "coverage_80", "value": 0.834762},
+                         {**base, "metric": "coverage_95", "value": 0.963741},
+                         {**base, "arm": "B6", "metric": "coverage_80", "value": 0.1},
+                         {**base, "scoring_filter": "non_DGA_stratum", "metric": "coverage_80", "value": 0.2}])
+    cov = pd.DataFrame([{"arm": "M2", "design": "V5", "metric": "coverage_80", "aggregation": "unit_macro",
+                         "category": "CROSS_METAL_LIGAND_TRANSFER", "value": 0.835003, "category_units": 105},
+                        {"arm": "M2", "design": "V5", "metric": "coverage_80", "aggregation": "unit_macro",
+                         "category": "UNSUPPORTED", "value": 0.25, "category_units": 4}])
+    lv, cats = SD.s1d_inputs(summ, cov, arm="M2")
+    assert lv == {0.5: 0.548793, 0.8: 0.834762, 0.95: 0.963741}
+    assert cats == {"CROSS_METAL_LIGAND_TRANSFER": (0.835003, 105), "UNSUPPORTED": (0.25, 4)}
+    assert D.s1d_component(lv, cats, arm="M2", source="t")["verdict"] == "PASS"   # UNSUPPORTED is below the 20-cell scope
+    summary = SD.record_sets_summary({"a": {"status": "complete"}, "b": {"status": "complete"},
+                                      "c": {"status": "missing"}, "d": {"status": "not_planned"}})
+    assert summary["n_requested"] == 4 and summary["n_planned"] == 3 and summary["complete_of_planned"] == "2/3"
+    assert summary["by_status"]["not_planned"] == ["d"] and "not_planned" in summary["reading"]
+
+
 def test_scorer_reports_s1_undecided_when_the_recoloured_check_failed(tmp_path):
     """Task X finding V-05: with the re-coloured batched-vs-exact check failed, every S1 component is reported UNDECIDED
     and heavy-arm V5 contrasts, rows and freezing candidates carry 'batched (check failed)'."""
@@ -1375,7 +1719,10 @@ def test_scorer_reports_s1_undecided_when_the_recoloured_check_failed(tmp_path):
     prim = con[(con["contrast"] == "M2 vs B3i") & con["primary_cluster_unit"].astype(bool)].iloc[0]
     assert prim["reported_verdict"] == "UNDECIDED" and prim["batching_label"] == D.CHECK_FAILED_LABEL
     b6 = con[(con["contrast"] == "B6 vs B3i") & con["primary_cluster_unit"].astype(bool)].iloc[0]
-    assert b6["batching_label"] == "" and dec["heavy_v5_batching_label"] == D.CHECK_FAILED_LABEL
+    # the failed-check label is heavy-arm only; H1b is the exact leave-one-cell-out design and now says so instead of
+    # carrying a blank label (task X finding V-H1B-05)
+    assert b6["batching_label"] == "exact" and dec["heavy_v5_batching_label"] == D.CHECK_FAILED_LABEL
+    assert b6["candidate_fold_scheme"] == "exact" and b6["comparator_fold_scheme"] == "exact (pre-seal)"
     for c in res["freezing_candidates"]:
         if c["family"] in D.S1_FAMILIES:
             assert c["s1_forced_undecided"] and c["batching_label"] == D.CHECK_FAILED_LABEL

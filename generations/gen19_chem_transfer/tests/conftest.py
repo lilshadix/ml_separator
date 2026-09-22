@@ -17,3 +17,5 @@ if str(G19) not in sys.path:
 
 def pytest_configure(config) -> None:
     config.addinivalue_line("markers", "slow: long-running fit or full-corpus sweep")
+    config.addinivalue_line("markers", "real_registry: reads the generation's manifests/digest_registry.json (POST-HOC "
+                                       "addendum 2 item 5) instead of the isolated one every other test gets")

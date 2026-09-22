@@ -26,9 +26,10 @@ sensitivities that were not run named in the contrast tables and in ``decisions.
 screen are unchanged: their scopes contain neither item 4 nor the refit sensitivities.
 
 Every scoring frame passes the selection-half assertion and ``registered.assert_not_scored``; nothing reads V6.  The
-scorer refuses to run unless the pre-registration seal check passes with the registered digest
-(``g19_run_discovery.refuse_unless_sealed``), and reads a discovery record only when its digest, fold hash and fold set
-are exactly what the current code, fold files and plan state produce (``g19_run_discovery.verified_predictions``): a
+scorer refuses to run unless the pre-registration seal check passes with the digest registered for stage ``scorer``
+(``registry.refuse_unless_sealed``), and reads a discovery record only when its digest, fold hash and fold set are
+exactly what the REGISTERED discovery code (registry entry ``discovery``), fold files and plan state produce
+(``g19_run_discovery.verified_predictions``): a
 stale or foreign record raises, a job with folds still missing is not scored.  When the re-coloured batched-vs-exact
 check failed, every S1 component is reported UNDECIDED and heavy-arm V5 contrasts carry ``batched (check failed)``
 (section 7 item 6).  Registered contrasts not evaluated (section 19), the BH family size and the uncertainty metrics
@@ -59,6 +60,7 @@ from gen19ct.chemistry import support_graph as SG  # noqa: E402
 from gen19ct.evaluation import calibration as EC  # noqa: E402
 from gen19ct.evaluation import discovery as D  # noqa: E402
 from gen19ct.evaluation import metrics as EM  # noqa: E402
+from gen19ct.evaluation import registry as REG  # noqa: E402
 from gen19ct.evaluation import pairs as EP  # noqa: E402
 from gen19ct.evaluation import transfer as ET  # noqa: E402
 from gen19ct.folds import io as FI  # noqa: E402
@@ -66,6 +68,9 @@ from gen19ct.folds import source_holdout as SH  # noqa: E402
 from gen19ct.manifest import Run, write_csv, write_json, write_text  # noqa: E402
 
 NAME = "g19_score_discovery"
+#: the registry stage of the scorer's own seal gate (addendum 2 item 5); the records it reads are verified against the
+#: ``discovery`` entry (their stage), never against the live text or code
+STAGE = "scorer"
 PRESEAL_PRED = paths.G19_ROOT / "evaluation" / "preseal" / "predictions"
 CROSSINGS_CSV = paths.FOLDS_DIR / "wildcard_copy_crossings.csv"
 WC_COL = "wildcard_copy_partner_in_training"
@@ -101,6 +106,14 @@ def _runner_module():
 
 def log(msg: str) -> None:
     print(f"[{time.strftime('%H:%M:%S')}] {msg}", flush=True)
+
+
+def _rel(path: Path) -> str:
+    """``paths.rel`` where it applies (a repository file), the path itself otherwise (``--out-root`` elsewhere)."""
+    try:
+        return str(paths.rel(Path(path)))
+    except ValueError:
+        return str(path)
 
 
 # ============================================================================================= #
@@ -153,7 +166,10 @@ class Store:
         self.out_root, self.attrs, self.v6, self.crossings, self.state = Path(out_root), attrs, v6, crossings, state
         self.preseal_dir = preseal_dir
         self.rd = _runner_module()
-        self.code = self.rd.current_code_digest() if code is None else code
+        # addendum 2 item 5: a record set is verified against the registry entry of ITS stage (discovery, or
+        # discovery_candidates for a freezing-candidate job; verified_predictions(code=None) resolves it from the
+        # records' job block), never the live code; an explicit ``code`` (tests) still pins one digest for every set
+        self.code = code
         self.folds_dir = paths.FOLDS_DIR if folds_dir is None else Path(folds_dir)
         self.runners = runners
         flag = attrs["acidic_coextractant_modifier"].astype(bool) if "acidic_coextractant_modifier" in attrs.columns \
@@ -162,9 +178,20 @@ class Store:
         self._pre: dict = {}
         self._cache: dict = {}
         self._folds: dict = {}
+        self._planned: set[tuple[str, str, int]] | None = None
         self.record_sets: dict[str, dict] = {}
         self.remainder_groups = sorted(
             g for g, n in attrs[EM.PUB_GROUP_COL].astype(str).value_counts().items() if n < SH.REGISTERED_MIN_ROWS)
+
+    @property
+    def planned(self) -> set[tuple[str, str, int]]:
+        """Every ``(arm, design directory, seed)`` a FIT job of the registered plan writes under the current plan state
+        (``discovery.enumerate_plan``): a record set outside it was never scheduled, so its absence is ``not_planned``,
+        not ``missing`` (task X finding V-REC-07)."""
+        if self._planned is None:
+            self._planned = {(a, j.design_dir, int(j.seed)) for j in D.enumerate_plan(self.state, folds_dir=self.folds_dir)
+                             if j.kind == "fit" for a in j.writes}
+        return self._planned
 
     def verified(self, arm: str, design_dir: str, seed: int, steps: Sequence[str] = ("point",)) -> pd.DataFrame | None:
         """``g19_run_discovery.verified_predictions`` (stale / foreign records raise; incomplete -> ``None``)."""
@@ -172,8 +199,32 @@ class Store:
                                                 state=self.state, excluded_ids=self.excluded_ids,
                                                 folds_dir=self.folds_dir, runners=self.runners, steps=steps,
                                                 fold_cache=self._folds)
-        self.record_sets[f"{arm}/{design_dir}/s{seed}"] = {k: v for k, v in st.items() if k != "arm"}
+        rec = {k: v for k, v in st.items() if k != "arm"}
+        if rec.get("status") == "missing" and (arm, design_dir, int(seed)) not in self.planned:
+            rec.update({"status": "not_planned", "reason": D.READINGS["record_sets_not_planned"]})
+        self.record_sets[f"{arm}/{design_dir}/s{seed}"] = rec
         return pred
+
+    def fold_scheme(self, arm: str, design: str, setting: str) -> str:
+        """The fold scheme the arm is scored on for this design and setting -- ``exact``, ``batched``, ``batched_max4``,
+        ``grouped10``, ``cell_x_group`` -- from the design directory of a fitted arm and from the pre-seal job's fold
+        stem of a closed-form arm (task X finding V-S02 / V-H1B-05: a closed-form comparator is fitted on the exact
+        leave-one-cell-out folds of section 3.1 while a heavy arm takes the batched scheme, so the regime is per arm)."""
+        arm = D.ARM_ALIASES.get(arm, arm)
+        if arm in DETERMINISTIC_ARMS:
+            src = PRESEAL_JOB.get((design, setting))
+            return "" if src is None else f"{src[1].split('__')[-1]} (pre-seal)"
+        if self.design_dir(arm, design, setting) is None:
+            return ""
+        if design == "V2":
+            return "exact"
+        if design == "V1":
+            return "exact" if arm in D.B6_ARMS else (self.state.heavy_v1_scheme or "grouped10")
+        if design == "V5":
+            if arm in D.B6_ARMS:
+                return "cell_x_group" if setting == "V5P" else "exact"
+            return self.state.heavy_v5_scheme or "batched"
+        return "batched" if design == "V5PAIR" else ""
 
     def design_dir(self, arm: str, design: str, setting: str) -> str | None:
         v5s = self.state.heavy_v5_scheme or "batched"
@@ -343,6 +394,9 @@ def evaluate_spec(store: Store, spec: D.ContrastSpec, delta5: float, *, v2_summa
     res["untestable_reason"] = {k: reasons.get(k, D.REFIT_NOT_RUN) for k, v in res["sensitivities"].items()
                                 if v == ET.UNTESTABLE}
     res["batching_label"] = D.heavy_v5_batching_label((spec.candidate, spec.comparator), design, store.state)
+    # the fold scheme of each arm, so no blanket regime line can cover a contrast whose arms sit on different folds
+    # (task X finding V-S02 / V-H1B-05; prereg "comparator_folds")
+    res["fold_schemes"] = {a: store.fold_scheme(a, design, "primary") for a in (spec.candidate, spec.comparator)}
     forced = store.state.s1_forced_undecided and spec.family in D.S1_FAMILIES
     res["reported_verdict"] = "UNDECIDED" if forced else res["r19"].verdict
     return res
@@ -386,6 +440,9 @@ def summary_tables(store: Store) -> pd.DataFrame:
                     fr = store.frame(arm, design, setting, s)
                     if fr is None:
                         continue
+                    # task X finding V-S02: the fold scheme travels with every metric row, so a table of M2 (batched_max4)
+                    # and B6 (exact leave-one-cell-out) rows cannot be read under one regime line
+                    scheme = store.fold_scheme(arm, design, setting)
                     label = "V5-P" if setting == "V5P" else design
                     reg = EM.Regime(design=label, arm=arm, variant=setting, half="selection", seed=int(s),
                                     seed_set="discovery")
@@ -401,21 +458,21 @@ def summary_tables(store: Store) -> pd.DataFrame:
                         status = "registered" if fname == "none" else "registered_sensitivity"
                         r2 = reg if status == "registered" else replace(reg, status="exploratory")
                         s1 = EM.design_logd_summary(frx, r2, exploratory_unit_readings=design == "V1", **kw)
-                        s1["scoring_filter"] = fname
+                        s1["scoring_filter"], s1["fold_scheme"] = fname, scheme
                         parts.append(s1)
                         if fname == "none" and design == "V5" and setting == "primary":
                             for sc in ("metal_class", "dga_stratum", "acid_stratum"):
                                 st = EM.design_logd_summary(frx, reg, exploratory_unit_readings=False, strata_col=sc, **kw)
                                 st = st[st["stratum"] != "all"]
-                                st["scoring_filter"] = fname
+                                st["scoring_filter"], st["fold_scheme"] = fname, scheme
                                 parts.append(st)
                         if fname == "none" and np.isfinite(frx["lower_80"].to_numpy(dtype=float)).all():
                             iv = EM.design_interval_summary(frx, reg, exploratory_unit_readings=design == "V1",
                                                             levels=EC.LEVELS, **kw)
-                            iv["scoring_filter"] = fname
+                            iv["scoring_filter"], iv["fold_scheme"] = fname, scheme
                             parts.append(iv)
     if not parts:
-        return pd.DataFrame(columns=list(EM.SUMMARY_COLUMNS) + ["unit_reading", "scoring_filter"])
+        return pd.DataFrame(columns=list(EM.SUMMARY_COLUMNS) + ["unit_reading", "scoring_filter", "fold_scheme"])
     out = pd.concat(parts, ignore_index=True)
     out["label"] = "discovery, optimistically biased (selection half)"
     return out
@@ -452,10 +509,14 @@ def comparator_intervals(store: Store) -> pd.DataFrame:
     return pd.concat(rows, ignore_index=True) if rows else pd.DataFrame()
 
 
-def coverage_by_domain_status(store: Store) -> pd.DataFrame:
+def coverage_by_domain_status(store: Store, support_distance: dict | None = None) -> pd.DataFrame:
     """Sections 12 / 13: coverage and width per domain-status category (with its cell count) of every fitted arm with
     intervals on V5-primary, from the per-fold support files the runner wrote (``_support``); rows whose label is
-    ambiguous between the two readings of the anion clause are counted and excluded."""
+    ambiguous between the two readings of the anion clause are counted and excluded.
+
+    ``support_distance`` collects, per arm, the DESCRIPTIVE Spearman between a cell's MAE and its mean support score --
+    the point of section 9 S1(e), whose registered interval and reliability floor are the power stage, so it decides
+    nothing (:func:`gen19ct.evaluation.discovery.s1e_component`)."""
     parts = []
     for arm in D.FITTED_ARMS:
         dd = store.design_dir(arm, "V5", "primary")
@@ -482,12 +543,26 @@ def coverage_by_domain_status(store: Store) -> pd.DataFrame:
                                           unit_cols=EM.CELL_COLS, v6_mask=store.v6)
             tab["n_rows_domain_status_ambiguous_excluded"] = n_amb
             parts.append(tab)
+            if support_distance is not None and int(s) == D.PRIMARY_SEED:
+                support_distance[arm] = _support_distance_spearman(fr)
     return pd.concat(parts, ignore_index=True) if parts else pd.DataFrame()
 
 
+def _support_distance_spearman(fr: pd.DataFrame) -> dict[str, Any]:
+    """Descriptive Spearman(cell MAE, cell mean ``support_score``) over the V5 hidden cells of one arm (section 9 S1(e)'s
+    point estimate; no interval, no reliability floor -- both are the power stage, so this decides nothing)."""
+    cell = fr[list(EM.CELL_COLS)].astype(str).agg(" x ".join, axis=1)
+    err = (fr[EM.Y_COL].astype(float) - fr[EM.PRED_COL].astype(float)).abs()
+    per = pd.DataFrame({"cell": cell.to_numpy(), "abs_error": err.to_numpy(),
+                        "support_score": fr["support_score"].to_numpy(dtype=float)}).groupby("cell", sort=True).mean()
+    ok = per.dropna()
+    return {"point": float(EM.spearman_rho(ok["support_score"].to_numpy(), ok["abs_error"].to_numpy())) if len(ok) > 2
+            else float("nan"), "n_cells": int(len(ok))}
+
+
 def _support_files_current(store: Store, arm: str, design_dir: str, seed: int, sup_dir: Path) -> bool:
-    """Every support file of the arm's verified job carries the digest the current code gives it (raises on a stale
-    one); ``False`` when a file is missing."""
+    """Every support file of the arm's verified job carries the digest the code of the job's REGISTRY STAGE gives it
+    (``registry.code_digest_for``; raises on a stale one); ``False`` when a file is missing."""
     d = D.discovery_root(store.out_root) / arm / design_dir / f"s{seed}"
     rec = next((D.read_record(j) for j in sorted(d.glob("*.json"))), None)
     if rec is None:
@@ -500,7 +575,8 @@ def _support_files_current(store: Store, arm: str, design_dir: str, seed: int, s
         body = D.read_record(js)
         if body is None or not js.with_suffix(".parquet").exists():
             return False
-        if body.get("digest") != store.rd.support_digest(job, f, store.code) or body.get("fold_hash") != f.fold_hash:
+        scode = REG.code_digest_for(REG.job_stage(job), live=store.code)   # the entry of the job's stage, else the live digest
+        if body.get("digest") != store.rd.support_digest(job, f, scode) or body.get("fold_hash") != f.fold_hash:
             raise D.StaleRecordError(f"{js}: support file of another code or fold file")
     return True
 
@@ -528,9 +604,13 @@ def pair_outputs(store: Store) -> tuple[pd.DataFrame | None, dict | None, list[d
     coext = fr[FI.ROW_ID].astype(str).isin(set(store.attrs.index[store.attrs["acidic_coextractant_modifier"]]))
     refit = SY.refit_lookup_yardsticks(stem, fr, v6_mask=v6, guard=SY.registered_guard(fr), table=table, systems=systems,
                                        components=comps, exclude_from_scoring=coext, halves=("S",))
+    yard_records = write_yardstick_records(store, refit, stem)
     bp = pd.read_parquet(paths.FOLDS_DIR / f"{stem}__pairs.parquet")
-    inp = SY.yardstick_pair_inputs(refit, store.attrs, v6_mask=store.v6, builder_pairs=bp[bp["half"].astype(str) == "S"]
-                                   if "half" in bp.columns else None)
+    # the registered cross-check "the regenerated pairs of the fitted folds must equal it" (s1c_yardsticks.
+    # yardstick_pair_inputs) takes the fold builder's WHOLE pair list: it restricts that list to the fitted fold ids
+    # itself, and the file carries no 'half' column, so the earlier `bp[bp["half"] == "S"] if "half" in bp.columns else
+    # None` passed None and the check never ran (task X finding V-S1C-02).
+    inp = SY.yardstick_pair_inputs(refit, store.attrs, v6_mask=store.v6, builder_pairs=bp)
     sel = SY.select_half(inp, "selection")
     labels = [ET.fold_qualified_label(f, r) for f, r in zip(pred["fold_id"], pred["row_id"])]
     cand = pd.Series(pred["mean_logD"].to_numpy(dtype=float), index=pd.Index(labels))
@@ -566,6 +646,11 @@ def pair_outputs(store: Store) -> tuple[pd.DataFrame | None, dict | None, list[d
                              else verdict["verdict"]})
             rec["primary_cluster_unit"] = True
             rec["key"] = f"S1(c): {kind.format(y)}"
+            # as for every other contrast row: whether the "clustered" bootstrap has one cluster per scoring unit, and
+            # the cluster count the number rests on -- HEAVIER's 242 Ln-Ln cell pairs lie in 5 systems, not 16
+            # (task X findings V-S01, V-S04)
+            rec["cluster_equals_scoring_unit"] = bool(br.n_clusters == br.n_units)
+            rec["clustering"] = "unclustered_equivalent" if br.n_clusters == br.n_units else "clustered"
             bh_rows.append(rec)
     s1c = {"label": "S1(c) selection-half counterweight (discovery seed 104729); the confirmation half decides S1(c)",
            "verdict_with_confirmation_missing": verdict["verdict"], "checks": verdict["checks"],
@@ -573,8 +658,97 @@ def pair_outputs(store: Store) -> tuple[pd.DataFrame | None, dict | None, list[d
            "min_delta": half["min_delta"], "min_delta_yardstick": half["min_delta_yardstick"],
            "direction": {k: slim(v) for k, v in half["direction"].items()},
            "logsf_mae": {k: slim(v) for k, v in half["logsf_mae"].items()}, "fold_design": half["fold_design"],
-           "n_pairs": half["n_pairs"]}
+           "n_pairs": half["n_pairs"],
+           "builder_pair_check": {"ran": True, "builder_pairs": int(len(bp)),
+                                  "rule": "s1c_yardsticks.yardstick_pair_inputs: the regenerated pairs of the fitted "
+                                          "folds equal the fold builder's pair list restricted to those folds "
+                                          "(task X finding V-S1C-02)"},
+           "yardstick_records": yard_records,
+           **s1c_min_delta_disclosure(half),
+           "direction_gate": direction_gate_disclosure(sel["pairs"], half)}
     return summ, json.loads(json.dumps(s1c, default=float)), bh_rows
+
+
+def s1c_min_delta_disclosure(half: Mapping[str, Any]) -> dict[str, Any]:
+    """The binding S1(c) counterweight number with the cluster count and interval it actually rests on (task X finding
+    V-S01): the min-delta yardstick's own system count -- HEAVIER is defined on Ln(III)-Ln(III) pairs only, so it sits in
+    far fewer systems than the pair set -- and whether its interval is separated from the registered -0.02 threshold."""
+    thr = float(ET.S1C_SELECTION_MIN_DELTA)
+    y = half.get("min_delta_yardstick")
+    d = (half.get("direction") or {}).get(y) or {}
+    lo, hi = float(d.get("percentile_low", float("nan"))), float(d.get("percentile_high", float("nan")))
+    sep = bool(np.isfinite(lo) and np.isfinite(hi) and (lo > thr or hi < thr))
+    return {"min_delta_threshold": thr,
+            "min_delta_n_systems": d.get("n_systems"), "min_delta_n_cell_pairs": d.get("n_cell_pairs"),
+            "min_delta_n_pairs": d.get("n_pairs"),
+            "min_delta_percentile": [lo, hi], "min_delta_bca": [d.get("bca_low"), d.get("bca_high")],
+            "min_delta_margin_inside_threshold": (float(half["min_delta"]) - thr
+                                                  if np.isfinite(float(half.get("min_delta", float("nan")))) else None),
+            "min_delta_interval_separated_from_threshold": sep,
+            "n_systems_by_yardstick": {k: (v or {}).get("n_systems") for k, v in (half.get("direction") or {}).items()},
+            "n_cell_pairs_by_yardstick": {k: (v or {}).get("n_cell_pairs")
+                                          for k, v in (half.get("direction") or {}).items()},
+            "min_delta_disclosure": ("the counterweight rests on the yardstick's OWN pair set and cluster count, not on "
+                                     "the pair set's system count, and the registered threshold check is a point "
+                                     "comparison: the interval is reported beside it and "
+                                     + ("is" if sep else "is NOT") + " separated from the threshold")}
+
+
+def direction_gate_disclosure(pairs: pd.DataFrame, half: Mapping[str, Any]) -> dict[str, Any]:
+    """The |observed logSF| >= 0.3 gate's float convention and the boundary pairs it admits (task X finding V-S05).
+
+    ``evaluation.pairs.score_pairs`` tests ``>= threshold - metrics.FLOAT_TOL``; a difference of two stored log_D values
+    that is exactly 0.3 can be stored as 0.29999999999999993, so a strict ``>= 0.3`` would drop such a pair.  Counted
+    here over the scored pair set and over the Ln-Ln pairs (HEAVIER's set, which carries the binding min delta)."""
+    obs = np.abs(pairs["logsf_obs"].to_numpy(dtype=float))
+    thr = float(EP.DIRECTION_THRESHOLD)
+    admitted = (obs >= thr - EM.FLOAT_TOL) & (obs < thr)
+    lnln = pairs["category_class"].astype(str).to_numpy() == "Ln-Ln" if "category_class" in pairs.columns else \
+        np.zeros(len(pairs), dtype=bool)
+    return {"threshold": thr, "tolerance": float(EM.FLOAT_TOL), "test": ">= threshold - tolerance",
+            "n_pairs_admitted_by_tolerance": int(admitted.sum()),
+            "n_ln_ln_pairs_admitted_by_tolerance": int((admitted & lnln).sum()),
+            "n_pairs_qualifying": {k: (v or {}).get("n_pairs_qualifying") for k, v in (half.get("direction") or {}).items()},
+            "reading": D.READINGS["s1c_direction_gate"]}
+
+
+def write_yardstick_records(store: Store, refit: Any, stem: str) -> dict[str, Any]:
+    """Persist the batched B3x / B3i S1(c) refit as a record set under ``evaluation/discovery/_s1c_yardsticks`` and
+    verify an existing one (task X finding V-S06: the closed-form "same fitted folds" refits were re-computed in memory
+    every pass, so the ``record_verification`` digest chain did not cover the S1(c) comparators).
+
+    The record's digest covers the code digest of the scorer's registry stage, the fold stem and design hash, the arms
+    and the halves; a stored record with another digest, another fold design or other predicted values raises
+    ``StaleRecordError`` -- it is not silently overwritten."""
+    d = D.discovery_root(store.out_root) / "_s1c_yardsticks" / stem / f"s{int(refit.seed)}"
+    pred = refit.predictions.sort_values(["arm", "fold_id", "row_id"], kind="mergesort").reset_index(drop=True)
+    code = REG.code_digest_for(STAGE, live=store.code)
+    body = {"schema": D.SCHEMA, "kind": "s1c_yardstick_refit", "stem": stem, "design_hash": refit.design_hash,
+            "fold_design": refit.fold_design, "seed": int(refit.seed), "arms": list(refit.arms),
+            "halves": list(refit.halves), "n_rows": int(len(pred)), "code_digest": code, "registry_stage": STAGE,
+            "prereg_addenda_sha256": REG.below_footer_sha256(STAGE), "prereg_n_addenda": REG.addenda_count(STAGE),
+            "reading": D.READINGS["s1c_yardstick_records"]}
+    body["digest"] = D.sha256_text(json.dumps({k: body[k] for k in ("kind", "stem", "design_hash", "seed", "arms",
+                                                                    "halves", "n_rows", "code_digest")}, sort_keys=True))
+    js, pq = d / "yardsticks.json", d / "yardsticks.parquet"
+    old = D.read_record(js)
+    if old is not None and pq.exists():
+        if old.get("digest") != body["digest"] or old.get("fold_design") != body["fold_design"]:
+            raise D.StaleRecordError(f"{js}: an S1(c) yardstick record of another code, fold design or arm set "
+                                     f"({str(old.get('digest'))[:12]}... vs {body['digest'][:12]}...)")
+        prev = pd.read_parquet(pq)
+        if not np.allclose(prev["mean_logD"].to_numpy(dtype=float), pred["mean_logD"].to_numpy(dtype=float),
+                           rtol=0, atol=1e-12) or list(prev["label"]) != list(pred["label"]):
+            raise D.StaleRecordError(f"{pq}: the S1(c) yardstick refit no longer reproduces the stored predictions")
+        status = "verified"
+    else:
+        paths.ensure_dir(d)
+        pred.to_parquet(pq, index=False)
+        write_json(js, body)
+        status = "written"
+    return {"status": status, "record": _rel(js), "predictions": _rel(pq),
+            "digest": body["digest"], "code_digest": code, "n_rows": body["n_rows"], "arms": body["arms"],
+            "fold_design": body["fold_design"], "reading": D.READINGS["s1c_yardstick_records"]}
 
 
 # ============================================================================================= #
@@ -589,6 +763,7 @@ def score(out_root: Path, attrs: pd.DataFrame, *, crossings: pd.DataFrame | None
     default to the runner's current code digest, the registered folds and the runner's arms (tests pass synthetic
     ones); records are verified against them."""
     v6 = attrs["v6_target_row"].astype(bool)
+    D.reset_guard_counts()            # the guards' counters become this pass's measurement (task X finding V-MAN-09)
     state = D.PlanState.read(D.discovery_root(out_root) / "decisions" / "plan_state.json")
     crossings = crossings if crossings is not None else pd.read_csv(CROSSINGS_CSV, dtype={"row_id": str, "partner_id": str})
     store = Store(out_root, attrs, v6, crossings, state, preseal_dir, code=code, folds_dir=folds_dir, runners=runners)
@@ -613,13 +788,27 @@ def score(out_root: Path, attrs: pd.DataFrame, *, crossings: pd.DataFrame | None
         items.append(D.r19_item_rows(r).assign(key=key))
     pair_summ, s1c, s1c_rows = pair_outputs(store) if with_pairs else (None, None, [])
     rows += s1c_rows
+    # the section 4 tables are built BEFORE the decision record, because S1(d) is decided on this scorer's own V5-primary
+    # coverage and coverage-by-domain-status rows (task X finding V-S1-01)
+    summary = summary_tables(store)
+    comp_iv = comparator_intervals(store)
+    support_distance: dict[str, dict] = {}
+    coverage = coverage_by_domain_status(store, support_distance)
+    s1d = D.s1d_component(*s1d_inputs(summary, coverage, arm="M2"), arm="M2",
+                          source="tables/discovery_summary.csv + tables/discovery_coverage_by_domain_status.csv")
+    sd = support_distance.get("M2") or {}
+    s1e = D.s1e_component(sd.get("point"), n_cells=sd.get("n_cells"), arm="M2",
+                          source="evaluation/discovery/_support (V5-primary cells, seed 104729)")
     evaluated = [k for k, r in results.items() if r["family"] in D.REGISTERED_FAMILIES]
     accounting = D.registered_family_accounting(evaluated + (["S1(c)"] if s1c_rows else []))
     contrasts = D.apply_bh(pd.DataFrame(rows), m_registered_full=accounting["m_full"]) if rows else pd.DataFrame()
     cands = D.freezing_candidates(results, state)
     learned_keys = sorted(k for k, r in results.items() if r.get("learned_arm"))
     addendum = {
-        "addendum": D.N_ADDENDA_EXPECTED,
+        "addendum": REG.addenda_count("discovery"),
+        "digest_registry": {"discovery": REG.registered("discovery"), REG.CANDIDATES: REG.registered(REG.CANDIDATES),
+                            STAGE: REG.registered(STAGE),
+                            "rule": REG.READINGS["registry"]},
         "label": "POST-HOC addendum 1 (below the sealed footer, 2026-09-15): the compute-driven reduction",
         "seeds_run_in_discovery": list(D.PLAN_SEEDS),
         "r19_item_4": {"status_in_discovery": D.ITEM4_NOT_EVALUATED, "detail": D.ITEM4_NOT_EVALUATED_DETAIL,
@@ -637,10 +826,14 @@ def score(out_root: Path, attrs: pd.DataFrame, *, crossings: pd.DataFrame | None
     decisions = {
         "schema": D.SCHEMA, "label": "discovery, selection half, optimistically biased; decisions on seed 104729",
         "addendum_1": addendum, "delta5": d5, "stop_rule": stop, "ladder": lad,
-        "S1_components": {**D.s1ab_components(results, state), "S1c_selection": s1c},
+        "S1_components": {**D.s1ab_components(results, state, s1d=s1d, s1e=s1e), "S1c_selection": s1c},
         "heavy_v5_batching_label": state.heavy_v5_label, "freezing_candidates": cands,
+        "budget": D.budget_block(out_root),
         "power_check": D.power_check_plan(results), "plan_state": state.record(), "readings": D.READINGS,
-        "not_run": {"M3+": D.NOT_IMPLEMENTED, "V0": D.READINGS["selection_half_only"],
+        "not_run": {"M3+": f"{D.NOT_IMPLEMENTED}; the discovery ledger ALSO demoted M3-M7 by the section 7 item 5 rule "
+                           "when its 60 h budget was exhausted, and no step was removed on evidence -- see `budget` "
+                           "(task X finding V-BUD-03)",
+                    "V0": D.READINGS["selection_half_only"],
                     "confirmation": "the confirmation half and V6 are never read by discovery",
                     "registered_family": [c for c in accounting["contrasts"] if c["status"] != "evaluated"],
                     "uncertainty_metrics": D.UNCERTAINTY_NOT_RUN,
@@ -651,13 +844,57 @@ def score(out_root: Path, attrs: pd.DataFrame, *, crossings: pd.DataFrame | None
                                    "comparator_interval_jobs": "addendum 1 item 3: not run (seed 104729 pre-seal "
                                                                "intervals are used)"}},
         "registered_family_accounting": accounting,
-        "record_sets": store.record_sets, "prereg_gate": None if prereg is None else dict(prereg),
+        "record_sets": store.record_sets, "record_sets_summary": record_sets_summary(store.record_sets),
+        "prereg_gate": None if prereg is None else dict(prereg),
         "available_contrasts": sorted(results), "n_registered_contrasts": sum(r["family"] in D.REGISTERED_FAMILIES
                                                                               for r in results.values())}
-    return {"summary": summary_tables(store), "comparator_intervals": comparator_intervals(store), "contrasts": contrasts,
-            "coverage_by_domain_status": coverage_by_domain_status(store),
+    # what the guards saw over every frame of this pass (task X finding V-MAN-09); the manifest fields derive from it
+    decisions["guard_counters"] = D.guard_counts()
+    return {"summary": summary, "comparator_intervals": comp_iv, "contrasts": contrasts,
+            "coverage_by_domain_status": coverage,
             "r19_items": pd.concat(items, ignore_index=True) if items else pd.DataFrame(), "decisions": decisions,
             "pairs": pair_summ, "state": state, "freezing_candidates": cands}
+
+
+def s1d_inputs(summary: pd.DataFrame, coverage: pd.DataFrame, *, arm: str = "M2"
+               ) -> tuple[dict[float, float], dict[str, tuple[float, int]]]:
+    """The section 9 S1(d) inputs of one arm from this scorer's own tables: the V5-primary unit-macro coverage at 50 / 80
+    / 95 % and, per domain-status category, its 80 % unit-macro coverage with the category's scored-cell count."""
+    lv: dict[float, float] = {}
+    if not summary.empty:
+        s = summary[(summary["arm"].astype(str) == arm) & (summary["design"].astype(str) == "V5")
+                    & (summary["variant"].astype(str) == "primary") & (summary["aggregation"].astype(str) == "unit_macro")
+                    & (summary["stratum"].astype(str) == "all") & (summary["scoring_filter"].astype(str) == "none")
+                    & (summary["status"].astype(str) == "registered") & (summary["seed"] == D.PRIMARY_SEED)]
+        if "unit_reading" in s.columns:      # "registered: hidden cell" on V5; an exploratory V1 reading never decides
+            u = s["unit_reading"].astype(str)
+            s = s[u.str.startswith("registered") | u.isin(("nan", "None", ""))]
+        for lvl in EC.LEVELS:
+            v = s.loc[s["metric"].astype(str) == f"coverage_{int(round(lvl * 100))}", "value"]
+            if len(v):
+                lv[float(lvl)] = float(v.iloc[0])
+    cats: dict[str, tuple[float, int]] = {}
+    if not coverage.empty:
+        c = coverage[(coverage["arm"].astype(str) == arm) & (coverage["design"].astype(str) == "V5")
+                     & (coverage["metric"].astype(str) == "coverage_80") & (coverage["aggregation"].astype(str) == "unit_macro")]
+        for _, r in c.iterrows():
+            cats[str(r["category"])] = (float(r["value"]), int(float(r.get("category_units") or 0)))
+    return lv, cats
+
+
+def record_sets_summary(record_sets: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]:
+    """Completeness of the record sets this pass asked for, with ``not_planned`` separated from ``missing`` (task X
+    finding V-REC-07): ``n_planned`` counts only the sets the registered plan schedules, so a set the plan never
+    contained cannot make the run look incomplete."""
+    by: dict[str, list[str]] = {}
+    for k, v in record_sets.items():
+        by.setdefault(str(v.get("status")), []).append(k)
+    planned = {k: v for k, v in record_sets.items() if v.get("status") != "not_planned"}
+    n_complete = len(by.get("complete") or [])
+    return {"n_requested": len(record_sets), "n_planned": len(planned), "n_complete": n_complete,
+            "complete_of_planned": f"{n_complete}/{len(planned)}",
+            "by_status": {k: sorted(v) for k, v in sorted(by.items())},
+            "reading": D.READINGS["record_sets_not_planned"]}
 
 
 def contrasts_markdown(con: pd.DataFrame, decisions: Mapping[str, Any]) -> str:
@@ -673,9 +910,26 @@ def contrasts_markdown(con: pd.DataFrame, decisions: Mapping[str, Any]) -> str:
              "(column `sensitivity set`): the V5 strict and HNO3-only refits plus every registered scoring-filter "
              "sensitivity; the sensitivities that were not run are named in `sensitivities not run` and in "
              "`decisions.json` -> `addendum_1`. Closed-form arms keep the full registered set.", "",
-             "| family | contrast | design | Delta | margin | pct 95% | p | p_BH | p_BH (full family) | stop-rule scope | "
-             "ladder scope | full R19 | r19 item 4 | sensitivity set | sensitivities not run | reported | batching | TOST |",
-             "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
+             "**Fold scheme per arm** (columns `candidate folds` / `comparator folds`): a closed-form comparator is "
+             "fitted on the exact leave-one-cell-out folds of section 3.1 (prereg `comparator_folds`) while a heavy arm "
+             "takes the plan's batched scheme, and B6 / B6r0 are scored on the exact folds throughout -- so H1 (M2 vs "
+             "B3i) and H1b (B6 vs B3i) do NOT sit on one V5 regime and no blanket 'batched' line covers the table "
+             "(task X finding V-S02 / V-H1B-05).", "",
+             "**p_BH is per family** (the `family` column; `bh_m` is that family's evaluated size). `p_BH (pooled)` is "
+             "the adjustment over every evaluated registered contrast and `p_BH (full family)` the m = 60 section 19 "
+             "family of reading 6(f); none of them decides, R19 uses the raw p. Two section 19 slots can share one "
+             "computed contrast -- `M2 vs M0` and `M1 vs M0` are H4 contrasts AND ladder steps (column `shared slot`) "
+             "(task X findings V-S03, V-BH-06).", "",
+             "**TOST** bounds are the conservative envelope of the 90 % percentile and 90 % BCa intervals under the "
+             "primary cluster unit, whose count is printed (`TOST clusters`); a V2 bound rests on 4 clusters "
+             "(task X finding V-S07). A row whose cluster count equals its scoring-unit count is labelled "
+             "`unclustered_equivalent` (column `clustering`): V1 and V2 carry no clustering protection beyond the fold "
+             "or state (task X finding V-S04).", "",
+             "| family | contrast | design | Delta | margin | pct 95% | p | p_BH | p_BH (pooled) | p_BH (full family) | "
+             "shared slot | stop-rule scope | ladder scope | full R19 | r19 item 4 | sensitivity set | "
+             "sensitivities not run | reported | batching | candidate folds | comparator folds | clustering | "
+             "TOST | TOST clusters |",
+             "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
 
     def cell(r, k, fmt="{}"):
         v = r.get(k)
@@ -687,10 +941,13 @@ def contrasts_markdown(con: pd.DataFrame, decisions: Mapping[str, Any]) -> str:
         for _, r in prim.sort_values(["bh_family", "family", "contrast"]).iterrows():
             lines.append(f"| {r['family']} | {r['contrast']} | {r['design']} | {r['point']:.3f} | {cell(r, 'margin', '{:.3f}')} | "
                          f"[{r['percentile_low']:.3f}, {r['percentile_high']:.3f}] | {r['p_two_sided']:.4f} | "
-                         f"{cell(r, 'p_bh', '{:.4f}')} | {cell(r, 'p_bh_full_family', '{:.4f}')} | "
+                         f"{cell(r, 'p_bh', '{:.4f}')} | {cell(r, 'p_bh_pooled_registered', '{:.4f}')} | "
+                         f"{cell(r, 'p_bh_full_family', '{:.4f}')} | {'yes' if r.get('bh_shared_computed_contrast') else ''} | "
                          f"{cell(r, 'verdict_stop_rule')} | {cell(r, 'verdict_ladder')} | {cell(r, 'r19_verdict_full')} | "
                          f"{cell(r, 'r19_item4')} | {cell(r, 'sensitivity_set')} | {cell(r, 'sensitivities_not_run')} | "
-                         f"{cell(r, 'reported_verdict')} | {cell(r, 'batching_label')} | {cell(r, 'tost_verdict_eps0.05')} |")
+                         f"{cell(r, 'reported_verdict')} | {cell(r, 'batching_label')} | "
+                         f"{cell(r, 'candidate_fold_scheme')} | {cell(r, 'comparator_fold_scheme')} | "
+                         f"{cell(r, 'clustering')} | {cell(r, 'tost_verdict_eps0.05')} | {cell(r, 'tost_n_clusters', '{:.0f}')} |")
     acc = decisions.get("registered_family_accounting") or {}
     if acc:
         lines += ["", f"Registered family (section 19, addendum 1 reading 6(f)): m = {acc['m_full']} "
@@ -701,6 +958,44 @@ def contrasts_markdown(con: pd.DataFrame, decisions: Mapping[str, Any]) -> str:
     if decisions.get("S1_components", {}).get("S1_forced_undecided"):
         lines += ["", "S1 is reported UNDECIDED: the re-coloured batched-vs-exact check failed (section 7 item 6); every "
                       "heavy-arm V5 result is labelled 'batched (check failed)'."]
+    # task X finding V-REP-10: item 6's not-run list differs by DESIGN (addendum 1 item 4), so all of them are named
+    if not con.empty and "sensitivities_not_run" in con.columns:
+        per = {}
+        for _, r in con[con["primary_cluster_unit"].astype(bool)].iterrows():
+            txt = r.get("sensitivities_not_run")
+            txt = "" if txt is None or (isinstance(txt, float) and not np.isfinite(txt)) else str(txt)
+            if txt and txt != "nan":                     # S1(c) rows carry no item-6 sensitivity list
+                per.setdefault(str(r["design"]), set()).add(txt)
+        if per:
+            lines += ["", "R19 item 6, sensitivities NOT run by design (addendum 1 item 4; the list is not one list):", ""]
+            for design in sorted(per):
+                for txt in sorted(per[design]):
+                    lines.append(f"- {design}: {txt}")
+    s1 = decisions.get("S1_components") or {}
+    s1c = s1.get("S1c_selection") or {}
+    if s1c:
+        y, thr = s1c.get("min_delta_yardstick"), s1c.get("min_delta_threshold")
+        lo, hi = ((f"{v:.6f}" if isinstance(v, (int, float)) else v)
+                  for v in (s1c.get("min_delta_percentile") or [None, None])[:2])
+        md = s1c.get("min_delta")
+        md = f"{md:.6f}" if isinstance(md, (int, float)) else md
+        lines += ["", f"S1(c) counterweight: min Delta = {md} on yardstick {y}, threshold {thr}; that "
+                      f"yardstick's own set is {s1c.get('min_delta_n_cell_pairs')} cell pairs in "
+                      f"{s1c.get('min_delta_n_systems')} systems (HEAVIER is defined on Ln(III)-Ln(III) pairs only, so it "
+                      f"is NOT the {s1c.get('n_pairs')}-pair set's system count), percentile 95 % interval [{lo}, {hi}], "
+                      f"separated from the threshold: {s1c.get('min_delta_interval_separated_from_threshold')} "
+                      "(task X finding V-S01)."]
+    for key, label in (("S1d_calibration", "S1(d)"), ("S1e_support_distance", "S1(e)")):
+        c = s1.get(key)
+        if c:
+            lines.append(f"- {label}: **{c.get('verdict')}**" + (f" -- {c['reason']}" if c.get("reason") else ""))
+    bud = decisions.get("budget") or {}
+    if bud:
+        dv, m = bud.get("discovery") or {}, bud.get("m3_m7_absence") or {}
+        lines += ["", f"Budget: discovery ledger {dv.get('used_hours')} h of {dv.get('budget_hours')} h, exhausted = "
+                      f"{dv.get('exhausted')}, demoted by rule {m.get('demoted_by_discovery_ledger')}, removed on "
+                      f"evidence {m.get('removed_on_evidence')}; the ladder has its own "
+                      f"{(bud.get('ladder') or {}).get('budget_hours')} h budget (addendum 2)."]
     return "\n".join(lines) + "\n"
 
 
@@ -726,13 +1021,16 @@ def main(argv=None, *, check=None, digests=None) -> int:
     ap.add_argument("--out-root", default=str(paths.G19_ROOT))
     ap.add_argument("--no-pairs", action="store_true", help="skip the V5-PAIR / S1(c) block")
     ap.add_argument("--expect-addenda", type=int, default=None,
-                    help=f"POST-HOC addenda expected below the sealed footer (default {D.N_ADDENDA_EXPECTED}, the "
-                         "addendum this code implements); scoring is refused on any other count")
+                    help="POST-HOC addenda expected below the sealed footer (default: the registry entry of stage "
+                         f"'{STAGE}', else {D.N_ADDENDA_EXPECTED}); scoring is refused on any other count")
     ap.add_argument("--no-manifest", action="store_true")
     ns = ap.parse_args(argv)
     out_root = Path(ns.out_root)
-    prereg = _runner_module().refuse_unless_sealed(check, digests, expect_addenda=ns.expect_addenda)
+    prereg = REG.refuse_unless_sealed(STAGE, check, digests, expect_addenda=ns.expect_addenda)
     log("row attributes")
+    # task X finding V-REP-04: the deterministic manifest is one run by design (byte identity), so the earlier passes'
+    # wall clock is carried in the VOLATILE run_info file; without this nothing recorded that a pass had run before
+    earlier_passes = _earlier_passes()
     attrs = build_attrs()
     with (Run(NAME, args=vars(ns), extra={"readings": D.READINGS, "prereg_gate": prereg})
           if not ns.no_manifest else _Null()) as run:
@@ -761,11 +1059,52 @@ def main(argv=None, *, check=None, digests=None) -> int:
         outs.append(write_json(ev / "decisions" / "plan_state.json", state.record()))
         if run is not None:
             run.outputs(*outs)
-            run.extra.update({"confirmation_half_read": False, "v6_target_rows_scored": 0,
-                              "stop": res["decisions"]["stop_rule"]["stop"], "code_sha256": _runner_module()
-                              .current_code_digest()})
+            # task X finding V-MAN-09: both fields are DERIVED from the guard counters of this pass (how many rows had
+            # their registered half re-derived, how many confirmation-half rows and V6_TARGET_ROWS rows a scoring index
+            # held -- the guards raise on either, so a completed pass records a measurement, not a literal)
+            g = res["decisions"]["guard_counters"]
+            run.extra.update({"confirmation_half_read": bool(g.get("confirmation_half_rows_seen", 0)
+                                                             or g.get("preseal_non_selection_rows", 0)),
+                              "v6_target_rows_scored": int(g.get("v6_target_rows_scored", 0)),
+                              "guard_counters": g, "guard_counters_reading": D.READINGS["guard_counters"],
+                              "record_sets_summary": res["decisions"]["record_sets_summary"],
+                              "budget": res["decisions"]["budget"],
+                              "stop": res["decisions"]["stop_rule"]["stop"],
+                              "code_sha256": REG.discovery_code_digest(),        # what the discovery records were verified with
+                              "candidates_code_sha256": (REG.registered(REG.CANDIDATES) or {}).get("code_digest"),
+                              "live_code_sha256": _runner_module().current_code_digest()})
+    if not ns.no_manifest:
+        _append_pass(earlier_passes)
     log(f"stop rule: {res['decisions']['stop_rule']['stop']}; contrasts: {len(res['decisions']['available_contrasts'])}")
     return 0
+
+
+def _run_info_path() -> Path:
+    return paths.MANIFESTS_DIR / "run_info" / f"{NAME}.json"
+
+
+def _earlier_passes() -> list[dict[str, Any]]:
+    """The passes recorded in the volatile ``run_info`` file before this one (``[]`` on the first pass)."""
+    info = D.read_record(_run_info_path()) or {}
+    prev = list(info.get("passes") or [])
+    if not prev and info.get("runtime_s") is not None:      # an earlier pass written before this field existed
+        prev = [{k: info.get(k) for k in ("date_utc", "runtime_s", "python", "platform")}]
+    return prev
+
+
+def _append_pass(earlier: Sequence[Mapping[str, Any]]) -> Path | None:
+    """Append this pass (date and runtime as :class:`Run` measured them) to ``run_info``'s ``passes``, so a report can
+    quote the recorded runtime of every pass instead of a remembered number (task X finding V-REP-04)."""
+    p = _run_info_path()
+    info = D.read_record(p)
+    if info is None:
+        return None
+    this = {k: info.get(k) for k in ("date_utc", "runtime_s", "python", "platform")}
+    info["passes"] = list(earlier) + [this]
+    info["passes_note"] = ("every pass of this script in this working tree, newest last; the deterministic manifest "
+                           "manifests/g19_score_discovery.json is one run by design (byte identity), so repeated passes "
+                           "are recorded here (task X finding V-REP-04)")
+    return write_json(p, info)
 
 
 def _json(obj: Any) -> Any:

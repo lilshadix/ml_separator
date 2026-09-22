@@ -1,3 +1,40 @@
 # Files over 5 MB written by scripts; their SHA-256 digests are recorded in the writing script's manifest.
 # scripts/g19_run_preseal.py (manifests/g19_run_preseal.json > outputs, files_over_5MB)
 evaluation/preseal/predictions/V0__rows.parquet
+
+# --- the completed discovery run's raw fold records (240.3 MB) ----------------------------------
+# Same convention as generations/gen18_process/.gitignore and generations/gen16_leads/.gitignore:
+# the raw search output is excluded by design, its SHA-256 is recorded in
+# evaluation/discovery/MANIFEST.sha256, and everything a decision file or the report cites by
+# number lives in a small committed CSV, JSON or Markdown file.
+#
+# Every fitted fold writes one record pair
+#   evaluation/discovery/<arm>/<design>/s<seed>/<metal state>[__<cell hash>].{parquet,json}
+# -- the per-row predictions and the record's provenance block (fold digest, resume digest,
+# below-footer prereg digest, addenda digest, code digest, registry stage).  3,900 files, 224.0 MB:
+# 1,461 registered records over the 7 fitted arms (B5, B6, B6r0, B8, FLAT_CAT, M1, M2), the 488
+# shared _support frames and the _s1c_yardsticks refit, as .parquet + .json pairs; plus the runner's
+# 16.3 MB stdout log.
+#
+# What stays in version control (NOT matched by the two patterns below): the scorer's outputs
+# evaluation/discovery/{contrasts_registered,contrasts_exploratory,r19_items,records_index}.csv,
+# the decision files evaluation/discovery/decisions/*.json (decisions, stop_rule, plan_state,
+# record_verification, wall_clock, b6_checks), the cost model and job plan under
+# evaluation/discovery/benchmark/, the start-of-run leakage safeguard certificates under
+# evaluation/discovery/safeguard/, and every table under tables/ (discovery_summary.{csv,md},
+# discovery_contrasts.md, discovery_comparator_intervals.csv, discovery_pair_summary.csv,
+# discovery_coverage_by_domain_status.csv).
+#
+# A record is NEVER re-verified against live code or live text (POST-HOC addendum 2 item 5): the
+# digests it carries are compared with manifests/digest_registry.json, stage `discovery`
+# (code 895a6ab9..., below-footer 05f36fc0..., 1,461 records) or `discovery_candidates`.  So a
+# regenerated run is compared with the one the decisions were written from through this manifest,
+# not by re-running a verifier against whatever the tree now holds.
+#
+# Regenerate (76.6 h wall clock on 2 workers / 12 threads, 60 h budget exhausted at 62.1 h):
+#   PYTHONIOENCODING=utf-8 PYTHONPATH=generations/gen19_chem_transfer .venv/Scripts/python.exe \
+#       generations/gen19_chem_transfer/scripts/g19_run_discovery.py --workers 2
+# Verify what is present:
+#   .venv/Scripts/python.exe generations/gen19_chem_transfer/scripts/g19_manifest_discovery.py --check
+evaluation/discovery/*/*/s*/
+evaluation/discovery/logs/

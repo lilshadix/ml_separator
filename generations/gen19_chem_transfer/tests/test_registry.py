@@ -74,10 +74,16 @@ def test_register_stage_writes_lf_sorted_json_and_is_immutable_per_stage(tmp_pat
     body = json.loads(raw.decode("utf-8"))
     assert body["schema"] == REG.SCHEMA and list(body) == sorted(body) and list(body["stages"]["discovery"]) == sorted(body["stages"]["discovery"])
     assert REG.registered("discovery", p)["git_head"] == "deadbeef" and REG.registered("ladder", p) is None
-    # identical re-registration: a no-op returning the existing entry
-    same = REG.register_stage("discovery", below_footer_sha256=A1, code_digest=CODE, git_head="other", addenda_count=1,
-                              note="again", path=p)
+    # identical re-registration: the digests and the registration time are untouched, but the DESCRIPTIVE fields may be
+    # corrected (task X finding V-REG-08: a misleading 'source' note on an entry whose digests are right)
+    same = REG.register_stage("discovery", below_footer_sha256=A1, code_digest=CODE, git_head="deadbeef",
+                              addenda_count=1, note="again", path=p, extra={"code_digest_source": "the records"})
     assert same["registered_utc"] == e["registered_utc"] and same["git_head"] == "deadbeef"
+    assert same["note"] == "again" and same["code_digest_source"] == "the records" and "amended_utc" in same
+    assert same["below_footer_sha256"] == A1 and same["code_digest"] == CODE and same["addenda_count"] == 1
+    noop = REG.register_stage("discovery", below_footer_sha256=A1, code_digest=CODE, git_head="deadbeef",
+                              addenda_count=1, note="again", path=p, extra={"code_digest_source": "the records"})
+    assert noop["amended_utc"] == same["amended_utc"]                      # nothing to correct: a no-op
     # a different digest for a registered stage is refused: the records were written once
     with pytest.raises(ValueError, match="already registered with other digests"):
         REG.register_stage("discovery", below_footer_sha256=A2, code_digest=CODE, git_head="x", addenda_count=2, note="n", path=p)
@@ -288,10 +294,13 @@ def test_h3_fold_digest_and_records_read_the_registry_entry_of_stage_h3(tmp_path
                     writes=("M2:WITHOUT",), stage=H3.STAGE)
     kw = dict(transform="WITHOUT", with_digest="w", guard_mode="every_split", design_hash="d", ordinal=0, model_seed=1)
     before = H3.fold_digest(job, fold, "code", **kw)
+    # the below-footer digest in the digest is the one stage 'h3' is registered under -- its entry when the registry
+    # exists, the addendum-1 constant while it does not
+    assert REG.below_footer_sha256("h3") == (REG.registered("h3") or {}).get("below_footer_sha256", A1)
     assert before == D.fold_digest(job, fold, "code", {"schema": H3.SCHEMA, "transform": "WITHOUT", "with_record_digest": "w",
                                                        "guard_mode": "every_split", "design_hash": "d", "model_fold_number": 0,
                                                        "model_seed": 1, "prereg_sha256": D.REGISTERED_PREREG_SHA256,
-                                                       "prereg_addenda_sha256": D.REGISTERED_ADDENDA_SHA256})
+                                                       "prereg_addenda_sha256": REG.below_footer_sha256("h3")})
     p = tmp_path / "reg.json"
     REG.register_stage("h3", below_footer_sha256=A2, code_digest=CODE, git_head=None, addenda_count=2, note="h3", path=p)
     monkeypatch.setattr(REG, "registry_path", lambda root=None: p)
@@ -319,7 +328,15 @@ def test_stage_code_digest_rules_and_register_from_tree(tmp_path, monkeypatch):
     sp.write_lf(tmp_path / "m" / "sha.txt", digest + "\n")
     p = tmp_path / "reg.json"
     e = REG.register_stage_from_tree("ladder", note="under addendum 2", path=p, sealed=tmp_path / "p.md", sha_file=tmp_path / "m" / "sha.txt")
-    assert e["addenda_count"] == 2 and e["code_digest"] == "d" * 64 and e["source"] == "current tree"
+    assert e["addenda_count"] == 2 and e["code_digest"] == "d" * 64 and e["source"].startswith("current tree")
+    # task X finding V-REG-08: 'source' describes the SEALED TEXT; where the code digest came from is its own field,
+    # because the scorer's and the ladder's digest is the registry's discovery entry, not a digest of their own code
+    assert e["code_digest_source"] == REG.CODE_DIGEST_SOURCE["ladder"] and "discovery" in e["code_digest_source"]
+    assert "records" in REG.CODE_DIGEST_SOURCE["scorer"] and "tree" in REG.CODE_DIGEST_SOURCE["h3"]
+    assert set(REG.CODE_DIGEST_SOURCE) == set(REG.STAGES)
+    given = REG.register_stage_from_tree("h3", note="n", path=p, code_digest="a" * 64, sealed=tmp_path / "p.md",
+                                         sha_file=tmp_path / "m" / "sha.txt")
+    assert given["code_digest_source"].startswith("passed explicitly")
     assert e["below_footer_sha256"] == hashlib.sha256(add.encode("utf-8")).hexdigest()
     with pytest.raises(ValueError, match="registered from its records"):
         REG.register_stage_from_tree("discovery", note="x", path=p)
@@ -506,18 +523,28 @@ def test_discovery_complete_verifies_each_record_set_against_its_own_stage(tmp_p
     cand = D.JobSpec(kind="fit", arm="FLAT_CAT", design="V5", variant="primary", scheme="exact", seed=D.PRIMARY_SEED,
                      stage=D.STAGES["candidates"], writes=("FLAT_CAT",))
     out = tmp_path / "out"
-    TH._complete_discovery(out, corpus, job, code="c1" * 32, state=state)
-    TH._complete_discovery(out, corpus, cand, code="c2" * 32, state=state)
-    TH.RD.record_wall_clock(out, "2026-09-18T00:00:00+00:00", 10.0, [job.stage, cand.stage, D.STAGES["not_implemented"]])
+    TH._complete_discovery(out, corpus, job, code="c1" * 32, state=state)        # written before the registry exists
     kw = dict(state=state, excluded_ids=[], folds_dir=corpus.folds_dir, jobs=[job, cand])
-    with pytest.raises(D.StaleRecordError):                         # no registry: one code for both -> the other is stale
-        H3.discovery_complete(out, code="c1" * 32, **kw)
+    # the production order (registry.READINGS['candidates']): the discovery entry is registered from the completed run's
+    # records, the candidates stage from the tree, and only THEN is a freezing-candidate job fitted -- so its record
+    # carries the candidates entry's below-footer digest and code digest
     p = tmp_path / "reg.json"
     monkeypatch.setattr(REG, "registry_path", lambda root=None: p)
     REG.register_stage("discovery", below_footer_sha256=A1, code_digest="c1" * 32, git_head=None, addenda_count=1, note="d")
-    with pytest.raises(D.StaleRecordError):                         # the candidates stage unregistered: its set is stale
-        H3.discovery_complete(out, code="z" * 64, **kw)
     REG.register_stage(REG.CANDIDATES, below_footer_sha256=A2, code_digest="c2" * 32, git_head=None, addenda_count=2, note="c")
+    TH._complete_discovery(out, corpus, cand, code="c2" * 32, state=state)
+    TH.RD.record_wall_clock(out, "2026-09-18T00:00:00+00:00", 10.0, [job.stage, cand.stage, D.STAGES["not_implemented"]])
     done = H3.discovery_complete(out, code="z" * 64, **kw)          # the live code is irrelevant once both are registered
     assert done["complete"] and done["n_complete"] == 2 and done["n_incomplete"] == 0
+    # without a registry one code (and one addendum text) covers everything, so the candidates set is stale -- as before
+    monkeypatch.setattr(REG, "registry_path", lambda root=None: tmp_path / "absent.json")
+    with pytest.raises(D.StaleRecordError):
+        H3.discovery_complete(out, code="c1" * 32, **kw)
+    # with the discovery entry alone the candidates set is verified with the live code and refused
+    only_disc = tmp_path / "reg_discovery_only.json"
+    REG.register_stage("discovery", below_footer_sha256=A1, code_digest="c1" * 32, git_head=None, addenda_count=1,
+                       note="d", path=only_disc)
+    monkeypatch.setattr(REG, "registry_path", lambda root=None: only_disc)
+    with pytest.raises(D.StaleRecordError):
+        H3.discovery_complete(out, code="z" * 64, **kw)
     assert "record_dir_code" in H3.discovery_complete.__doc__

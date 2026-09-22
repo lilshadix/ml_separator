@@ -1,0 +1,103 @@
+{
+  "record_sets": [
+    {
+      "arm": "B6",
+      "design_dir": "V5__primary_exact",
+      "n_expected": 105,
+      "n_found": 105,
+      "seed": 104729,
+      "status": "complete"
+    },
+    {
+      "arm": "B6",
+      "design_dir": "V5__primary_batched",
+      "n_expected": 22,
+      "n_found": 22,
+      "seed": 104729,
+      "status": "complete"
+    },
+    {
+      "arm": "B6",
+      "design_dir": "V5__primary_batched_max4",
+      "n_expected": 28,
+      "n_found": 28,
+      "seed": 104729,
+      "status": "complete"
+    },
+    {
+      "arm": "B6",
+      "design_dir": "V1__copy_exact",
+      "n_expected": 39,
+      "n_found": 39,
+      "seed": 104729,
+      "status": "complete"
+    },
+    {
+      "arm": "B6",
+      "design_dir": "V1__copy_grouped10",
+      "n_expected": 10,
+      "n_found": 10,
+      "seed": 104729,
+      "status": "complete"
+    }
+  ],
+  "v1_state": "failed",
+  "v1_tenfold_vs_exact": {
+    "complete": true,
+    "passed": false,
+    "per_seed": {
+      "104729": {
+        "abs_delta": 0.03314622652533372,
+        "batched_macro_mae": 1.018565150333266,
+        "delta": -0.03314622652533372,
+        "exact_macro_mae": 1.0517113768585997,
+        "n_units": 39,
+        "passed": false
+      }
+    },
+    "reading": "section 3.1 / 7 item 6 check computed per discovery seed on the selection half (B6 exact vs B6 batched folds of that seed, identical scored cells); it passes only when every seed that discovery runs passes (the conservative reading of 'same seeds'), which under addendum 1 item 3 is seed 104729 alone (:data:`PLAN_SEEDS`); both sides of the check tune on the addendum's simultaneous inner design, so the check compares outer batching alone",
+    "seeds": [
+      104729
+    ],
+    "threshold": 0.01
+  },
+  "v5_batched_vs_exact": {
+    "complete": true,
+    "passed": false,
+    "per_seed": {
+      "104729": {
+        "abs_delta": 0.02000257164025332,
+        "batched_macro_mae": 0.8514537773442722,
+        "delta": -0.02000257164025332,
+        "exact_macro_mae": 0.8714563489845255,
+        "n_units": 105,
+        "passed": false
+      }
+    },
+    "reading": "section 3.1 / 7 item 6 check computed per discovery seed on the selection half (B6 exact vs B6 batched folds of that seed, identical scored cells); it passes only when every seed that discovery runs passes (the conservative reading of 'same seeds'), which under addendum 1 item 3 is seed 104729 alone (:data:`PLAN_SEEDS`); both sides of the check tune on the addendum's simultaneous inner design, so the check compares outer batching alone",
+    "seeds": [
+      104729
+    ],
+    "threshold": 0.01
+  },
+  "v5_recoloured": {
+    "complete": true,
+    "passed": true,
+    "per_seed": {
+      "104729": {
+        "abs_delta": 0.008857626890420911,
+        "batched_macro_mae": 0.8803139758749464,
+        "delta": 0.008857626890420911,
+        "exact_macro_mae": 0.8714563489845255,
+        "n_units": 105,
+        "passed": true
+      }
+    },
+    "reading": "section 3.1 / 7 item 6 check computed per discovery seed on the selection half (B6 exact vs B6 batched folds of that seed, identical scored cells); it passes only when every seed that discovery runs passes (the conservative reading of 'same seeds'), which under addendum 1 item 3 is seed 104729 alone (:data:`PLAN_SEEDS`); both sides of the check tune on the addendum's simultaneous inner design, so the check compares outer batching alone",
+    "seeds": [
+      104729
+    ],
+    "threshold": 0.01
+  },
+  "v5_state": "passed_after_recolour"
+}

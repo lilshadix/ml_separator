@@ -1,0 +1,263 @@
+{
+  "archive_master_sha256": "7b32979383c5246f22d36ade6246231a347ea22490f4589a76e189af07b09b01",
+  "arguments": {
+    "expect_addenda": null,
+    "no_manifest": false,
+    "no_pairs": false,
+    "out_root": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer"
+  },
+  "budget": {
+    "discovery": {
+      "budget_hours": 60.0,
+      "demoted_now": [
+        "M7",
+        "M6",
+        "M5",
+        "M4",
+        "M3"
+      ],
+      "demotion_order": [
+        "M7",
+        "M6",
+        "M5",
+        "M4",
+        "M3"
+      ],
+      "exhausted": true,
+      "exhausted_before": "safeguard:V5__primary__exact",
+      "ledger": "evaluation/discovery/decisions/wall_clock.json",
+      "ledger_demoted": [],
+      "ledger_stopped": "M3+ not implemented",
+      "n_invocations": 3,
+      "never_demoted": [
+        "H1",
+        "H1b",
+        "H4"
+      ],
+      "total_hours": 76.5955,
+      "used_hours": 76.5955
+    },
+    "ladder": {
+      "budget_hours": 40.0,
+      "ledger": "evaluation/ladder/decisions/wall_clock.json",
+      "ledger_exists": false,
+      "note": "POST-HOC addendum 2, '2. Ladder M3-M7' -> Budget: the ladder's own 40 h wall clock, checked before each step; the discovery ledger stays at the registered 60 h and the two are never added",
+      "used_hours": null
+    },
+    "ladder_reading": "POST-HOC addendum 2, '2. Ladder M3-M7' -> Budget: the ladder has its own 40 h wall-clock ledger (evaluation/ladder/decisions/wall_clock.json), checked before each step; the discovery ledger stays at the registered 60 h for the discovery stages. Task X finding V-BUD-03: the discovery ledger reached 76.6 h, so it recorded the section 7 item 5 exhaustion and demoted M3-M7 BY RULE (wall_clock.json -> budget.demoted_now) while ledger.demoted stayed empty -- no step was removed on evidence, and M3-M7 are also simply not implemented in this runner. Both reasons are recorded in decisions.json -> budget, so an absence cannot be attributed to one of them alone",
+    "m3_m7_absence": {
+      "demoted_by_discovery_ledger": [
+        "M7",
+        "M6",
+        "M5",
+        "M4",
+        "M3"
+      ],
+      "disclosure": "M3-M7 are absent for two independent recorded reasons: they are not implemented in this runner, AND the discovery ledger reached 76.5955 h of the 60.0 h budget and demoted them by the section 7 item 5 rule (order M7 -> M3). No step was removed on evidence (ledger.demoted is empty), and addendum 2 gives the ladder its own 40 h budget, so the demotion does not bind the ladder runner",
+      "not_implemented": "M3+ not implemented",
+      "removed_on_evidence": []
+    },
+    "rule": "section 7 item 5: when the ledger reaches 60 h only M3-M7 are demoted (in the order M7 -> M3); no other step is named, so every job of this plan (H1, H1b, H4 and the rest) keeps running and the exhaustion is recorded; --max-hours is an operator pause (resumable), never a demotion"
+  },
+  "candidates_code_sha256": "d4ddf83c747aa9c991e6414869fbd9a054a1293342c4aa7f90f795f17c420e5b",
+  "code_sha256": "895a6ab9696010c9f8bffb4a6078f55b8f41b0773623a8de77103083157e0504",
+  "confirmation_half_read": false,
+  "git_head": "6528835992d4de90fb54107cac9c423f5034b1b0",
+  "guard_counters": {
+    "confirmation_half_rows_seen": 0,
+    "preseal_files_read": 5,
+    "preseal_non_selection_rows": 0,
+    "preseal_rows_read": 225379,
+    "rows_half_rederived": 186446,
+    "scoring_frames_checked": 45,
+    "v6_target_rows_scored": 0
+  },
+  "guard_counters_reading": "task X finding V-MAN-09: the manifest's confirmation_half_read and v6_target_rows_scored are DERIVED from what the guards saw in this process (discovery.guard_counts: frames checked, rows whose registered half was re-derived, confirmation-half rows seen, V6_TARGET_ROWS rows in a scoring index, pre-seal rows read through the parquet half filter), not written as literals",
+  "inputs": [],
+  "live_code_sha256": "d4ddf83c747aa9c991e6414869fbd9a054a1293342c4aa7f90f795f17c420e5b",
+  "outputs": [
+    {
+      "bytes": 38243,
+      "path": "generations/gen19_chem_transfer/evaluation/discovery/contrasts_exploratory.csv",
+      "sha256": "83f24d7186750e4336cd1b3c22ae8d7264f81c3a2b038adedb0481bd1c2d4c4f",
+      "sha256_lf": "83f24d7186750e4336cd1b3c22ae8d7264f81c3a2b038adedb0481bd1c2d4c4f"
+    },
+    {
+      "bytes": 30994,
+      "path": "generations/gen19_chem_transfer/evaluation/discovery/contrasts_registered.csv",
+      "sha256": "f9f4401fb18e18aed5f8985d4fdf7b32426a1d608119091fff8b75c2eaa2d732",
+      "sha256_lf": "f9f4401fb18e18aed5f8985d4fdf7b32426a1d608119091fff8b75c2eaa2d732"
+    },
+    {
+      "bytes": 87264,
+      "path": "generations/gen19_chem_transfer/evaluation/discovery/decisions/decisions.json",
+      "sha256": "3b0e1f9f6677d2ad790e74ae118081784ad402f7d6318419ac66605d5036cc3f",
+      "sha256_lf": "3b0e1f9f6677d2ad790e74ae118081784ad402f7d6318419ac66605d5036cc3f"
+    },
+    {
+      "bytes": 1584,
+      "path": "generations/gen19_chem_transfer/evaluation/discovery/decisions/plan_state.json",
+      "sha256": "e08937d4a36bcc341922f15b6f8498d63ff3e5a4ab6b974577f5de01ff6f44d4",
+      "sha256_lf": "e08937d4a36bcc341922f15b6f8498d63ff3e5a4ab6b974577f5de01ff6f44d4"
+    },
+    {
+      "bytes": 671,
+      "path": "generations/gen19_chem_transfer/evaluation/discovery/decisions/stop_rule.json",
+      "sha256": "337b61c8edc61745780e30cff6fb121b7964fff5a1bfa7c190ec3b76c3d0e23d",
+      "sha256_lf": "337b61c8edc61745780e30cff6fb121b7964fff5a1bfa7c190ec3b76c3d0e23d"
+    },
+    {
+      "bytes": 63523,
+      "path": "generations/gen19_chem_transfer/evaluation/discovery/r19_items.csv",
+      "sha256": "c8cb2d8697c4e403ca09cd9e2bc4341236836ca087487dc7e84747f45b6db398",
+      "sha256_lf": "c8cb2d8697c4e403ca09cd9e2bc4341236836ca087487dc7e84747f45b6db398"
+    },
+    {
+      "bytes": 22180,
+      "path": "generations/gen19_chem_transfer/tables/discovery_comparator_intervals.csv",
+      "sha256": "0347d4d464a8959a0fe89c7f1c44e823911845f2d18e8485c1c00b3e4c5df65d",
+      "sha256_lf": "0347d4d464a8959a0fe89c7f1c44e823911845f2d18e8485c1c00b3e4c5df65d"
+    },
+    {
+      "bytes": 17780,
+      "path": "generations/gen19_chem_transfer/tables/discovery_contrasts.md",
+      "sha256": "5b517da24f9b7fdde57c07d72e6def05ad57c4ebd7eccd520a12c4e8ae788a24",
+      "sha256_lf": "5b517da24f9b7fdde57c07d72e6def05ad57c4ebd7eccd520a12c4e8ae788a24"
+    },
+    {
+      "bytes": 123410,
+      "path": "generations/gen19_chem_transfer/tables/discovery_coverage_by_domain_status.csv",
+      "sha256": "7e28c093567010d022d37880360910907b71e84949bd8b5f2824c624248bd2ec",
+      "sha256_lf": "7e28c093567010d022d37880360910907b71e84949bd8b5f2824c624248bd2ec"
+    },
+    {
+      "bytes": 6841,
+      "path": "generations/gen19_chem_transfer/tables/discovery_pair_summary.csv",
+      "sha256": "03cdf35b26acac14e5b73b1b3158f9bd4b653c34ec52256911ed76b46de7e3af",
+      "sha256_lf": "03cdf35b26acac14e5b73b1b3158f9bd4b653c34ec52256911ed76b46de7e3af"
+    },
+    {
+      "bytes": 937920,
+      "path": "generations/gen19_chem_transfer/tables/discovery_summary.csv",
+      "sha256": "c72441c50d3f7505cd6a7e0f380addb8aa0876a1fc7647b54c9e95e3af271adf",
+      "sha256_lf": "c72441c50d3f7505cd6a7e0f380addb8aa0876a1fc7647b54c9e95e3af271adf"
+    },
+    {
+      "bytes": 1329,
+      "path": "generations/gen19_chem_transfer/tables/discovery_summary.md",
+      "sha256": "ab4c6fd818b941bd9208b48c726d2401ec6e7d18c80faf4ff650918c43ccc36e",
+      "sha256_lf": "ab4c6fd818b941bd9208b48c726d2401ec6e7d18c80faf4ff650918c43ccc36e"
+    }
+  ],
+  "prereg_gate": {
+    "addenda_sha256": "1016149ea8fbc74a9051ea4c1dd8fb7a5bd26388086325a3dea6c7084d2fcff6",
+    "addenda_sha256_registered": "1016149ea8fbc74a9051ea4c1dd8fb7a5bd26388086325a3dea6c7084d2fcff6",
+    "addendum_implemented": 2,
+    "gate_source": "registry",
+    "n_addenda": 2,
+    "n_addenda_expected": 2,
+    "prereg_sha256": "135842499a86eb3d478ece01a45718ac5b9673a4134bb4acda550f975bb45641",
+    "registry_path": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer\\manifests\\digest_registry.json",
+    "seal_check_exit": 0,
+    "stage": "scorer"
+  },
+  "readings": {
+    "addenda_digest_gate": "POST-HOC addendum 2 item 5: the seal gate pins the footer digest, the number of POST-HOC addenda AND the SHA-256 of the below-footer text as REGISTERED FOR THE RUNNER'S STAGE in manifests/digest_registry.json (gen19ct.evaluation.registry; the constants N_ADDENDA_EXPECTED / REGISTERED_ADDENDA_SHA256 only when no registry exists); every fold record's resume digest carries the discovery stage's addenda digest and the resolved inner design, so a record made under another addendum text or inner design is stale, and a record is verified against the registry entry of its stage, never against the live text or live code (task X findings V-F01, VL-A1-01)",
+    "addendum1_inner_design": "POST-HOC addendum 1 items 1-2 (the compute-driven reduction, below the sealed footer): every V5 design and variant of every learned arm and of B6 tunes on the SIMULTANEOUS inner design (gen19ct.models.inner_design.SimultaneousInnerCells): 3 inner folds, each ONE inner fit per configuration with all of that fold's inner cells (<= 30) hidden at once under the registered hiding; eligibility is re-checked with all of them hidden and a cell that fails stays hidden but is dropped from the inner score. The inner batching of sections 3.1 / 7 is not used for tuning. Selection = mean over the 3 inner folds of the design's unit-macro MAE with the 0.005 tie rule; the outer refit uses the median best iteration / epoch count. V1 and V2 inner designs are unchanged (3 inner folds, one fit each). Every seed that is run uses this design, so JobSpec.inner_mode is always 'full' and the 'first inner fold' reading is gone (FirstInnerFold and TuningSplitCalibration(mode='first') are deprecated and unused by the plan)",
+    "addendum1_seeds": "POST-HOC addendum 1 item 3: in discovery every learned arm (B5 = M0, FLAT_CAT, B6, B6r0, B8, M1-M7) runs discovery seed 104729 only (:data:`PLAN_SEEDS`); the pass over the other four discovery seeds is dropped. R19 item 4 is NOT_EVALUATED in every discovery table, and the deterministic comparators' conformal intervals are the seed-104729 (pre-seal) ones, since every learned comparison is on that seed. At confirmation R19 item 4 is unchanged and required. The registered batched-vs-exact and ten-fold checks are evaluated on the seeds discovery runs (seed 104729), the conservative reading of 'same seeds' applied to the seeds that exist",
+    "addendum1_sensitivities": "POST-HOC addendum 1 item 4: a learned arm runs only the V5 strict and V5 HNO3-only refits (seed 104729) for H1 (M2), H1b (B6), H4 (M0, FLAT_CAT, M2, B6, B6r0) and any freezing candidate. R19 item 6 of a learned-arm contrast is then evaluated over those refits plus every registered scoring-filter sensitivity (non-DGA, censoring-candidate, acid-grid, wildcard-copy) and labelled 'reduced sensitivity set (addendum 1)', with the sensitivities that were not run named (:data:`LEARNED_REFITS_NOT_RUN`). Such a contrast may still be frozen. The closed-form arms keep the full registered set",
+    "addendum1_v5pair": "POST-HOC addendum 1 item 5: learned arms run the seed-104729 batched V5-PAIR folds only for M2 (with its M1 prerequisite) and for any freezing candidate with a pair endpoint; B3x and B3i are re-fitted on the same folds by the scorer (models.s1c_yardsticks, the section 9 S1(c) counterweight), which needs no runner job",
+    "b6_batched_check": "section 3.1 / 7 item 6 check computed per discovery seed on the selection half (B6 exact vs B6 batched folds of that seed, identical scored cells); it passes only when every seed that discovery runs passes (the conservative reading of 'same seeds'), which under addendum 1 item 3 is seed 104729 alone (:data:`PLAN_SEEDS`); both sides of the check tune on the addendum's simultaneous inner design, so the check compares outer batching alone",
+    "b6_inner_units": "B6 / B6r0 select on the section 4 unit of the design (InnerSplit.row_units: V5 hidden cell, V1 publication group or REMAINDER, V2 metal state), the units of the heavy arms, not one value per inner split (task X finding V-03)",
+    "bh_family_column": "task X finding V-S03: 'BH per family' is the FAMILY column (primary, H1b, S1(b), S1(c), H4, ladder, secondary designs), so p_bh is computed within each family over its evaluated primary-cluster rows and bh_m is that family's size; the earlier pooled adjustment over all evaluated registered contrasts is kept beside it as p_bh_pooled_registered / bh_m_pooled_registered, and p_bh_full_family stays the m = 60 section 19 family of reading 6(f). No verdict moves: R19 and every scope use the raw p (task X finding V-BH-06: 'M2 vs M0' and 'M1 vs M0' hold a section 19 slot in family H4 AND in family ladder, so two slots share one computed contrast -- flagged bh_shared_computed_contrast)",
+    "bh_p": "Benjamini-Hochberg per family on the two-sided bootstrap p of the primary cluster unit on seed 104729 (V5: system; V1: publication group; V2: metal state); S1(c) enters with its five paired contrasts (three direction, two logSF MAE; system clusters). p_bh is over the contrasts evaluated; p_bh_full_family counts every registered discovery contrast of section 19 (m printed), a contrast not run entering as p = 1 (the conservative bound); neither decides",
+    "budget": "section 7 item 5: when the ledger reaches 60 h only M3-M7 are demoted (in the order M7 -> M3); no other step is named, so every job of this plan (H1, H1b, H4 and the rest) keeps running and the exhaustion is recorded; --max-hours is an operator pause (resumable), never a demotion",
+    "budget_ladder": "POST-HOC addendum 2, '2. Ladder M3-M7' -> Budget: the ladder has its own 40 h wall-clock ledger (evaluation/ladder/decisions/wall_clock.json), checked before each step; the discovery ledger stays at the registered 60 h for the discovery stages. Task X finding V-BUD-03: the discovery ledger reached 76.6 h, so it recorded the section 7 item 5 exhaustion and demoted M3-M7 BY RULE (wall_clock.json -> budget.demoted_now) while ledger.demoted stayed empty -- no step was removed on evidence, and M3-M7 are also simply not implemented in this runner. Both reasons are recorded in decisions.json -> budget, so an absence cannot be attributed to one of them alone",
+    "calibration_refits": "addendum 1 item 2 says the cross-fitted residuals of inner fold j 'reuse the fits already made (no extra fits)'. B6 / B6r0 do (B6TunedConformal.fit_from_tuning). For B5, FLAT_CAT, M1, M2 (and B8) the inner fit of fold j chose its tree count / epoch by early stopping on fold j's own validation rows, so its residuals on fold j are selection-touched; the runner therefore REFITS the configuration and count selected without fold j on fold j's inner training rows (CrossFitResidualConformal; 3 refits per outer fold, priced as CALIBRATION_FITS_PER_SPLIT = 1, about 10 CPU-h of the addendum estimate). This is the statistically conservative reading of the sentence, not its literal one (task X finding V-F02; needs POST-HOC addendum 2)",
+    "cluster_degenerate": "task X finding V-S04: a registered cluster unit can have exactly one cluster per scoring unit -- V1 (39 outer folds, 39 publication-group clusters: 38 folds hold one group each and REMAINDER holds the 27 small groups), V2 (4 states, 4 state clusters). The 'clustered' bootstrap is then the unclustered unit bootstrap of section 8, which the registration says never decides, so such a row is labelled unclustered_equivalent (cluster_equals_scoring_unit) and carries no clustering protection beyond the fold",
+    "comparator_intervals": "section 15 resolution as amended by addendum 1 item 3: every learned comparison is on seed 104729, so the deterministic comparators' conformal intervals are the seed-104729 ones of the pre-seal run on every design (the resolution's parenthesis), and no comparator-interval job is run in discovery; the point predictions were never seed-dependent. At confirmation they are drawn with each withheld seed and averaged, unchanged",
+    "decision_scopes": "stop rule: R19 items 1, 2, 3 and 5 (section 7 item 4); ladder and freezing screen: items 1, 2, 3, 5 and the scoring-filter sensitivities of item 6 on seed 104729 (item 2); V5-P heavy runs: items 1-5 on V5-primary (section 3.1 resolution); full: items 1-6",
+    "fold_ordinal": "the section 15 model seed 42 + fold * 1009 + 9,999,991 takes fold = the position of the (discovery seed, outer fold) pair when the design is enumerated once per discovery seed in the seed order 104729, 130363, 155921, 196613, 262147: a seeded fold file contributes that seed's folds in file order, a seed-free file (V2, V5 exact, V5-P cell x group) all its folds. Seed 104729 keeps the file position (s104729_S_b007 -> 7); the other seeds get distinct numbers, so the discovery seeds drive model initialisation (section 15) on every design, V2 included. Every learned arm uses it: B5, FLAT_CAT, B8, M1, M2 and the B6 / B6r0 factor initialisation (task X finding V-02; needs a POST-HOC addendum)",
+    "full_family_60": "addendum 1 reading 6(f) counts 60 registered discovery contrasts; section 19 lists 57 discovery contrasts and 3 confirmation-only S2 contrasts (60 in all), so the full family is m = 60 with the S2 rows entered as p = 1 (the larger m is the conservative bound) and m_discovery = 57 is printed beside it (task X finding V-F05; needs POST-HOC addendum 2 to state which count 6(f) meant)",
+    "guard_counters": "task X finding V-MAN-09: the manifest's confirmation_half_read and v6_target_rows_scored are DERIVED from what the guards saw in this process (discovery.guard_counts: frames checked, rows whose registered half was re-derived, confirmation-half rows seen, V6_TARGET_ROWS rows in a scoring index, pre-seal rows read through the parquet half filter), not written as literals",
+    "h3": "section 11 job specs only (WITH / WITHOUT / ACT_PERMUTED / ACT_METAL_SHUFFLED); not executed by this runner",
+    "heavy_arm_intervals": "section 12, cross-fitted (task X finding V-LP-01; needs a POST-HOC addendum): no calibration residual comes from a row that chose the configuration or the stopping point it is a residual of. Seed 104729 (3 inner folds tuned): the residuals of inner fold j come from refits (fixed CatBoost iterations / network epochs, no early stopping) of the configuration and iteration / epoch count selected on the OTHER inner folds' recorded validation errors (boosted / neural select_excluding_folds), on fold j's inner splits -- under addendum 1 items 1-2 every seed that is run is tuned this way, on the 3 simultaneous inner folds, so the first-inner-fold calibration path is unused in discovery. Fewer than two inner folds: not calibrated (NaN intervals, status recorded). B8 (no tuning) calibrates on the tuning splits of its inner mode. B6 / B6r0: factorized.B6TunedConformal(calibration='cross_fit'). M2's retained M1 values are the outer fold's (selected with every inner fold) -- a second-order reuse disclosed as open. The interval centre is the outer refit of the point step",
+    "inner_recheck": "addendum 1 item 1 'eligibility is re-checked with all of them hidden': every condition of a cell, its own row and publication counts (k, p) included, is counted with the OTHER cells of the inner fold hidden and nothing restored -- the reading section 3.1 registered for the identical sentence of the batch re-check ('the literal and stricter reading the fold builder applied'), so a cell whose rows another cell's component-aware hiding removes stays hidden but is not scored (inner_design.REGISTRATION_CHOICES['recheck']; task X finding V-F03; measured on real training rows: 1 more cell of 90 dropped on V5 exact Eu(III)__a9ed8f70c7, 0 of 90 on batched s104729_S_b000, seed 104729)",
+    "inner_units": "M1 / M2 take their inner splits from the boosted inner design objects (the fold builders' functions), so every heavy arm tunes on identical inner splits; the V1 inner averaging unit is the V1 unit (publication group, or REMAINDER below 20 rows)",
+    "inner_wildcard_copies": "section 2's 'copies the key cannot see' (folds/wildcard_copy_pairs.csv: the same conditions and log_D under another structure key or state token) can sit in an inner split's training rows while their partner is an inner calibration row; the registered hiding does not remove them and the near-duplicate key includes the system, so the guard passes them. The registration is silent on inner validation, so the inner selection score is NOT changed: every V5 fold record counts them per inner fold (inner_design.wildcard_copy_partners_in_inner_training) as a diagnostic (task X finding VL-A1-02; needs POST-HOC addendum 2 to say whether the registered wildcard exclusion applies to inner selection)",
+    "m2_prerequisite": "M2 searches rank only, with the M1 values retained per outer fold (section 6 resolution), so M1 is tuned on every outer fold M2 runs on (V5-PAIR batched, the refit sensitivities) and M2 always builds on M1's per-fold values; the ladder compares M2 with the retained predecessor (M1 when kept, else M0)",
+    "m_target_scaling": "M1 / M2 standardise the target with the mean / SD of each fit's own training rows (the outer refit: outer-training rows; an inner tuning or calibration fit: its inner-training rows); the section 6 resolution's 'outer-training mean and SD' read literally would put inner validation targets into inner fits, against section 2 (task X finding V-08; needs a POST-HOC addendum)",
+    "margins": "R19 item 1 margin: delta5 (difficulty.json -> V5.delta5) for H1 primary, H1b, H4, the V5 ladder steps and every other V5 contrast; 0.05 for S1(b) (M2 vs B0, M2 vs B6r0) and for V1 / V2 contrasts (section 9 names no V1 / V2 margin; the floor of the delta5 formula)",
+    "plan_order": "section 7 item 3's arm order is applied within each pass (addendum 1 reading 6(a)): pass one is B6 / B6r0 on the primary exact / batched and V1 / V2 designs (their checks gate the heavy-arm schemes), pass two the seed-104729 main designs B5, FLAT_CAT, B8 -> M1 -> M2, then the stop rule and the S1(c) V5-PAIR run (M1 prerequisite, M2), pass three the seed-104729 strict / HNO3-only refits in arm order -- B6 / B6r0 first, then B5, FLAT_CAT, M1, M2 (task X finding V-F04: the B6 refits are refit sensitivities, no check reads them) -- then the conditional freezing-candidate runs. Exhausting the section 7 item 5 budget demotes only M3-M7",
+    "power_check": "section 8 signal injection: the plan (which failed H1 / H1b contrasts need it, kappa grid, X(?) rows dropped, refits at the selected hyperparameters) is written to decisions.json; its execution is not implemented in this runner",
+    "r19_item4_availability": "R19 item 4 needs one Delta per discovery seed. For a learned arm it is NOT_EVALUATED in discovery (addendum 1 item 3) and the full verdict is therefore UNDECIDED, never PASS; the stop-rule, ladder and freezing scopes do not contain item 4, so decisions are unaffected. For any other contrast a missing seed is still recorded NOT_RUN",
+    "record_sets_not_planned": "task X finding V-REC-07: a record set with no records is 'missing' only when the registered plan (enumerate_plan of the current plan state) contains a fit job that writes it; otherwise it is 'not_planned' -- the scorer asked for a frame the plan never scheduled (B8 has no registered strict / HNO3-only refit: addendum 1 item 4 registers them for H1, H1b, H4 and freezing candidates only), which is not an incomplete run",
+    "record_verification": "every decision reader requires each record's digest and fold hash to equal the ones the current code, fold file and plan state produce and the fold ids to be exactly the job's fittable folds (a stale or foreign record raises; a job with folds still missing is not scored); M2 requires the verified digest of M1's record of the same fold",
+    "refit_sensitivities_not_run": "a registered refit sensitivity without predictions is recorded UNTESTABLE ('not run'), so the full R19 verdict is UNDECIDED unless another item fails. For a learned-arm contrast the sensitivities addendum 1 item 4 drops are named instead (:data:`LEARNED_REFITS_NOT_RUN`) and item 6 is decided on the reduced set",
+    "s1_check_failed": "section 7 item 6: when the re-coloured batched-vs-exact check still fails, every heavy-arm V5 contrast carries the label 'batched (check failed)' and every S1 component (primary, S1(b), S1(c)) is reported UNDECIDED whatever its R19 verdict; freezing candidates carry both",
+    "s1c_direction_gate": "section 4's direction gate |observed logSF| >= 0.3 is applied with the module's documented float tolerance (evaluation.pairs: '>= threshold - 1e-9'; metrics.FLOAT_TOL), because a difference of two stored log_D values that is exactly 0.3 is representable as 0.29999999999999993. Task X finding V-S05: the tolerance admits boundary pairs (12 Ln-Ln pairs of the selection-half V5-PAIR set) and the S1(c) counterweight margin is only 0.0032, so the convention and the pair count are recorded with the S1(c) block",
+    "s1c_yardstick_records": "task X finding V-S06: the batched B3x / B3i refits of S1(c) ('same fitted folds') are closed-form and were re-computed in memory by the scorer, so no record covered them. They are now persisted as a record set under evaluation/discovery/_s1c_yardsticks/<stem>/s<seed> with a digest over the scorer stage's code digest, the fold design hash, the arms and the halves; a later pass recomputes them and refuses a record whose digest or values differ, so the S1(c) comparators are inside the record_verification chain",
+    "s1d_s1e": "section 9 S1 is 'All of' (a)-(e), so the scorer records a verdict or an explicit NOT_EVALUATED for every component (task X finding V-S1-01). S1(d) is computed from this scorer's own V5-primary unit-macro coverage and its coverage by domain-status category (calibration.s1d_check; a category below 20 scored cells is outside the band's scope). S1(e) is NOT_EVALUATED: its Spearman(cell MAE, support_score) interval and the support-score components' reliability floor are the power stage (evaluation.power, 'reliability_not_fitted'), which is not implemented in this runner; the descriptive Spearman point is printed beside and decides nothing",
+    "safeguard_probe": "the section 2 safeguard runs ConformalWrapper(B3x) with nested_certificate and with every_split on each drawn outer fold (the pre-seal cross-check's closed-form arm) and compares residuals, quantiles and guard verdicts; a difference makes every_split mandatory for that fold file",
+    "selection_half_only": "every fitted fold is restricted to its scored rows whose fold row_half is S; the registered half of every such row is re-derived from feasibility_halves.csv (V5 family: the system, V1: the row's outer-fold unit, V2: the metal state) and a confirmation-half row raises; confirmation-half predictions are never written; V0 is not run (its rows span both halves; section 10 F1 is evaluated at the report stage)",
+    "tost_interval": "task X finding V-S07: the TOST bounds are the CONSERVATIVE ENVELOPE of the 90 % percentile and 90 % BCa intervals of the primary-cluster bootstrap (transfer.tost, interval='both': low = min(percentile, BCa), high = max(percentile, BCa)), so a bound may come from either interval; the cluster unit and cluster count are printed beside every TOST interval (tost_cluster_unit / tost_n_clusters), because on 4 metal-state clusters the BCa bound rests on 2^4 distinct resamples",
+    "uncertainty_metrics": "no learned arm has a predictive SD (std_logD NaN; split-conformal intervals only): Gaussian CRPS, Spearman(|error|, SD), the SD-binned reliability curve and the 'knows when it does not know' test are NOT_RUN, and the section 12 methods other than split-conformal are not built (task X finding V-10; needs a POST-HOC addendum or the heads)",
+    "v1_tenfold_check": "section 3.2: B6 exact vs B6 ten-fold per discovery seed (addendum 1: seed 104729), identical scored rows, V1 outer-fold unit; a failure moves the heavy arms to the exact design",
+    "v2_summary": "V2 contrasts (the secondary-design contrast and the ladder's V2 non-inferiority) are evaluated on the section 3.3 primary summary, the focus-7 lanthanides present in the selection half (Ce, Pr, Nd, Gd), the summary the V2 comparator was chosen on; every selection-half state is printed beside as an exploratory contrast (setting all_states)",
+    "wildcard_filter_pairing": "the wildcard-copy scoring filter drops a scored row when its own fold's training rows hold a partner (folds/wildcard_copy_crossings.csv, per stem, fold and row); in a paired contrast a row dropped for either arm is dropped for both"
+  },
+  "record_sets_summary": {
+    "by_status": {
+      "complete": [
+        "B5/V1__copy_exact/s104729",
+        "B5/V2__element_exact/s104729",
+        "B5/V5__hno3_only_batched_max4/s104729",
+        "B5/V5__primary_batched_max4/s104729",
+        "B5/V5__strict_batched_max4/s104729",
+        "B6/V1__copy_exact/s104729",
+        "B6/V2__element_exact/s104729",
+        "B6/V5__hno3_only_exact/s104729",
+        "B6/V5__primary_exact/s104729",
+        "B6/V5__strict_exact/s104729",
+        "B6r0/V1__copy_exact/s104729",
+        "B6r0/V2__element_exact/s104729",
+        "B6r0/V5__hno3_only_exact/s104729",
+        "B6r0/V5__primary_exact/s104729",
+        "B6r0/V5__strict_exact/s104729",
+        "B8/V1__copy_exact/s104729",
+        "B8/V2__element_exact/s104729",
+        "B8/V5__primary_batched_max4/s104729",
+        "FLAT_CAT/V1__copy_exact/s104729",
+        "FLAT_CAT/V2__element_exact/s104729",
+        "FLAT_CAT/V5__hno3_only_batched_max4/s104729",
+        "FLAT_CAT/V5__primary_batched_max4/s104729",
+        "FLAT_CAT/V5__strict_batched_max4/s104729",
+        "M1/V1__copy_exact/s104729",
+        "M1/V2__element_exact/s104729",
+        "M1/V5__hno3_only_batched_max4/s104729",
+        "M1/V5__primary_batched_max4/s104729",
+        "M1/V5__strict_batched_max4/s104729",
+        "M2/V1__copy_exact/s104729",
+        "M2/V2__element_exact/s104729",
+        "M2/V5PAIR__primary_batched/s104729",
+        "M2/V5__hno3_only_batched_max4/s104729",
+        "M2/V5__primary_batched_max4/s104729",
+        "M2/V5__strict_batched_max4/s104729"
+      ],
+      "not_planned": [
+        "B8/V5__hno3_only_batched_max4/s104729",
+        "B8/V5__strict_batched_max4/s104729"
+      ]
+    },
+    "complete_of_planned": "34/34",
+    "n_complete": 34,
+    "n_planned": 34,
+    "n_requested": 36,
+    "reading": "task X finding V-REC-07: a record set with no records is 'missing' only when the registered plan (enumerate_plan of the current plan state) contains a fit job that writes it; otherwise it is 'not_planned' -- the scorer asked for a frame the plan never scheduled (B8 has no registered strict / HNO3-only refit: addendum 1 item 4 registers them for H1, H1b, H4 and freezing candidates only), which is not an incomplete run"
+  },
+  "schema": "gen19.manifest.v1",
+  "script": "g19_score_discovery",
+  "seed": null,
+  "stop": false,
+  "v6_target_rows_scored": 0
+}

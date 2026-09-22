@@ -85,6 +85,7 @@ from gen19ct.chemistry import support_graph as SG  # noqa: E402
 from gen19ct.data import leakage as L  # noqa: E402
 from gen19ct.evaluation import discovery as D  # noqa: E402
 from gen19ct.evaluation import metrics as EM  # noqa: E402
+from gen19ct.evaluation import registry as REG  # noqa: E402
 from gen19ct.folds import cell_holdout as CH  # noqa: E402
 from gen19ct.folds import io as FI  # noqa: E402
 from gen19ct.folds import metal_holdout as MH  # noqa: E402
@@ -94,6 +95,10 @@ from gen19ct.manifest import Run, write_json, write_text  # noqa: E402
 from gen19ct.models import interface as I  # noqa: E402
 
 NAME = "g19_run_discovery"
+#: the registry stages this runner writes records of (addendum 2 item 5; registry.READINGS['candidates']): 'discovery'
+#: for every job up to the M3+ marker, 'discovery_candidates' for the freezing-candidate jobs of D.STAGES['candidates'],
+#: which exist only after the scorer wrote plan_state.freezing_candidates; REG.job_stage(job) says which one a job is
+STAGE = REG.DISCOVERY
 SEAL_SCRIPT = Path(__file__).resolve().parent / "g19_seal_prereg.py"
 PREDICTION_STEP, INTERVAL_STEP = "point", "intervals"
 #: files whose content changes predictions (section 16 "feature version" / "model version"); plus the runner objects of
@@ -167,19 +172,20 @@ def prereg_digests(sealed: Path = PREREG_SEALED, sha_file: Path = PREREG_SHA_FIL
 
 def refuse_unless_sealed(check: Callable[[], int] | None = None,
                          digests: Callable[[], Mapping[str, Any]] | None = None, *,
-                         expect_addenda: int | None = None) -> dict[str, Any]:
+                         expect_addenda: int | None = None, stage: str = STAGE) -> dict[str, Any]:
     """Section 0: fit scripts call ``--check`` and refuse to run when it fails; discovery also refuses unless the sealed
     digest (footer, recomputed and ``prereg_sha256.txt``) is the registered ``discovery.REGISTERED_PREREG_SHA256``
     (task X finding V-LP-02: ``--check`` alone accepts any self-consistent re-sealed text).
 
     The sealed text carries POST-HOC addenda BELOW the footer; ``--check`` accepts them (dated, consecutively numbered)
-    and the footer digest is unaffected by them, so the gate also pins how many there are -- this code implements
-    addendum 1 and refuses any other count (``expect_addenda`` / ``--expect-addenda N``) -- AND their text: the SHA-256
-    of the LF-normalised below-footer text must be ``discovery.REGISTERED_ADDENDA_SHA256`` (task X finding V-F01: an
-    edited seed set, refit list or V5-PAIR scope in the addendum would otherwise pass both ``--check`` and this gate).
-    An edited or additional addendum is therefore implemented and its digest registered in the code before anything
-    runs; ``--expect-addenda`` alone never passes it.  The digest goes into every fold record's resume digest and every
-    manifest.  Returns that digest record."""
+    and the footer digest is unaffected by them, so the gate also pins how many there are AND their text: the count and
+    the SHA-256 of the LF-normalised below-footer text must be the ones REGISTERED FOR ``stage`` in
+    ``manifests/digest_registry.json`` (POST-HOC addendum 2 item 5, ``registry.gate_expectations``; the constants
+    ``discovery.N_ADDENDA_EXPECTED`` / ``REGISTERED_ADDENDA_SHA256`` only while no registry exists).  Task X finding
+    V-F01: an edited seed set, refit list or V5-PAIR scope in an addendum would otherwise pass both ``--check`` and this
+    gate.  ``expect_addenda`` / ``--expect-addenda N`` overrides the count, never the digest.  The stage's digest goes
+    into every fold record's resume digest and every manifest.  Returns that digest record."""
+    exp = REG.gate_expectations(stage)
     rc = (check or seal_check)()
     if rc != 0:
         raise SystemExit(f"refused: scripts/g19_seal_prereg.py --check exited {rc}; discovery never runs on an unsealed "
@@ -194,23 +200,22 @@ def refuse_unless_sealed(check: Callable[[], int] | None = None,
         raise SystemExit(f"refused: the sealed pre-registration is not the registered text {want[:12]}... "
                          f"({ {k: (str(v)[:12] + '...') if v else v for k, v in bad.items()} }); a change to the "
                          "registered analysis is a POST-HOC addendum below the footer, never a re-seal (section 0)")
-    want_n = D.N_ADDENDA_EXPECTED if expect_addenda is None else int(expect_addenda)
+    want_n = int(exp["n_addenda"]) if expect_addenda is None else int(expect_addenda)
     got_n = int(dg.get("n_addenda") or 0)
     if got_n != want_n:
         raise SystemExit(f"refused: the sealed pre-registration carries {got_n} POST-HOC addendum/addenda below the "
-                         f"footer, {want_n} expected; this code implements addendum {D.N_ADDENDA_EXPECTED} (the "
-                         "reduced discovery plan). Read the addenda, then rerun with --expect-addenda "
-                         f"{got_n} once the code implements them")
-    want_add, got_add = D.REGISTERED_ADDENDA_SHA256, dg.get("addenda_sha256")
+                         f"footer, {want_n} expected for stage {stage!r} ({exp['source']}). Read the addenda; a stage is "
+                         "registered under the text its records are written with (gen19ct.evaluation.registry)")
+    want_add, got_add = exp["below_footer_sha256"], dg.get("addenda_sha256")
     if got_add != want_add:
         raise SystemExit(f"refused: the POST-HOC addenda below the sealed footer digest to {str(got_add)[:12]}..., not "
-                         f"the registered addendum text {want_add[:12]}... (discovery.REGISTERED_ADDENDA_SHA256): the "
-                         "addendum text was edited or extended. Discovery never runs against an addendum the code does "
-                         "not implement; implement it, register its digest in the code and rerun (--expect-addenda "
-                         "alone never passes this check; task X finding V-F01)")
+                         f"the registered addendum text {str(want_add)[:12]}... of stage {stage!r} ({exp['source']}): "
+                         "the addendum text was edited or extended. Nothing runs against an addendum text its stage is "
+                         "not registered under (--expect-addenda alone never passes this check; task X finding V-F01; "
+                         "addendum 2 item 5)")
     return {"prereg_sha256": want, "addenda_sha256": got_add, "addenda_sha256_registered": want_add,
-            "n_addenda": got_n, "n_addenda_expected": want_n, "addendum_implemented": D.N_ADDENDA_EXPECTED,
-            "seal_check_exit": rc}
+            "n_addenda": got_n, "n_addenda_expected": want_n, "addendum_implemented": int(exp["n_addenda"]),
+            "seal_check_exit": rc, "stage": stage, "gate_source": exp["source"]}
 
 
 # ============================================================================================= #
@@ -1062,12 +1067,15 @@ def fold_digest(job: D.JobSpec, fold: FI.Fold, code: str, state: D.PlanState, ru
                 ordinal: int, design_hash: str) -> str:
     """The resume and verification digest of one fold (``discovery.fold_digest``) with the runner's extras: the inner
     guard mode, the batching label, the section 15 model fold number and model seed, the fold file's design hash, the
-    registered pre-registration digest AND the registered addenda digest (task X finding V-F01), the resolved V5 inner
+    registered pre-registration digest AND the addenda digest of the JOB'S registry stage
+    (``registry.below_footer_sha256(REG.job_stage(job))``: the addendum-1 digest for a discovery job, the two-addenda
+    digest for a freezing-candidate job; task X finding V-F01, addendum 2 item 5), the resolved V5 inner
     design (:func:`inner_design_signature`; finding VL-A1-01) and, for M2, M1's expected digest of the same fold."""
     extra = {"guard_mode": guard_mode_for(job, state), "batching_label": batching_label(job, state),
              "model_fold_number": int(ordinal), "model_seed": model_seed_of(ordinal) if job.kind == "fit" else None,
              "design_hash": str(design_hash), "prereg_sha256": D.REGISTERED_PREREG_SHA256,
-             "prereg_addenda_sha256": D.REGISTERED_ADDENDA_SHA256, "inner_design": inner_design_signature(job)}
+             "prereg_addenda_sha256": REG.below_footer_sha256(REG.job_stage(job)),
+             "inner_design": inner_design_signature(job)}
     if hasattr(runner, "digest_extra"):
         extra.update(runner.digest_extra(job, fold, code, state, out_root, ordinal=ordinal, design_hash=design_hash))
     return D.fold_digest(job, fold, code, extra)
@@ -1131,10 +1139,16 @@ def run_fold(job: D.JobSpec, fold: FI.Fold, ordinal: int, corpus: Corpus, out_ro
     """Run (or skip) one fold of one job (module docstring)."""
     runner = runner_for(job, runners)
     design_hash = corpus.design_hash(job.stem)
+    # addendum 2 item 5 + the freezing-candidate pass: the digest a record of THIS job's stage is verified / written
+    # with is the stage's registry entry (the live digest until the registry exists); ``live`` is the live digest
+    jstage, live = REG.job_stage(job), code
+    code = REG.code_digest_for(jstage, live=live)
     digest = fold_digest(job, fold, code, state, runner, out_root, ordinal=ordinal, design_hash=design_hash)
     status = D.resume_status(job, fold, out_root, digest, steps)
     if status["complete"]:
         return {"job": job.key, "fold_id": fold.fold_id, "status": "skipped_done"}
+    REG.refuse_unless_writable(jstage, live)     # a record of a registered stage is written only under its code: a
+    #                                             discovery job found incomplete after registration is an error, not a refit
     t_all = time.perf_counter()
     fc, info = prepare_fold(job, fold, ordinal, corpus, out_root, state, guard_fn, inner_check, code=code)
     if with_support and job.kind == "fit":
@@ -1144,7 +1158,8 @@ def run_fold(job: D.JobSpec, fold: FI.Fold, ordinal: int, corpus: Corpus, out_ro
             "model_fold_number": ordinal, "model_seed": model_seed_of(ordinal) if job.kind == "fit" else None,
             "batching_label": fc.batching_label, "prereg_sha256": D.REGISTERED_PREREG_SHA256,
             "prereg_addenda_sha256": (prereg or {}).get("addenda_sha256"),
-            "prereg_n_addenda": (prereg or {}).get("n_addenda"), "addendum_implemented": D.N_ADDENDA_EXPECTED,
+            "prereg_n_addenda": (prereg or {}).get("n_addenda"), "addendum_implemented": REG.addenda_count(jstage),
+            "registry_stage": jstage,
             "prereg_gate": dict(prereg) if prereg else None, **info}
     need_point = any(PREDICTION_STEP not in (status["steps_done"].get(a) or []) for a in job.writes) or status["stale"]
     records: dict[str, dict] = {}
@@ -1216,15 +1231,19 @@ def expected_fold_records(job: D.JobSpec, folds: Sequence[FI.Fold], *, code: str
             for f, k in D.fittable_folds(job, folds, excluded_ids)}
 
 
-def verified_predictions(out_root: Path, arm: str, design_dir: str, seed: int, *, code: str, state: D.PlanState,
+def verified_predictions(out_root: Path, arm: str, design_dir: str, seed: int, *, code: str | None = None,
+                         state: D.PlanState,
                          excluded_ids: Iterable[str], folds_dir: Path | None = None,
                          runners: Mapping[str, Any] | None = None, steps: Sequence[str] = (PREDICTION_STEP,),
                          fold_cache: dict | None = None) -> tuple[pd.DataFrame | None, dict]:
-    """The predictions of one (arm, design directory, seed) read only when every record is exactly what the current
-    code, fold file and plan state would write (``discovery.READINGS['record_verification']``): the job is taken from
-    the records (one job per directory, its arm, design directory and seed matching), its expected digests are
-    recomputed, and ``discovery.read_discovery_record_set`` refuses a stale or foreign record.  ``(None, status)`` when
-    nothing or not every fittable fold is recorded."""
+    """The predictions of one (arm, design directory, seed) read only when every record is exactly what the code the
+    record set's REGISTRY STAGE was written under (``registry.code_digest_for(registry.job_stage(job))``: the
+    ``discovery`` entry, or ``discovery_candidates`` for a freezing-candidate job; addendum 2 item 5: never the live code
+    once the registry exists), fold file and plan state would write (``discovery.READINGS['record_verification']``): the
+    job is taken from the records (one job per directory, its arm, design directory and seed matching), its expected
+    digests are recomputed, and ``discovery.read_discovery_record_set`` refuses a stale or foreign record.
+    ``(None, status)`` when nothing or not every fittable fold is recorded.  ``code=None`` reads the registry entry of
+    the records' stage."""
     d = D.discovery_root(out_root) / arm / design_dir / f"s{seed}"
     jsons = sorted(d.glob("*.json")) if d.exists() else []
     if not jsons:
@@ -1236,6 +1255,7 @@ def verified_predictions(out_root: Path, arm: str, design_dir: str, seed: int, *
     if len(keys) != 1:
         raise D.StaleRecordError(f"{d}: records of {len(keys)} different jobs")
     job = D.job_from_record(bodies[0])
+    code = REG.code_digest_for(REG.job_stage(job)) if code is None else code    # the entry of THIS record set's stage
     if arm not in job.writes or job.design_dir != design_dir or int(job.seed) != int(seed):
         raise D.StaleRecordError(f"{d}: the records' job {job.key} does not write {arm}/{design_dir}/s{seed}")
     cache = fold_cache if fold_cache is not None else {}
@@ -1247,8 +1267,16 @@ def verified_predictions(out_root: Path, arm: str, design_dir: str, seed: int, *
 
 
 def current_code_digest() -> str:
-    """The combined code digest the runner writes into every record (``CODE_FILES`` + this script + ``RUNNER_OBJECTS``)."""
+    """The LIVE combined code digest this runner writes into a record it fits now (``CODE_FILES`` + this script +
+    ``RUNNER_OBJECTS``).  Readers verify records with :func:`verification_code_digest` instead (addendum 2 item 5)."""
     return D.code_digest(CODE_FILES + (Path(__file__).resolve(),), RUNNER_OBJECTS)["combined"]
+
+
+def verification_code_digest(stage: str = STAGE) -> str:
+    """The code digest records of ``stage`` are verified against: its registry entry when ``manifests/digest_registry.json``
+    holds it (the discovery entry read from the records at registration; the candidates entry registered from the tree
+    before the pass), else the live digest."""
+    return REG.code_digest_for(stage)
 
 
 # ============================================================================================= #
@@ -1360,7 +1388,9 @@ def evaluate_b6_checks(out_root: Path, corpus: Corpus, state: D.PlanState, code:
                        runners: Mapping[str, Any] | None = None) -> tuple[D.PlanState, dict]:
     """The B6 batched-vs-exact (V5, per seed) and ten-fold (V1, per seed) checks from the stored B6 predictions; a seed
     counts only when every fittable fold of both designs is recorded, and only verified records are read
-    (``verified_predictions``: a stale or foreign record raises)."""
+    (``verified_predictions``: a stale or foreign record raises).  ``code`` is the invocation's live digest, kept for the
+    caller's signature; each record set is verified against the registry entry of the stage its records carry
+    (``code=None``; addendum 2 item 5), never against the live code."""
     statuses: list[dict] = []
 
     def per_seed(design: str, variant: str, scheme: str, v1_scheme: str) -> dict[int, pd.Series]:
@@ -1372,7 +1402,9 @@ def evaluate_b6_checks(out_root: Path, corpus: Corpus, state: D.PlanState, code:
         for s in D.PLAN_SEEDS:                     # addendum 1 item 3: discovery runs seed 104729 only
             job = D.JobSpec(kind="fit", arm="B6", design=design, variant=variant, scheme=scheme, seed=s,
                             fold_seed=s if multi else None, writes=D.B6_ARMS)
-            p, st = verified_predictions(out_root, "B6", job.design_dir, s, code=code, state=state,
+            # the B6 record sets are verified against the entry of their own stage, not the live ``code`` of this
+            # invocation (run_plan re-evaluates the checks after stage 01 on every invocation, the candidates pass included)
+            p, st = verified_predictions(out_root, "B6", job.design_dir, s, code=None, state=state,
                                          excluded_ids=corpus.coext_ids, folds_dir=corpus.folds_dir, runners=runners,
                                          fold_cache={stem: corpus.folds(stem)})
             statuses.append(st)
@@ -1399,6 +1431,16 @@ def evaluate_b6_checks(out_root: Path, corpus: Corpus, state: D.PlanState, code:
 
 def plan_state_path(out_root: Path) -> Path:
     return D.discovery_root(out_root) / "decisions" / "plan_state.json"
+
+
+def runner_stage(out_root: Path) -> str:
+    """The registry stage this invocation is gated on (``registry.READINGS['candidates']``): ``REG.CANDIDATES`` once the
+    plan state holds freezing candidates (written by the scorer, hence after addendum 2 is appended; the jobs of
+    ``D.STAGES['candidates']`` are then the only fit jobs without a record set), else ``REG.DISCOVERY``.  The seal gate
+    thus pins the two-addenda text for the candidates pass and the addendum-1 text for everything before it; a job's
+    OWN stage (``REG.job_stage``) decides the digests its record carries."""
+    st = D.PlanState.read(plan_state_path(out_root))
+    return REG.CANDIDATES if st.freezing_candidates else REG.DISCOVERY
 
 
 def fold_tasks(job: D.JobSpec, corpus: Corpus) -> list[tuple[FI.Fold, int]]:
@@ -2070,7 +2112,7 @@ def write_cost_estimate_addendum1(meas: Sequence[Mapping[str, Any]], out_root: P
             counts.get(D.JobSpec(kind="fit", arm="B6", design="V5", variant="primary", scheme="batched",
                                  seed=D.PRIMARY_SEED, fold_seed=D.PRIMARY_SEED, writes=D.B6_ARMS).key, 0)
             * ucs[("B6", "V5_batched")].fold_seconds("full")["total"] / 3600, 2) if ("B6", "V5_batched") in ucs else None}
-    body = {"schema": D.SCHEMA, "addendum": D.N_ADDENDA_EXPECTED, "measurements": list(meas),
+    body = {"schema": D.SCHEMA, "addendum": REG.addenda_count(STAGE), "measurements": list(meas),
             "measurements_reused_from_sealed_plan": [m for m in sealed if m["design_class"] in ("V1", "V2")],
             "summary": summary, "stage_checkpoints": checkpoints, "conditional_not_in_total": cond,
             "fits_in_60h": bool(summary["fits_budget"]), "plan_state_assumed": state.record(),
@@ -2092,7 +2134,7 @@ def write_cost_estimate_addendum1(meas: Sequence[Mapping[str, Any]], out_root: P
 
 def write_plan_listing(jobs: Sequence[D.JobSpec], counts: Mapping[str, int], out_root: Path) -> Path:
     """``--dry-run``: the addendum-1 job plan as text (one line per job, in plan order) for the record."""
-    lines = [f"# gen19 discovery plan under POST-HOC addendum {D.N_ADDENDA_EXPECTED} "
+    lines = [f"# gen19 discovery plan under POST-HOC addendum {REG.addenda_count(STAGE)} "
              f"(scripts/g19_run_discovery.py --dry-run); seeds {list(D.PLAN_SEEDS)}",
              f"# {sum(j.kind == 'fit' for j in jobs)} fit jobs, "
              f"{sum(counts.get(j.key, 0) for j in jobs if j.kind == 'fit')} outer folds, "
@@ -2130,8 +2172,8 @@ def parse_args(argv=None) -> argparse.Namespace:
     ap.add_argument("--benchmark-out", default=None, help=argparse.SUPPRESS)
     ap.add_argument("--benchmark-mode", default="sealed", choices=("sealed", "addendum1"), help=argparse.SUPPRESS)
     ap.add_argument("--expect-addenda", type=int, default=None,
-                    help=f"POST-HOC addenda expected below the sealed footer (default {D.N_ADDENDA_EXPECTED}, the "
-                         "addendum this code implements); the run is refused on any other count")
+                    help="POST-HOC addenda expected below the sealed footer (default: the registry entry of stage "
+                         f"'{STAGE}', else {D.N_ADDENDA_EXPECTED}); the run is refused on any other count")
     ap.add_argument("--no-manifest", action="store_true")
     ns = ap.parse_args(argv)
     ns.steps = [s for s in ns.steps.split(",") if s]
@@ -2144,10 +2186,13 @@ def main(argv=None, *, check: Callable[[], int] | None = None,
          digests: Callable[[], Mapping[str, Any]] | None = None) -> int:
     ns = parse_args(argv)
 
-    def gate() -> dict:
-        return refuse_unless_sealed(check, digests, expect_addenda=ns.expect_addenda)
-    prereg = gate()
     out_root = Path(ns.out_root)
+
+    def gate() -> dict:
+        # the runner's registry stage: 'discovery_candidates' once plan_state.freezing_candidates is non-empty (the
+        # scorer wrote it; the freezing-candidate jobs are then the only jobs left to fit), else 'discovery'
+        return refuse_unless_sealed(check, digests, expect_addenda=ns.expect_addenda, stage=runner_stage(out_root))
+    prereg = gate()
     if ns.benchmark_arm:
         coext = json.loads(Path(ns.benchmark_out).with_suffix(".coext.json").read_text(encoding="utf-8"))
         corpus = load_corpus(coext)

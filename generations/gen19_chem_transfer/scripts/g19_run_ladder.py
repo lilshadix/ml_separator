@@ -118,7 +118,8 @@ DEMOTION_ORDER: tuple[str, ...] = D.DEMOTION_ORDER          # M7 -> M6 -> M5 -> 
 #: POST-HOC addendum 2, "2. Ladder M3-M7" > "Budget": "the ladder has its own budget of 40 h of wall clock
 #: (evaluation/ladder/decisions/wall_clock.json), checked before each step" -- this runner's ledger alone; the discovery
 #: ledger (``discovery.BUDGET_HOURS`` = 60 h) "stays as registered for the discovery stages" and is no longer added
-LADDER_BUDGET_HOURS = 40.0
+#: one source for the figure: ``discovery.LADDER_BUDGET_HOURS``, which the scorer's budget block also reports
+LADDER_BUDGET_HOURS = D.LADDER_BUDGET_HOURS
 BUDGET_HOURS = LADDER_BUDGET_HOURS
 DISCOVERY_BUDGET_HOURS = D.BUDGET_HOURS
 SCHEMA = "gen19.ladder.v1"

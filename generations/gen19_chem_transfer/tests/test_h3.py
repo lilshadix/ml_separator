@@ -22,6 +22,7 @@ from gen19ct.chemistry import support_graph as SG
 from gen19ct.evaluation import discovery as D
 from gen19ct.evaluation import h3 as H3
 from gen19ct.evaluation import metrics as EM
+from gen19ct.evaluation import registry as REG
 from gen19ct.evaluation import transfer as ET
 from gen19ct.folds import io as FI
 from gen19ct.models import interface as I
@@ -46,6 +47,17 @@ def _load(name: str):
 
 RH = _load("g19_run_h3")
 RD = _load("g19_run_discovery")
+
+
+@pytest.fixture(autouse=True)
+def _isolated_registry(tmp_path_factory, monkeypatch):
+    """POST-HOC addendum 2 item 5: the generation's ``manifests/digest_registry.json`` governs the REAL records.  Every
+    record here is synthetic, written into ``tmp_path`` under a code digest of the test's own, so the registry lookups of
+    stages ``h3`` / ``discovery`` see no file and fall back to the constants and the given code, exactly as before the
+    registry existed (``registry.READINGS['fallback']``); a test with entries of its own monkeypatches
+    ``REG.registry_path`` again."""
+    absent = tmp_path_factory.mktemp("no_registry") / "digest_registry.json"
+    monkeypatch.setattr(REG, "registry_path", lambda root=None: absent)
 
 
 # --------------------------------------------------------------------------------------------- #
@@ -397,7 +409,7 @@ def test_run_fold_writes_a_verified_record_and_resumes(tmp_path, monkeypatch):
     rec = json.loads(js.read_text(encoding="utf-8"))
     assert rec["transform"] == "WITHOUT" and rec["model_arm"] == "M2" and rec["with_record_digest"] == "with-digest"
     assert rec["prereg_sha256"] == D.REGISTERED_PREREG_SHA256
-    assert rec["prereg_addenda_sha256"] == D.REGISTERED_ADDENDA_SHA256
+    assert rec["prereg_addenda_sha256"] == REG.below_footer_sha256("h3")   # the H3 stage's registry entry
     assert rec["n_actinide_training_rows_dropped"] > 0 and set(rec["steps"]) == {"point"}
     frame = pd.read_parquet(pq)
     assert list(frame.columns) == list(D.PREDICTION_COLUMNS) and (frame["half"] == "S").all()
@@ -691,8 +703,10 @@ def test_selected_hyperparameters_layouts_and_b6_cross_fit_configs():
 # --------------------------------------------------------------------------------------------- #
 
 def _sealed():
+    exp = REG.gate_expectations("h3")                          # the stage every H3 gate test runs under
     return {"footer": D.REGISTERED_PREREG_SHA256, "recomputed": D.REGISTERED_PREREG_SHA256,
-            "digest_file": D.REGISTERED_PREREG_SHA256, "addenda_sha256": D.REGISTERED_ADDENDA_SHA256, "n_addenda": 1}
+            "digest_file": D.REGISTERED_PREREG_SHA256, "addenda_sha256": exp["below_footer_sha256"],
+            "n_addenda": exp["n_addenda"]}
 
 
 def _complete_discovery(out: Path, corpus, job: D.JobSpec, *, code: str, state: D.PlanState) -> None:
@@ -845,7 +859,10 @@ def test_v5_contrasts_of_a_heavy_arm_carry_the_section_7_item_6_batching_label()
     failed = D.PlanState(v5_batched_check="failed", v1_tenfold_check="failed")
     assert D.heavy_v5_batching_label(["M2"], "V5", passed) == "batched"
     assert D.heavy_v5_batching_label(["M2"], "V5", failed) == D.CHECK_FAILED_LABEL == "batched (check failed)"
-    assert D.heavy_v5_batching_label(["B6"], "V5", failed) == ""        # B6 runs the exact design, not the batched one
+    # B6 runs the exact design, not the batched one -- and says so instead of leaving the label blank, so H1b cannot be
+    # read under the heavy arms' regime line (task X finding V-H1B-05)
+    assert D.heavy_v5_batching_label(["B6"], "V5", failed) == "exact"
+    assert D.heavy_v5_batching_label(["B3i"], "V5", failed) == ""        # a closed-form contrast carries no V5 label
     assert D.heavy_v5_batching_label(["M2"], "V1", failed) == ""        # the label is a V5-family label
     # the plan state decides which fold files the H3 arms read, and a failed V1 ten-fold check moves them to exact
     assert failed.heavy_v5_scheme == "batched_max4" and failed.heavy_v1_scheme == "exact"

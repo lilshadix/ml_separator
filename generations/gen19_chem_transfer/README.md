@@ -15,19 +15,29 @@ under [Conventions](#conventions).
 |---|---|
 | A — corpus audit | complete: `DATA_AUDIT.md`, tables in `data_audit/`, figures F01, F02, F04–F06 |
 | B — feasibility | complete: `FEASIBILITY.md`, `data_audit/feasibility*.{json,csv}`, figure F03 |
-| decision | `decisions/D00_corpus_feasibility.md` (brief §29 format) |
+| decision | `decisions/D00_corpus_feasibility.md`, `decisions/D01_transfer_signal.md`, `decisions/D02_factorization.md` (brief §29 format; D03–D06 wait on the runners that answer them) |
 | verification corrections | applied 2026-09-15 (27 findings of three adversarial verifiers, then 7 residual findings of a second pass): component-aware V5 hiding (made symmetric at the metal-state level by a pre-seal design decision), V1 groups merged on archive duplicate groups, same-charge-first B3x, chemistry label fixes (aqueous agents recorded as extractants, EsPyTri, Br-Cosan, quercetin, name–structure conflicts, HDEHP as co-extractant), acid-medium and censoring counts, `V6_TARGET_ROWS`, selection / confirmation halves, fixed success margins |
 | pre-registration | **SEALED 2026-09-15** (`preregistration.md`, footer digest `135842499a86…5641`, `manifests/prereg_sha256.txt`; `preregistration_draft.md` is the frozen draft it was built from). It carries **one POST-HOC addendum below the footer** — addendum 1 (2026-09-15, no learned-model outcome seen), the compute-driven reduction of the discovery plan: the sealed §7 plan was priced at 1,535.7 CPU-h against a 60 h budget, so V5 inner tuning became three *simultaneous* inner folds (one fit per configuration per fold, up to 30 cells hidden at once), discovery runs **seed 104729 only** (R19 item 4 NOT_EVALUATED in discovery, unchanged at confirmation), a learned arm runs only the V5 strict and HNO3-only refits (R19 item 6 = "reduced sensitivity set (addendum 1)", the rest named as not run), and V5-PAIR carries M2 with its M1 prerequisite. Designs, folds, halves, hiding, guards, metrics, comparators, margins, the stop rule and confirmation are unchanged. The text above the footer is never edited; `g19_seal_prereg.py --check` exits 0 and the runner refuses any addendum count but the one it implements. History: the orchestrator resolved every open marker in `preregistration_draft.md` on 2026-09-15; each resolution says whether outcomes had been seen, and only baseline outcomes existed (§20; list in `decisions/D01_transfer_signal.md`). Task X re-verified the code consequences and put two readings back to the orchestrator; both were resolved the same day and are implemented: S1(c) "same fitted folds" — B3x and B3i re-fitted on exactly the batched V5-PAIR folds the candidate is fitted on, HEAVIER needs no fit (`gen19ct.evaluation.transfer.S1C_REGISTERED_FOLD_READING`, `check_s1c_fold_designs`; re-fit helper `gen19ct/models/s1c_yardsticks.py`, unit-tested on a synthetic mini-corpus only) with the seed combination at confirmation (`transfer.s1c_seed_combination`: seed-mean Δ_Y, system-cluster bootstrap of the seed mean with the same resampled systems in every seed, 5 of 5 seeds) — and the wildcard-copy sensitivity registered for V5-P and V5-PAIR as well as V1 and V5 (`transfer.REGISTERED_SENSITIVITIES`; the strict filter stays exploratory). Under the V1 outer-fold unit the pooled remainder fold is one publication-group cluster (`metrics.design_unit_clusters`, `tests/test_resolutions.py`). The verification of that implementation (same day) tightened the S1(c) guards — every fitted arm and the pair set must name `<stem>@<design_hash>` (a bare stem is the same for every seed), `s1c_half` refuses pairs of another half, `s1c_paired_verdict` refuses rather than FAILs a selection result not scored on the selection half on seed 104729 — made marked consistency corrections in `preregistration_draft.md` (§3.1 and §7 item 7: the S1(c) fold exceptions; §3.2 and §8: the V1 unit wording), and put one reading back to the orchestrator, resolved the same day: §9 S2(a) now uses the paired rule of S1(c) (`decisions/D01_transfer_signal.md`). `scripts/g19_seal_prereg.py --check` exits 0: sealed 2026-09-15 (footer 135842499a86…5641) with POST-HOC addendum 1 below the footer. |
 | pre-seal Phase C | closed-form baselines only (`scripts/g19_run_preseal.py`, `decisions/D01_transfer_signal.md`); second verification pass applied 2026-09-15 (task X: one inner-design implementation shared by the fold builder and the conformal wrapper, known-state calibration rows, section 13 thresholds written by the fold builder, `gen19ct/evaluation/support.py`, the wildcard-copy leakage audit, exploratory V1-unit and copy sensitivities, a seal gate on unticked boxes); `tables/preseal_pair_summary.csv` rebuilt the same day with `--tables-only` so that its DIR5-alternative rows are exploratory, role side, arm `HEAVIER_alt_half` / `HEAVIER_alt_lnln` (no refit; every other output re-rendered byte-identical, `manifests/g19_run_preseal.json` → `tables_only_rebuild`); after task X the same day every output was re-aggregated from the stored predictions under the resolutions (`--skip-compute`, no refit; `manifests/g19_run_preseal.json` → `aggregation_rebuild`): registered V1 outer-fold unit and wildcard-copy status in the tables, resolved `support_score` for every support job (`scripts/g19_update_support_preseal.py`, now also called by the pre-seal script), `evaluation/preseal/difficulty_resolved.json`, and `difficulty.json` byte-identical to the digest §9 quotes; after the last two resolutions (S1(c) "same fitted folds", wildcard copies on V5-P / V5-PAIR) were implemented and verified, `--skip-compute` ran again (no refit; of the 58 recorded outputs only `difficulty_resolved.json` changed: `resolved_orchestrator_decisions`, the V5-P / V5-PAIR wildcard-copy status and the two reading strings; the manifest's `code_sha256` is current) and a `--tables-only` pass then re-rendered every output byte-identical (`tables_only_rebuild.tables_rewritten` = `[]`) |
-| C — baselines B0–B8 on V1/V2/V5 | not started as a scored run: the closed-form pre-seal baselines exist; the learned arms (B5, B6/B6r0, B8, FLAT_CAT, M0–M2) are **built and planned, not run** |
+| C — baselines B0–B8 on V1/V2/V5 | **complete for every arm addendum 1 schedules**: the closed-form baselines are the pre-seal run; the learned arms B5 (= M0), B6, B6r0, B8, FLAT_CAT, M1 and M2 are fitted and scored on the **selection half, seed 104729 only** (`evaluation/discovery/`). M3–M7 were never fitted: the 60 h budget was exhausted, so the discovery ledger demoted them by rule (`decisions/decisions.json` → `budget.discovery.demoted_now` = M7, M6, M5, M4, M3; `never_demoted` = H1, H1b, H4) and POST-HOC addendum 2 gives the ladder its own 40 h |
+| discovery run | **COMPLETE 2026-09-22 04:36, exit 0**, every job 0 errors: 76.6 h wall clock on 2 workers (`decisions/decisions.json` → `budget.discovery.used_hours` 76.5955 against `budget_hours` 60.0, `exhausted` true), 3 invocations, **1,461 registered fold records** over the 7 fitted arms (`manifests/digest_registry.json` → `stages.discovery.n_records`), beside the 488 shared `_support` frames and the S1(c) yardstick refit — 240.3 MB with the run log, excluded from git (see the last row). Plan state as run: `heavy_v5_scheme` `batched_max4`, `heavy_v1_scheme` `exact`, `v5_batched_check` `passed_after_recolour`, `v1_tenfold_check` `failed`, every design's guard mode `nested_certificate` (`decisions/plan_state.json`). The freezing-candidate pass then ran (registry stage `discovery_candidates`): 3 jobs, all markers, 0 folds fitted — the M1 / M2 refits deduplicate into the main plan — and 33 pre-existing fit jobs `skipped_done` |
 | discovery runner | built: `scripts/g19_run_discovery.py` (plan, seal gate, resumable per-fold records, cost model) and `scripts/g19_score_discovery.py` (R19, stop rule, ladder, S1 components) implement the sealed §7 plan **as amended by POST-HOC addendum 1**. The seal gate pins the footer digest, the addendum count AND the addendum text (`discovery.REGISTERED_ADDENDA_SHA256`), and every fold record's resume digest carries the addendum digest and the resolved inner design. `--dry-run` writes the job plan to `evaluation/discovery/benchmark/plan_addendum1.txt`. The addendum-1 cost estimate (`--benchmark-addendum1`, fit-only timings on the TRAINING rows of one V5-primary batched fold, no test row predicted) is **measured**: `cost_estimate_addendum1.{json,md}` price the plan at **90.2 CPU-h, 45.1 h wall clock on 2 workers against the 60 h budget -> FITS** (sealed plan: 1535.7 CPU-h / 767.9 h wall); cumulative wall-clock checkpoints by stage: 00_safeguard 0.2 h; 01_B6 0.5 h; 03_B5_FLAT_CAT_B8 15.4 h; 04_M1 17.9 h; 05_M2 19.0 h; 07_s1c_v5pair 27.6 h; 08_refit_sensitivities 45.1 h. Conditional runs (V5-P per heavy arm, further V5-PAIR candidates, the B6 re-colouring) are priced separately and are not in the total. The estimate is ideal wall clock (compute / workers) from single-fold timings |
-| D–H — models, uncertainty, process | not started |
-| report, figures 7–13 | built, not run (both runners refuse until the discovery run is COMPLETE): `scripts/g19_make_figures.py` + `gen19ct/evaluation/figures.py` (brief §25 items 7–13) and `scripts/g19_build_report.py` + `gen19ct/evaluation/report.py` (`GEN19_REPORT.md`, `SUMMARY.md`, `decisions/D02_factorization.md`, `tables/claims.json`; brief §20, §22, §29, §34; pre-registration §9, §10, §15–§17, §19). Everything is generated from files: every printed number cites a path and a key (`tables/report_numbers.csv`) and is re-resolved from that source after writing; an absent input prints `not computed (input missing: <path>)`. A dry in-memory build on the current tree re-resolves every one of its 65 pre-seal numbers and lists 21 inputs as missing. `tests/test_report.py` (11 tests, synthetic inputs only) |
+| scorer | **run, exit 0** (`scripts/g19_score_discovery.py`; the last of 5 recorded passes took 127.4 s, `manifests/run_info/g19_score_discovery.json` → `passes`, and re-scoring never moved a verdict). Records are verified against the **registered** `discovery` code digest `895a6ab9…` of `manifests/digest_registry.json`, never against live code (POST-HOC addendum 2 item 5; the live digest is `d4ddf83c…`): 34 of 34 planned record sets complete = **1,254 folds** (`decisions/decisions.json` → `record_sets_summary`; the 2 remaining requests — B8 V5-strict and B8 V5-HNO3-only — are `not_planned`, addendum 1 item 4 registers those refits for H1 / H1b / H4 and freezing candidates only). Guards: `confirmation_half_read` false, `v6_target_rows_scored` 0, 186,446 row halves re-derived over 45 scoring frames. Outputs: `evaluation/discovery/{contrasts_registered,contrasts_exploratory,r19_items,records_index}.csv` (29 / 33 rows of 38 available contrasts), `decisions/{decisions,stop_rule,plan_state,record_verification}.json`, `tables/discovery_*` |
+| stop rule and headline verdicts | **stop = false** (`decisions/stop_rule.json`): M2 vs B3i@V5 **PASS** on R19 items 1, 2, 3, 5 (MAE 0.504 vs 0.767, Δ **+0.263** ≥ δ5 = 0.10569, system-cluster p = 0.0040), B6 vs B3i@V5 **FAIL** (Δ −0.104, p = 0.0550); `pending` and `consequences` empty. Because R19 item 4 is NOT_EVALUATED in discovery (addendum 1 item 3, one seed), the full R19 verdict of the passing contrast is **UNDECIDED**, so nothing is confirmed and the three freezing candidates (M2 vs B0 / B3i / B6r0@V5) are a fixed point with `passed_items_1_5_v5_primary` false. H4 ×3 FAIL, ladder M1 and M2 **not kept** against M0 (= B5), S1(a)/(b)/(c) reported UNDECIDED, S1(d) PASS, S1(e) NOT_EVALUATED. `decisions.json` → `power_check.status` is **not implemented**: the §8 signal-injection check is *required before any of these nulls is reported as a null*. Every number: `decisions/D02_factorization.md`, `tables/discovery_contrasts.md` |
+| D–H — models, uncertainty, process | **next: `scripts/g19_run_ladder.py`** (M3 → M7 on the ladder's own 40 h budget, addendum 2; `budget.ladder.ledger_exists` false, so no ladder hour has been spent). Then H3, the power check, confirmation (orchestrator), process. Nothing downstream of the ladder has run |
+| report, figures 7–13 | built, not run: the discovery run is COMPLETE, but both runners also refuse until the **M3–M7 ladder** is complete (`h3.ladder_complete`), because the deployed predictor is §11's "retained ladder configuration". `scripts/g19_make_figures.py` + `gen19ct/evaluation/figures.py` (brief §25 items 7–13) and `scripts/g19_build_report.py` + `gen19ct/evaluation/report.py` (`GEN19_REPORT.md`, `SUMMARY.md`, `decisions/D02_factorization.md`, `tables/claims.json`; brief §20, §22, §29, §34; pre-registration §9, §10, §15–§17, §19). Everything is generated from files: every printed number cites a path and a key (`tables/report_numbers.csv`) and is re-resolved from that source after writing; an absent input prints `not computed (input missing: <path>)`. A dry in-memory build on the current tree re-resolves every one of its 65 pre-seal numbers and lists 21 inputs as missing. `tests/test_report.py` (11 tests, synthetic inputs only). **D02 is already written**: `scripts/g19_write_d02.py` runs the D02 generator (`report.d02_text`) and nothing else, under the same seal gate and the same ledger, because that decision file is answerable from the completed run while the report is not (99 numbers, all re-resolved: `tables/d02_numbers_verification.csv`); `g19_build_report.py` regenerates it with the ladder rows filled in |
+| raw fold records | the 3,901 excluded files of the run (240.3 MB: per-fold predictions + provenance blocks under `evaluation/discovery/<arm>/<design>/s<seed>/`, the shared `_support` records, the `_s1c_yardsticks` refits and the 16.3 MB runner log) are **not in version control** — `.gitignore` excludes them and `evaluation/discovery/MANIFEST.sha256` records a SHA-256 and a byte count for every one, written and verified by `scripts/g19_manifest_discovery.py [--check]` (`--check` exits 0 on the current tree). Everything a decision file cites by number is in a small committed file. Same convention as `generations/gen18_process/` and `generations/gen16_leads/` |
 
-**No predictive model has been trained or fitted.** `log_D` is read only descriptively: to compare
-values of duplicate and near-duplicate records, to test whether source metadata leaks the target
-(`g19_audit_leakage.py`), and for the variance decomposition of feasibility question 13 (labelled
-DESCRIPTIVE in `g19_feasibility.py`).
+**Models have now been fitted, and only on the selection half.** Until the discovery run completed
+this README said that no predictive model had been trained; that sentence is gone. What still holds,
+and is the thing to keep in mind when reading any number in this directory: every fitted score is
+**discovery, optimistically biased** — selection half, seed 104729 — and the confirmation half and
+the four withheld seeds have never been read (`decisions/decisions.json` → `guard_counters`:
+`confirmation_half_rows_seen` 0, `v6_target_rows_scored` 0). No claim is confirmed, and no
+confirmation-half prediction exists. In Phase A/B, which the two audit documents report, `log_D` is
+still read only descriptively: to compare values of duplicate and near-duplicate records, to test
+whether source metadata leaks the target (`g19_audit_leakage.py`), and for the variance decomposition
+of feasibility question 13 (labelled DESCRIPTIVE in `g19_feasibility.py`).
 
 The Phase A/B outputs are byte-reproducible: two consecutive runs of the pipeline were compared
 file by file in `manifests/phaseAB_determinism.json` (see [Determinism](#determinism)).
@@ -113,8 +123,15 @@ scripts/       g19_build_extractants.py  g19_build_metals.py  g19_audit_leakage.
                                        the scorer has run): figures/F07-F13, figures/data/*.csv,
                                        tables/s1e_error_vs_support.csv, evaluation/figures/figures_index.json
                g19_build_report.py     GEN19_REPORT.md, SUMMARY.md, decisions/D02_factorization.md, tables/claims.json,
-                                       tables/report_numbers.csv from the files (refuses until discovery is COMPLETE);
-                                       exit 3 if any printed number does not re-resolve from its cited source
+                                       tables/report_numbers.csv from the files (refuses until discovery is COMPLETE
+                                       and the M3-M7 ladder is done); exit 3 if any printed number does not re-resolve
+                                       from its cited source
+               g19_write_d02.py        decisions/D02_factorization.md ALONE, under the same seal gate, ledger and
+                                       re-resolution: g19_build_report.py's D02 generator called before the ladder
+                                       exists, editing no report-stage code (tables/d02_numbers*.csv)
+               g19_manifest_discovery.py  evaluation/discovery/MANIFEST.sha256: sha256 + bytes for every fold record
+                                       the .gitignore excludes; --check verifies (exit 1 on a mismatch, on a missing
+                                       file, or when a listed file is not in fact ignored)
 tests/         conftest.py, test_load, test_normalize, test_provenance, test_leakage, test_metals,
                test_ligands, test_support_graph, test_seal_prereg, test_manifest,
                test_registered_folds (marker: slow), test_folds, test_baselines, test_metrics,
@@ -255,11 +272,14 @@ The partial fold rebuild asserts that every full-build design file is unchanged 
 rewrites (`folds/INDEX.json`, `folds/wildcard_copy_crossings.csv`), so the full-build manifest's stale entries for them are
 superseded, not unexplained (`tests/test_manifest.py::test_preseal_chain_manifests_match_disk_or_are_superseded`).
 
-**Discovery** (the sealed §7 plan as amended by POST-HOC addendum 1; **nothing has been fitted or
-scored yet**). Every command first calls `g19_seal_prereg.py --check`, pins the sealed digest
-`135842499a86…` and refuses unless exactly one POST-HOC addendum is below the footer
-(`--expect-addenda N` overrides deliberately); the digest, the addendum count and the SHA-256 of the
-addendum text go into every fold record and manifest.
+**Discovery** (the sealed §7 plan as amended by POST-HOC addendum 1; **run and scored — see
+[Status](#status)**: 1,461 registered fold records, 76.6 h, exit 0, selection half and seed 104729 only. The
+commands below are how it was run and how a rerun is compared with it, not work still to do.) Every
+command first calls `g19_seal_prereg.py --check`, pins the sealed digest `135842499a86…` and refuses
+unless the expected number of POST-HOC addenda is below the footer — one while discovery ran, two
+since addendum 2, taken per stage from `manifests/digest_registry.json`
+(`--expect-addenda N` overrides deliberately, and never the addendum text digest); the digest, the
+addendum count and the SHA-256 of the addendum text go into every fold record and manifest.
 
 ```
 .venv/Scripts/python.exe generations/gen19_chem_transfer/scripts/g19_run_discovery.py --dry-run
@@ -384,11 +404,15 @@ confirmation decision, prediction table or correlation file exists yet.
 with the registered digests and the discovery run is COMPLETE — `h3.discovery_complete`: `wall_clock.json` reached
 stage `10_not_implemented`, every stage of the current plan done, every `fit` job's record set verified against the
 digests the current code, fold files and plan state produce; the scorer's decision files gate the steps that read
-them):
+them). Since POST-HOC addendum 2 each of these stages is also a **digest-registry stage**: it is registered in
+`manifests/digest_registry.json` from the tree before it first runs, and a record is verified against its stage's
+registered digests, never against live code (addendum 2 item 5). **Step 1 has run; step 2 is what runs next.**
 
-1. `g19_score_discovery.py` — selection-half R19 contrasts, stop rule, ladder M1 / M2, S1 components, freezing screen
-   (`evaluation/discovery/contrasts_*.csv`, `decisions/decisions.json`, `stop_rule.json`);
-2. `g19_run_ladder.py` — M3 → M7 under the stop rule (`evaluation/ladder/`, D04, D05). **Required by steps 3, 4 and 7**:
+1. ~~`g19_score_discovery.py`~~ — **DONE** (exit 0): selection-half R19 contrasts, stop rule, ladder M1 / M2, S1
+   components, freezing screen (`evaluation/discovery/contrasts_*.csv`, `decisions/decisions.json`, `stop_rule.json`).
+   `decisions/D02_factorization.md` is written from its outputs by `g19_write_d02.py`;
+2. **→ `g19_run_ladder.py`** — M3 → M7 under the stop rule, on the ladder's own 40 h budget (addendum 2; no hour spent
+   yet, `budget.ladder.ledger_exists` false) (`evaluation/ladder/`, D04, D05). **Required by steps 3, 4 and 7**:
    the configuration deployed for lanthanide prediction is section 11's "retained ladder configuration", read by
    `h3.deployed_configuration` from `evaluation/ladder/decisions/ladder.json` (highest kept step M7 > … > M3, from a
    registered — not stop-rule — run) before the scorer's M2 / M1, the stop rule and B3i; the H3, figure and report
@@ -468,6 +492,19 @@ Q10's support category refuses an unknown status token and maps `OUTSIDE_TABLE` 
   date, runtime, hardware, package versions. A text file verifies when either digest matches
   (`paths.matches`), so a CRLF checkout is not a reproducibility failure (brief §24). Because
   git HEAD is part of the deterministic manifest, a rerun after a new commit changes that one field.
+- **Excluded artefacts carry a digest, never a promise.** Bulk run output is kept out of version
+  control and its SHA-256 recorded, the convention of `generations/gen18_process/.gitignore` +
+  `results/MANIFEST.sha256` and of `generations/gen16_leads/`. Here that is the discovery run's
+  3,901 raw fold records and logs (240.3 MB): `.gitignore` excludes
+  `evaluation/discovery/*/*/s*/` and `evaluation/discovery/logs/`, and
+  `evaluation/discovery/MANIFEST.sha256` lists `sha256  path  bytes` for every excluded file, LF,
+  sorted by path. `scripts/g19_manifest_discovery.py` writes it and `--check` verifies it: a changed
+  or missing file fails, a newly excluded file that is not yet listed is reported, and a *listed*
+  file that git does not in fact ignore fails too (the manifest may not claim cover for a file about
+  to be committed). Verification goes through `paths.matches`, so a CRLF checkout of a text record is
+  not a reproducibility failure (brief §24). Everything any decision file or the report cites by
+  number lives in a small committed CSV, JSON or Markdown file; the manifest is what makes a
+  regenerated run comparable with the one those files were written from.
 - **Writers.** CSV/JSON/text go through `write_csv` (LF, `index=False`, `%.6g`), `write_json`
   (sorted keys, indent 2, LF) and `write_text`. Figures use matplotlib's Agg backend, PNG at dpi
   130, one scientific question per figure stated in its title.
@@ -515,8 +552,12 @@ Reported by the Phase A/B agents and not yet resolved in shared code; each is de
   stray trailing character, a page-footer-mangled DOI, and rows co-citing a compilation paper).
   Leave-publication-out folds must use the merged groups in
   `data_audit/leakage_publication_components.csv`, not the raw id (the draft pre-registration does).
-- Step manifests record git HEAD but not the digests of the code that produced them, and while
-  the gen19 tree is uncommitted HEAD does not pin that code.
+- Step manifests record git HEAD but not always the digests of the code that produced them, and while
+  the gen19 tree is uncommitted HEAD does not pin that code. Narrowed since: the discovery, scoring
+  and later runners record their own `code_sha256` / `code_parts`, every fold record carries the code
+  digest it was written under, and POST-HOC addendum 2 added `manifests/digest_registry.json`, which
+  pins a code digest per stage and logs every later edit to a closure file with its reason. The Phase
+  A/B step manifests are still git-HEAD-only.
 - Curation items opened by the verification: the five name–structure-conflict structures (Br-Cosan,
   TPDGA malonamide, TDGA, TBADIPIC, NDDIPIC), the stereo-free vs cis/trans Me2-TODGA identity, and the
   censoring heuristic (exact-decade floors/ceilings) that stands in for a missing detection-limit flag.

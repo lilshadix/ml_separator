@@ -107,6 +107,12 @@ SELECTION, CONFIRMATION = "S", "C"
 REGISTERED_PREREG_SHA256 = "135842499a86eb3d478ece01a45718ac5b9673a4134bb4acda550f975bb45641"
 #: section 7 compute plan item 5
 BUDGET_HOURS = 60.0
+#: POST-HOC addendum 2, "2. Ladder M3-M7" -> Budget: the ladder has its OWN 40 h wall-clock ledger, checked before each
+#: step; :data:`BUDGET_HOURS` above stays as registered for the discovery stages.  ``scripts/g19_run_ladder.py`` takes
+#: its ``LADDER_BUDGET_HOURS`` from here, so the figure has one source
+LADDER_BUDGET_HOURS = 40.0
+#: the ladder's own ledger of addendum 2 (written by the ladder runner; absent until the first step runs)
+LADDER_WALL_CLOCK_REL = "evaluation/ladder/decisions/wall_clock.json"
 DEMOTION_ORDER: tuple[str, ...] = ("M7", "M6", "M5", "M4", "M3")
 NEVER_DEMOTED: tuple[str, ...] = ("H1", "H1b", "H4")
 LADDER: tuple[str, ...] = ("M0", "M1", "M2", "M3", "M4", "M5", "M6", "M7")
@@ -121,14 +127,16 @@ FITTED_ARMS: tuple[str, ...] = B6_ARMS + HEAVY_ARMS
 #: inner tuning is the simultaneous design, that run seed 104729 only and whose refit sensitivities are the reduced set.
 #: The closed-form arms (B0-B4 variants, B7, the pair yardsticks) keep the full registered sensitivity set
 LEARNED_ARMS: tuple[str, ...] = B6_ARMS + HEAVY_ARMS + ("M3", "M4", "M5", "M6", "M7")
-#: addendum 1 identity: the number of POST-HOC addenda the runner implements (the seal gate refuses another count
-#: unless ``--expect-addenda`` says so) and the label every reduced-sensitivity verdict carries
+#: the number of POST-HOC addenda the DISCOVERY records were written under (addendum 1).  POST-HOC addendum 2 item 5:
+#: "The gate constants are replaced by the registry" -- every gate reads ``registry.gate_expectations(stage)``
+#: (manifests/digest_registry.json); this value is only the fallback when that file does not exist and the frozen value
+#: the registry's ``discovery`` entry was read from the records with.  Never edit it: a record is verified against the
+#: registry entry of its stage, never against the live text
 N_ADDENDA_EXPECTED = 1
-#: the SHA-256 of the LF-normalised text BELOW the sealed footer (POST-HOC addendum 1) that this code implements
-#: (task X finding V-F01): the footer digest does not cover the addenda, so the seal gate pins their text as well as
-#: their count -- an edited or additional addendum is refused until the code implements it and registers its digest
-#: here (``--expect-addenda`` alone never passes); every fold record's resume digest carries it, so records fitted under
-#: another addendum text are stale
+#: the SHA-256 of the LF-normalised text BELOW the sealed footer under which the DISCOVERY records were written (POST-HOC
+#: addendum 1; task X finding V-F01).  Addendum 2 item 5: the registry entry of a stage governs its records and the seal
+#: gate of its runner (``gen19ct.evaluation.registry``); this literal is the fallback without a registry and the value
+#: the ``discovery`` entry carries (the report prints it from the registry, ``digest_registry_lines``)
 REGISTERED_ADDENDA_SHA256 = "05f36fc0354adb75ae41655977115d827ffce1227b2bdbfeeba28a975f0e8e54"
 ADDENDUM_LABEL = "reduced sensitivity set (addendum 1)"
 #: addendum 1 item 1-2: the inner design of every V5 design and variant of every learned arm, on every seed -- three
@@ -328,6 +336,61 @@ READINGS: dict[str, str] = {
             "direction, two logSF MAE; system clusters). p_bh is over the contrasts evaluated; p_bh_full_family "
             "counts every registered discovery contrast of section 19 (m printed), a contrast not run entering as p = 1 "
             "(the conservative bound); neither decides",
+    "bh_family_column": "task X finding V-S03: 'BH per family' is the FAMILY column (primary, H1b, S1(b), S1(c), H4, "
+                        "ladder, secondary designs), so p_bh is computed within each family over its evaluated "
+                        "primary-cluster rows and bh_m is that family's size; the earlier pooled adjustment over all "
+                        "evaluated registered contrasts is kept beside it as p_bh_pooled_registered / "
+                        "bh_m_pooled_registered, and p_bh_full_family stays the m = 60 section 19 family of reading "
+                        "6(f). No verdict moves: R19 and every scope use the raw p (task X finding V-BH-06: 'M2 vs M0' "
+                        "and 'M1 vs M0' hold a section 19 slot in family H4 AND in family ladder, so two slots share "
+                        "one computed contrast -- flagged bh_shared_computed_contrast)",
+    "tost_interval": "task X finding V-S07: the TOST bounds are the CONSERVATIVE ENVELOPE of the 90 % percentile and "
+                     "90 % BCa intervals of the primary-cluster bootstrap (transfer.tost, interval='both': low = "
+                     "min(percentile, BCa), high = max(percentile, BCa)), so a bound may come from either interval; the "
+                     "cluster unit and cluster count are printed beside every TOST interval "
+                     "(tost_cluster_unit / tost_n_clusters), because on 4 metal-state clusters the BCa bound rests on "
+                     "2^4 distinct resamples",
+    "cluster_degenerate": "task X finding V-S04: a registered cluster unit can have exactly one cluster per scoring "
+                          "unit -- V1 (39 outer folds, 39 publication-group clusters: 38 folds hold one group each and "
+                          "REMAINDER holds the 27 small groups), V2 (4 states, 4 state clusters). The 'clustered' "
+                          "bootstrap is then the unclustered unit bootstrap of section 8, which the registration says "
+                          "never decides, so such a row is labelled unclustered_equivalent "
+                          "(cluster_equals_scoring_unit) and carries no clustering protection beyond the fold",
+    "s1c_direction_gate": "section 4's direction gate |observed logSF| >= 0.3 is applied with the module's documented "
+                          "float tolerance (evaluation.pairs: '>= threshold - 1e-9'; metrics.FLOAT_TOL), because a "
+                          "difference of two stored log_D values that is exactly 0.3 is representable as "
+                          "0.29999999999999993. Task X finding V-S05: the tolerance admits boundary pairs (12 Ln-Ln "
+                          "pairs of the selection-half V5-PAIR set) and the S1(c) counterweight margin is only 0.0032, "
+                          "so the convention and the pair count are recorded with the S1(c) block",
+    "s1c_yardstick_records": "task X finding V-S06: the batched B3x / B3i refits of S1(c) ('same fitted folds') are "
+                             "closed-form and were re-computed in memory by the scorer, so no record covered them. They "
+                             "are now persisted as a record set under evaluation/discovery/_s1c_yardsticks/<stem>/s<seed> "
+                             "with a digest over the scorer stage's code digest, the fold design hash, the arms and the "
+                             "halves; a later pass recomputes them and refuses a record whose digest or values differ, "
+                             "so the S1(c) comparators are inside the record_verification chain",
+    "record_sets_not_planned": "task X finding V-REC-07: a record set with no records is 'missing' only when the "
+                               "registered plan (enumerate_plan of the current plan state) contains a fit job that "
+                               "writes it; otherwise it is 'not_planned' -- the scorer asked for a frame the plan never "
+                               "scheduled (B8 has no registered strict / HNO3-only refit: addendum 1 item 4 registers "
+                               "them for H1, H1b, H4 and freezing candidates only), which is not an incomplete run",
+    "budget_ladder": "POST-HOC addendum 2, '2. Ladder M3-M7' -> Budget: the ladder has its own 40 h wall-clock ledger "
+                     "(evaluation/ladder/decisions/wall_clock.json), checked before each step; the discovery ledger "
+                     "stays at the registered 60 h for the discovery stages. Task X finding V-BUD-03: the discovery "
+                     "ledger reached 76.6 h, so it recorded the section 7 item 5 exhaustion and demoted M3-M7 BY RULE "
+                     "(wall_clock.json -> budget.demoted_now) while ledger.demoted stayed empty -- no step was removed "
+                     "on evidence, and M3-M7 are also simply not implemented in this runner. Both reasons are recorded "
+                     "in decisions.json -> budget, so an absence cannot be attributed to one of them alone",
+    "s1d_s1e": "section 9 S1 is 'All of' (a)-(e), so the scorer records a verdict or an explicit NOT_EVALUATED for "
+               "every component (task X finding V-S1-01). S1(d) is computed from this scorer's own V5-primary "
+               "unit-macro coverage and its coverage by domain-status category (calibration.s1d_check; a category "
+               "below 20 scored cells is outside the band's scope). S1(e) is NOT_EVALUATED: its Spearman(cell MAE, "
+               "support_score) interval and the support-score components' reliability floor are the power stage "
+               "(evaluation.power, 'reliability_not_fitted'), which is not implemented in this runner; the descriptive "
+               "Spearman point is printed beside and decides nothing",
+    "guard_counters": "task X finding V-MAN-09: the manifest's confirmation_half_read and v6_target_rows_scored are "
+                      "DERIVED from what the guards saw in this process (discovery.guard_counts: frames checked, rows "
+                      "whose registered half was re-derived, confirmation-half rows seen, V6_TARGET_ROWS rows in a "
+                      "scoring index, pre-seal rows read through the parquet half filter), not written as literals",
     "full_family_60": "addendum 1 reading 6(f) counts 60 registered discovery contrasts; section 19 lists 57 discovery "
                       "contrasts and 3 confirmation-only S2 contrasts (60 in all), so the full family is m = 60 with "
                       "the S2 rows entered as p = 1 (the larger m is the conservative bound) and m_discovery = 57 is "
@@ -359,11 +422,14 @@ READINGS: dict[str, str] = {
                              "(inner_design.wildcard_copy_partners_in_inner_training) as a diagnostic (task X finding "
                              "VL-A1-02; needs POST-HOC addendum 2 to say whether the registered wildcard exclusion "
                              "applies to inner selection)",
-    "addenda_digest_gate": "the seal gate pins the footer digest, the number of POST-HOC addenda AND the SHA-256 of the "
-                           "below-footer text (REGISTERED_ADDENDA_SHA256); every fold record's resume digest carries "
-                           "the registered addenda digest and the resolved inner design (name, thresholds, medium, "
-                           "component rule, inner folds, cells per fold), so a record made under another addendum text "
-                           "or another inner design is stale (task X findings V-F01, VL-A1-01)",
+    "addenda_digest_gate": "POST-HOC addendum 2 item 5: the seal gate pins the footer digest, the number of POST-HOC "
+                           "addenda AND the SHA-256 of the below-footer text as REGISTERED FOR THE RUNNER'S STAGE in "
+                           "manifests/digest_registry.json (gen19ct.evaluation.registry; the constants "
+                           "N_ADDENDA_EXPECTED / REGISTERED_ADDENDA_SHA256 only when no registry exists); every fold "
+                           "record's resume digest carries the discovery stage's addenda digest and the resolved inner "
+                           "design, so a record made under another addendum text or inner design is stale, and a record "
+                           "is verified against the registry entry of its stage, never against the live text or live "
+                           "code (task X findings V-F01, VL-A1-01)",
     "safeguard_probe": "the section 2 safeguard runs ConformalWrapper(B3x) with nested_certificate and with every_split "
                        "on each drawn outer fold (the pre-seal cross-check's closed-form arm) and compares residuals, "
                        "quantiles and guard verdicts; a difference makes every_split mandatory for that fold file",
@@ -847,6 +913,32 @@ def registered_row_halves(frame: pd.DataFrame, design: str, *, halves: Mapping[s
     if table == "V2_state":
         return frame[SG.METAL_COL].map(h).fillna("NA").astype(str)
     return SH.row_halves(frame, h).astype(str)
+
+
+#: what the section 2 guards SAW in this process (task X finding V-MAN-09): a manifest field derived from these is a
+#: measurement, not a literal.  ``scoring_frame`` and :func:`read_preseal_selection` increment them; the guards
+#: themselves still raise, so a non-zero ``confirmation_half_rows_seen`` / ``v6_target_rows_scored`` cannot survive a
+#: completed pass -- the counter proves the guard was reached, the raise proves nothing slipped through
+GUARD_COUNTS: dict[str, int] = {}
+
+
+def reset_guard_counts() -> dict[str, int]:
+    """Zero :data:`GUARD_COUNTS` (called once at the start of a scoring pass) and return it."""
+    GUARD_COUNTS.clear()
+    GUARD_COUNTS.update({"scoring_frames_checked": 0, "rows_half_rederived": 0, "confirmation_half_rows_seen": 0,
+                         "v6_target_rows_scored": 0, "preseal_files_read": 0, "preseal_rows_read": 0,
+                         "preseal_non_selection_rows": 0})
+    return GUARD_COUNTS
+
+
+def guard_counts() -> dict[str, int]:
+    """A copy of :data:`GUARD_COUNTS` (empty until :func:`reset_guard_counts`)."""
+    return dict(GUARD_COUNTS)
+
+
+def _count_guard(key: str, n: int = 1) -> None:
+    if GUARD_COUNTS:
+        GUARD_COUNTS[key] = GUARD_COUNTS.get(key, 0) + int(n)
 
 
 def assert_selection_rows(ids: Iterable[str], row_half: Mapping[str, str] | pd.Series, what: str) -> None:
@@ -1587,7 +1679,11 @@ def read_preseal_selection(path: Path, arms: Sequence[str] | None = None) -> pd.
     if arms is not None:
         filters.append(("arm", "in", list(arms)))
     df = pd.read_parquet(path, filters=filters)
-    if (df["half"].astype(str) != SELECTION).any():
+    n_bad = int((df["half"].astype(str) != SELECTION).sum())
+    _count_guard("preseal_files_read")
+    _count_guard("preseal_rows_read", len(df))
+    _count_guard("preseal_non_selection_rows", n_bad)
+    if n_bad:
         raise AssertionError(f"{path}: the parquet filter returned a non-selection-half row")
     return df
 
@@ -1670,7 +1766,14 @@ def scoring_frame(pred: pd.DataFrame, attrs: pd.DataFrame, *, design: str, v6_ma
     hc = half_col or f"registered_half_{design}"
     if hc not in fr.columns:
         raise KeyError(f"{what}: attrs lack {hc}")
-    assert_selection_rows(fr.index, fr[hc].astype(str), what)
+    # the guard counters (task X finding V-MAN-09) are taken BEFORE the guards raise, so a completed pass records what
+    # was actually re-derived and seen rather than a constant
+    halves = fr[hc].astype(str)
+    _count_guard("scoring_frames_checked")
+    _count_guard("rows_half_rederived", len(fr))
+    _count_guard("confirmation_half_rows_seen", int((halves != SELECTION).sum()))
+    _count_guard("v6_target_rows_scored", int(v6_mask.reindex(fr.index).fillna(False).astype(bool).sum()))
+    assert_selection_rows(fr.index, halves, what)
     assert_v6_clean(fr.index, v6_mask, what)
     fr[EM.PRED_COL] = pd.to_numeric(fr["mean_logD"], errors="coerce").astype(float)
     return fr
@@ -1764,6 +1867,11 @@ def bootstraps(pu: PairedUnits, *, name: str, n_resamples: int = ET.N_RESAMPLES,
 SCOPES: dict[str, tuple[Any, ...]] = {"stop_rule": (1, 2, 3, 5), "ladder": (1, 2, 3, 5, "6s"),
                                       "freezing_screen": (1, 2, 3, 5, "6s"), "items_1_5": (1, 2, 3, 4, 5),
                                       "full": (1, 2, 3, 4, 5, 6)}
+
+#: how ``transfer.tost`` built the 90 % bounds it reports (task X finding V-S07; ``both`` is the registered default)
+TOST_ENVELOPE: dict[str, str] = {
+    "both": "conservative envelope: low = min(percentile 90 %, BCa 90 %), high = max(percentile 90 %, BCa 90 %)",
+    "percentile": "percentile 90 % interval", "bca": "BCa 90 % interval"}
 
 
 #: item statuses that make a verdict UNDECIDED rather than PASS (never FAIL)
@@ -1888,8 +1996,18 @@ def contrast_rows(res: Mapping[str, Any]) -> list[dict[str, Any]]:
             "margin": res["margin"], "r19_verdict_full": res["r19"].verdict,
             **{f"verdict_{k}": v["verdict"] for k, v in res["scopes"].items()},
             "tost_verdict_eps0.05": res["tost"]["verdict"], "tost_low_90": res["tost"]["low_90"],
-            "tost_high_90": res["tost"]["high_90"], "label": res["label"],
+            "tost_high_90": res["tost"]["high_90"],
+            # task X finding V-S07: the TOST bounds are the envelope of the 90 % percentile and 90 % BCa intervals, and
+            # a bound on 4 clusters rests on 2^4 distinct resamples -- construction and cluster count travel with them
+            "tost_interval_construction": TOST_ENVELOPE[res["tost"]["interval"]],
+            "tost_cluster_unit": res["tost"]["cluster_unit"],
+            "tost_n_clusters": res["bootstraps"][res["primary_cluster_unit"]].n_clusters,
+            "label": res["label"],
             "batching_label": res.get("batching_label", ""),
+            # task X finding V-S02 / V-H1B-05: the fold scheme of each arm, because a closed-form comparator is fitted on
+            # the exact leave-one-cell-out folds of section 3.1 (prereg "comparator_folds") while a heavy arm is batched
+            "candidate_fold_scheme": (res.get("fold_schemes") or {}).get(res["candidate"], ""),
+            "comparator_fold_scheme": (res.get("fold_schemes") or {}).get(res["comparator"], ""),
             "r19_item4": res["r19"].item(4)["status"],
             "seeds_evaluated": ", ".join(str(s) for s in res.get("seeds_evaluated", DISCOVERY_SEEDS)),
             "sensitivity_set": res.get("sensitivity_set", "registered (full)"),
@@ -1901,6 +2019,9 @@ def contrast_rows(res: Mapping[str, Any]) -> list[dict[str, Any]]:
     for u, br in res["bootstraps"].items():
         rec = br.record(base)
         rec["primary_cluster_unit"] = u == res["primary_cluster_unit"]
+        # task X finding V-S04: one cluster per scoring unit is the unclustered unit bootstrap, which never decides
+        rec["cluster_equals_scoring_unit"] = bool(br.n_clusters == br.n_units)
+        rec["clustering"] = "unclustered_equivalent" if br.n_clusters == br.n_units else "clustered"
         out.append(rec)
     return out
 
@@ -1909,30 +2030,51 @@ def r19_item_rows(res: Mapping[str, Any]) -> pd.DataFrame:
     return res["r19"].to_frame({"family": res["family"], "half": "selection", "seed_set": "discovery"})
 
 
+#: the columns that identify ONE computed contrast: two section 19 slots can share it ('M2 vs M0' is a registered H4
+#: contrast AND the ladder step M2 vs its retained predecessor), so the BH family counts it twice (task X finding V-BH-06)
+COMPUTED_CONTRAST_KEY: tuple[str, ...] = ("contrast", "design", "cluster_unit", "point", "p_two_sided")
+
+
 def apply_bh(table: pd.DataFrame, *, p_col: str = "p_two_sided", family_col: str = "family",
              registered_families: Iterable[str] | None = None, m_registered_full: int | None = None) -> pd.DataFrame:
-    """Benjamini-Hochberg separately for the registered family and the exploratory family (section 8), on the rows
-    flagged ``primary_cluster_unit``; ``p_bh`` stays NaN on the other rows.  ``m_registered_full`` (the number of
-    registered discovery contrasts of section 19, :func:`registered_family_accounting`) adds ``p_bh_full_family``: the
-    registered BH with every contrast not evaluated entering as p = 1 (never smaller than ``p_bh``).  Registered
-    contrasts are judged by R19; the adjusted p is shown, not used."""
+    """Benjamini-Hochberg **per family** (section 8, :data:`READINGS` ``bh_p`` / ``bh_family_column``) on the rows
+    flagged ``primary_cluster_unit``; ``p_bh`` stays NaN on the other rows.
+
+    ``p_bh`` is adjusted within the contrast's own family -- the ``family_col`` value (primary, H1b, S1(b), S1(c), H4,
+    ladder, secondary designs, exploratory) -- and ``bh_m`` is that family's evaluated size.  Beside it:
+    ``p_bh_pooled_registered`` / ``bh_m_pooled_registered``, the adjustment pooled over every evaluated registered
+    contrast (what this function returned before task X finding V-S03), and, with ``m_registered_full`` (the 60 of
+    :func:`registered_family_accounting`), ``p_bh_full_family``: the pooled registered BH with every contrast not
+    evaluated entering as p = 1.  ``bh_family`` stays the two-way split that decides which file a row is written to, and
+    ``bh_shared_computed_contrast`` flags a computed contrast that holds a section 19 slot in two families.  Registered
+    contrasts are judged by R19 on the raw p; every adjusted p is shown, never used."""
     reg = set(registered_families) if registered_families is not None else set(REGISTERED_FAMILIES)
     out = table.copy()
     out["bh_family"] = np.where(out[family_col].isin(reg), "registered", "exploratory")
-    out["p_bh"] = np.nan
-    out["p_bh_full_family"] = np.nan
-    out["bh_m"] = np.nan
+    out["bh_family_name"] = out[family_col].astype(str)
+    for c in ("p_bh", "p_bh_pooled_registered", "p_bh_full_family", "bh_m", "bh_m_pooled_registered"):
+        out[c] = np.nan
     prim = out["primary_cluster_unit"].astype(bool) if "primary_cluster_unit" in out.columns else pd.Series(True, index=out.index)
-    for fam in ("registered", "exploratory"):
-        sel = prim & (out["bh_family"] == fam)
-        if sel.any():
-            pv = out.loc[sel, p_col].to_numpy(dtype=float)
-            out.loc[sel, "p_bh"] = ET.benjamini_hochberg(pv)
-            out.loc[sel, "bh_m"] = float(len(pv))
-            if fam == "registered" and m_registered_full is not None:
-                pad = max(0, int(m_registered_full) - len(pv))
-                full = ET.benjamini_hochberg(np.concatenate([pv, np.ones(pad)]))[:len(pv)]
-                out.loc[sel, "p_bh_full_family"] = full
+    for fam in sorted(set(out.loc[prim, family_col].astype(str))):            # BH per family: the registered reading
+        sel = prim & (out[family_col].astype(str) == fam)
+        pv = out.loc[sel, p_col].to_numpy(dtype=float)
+        out.loc[sel, "p_bh"] = ET.benjamini_hochberg(pv)
+        out.loc[sel, "bh_m"] = float(len(pv))
+    for split in ("registered", "exploratory"):                               # printed beside: the pooled adjustment
+        sel = prim & (out["bh_family"] == split)
+        if not sel.any():
+            continue
+        pv = out.loc[sel, p_col].to_numpy(dtype=float)
+        out.loc[sel, "p_bh_pooled_registered"] = ET.benjamini_hochberg(pv)
+        out.loc[sel, "bh_m_pooled_registered"] = float(len(pv))
+        if split == "registered" and m_registered_full is not None:
+            pad = max(0, int(m_registered_full) - len(pv))
+            out.loc[sel, "p_bh_full_family"] = ET.benjamini_hochberg(np.concatenate([pv, np.ones(pad)]))[:len(pv)]
+    keys = [c for c in COMPUTED_CONTRAST_KEY if c in out.columns]
+    if keys:
+        n_fam = out[prim].groupby(keys, dropna=False)[family_col].transform("nunique")
+        out["bh_shared_computed_contrast"] = False
+        out.loc[prim, "bh_shared_computed_contrast"] = (n_fam > 1).to_numpy()
     return out
 
 
@@ -2139,11 +2281,118 @@ def registered_delta5(difficulty_json: Path | None = None) -> float:
     return d5
 
 
-def s1ab_components(results: Mapping[str, Mapping[str, Any]], state: PlanState | None = None) -> dict[str, Any]:
+NOT_EVALUATED = "NOT_EVALUATED"
+
+
+def s1d_component(macro_coverage: Mapping[float, Any] | None, category_coverage_80: Mapping[str, Any] | None, *,
+                  arm: str, source: str) -> dict[str, Any]:
+    """Section 9 S1(d) as a decided component: the V5-primary unit-macro 50 / 80 / 95 % coverage inside its band and, in
+    every domain-status category with >= 20 scored cells, 80 % coverage inside [0.65, 0.92] (``calibration.s1d_check``).
+
+    Task X finding V-S1-01: S1 is "All of" (a)-(e), so this returns a verdict -- or :data:`NOT_EVALUATED` with the
+    reason when a coverage level is missing -- never silence.  ``macro_coverage`` maps 0.50 / 0.80 / 0.95 to the
+    coverage, ``category_coverage_80`` maps a domain-status category to ``(coverage_80, scored_cells)``."""
+    from gen19ct.evaluation import calibration as EC
+
+    levels = dict(macro_coverage or {})
+    missing = [lvl for lvl in EC.S1D_BANDS if not np.isfinite(float(levels.get(lvl, float("nan"))))]
+    base = {"component": "S1(d) calibration (section 9), V5-primary cells, unit macro", "arm": arm, "source": source,
+            "bands": {f"coverage_{int(round(l * 100))}": list(b) for l, b in EC.S1D_BANDS.items()},
+            "category_band_80": list(EC.S1D_CATEGORY_BAND_80), "category_min_cells": EC.S1D_CATEGORY_MIN_CELLS,
+            "label": "discovery, optimistically biased (selection half); the confirmation half decides S1",
+            "reading": READINGS["s1d_s1e"]}
+    if missing:
+        return {**base, "verdict": NOT_EVALUATED,
+                "reason": f"no V5-primary unit-macro coverage for {arm} at {sorted(missing)} in {source}"}
+    cats = {str(k): (float(v[0]), int(v[1])) for k, v in dict(category_coverage_80 or {}).items()
+            if np.isfinite(float(v[0]))}
+    chk = EC.s1d_check({float(l): float(levels[l]) for l in EC.S1D_BANDS}, cats)
+    below = {str(k): int(v[1]) for k, v in sorted(dict(category_coverage_80 or {}).items())
+             if int(v[1]) < EC.S1D_CATEGORY_MIN_CELLS}
+    return {**base, "verdict": "PASS" if chk["pass"] else "FAIL", "items": chk["items"],
+            "categories_below_scope": below,
+            "categories_below_scope_note": f"a domain-status category with fewer than {EC.S1D_CATEGORY_MIN_CELLS} "
+                                           "scored cells is outside the band's registered scope"}
+
+
+def s1e_component(spearman_point: float | None = None, *, n_cells: int | None = None, arm: str = "M2",
+                  source: str = "") -> dict[str, Any]:
+    """Section 9 S1(e) as an explicit :data:`NOT_EVALUATED` component with its reason (task X finding V-S1-01).
+
+    S1(e) needs Spearman(cell MAE, ``support_score``) <= -0.10 with the system-cluster bootstrap interval excluding 0
+    AND the support-score components above the section 8 reliability floor (``transfer.s1e_check``).  The floor is
+    estimated by the power stage (``evaluation.power``, reading ``reliability_not_fitted``: the support-score components
+    are not fitted by default), which is not implemented in this runner, so the component is NOT_EVALUATED however the
+    correlation comes out; the descriptive point is printed beside and decides nothing."""
+    out = {"component": "S1(e) error grows with support distance (section 9), V5-primary cells", "arm": arm,
+           "verdict": NOT_EVALUATED, "threshold": ET.S1E_MAX_SPEARMAN,
+           "reason": ("the registered check needs the system-cluster bootstrap interval of Spearman(cell MAE, "
+                      "support_score) AND the support-score components above the section 8 reliability floor; the "
+                      "floor is the power stage (evaluation.power, 'reliability_not_fitted': support-score components "
+                      "are not fitted by default), whose execution is not implemented in this runner"),
+           "components_reliable": None, "interval": None, "reading": READINGS["s1d_s1e"],
+           "label": "discovery, optimistically biased (selection half)"}
+    if spearman_point is not None and np.isfinite(float(spearman_point)):
+        out["descriptive_spearman"] = {"point": float(spearman_point), "n_cells": None if n_cells is None else int(n_cells),
+                                       "source": source, "decides": False,
+                                       "note": "descriptive only: no interval and no reliability floor, so it is not "
+                                               "the registered S1(e) statistic"}
+    return out
+
+
+def budget_block(out_root: Path, *, run_manifest: Path | None = None) -> dict[str, Any]:
+    """Section 7 item 5 and POST-HOC addendum 2's ladder budget as one disclosed block (task X finding V-BUD-03).
+
+    Reads the discovery ledger (``evaluation/discovery/decisions/wall_clock.json``) and the run manifest's ledger, and
+    names BOTH reasons M3-M7 are absent: the ledger demoted them by rule when the 60 h budget was exhausted, and they
+    are not implemented in this runner -- while ``ledger.demoted`` is empty, i.e. no step was removed on evidence.  The
+    ladder's own 40 h ledger of addendum 2 is reported with whether it exists yet."""
+    wc = read_record(discovery_root(out_root) / "decisions" / "wall_clock.json") or {}
+    man = read_record(paths.MANIFESTS_DIR / "g19_run_discovery.json" if run_manifest is None else Path(run_manifest)) or {}
+    b = dict(wc.get("budget") or {})
+    ledger = dict(man.get("ledger") or {})
+    lb = dict(ledger.get("budget") or {})
+    lwc = read_record(Path(out_root) / LADDER_WALL_CLOCK_REL) or {}
+    demoted_now = list(b.get("demoted_now") or lb.get("demoted_now") or [])
+    return {
+        "rule": READINGS["budget"], "ladder_reading": READINGS["budget_ladder"],
+        "discovery": {"budget_hours": b.get("budget_hours", lb.get("budget_hours", BUDGET_HOURS)),
+                      "used_hours": b.get("used_hours", lb.get("used_hours")),
+                      "total_hours": wc.get("total_hours"),
+                      "exhausted": b.get("exhausted", lb.get("exhausted")),
+                      "exhausted_before": lb.get("exhausted_before"),
+                      "demotion_order": list(b.get("demotion_order") or DEMOTION_ORDER),
+                      "demoted_now": demoted_now, "never_demoted": list(b.get("never_demoted") or NEVER_DEMOTED),
+                      "n_invocations": len(wc.get("invocations") or []),
+                      "ledger_demoted": list(ledger.get("demoted") or []), "ledger_stopped": ledger.get("stopped"),
+                      "ledger": "evaluation/discovery/decisions/wall_clock.json"},
+        "ladder": {"budget_hours": LADDER_BUDGET_HOURS, "ledger": LADDER_WALL_CLOCK_REL,
+                   "ledger_exists": bool(lwc), "used_hours": lwc.get("total_hours"),
+                   "note": "POST-HOC addendum 2, '2. Ladder M3-M7' -> Budget: the ladder's own 40 h wall clock, checked "
+                           "before each step; the discovery ledger stays at the registered 60 h and the two are never "
+                           "added"},
+        "m3_m7_absence": {"not_implemented": NOT_IMPLEMENTED,
+                          "demoted_by_discovery_ledger": demoted_now,
+                          "removed_on_evidence": list(ledger.get("demoted") or []),
+                          "disclosure": ("M3-M7 are absent for two independent recorded reasons: they are not "
+                                         "implemented in this runner, AND the discovery ledger reached "
+                                         f"{b.get('used_hours')} h of the {b.get('budget_hours', BUDGET_HOURS)} h "
+                                         "budget and demoted them by the section 7 item 5 rule (order M7 -> M3). No "
+                                         "step was removed on evidence (ledger.demoted is empty), and addendum 2 gives "
+                                         f"the ladder its own {LADDER_BUDGET_HOURS:g} h budget, so the demotion does "
+                                         "not bind the ladder runner")}}
+
+
+def s1ab_components(results: Mapping[str, Mapping[str, Any]], state: PlanState | None = None, *,
+                    s1d: Mapping[str, Any] | None = None, s1e: Mapping[str, Any] | None = None) -> dict[str, Any]:
     """Section 9 S1(a) and S1(b) components from the evaluated contrasts ``M2 vs B3i`` (delta5), ``M2 vs B0`` and ``M2 vs
     B6r0`` (0.05), labelled discovery / optimistically biased; the confirmation half decides S1.  When the re-coloured
     batched-vs-exact check failed (``state.s1_forced_undecided``, section 7 item 6) every component's
-    ``reported_verdict`` is UNDECIDED and carries the label ``batched (check failed)``."""
+    ``reported_verdict`` is UNDECIDED and carries the label ``batched (check failed)``.
+
+    ``s1d`` / ``s1e`` (:func:`s1d_component`, :func:`s1e_component`) are carried through so that every one of the five
+    registered S1 components has a verdict or an explicit :data:`NOT_EVALUATED` (task X finding V-S1-01); omitting them
+    records NOT_EVALUATED with the reason that the scorer did not compute them."""
     forced = bool(state is not None and state.s1_forced_undecided)
     label = state.heavy_v5_label if state is not None else ""
 
@@ -2161,8 +2410,15 @@ def s1ab_components(results: Mapping[str, Mapping[str, Any]], state: PlanState |
             "S1_forced_undecided_reason": ("section 7 item 6: the re-coloured batched-vs-exact check failed; every "
                                            "heavy-arm V5 result is labelled 'batched (check failed)' and S1 is reported "
                                            "UNDECIDED, never passed") if forced else None,
+            "S1_components_registered": ["S1(a)", "S1(b)", "S1(c)", "S1(d)", "S1(e)"],
+            "S1_rule": "section 9: S1 holds only if ALL of (a)-(e) hold; a component without a verdict is "
+                       f"{NOT_EVALUATED} with its reason, never omitted (task X finding V-S1-01)",
             "S1a_M2_vs_B3i": comp("M2 vs B3i@V5"), "S1b_M2_vs_B0": comp("M2 vs B0@V5"),
-            "S1b_M2_vs_B6r0": comp("M2 vs B6r0@V5")}
+            "S1b_M2_vs_B6r0": comp("M2 vs B6r0@V5"),
+            "S1d_calibration": dict(s1d) if s1d is not None else
+            {"component": "S1(d) calibration (section 9)", "verdict": NOT_EVALUATED,
+             "reason": "the scorer did not compute the V5-primary coverage bands in this pass"},
+            "S1e_support_distance": dict(s1e) if s1e is not None else s1e_component()}
 
 
 POWER_CHECK_FAMILIES: tuple[str, ...] = ("primary", "H1b", "S1(b)", "H3")
@@ -2184,10 +2440,18 @@ def power_check_plan(results: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]
 
 
 def heavy_v5_batching_label(arms: Iterable[str], design: str, state: PlanState | None) -> str:
-    """The section 7 item 6 label of a V5 contrast involving a heavy arm (``""`` otherwise)."""
+    """The V5 fold-scheme label of a contrast: the section 7 item 6 heavy-arm label when a heavy arm is involved, else
+    ``exact`` for a B6 / B6r0 contrast (section 3.1: B6 and B6r0 are scored on the exact leave-one-cell-out folds, and
+    the registered ``comparator_folds`` reading fits the closed-form comparator on them too), else ``""``.
+
+    Task X finding V-H1B-05: the B6 rows carried a BLANK label while the heavy-arm rows said ``batched``, which reads as
+    if H1 and H1b sat on one regime; H1b is exact leave-one-cell-out and H1 is the batched scheme."""
     if state is None or design not in ("V5", "V5-P", "V5P", "V5-PAIR", "V5PAIR"):
         return ""
-    return state.heavy_v5_label if any(ARM_ALIASES.get(a, a) in HEAVY_ARMS for a in arms) else ""
+    aliased = [ARM_ALIASES.get(a, a) for a in arms]
+    if any(a in HEAVY_ARMS for a in aliased):
+        return state.heavy_v5_label
+    return "exact" if any(a in B6_ARMS for a in aliased) else ""
 
 
 def freezing_candidates(results: Mapping[str, Mapping[str, Any]], state: PlanState | None = None) -> list[dict[str, Any]]:
