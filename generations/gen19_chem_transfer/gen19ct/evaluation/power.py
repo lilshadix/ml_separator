@@ -59,6 +59,8 @@ from gen19ct.folds import io as FI
 from gen19ct.models import interface as I
 
 SCHEMA = "gen19.power.v1"
+#: where the per-(contrast, kappa) bootstrap input is persisted as metrics (task X finding V-L2)
+PER_UNIT_REL = "evaluation/power/per_unit_mae.csv"
 STAGE = "08_power"
 KAPPAS: tuple[float, ...] = ET.KAPPAS
 #: the registered families of section 19 that carry H1 / H1b / H3 (``discovery.POWER_CHECK_FAMILIES``)
@@ -99,6 +101,13 @@ READINGS: dict[str, str] = {
                    "scored in no design, so the paired comparison is on identical units",
     "no_persisted_values": "no injected target or injected prediction is written: the runner writes metrics, R19 rows "
                            "and kappa_min only (brief section 33; assert_no_injected_values checks every frame)",
+    "per_unit_metrics": "per (contrast, kappa) the runner ALSO writes the bootstrap input as metrics -- per averaging "
+                        "unit the MAE of both arms, their paired difference and the registered cluster labels "
+                        "(power.per_unit_rows -> evaluation/power/per_unit_mae.csv, tables/power_per_unit_mae.csv) -- "
+                        "so kappa_min and every R19 item behind it are re-derivable without repeating the refits "
+                        "(task X finding V-L2). A per-cell MAE and a cluster label are metrics, not injected targets "
+                        "and not per-row predictions: brief section 33 is unchanged and the same "
+                        "assert_no_injected_values check runs on the frame",
     "split_half_correlation": "the split-half correlation is Pearson across the units present in both halves, stepped "
                               "up by Spearman-Brown; the Spearman version is printed beside (the registration says "
                               "'split-half ... Spearman-Brown corrected' without naming the correlation)",
@@ -234,6 +243,30 @@ def assert_no_injected_values(frame: pd.DataFrame, what: str = "power-check outp
                              "(section 8: injected values exist only inside this check)")
 
 
+def per_unit_rows(pu: Any, *, contrast: str, kappa: float, candidate: str, comparator: str, design: str
+                  ) -> pd.DataFrame:
+    """The BOOTSTRAP INPUT of one injected kappa, per averaging unit: both arms' MAE, their paired difference and the
+    registered cluster labels the paired cluster bootstrap resamples (``discovery.PairedUnits``).
+
+    Without this, ``kappa_min`` and every R19 item behind it can be re-derived only by repeating the refits, because
+    no injected prediction is persisted (task X finding V-L2).  These are METRICS -- a per-cell mean absolute error and
+    a cluster label -- not injected targets and not per-row predictions, so section 8 / brief section 33 still holds
+    (:func:`assert_no_injected_values` is applied to the frame)."""
+    out = pd.DataFrame({"unit": pd.Index(pu.cand_mae.index).astype(str),
+                        "mae_candidate": pu.cand_mae.to_numpy(dtype=float),
+                        "mae_comparator": pu.comp_mae.to_numpy(dtype=float)})
+    out["delta_unit"] = out["mae_comparator"] - out["mae_candidate"]
+    for name, lab in (getattr(pu, "clusters", None) or {}).items():
+        out[f"cluster_{name}"] = pd.Series(lab).astype(str).to_numpy()
+    out.insert(0, "kappa", float(kappa))
+    out.insert(0, "design", str(design))
+    out.insert(0, "comparator", str(comparator))
+    out.insert(0, "candidate", str(candidate))
+    out.insert(0, "contrast", str(contrast))
+    assert_no_injected_values(out, f"power per-unit metrics ({contrast} kappa={kappa:g})")
+    return out
+
+
 @dataclass(frozen=True)
 class KappaResult:
     """One kappa of one contrast: the R19 result of the injected contrast and whether it passes."""
@@ -251,33 +284,59 @@ class KappaResult:
     def record(self, regime: Mapping[str, Any] | None = None) -> dict[str, Any]:
         return {**dict(regime or {}), "kappa": self.kappa, "passed": self.passed, "scope_verdict": self.scope_verdict,
                 "r19_verdict_full": self.full_verdict, "point": self.point, "margin": self.margin,
-                "n_units": self.n_units, "n_rows": self.n_rows}
+                "n_units": self.n_units, "n_rows": self.n_rows, **self.item_statuses()}
+
+    def item_statuses(self) -> dict[str, Any]:
+        """The per-item R19 statuses of this kappa, so an UNDECIDED_UNDERPOWERED verdict can be AUDITED: without them a
+        kappa that fails with a point estimate far above the margin is indistinguishable from one that fails on the
+        point estimate, and the reader cannot tell a genuinely underpowered design from an item that no kappa can move
+        (e.g. a sensitivity that is UNTESTABLE because its refit is not run)."""
+        r19 = (self.contrast or {}).get("r19")
+        items = list(getattr(r19, "items", ()) or ())
+        out: dict[str, Any] = {f"r19_item{int(i['item'])}": str(i["status"]) for i in items}
+        failed = [int(i["item"]) for i in items if str(i["status"]) == "FAIL"]
+        blocked = [int(i["item"]) for i in items if str(i["status"]) not in ("PASS", "FAIL")]
+        out["r19_items_failed"] = ";".join(str(i) for i in failed)
+        out["r19_items_not_decided"] = ";".join(str(i) for i in blocked)
+        out["r19_first_failing_item_detail"] = next((str(i.get("detail") or "") for i in items
+                                                     if str(i["status"]) == "FAIL"), "")
+        return out
 
 
-def kappa_min(results: Iterable[KappaResult]) -> dict[str, Any]:
+def kappa_min(results: Iterable[KappaResult], *, uninjected_verdict: str | None = None) -> dict[str, Any]:
     """``transfer.power_verdict`` over the registered kappa grid: kappa_min and INFORMATIVE_NULL /
-    UNDECIDED_UNDERPOWERED (a null with kappa_min > 0.25 is underpowered)."""
+    UNDECIDED_UNDERPOWERED (a null with kappa_min > 0.25 is underpowered) -- or, when the UN-INJECTED contrast is not a
+    null at all (its reported-scope verdict PASSES), POWERED_NOT_A_NULL / NOT_A_NULL_UNDERPOWERED: section 8 scopes the
+    check to a contrast "reported as a null", so a contrast that passes its scope is never reported as one (task X
+    findings V-L3 / V-P04)."""
     by_kappa = {float(r.kappa): bool(r.passed) for r in results}
-    verdict = ET.power_verdict(by_kappa)
+    verdict = ET.power_verdict(by_kappa, uninjected_verdict=uninjected_verdict)
+    sensitivity = ("a signal of kappa_min SD would have been detected" if verdict["informative"]
+                   else "the design could not detect a signal at or below 0.25 log D")
+    reported = {"INFORMATIVE_NULL": f"the null is informative: {sensitivity}",
+                "UNDECIDED_UNDERPOWERED": f"UNDECIDED (underpowered): {sensitivity}",
+                "POWERED_NOT_A_NULL": ("not a null: the un-injected contrast PASSES its reported scope, so nothing is "
+                                       f"reported as a null here; sensitivity for the record -- {sensitivity}"),
+                "NOT_A_NULL_UNDERPOWERED": ("not a null: the un-injected contrast PASSES its reported scope; "
+                                            f"sensitivity for the record -- {sensitivity}")}[verdict["verdict"]]
     return {**verdict, "passes_by_kappa": by_kappa, "kappas": list(KAPPAS),
-            "kappa_min_informative": ET.KAPPA_MIN_INFORMATIVE,
-            "reported": ("the null is informative: a signal of kappa_min SD would have been detected"
-                         if verdict["verdict"] == "INFORMATIVE_NULL"
-                         else "UNDECIDED (underpowered): the design could not detect a signal at or below 0.25 log D")}
+            "kappa_min_informative": ET.KAPPA_MIN_INFORMATIVE, "reported": reported}
 
 
 def power_record(contrast_key: str, *, family: str, design: str, arms: Sequence[str], results: Sequence[KappaResult],
                  seed: int, u_share: Mapping[str, str], n_dropped_unknown_state: int,
                  uninjected: Mapping[str, Any] | None = None) -> dict[str, Any]:
     """The power-check record of one contrast (metrics only)."""
-    km = kappa_min(results)
+    un = dict(uninjected or {})
+    km = kappa_min(results, uninjected_verdict=un.get("reported_verdict") or un.get(f"verdict_{H3.VERDICT_SCOPE}"))
     return {"schema": SCHEMA, "contrast": contrast_key, "family": family, "design": design, "arms": list(arms),
             "injection_seed": int(seed), "u_share": {str(k): str(v) for k, v in sorted(dict(u_share).items())},
             "n_u_shared_states": len(u_share), "n_rows_dropped_unknown_state": int(n_dropped_unknown_state),
             "per_kappa": [r.record() for r in results], **km,
             "uninjected": dict(uninjected or {}), "verdict_scope": H3.VERDICT_SCOPE,
+            "per_unit_metrics": PER_UNIT_REL, "per_unit_metrics_persisted": True,
             "readings": {k: READINGS[k] for k in ("injection_seed", "h3_u_share", "refit", "scored_rows", "r19_scope",
-                                                  "no_persisted_values")},
+                                                  "no_persisted_values", "per_unit_metrics")},
             "label": "signal-injection power check (section 8); injected values are not data (brief section 33)"}
 
 

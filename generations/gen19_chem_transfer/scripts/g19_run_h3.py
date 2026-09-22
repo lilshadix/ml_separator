@@ -15,8 +15,9 @@ Refuses to start unless, in this order:
    only the ladder decides (task X finding V-01).  Gate 0, run before anything heavy is loaded: ``wall_clock.json``
    reached the final stage (``h3.refuse_unless_cheap_complete``; finding VL2-04).
 
-Then, for the configuration deployed for lanthanide prediction (the highest kept ladder step M7 > ... > M3 > M2 > M1,
-else M2 / B6 by the stop rule, else B3i; ``h3.deployed_configuration``) plus B6 and B5:
+Then, for the configuration deployed for lanthanide prediction -- the ladder's RETAINED configuration: the highest kept
+ladder step M7 > ... > M3 > M2 > M1 > M0 (= B5; POST-HOC addendum 3 item 2), and only when the ladder retains no step at
+all M2 / B6 by the stop rule, else B3i (``h3.deployed_configuration``) -- plus B6 and B5:
 
 * WITH is the discovery record of the same arm, design, seed and fold -- nothing is refitted for it (a ladder step's
   WITH record is its ``evaluation/ladder`` record, verified against the digests the current code and ladder decisions
@@ -379,6 +380,9 @@ def run_fold(entry: Mapping[str, Any], fold: FI.Fold, ordinal: int, corpus: Any,
            "prereg_n_addenda": REG.addenda_count(STAGE), "registry_stage": STAGE,
            "prereg_gate": dict(prereg) if prereg else None, "arm_record": o.record, "readings": H3.READINGS["tuning"],
            "shared_only": transform == H3.SHARED_ONLY,
+           # WHEN this record was written, so registry.verify_record can order it against a later re-registration of
+           # this stage (task X finding V-P06: the superseded fallback protects records written EARLIER)
+           "written_utc": _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds"),
            **info,
            "steps": {"point": {"seconds": round(o.seconds, 3), "peak_rss_bytes": D.peak_rss_bytes(),
                                "date_utc": _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")}}}
@@ -498,7 +502,22 @@ class Frames:
             return None
         label = H3._label(design)
         hc = f"registered_half_{'V5' if label in ('V5', 'V5-P', 'V5-PAIR') else design}"
+        # R19 item 6's scoring-filter sensitivities read wildcard_copy_partner_in_training, which
+        # discovery.prediction_frame does not carry: the scorer adds it per design stem from the crossings table
+        # (g19_score_discovery.Store.frame) and so does the power runner; without it D.filtered_pair raises KeyError
+        # and NO H3 contrast can be scored at all (found while applying task X finding V-L1).  The crossings depend on
+        # the FOLDS only -- which fold hid which row, and which rows are copies -- never on an arm or a target.
+        sc = scorer_module()
+        stem = FI.design_stem(str(pred["design"].iloc[0]), str(pred["variant"].iloc[0]), str(pred["scheme"].iloc[0]))
+        pred = sc.wildcard_flags(pred, stem, self.crossings())
         return D.scoring_frame(pred, self.attrs, design=label, v6_mask=self.v6, what=what, half_col=hc)
+
+    def crossings(self) -> pd.DataFrame:
+        """``folds/wildcard_copy_crossings.csv`` as the scorer reads it (``g19_score_discovery.CROSSINGS_CSV``), cached."""
+        if "crossings" not in self._cache:
+            self._cache["crossings"] = pd.read_csv(scorer_module().CROSSINGS_CSV,
+                                                   dtype={"row_id": str, "partner_id": str})
+        return self._cache["crossings"]
 
     def with_frame(self, entry: Mapping[str, Any]) -> pd.DataFrame | None:
         arm, design = entry["model_arm"], entry["design"]
@@ -535,9 +554,13 @@ class Frames:
         key = ("h3", arm, transform, design)
         if key in self._cache:
             return self._cache[key]
-        exp = expected_records(entry, self.corpus, self.state, self.out_root, code=self.code)
-        pred, st = H3.read_record_set(H3.record_dir(self.out_root, arm, transform, job), exp,
-                                      what=f"{arm}:{transform}@{design}")
+        rdir = H3.record_dir(self.out_root, arm, transform, job)
+        # the code digest THIS record set was written under, when the registry still holds it (addendum 2 item 5;
+        # task X finding V-P02 edits h3.py, which is in the h3 code digest) -- never used to FIT, only to verify
+        rcode = H3.record_set_code(rdir, self.code, stage=STAGE)
+        exp = expected_records(entry, self.corpus, self.state, self.out_root, code=rcode["code"])
+        pred, st = H3.read_record_set(rdir, exp, what=f"{arm}:{transform}@{design}")
+        st = {**st, "code_resolution": rcode}
         self.record_sets[f"{transform}/{arm}/{job.design_dir}/s{job.seed}"] = st
         fr = self._scoring(pred, design, f"{arm}:{transform}/{design}")
         # an ABSENT record set is not cached: the same Frames scores again after ``main`` fits the shared-only

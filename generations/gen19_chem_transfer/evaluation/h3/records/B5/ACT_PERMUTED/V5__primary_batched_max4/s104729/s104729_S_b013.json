@@ -1,0 +1,217 @@
+{
+  "arm": "B5:ACT_PERMUTED",
+  "arm_record": {
+    "frozen": {
+      "config": {
+        "depth": 8,
+        "early_stopping_rounds": 200,
+        "eval_metric": "MAE",
+        "l2_leaf_reg": 3.0,
+        "label": "depth8_l23",
+        "learning_rate": 0.05,
+        "loss_function": "RMSE",
+        "max_iterations": 3000,
+        "one_hot_max_size": 10,
+        "thread_count": 2
+      },
+      "iterations": 3000
+    },
+    "refit": "the WITHOUT / ACT_PERMUTED / ACT_METAL_SHUFFLED arms are refitted at the hyperparameters the WITH run SELECTED on the same fold (its record's selected configuration, iteration / epoch count and model seed), not re-tuned; their cross-fitted conformal calibration uses the WITH record's cross-fit selections. Section 11 says 'same architecture, same folds, same seeds' and is silent on re-tuning; re-tuning would multiply the cost by the inner grid (INFERRED; needs a POST-HOC addendum)",
+    "selected_hyperparameters": {
+      "config": {
+        "depth": 8,
+        "early_stopping_rounds": 200,
+        "eval_metric": "MAE",
+        "l2_leaf_reg": 3.0,
+        "learning_rate": 0.05,
+        "loss_function": "RMSE",
+        "max_iterations": 3000,
+        "one_hot_max_size": 10,
+        "thread_count": 2
+      },
+      "family": "boosted",
+      "iterations": 3000,
+      "label": "depth8_l23",
+      "model_seed": 10013150
+    }
+  },
+  "code_digest": "c5069f9c8736b7403901b6be077ccb0456bec137ba4403e914e6136d06a95b30",
+  "design_hash": "c81dbc8688f5d95511c90b68c1bb1435c20edfa4c3838e7aed60fe88e70ad9f3",
+  "digest": "9a375711a3effc3201e4d6ac6637ba399862bce42cb411a2212fa02889e426a1",
+  "fold_hash": "1acb5f9e73a3101321d96aa164d7f79dfc2f47aad547e7909c16d606ec69af37",
+  "fold_id": "s104729_S_b013",
+  "fold_ordinal": 13,
+  "inner_guard_mode": "nested_certificate",
+  "job": {
+    "arm": "B5:ACT_PERMUTED",
+    "condition": null,
+    "design": "V5",
+    "drop_sr": false,
+    "fold_seed": 104729,
+    "group": "section 11 actinide ablation",
+    "inner_mode": "full",
+    "key": "fit:B5:ACT_PERMUTED:V5__primary_batched_max4:s104729",
+    "kind": "fit",
+    "message": "",
+    "purpose": "H3 ACT_PERMUTED arm of B5: training transform discovery.h3_training_rows",
+    "registered": true,
+    "scheme": "batched_max4",
+    "seed": 104729,
+    "stage": "11_h3",
+    "stem": "V5__primary__batched_max4",
+    "stem_override": "",
+    "variant": "primary",
+    "variant_label": "primary_batched_max4",
+    "writes": [
+      "B5:ACT_PERMUTED"
+    ]
+  },
+  "model_arm": "B5",
+  "model_seed": 10013150,
+  "n_actinide_training_rows": 5018,
+  "n_excluded_from_scoring": 0,
+  "n_hidden": 402,
+  "n_scored_selection": 84,
+  "n_sr_iii_dropped": 0,
+  "n_train": 12009,
+  "n_training_rows_changed": 4656,
+  "outer_guard": [
+    {
+      "level": null,
+      "n_test": 84,
+      "n_train": 12009,
+      "ok": true,
+      "publication_basis": "g19_publication_id"
+    }
+  ],
+  "prereg_addenda_sha256": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
+  "prereg_gate": {
+    "addenda_sha256": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
+    "addenda_sha256_registered": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
+    "addendum_implemented": 3,
+    "gate_source": "registry",
+    "n_addenda": 3,
+    "n_addenda_expected": 3,
+    "prereg_sha256": "135842499a86eb3d478ece01a45718ac5b9673a4134bb4acda550f975bb45641",
+    "registry_path": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer\\manifests\\digest_registry.json",
+    "seal_check_exit": 0,
+    "stage": "h3"
+  },
+  "prereg_n_addenda": 3,
+  "prereg_sha256": "135842499a86eb3d478ece01a45718ac5b9673a4134bb4acda550f975bb45641",
+  "readings": "the WITHOUT / ACT_PERMUTED / ACT_METAL_SHUFFLED arms are refitted at the hyperparameters the WITH run SELECTED on the same fold (its record's selected configuration, iteration / epoch count and model seed), not re-tuned; their cross-fitted conformal calibration uses the WITH record's cross-fit selections. Section 11 says 'same architecture, same folds, same seeds' and is silent on re-tuning; re-tuning would multiply the cost by the inner grid (INFERRED; needs a POST-HOC addendum)",
+  "registry_stage": "h3",
+  "schema": "gen19.h3.v1",
+  "selected_config": "depth8_l23",
+  "shared_only": false,
+  "stem": "V5__primary__batched_max4",
+  "steps": {
+    "intervals": {
+      "calibration_folds": [
+        0,
+        1,
+        2
+      ],
+      "guard": "nested_certificate",
+      "method": "discovery.CrossFitResidualConformal (cross-fitted inner splits at the WITH record's selections)",
+      "n_calibration": 2543,
+      "n_inner_splits": 3,
+      "plan": {
+        "calibration_folds": [
+          0,
+          1,
+          2
+        ],
+        "cross_fit": true,
+        "status": "calibrated",
+        "tuning_folds": [
+          0,
+          1,
+          2
+        ]
+      },
+      "quantiles": {
+        "0.5": 0.4801948927758135,
+        "0.8": 1.1064716398329857,
+        "0.95": 2.010455976412011
+      },
+      "seconds": 318.458,
+      "seed": 104729,
+      "selections": {
+        "0": {
+          "best_config": "depth8_l23",
+          "best_score": 0.4701136392219274,
+          "candidates_within_tolerance": [
+            "depth8_l23"
+          ],
+          "excluded_inner_folds": [
+            0
+          ],
+          "inner_folds_used": [
+            1,
+            2
+          ],
+          "iterations": 1856,
+          "n_splits": 2,
+          "rule": "within 0.005 of the best inner macro MAE -> lower depth, then larger l2_leaf_reg",
+          "score": "mean over inner folds of the fold's unit-macro MAE (addendum 1 item 2)",
+          "selected": "depth8_l23",
+          "selected_score": 0.4701136392219274,
+          "tolerance": 0.005
+        },
+        "1": {
+          "best_config": "depth8_l23",
+          "best_score": 0.43226343469838313,
+          "candidates_within_tolerance": [
+            "depth8_l23"
+          ],
+          "excluded_inner_folds": [
+            1
+          ],
+          "inner_folds_used": [
+            0,
+            2
+          ],
+          "iterations": 3000,
+          "n_splits": 2,
+          "rule": "within 0.005 of the best inner macro MAE -> lower depth, then larger l2_leaf_reg",
+          "score": "mean over inner folds of the fold's unit-macro MAE (addendum 1 item 2)",
+          "selected": "depth8_l23",
+          "selected_score": 0.43226343469838313,
+          "tolerance": 0.005
+        },
+        "2": {
+          "best_config": "depth8_l23",
+          "best_score": 0.44931230270772327,
+          "candidates_within_tolerance": [
+            "depth8_l23"
+          ],
+          "excluded_inner_folds": [
+            2
+          ],
+          "inner_folds_used": [
+            0,
+            1
+          ],
+          "iterations": 1856,
+          "n_splits": 2,
+          "rule": "within 0.005 of the best inner macro MAE -> lower depth, then larger l2_leaf_reg",
+          "score": "mean over inner folds of the fold's unit-macro MAE (addendum 1 item 2)",
+          "selected": "depth8_l23",
+          "selected_score": 0.44931230270772327,
+          "tolerance": 0.005
+        }
+      },
+      "splitter": "inner_folds(V5_inner_simultaneous, [0, 1, 2])",
+      "status": "calibrated"
+    },
+    "point": {
+      "date_utc": "2026-09-22T12:07:58+00:00",
+      "peak_rss_bytes": 883765248,
+      "seconds": 145.476
+    }
+  },
+  "transform": "ACT_PERMUTED",
+  "with_record_digest": "2968c7c849c68737a4597a3292cdeda32b56d9533d6c23e84dd49133307cd93c",
+  "with_selected_config": "depth8_l23"
+}

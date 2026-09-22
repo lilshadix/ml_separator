@@ -1056,3 +1056,134 @@ def test_run_ladder_checks_its_own_ledger_before_each_step_and_ignores_the_disco
     for s in ("M3", "M4", "M5", "M6", "M7"):
         assert lstate2.steps[s]["status"] == "demoted" and "addendum 2" in lstate2.steps[s]["note"] and "40 h" in lstate2.steps[s]["note"]
     assert "demoted" in RL.STATUS_SKIPPED
+
+
+# ---- POST-HOC addendum 3 item 3: M3-M7 are not_run when neither M1 nor M2 is retained ------------------------------- #
+
+def _h6_tables(out: Path) -> None:
+    """The coverage rows of the scorer's tables that D05 reads when M7 has not run (synthetic values)."""
+    rows = []
+    for design, variant, arm, cov in (("V5", "primary", "B5", (0.66, 0.90, 0.98)), ("V5", "primary", "M2", (0.55, 0.83, 0.96)),
+                                      ("V1", "primary", "B5", (0.55, 0.85, 0.96)), ("V2", "primary", "B5", (0.45, 0.72, 0.90))):
+        for metric, value in zip(("coverage_50", "coverage_80", "coverage_95", "width_80"), (*cov, 1.5)):
+            rows.append({"design": design, "variant": variant, "half": "selection", "arm": arm, "seed": 104729,
+                         "status": "registered", "n_units": 105, "stratum": "all", "metric": metric,
+                         "aggregation": "unit_macro", "value": value})
+    pd.DataFrame(rows).to_csv(out / "tables" / "discovery_summary.csv", index=False)
+    crows = [{"arm": "B3i", "design": "V5", "metric": m, "aggregation": "unit_macro", "value": v, "n_units": 105,
+              "seed_set": "discovery seed 104729 only (addendum 1 item 3)"}
+             for m, v in (("coverage_50", 0.544), ("coverage_80", 0.835), ("coverage_95", 0.953), ("width_80", 1.6))]
+    pd.DataFrame(crows).to_csv(out / "tables" / "discovery_comparator_intervals.csv", index=False)
+    dec = D.discovery_root(out) / "decisions"
+    dec.mkdir(parents=True, exist_ok=True)
+    (dec / "decisions.json").write_text(json.dumps(
+        {"S1_components": {"S1d_calibration": {"arm": "M2", "verdict": "PASS", "component": "S1(d) calibration (section 9), "
+                                               "V5-primary cells, unit macro", "bands": {"coverage_80": [0.7, 0.9]},
+                                               "source": "tables/discovery_summary.csv"}}}), encoding="utf-8")
+
+
+def test_every_step_is_not_run_when_neither_m1_nor_m2_is_retained_and_no_budget_hour_is_spent(tmp_path, monkeypatch):
+    """POST-HOC addendum 3 item 3 (with addendum 2, '2. Ladder M3-M7'): "the ladder steps M3-M7 are `not_run` because
+    neither M1 nor M2 is retained ..., independently of the discovery ledger's budget demotion; the ladder's own 40 h
+    budget of addendum 2 is therefore not consumed."  Nothing is fitted, the reason is the addendum's and never
+    ``demoted``, and a ladder ledger already AT 40 h changes no status -- the test precedes the budget check."""
+    def _never(*a, **k):
+        raise AssertionError("no fit job may run when the ladder has no factorised base")
+
+    monkeypatch.setattr(RL, "run_step_jobs", _never)
+    gate = {"stop_rule": {"stop": False}, "discovery_ladder": {"M1": False, "M2": False}}
+    corpus = SimpleNamespace(fittable=lambda job: [])
+    codes = {"own": "o", "discovery": "d", "combined": "c"}
+    out = tmp_path / "out"
+    (out / "tables").mkdir(parents=True)
+    ledger = RL.run_ladder(corpus, out, _plan_state(), codes, gate, steps=("point", "intervals"), workers=1,
+                           store_factory=lambda ls: _FakeStore({}), delta5=0.1)
+    assert ledger["stopped"] is None and ledger["budget"] is None and ledger["steps"] == []
+    lstate = RL.LadderState.read(RL.ladder_state_path(out))
+    assert "H5" not in lstate.steps and lstate.demoted == [] and lstate.record()["retained_final"] == "M0"
+    for s in ("M3", "M4", "M5", "M6", "M7"):                     # M7 too: section 7 item 4's single M7 run needs M1 / M2
+        rec = lstate.steps[s]
+        assert rec["status"] == "not_run" and rec["kept"] is None and rec["predecessor"] == "M0"
+        assert "addendum 3 item 3" in rec["note"] and "M0 (B5)" in rec["note"] and "demot" not in rec["note"].split("independently")[0]
+    assert RL.budget_used_seconds(out) == 0.0
+    wc = json.loads(RL.ladder_wall_clock_path(out).read_text(encoding="utf-8"))
+    assert wc["ladder_hours"] == 0.0 and not wc["budget"]["exhausted"] and wc["budget"]["remaining_hours"] == 40.0
+    # the same decision with the ladder ledger ALREADY at 40 h: still not_run, never demoted (the order of the two tests)
+    out2 = tmp_path / "out2"
+    (out2 / "tables").mkdir(parents=True)
+    RL.record_ladder_wall_clock(out2, "2026-09-19T00:00:00+00:00", 40 * 3600.0, [])
+    ledger2 = RL.run_ladder(corpus, out2, _plan_state(), codes, gate, steps=("point", "intervals"), workers=1,
+                            store_factory=lambda ls: _FakeStore({}), delta5=0.1)
+    lstate2 = RL.LadderState.read(RL.ladder_state_path(out2))
+    assert ledger2["budget"] is None and lstate2.demoted == []
+    assert all(lstate2.steps[s]["status"] == "not_run" for s in ("M3", "M4", "M5", "M6", "M7"))
+
+
+def test_d05_states_what_h6_rests_on_when_the_m7_ensemble_was_not_run(tmp_path, monkeypatch):
+    """Addendum 2 item 3: "H6 / D05 rests on M7 and on the conformal coverage of the other arms."  With M7 `not_run`
+    D05 names the second half and prints it from the scorer's tables; D04 prints the unconsumed ladder ledger."""
+    monkeypatch.setattr(RL, "run_step_jobs", lambda *a, **k: (_ for _ in ()).throw(AssertionError("no fit")))
+    gate = {"stop_rule": {"stop": False}, "discovery_ladder": {"M1": False, "M2": False}}
+    out = tmp_path / "out"
+    (out / "tables").mkdir(parents=True)
+    RL.run_ladder(SimpleNamespace(fittable=lambda job: []), out, _plan_state(), {"own": "o", "discovery": "d", "combined": "c"},
+                  gate, steps=("point", "intervals"), workers=1, store_factory=lambda ls: _FakeStore({}), delta5=0.1)
+    _h6_tables(out)
+    written = RL.write_decision_files(out)
+    d05 = (out / "decisions" / "D05_uncertainty.md").read_text(encoding="utf-8")
+    d04 = (out / "decisions" / "D04_mechanism_experts.md").read_text(encoding="utf-8")
+    assert {p.name for p in written} >= {"D04_mechanism_experts.md", "D05_uncertainty.md"}
+    for head in ("## question", "## evidence", "## metrics", "## null / supported / ambiguous", "## decision", "## next action"):
+        assert head in d05 and head in d04                        # brief section 29 format
+    assert "M7 status: not_run" in d05 and "addendum 3 item 3" in d05
+    assert "conformal coverage of the other arms" in d05 and "the arms that ran" in d05
+    assert "V5-primary B5: coverage 0.660 / 0.900 / 0.980" in d05 and "deployed configuration (M0)" in d05
+    assert "V5-primary M2: coverage 0.550 / 0.830 / 0.960" in d05
+    assert "V5 B3i (comparator; seed-104729 pre-seal intervals" in d05 and "0.544 / 0.835 / 0.953" in d05
+    assert "arm M2" in d05 and "verdict PASS" in d05              # the only S1(d) band check discovery computed
+    assert "no band verdict is computed here for any other arm" in d05
+    for k in ("gaussian_crps", "spearman_abs_error_vs_sd", "sd_binned_reliability_curve", "knows_when_it_does_not_know"):
+        assert f"section 12 {k}: NOT_RUN" in d05
+    assert "H6 (does the model know when it does not know?): ambiguous" in d05
+    assert "M0 (= B5, POST-HOC addendum 3 item 2)" in d05 and "needs a retained M1 or M2" in d05
+    assert "used 0.0000 h of 40.0 h" in d04 and "exhausted no" in d04 and "demoted: none" in d04
+    # nothing is invented when the tables are absent
+    bare = RL.h6_basis(tmp_path / "empty")
+    assert bare["designs"] == {} and bare["comparators"] == {} and bare["s1d"] is None and len(bare["missing"]) == 3
+    assert "not computed" in RL._h6_lines(None, "M0")[0]
+
+
+def test_the_ledger_records_the_invocations_real_wall_clock_beside_the_budget_number(tmp_path):
+    """Task X finding V-L4: with every step ``not_run`` the ladder LOOP costs 0.0 s, so four invocations were recorded
+    at exactly 0.0 s although the runs took 21-41 s -- the ledger could not distinguish "ran and skipped every step"
+    from "never ran".  The budget still reads ``seconds`` alone (addendum 2's 40 h stay unconsumed); the invocation's
+    real process wall clock is recorded beside it."""
+    out = tmp_path / "out"
+    RD.record_wall_clock(out, "2026-09-16T00:00:00+00:00", 76.5955 * 3600.0, ["01_B6"])
+    RL.record_ladder_wall_clock(out, "2026-09-22T06:08:33+00:00", 0.0, ["M3", "M4", "M5", "M6", "M7"],
+                                process_seconds=41.2)
+    body = json.loads(RL.ladder_wall_clock_path(out).read_text(encoding="utf-8"))
+    inv = body["invocations"][-1]
+    assert inv["seconds"] == 0.0 and inv["process_seconds"] == 41.2
+    assert inv["steps_done"] == ["M3", "M4", "M5", "M6", "M7"]
+    # the budget arithmetic reads `seconds` only: a not_run ladder spends no hour of the registered 40 h
+    assert body["ladder_hours"] == 0.0 and body["budget"]["used_hours"] == 0.0
+    assert body["budget"]["remaining_hours"] == RL.LADDER_BUDGET_HOURS and body["budget"]["exhausted"] is False
+    assert body["ladder_process_hours"] == pytest.approx(41.2 / 3600.0, abs=1e-4)
+    assert "process_seconds" in body["invocation_reading"] and "never ran" in body["invocation_reading"]
+    # the discovery overrun is computed, not left for a reader to subtract
+    assert body["discovery_hours_not_counted"] == pytest.approx(76.5955)
+    assert body["discovery_budget_hours_unchanged"] == RL.DISCOVERY_BUDGET_HOURS == 60.0
+    assert body["discovery_overrun_hours"] == pytest.approx(16.5955)
+    assert body["budget"]["discovery_overrun_hours"] == pytest.approx(16.5955)
+    # ... and D04 states it rather than leaving it in the ledger alone
+    lstate = RL.LadderState(stop_rule=False, discovery_ladder={"M1": False, "M2": False},
+                            steps={s: {"step": s, "status": "not_run", "kept": None} for s in RL.LADDER_STEPS})
+    d04 = RL.d04_text(lstate, None, budget=body["budget"])
+    assert "the discovery run OVERRAN its registered budget by 16.5955 h" in d04
+    assert "60.0 h of section 7 item 5" in d04
+    # a second invocation with no process_seconds given takes this process's own elapsed time, never 0.0
+    RL.record_ladder_wall_clock(out, "2026-09-22T07:00:00+00:00", 0.0, [])
+    again = json.loads(RL.ladder_wall_clock_path(out).read_text(encoding="utf-8"))
+    assert again["invocations"][-1]["process_seconds"] > 0.0
+    assert again["budget"]["used_hours"] == 0.0

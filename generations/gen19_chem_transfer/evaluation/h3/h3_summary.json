@@ -1,0 +1,652 @@
+{
+  "delta5": 0.10568948790529951,
+  "deployed": {
+    "arm": "M0",
+    "arm_alias": "B5",
+    "arm_alias_note": "the arm name records, prediction frames and tables/discovery_summary.csv use for the deployed configuration; 'arm' is the name it is REPORTED under (addendum 3 item 2 names M0, whose records are written under B5)",
+    "basis": "the ladder retains its base step M0 (= B5, the registered descriptor arm of section 5), M1 and M2 are not kept, and no step M3-M7 is kept: the retained ladder configuration is M0 (addendum 3 item 2; ladder.M0.kept)",
+    "f6_no_evaluated_fail": {
+      "B6_vs_B3i": false,
+      "M2_vs_B3i": true
+    },
+    "f6_rule": "POST-HOC addendum 2 (F6): with no retained ladder step, M2 (and B6 for H1b) 'is deployed by the fallback only when its contrast passes the stop-rule scope (items 1, 2, 3, 5) AND item 6 over the reduced sensitivity set - no evaluated item may FAIL'. decisions.json -> stop_rule evaluates items 1, 2, 3 and 5 only, so the second half is read from decisions.json -> freezing_candidates, whose screen is that scope plus item 6 with no evaluated item FAILing (discovery.freezing_candidates / freezing_eligibility). A contrast the scorer did not list did not pass that screen; a decisions.json with no freezing_candidates block leaves item 6 unchecked and the basis says so.",
+    "keys": {
+      "f6_no_evaluated_fail": {
+        "B6_vs_B3i": "freezing_candidates[contrast=B6 vs B3i@V5].eligible_for_freezing",
+        "M2_vs_B3i": "freezing_candidates[contrast=M2 vs B3i@V5].eligible_for_freezing"
+      },
+      "ladder": {
+        "M0": "ladder.M0.kept",
+        "M1": "ladder.M1.kept",
+        "M2": "ladder.M2.kept"
+      },
+      "ladder_runner": {
+        "M3": "evaluation/ladder/decisions/ladder.json -> steps.M3.kept",
+        "M4": "evaluation/ladder/decisions/ladder.json -> steps.M4.kept",
+        "M5": "evaluation/ladder/decisions/ladder.json -> steps.M5.kept",
+        "M6": "evaluation/ladder/decisions/ladder.json -> steps.M6.kept",
+        "M7": "evaluation/ladder/decisions/ladder.json -> steps.M7.kept"
+      },
+      "stop_rule": {
+        "B6_vs_B3i": "stop_rule.B6_vs_B3i.verdict",
+        "M2_vs_B3i": "stop_rule.M2_vs_B3i.verdict"
+      }
+    },
+    "ladder_complete": {
+      "complete": true,
+      "definition": "ladder.json exists and every step M3-M7 has a status in demoted, exploratory_not_run, judged, kept, not_run, removed",
+      "not_done": [],
+      "present": true,
+      "steps": {
+        "M3": "not_run",
+        "M4": "not_run",
+        "M5": "not_run",
+        "M6": "not_run",
+        "M7": "not_run"
+      },
+      "stop_rule": false
+    },
+    "ladder_kept": {
+      "M0": true,
+      "M1": false,
+      "M2": false,
+      "M3": null,
+      "M4": null,
+      "M5": null,
+      "M6": null,
+      "M7": null
+    },
+    "retained_ladder_step": "M0",
+    "rule": "POST-HOC addendum 3 item 2: the configuration deployed for lanthanide prediction ('the retained ladder configuration', section 11) is the ladder's RETAINED configuration -- the highest kept ladder step: evaluation/ladder/decisions/ladder.json -> steps.<step>.kept == true for M7 > M6 > M5 > M4 > M3 (only from a registered ladder run, i.e. ladder.json -> stop_rule == false: under the stop rule M3-M6 are exploratory_not_run and M7 runs for H6 only, so no ladder step deploys), then the scorer's decisions.json -> ladder.<step>.kept == true (M2 before M1), then the ladder's BASE step M0 (= B5, the registered descriptor arm of section 5 and the M0 row of the section 6 ladder) when decisions.json -> ladder.M0.kept == true and neither M1 nor M2 is kept. Addendum 2's remaining order applies ONLY when the ladder has no retained step at all (no ladder block / M0 not kept): M2 when stop_rule.M2_vs_B3i.verdict == PASS; else B6 when stop_rule.B6_vs_B3i.verdict == PASS; else the registered V5 lookup comparator B3i (section 10 F6: the best-passing baseline; the process chain's D source stays gen18 B1). The rule is undecidable (the runners refuse) while ladder.json is absent or any step M3-M7 is not in a done / skipped status, or while a discovery ladder decision is pending (kept == null) (task X finding V-01)",
+    "status": "decided",
+    "stop_rule_pass": {
+      "B6_vs_B3i": false,
+      "M2_vs_B3i": true
+    }
+  },
+  "designs": [
+    "V5",
+    "V2",
+    "V1"
+  ],
+  "f4": {
+    "deployed_arm": "B5",
+    "deployed_trained_with_actinide_rows": true,
+    "designs_computed": [
+      "V5"
+    ],
+    "designs_not_computed": [
+      "V1",
+      "V2"
+    ],
+    "failure": false,
+    "per_design": {
+      "V1": {
+        "status": "not computed"
+      },
+      "V2": {
+        "status": "not computed"
+      },
+      "V5": {
+        "bca_95": [
+          -0.22595021631962536,
+          -0.009038393971887528
+        ],
+        "bca_also_excludes_0": false,
+        "cluster_unit": "system",
+        "percentile_95": [
+          -0.24568987239116918,
+          -0.011249209939739472
+        ],
+        "point": -0.06686613328403818,
+        "status": "computed",
+        "without_beats_with_interval_excludes_0": false
+      }
+    },
+    "reading": "F4 'the WITHOUT arm beats it on the Ln test set (95 % interval excluding 0)' is evaluated per design (V5 Ln cells, V1 Ln rows, V2 Ln states) with the primary-cluster percentile interval of the reversed contrast (WITHOUT candidate), and F4 holds when ANY design shows it (the conservative reading)",
+    "rule": "F4 -- negative actinide transfer (section 10)",
+    "status": "computed"
+  },
+  "git_head": "257bc3a7a525605ce74e8e0bdfd40708fd877981",
+  "heavy_v1_scheme": "exact",
+  "heavy_v5_batching_label": "batched",
+  "heavy_v5_scheme": "batched_max4",
+  "label": "discovery, optimistically biased (selection half, seed 104729)",
+  "model_arms": [
+    "B5",
+    "B6"
+  ],
+  "n_contrast_rows": 8,
+  "not_computed": {
+    "crps": "NOT_RUN: no learned arm has a predictive SD (std_logD NaN; split-conformal intervals only)",
+    "power_check": "kappa_min comes from scripts/g19_run_power.py (section 8)",
+    "shared_only_embedding_rerun": "not run (not applicable: B5 has no section 15 metal embedding): POST-HOC addendum 2 item 4 ('it is implemented in a NEW module (an H3-side subclass of neural.FactorisedNet with the e_series and e_ox offsets held at zero; no existing file edited) before scripts/g19_run_h3.py runs, and executes only under section 11's condition that WITHOUT beats WITH; otherwise D03 reports it as not run'): the WITH arm re-run with a shared-only metal embedding (no e_series, e_ox) is models.shared_only (FrozenSharedOnly), refitted at the WITH record's SELECTED hyperparameters, stopping count and model seed with the cross-fitted calibration at the WITH record's selections, scored against the full section 15 embedding (WITH) on the V5 Ln cells and the V1 / V2 Ln sets as an exploratory negative-transfer contrast; it runs only when section 11, negative-transfer investigation: 'run if WITHOUT is better, point estimate or passed' -- read on the deployed arm's V5 Ln-cell contrast WITHOUT vs WITH (h3_verdicts.json): hurts == true (WITHOUT passes R19 on the freezing_screen scope against WITH; the 'passed' half) OR v5_without_vs_with_point > 0 (the reversed contrast's Delta macro MAE = MAE(WITH) - MAE(WITHOUT) under the primary cluster unit; the 'point estimate' half); otherwise D03 says 'not run (condition not met)'; a deployed arm without a metal embedding (B6, B5, a closed-form comparator) makes it not applicable. Reading of the item's 'no existing file edited': no file of the DISCOVERY import closure was edited (neural.FactorisedNet has no switch; the zeroed offsets live in the new models/shared_only.py); the H3-side files evaluation/h3.py and scripts/g19_run_h3.py, outside that closure and part of no discovery record's digest, were extended to plan, fit, score and report the re-run",
+    "v6_deltas": "section 11: the V6 deltas are computed at confirmation only"
+  },
+  "plan_state": {
+    "freezing_candidates": [
+      {
+        "arms": [
+          "M2",
+          "B0"
+        ],
+        "batching_label": "batched",
+        "contrast": "M2 vs B0@V5",
+        "design": "V5",
+        "eligibility": {
+          "eligible": true,
+          "evaluated_items": {
+            "1": "PASS",
+            "2": "PASS",
+            "3": "PASS",
+            "5": "PASS",
+            "6": "PASS"
+          },
+          "failed_items": [],
+          "items": {
+            "1": "PASS",
+            "2": "PASS",
+            "3": "PASS",
+            "4": "NOT_EVALUATED",
+            "5": "PASS",
+            "6": "PASS"
+          },
+          "items_not_evaluated_in_discovery": {
+            "4": "NOT_EVALUATED"
+          },
+          "r19_verdict_full": "UNDECIDED",
+          "reason": "items [1, 2, 3, 5, 6] PASS; not evaluated in discovery: item 4 NOT_EVALUATED; no item FAIL",
+          "rule": "POST-HOC addendum 3 item 1 (section 15): a contrast is ELIGIBLE FOR FREEZING when every R19 item that R19 EVALUATES in discovery is PASS and no item is FAIL. An item R19 does not evaluate in discovery -- item 4, NOT_EVALUATED by addendum 1 item 3 (one discovery seed), and any UNTESTABLE / NOT_RUN item -- does not disqualify it; item 4 is evaluated at confirmation exactly as registered (5 of 5 withheld seeds). Any FAIL, on any item, makes the contrast ineligible. This is the reading addendum 2 already gives F6 for deployment, and it would have been required whatever the scores were. Everything else about section 15 is unchanged: at most five claims, named in decisions/CONFIRMATION_PLAN.md before the run, one run on the withheld seeds and the confirmation half, V6 once."
+        },
+        "eligible_for_freezing": true,
+        "family": "S1(b)",
+        "s1_forced_undecided": false,
+        "section_3_1_v5p_trigger": false,
+        "section_3_1_v5p_trigger_rule": "section 3.1: the heavy-arm V5-P run of a freezing candidate is triggered by R19 items 1-5 on V5-primary. Item 4 is NOT_EVALUATED in discovery (addendum 1 item 3), so the trigger cannot fire; addendum 1 item 4 does not run the heavy-arm V5-P runs either way. Addendum 3 item 1 changes what 'passed R19 in discovery' means for FREEZING (section 15), not this trigger, so the two are reported separately."
+      },
+      {
+        "arms": [
+          "M2",
+          "B3i"
+        ],
+        "batching_label": "batched",
+        "contrast": "M2 vs B3i@V5",
+        "design": "V5",
+        "eligibility": {
+          "eligible": true,
+          "evaluated_items": {
+            "1": "PASS",
+            "2": "PASS",
+            "3": "PASS",
+            "5": "PASS",
+            "6": "PASS"
+          },
+          "failed_items": [],
+          "items": {
+            "1": "PASS",
+            "2": "PASS",
+            "3": "PASS",
+            "4": "NOT_EVALUATED",
+            "5": "PASS",
+            "6": "PASS"
+          },
+          "items_not_evaluated_in_discovery": {
+            "4": "NOT_EVALUATED"
+          },
+          "r19_verdict_full": "UNDECIDED",
+          "reason": "items [1, 2, 3, 5, 6] PASS; not evaluated in discovery: item 4 NOT_EVALUATED; no item FAIL",
+          "rule": "POST-HOC addendum 3 item 1 (section 15): a contrast is ELIGIBLE FOR FREEZING when every R19 item that R19 EVALUATES in discovery is PASS and no item is FAIL. An item R19 does not evaluate in discovery -- item 4, NOT_EVALUATED by addendum 1 item 3 (one discovery seed), and any UNTESTABLE / NOT_RUN item -- does not disqualify it; item 4 is evaluated at confirmation exactly as registered (5 of 5 withheld seeds). Any FAIL, on any item, makes the contrast ineligible. This is the reading addendum 2 already gives F6 for deployment, and it would have been required whatever the scores were. Everything else about section 15 is unchanged: at most five claims, named in decisions/CONFIRMATION_PLAN.md before the run, one run on the withheld seeds and the confirmation half, V6 once."
+        },
+        "eligible_for_freezing": true,
+        "family": "primary",
+        "s1_forced_undecided": false,
+        "section_3_1_v5p_trigger": false,
+        "section_3_1_v5p_trigger_rule": "section 3.1: the heavy-arm V5-P run of a freezing candidate is triggered by R19 items 1-5 on V5-primary. Item 4 is NOT_EVALUATED in discovery (addendum 1 item 3), so the trigger cannot fire; addendum 1 item 4 does not run the heavy-arm V5-P runs either way. Addendum 3 item 1 changes what 'passed R19 in discovery' means for FREEZING (section 15), not this trigger, so the two are reported separately."
+      },
+      {
+        "arms": [
+          "M2",
+          "B6r0"
+        ],
+        "batching_label": "batched",
+        "contrast": "M2 vs B6r0@V5",
+        "design": "V5",
+        "eligibility": {
+          "eligible": true,
+          "evaluated_items": {
+            "1": "PASS",
+            "2": "PASS",
+            "3": "PASS",
+            "5": "PASS",
+            "6": "PASS"
+          },
+          "failed_items": [],
+          "items": {
+            "1": "PASS",
+            "2": "PASS",
+            "3": "PASS",
+            "4": "NOT_EVALUATED",
+            "5": "PASS",
+            "6": "PASS"
+          },
+          "items_not_evaluated_in_discovery": {
+            "4": "NOT_EVALUATED"
+          },
+          "r19_verdict_full": "UNDECIDED",
+          "reason": "items [1, 2, 3, 5, 6] PASS; not evaluated in discovery: item 4 NOT_EVALUATED; no item FAIL",
+          "rule": "POST-HOC addendum 3 item 1 (section 15): a contrast is ELIGIBLE FOR FREEZING when every R19 item that R19 EVALUATES in discovery is PASS and no item is FAIL. An item R19 does not evaluate in discovery -- item 4, NOT_EVALUATED by addendum 1 item 3 (one discovery seed), and any UNTESTABLE / NOT_RUN item -- does not disqualify it; item 4 is evaluated at confirmation exactly as registered (5 of 5 withheld seeds). Any FAIL, on any item, makes the contrast ineligible. This is the reading addendum 2 already gives F6 for deployment, and it would have been required whatever the scores were. Everything else about section 15 is unchanged: at most five claims, named in decisions/CONFIRMATION_PLAN.md before the run, one run on the withheld seeds and the confirmation half, V6 once."
+        },
+        "eligible_for_freezing": true,
+        "family": "S1(b)",
+        "s1_forced_undecided": false,
+        "section_3_1_v5p_trigger": false,
+        "section_3_1_v5p_trigger_rule": "section 3.1: the heavy-arm V5-P run of a freezing candidate is triggered by R19 items 1-5 on V5-primary. Item 4 is NOT_EVALUATED in discovery (addendum 1 item 3), so the trigger cannot fire; addendum 1 item 4 does not run the heavy-arm V5-P runs either way. Addendum 3 item 1 changes what 'passed R19 in discovery' means for FREEZING (section 15), not this trigger, so the two are reported separately."
+      }
+    ],
+    "guard_mode": {
+      "V1__copy__grouped10": "nested_certificate",
+      "V2__element__exact": "nested_certificate",
+      "V5PAIR__primary__batched": "nested_certificate",
+      "V5PAIR__primary__cell_pair": "nested_certificate",
+      "V5P__base__batched": "nested_certificate",
+      "V5P__base__cell_x_group": "nested_certificate",
+      "V5__cell_only__batched": "nested_certificate",
+      "V5__parent_structure__batched": "nested_certificate",
+      "V5__primary__batched": "nested_certificate",
+      "V5__primary__exact": "nested_certificate"
+    },
+    "heavy_v1_scheme": "exact",
+    "heavy_v5_label": "batched",
+    "heavy_v5_scheme": "batched_max4",
+    "notes": {},
+    "schema": "gen19.discovery.v1",
+    "v1_tenfold_check": "failed",
+    "v5_batched_check": "passed_after_recolour"
+  },
+  "readings": {
+    "actinide_dependent": "a cell's eligibility 'depends on actinide partners' when the eligible_cells rule of the fold builder (folds.cell_holdout.EligibilitySpace.check) passes on all rows and fails once every actinide row is removed",
+    "calibration_guard": "a refit whose fold has different inner folds from the WITH record's inner_folds_used is recorded with intervals_status not_calibrated_inner_folds_differ_from_the_with_record instead of a calibration at foreign selections (as FrozenB6 already did; task X finding VL2-05)",
+    "comparator_folds": "a closed-form arm (B0-B4 variants, B7) in an H3 or injected re-run is fitted on the exact leave-one-cell-out folds of section 3.1 (V5__primary_exact, V1__copy_exact, V2__element_exact) as the discovery comparator is, not on the heavy arm's batched folds, and is paired with the heavy arm on the scored rows / units; on V5-PAIR every arm uses the seed-104729 batched folds (addendum 1 item 5) (task X finding V-03)",
+    "crps": "CRPS is NOT_RUN: no arm has a predictive SD (discovery.UNCERTAINTY_NOT_RUN)",
+    "deployed_rule": "POST-HOC addendum 3 item 2: the configuration deployed for lanthanide prediction ('the retained ladder configuration', section 11) is the ladder's RETAINED configuration -- the highest kept ladder step: evaluation/ladder/decisions/ladder.json -> steps.<step>.kept == true for M7 > M6 > M5 > M4 > M3 (only from a registered ladder run, i.e. ladder.json -> stop_rule == false: under the stop rule M3-M6 are exploratory_not_run and M7 runs for H6 only, so no ladder step deploys), then the scorer's decisions.json -> ladder.<step>.kept == true (M2 before M1), then the ladder's BASE step M0 (= B5, the registered descriptor arm of section 5 and the M0 row of the section 6 ladder) when decisions.json -> ladder.M0.kept == true and neither M1 nor M2 is kept. Addendum 2's remaining order applies ONLY when the ladder has no retained step at all (no ladder block / M0 not kept): M2 when stop_rule.M2_vs_B3i.verdict == PASS; else B6 when stop_rule.B6_vs_B3i.verdict == PASS; else the registered V5 lookup comparator B3i (section 10 F6: the best-passing baseline; the process chain's D source stays gen18 B1). The rule is undecidable (the runners refuse) while ladder.json is absent or any step M3-M7 is not in a done / skipped status, or while a discovery ladder decision is pending (kept == null) (task X finding V-01)",
+    "equivalent": "TOST (90 % interval, epsilon 0.05, primary cluster) of WITH - WITHOUT on the V5 Ln cells",
+    "f4_designs": "F4 'the WITHOUT arm beats it on the Ln test set (95 % interval excluding 0)' is evaluated per design (V5 Ln cells, V1 Ln rows, V2 Ln states) with the primary-cluster percentile interval of the reversed contrast (WITHOUT candidate), and F4 holds when ANY design shows it (the conservative reading)",
+    "helps_non_inferior": "non-inferiority on V1 / V2 is the TOST 'non_inferior' flag of WITH - WITHOUT and WITH - ACT_PERMUTED on the V1 and V2 Ln sets",
+    "ladder_arm_refit": "when the deployed configuration is a ladder step M3-M7, WITH is its evaluation/ladder record of the same design, seed and fold (verified against the digests the current code and ladder decisions produce) and WITHOUT / ACT_PERMUTED / ACT_METAL_SHUFFLED are refitted at that record's selected LadderConfig, epoch count and model seed (M7: the 5 member seeds and the publication-group bootstrap of the transformed training rows), with the ladder's cross-fitted calibration at the WITH record's cross-fit selections (M7: normalised split conformal); the H3 record digest carries the WITH record's digest, which carries the ladder code digest, so a ladder code or decision change stales the H3 record transitively (INFERRED; needs a POST-HOC addendum)",
+    "ln_test_set": "Ln(III) = a known metal state whose element is La-Lu and whose oxidation state is III; the Ln test set of a design is the Ln(III) scored rows of its selection-half folds (V5: Ln(III) cells; V2: every Ln(III) state in the selection half, the focus-7 subset printed beside; V1: Ln(III) rows of the selection folds); V6_TARGET_ROWS and the acidic co-extractant rows are excluded by the discovery scoring guards",
+    "margins": "R19 item 1 margin of an H3 contrast: delta5 on the V5 Ln cells, 0.05 on V1 / V2 (the scorer's reading of section 9 for the designs it names no margin for)",
+    "r19_scope": "a discovery-stage H3 contrast 'passes R19' on the freezing-screen scope (items 1-3, 5 and the scoring-filter sensitivities on seed 104729): R19 item 4 is NOT_EVALUATED in discovery (addendum 1 item 3) and section 11 names no refit sensitivity, so the full verdict is at best UNDECIDED; the full verdict is printed beside and confirmation decides item 4",
+    "shared_only_embedding": "POST-HOC addendum 2 item 4 ('it is implemented in a NEW module (an H3-side subclass of neural.FactorisedNet with the e_series and e_ox offsets held at zero; no existing file edited) before scripts/g19_run_h3.py runs, and executes only under section 11's condition that WITHOUT beats WITH; otherwise D03 reports it as not run'): the WITH arm re-run with a shared-only metal embedding (no e_series, e_ox) is models.shared_only (FrozenSharedOnly), refitted at the WITH record's SELECTED hyperparameters, stopping count and model seed with the cross-fitted calibration at the WITH record's selections, scored against the full section 15 embedding (WITH) on the V5 Ln cells and the V1 / V2 Ln sets as an exploratory negative-transfer contrast; it runs only when section 11, negative-transfer investigation: 'run if WITHOUT is better, point estimate or passed' -- read on the deployed arm's V5 Ln-cell contrast WITHOUT vs WITH (h3_verdicts.json): hurts == true (WITHOUT passes R19 on the freezing_screen scope against WITH; the 'passed' half) OR v5_without_vs_with_point > 0 (the reversed contrast's Delta macro MAE = MAE(WITH) - MAE(WITHOUT) under the primary cluster unit; the 'point estimate' half); otherwise D03 says 'not run (condition not met)'; a deployed arm without a metal embedding (B6, B5, a closed-form comparator) makes it not applicable. Reading of the item's 'no existing file edited': no file of the DISCOVERY import closure was edited (neural.FactorisedNet has no switch; the zeroed offsets live in the new models/shared_only.py); the H3-side files evaluation/h3.py and scripts/g19_run_h3.py, outside that closure and part of no discovery record's digest, were extended to plan, fit, score and report the re-run",
+    "tuning": "the WITHOUT / ACT_PERMUTED / ACT_METAL_SHUFFLED arms are refitted at the hyperparameters the WITH run SELECTED on the same fold (its record's selected configuration, iteration / epoch count and model seed), not re-tuned; their cross-fitted conformal calibration uses the WITH record's cross-fit selections. Section 11 says 'same architecture, same folds, same seeds' and is silent on re-tuning; re-tuning would multiply the cost by the inner grid (INFERRED; needs a POST-HOC addendum)"
+  },
+  "record_sets": {
+    "ACT_METAL_SHUFFLED/B5/V1__copy_exact/s104729": {
+      "code_resolution": {
+        "code": "741779cb6aad9bce10b5d0ef6f39c6d3ad10e881199ead7a3dfa9110198b54d6",
+        "record_code": null,
+        "resolved": "live"
+      },
+      "n_expected": 39,
+      "n_found": 0,
+      "status": "missing",
+      "what": "B5:ACT_METAL_SHUFFLED@V1"
+    },
+    "ACT_METAL_SHUFFLED/B5/V2__element_exact/s104729": {
+      "code_resolution": {
+        "code": "741779cb6aad9bce10b5d0ef6f39c6d3ad10e881199ead7a3dfa9110198b54d6",
+        "record_code": null,
+        "resolved": "live"
+      },
+      "n_expected": 12,
+      "n_found": 0,
+      "status": "missing",
+      "what": "B5:ACT_METAL_SHUFFLED@V2"
+    },
+    "ACT_METAL_SHUFFLED/B5/V5__primary_batched_max4/s104729": {
+      "code_resolution": {
+        "code": "c5069f9c8736b7403901b6be077ccb0456bec137ba4403e914e6136d06a95b30",
+        "note": "the record set was written under the superseded entry of stage 'h3' (c5069f9c8736...); a later edit to this stage's code validates or invalidates no record written earlier (addendum 2 item 5)",
+        "record_code": "c5069f9c8736b7403901b6be077ccb0456bec137ba4403e914e6136d06a95b30",
+        "resolved": "superseded",
+        "superseded_utc": "2026-09-22T12:21:15+00:00"
+      },
+      "missing_folds": [
+        "s104729_S_b001",
+        "s104729_S_b002",
+        "s104729_S_b003",
+        "s104729_S_b004",
+        "s104729_S_b005",
+        "s104729_S_b006",
+        "s104729_S_b007",
+        "s104729_S_b008",
+        "s104729_S_b009",
+        "s104729_S_b010"
+      ],
+      "n_expected": 28,
+      "n_found": 1,
+      "status": "incomplete",
+      "what": "B5:ACT_METAL_SHUFFLED@V5"
+    },
+    "ACT_METAL_SHUFFLED/B6/V1__copy_exact/s104729": {
+      "code_resolution": {
+        "code": "741779cb6aad9bce10b5d0ef6f39c6d3ad10e881199ead7a3dfa9110198b54d6",
+        "record_code": null,
+        "resolved": "live"
+      },
+      "n_expected": 39,
+      "n_found": 0,
+      "status": "missing",
+      "what": "B6:ACT_METAL_SHUFFLED@V1"
+    },
+    "ACT_METAL_SHUFFLED/B6/V2__element_exact/s104729": {
+      "code_resolution": {
+        "code": "741779cb6aad9bce10b5d0ef6f39c6d3ad10e881199ead7a3dfa9110198b54d6",
+        "record_code": null,
+        "resolved": "live"
+      },
+      "n_expected": 12,
+      "n_found": 0,
+      "status": "missing",
+      "what": "B6:ACT_METAL_SHUFFLED@V2"
+    },
+    "ACT_METAL_SHUFFLED/B6/V5__primary_exact/s104729": {
+      "code_resolution": {
+        "code": "741779cb6aad9bce10b5d0ef6f39c6d3ad10e881199ead7a3dfa9110198b54d6",
+        "record_code": null,
+        "resolved": "live"
+      },
+      "n_expected": 105,
+      "n_found": 0,
+      "status": "missing",
+      "what": "B6:ACT_METAL_SHUFFLED@V5"
+    },
+    "ACT_PERMUTED/B5/V1__copy_exact/s104729": {
+      "code_resolution": {
+        "code": "741779cb6aad9bce10b5d0ef6f39c6d3ad10e881199ead7a3dfa9110198b54d6",
+        "record_code": null,
+        "resolved": "live"
+      },
+      "n_expected": 39,
+      "n_found": 0,
+      "status": "missing",
+      "what": "B5:ACT_PERMUTED@V1"
+    },
+    "ACT_PERMUTED/B5/V2__element_exact/s104729": {
+      "code_resolution": {
+        "code": "741779cb6aad9bce10b5d0ef6f39c6d3ad10e881199ead7a3dfa9110198b54d6",
+        "record_code": null,
+        "resolved": "live"
+      },
+      "n_expected": 12,
+      "n_found": 0,
+      "status": "missing",
+      "what": "B5:ACT_PERMUTED@V2"
+    },
+    "ACT_PERMUTED/B5/V5__primary_batched_max4/s104729": {
+      "code_resolution": {
+        "code": "c5069f9c8736b7403901b6be077ccb0456bec137ba4403e914e6136d06a95b30",
+        "note": "the record set was written under the superseded entry of stage 'h3' (c5069f9c8736...); a later edit to this stage's code validates or invalidates no record written earlier (addendum 2 item 5)",
+        "record_code": "c5069f9c8736b7403901b6be077ccb0456bec137ba4403e914e6136d06a95b30",
+        "resolved": "superseded",
+        "superseded_utc": "2026-09-22T12:21:15+00:00"
+      },
+      "n_expected": 28,
+      "n_found": 28,
+      "status": "complete",
+      "what": "B5:ACT_PERMUTED@V5"
+    },
+    "ACT_PERMUTED/B6/V1__copy_exact/s104729": {
+      "code_resolution": {
+        "code": "741779cb6aad9bce10b5d0ef6f39c6d3ad10e881199ead7a3dfa9110198b54d6",
+        "record_code": null,
+        "resolved": "live"
+      },
+      "n_expected": 39,
+      "n_found": 0,
+      "status": "missing",
+      "what": "B6:ACT_PERMUTED@V1"
+    },
+    "ACT_PERMUTED/B6/V2__element_exact/s104729": {
+      "code_resolution": {
+        "code": "741779cb6aad9bce10b5d0ef6f39c6d3ad10e881199ead7a3dfa9110198b54d6",
+        "record_code": null,
+        "resolved": "live"
+      },
+      "n_expected": 12,
+      "n_found": 0,
+      "status": "missing",
+      "what": "B6:ACT_PERMUTED@V2"
+    },
+    "ACT_PERMUTED/B6/V5__primary_exact/s104729": {
+      "code_resolution": {
+        "code": "741779cb6aad9bce10b5d0ef6f39c6d3ad10e881199ead7a3dfa9110198b54d6",
+        "record_code": null,
+        "resolved": "live"
+      },
+      "n_expected": 105,
+      "n_found": 0,
+      "status": "missing",
+      "what": "B6:ACT_PERMUTED@V5"
+    },
+    "WITH/B5/V1__copy_exact/s104729": {
+      "arm": "B5",
+      "design_dir": "V1__copy_exact",
+      "n_expected": 39,
+      "n_found": 39,
+      "seed": 104729,
+      "status": "complete"
+    },
+    "WITH/B5/V2__element_exact/s104729": {
+      "arm": "B5",
+      "design_dir": "V2__element_exact",
+      "n_expected": 12,
+      "n_found": 12,
+      "seed": 104729,
+      "status": "complete"
+    },
+    "WITH/B5/V5__primary_batched_max4/s104729": {
+      "arm": "B5",
+      "design_dir": "V5__primary_batched_max4",
+      "n_expected": 28,
+      "n_found": 28,
+      "seed": 104729,
+      "status": "complete"
+    },
+    "WITH/B6/V1__copy_exact/s104729": {
+      "arm": "B6",
+      "design_dir": "V1__copy_exact",
+      "n_expected": 39,
+      "n_found": 39,
+      "seed": 104729,
+      "status": "complete"
+    },
+    "WITH/B6/V2__element_exact/s104729": {
+      "arm": "B6",
+      "design_dir": "V2__element_exact",
+      "n_expected": 12,
+      "n_found": 12,
+      "seed": 104729,
+      "status": "complete"
+    },
+    "WITH/B6/V5__primary_exact/s104729": {
+      "arm": "B6",
+      "design_dir": "V5__primary_exact",
+      "n_expected": 105,
+      "n_found": 105,
+      "seed": 104729,
+      "status": "complete"
+    },
+    "WITHOUT/B5/V1__copy_exact/s104729": {
+      "code_resolution": {
+        "code": "741779cb6aad9bce10b5d0ef6f39c6d3ad10e881199ead7a3dfa9110198b54d6",
+        "record_code": null,
+        "resolved": "live"
+      },
+      "n_expected": 39,
+      "n_found": 0,
+      "status": "missing",
+      "what": "B5:WITHOUT@V1"
+    },
+    "WITHOUT/B5/V2__element_exact/s104729": {
+      "code_resolution": {
+        "code": "741779cb6aad9bce10b5d0ef6f39c6d3ad10e881199ead7a3dfa9110198b54d6",
+        "record_code": null,
+        "resolved": "live"
+      },
+      "n_expected": 12,
+      "n_found": 0,
+      "status": "missing",
+      "what": "B5:WITHOUT@V2"
+    },
+    "WITHOUT/B5/V5__primary_batched_max4/s104729": {
+      "code_resolution": {
+        "code": "c5069f9c8736b7403901b6be077ccb0456bec137ba4403e914e6136d06a95b30",
+        "note": "the record set was written under the superseded entry of stage 'h3' (c5069f9c8736...); a later edit to this stage's code validates or invalidates no record written earlier (addendum 2 item 5)",
+        "record_code": "c5069f9c8736b7403901b6be077ccb0456bec137ba4403e914e6136d06a95b30",
+        "resolved": "superseded",
+        "superseded_utc": "2026-09-22T12:21:15+00:00"
+      },
+      "n_expected": 28,
+      "n_found": 28,
+      "status": "complete",
+      "what": "B5:WITHOUT@V5"
+    },
+    "WITHOUT/B6/V1__copy_exact/s104729": {
+      "code_resolution": {
+        "code": "741779cb6aad9bce10b5d0ef6f39c6d3ad10e881199ead7a3dfa9110198b54d6",
+        "record_code": null,
+        "resolved": "live"
+      },
+      "n_expected": 39,
+      "n_found": 0,
+      "status": "missing",
+      "what": "B6:WITHOUT@V1"
+    },
+    "WITHOUT/B6/V2__element_exact/s104729": {
+      "code_resolution": {
+        "code": "741779cb6aad9bce10b5d0ef6f39c6d3ad10e881199ead7a3dfa9110198b54d6",
+        "record_code": null,
+        "resolved": "live"
+      },
+      "n_expected": 12,
+      "n_found": 0,
+      "status": "missing",
+      "what": "B6:WITHOUT@V2"
+    },
+    "WITHOUT/B6/V5__primary_exact/s104729": {
+      "code_resolution": {
+        "code": "741779cb6aad9bce10b5d0ef6f39c6d3ad10e881199ead7a3dfa9110198b54d6",
+        "record_code": null,
+        "resolved": "live"
+      },
+      "n_expected": 105,
+      "n_found": 0,
+      "status": "missing",
+      "what": "B6:WITHOUT@V5"
+    }
+  },
+  "s1_forced_undecided": false,
+  "schema": "gen19.h3.v1",
+  "seed": 104729,
+  "shared_only": {
+    "condition": {
+      "applicable": false,
+      "condition": "section 11, negative-transfer investigation: 'run if WITHOUT is better, point estimate or passed' -- read on the deployed arm's V5 Ln-cell contrast WITHOUT vs WITH (h3_verdicts.json): hurts == true (WITHOUT passes R19 on the freezing_screen scope against WITH; the 'passed' half) OR v5_without_vs_with_point > 0 (the reversed contrast's Delta macro MAE = MAE(WITH) - MAE(WITHOUT) under the primary cluster unit; the 'point estimate' half)",
+      "deployed_arm": "B5",
+      "met": false,
+      "point_estimate_favours_without": null,
+      "reading": "POST-HOC addendum 2 item 4 ('it is implemented in a NEW module (an H3-side subclass of neural.FactorisedNet with the e_series and e_ox offsets held at zero; no existing file edited) before scripts/g19_run_h3.py runs, and executes only under section 11's condition that WITHOUT beats WITH; otherwise D03 reports it as not run'): the WITH arm re-run with a shared-only metal embedding (no e_series, e_ox) is models.shared_only (FrozenSharedOnly), refitted at the WITH record's SELECTED hyperparameters, stopping count and model seed with the cross-fitted calibration at the WITH record's selections, scored against the full section 15 embedding (WITH) on the V5 Ln cells and the V1 / V2 Ln sets as an exploratory negative-transfer contrast; it runs only when section 11, negative-transfer investigation: 'run if WITHOUT is better, point estimate or passed' -- read on the deployed arm's V5 Ln-cell contrast WITHOUT vs WITH (h3_verdicts.json): hurts == true (WITHOUT passes R19 on the freezing_screen scope against WITH; the 'passed' half) OR v5_without_vs_with_point > 0 (the reversed contrast's Delta macro MAE = MAE(WITH) - MAE(WITHOUT) under the primary cluster unit; the 'point estimate' half); otherwise D03 says 'not run (condition not met)'; a deployed arm without a metal embedding (B6, B5, a closed-form comparator) makes it not applicable. Reading of the item's 'no existing file edited': no file of the DISCOVERY import closure was edited (neural.FactorisedNet has no switch; the zeroed offsets live in the new models/shared_only.py); the H3-side files evaluation/h3.py and scripts/g19_run_h3.py, outside that closure and part of no discovery record's digest, were extended to plan, fit, score and report the re-run",
+      "reason": "B5 has no e_series / e_ox offsets to remove",
+      "status": "not run (not applicable: B5 has no section 15 metal embedding)",
+      "v5_without_vs_with_point": null,
+      "without_passed_r19_v5": null
+    },
+    "contrasts": [],
+    "designs": {},
+    "label": "exploratory: section 11 negative-transfer investigation, shared-only embedding vs the full section 15 embedding",
+    "records_complete": false,
+    "status": "not run (not applicable: B5 has no section 15 metal embedding)"
+  },
+  "transforms": [
+    "WITH",
+    "WITHOUT",
+    "ACT_PERMUTED",
+    "ACT_METAL_SHUFFLED"
+  ],
+  "verdicts": {
+    "B5": {
+      "actinide_rows_enter_deployed_configuration": false,
+      "equivalent": false,
+      "helps": false,
+      "hurts": false,
+      "inputs_missing": [],
+      "kappa_min": null,
+      "kappa_status": "not computed",
+      "label": "discovery, optimistically biased (selection half; seed 104729); R19 item 4 decided at confirmation",
+      "readings": {
+        "equivalent": "TOST (90 % interval, epsilon 0.05, primary cluster) of WITH - WITHOUT on the V5 Ln cells",
+        "helps_non_inferior": "non-inferiority on V1 / V2 is the TOST 'non_inferior' flag of WITH - WITHOUT and WITH - ACT_PERMUTED on the V1 and V2 Ln sets",
+        "r19_scope": "a discovery-stage H3 contrast 'passes R19' on the freezing-screen scope (items 1-3, 5 and the scoring-filter sensitivities on seed 104729): R19 item 4 is NOT_EVALUATED in discovery (addendum 1 item 3) and section 11 names no refit sensitivity, so the full verdict is at best UNDECIDED; the full verdict is printed beside and confirmation decides item 4"
+      },
+      "scope": "freezing_screen",
+      "tost_v5_with_minus_without": {
+        "equivalent": false,
+        "high_90": 0.20069975560375594,
+        "low_90": 0.01575921651647448,
+        "non_inferior": true,
+        "verdict": "PASS"
+      },
+      "underpowered": false,
+      "v1_v2_non_inferior": {
+        "V1": {
+          "ACT_PERMUTED": null,
+          "WITHOUT": null
+        },
+        "V2": {
+          "ACT_PERMUTED": null,
+          "WITHOUT": null
+        }
+      },
+      "v5_with_beats_permuted": false,
+      "v5_with_beats_without": false,
+      "v5_without_vs_with_point": -0.06686613328403818,
+      "verdict": "UNDECIDED"
+    },
+    "B6": {
+      "actinide_rows_enter_deployed_configuration": false,
+      "equivalent": false,
+      "helps": false,
+      "hurts": false,
+      "inputs_missing": [
+        "V5 WITH vs WITHOUT",
+        "V5 WITH vs ACT_PERMUTED",
+        "V5 WITHOUT vs WITH"
+      ],
+      "kappa_min": null,
+      "kappa_status": "not computed",
+      "label": "discovery, optimistically biased (selection half; seed 104729); R19 item 4 decided at confirmation",
+      "readings": {
+        "equivalent": "TOST (90 % interval, epsilon 0.05, primary cluster) of WITH - WITHOUT on the V5 Ln cells",
+        "helps_non_inferior": "non-inferiority on V1 / V2 is the TOST 'non_inferior' flag of WITH - WITHOUT and WITH - ACT_PERMUTED on the V1 and V2 Ln sets",
+        "r19_scope": "a discovery-stage H3 contrast 'passes R19' on the freezing-screen scope (items 1-3, 5 and the scoring-filter sensitivities on seed 104729): R19 item 4 is NOT_EVALUATED in discovery (addendum 1 item 3) and section 11 names no refit sensitivity, so the full verdict is at best UNDECIDED; the full verdict is printed beside and confirmation decides item 4"
+      },
+      "scope": "freezing_screen",
+      "tost_v5_with_minus_without": null,
+      "underpowered": false,
+      "v1_v2_non_inferior": {
+        "V1": {
+          "ACT_PERMUTED": null,
+          "WITHOUT": null
+        },
+        "V2": {
+          "ACT_PERMUTED": null,
+          "WITHOUT": null
+        }
+      },
+      "v5_with_beats_permuted": null,
+      "v5_with_beats_without": null,
+      "v5_without_vs_with_point": null,
+      "verdict": "UNDECIDED"
+    }
+  }
+}

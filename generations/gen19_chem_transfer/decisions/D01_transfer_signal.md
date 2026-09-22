@@ -284,7 +284,16 @@ whether outcomes had been seen; only baseline outcomes existed):
    criterion is a paired contrast on identical pairs of the half being judged: Δ_Y = M2 − yardstick Y for Y ∈
    {HEAVIER, B3x-derived, B3i-derived} on the pairs where Y is defined. At confirmation min_Y Δ_Y ≥ γ5 = 0.05 with every
    Δ_Y's system-cluster percentile 95 % interval excluding 0. As a counterweight, on the selection half (seed 104729)
-   min_Y Δ_Y ≥ −0.02. The logSF MAE part is paired too. `DIR5` is descriptive and enters no rule. Recorded as a change
+   min_Y Δ_Y ≥ −0.02 — **which the selection half meets on the POINT ESTIMATE only, not separately from the
+   threshold**: the binding yardstick is HEAVIER at min_Y Δ_Y = **−0.016846876701018858**, clearing −0.02 by
+   **0.0031531232989811427**, while its system-cluster percentile 95 % interval **[−0.029908666249012058,
+   −0.006510416666666665]** reaches 0.009909 past the threshold, so
+   `S1_components.S1c_selection.min_delta_interval_separated_from_threshold` is **false** (5 systems, 242 cell pairs,
+   p = 0.0008; `evaluation/discovery/decisions/decisions.json` → `S1_components.S1c_selection.{min_delta,
+   min_delta_threshold, min_delta_margin_inside_threshold, min_delta_percentile,
+   min_delta_interval_separated_from_threshold, min_delta_disclosure}`). The counterweight is therefore **not**
+   described as holding on the point estimate alone, and a confirmation run can plausibly fail it (task X finding
+   V-L5). The logSF MAE part is paired too. `DIR5` is descriptive and enters no rule. Recorded as a change
    made with results seen, not as a clarification. The DIR5 alternatives in `tables/preseal_pair_summary.csv` are now
    `status` exploratory, `role` side, with arm `HEAVIER_alt_half` (undefined pairs counted ½) or `HEAVIER_alt_lnln`
    (HEAVIER, Ln–Ln-only subset). "Same fitted folds" (resolved the same day, not score-driven): B3x and B3i are
@@ -362,11 +371,38 @@ What follows them is in `decisions/D02_factorization.md` and the README status t
 **What D01's own question needs next** (it asked whether there is transferable signal *before* advanced architecture,
 and the discovery run answered the architecture half but not this one):
 
-3. `scripts/g19_run_power.py` — the §8 signal-injection power check. `decisions.json` → `power_check.status` is **not
-   implemented**, and it is required before B6 vs B3i, M2 vs B0, M2 vs B3i and M2 vs B6r0 are reported as nulls. Until
-   it runs, every FAIL in D01 and D02 is "no detected difference", not "no difference".
-4. `scripts/g19_run_ladder.py` (M3 → M7) then `g19_run_h3.py` — H3 is the actinide-transfer question D01 could not
-   answer with closed-form baselines, and D03 is written from it.
-5. Confirmation (orchestrator, §15) — the ≤ 5 frozen claims on the withheld seeds and the confirmation half, V6 once.
-   No pre-seal or discovery number in this file is confirmed; the halves differ strongly (item 8 above), so the
-   selection-half values here are the optimistic end of the range.
+3. ~~`scripts/g19_run_power.py` — the §8 signal-injection power check.~~ **Done 2026-09-22.** It is required before
+   B6 vs B3i, M2 vs B0, M2 vs B3i and M2 vs B6r0 are reported as nulls, and it changed the reading of the one that
+   matters: **only B6 vs B3i@V5 (H1b) is required as a null, and it is underpowered** — κ_min is **None**
+   (`tables/power_kappa.csv`; `evaluation/power/power_checks.json` → `checks[].kappa_min`), with Δ still
+   −0.0853 / −0.0910 / +0.0036 / **+0.2450** at κ = 0.1 / 0.25 / 0.5 / 1.0 and items 1, 5, 6 passing at κ = 1.0 while
+   the cluster bootstrap cannot exclude 0. **H1b must be reported UNDECIDED (underpowered), never as a null.** The
+   three M2 contrasts are **INFORMATIVE at κ_min = 0.1** and are not nulls at all (freezing-screen PASS). So every
+   FAIL in D01 and D02 that is not H1b is still "no detected difference", and `report.py:1863`, which maps every
+   `reported_verdict == "FAIL"` to "null", mislabels H4's two contrasts — **to be relabelled or covered by an
+   addendum before any report is issued.**
+4. ~~`scripts/g19_run_ladder.py` (M3 → M7) then `g19_run_h3.py`.~~ **Ladder done 2026-09-22, with nothing fitted:**
+   M3–M7 are all `status not_run`, `retained_final` **"M0"**, `stop_rule` false, and the 40 h ladder budget is
+   **unconsumed** (`evaluation/ladder/decisions/ladder.json`, `…/wall_clock.json` → `budget.used_hours` 0.0 of 40.0)
+   — neither M1 nor M2 was kept, so the neural ladder has no base (POST-HOC addendum 3 item 3). **This makes M0 (=
+   B5) the deployed configuration** (addendum 3 item 2), which is what H3 now trains its WITH / WITHOUT /
+   ACT_PERMUTED arms on. `g19_run_h3.py` is **running and not complete**: 705 fold-fits, ≈ 45 h measured
+   (621.7 s per complete B5 fold), resumable. **The alias defect is FIXED** (task X finding V-P02): `h3.d03_markdown`
+   now looks the verdict up by `arm_alias` ("B5") and prints `arm` ("M0"), so the Decision line is no longer forced to
+   "no"; the same fix is applied in `report.section_q2` / `section_q4` and `g19_make_figures.make_all`. Still open:
+   `h3.logsf_delta` (`h3.py:719`) is **never called**, so §11's Δ logSF MAE is unreachable for every arm. D03 for the
+   V5 WITH-vs-WITHOUT leg is written from the 28 / 28 records already on disk (`--score-only`); the ACT_* controls and
+   the V1 / V2 legs are incomplete.
+5. **Confirmation (orchestrator, §15) — the plan is now written and waits on a go/no-go:
+   `decisions/CONFIRMATION_PLAN.md`.** Three claims are frozen, all on V5-primary with candidate M2 and the
+   confirmation half's 105 cells / 19 systems / 20 publication groups: **M2 vs B3i** (δ5 = 0.10569, discovery
+   Δ +0.262976), **M2 vs B0** (0.05, +1.022150) and **M2 vs B6r0** (0.05, +0.455132) — the only three contrasts of
+   §19 eligible for freezing under addendum 3 item 1 (`decisions.json` → `freezing_candidates[*].eligible_for_freezing`).
+   Slots 4 and 5 stay empty. The same run evaluates S1(c) (binding yardstick **B3i**, whose selection-half
+   Δ = +0.030013 is already below γ5 = 0.05), S1(d), S1(e), and **V6 once** with S2(a)–(c) and the §11 V6 deltas on
+   M0. Estimated **≈ 180 h at 2 workers** (band 125–235 h) from the discovery unit costs and the confirmation half's
+   own fold counts; there is no registered budget for it. **What confirmation cannot buy: every frozen claim is
+   about M2, which the ladder dropped (M2 vs M0 Δ = −0.154150, FAIL), so confirming them would establish "a
+   factorised model beats the lookup on unseen cells", not "the deployed model does".** No pre-seal or discovery
+   number in this file is confirmed; the halves differ strongly (item 8 above), so the selection-half values here
+   are the optimistic end of the range.

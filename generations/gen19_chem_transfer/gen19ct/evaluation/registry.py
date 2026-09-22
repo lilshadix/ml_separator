@@ -12,7 +12,12 @@ Addendum 2 item 5 (quoted; each sentence is implemented by the function named af
 * "the report prints every registry entry" -- ``evaluation.report.reproducibility_section`` reads :func:`read_registry`;
 * "Any later edit to an existing module is logged in the registry with its commit and reason and can neither validate
   nor invalidate a record written earlier" -- :func:`log_code_change` appends to ``code_changes``; stage entries are
-  immutable (a differing re-registration is refused unless ``force=True``, which keeps the superseded entry);
+  immutable (a differing re-registration is refused unless ``force=True``, which keeps the earlier entry under
+  ``superseded``), and :func:`verify_record` still verifies a record written earlier against that earlier entry
+  (:func:`superseded_entries`), so re-registering a stage under a later addendum invalidates nothing.  A POST-HOC
+  addendum appended below the footer changes the below-footer digest of every stage that has not yet written its
+  records; those stages are re-registered (``register --stage ... --force``) and the stages whose records exist --
+  ``discovery``, ``discovery_candidates`` -- keep their entries;
 * "The gate constants are replaced by the registry when this addendum is appended - a code change made after the
   discovery run has completed and before any post-discovery runner starts" -- :func:`gate_expectations`,
   :func:`below_footer_sha256`, :func:`addenda_count`, :func:`discovery_code_digest` and :func:`refuse_unless_sealed`
@@ -75,7 +80,15 @@ READINGS: dict[str, str] = {
     "registry": "addendum 2 item 5: a record is verified against the registry entry of its stage (the below-footer digest "
                 "and the code digest under which that stage's records were written), never against the live text or live "
                 "code; the discovery entry is read from the completed run's record fields, not recomputed; no record is "
-                "rewritten; a later code edit is logged with its commit and reason and validates or invalidates nothing",
+                "rewritten; a later code edit is logged with its commit and reason and validates or invalidates nothing. "
+                "When a POST-HOC addendum is appended below the footer, every stage whose records do NOT yet exist is "
+                "re-registered under the new below-footer digest (register --stage ... --force, the earlier entry kept "
+                "under 'superseded') while the stages that HAVE written records keep their entries; a record written "
+                "under a superseded entry of its own stage still verifies against that entry (verify_record -> "
+                "matched_entry 'superseded'), so appending an addendum invalidates no record -- ordered by the "
+                "record's own timestamp (registry.record_run_utc): 'earlier' means written before that entry was "
+                "superseded, and a record a runner holding stale code wrote AFTER the re-registration does not verify "
+                "(stale_after_supersession); a record carrying no timestamp verifies with ordering_checked false",
     "fallback": "until manifests/digest_registry.json exists every gate reads the constants of evaluation.discovery "
                 "(N_ADDENDA_EXPECTED, REGISTERED_ADDENDA_SHA256) and the live discovery code digest, exactly as before",
     "candidates": "the conditional freezing-candidate jobs of the discovery runner (discovery.STAGES['candidates'], "
@@ -179,13 +192,75 @@ def register_stage(stage: str, *, below_footer_sha256: str, code_digest: str, gi
     return dict(entry)
 
 
+def _mismatches(record: Mapping[str, Any], entry: Mapping[str, Any]) -> dict[str, Any]:
+    mism: dict[str, Any] = {}
+    for rec_key, reg_key in RECORD_FIELDS.items():
+        have, want = record.get(rec_key), entry.get(reg_key)
+        if have != want:
+            mism[rec_key] = {"record": have, "registry": want}
+    if record.get("prereg_n_addenda") is not None and int(record["prereg_n_addenda"]) != int(entry["addenda_count"]):
+        mism["prereg_n_addenda"] = {"record": record.get("prereg_n_addenda"), "registry": entry["addenda_count"]}
+    return mism
+
+
+def superseded_entries(stage: str, path: Path | None = None) -> list[dict[str, Any]]:
+    """The stage's earlier entries, newest first: what :func:`register_stage` moved to ``superseded`` when the stage was
+    re-registered under a later sealed text or later code."""
+    body = read_registry(path) or {}
+    out = [(i, dict(e)) for i, e in enumerate(body.get("superseded") or []) if str(e.get("stage")) == stage]
+    # the append position breaks a tie: `superseded_utc` has second resolution, and two re-registrations in the same
+    # second must still order newest first
+    return [e for _, e in sorted(out, key=lambda t: (str(t[1].get("superseded_utc") or ""), t[0]), reverse=True)]
+
+
+def record_run_utc(record: Mapping[str, Any]) -> str | None:
+    """WHEN a record was written, for :func:`verify_record`'s ordering check: its own ``written_utc`` when the runner
+    stamped one, else the latest ``steps.<step>.date_utc`` the record carries (the run timestamp of its last step),
+    else ``None`` -- a record that carries no timestamp at all cannot be ordered against a supersession."""
+    stamp = record.get("written_utc")
+    if stamp:
+        return str(stamp)
+    steps = record.get("steps")
+    times = [str(s["date_utc"]) for s in (steps or {}).values()
+             if isinstance(s, Mapping) and s.get("date_utc")] if isinstance(steps, Mapping) else []
+    return max(times) if times else None
+
+
+def registered_code_digests(stage: str, path: Path | None = None) -> list[dict[str, Any]]:
+    """Every code digest a record of ``stage`` may legitimately carry, newest first: the stage's current entry, then its
+    superseded entries (:func:`superseded_entries`).  Each item is ``{"code_digest", "entry", "matched_entry",
+    "superseded_utc"}``.  A reader that verifies a RECORD SET written before a re-registration (addendum 2 item 5)
+    resolves the set's code digest through this list instead of the live digest."""
+    out: list[dict[str, Any]] = []
+    cur = registered(stage, path)
+    if cur is not None:
+        out.append({"code_digest": str(cur["code_digest"]), "entry": cur, "matched_entry": "current",
+                    "superseded_utc": None})
+    for old in superseded_entries(stage, path):
+        out.append({"code_digest": str(old.get("code_digest")), "entry": old, "matched_entry": "superseded",
+                    "superseded_utc": old.get("superseded_utc")})
+    return out
+
+
 def verify_record(record: Mapping[str, Any], stage: str | None, path: Path | None = None, *,
-                  raise_on_mismatch: bool = False) -> dict[str, Any]:
+                  raise_on_mismatch: bool = False, written_utc: str | None = None) -> dict[str, Any]:
     """"A record is verified against the registry entry of its stage, never against the live text or live code": compares
     the record's ``prereg_addenda_sha256`` and ``code_digest`` fields (and ``prereg_n_addenda`` when present) with the
     stage's entry.  ``stage=None`` takes the stage the record carries (``registry_stage``, else :func:`job_stage` of its
     ``job`` block).  Returns ``{"ok", "stage", "mismatches", "registry_entry"}``; without a registry entry ``ok`` is None
-    and the reason is named (nothing is recomputed from the live tree here)."""
+    and the reason is named (nothing is recomputed from the live tree here).
+
+    A record that matches a SUPERSEDED entry of its own stage verifies against THAT entry (``matched_entry`` says
+    which, ``superseded_match`` carries it): addendum 2 item 5 -- a later change "can neither validate nor invalidate a
+    record written earlier", and re-registering a stage under a later addendum (addendum 3) is such a change.  A record
+    that matches no entry of its stage, current or superseded, does not verify.
+
+    The superseded fallback protects records written EARLIER, so it is ORDERED (task X finding V-P06): the record's own
+    timestamp (:func:`record_run_utc`, or ``written_utc`` passed in) must predate the entry's ``superseded_utc``.  A
+    record written AFTER the stage was re-registered but still carrying the old code digest was produced by a runner
+    holding stale code: it does not verify (``stale_after_supersession`` names the entry it would otherwise have
+    matched).  A record that carries NO timestamp cannot be ordered; it still verifies, and the result says so
+    (``ordering_checked`` False) rather than claiming an ordering that was not checked."""
     if stage is None:
         stage = str(record.get("registry_stage") or job_stage(record))
     entry = registered(stage, path)
@@ -195,17 +270,42 @@ def verify_record(record: Mapping[str, Any], stage: str | None, path: Path | Non
         if raise_on_mismatch:
             raise D.StaleRecordError(out["reason"])
         return out
-    mism: dict[str, Any] = {}
-    for rec_key, reg_key in RECORD_FIELDS.items():
-        have, want = record.get(rec_key), entry.get(reg_key)
-        if have != want:
-            mism[rec_key] = {"record": have, "registry": want}
-    if record.get("prereg_n_addenda") is not None and int(record["prereg_n_addenda"]) != int(entry["addenda_count"]):
-        mism["prereg_n_addenda"] = {"record": record.get("prereg_n_addenda"), "registry": entry["addenda_count"]}
-    out = {"ok": not mism, "stage": stage, "mismatches": mism, "registry_entry": entry,
-           "rule": "record fields compared to the registry entry of the stage, never to the live text or live code"}
-    if mism and raise_on_mismatch:
-        raise D.StaleRecordError(f"record of stage {stage!r} differs from its registry entry: {sorted(mism)}")
+    rule = "record fields compared to the registry entry of the stage, never to the live text or live code"
+    mism = _mismatches(record, entry)
+    out = {"ok": not mism, "stage": stage, "mismatches": mism, "registry_entry": entry, "rule": rule,
+           "matched_entry": "current" if not mism else None}
+    if mism:
+        stamp = str(written_utc) if written_utc else record_run_utc(record)
+        stale: list[dict[str, Any]] = []
+        for old in superseded_entries(stage, path):
+            if _mismatches(record, old):
+                continue
+            sup = str(old.get("superseded_utc") or "")
+            if stamp is not None and sup and stamp > sup:
+                stale.append({"superseded_utc": sup, "code_digest": old.get("code_digest"),
+                              "below_footer_sha256": old.get("below_footer_sha256")})
+                continue
+            return {"ok": True, "stage": stage, "mismatches": {}, "registry_entry": entry,
+                    "matched_entry": "superseded", "superseded_match": old,
+                    "mismatches_against_current": mism, "rule": rule,
+                    "ordering_checked": stamp is not None and bool(sup), "written_utc": stamp,
+                    "reason": f"the record was written under an earlier entry of stage {stage!r} "
+                              f"(below-footer {str(old.get('below_footer_sha256'))[:12]}..., "
+                              f"{old.get('addenda_count')} addenda) and verifies against it: a later "
+                              "re-registration validates or invalidates no record written earlier (addendum 2 item 5)"
+                              + ("" if stamp is not None and sup else
+                                 "; the record carries no timestamp, so 'earlier' could not be checked")}
+        if stale:
+            out.update({"ok": False, "written_utc": stamp, "ordering_checked": True,
+                        "stale_after_supersession": stale,
+                        "reason": f"the record carries a SUPERSEDED code / text of stage {stage!r} but was written at "
+                                  f"{stamp}, after that entry was superseded ({stale[0]['superseded_utc']}): addendum 2 "
+                                  "item 5 protects a record written EARLIER, not one a runner holding stale code wrote "
+                                  "later; refit it under the registered code"})
+        if raise_on_mismatch:
+            raise D.StaleRecordError(out.get("reason") or
+                                     f"record of stage {stage!r} differs from its registry entry and from every "
+                                     f"superseded entry of that stage: {sorted(mism)}")
     return out
 
 
@@ -599,12 +699,17 @@ CODE_DIGEST_SOURCE: dict[str, str] = {
 
 
 def register_stage_from_tree(stage: str, *, note: str, path: Path | None = None, code_digest: str | None = None,
-                             sealed: Path | None = None, sha_file: Path | None = None) -> dict[str, Any]:
+                             sealed: Path | None = None, sha_file: Path | None = None,
+                             force: bool = False) -> dict[str, Any]:
     """Register a post-discovery stage under the CURRENT sealed text (below-footer digest and addenda count from the
     tree) and the code digest its records will carry (:func:`stage_code_digest` unless given).
 
     The entry records WHERE each of the two digests came from: ``source`` for the sealed text and
-    ``code_digest_source`` (:data:`CODE_DIGEST_SOURCE`) for the code digest."""
+    ``code_digest_source`` (:data:`CODE_DIGEST_SOURCE`) for the code digest.
+
+    ``force=True`` re-registers a stage whose digests have changed -- a new POST-HOC addendum below the footer, or an
+    edit to the stage's own code before it has run -- and moves the earlier entry to ``superseded``, where
+    :func:`verify_record` still finds it for any record written under it."""
     if stage == DISCOVERY:
         raise ValueError("the discovery stage is registered from its records (register_discovery_from_records)")
     dg = below_footer_digest(sealed, sha_file)
@@ -612,7 +717,7 @@ def register_stage_from_tree(stage: str, *, note: str, path: Path | None = None,
     src = ("passed explicitly (--code-digest)" if code_digest is not None
            else CODE_DIGEST_SOURCE.get(stage, "the stage's own runner (stage_code_digest)"))
     return register_stage(stage, below_footer_sha256=dg["below_footer_sha256"], code_digest=code, git_head=_git_head(),
-                          addenda_count=dg["n_addenda"], note=note, path=path,
+                          addenda_count=dg["n_addenda"], note=note, path=path, force=force,
                           extra={"source": "current tree (below-footer digest and addenda count)",
                                  "code_digest_source": src})
 
@@ -637,6 +742,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     p.add_argument("--stage", required=True, choices=[s for s in STAGES if s != DISCOVERY])
     p.add_argument("--note", required=True)
     p.add_argument("--code-digest", default=None, help="override the stage's code digest (default: its runner's)")
+    p.add_argument("--force", action="store_true",
+                   help="re-register a stage whose digests changed (a new POST-HOC addendum, or an edit to the stage's "
+                        "own code before it has run); the earlier entry is kept under 'superseded' and every record "
+                        "written under it still verifies")
     p = cmd("log-change", "log an edit to an existing module (validates / invalidates nothing)")
     p.add_argument("--files", nargs="+", required=True)
     p.add_argument("--commit", default=None)
@@ -651,7 +760,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     if ns.cmd == "register-discovery":
         print(json.dumps(register_discovery_from_records(Path(ns.out_root), note=ns.note, path=path), indent=2))
     elif ns.cmd == "register":
-        print(json.dumps(register_stage_from_tree(ns.stage, note=ns.note, path=path, code_digest=ns.code_digest), indent=2))
+        print(json.dumps(register_stage_from_tree(ns.stage, note=ns.note, path=path, code_digest=ns.code_digest,
+                                                  force=bool(ns.force)), indent=2))
     elif ns.cmd == "log-change":
         print(json.dumps(log_code_change(ns.files, ns.commit, ns.reason, path=path), indent=2))
     elif ns.cmd == "verify":

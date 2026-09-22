@@ -195,7 +195,11 @@ def write_inputs(root: Path, *, with_confirmation: bool = False) -> None:
                                            "items": []}
     decisions = {
         "schema": "gen19.discovery.v1", "delta5": 0.1057, "stop_rule": stop,
-        "ladder": {"M0": {"step": "M0", "kept": True}, "M1": {"step": "M1", "predecessor": "M0", "kept": False},
+        # this fixture exercises the section 10 F6 FALLBACK (the deployed arm is the lookup comparator B3i), which POST-HOC
+        # addendum 3 item 2 reaches only when the ladder has NO retained step -- hence no M0 row here.  A ladder that
+        # retains M0, as the real scorer's block does, deploys M0 and is covered by
+        # test_deployed_predictor_reads_the_ladder_runner_state and tests/test_h3.py
+        "ladder": {"M1": {"step": "M1", "predecessor": "M0", "kept": False},
                    "M2": {"step": "M2", "predecessor": "M0", "kept": False}, "M3+": {"kept": None}},
         "S1_components": {"S1_forced_undecided": False, "S1a_M2_vs_B3i": comp(0.066, 0.1057, "FAIL"),
                           "S1b_M2_vs_B0": comp(0.825, 0.05, "PASS"), "S1b_M2_vs_B6r0": comp(0.199, 0.05, "PASS"),
@@ -447,7 +451,10 @@ def test_summary_is_one_page_and_d02_has_the_section_29_format(full_root: Path) 
     order = ["## question", "## evidence", "## metrics", "## null / supported / ambiguous", "## decision", "## next action"]
     pos = [d02.index(h) for h in order]
     assert pos == sorted(pos)
-    assert "H1 (M2 vs B3i@V5): null" in d02 and "H4 factorised vs flat (M2 vs FLAT_CAT@V5): supported" in d02
+    # task X finding V-P01: a FAIL prints as a null only where its own power record screened it as an informative null.
+    # This fixture's power check returns UNDECIDED_UNDERPOWERED for H1, so H1 reads UNDECIDED, not "null".
+    assert "H1 (M2 vs B3i@V5): **UNDECIDED (underpowered)**" in d02
+    assert "H4 factorised vs flat (M2 vs FLAT_CAT@V5): supported" in d02
     assert "H4 + mechanism (M3 vs M2@V5): ambiguous / not run" in d02
     assert "deployed predictor: **B3i**" in d02
     assert_traceable(full_root, d02, res["numbers"])
@@ -685,7 +692,15 @@ def test_deployed_predictor_reads_the_ladder_runner_state(full_root: Path) -> No
     from gen19ct.evaluation import h3 as H3
     dec = json.loads((full_root / "evaluation" / "discovery" / "decisions" / "decisions.json").read_text(encoding="utf-8"))
     lad = json.loads((full_root / H3.LADDER_STATE_FILE).read_text(encoding="utf-8"))
-    assert R.deployed_predictor(dec, lad)["arm"] == "B3i"                       # stop rule: no ladder step deploys
+    # this fixture's ladder retains NO step (no M0 row), so addendum 3 item 2 reaches addendum 2's order and, with both
+    # stop-rule contrasts FAILing, the section 10 F6 best-passing baseline
+    assert R.deployed_predictor(dec, lad)["arm"] == "B3i"
+    # POST-HOC addendum 3 item 2: a ladder that RETAINS its base step M0 (= B5) deploys M0, as the real run's does, and
+    # the report names M0 -- never M2 by the stop-rule fallback, which would contradict the ladder decision
+    with_m0 = {**dec, "ladder": {"M0": {"step": "M0", "kept": True, "note": "base (B5)"}, **dec["ladder"]},
+               "stop_rule": {**dec["stop_rule"], "M2_vs_B3i": {"verdict": "PASS"}}}
+    dep0 = R.deployed_predictor(with_m0, lad)
+    assert dep0["arm"] == "M0" and dep0["status"] == "decided" and "addendum 3 item 2" in dep0["basis"]
     kept = dict(lad, stop_rule=False)
     kept["steps"] = {**{s: {"step": s, "status": "kept", "kept": True} for s in ("M3", "M4")},
                      **{s: {"step": s, "status": "removed", "kept": False} for s in ("M5", "M6")},
@@ -743,3 +758,75 @@ def test_reproducibility_numbers_go_through_the_ledger(full_root: Path) -> None:
     res2 = R.build_report(full_root, extra={**extra, "recomputed": "e" * 64, "addenda_sha256": "d" * 64})
     assert "DIFFERS from `REGISTERED_ADDENDA_SHA256`" in res2["report"] and "DIFFERS from `manifests/prereg_sha256.txt`" in res2["report"]
     assert "e" * 64 not in res2["report"] and "d" * 64 not in res2["report"]
+
+
+def _deploy_m0(root: Path) -> None:
+    """Make the synthetic decisions.json the real run's state: the ladder retains its base step M0 (= B5) and drops
+    M1 / M2, so ``h3.deployed_rule`` names M0 (POST-HOC addendum 3 item 2)."""
+    p = root / "evaluation" / "discovery" / "decisions" / "decisions.json"
+    dec = json.loads(p.read_text(encoding="utf-8"))
+    dec["ladder"] = {"M0": {"step": "M0", "kept": True, "note": "base (B5)"},
+                     "M1": {"step": "M1", "kept": False, "predecessor": "M0"},
+                     "M2": {"step": "M2", "kept": False, "predecessor": "M0"}}
+    write_json(p, dec)
+
+
+def test_a_failed_contrast_prints_as_a_null_only_where_its_own_power_check_says_so(full_root: Path) -> None:
+    """Task X finding V-P01.  The "null / supported / ambiguous" section mapped every ``reported_verdict == "FAIL"`` to
+    "null" with no reference to the section 8 power check, so H1b printed as a null although its power check returned
+    UNDECIDED_UNDERPOWERED, and H4 contrasts with NO registered power check printed as nulls too.  Section 8: "A null
+    with kappa_min > 0.25 log D is reported as UNDECIDED (underpowered)" and "Otherwise the verdict is UNDECIDED, never
+    'no effect'"; addendum 3 item 3 requires the power check to run "before any null is reported"."""
+    ev = full_root / "evaluation"
+    # the three FAIL contrasts of this fixture are H1 (M2 vs B3i), H1b (B6 vs B3i) and H4 "factorised vs descriptor"
+    # (M2 vs M0); the last gets no power record at all
+    write_json(ev / "power" / "power_checks.json", {"checks": [
+        {"contrast": "M2 vs B3i@V5", "kappa_min": 0.1, "verdict": "INFORMATIVE_NULL"},
+        {"contrast": "B6 vs B3i@V5", "kappa_min": 0.5, "verdict": "UNDECIDED_UNDERPOWERED"}]})
+    d02 = R.build_report(full_root, extra={"git_head": "abc"})["d02"]
+    block = d02.split("## null / supported / ambiguous")[1].split("## decision")[0]
+    lines = {ln.split(" (")[0].removeprefix("- "): ln for ln in block.strip().split("\n") if ln.startswith("- ")}
+    # a FAIL whose power record is underpowered: UNDECIDED, with kappa_min, never "null"
+    assert "**UNDECIDED (underpowered)**" in lines["H1b"] and "0.50" in lines["H1b"]
+    assert ": null" not in lines["H1b"]
+    # a FAIL with NO registered power check at all: UNDECIDED, and it says which
+    assert "**UNDECIDED (no registered power check)**" in lines["H4 factorised vs descriptor"]
+    assert "evaluation/power/power_checks.json" in lines["H4 factorised vs descriptor"]
+    assert ": null" not in lines["H4 factorised vs descriptor"]
+    # a FAIL whose power record screened it as an informative null IS a null, and cites the record it rests on
+    assert "null (informative: kappa_min 0.10" in lines["H1"] and "checks[0].verdict" in lines["H1"]
+    # a PASS is unchanged, and a contrast with no row at all is still ambiguous / not run, never a null
+    assert lines["H4 factorised vs flat"].endswith("supported")
+    assert "ambiguous / not run" in lines["H4 + mechanism"]
+    # ... and with no power file at all nothing reads as a null
+    (ev / "power" / "power_checks.json").unlink()
+    d02b = R.build_report(full_root, extra={"git_head": "abc"})["d02"]
+    block2 = d02b.split("## null / supported / ambiguous")[1].split("## decision")[0]
+    assert block2.count("UNDECIDED (no registered power check)") == 3        # every FAIL, none of them a null
+    assert ": null" not in block2
+
+
+def test_the_deployed_predictors_tables_and_verdicts_are_looked_up_by_the_record_name(full_root: Path) -> None:
+    """Task X finding V-P02: ``tables/discovery_summary.csv``, ``h3_verdicts.json`` and the ``_support`` files write the
+    deployed configuration's rows under the arm its RECORDS use (M0 -> B5, ``discovery.ARM_ALIASES``), so the report
+    looked up "M0", found nothing and printed "not computed" for the deployed predictor's error strata and the
+    UNDECIDED branch of Q4 whatever the real verdict was."""
+    ev = full_root / "evaluation"
+    _deploy_m0(full_root)
+    ds = pd.read_csv(full_root / "tables" / "discovery_summary.csv")
+    strata = pd.DataFrame([_summary_row("B5", "V5", "mae", 0.31 + 0.01 * i, stratum=s, n_units=12)
+                           for i, s in enumerate(("light_Ln", "heavy_Ln", "mid_Ln"))])
+    write_csv(pd.concat([ds, strata], ignore_index=True), full_root / "tables" / "discovery_summary.csv")
+    write_json(ev / "h3" / "h3_summary.json", {"deployed": {"arm": "M0", "arm_alias": "B5"}, "transforms": ["WITHOUT"]})
+    write_json(ev / "h3" / "h3_verdicts.json", {"B5": {"verdict": "helps", "v5_with_beats_without": True,
+                                                      "v5_with_beats_permuted": True, "v1_v2_non_inferior": {},
+                                                      "tost_v5_with_minus_without": {"verdict": "PASS"}}})
+    rep = R.build_report(full_root, extra={"git_head": "abc"})["report"]
+    q2 = rep.split("## Q2.")[1].split("## Q3.")[0]
+    assert "Strata of the deployed predictor (M0)'s V5 error" in q2
+    for s in ("light_Ln", "heavy_Ln", "mid_Ln"):
+        assert f"- {s}: " in q2
+    assert "arm=M0 strata rows" not in q2 and "arm=B5 strata rows" not in q2
+    q4 = rep.split("## Q4.")[1].split("## Q5.")[0]
+    assert "use actinide rows: WITH beats WITHOUT and ACT_PERMUTED" in q4       # the *helps* branch, not UNDECIDED
+    assert "| B5 (deployed = M0) |" in q4

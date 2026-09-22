@@ -8,11 +8,14 @@ Design (section 11, implemented as follows)
 -------------------------------------------
 * **Model arms** (:func:`model_arms`): the configuration deployed for lanthanide prediction
   (:func:`deployed_configuration`, read from the ladder runner's ``evaluation/ladder/decisions/ladder.json`` AND the
-  scorer's ``decisions.json``: the highest kept ladder step M7 > M6 > M5 > M4 > M3 (ladder.json, a registered -- not
-  stop-rule exploratory -- run) > M2 > M1 (decisions.json), else M2 when it passes the stop-rule scope against B3i, else
-  B6 when it does, else the registered V5 lookup comparator B3i as the F6 "best-passing baseline") plus B6 and B5 as
-  transparent references (``discovery.H3_MODEL_ARMS``).  The rule is undecidable (the runner refuses) until the ladder
-  has run every step to a done / skipped status (:func:`ladder_complete`; task X finding V-01).
+  scorer's ``decisions.json``: the LADDER'S RETAINED CONFIGURATION -- the highest kept ladder step
+  M7 > M6 > M5 > M4 > M3 (ladder.json, a registered -- not stop-rule exploratory -- run) > M2 > M1 > **M0 (= B5)**
+  (decisions.json; POST-HOC addendum 3 item 2: the ladder kept M0 and dropped M1 and M2, so M0 is what it retains), and
+  only when the ladder has NO retained step addendum 2's remaining order: M2 when it passes the stop-rule scope against
+  B3i, else B6 when it does, else the registered V5 lookup comparator B3i as the F6 "best-passing baseline") plus B6 and
+  B5 as transparent references (``discovery.H3_MODEL_ARMS``; with M0 deployed the model arms are B5 and B6, since M0 IS
+  B5).  The rule is undecidable (the runner refuses) until the ladder has run every step to a done / skipped status
+  (:func:`ladder_complete`; task X finding V-01).
 * **Transforms** (:data:`TRANSFORMS`, ``discovery.h3_training_rows``): WITH is the discovery record of the same arm,
   design, seed and fold (same architecture, same folds and batches, same seeds -- nothing is refitted for it); WITHOUT
   removes every actinide training row (unknown-state actinide rows included); ACT_PERMUTED permutes ``log_D`` among
@@ -83,11 +86,24 @@ FALLBACK_DEPLOYED = "B3i"
 DETERMINISTIC_ARMS: frozenset[str] = frozenset({"B0", "B1", "B2", "B3", "B3x", "B3i", "B3l", "B4", "B4x", "B4l", "B7"})
 #: the ladder steps ``scripts/g19_run_ladder.py`` fits (their WITH records live under ``evaluation/ladder``)
 LADDER_ARMS: tuple[str, ...] = ("M3", "M4", "M5", "M6", "M7")
+#: the section 6 ladder's BASE step, ``decisions.json -> ladder.M0.kept`` (``discovery.retained_predecessor``: "M0 is the
+#: base and always retained").  POST-HOC addendum 3 item 2: the deployed configuration is the ladder's RETAINED
+#: configuration, and that includes M0 (= B5, ``discovery.ARM_ALIASES``) when neither M1 nor M2 is kept
+LADDER_BASE = "M0"
 #: the ladder-state statuses that end a step (``g19_run_ladder.STATUS_DONE`` + ``STATUS_SKIPPED`` without the H5 block's
 #: ``complete``; ``tests/test_h3.py`` asserts the two agree): a step in any other status (running, incomplete,
 #: undecided, absent) leaves the deployed configuration undecidable
 LADDER_DONE_STATUSES: frozenset[str] = frozenset({"kept", "removed", "judged", "exploratory_not_run", "not_run", "demoted"})
 LADDER_STATE_FILE = "evaluation/ladder/decisions/ladder.json"
+#: the registered contrast key of each stop-rule contrast, for the F6 fallback's item-6 check (task X finding V-P09)
+F6_CONTRAST_OF: dict[str, str] = {"M2_vs_B3i": "M2 vs B3i@V5", "B6_vs_B3i": "B6 vs B3i@V5"}
+F6_FALLBACK_RULE = ("POST-HOC addendum 2 (F6): with no retained ladder step, M2 (and B6 for H1b) 'is deployed by the "
+                    "fallback only when its contrast passes the stop-rule scope (items 1, 2, 3, 5) AND item 6 over the "
+                    "reduced sensitivity set - no evaluated item may FAIL'. decisions.json -> stop_rule evaluates items "
+                    "1, 2, 3 and 5 only, so the second half is read from decisions.json -> freezing_candidates, whose "
+                    "screen is that scope plus item 6 with no evaluated item FAILing (discovery.freezing_candidates / "
+                    "freezing_eligibility). A contrast the scorer did not list did not pass that screen; a decisions.json "
+                    "with no freezing_candidates block leaves item 6 unchecked and the basis says so.")
 #: the intervals status recorded when a refit's inner folds differ from the WITH record's (no calibration is invented)
 NOT_CALIBRATED_DIFFER = "not_calibrated_inner_folds_differ_from_the_with_record"
 #: the R19 scope a discovery-stage H3 verdict is read on (R19 item 4 is NOT_EVALUATED in discovery, addendum 1 item 3)
@@ -112,17 +128,20 @@ SHARED_ONLY_CONDITION = ("section 11, negative-transfer investigation: 'run if W
                          "MAE(WITHOUT) under the primary cluster unit; the 'point estimate' half)")
 
 READINGS: dict[str, str] = {
-    "deployed_rule": "the configuration deployed for lanthanide prediction ('the retained ladder configuration', section "
-                     "11) is the highest kept ladder step: evaluation/ladder/decisions/ladder.json -> steps.<step>.kept "
-                     "== true for M7 > M6 > M5 > M4 > M3 (only from a registered ladder run, i.e. ladder.json -> "
-                     "stop_rule == false: under the stop rule M3-M6 are exploratory_not_run and M7 runs for H6 only, so "
-                     "no ladder step deploys), then the scorer's decisions.json -> ladder.<step>.kept == true (M2 "
-                     "before M1); else M2 when stop_rule.M2_vs_B3i.verdict == PASS; else B6 when "
+    "deployed_rule": "POST-HOC addendum 3 item 2: the configuration deployed for lanthanide prediction ('the retained "
+                     "ladder configuration', section 11) is the ladder's RETAINED configuration -- the highest kept "
+                     "ladder step: evaluation/ladder/decisions/ladder.json -> steps.<step>.kept == true for "
+                     "M7 > M6 > M5 > M4 > M3 (only from a registered ladder run, i.e. ladder.json -> stop_rule == "
+                     "false: under the stop rule M3-M6 are exploratory_not_run and M7 runs for H6 only, so no ladder "
+                     "step deploys), then the scorer's decisions.json -> ladder.<step>.kept == true (M2 before M1), "
+                     "then the ladder's BASE step M0 (= B5, the registered descriptor arm of section 5 and the M0 row "
+                     "of the section 6 ladder) when decisions.json -> ladder.M0.kept == true and neither M1 nor M2 is "
+                     "kept. Addendum 2's remaining order applies ONLY when the ladder has no retained step at all (no "
+                     "ladder block / M0 not kept): M2 when stop_rule.M2_vs_B3i.verdict == PASS; else B6 when "
                      "stop_rule.B6_vs_B3i.verdict == PASS; else the registered V5 lookup comparator B3i (section 10 F6: "
                      "the best-passing baseline; the process chain's D source stays gen18 B1). The rule is undecidable "
                      "(the runners refuse) while ladder.json is absent or any step M3-M7 is not in a done / skipped "
-                     "status, or while a discovery ladder decision is pending (kept == null) (needs a POST-HOC addendum; "
-                     "task X finding V-01)",
+                     "status, or while a discovery ladder decision is pending (kept == null) (task X finding V-01)",
     "ladder_arm_refit": "when the deployed configuration is a ladder step M3-M7, WITH is its evaluation/ladder record of "
                         "the same design, seed and fold (verified against the digests the current code and ladder "
                         "decisions produce) and WITHOUT / ACT_PERMUTED / ACT_METAL_SHUFFLED are refitted at that record's "
@@ -208,13 +227,33 @@ def ladder_complete(ladder: Mapping[str, Any] | None) -> dict[str, Any]:
 
 
 def deployed_configuration(decisions: Mapping[str, Any], ladder: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    """:func:`deployed_rule` plus ``arm_alias``: the arm name the RECORDS, PREDICTIONS and SUMMARY TABLES use for the
+    deployed configuration, which is not always the name it is reported under.  POST-HOC addendum 3 item 2 names the
+    deployed configuration **M0**, and every "deployed predictor" sentence says M0 -- but M0's discovery records,
+    prediction frames and ``tables/discovery_summary.csv`` rows are all written under **B5**
+    (``discovery.ARM_ALIASES``).  A reader that looks a table or record up by the deployed arm uses ``arm_alias``; a
+    reader that prints the deployed predictor uses ``arm``.  ``None`` for both while the rule is pending."""
+    out = deployed_rule(decisions, ladder)
+    arm = out.get("arm")
+    out["arm_alias"] = None if arm is None else D.ARM_ALIASES.get(arm, arm)
+    out["arm_alias_note"] = ("the arm name records, prediction frames and tables/discovery_summary.csv use for the "
+                             "deployed configuration; 'arm' is the name it is REPORTED under (addendum 3 item 2 names "
+                             "M0, whose records are written under B5)")
+    return out
+
+
+def deployed_rule(decisions: Mapping[str, Any], ladder: Mapping[str, Any] | None = None) -> dict[str, Any]:
     """The configuration deployed for lanthanide prediction (:data:`READINGS` ``deployed_rule``) from the ladder runner's
     ``ladder.json`` (``steps.<step>.kept`` for M3-M7, registered run only) and the scorer's ``decisions.json``
     (``ladder.<step>.kept`` for M1 / M2, ``stop_rule.M2_vs_B3i.verdict``, ``stop_rule.B6_vs_B3i.verdict``).
 
     ``ladder`` is the body of ``evaluation/ladder/decisions/ladder.json``; ``None`` (absent) or an incomplete ladder
     makes the rule ``pending`` -- the H3 arm is 'the retained ladder configuration' and cannot be named before the
-    ladder has run (task X finding V-01)."""
+    ladder has run (task X finding V-01).
+
+    POST-HOC addendum 3 item 2: the ladder's retained configuration INCLUDES its base step M0 (= B5) when neither M1 nor
+    M2 is kept, and addendum 2's remaining order (M2 / B6 by the stop-rule scope, then B3i) applies only when the ladder
+    has no retained step at all."""
     lad = decisions.get("ladder") or {}
     stop = decisions.get("stop_rule") or {}
 
@@ -226,14 +265,39 @@ def deployed_configuration(decisions: Mapping[str, Any], ladder: Mapping[str, An
         rec = stop.get(key)
         return None if rec is None else bool(rec.get("verdict") == "PASS")
 
-    steps = {s: kept(s) for s in ("M2", "M1")}
+    # addendum 2 (F6): the fallback deploys M2 (or B6) "only when its contrast passes the stop-rule scope (items 1, 2,
+    # 3, 5) AND item 6 over the reduced sensitivity set - no evaluated item may FAIL".  decisions.json -> stop_rule
+    # carries items 1, 2, 3 and 5 ONLY (its own evaluated_on.items), so item 6 is read from the scorer's
+    # freezing_candidates block, whose screen (discovery.freezing_candidates) is exactly that scope plus item 6 with
+    # discovery.freezing_eligibility (no evaluated item FAIL).  A contrast the scorer did not list did not pass the
+    # screen; without the block at all the item is unknown and the basis says the check did not run (task X V-P09).
+    cands = decisions.get("freezing_candidates")
+
+    def no_evaluated_fail(contrast_key: str) -> bool | None:
+        if cands is None:
+            return None
+        for c in cands:
+            if str(c.get("contrast")) == contrast_key:
+                return bool(c.get("eligible_for_freezing"))
+        return False
+
+    def f6_ok(stop_key: str) -> tuple[bool, bool | None]:
+        """``(deploys, item6)``: the stop-rule scope PASSES and no evaluated item FAILs (unknown item 6 does not block,
+        and the basis records that it was not checked)."""
+        elig = no_evaluated_fail(F6_CONTRAST_OF[stop_key])
+        return bool(stops[stop_key] is True and elig is not False), elig
+
+    steps = {s: kept(s) for s in ("M2", "M1", LADDER_BASE)}
     stops = {"M2_vs_B3i": passes("M2_vs_B3i"), "B6_vs_B3i": passes("B6_vs_B3i")}
+    f6 = {k: no_evaluated_fail(v) for k, v in F6_CONTRAST_OF.items()}
     lc = ladder_complete(ladder)
     lsteps = {s: (((ladder or {}).get("steps") or {}).get(s) or {}).get("kept") for s in LADDER_ARMS}
     keys = {"ladder_runner": {s: f"{LADDER_STATE_FILE} -> steps.{s}.kept" for s in LADDER_ARMS},
-            "ladder": {s: f"ladder.{s}.kept" for s in steps}, "stop_rule": {k: f"stop_rule.{k}.verdict" for k in stops}}
+            "ladder": {s: f"ladder.{s}.kept" for s in steps}, "stop_rule": {k: f"stop_rule.{k}.verdict" for k in stops},
+            "f6_no_evaluated_fail": {k: f"freezing_candidates[contrast={v}].eligible_for_freezing"
+                                     for k, v in F6_CONTRAST_OF.items()}}
     base = {"rule": READINGS["deployed_rule"], "keys": keys, "ladder_kept": {**lsteps, **steps}, "stop_rule_pass": stops,
-            "ladder_complete": lc}
+            "f6_no_evaluated_fail": f6, "f6_rule": F6_FALLBACK_RULE, "ladder_complete": lc}
     if not lc["complete"]:
         if not lc["present"]:
             why = "absent: scripts/g19_run_ladder.py has not run"
@@ -257,17 +321,39 @@ def deployed_configuration(decisions: Mapping[str, Any], ladder: Mapping[str, An
     if steps["M2"] is None or steps["M1"] is None:
         return {**base, "arm": None, "status": "pending",
                 "basis": "a ladder decision is pending (kept == null); the deployed configuration is undecidable"}
-    if stops["M2_vs_B3i"] is True:
+    # POST-HOC addendum 3 item 2: the ladder has kept M0 and dropped M1 and M2, so ITS retained configuration is M0
+    # (= B5) -- deploying M2 by addendum 2's stop-rule fallback would contradict the registered ladder decision.  The
+    # rest of addendum 2's order below applies only when the ladder has no retained step at all.
+    if steps[LADDER_BASE] is True:
+        note = ("; the stop rule fired, and addendum 3 item 2 was resolved on a state where it did not -- the ladder "
+                "still retains its base step, so the base step is what this rule names (addendum 2's F6 fallback is "
+                "reached only without a retained step)" if (ladder or {}).get("stop_rule") is True else "")
+        return {**base, "arm": LADDER_BASE, "status": "decided", "retained_ladder_step": LADDER_BASE,
+                "basis": f"the ladder retains its base step {LADDER_BASE} (= {D.ARM_ALIASES[LADDER_BASE]}, the "
+                         "registered descriptor arm of section 5), M1 and M2 are not kept, and no step M3-M7 is kept: "
+                         f"the retained ladder configuration is {LADDER_BASE} (addendum 3 item 2; ladder."
+                         f"{LADDER_BASE}.kept){note}"}
+    m2_ok, m2_item6 = f6_ok("M2_vs_B3i")
+    b6_ok, b6_item6 = f6_ok("B6_vs_B3i")
+    if m2_ok:
         return {**base, "arm": "M2", "status": "decided",
-                "basis": "no ladder step above M0 kept; M2 passes the stop-rule scope against B3i (section 7 item 4)"}
-    if stops["B6_vs_B3i"] is True:
+                "basis": "the ladder has no retained step; M2 passes the stop-rule scope against B3i (section 7 item 4) "
+                         + ("and no evaluated R19 item FAILs" if m2_item6 is True else
+                            "-- item 6 not checked: decisions.json carries no freezing_candidates block")
+                         + " (addendum 2's F6 order, addendum 3 item 2)"}
+    if b6_ok:
         return {**base, "arm": "B6", "status": "decided",
-                "basis": "no ladder step kept and M2 does not pass against B3i; B6 passes the stop-rule scope (H1b)"}
-    if stops["M2_vs_B3i"] is None or stops["B6_vs_B3i"] is None:
+                "basis": "the ladder has no retained step and M2 does not deploy by the F6 fallback; B6 passes the "
+                         "stop-rule scope (H1b) "
+                         + ("and no evaluated R19 item FAILs" if b6_item6 is True else
+                            "-- item 6 not checked: decisions.json carries no freezing_candidates block")}
+    if (stops["M2_vs_B3i"] is None and f6["M2_vs_B3i"] is not False) \
+            or (stops["B6_vs_B3i"] is None and f6["B6_vs_B3i"] is not False):
         return {**base, "arm": None, "status": "pending", "basis": "a stop-rule contrast is missing"}
     return {**base, "arm": FALLBACK_DEPLOYED, "status": "decided", "fallback": True,
-            "basis": "neither M2 nor B6 passes against B3i: the best-passing baseline is deployed (section 10 F6); "
-                     "the process chain's default D source stays gen18 B1 (section 10)"}
+            "basis": "the ladder has no retained step and neither M2 nor B6 deploys by the F6 fallback (the stop-rule "
+                     "scope against B3i, with no evaluated R19 item FAILing): the best-passing baseline is deployed "
+                     "(section 10 F6); the process chain's default D source stays gen18 B1 (section 10)"}
 
 
 def model_arms(deployed: str) -> tuple[str, ...]:
@@ -935,6 +1021,39 @@ def fold_digest(job: D.JobSpec, fold: FI.Fold, code: str, *, transform: str, wit
                                            "prereg_addenda_sha256": REG.below_footer_sha256("h3")})
 
 
+def record_set_code(directory: Path, live: str, *, stage: str = "h3", path: Path | None = None) -> dict[str, Any]:
+    """The code digest the H3 record set in ``directory`` is VERIFIED with, as ``registry.record_dir_code`` resolves a
+    discovery record set's (task X finding V-P02: fixing an H3 reading edits ``h3.py``, which is in this stage's code
+    digest, and addendum 2 item 5 says such an edit "can neither validate nor invalidate a record written earlier").
+
+    The set's own ``code_digest`` is used when every record in the directory agrees on it AND it is a code digest the
+    registry holds for ``stage`` -- the current entry, or one it superseded (``registry.registered_code_digests``).
+    Otherwise ``live`` is returned unchanged, so a genuinely foreign record still raises :class:`discovery.StaleRecordError`
+    where it did before.  Records are FITTED under the live code as before (nothing here writes)."""
+    d = Path(directory)
+    out: dict[str, Any] = {"code": str(live), "resolved": "live", "record_code": None}
+    if not d.exists():
+        return out
+    seen = {str(rec["code_digest"]) for rec in (D.read_record(js) for js in sorted(d.glob("*.json")))
+            if rec is not None and rec.get("code_digest")}
+    if len(seen) != 1:
+        return {**out, "record_code": sorted(seen), "note": ("the directory holds no record" if not seen else
+                                                             "the directory mixes code digests; the live digest governs")}
+    have = seen.pop()
+    out["record_code"] = have
+    if have == str(live):
+        return out
+    for cand in REG.registered_code_digests(stage, path):
+        if cand["code_digest"] == have:
+            return {**out, "code": have, "resolved": cand["matched_entry"],
+                    "superseded_utc": cand.get("superseded_utc"),
+                    "note": (f"the record set was written under the {cand['matched_entry']} entry of stage {stage!r} "
+                             f"({have[:12]}...); a later edit to this stage's code validates or invalidates no record "
+                             "written earlier (addendum 2 item 5)")}
+    return {**out, "note": (f"the record set's code digest {have[:12]}... is no entry of stage {stage!r}, current or "
+                            "superseded: the live digest governs and the set does not verify")}
+
+
 def resume_status(pq: Path, js: Path, digest: str, steps: Sequence[str]) -> dict[str, Any]:
     rec = D.read_record(js)
     if rec is None or not pq.exists():
@@ -1560,6 +1679,9 @@ def d03_markdown(summary: Mapping[str, Any], contrasts: pd.DataFrame | None, del
     action) from the H3 outputs; every absent quantity prints ``not computed``."""
     dep = summary.get("deployed") or {}
     ver = summary.get("verdicts") or {}
+    # task X finding V-P02: the verdicts are keyed by the arm the RECORDS use (M0's records are written under B5,
+    # discovery.ARM_ALIASES), so a lookup takes ``arm_alias``; ``arm`` stays the name every printed sentence uses
+    dep_key = dep.get("arm_alias") or dep.get("arm") or ""
     f4 = summary.get("f4") or {}
     lines = ["# D03 -- Does actinide extraction data improve hidden-lanthanide prediction? (H3, section 11)", "",
              f"*Generated by `scripts/g19_run_h3.py` at git HEAD `{summary.get('git_head') or NOT_COMPUTED}` from the files "
@@ -1593,6 +1715,21 @@ def d03_markdown(summary: Mapping[str, Any], contrasts: pd.DataFrame | None, del
                          f"[{_fmt(r['percentile_low'])}, {_fmt(r['percentile_high'])}] | [{_fmt(r['bca_low'])}, {_fmt(r['bca_high'])}] | "
                          f"{_fmt(r['p_two_sided'], '{:.4f}')} | {r.get(f'verdict_{VERDICT_SCOPE}', NOT_COMPUTED)} | "
                          f"{r.get('r19_verdict_full', NOT_COMPUTED)} | {r.get('tost_verdict_eps0.05', NOT_COMPUTED)} |")
+        lines += ["", "Power of each contrast at its own margin (`mde_80`, the 80 %-power detectable effect of the same "
+                      "paired cluster bootstrap): a contrast whose `mde_80` EXCEEDS its margin cannot reach item 1 "
+                      "whatever the truth, so its FAIL is underpowered, not a demonstration of no effect (task X "
+                      "finding V-L1).", "",
+                  "| model arm | contrast | design | cluster unit | Delta MAE | margin | mde_80 | LOCO min | reading |",
+                  "|---|---|---|---|---|---|---|---|---|"]
+        for _, r in prim.sort_values(["model_arm", "design", "contrast"]).iterrows():
+            m, mde = r.get("margin"), r.get("mde_80")
+            ok = None if m is None or mde is None or not (np.isfinite(float(m)) and np.isfinite(float(mde))) \
+                else float(mde) <= float(m)
+            read = (NOT_COMPUTED if ok is None else
+                    "powered at this margin" if ok else
+                    "**UNDERPOWERED at this margin: no kappa of the design can make item 1 PASS**")
+            lines.append(f"| {r.get('model_arm')} | {r['contrast']} | {r['design']} | {r.get('cluster_unit')} | "
+                         f"{_fmt(r['point'])} | {_fmt(m)} | {_fmt(mde)} | {_fmt(r.get('loco_min'))} | {read} |")
     else:
         lines.append(f"Contrasts: {NOT_COMPUTED}.")
     lines.append("")
@@ -1617,8 +1754,10 @@ def d03_markdown(summary: Mapping[str, Any], contrasts: pd.DataFrame | None, del
                          + (" -- UNDECIDED (underpowered)" if v.get("underpowered") else ""))
         mapping = {"helps": "supported (actinide rows help lanthanide prediction)", "hurts": "supported (negative transfer)",
                    "equivalent": "null (no difference inside +-0.05)", "UNDECIDED": "ambiguous"}
-        dv = ver.get(dep.get("arm") or "", {}).get("verdict")
-        lines += ["", f"Deployed arm reading: **{mapping.get(dv, NOT_COMPUTED)}**."]
+        dv = ver.get(dep_key, {}).get("verdict")
+        lines += ["", f"Deployed arm reading ({dep.get('arm') or NOT_COMPUTED}"
+                      + (f", records under {dep_key}" if dep_key and dep_key != dep.get("arm") else "")
+                      + f"): **{mapping.get(dv, NOT_COMPUTED)}**."]
     else:
         lines.append(f"Verdicts: {NOT_COMPUTED}.")
     lines += ["", f"**F4 (negative actinide transfer): {'HOLDS -- gen19 is unsuccessful on F4' if f4.get('failure') else ('does not hold' if f4.get('status') == 'computed' else NOT_COMPUTED)}.** "
@@ -1638,7 +1777,7 @@ def d03_markdown(summary: Mapping[str, Any], contrasts: pd.DataFrame | None, del
         lines += [f"Negative-transfer investigation: {NOT_COMPUTED} (run when WITHOUT is better, section 11).", ""]
     lines += shared_only_lines(summary.get("shared_only"))
     lines += ["## Decision", "",
-              (f"Actinide rows enter the deployed Ln configuration: **{'yes' if ver.get(dep.get('arm') or '', {}).get('verdict') == 'helps' else 'no'}** "
+              (f"Actinide rows enter the deployed Ln configuration: **{'yes' if ver.get(dep_key, {}).get('verdict') == 'helps' else 'no'}** "
                "(section 11: only on *helps*)."), "",
               "## Next action", "",
               "- confirmation: the frozen H3 claims (if any) on the withheld seeds and the V6 deltas (section 15);",

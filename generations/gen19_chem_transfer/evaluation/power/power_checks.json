@@ -1,0 +1,745 @@
+{
+  "checks": [
+    {
+      "arms": [
+        "M2",
+        "B3i"
+      ],
+      "contrast": "M2 vs B3i@V5",
+      "design": "V5",
+      "family": "primary",
+      "informative": true,
+      "injection_seed": 104729,
+      "kappa_min": 0.1,
+      "kappa_min_informative": 0.25,
+      "kappas": [
+        0.1,
+        0.25,
+        0.5,
+        1.0
+      ],
+      "label": "signal-injection power check (section 8); injected values are not data (brief section 33)",
+      "n_rows_dropped_unknown_state": 1362,
+      "n_u_shared_states": 0,
+      "passes_by_kappa": {
+        "0.1": true,
+        "0.25": true,
+        "0.5": true,
+        "1.0": true
+      },
+      "per_kappa": [
+        {
+          "kappa": 0.1,
+          "margin": 0.105689,
+          "n_rows": 4101,
+          "n_units": 105,
+          "passed": true,
+          "point": 0.2786314167940652,
+          "r19_first_failing_item_detail": "",
+          "r19_item1": "PASS",
+          "r19_item2": "PASS",
+          "r19_item3": "PASS",
+          "r19_item4": "NOT_EVALUATED",
+          "r19_item5": "PASS",
+          "r19_item6": "PASS",
+          "r19_items_failed": "",
+          "r19_items_not_decided": "4",
+          "r19_verdict_full": "UNDECIDED",
+          "scope_verdict": "PASS"
+        },
+        {
+          "kappa": 0.25,
+          "margin": 0.105689,
+          "n_rows": 4101,
+          "n_units": 105,
+          "passed": true,
+          "point": 0.31053698432063215,
+          "r19_first_failing_item_detail": "",
+          "r19_item1": "PASS",
+          "r19_item2": "PASS",
+          "r19_item3": "PASS",
+          "r19_item4": "NOT_EVALUATED",
+          "r19_item5": "PASS",
+          "r19_item6": "PASS",
+          "r19_items_failed": "",
+          "r19_items_not_decided": "4",
+          "r19_verdict_full": "UNDECIDED",
+          "scope_verdict": "PASS"
+        },
+        {
+          "kappa": 0.5,
+          "margin": 0.105689,
+          "n_rows": 4101,
+          "n_units": 105,
+          "passed": true,
+          "point": 0.43995883301483824,
+          "r19_first_failing_item_detail": "",
+          "r19_item1": "PASS",
+          "r19_item2": "PASS",
+          "r19_item3": "PASS",
+          "r19_item4": "NOT_EVALUATED",
+          "r19_item5": "PASS",
+          "r19_item6": "PASS",
+          "r19_items_failed": "",
+          "r19_items_not_decided": "4",
+          "r19_verdict_full": "UNDECIDED",
+          "scope_verdict": "PASS"
+        },
+        {
+          "kappa": 1.0,
+          "margin": 0.105689,
+          "n_rows": 4101,
+          "n_units": 105,
+          "passed": true,
+          "point": 0.6387151079299326,
+          "r19_first_failing_item_detail": "",
+          "r19_item1": "PASS",
+          "r19_item2": "PASS",
+          "r19_item3": "PASS",
+          "r19_item4": "NOT_EVALUATED",
+          "r19_item5": "PASS",
+          "r19_item6": "PASS",
+          "r19_items_failed": "",
+          "r19_items_not_decided": "4",
+          "r19_verdict_full": "UNDECIDED",
+          "scope_verdict": "PASS"
+        }
+      ],
+      "per_unit_metrics": "evaluation/power/per_unit_mae.csv",
+      "per_unit_metrics_persisted": true,
+      "readings": {
+        "h3_u_share": "for H3 an An(III) state takes the u of the Ln(III) state whose Shannon CN8 radius is nearest (chemistry.support_graph.metal_properties -> r_cn8; ties by the state label); an An(III) state without a CN8 radius, and every non-An(III) state, keeps its own u and is listed",
+        "injection_seed": "the signal is drawn once per contrast with the contrast's decision seed (104729) and reused for every kappa, so kappa scales one fixed signal (the section 8 wording 'y + kappa s' with one s)",
+        "no_persisted_values": "no injected target or injected prediction is written: the runner writes metrics, R19 rows and kappa_min only (brief section 33; assert_no_injected_values checks every frame)",
+        "per_unit_metrics": "per (contrast, kappa) the runner ALSO writes the bootstrap input as metrics -- per averaging unit the MAE of both arms, their paired difference and the registered cluster labels (power.per_unit_rows -> evaluation/power/per_unit_mae.csv, tables/power_per_unit_mae.csv) -- so kappa_min and every R19 item behind it are re-derivable without repeating the refits (task X finding V-L2). A per-cell MAE and a cluster label are metrics, not injected targets and not per-row predictions: brief section 33 is unchanged and the same assert_no_injected_values check runs on the frame",
+        "r19_scope": "the injected R19 verdict is read on the same scope as the un-injected contrast (discovery: the freezing-screen scope of items 1-3, 5 and the scoring-filter sensitivities; the full verdict printed beside), because R19 item 4 is NOT_EVALUATED in discovery and the refit sensitivities are not re-run on injected targets (INFERRED; needs a POST-HOC addendum)",
+        "refit": "every arm of the contrast is refitted at the hyperparameters its discovery record SELECTED on the same fold (h3.selected_hyperparameters), without re-tuning, on the injected training rows; the closed-form comparators need no hyperparameters",
+        "scored_rows": "the injected run scores exactly the un-injected run's scored rows (transfer.assert_same_scored_rows); X(?) rows are dropped from the refits of every arm and are scored in no design, so the paired comparison is on identical units"
+      },
+      "reported": "not a null: the un-injected contrast PASSES its reported scope, so nothing is reported as a null here; sensitivity for the record -- a signal of kappa_min SD would have been detected",
+      "schema": "gen19.power.v1",
+      "u_share": {},
+      "uninjected": {
+        "point": 0.262976,
+        "r19_verdict_full": "UNDECIDED",
+        "verdict_freezing_screen": "PASS"
+      },
+      "uninjected_is_a_null": false,
+      "uninjected_verdict": "PASS",
+      "verdict": "POWERED_NOT_A_NULL",
+      "verdict_scope": "freezing_screen"
+    },
+    {
+      "arms": [
+        "B6",
+        "B3i"
+      ],
+      "contrast": "B6 vs B3i@V5",
+      "design": "V5",
+      "family": "H1b",
+      "informative": false,
+      "injection_seed": 104729,
+      "kappa_min": null,
+      "kappa_min_informative": 0.25,
+      "kappas": [
+        0.1,
+        0.25,
+        0.5,
+        1.0
+      ],
+      "label": "signal-injection power check (section 8); injected values are not data (brief section 33)",
+      "n_rows_dropped_unknown_state": 1362,
+      "n_u_shared_states": 0,
+      "passes_by_kappa": {
+        "0.1": false,
+        "0.25": false,
+        "0.5": false,
+        "1.0": false
+      },
+      "per_kappa": [
+        {
+          "kappa": 0.1,
+          "margin": 0.105689,
+          "n_rows": 4101,
+          "n_units": 105,
+          "passed": false,
+          "point": -0.08526381934801552,
+          "r19_first_failing_item_detail": "Delta=-0.0852638, margin=0.105689",
+          "r19_item1": "FAIL",
+          "r19_item2": "FAIL",
+          "r19_item3": "FAIL",
+          "r19_item4": "NOT_EVALUATED",
+          "r19_item5": "FAIL",
+          "r19_item6": "FAIL",
+          "r19_items_failed": "1;2;3;5;6",
+          "r19_items_not_decided": "4",
+          "r19_verdict_full": "FAIL",
+          "scope_verdict": "FAIL"
+        },
+        {
+          "kappa": 0.25,
+          "margin": 0.105689,
+          "n_rows": 4101,
+          "n_units": 105,
+          "passed": false,
+          "point": -0.09097360898676932,
+          "r19_first_failing_item_detail": "Delta=-0.0909736, margin=0.105689",
+          "r19_item1": "FAIL",
+          "r19_item2": "FAIL",
+          "r19_item3": "FAIL",
+          "r19_item4": "NOT_EVALUATED",
+          "r19_item5": "FAIL",
+          "r19_item6": "FAIL",
+          "r19_items_failed": "1;2;3;5;6",
+          "r19_items_not_decided": "4",
+          "r19_verdict_full": "FAIL",
+          "scope_verdict": "FAIL"
+        },
+        {
+          "kappa": 0.5,
+          "margin": 0.105689,
+          "n_rows": 4101,
+          "n_units": 105,
+          "passed": false,
+          "point": 0.003649263198748809,
+          "r19_first_failing_item_detail": "Delta=0.00364926, margin=0.105689",
+          "r19_item1": "FAIL",
+          "r19_item2": "FAIL",
+          "r19_item3": "FAIL",
+          "r19_item4": "NOT_EVALUATED",
+          "r19_item5": "FAIL",
+          "r19_item6": "FAIL",
+          "r19_items_failed": "1;2;3;5;6",
+          "r19_items_not_decided": "4",
+          "r19_verdict_full": "FAIL",
+          "scope_verdict": "FAIL"
+        },
+        {
+          "kappa": 1.0,
+          "margin": 0.105689,
+          "n_rows": 4101,
+          "n_units": 105,
+          "passed": false,
+          "point": 0.24497035354976482,
+          "r19_first_failing_item_detail": "system: percentile low -0.00525077; system: BCa low -0.0147417; publication_group: percentile low -0.04644; publication_group: BCa low -0.0321341",
+          "r19_item1": "PASS",
+          "r19_item2": "FAIL",
+          "r19_item3": "FAIL",
+          "r19_item4": "NOT_EVALUATED",
+          "r19_item5": "PASS",
+          "r19_item6": "PASS",
+          "r19_items_failed": "2;3",
+          "r19_items_not_decided": "4",
+          "r19_verdict_full": "FAIL",
+          "scope_verdict": "FAIL"
+        }
+      ],
+      "per_unit_metrics": "evaluation/power/per_unit_mae.csv",
+      "per_unit_metrics_persisted": true,
+      "readings": {
+        "h3_u_share": "for H3 an An(III) state takes the u of the Ln(III) state whose Shannon CN8 radius is nearest (chemistry.support_graph.metal_properties -> r_cn8; ties by the state label); an An(III) state without a CN8 radius, and every non-An(III) state, keeps its own u and is listed",
+        "injection_seed": "the signal is drawn once per contrast with the contrast's decision seed (104729) and reused for every kappa, so kappa scales one fixed signal (the section 8 wording 'y + kappa s' with one s)",
+        "no_persisted_values": "no injected target or injected prediction is written: the runner writes metrics, R19 rows and kappa_min only (brief section 33; assert_no_injected_values checks every frame)",
+        "per_unit_metrics": "per (contrast, kappa) the runner ALSO writes the bootstrap input as metrics -- per averaging unit the MAE of both arms, their paired difference and the registered cluster labels (power.per_unit_rows -> evaluation/power/per_unit_mae.csv, tables/power_per_unit_mae.csv) -- so kappa_min and every R19 item behind it are re-derivable without repeating the refits (task X finding V-L2). A per-cell MAE and a cluster label are metrics, not injected targets and not per-row predictions: brief section 33 is unchanged and the same assert_no_injected_values check runs on the frame",
+        "r19_scope": "the injected R19 verdict is read on the same scope as the un-injected contrast (discovery: the freezing-screen scope of items 1-3, 5 and the scoring-filter sensitivities; the full verdict printed beside), because R19 item 4 is NOT_EVALUATED in discovery and the refit sensitivities are not re-run on injected targets (INFERRED; needs a POST-HOC addendum)",
+        "refit": "every arm of the contrast is refitted at the hyperparameters its discovery record SELECTED on the same fold (h3.selected_hyperparameters), without re-tuning, on the injected training rows; the closed-form comparators need no hyperparameters",
+        "scored_rows": "the injected run scores exactly the un-injected run's scored rows (transfer.assert_same_scored_rows); X(?) rows are dropped from the refits of every arm and are scored in no design, so the paired comparison is on identical units"
+      },
+      "reported": "UNDECIDED (underpowered): the design could not detect a signal at or below 0.25 log D",
+      "schema": "gen19.power.v1",
+      "u_share": {},
+      "uninjected": {
+        "point": -0.104441,
+        "r19_verdict_full": "FAIL",
+        "verdict_freezing_screen": "FAIL"
+      },
+      "uninjected_is_a_null": true,
+      "uninjected_verdict": "FAIL",
+      "verdict": "UNDECIDED_UNDERPOWERED",
+      "verdict_scope": "freezing_screen"
+    },
+    {
+      "arms": [
+        "M2",
+        "B0"
+      ],
+      "contrast": "M2 vs B0@V5",
+      "design": "V5",
+      "family": "S1(b)",
+      "informative": true,
+      "injection_seed": 104729,
+      "kappa_min": 0.1,
+      "kappa_min_informative": 0.25,
+      "kappas": [
+        0.1,
+        0.25,
+        0.5,
+        1.0
+      ],
+      "label": "signal-injection power check (section 8); injected values are not data (brief section 33)",
+      "n_rows_dropped_unknown_state": 1362,
+      "n_u_shared_states": 0,
+      "passes_by_kappa": {
+        "0.1": true,
+        "0.25": true,
+        "0.5": true,
+        "1.0": true
+      },
+      "per_kappa": [
+        {
+          "kappa": 0.1,
+          "margin": 0.05,
+          "n_rows": 4101,
+          "n_units": 105,
+          "passed": true,
+          "point": 1.0298367494657308,
+          "r19_first_failing_item_detail": "",
+          "r19_item1": "PASS",
+          "r19_item2": "PASS",
+          "r19_item3": "PASS",
+          "r19_item4": "NOT_EVALUATED",
+          "r19_item5": "PASS",
+          "r19_item6": "PASS",
+          "r19_items_failed": "",
+          "r19_items_not_decided": "4",
+          "r19_verdict_full": "UNDECIDED",
+          "scope_verdict": "PASS"
+        },
+        {
+          "kappa": 0.25,
+          "margin": 0.05,
+          "n_rows": 4101,
+          "n_units": 105,
+          "passed": true,
+          "point": 1.0263967095299409,
+          "r19_first_failing_item_detail": "",
+          "r19_item1": "PASS",
+          "r19_item2": "PASS",
+          "r19_item3": "PASS",
+          "r19_item4": "NOT_EVALUATED",
+          "r19_item5": "PASS",
+          "r19_item6": "PASS",
+          "r19_items_failed": "",
+          "r19_items_not_decided": "4",
+          "r19_verdict_full": "UNDECIDED",
+          "scope_verdict": "PASS"
+        },
+        {
+          "kappa": 0.5,
+          "margin": 0.05,
+          "n_rows": 4101,
+          "n_units": 105,
+          "passed": true,
+          "point": 1.0858740500382005,
+          "r19_first_failing_item_detail": "",
+          "r19_item1": "PASS",
+          "r19_item2": "PASS",
+          "r19_item3": "PASS",
+          "r19_item4": "NOT_EVALUATED",
+          "r19_item5": "PASS",
+          "r19_item6": "PASS",
+          "r19_items_failed": "",
+          "r19_items_not_decided": "4",
+          "r19_verdict_full": "UNDECIDED",
+          "scope_verdict": "PASS"
+        },
+        {
+          "kappa": 1.0,
+          "margin": 0.05,
+          "n_rows": 4101,
+          "n_units": 105,
+          "passed": true,
+          "point": 1.167764784748294,
+          "r19_first_failing_item_detail": "",
+          "r19_item1": "PASS",
+          "r19_item2": "PASS",
+          "r19_item3": "PASS",
+          "r19_item4": "NOT_EVALUATED",
+          "r19_item5": "PASS",
+          "r19_item6": "PASS",
+          "r19_items_failed": "",
+          "r19_items_not_decided": "4",
+          "r19_verdict_full": "UNDECIDED",
+          "scope_verdict": "PASS"
+        }
+      ],
+      "per_unit_metrics": "evaluation/power/per_unit_mae.csv",
+      "per_unit_metrics_persisted": true,
+      "readings": {
+        "h3_u_share": "for H3 an An(III) state takes the u of the Ln(III) state whose Shannon CN8 radius is nearest (chemistry.support_graph.metal_properties -> r_cn8; ties by the state label); an An(III) state without a CN8 radius, and every non-An(III) state, keeps its own u and is listed",
+        "injection_seed": "the signal is drawn once per contrast with the contrast's decision seed (104729) and reused for every kappa, so kappa scales one fixed signal (the section 8 wording 'y + kappa s' with one s)",
+        "no_persisted_values": "no injected target or injected prediction is written: the runner writes metrics, R19 rows and kappa_min only (brief section 33; assert_no_injected_values checks every frame)",
+        "per_unit_metrics": "per (contrast, kappa) the runner ALSO writes the bootstrap input as metrics -- per averaging unit the MAE of both arms, their paired difference and the registered cluster labels (power.per_unit_rows -> evaluation/power/per_unit_mae.csv, tables/power_per_unit_mae.csv) -- so kappa_min and every R19 item behind it are re-derivable without repeating the refits (task X finding V-L2). A per-cell MAE and a cluster label are metrics, not injected targets and not per-row predictions: brief section 33 is unchanged and the same assert_no_injected_values check runs on the frame",
+        "r19_scope": "the injected R19 verdict is read on the same scope as the un-injected contrast (discovery: the freezing-screen scope of items 1-3, 5 and the scoring-filter sensitivities; the full verdict printed beside), because R19 item 4 is NOT_EVALUATED in discovery and the refit sensitivities are not re-run on injected targets (INFERRED; needs a POST-HOC addendum)",
+        "refit": "every arm of the contrast is refitted at the hyperparameters its discovery record SELECTED on the same fold (h3.selected_hyperparameters), without re-tuning, on the injected training rows; the closed-form comparators need no hyperparameters",
+        "scored_rows": "the injected run scores exactly the un-injected run's scored rows (transfer.assert_same_scored_rows); X(?) rows are dropped from the refits of every arm and are scored in no design, so the paired comparison is on identical units"
+      },
+      "reported": "not a null: the un-injected contrast PASSES its reported scope, so nothing is reported as a null here; sensitivity for the record -- a signal of kappa_min SD would have been detected",
+      "schema": "gen19.power.v1",
+      "u_share": {},
+      "uninjected": {
+        "point": 1.02215,
+        "r19_verdict_full": "UNDECIDED",
+        "verdict_freezing_screen": "PASS"
+      },
+      "uninjected_is_a_null": false,
+      "uninjected_verdict": "PASS",
+      "verdict": "POWERED_NOT_A_NULL",
+      "verdict_scope": "freezing_screen"
+    },
+    {
+      "arms": [
+        "M2",
+        "B6r0"
+      ],
+      "contrast": "M2 vs B6r0@V5",
+      "design": "V5",
+      "family": "S1(b)",
+      "informative": true,
+      "injection_seed": 104729,
+      "kappa_min": 0.1,
+      "kappa_min_informative": 0.25,
+      "kappas": [
+        0.1,
+        0.25,
+        0.5,
+        1.0
+      ],
+      "label": "signal-injection power check (section 8); injected values are not data (brief section 33)",
+      "n_rows_dropped_unknown_state": 1362,
+      "n_u_shared_states": 0,
+      "passes_by_kappa": {
+        "0.1": true,
+        "0.25": true,
+        "0.5": true,
+        "1.0": true
+      },
+      "per_kappa": [
+        {
+          "kappa": 0.1,
+          "margin": 0.05,
+          "n_rows": 4101,
+          "n_units": 105,
+          "passed": true,
+          "point": 0.4665213805959564,
+          "r19_first_failing_item_detail": "",
+          "r19_item1": "PASS",
+          "r19_item2": "PASS",
+          "r19_item3": "PASS",
+          "r19_item4": "NOT_EVALUATED",
+          "r19_item5": "PASS",
+          "r19_item6": "PASS",
+          "r19_items_failed": "",
+          "r19_items_not_decided": "4",
+          "r19_verdict_full": "UNDECIDED",
+          "scope_verdict": "PASS"
+        },
+        {
+          "kappa": 0.25,
+          "margin": 0.05,
+          "n_rows": 4101,
+          "n_units": 105,
+          "passed": true,
+          "point": 0.48342294959638177,
+          "r19_first_failing_item_detail": "",
+          "r19_item1": "PASS",
+          "r19_item2": "PASS",
+          "r19_item3": "PASS",
+          "r19_item4": "NOT_EVALUATED",
+          "r19_item5": "PASS",
+          "r19_item6": "PASS",
+          "r19_items_failed": "",
+          "r19_items_not_decided": "4",
+          "r19_verdict_full": "UNDECIDED",
+          "scope_verdict": "PASS"
+        },
+        {
+          "kappa": 0.5,
+          "margin": 0.05,
+          "n_rows": 4101,
+          "n_units": 105,
+          "passed": true,
+          "point": 0.6049556317333271,
+          "r19_first_failing_item_detail": "",
+          "r19_item1": "PASS",
+          "r19_item2": "PASS",
+          "r19_item3": "PASS",
+          "r19_item4": "NOT_EVALUATED",
+          "r19_item5": "PASS",
+          "r19_item6": "PASS",
+          "r19_items_failed": "",
+          "r19_items_not_decided": "4",
+          "r19_verdict_full": "UNDECIDED",
+          "scope_verdict": "PASS"
+        },
+        {
+          "kappa": 1.0,
+          "margin": 0.05,
+          "n_rows": 4101,
+          "n_units": 105,
+          "passed": true,
+          "point": 0.8458268921294988,
+          "r19_first_failing_item_detail": "",
+          "r19_item1": "PASS",
+          "r19_item2": "PASS",
+          "r19_item3": "PASS",
+          "r19_item4": "NOT_EVALUATED",
+          "r19_item5": "PASS",
+          "r19_item6": "PASS",
+          "r19_items_failed": "",
+          "r19_items_not_decided": "4",
+          "r19_verdict_full": "UNDECIDED",
+          "scope_verdict": "PASS"
+        }
+      ],
+      "per_unit_metrics": "evaluation/power/per_unit_mae.csv",
+      "per_unit_metrics_persisted": true,
+      "readings": {
+        "h3_u_share": "for H3 an An(III) state takes the u of the Ln(III) state whose Shannon CN8 radius is nearest (chemistry.support_graph.metal_properties -> r_cn8; ties by the state label); an An(III) state without a CN8 radius, and every non-An(III) state, keeps its own u and is listed",
+        "injection_seed": "the signal is drawn once per contrast with the contrast's decision seed (104729) and reused for every kappa, so kappa scales one fixed signal (the section 8 wording 'y + kappa s' with one s)",
+        "no_persisted_values": "no injected target or injected prediction is written: the runner writes metrics, R19 rows and kappa_min only (brief section 33; assert_no_injected_values checks every frame)",
+        "per_unit_metrics": "per (contrast, kappa) the runner ALSO writes the bootstrap input as metrics -- per averaging unit the MAE of both arms, their paired difference and the registered cluster labels (power.per_unit_rows -> evaluation/power/per_unit_mae.csv, tables/power_per_unit_mae.csv) -- so kappa_min and every R19 item behind it are re-derivable without repeating the refits (task X finding V-L2). A per-cell MAE and a cluster label are metrics, not injected targets and not per-row predictions: brief section 33 is unchanged and the same assert_no_injected_values check runs on the frame",
+        "r19_scope": "the injected R19 verdict is read on the same scope as the un-injected contrast (discovery: the freezing-screen scope of items 1-3, 5 and the scoring-filter sensitivities; the full verdict printed beside), because R19 item 4 is NOT_EVALUATED in discovery and the refit sensitivities are not re-run on injected targets (INFERRED; needs a POST-HOC addendum)",
+        "refit": "every arm of the contrast is refitted at the hyperparameters its discovery record SELECTED on the same fold (h3.selected_hyperparameters), without re-tuning, on the injected training rows; the closed-form comparators need no hyperparameters",
+        "scored_rows": "the injected run scores exactly the un-injected run's scored rows (transfer.assert_same_scored_rows); X(?) rows are dropped from the refits of every arm and are scored in no design, so the paired comparison is on identical units"
+      },
+      "reported": "not a null: the un-injected contrast PASSES its reported scope, so nothing is reported as a null here; sensitivity for the record -- a signal of kappa_min SD would have been detected",
+      "schema": "gen19.power.v1",
+      "u_share": {},
+      "uninjected": {
+        "point": 0.455132,
+        "r19_verdict_full": "UNDECIDED",
+        "verdict_freezing_screen": "PASS"
+      },
+      "uninjected_is_a_null": false,
+      "uninjected_verdict": "PASS",
+      "verdict": "POWERED_NOT_A_NULL",
+      "verdict_scope": "freezing_screen"
+    }
+  ],
+  "date_utc": "2026-09-22T16:15:29+00:00",
+  "gate": {
+    "contrast_files": {
+      "contrasts_registered.csv": true
+    },
+    "discovery_code_sha256": "895a6ab9696010c9f8bffb4a6078f55b8f41b0773623a8de77103083157e0504",
+    "discovery_complete": {
+      "complete": true,
+      "definition": "Whether the discovery run is COMPLETE, defined as all of:\n\n1. ``evaluation/discovery/decisions/wall_clock.json`` records an invocation whose ``stages_done`` reached the last\n   stage of the plan (``discovery.STAGES['not_implemented']``, the ``M3+`` marker ``run_plan`` stops at) and every\n   stage of the current plan is in the union of the recorded ``stages_done``;\n2. every ``fit`` job of ``discovery.enumerate_plan(state)`` (the plan under the final plan state, freezing-candidate\n   runs included) has, for every arm it writes, a COMPLETE verified record set\n   (``g19_run_discovery.verified_predictions``: digest, fold hash and fold set exactly what the code the record set's\n   stage is registered under -- ``registry.record_dir_code``: the ``discovery`` or ``discovery_candidates`` entry,\n   else ``code`` -- the fold files and the plan state produce; a stale record raises).",
+      "final_stage": "10_not_implemented",
+      "incomplete_record_sets": [],
+      "missing_stages": [],
+      "n_complete": 41,
+      "n_fit_record_sets": 41,
+      "n_incomplete": 0,
+      "reached_final_stage": true,
+      "stages_done": [
+        "00_safeguard",
+        "01_B6",
+        "02_comparator_intervals",
+        "03_B5_FLAT_CAT_B8",
+        "04_M1",
+        "05_M2",
+        "06_stop_rule",
+        "07_s1c_v5pair",
+        "08_refit_sensitivities",
+        "09_candidates",
+        "10_not_implemented"
+      ],
+      "wall_clock_json_present": true
+    },
+    "h3_prereg_gate": {
+      "addenda_sha256": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
+      "addenda_sha256_registered": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
+      "addendum_implemented": 3,
+      "gate_source": "registry",
+      "n_addenda": 3,
+      "n_addenda_expected": 3,
+      "prereg_sha256": "135842499a86eb3d478ece01a45718ac5b9673a4134bb4acda550f975bb45641",
+      "registry_path": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer\\manifests\\digest_registry.json",
+      "seal_check_exit": 0,
+      "stage": "h3"
+    },
+    "ladder_complete": {
+      "complete": true,
+      "definition": "ladder.json exists and every step M3-M7 has a status in demoted, exploratory_not_run, judged, kept, not_run, removed",
+      "not_done": [],
+      "present": true,
+      "steps": {
+        "M3": "not_run",
+        "M4": "not_run",
+        "M5": "not_run",
+        "M6": "not_run",
+        "M7": "not_run"
+      },
+      "stop_rule": false
+    },
+    "plan_state": {
+      "freezing_candidates": [
+        {
+          "arms": [
+            "M2",
+            "B0"
+          ],
+          "batching_label": "batched",
+          "contrast": "M2 vs B0@V5",
+          "design": "V5",
+          "eligibility": {
+            "eligible": true,
+            "evaluated_items": {
+              "1": "PASS",
+              "2": "PASS",
+              "3": "PASS",
+              "5": "PASS",
+              "6": "PASS"
+            },
+            "failed_items": [],
+            "items": {
+              "1": "PASS",
+              "2": "PASS",
+              "3": "PASS",
+              "4": "NOT_EVALUATED",
+              "5": "PASS",
+              "6": "PASS"
+            },
+            "items_not_evaluated_in_discovery": {
+              "4": "NOT_EVALUATED"
+            },
+            "r19_verdict_full": "UNDECIDED",
+            "reason": "items [1, 2, 3, 5, 6] PASS; not evaluated in discovery: item 4 NOT_EVALUATED; no item FAIL",
+            "rule": "POST-HOC addendum 3 item 1 (section 15): a contrast is ELIGIBLE FOR FREEZING when every R19 item that R19 EVALUATES in discovery is PASS and no item is FAIL. An item R19 does not evaluate in discovery -- item 4, NOT_EVALUATED by addendum 1 item 3 (one discovery seed), and any UNTESTABLE / NOT_RUN item -- does not disqualify it; item 4 is evaluated at confirmation exactly as registered (5 of 5 withheld seeds). Any FAIL, on any item, makes the contrast ineligible. This is the reading addendum 2 already gives F6 for deployment, and it would have been required whatever the scores were. Everything else about section 15 is unchanged: at most five claims, named in decisions/CONFIRMATION_PLAN.md before the run, one run on the withheld seeds and the confirmation half, V6 once."
+          },
+          "eligible_for_freezing": true,
+          "family": "S1(b)",
+          "s1_forced_undecided": false,
+          "section_3_1_v5p_trigger": false,
+          "section_3_1_v5p_trigger_rule": "section 3.1: the heavy-arm V5-P run of a freezing candidate is triggered by R19 items 1-5 on V5-primary. Item 4 is NOT_EVALUATED in discovery (addendum 1 item 3), so the trigger cannot fire; addendum 1 item 4 does not run the heavy-arm V5-P runs either way. Addendum 3 item 1 changes what 'passed R19 in discovery' means for FREEZING (section 15), not this trigger, so the two are reported separately."
+        },
+        {
+          "arms": [
+            "M2",
+            "B3i"
+          ],
+          "batching_label": "batched",
+          "contrast": "M2 vs B3i@V5",
+          "design": "V5",
+          "eligibility": {
+            "eligible": true,
+            "evaluated_items": {
+              "1": "PASS",
+              "2": "PASS",
+              "3": "PASS",
+              "5": "PASS",
+              "6": "PASS"
+            },
+            "failed_items": [],
+            "items": {
+              "1": "PASS",
+              "2": "PASS",
+              "3": "PASS",
+              "4": "NOT_EVALUATED",
+              "5": "PASS",
+              "6": "PASS"
+            },
+            "items_not_evaluated_in_discovery": {
+              "4": "NOT_EVALUATED"
+            },
+            "r19_verdict_full": "UNDECIDED",
+            "reason": "items [1, 2, 3, 5, 6] PASS; not evaluated in discovery: item 4 NOT_EVALUATED; no item FAIL",
+            "rule": "POST-HOC addendum 3 item 1 (section 15): a contrast is ELIGIBLE FOR FREEZING when every R19 item that R19 EVALUATES in discovery is PASS and no item is FAIL. An item R19 does not evaluate in discovery -- item 4, NOT_EVALUATED by addendum 1 item 3 (one discovery seed), and any UNTESTABLE / NOT_RUN item -- does not disqualify it; item 4 is evaluated at confirmation exactly as registered (5 of 5 withheld seeds). Any FAIL, on any item, makes the contrast ineligible. This is the reading addendum 2 already gives F6 for deployment, and it would have been required whatever the scores were. Everything else about section 15 is unchanged: at most five claims, named in decisions/CONFIRMATION_PLAN.md before the run, one run on the withheld seeds and the confirmation half, V6 once."
+          },
+          "eligible_for_freezing": true,
+          "family": "primary",
+          "s1_forced_undecided": false,
+          "section_3_1_v5p_trigger": false,
+          "section_3_1_v5p_trigger_rule": "section 3.1: the heavy-arm V5-P run of a freezing candidate is triggered by R19 items 1-5 on V5-primary. Item 4 is NOT_EVALUATED in discovery (addendum 1 item 3), so the trigger cannot fire; addendum 1 item 4 does not run the heavy-arm V5-P runs either way. Addendum 3 item 1 changes what 'passed R19 in discovery' means for FREEZING (section 15), not this trigger, so the two are reported separately."
+        },
+        {
+          "arms": [
+            "M2",
+            "B6r0"
+          ],
+          "batching_label": "batched",
+          "contrast": "M2 vs B6r0@V5",
+          "design": "V5",
+          "eligibility": {
+            "eligible": true,
+            "evaluated_items": {
+              "1": "PASS",
+              "2": "PASS",
+              "3": "PASS",
+              "5": "PASS",
+              "6": "PASS"
+            },
+            "failed_items": [],
+            "items": {
+              "1": "PASS",
+              "2": "PASS",
+              "3": "PASS",
+              "4": "NOT_EVALUATED",
+              "5": "PASS",
+              "6": "PASS"
+            },
+            "items_not_evaluated_in_discovery": {
+              "4": "NOT_EVALUATED"
+            },
+            "r19_verdict_full": "UNDECIDED",
+            "reason": "items [1, 2, 3, 5, 6] PASS; not evaluated in discovery: item 4 NOT_EVALUATED; no item FAIL",
+            "rule": "POST-HOC addendum 3 item 1 (section 15): a contrast is ELIGIBLE FOR FREEZING when every R19 item that R19 EVALUATES in discovery is PASS and no item is FAIL. An item R19 does not evaluate in discovery -- item 4, NOT_EVALUATED by addendum 1 item 3 (one discovery seed), and any UNTESTABLE / NOT_RUN item -- does not disqualify it; item 4 is evaluated at confirmation exactly as registered (5 of 5 withheld seeds). Any FAIL, on any item, makes the contrast ineligible. This is the reading addendum 2 already gives F6 for deployment, and it would have been required whatever the scores were. Everything else about section 15 is unchanged: at most five claims, named in decisions/CONFIRMATION_PLAN.md before the run, one run on the withheld seeds and the confirmation half, V6 once."
+          },
+          "eligible_for_freezing": true,
+          "family": "S1(b)",
+          "s1_forced_undecided": false,
+          "section_3_1_v5p_trigger": false,
+          "section_3_1_v5p_trigger_rule": "section 3.1: the heavy-arm V5-P run of a freezing candidate is triggered by R19 items 1-5 on V5-primary. Item 4 is NOT_EVALUATED in discovery (addendum 1 item 3), so the trigger cannot fire; addendum 1 item 4 does not run the heavy-arm V5-P runs either way. Addendum 3 item 1 changes what 'passed R19 in discovery' means for FREEZING (section 15), not this trigger, so the two are reported separately."
+        }
+      ],
+      "guard_mode": {
+        "V1__copy__grouped10": "nested_certificate",
+        "V2__element__exact": "nested_certificate",
+        "V5PAIR__primary__batched": "nested_certificate",
+        "V5PAIR__primary__cell_pair": "nested_certificate",
+        "V5P__base__batched": "nested_certificate",
+        "V5P__base__cell_x_group": "nested_certificate",
+        "V5__cell_only__batched": "nested_certificate",
+        "V5__parent_structure__batched": "nested_certificate",
+        "V5__primary__batched": "nested_certificate",
+        "V5__primary__exact": "nested_certificate"
+      },
+      "heavy_v1_scheme": "exact",
+      "heavy_v5_label": "batched",
+      "heavy_v5_scheme": "batched_max4",
+      "notes": {},
+      "schema": "gen19.discovery.v1",
+      "v1_tenfold_check": "failed",
+      "v5_batched_check": "passed_after_recolour"
+    },
+    "prereg_gate": {
+      "addenda_sha256": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
+      "addenda_sha256_registered": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
+      "addendum_implemented": 3,
+      "gate_source": "registry",
+      "n_addenda": 3,
+      "n_addenda_expected": 3,
+      "prereg_sha256": "135842499a86eb3d478ece01a45718ac5b9673a4134bb4acda550f975bb45641",
+      "registry_path": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer\\manifests\\digest_registry.json",
+      "seal_check_exit": 0,
+      "stage": "power"
+    },
+    "scorer_decisions": {
+      "all_present": true,
+      "decisions_newer_than_every_record": true,
+      "ok": true,
+      "present": {
+        "contrasts_registered.csv": true,
+        "decisions/decisions.json": true,
+        "decisions/stop_rule.json": true,
+        "r19_items.csv": true
+      }
+    }
+  },
+  "injected_values_persisted": false,
+  "per_unit_metrics_path": "evaluation/power/per_unit_mae.csv",
+  "per_unit_metrics_persisted": true,
+  "schema": "gen19.power.v1"
+}

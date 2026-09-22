@@ -5,6 +5,7 @@ the record-field reader runs on synthetic JSON records written here.
 """
 from __future__ import annotations
 
+import datetime as _dt
 import hashlib
 import importlib.util
 import json
@@ -125,6 +126,46 @@ def test_verify_record_compares_to_the_stage_entry_never_to_live_text_or_code(tm
         REG.verify_record(rec, "ladder", p, raise_on_mismatch=True)
     # a record without the count field is compared on the two digests only
     assert REG.verify_record({"prereg_addenda_sha256": A1, "code_digest": CODE}, "discovery", p)["ok"] is True
+
+
+def test_a_record_written_under_a_superseded_entry_of_its_stage_still_verifies(tmp_path):
+    """Addendum 2 item 5: a later change "can neither validate nor invalidate a record written earlier".  Appending a
+    POST-HOC addendum changes the below-footer digest of every stage that has not written its records yet, so those
+    stages are re-registered (force) -- and any record already written under the earlier entry must keep verifying
+    against THAT entry, which ``force`` kept under ``superseded``."""
+    p = tmp_path / "reg.json"
+    A3 = "a3" * 32
+    REG.register_stage("scorer", below_footer_sha256=A2, code_digest=CODE, git_head=None, addenda_count=2,
+                       note="two addenda", path=p)
+    old_rec = {"prereg_addenda_sha256": A2, "code_digest": CODE, "prereg_n_addenda": 2, "registry_stage": "scorer"}
+    assert REG.verify_record(old_rec, None, p)["matched_entry"] == "current"
+    # a third addendum is appended and the stage is re-registered under the new below-footer digest
+    REG.register_stage("scorer", below_footer_sha256=A3, code_digest=CODE, git_head=None, addenda_count=3,
+                       note="three addenda (addendum 3)", path=p, force=True)
+    assert REG.registered("scorer", p)["addenda_count"] == 3
+    new_rec = {**old_rec, "prereg_addenda_sha256": A3, "prereg_n_addenda": 3}
+    assert REG.verify_record(new_rec, None, p)["matched_entry"] == "current"
+    # the earlier record is NOT invalidated: it verifies against the superseded entry, which is named
+    got = REG.verify_record(old_rec, None, p)
+    assert got["ok"] is True and got["matched_entry"] == "superseded"
+    assert got["superseded_match"]["below_footer_sha256"] == A2 and got["superseded_match"]["addenda_count"] == 2
+    assert set(got["mismatches_against_current"]) == {"prereg_addenda_sha256", "prereg_n_addenda"}
+    assert "invalidates no record written earlier" in got["reason"]
+    assert REG.verify_record(old_rec, "scorer", p, raise_on_mismatch=True)["ok"] is True
+    assert [e["below_footer_sha256"] for e in REG.superseded_entries("scorer", p)] == [A2]
+    assert REG.superseded_entries("h3", p) == []
+    # a record matching NO entry of its stage, current or superseded, still does not verify
+    foreign = {**old_rec, "code_digest": "f" * 64}
+    assert REG.verify_record(foreign, None, p)["ok"] is False
+    with pytest.raises(D.StaleRecordError, match="superseded"):
+        REG.verify_record(foreign, "scorer", p, raise_on_mismatch=True)
+    # the real registry: the scorer's S1(c) yardstick records were written under addendum 2 and must still verify
+    if REAL_REGISTRY.exists():
+        yard = paths.G19_ROOT / "evaluation" / "discovery" / "_s1c_yardsticks"
+        for js in sorted(yard.rglob("yardsticks.json")):
+            rec = json.loads(js.read_text(encoding="utf-8"))
+            out = REG.verify_record(rec, None)
+            assert out["ok"] is True, f"{js}: {out}"
 
 
 def test_log_code_change_appends_and_touches_no_stage_entry(tmp_path):
@@ -548,3 +589,58 @@ def test_discovery_complete_verifies_each_record_set_against_its_own_stage(tmp_p
     with pytest.raises(D.StaleRecordError):
         H3.discovery_complete(out, code="z" * 64, **kw)
     assert "record_dir_code" in H3.discovery_complete.__doc__
+
+
+def test_the_superseded_fallback_is_ordered_by_the_records_own_timestamp(tmp_path):
+    """Task X finding V-P06: the fallback of the test above protects a record written EARLIER.  Without an ordering
+    check a record written AFTER a re-registration, by a runner still holding the stale code, verifies exactly like one
+    written before it -- so the check is made explicit, on the record's own timestamp."""
+    p = tmp_path / "reg.json"
+    A3, OLD, NEW = "a3" * 32, "0a" * 32, "0b" * 32
+    REG.register_stage("h3", below_footer_sha256=A2, code_digest=OLD, git_head=None, addenda_count=2,
+                       note="before the edit", path=p)
+    base = {"prereg_addenda_sha256": A2, "code_digest": OLD, "prereg_n_addenda": 2, "registry_stage": "h3"}
+    REG.register_stage("h3", below_footer_sha256=A3, code_digest=NEW, git_head=None, addenda_count=3,
+                       note="after the edit (addendum 3 + a code change)", path=p, force=True)
+    sup = REG.superseded_entries("h3", p)[0]["superseded_utc"]
+    assert sup
+
+    def shift(stamp: str, minutes: int) -> str:
+        return (_dt.datetime.fromisoformat(stamp) + _dt.timedelta(minutes=minutes)).isoformat(timespec="seconds")
+
+    earlier, later = shift(sup, -30), shift(sup, +30)
+    # written EARLIER: verifies against the superseded entry, and the ordering WAS checked
+    ok = REG.verify_record({**base, "written_utc": earlier}, None, p)
+    assert ok["ok"] is True and ok["matched_entry"] == "superseded" and ok["ordering_checked"] is True
+    # written LATER under the same stale code: does NOT verify
+    bad = REG.verify_record({**base, "written_utc": later}, None, p)
+    assert bad["ok"] is False and bad["matched_entry"] is None
+    assert bad["stale_after_supersession"][0]["code_digest"] == OLD
+    assert "after that entry was superseded" in bad["reason"] and "refit it under the registered code" in bad["reason"]
+    with pytest.raises(D.StaleRecordError, match="after that entry was superseded"):
+        REG.verify_record({**base, "written_utc": later}, "h3", p, raise_on_mismatch=True)
+    # the timestamp may also come from the record's own run steps, or be passed in
+    assert REG.record_run_utc({"steps": {"point": {"date_utc": earlier}, "intervals": {"date_utc": later}}}) == later
+    assert REG.record_run_utc(base) is None
+    assert REG.verify_record({**base, "steps": {"point": {"date_utc": later}}}, None, p)["ok"] is False
+    assert REG.verify_record(base, None, p, written_utc=later)["ok"] is False
+    # a record with NO timestamp at all cannot be ordered: it still verifies, and the result says the check did not run
+    none = REG.verify_record(base, None, p)
+    assert none["ok"] is True and none["matched_entry"] == "superseded" and none["ordering_checked"] is False
+    assert "carries no timestamp" in none["reason"]
+
+
+def test_registered_code_digests_lists_the_current_entry_then_the_superseded_ones(tmp_path):
+    """The resolution a reader uses for a record SET written before a re-registration (``h3.record_set_code``)."""
+    p = tmp_path / "reg.json"
+    REG.register_stage("h3", below_footer_sha256=A1, code_digest="0a" * 32, git_head=None, addenda_count=1,
+                       note="first", path=p)
+    REG.register_stage("h3", below_footer_sha256=A1, code_digest="0b" * 32, git_head=None, addenda_count=1,
+                       note="second", path=p, force=True)
+    REG.register_stage("h3", below_footer_sha256=A1, code_digest="0c" * 32, git_head=None, addenda_count=1,
+                       note="third", path=p, force=True)
+    got = REG.registered_code_digests("h3", p)
+    assert [g["code_digest"] for g in got] == ["0c" * 32, "0b" * 32, "0a" * 32]
+    assert [g["matched_entry"] for g in got] == ["current", "superseded", "superseded"]
+    assert got[0]["superseded_utc"] is None and got[1]["superseded_utc"]
+    assert REG.registered_code_digests("power", p) == []

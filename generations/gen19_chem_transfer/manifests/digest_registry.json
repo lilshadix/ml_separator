@@ -50,6 +50,225 @@
       ],
       "logged_utc": "2026-09-22T04:10:01+00:00",
       "reason": "task X source fixes to the completed discovery run's SCORER and evaluation code (findings V-S01..V-S07, V-S1-01, V-S1C-02, V-BUD-03, V-REP-04, V-H1B-05, V-BH-06, V-REC-07, V-REG-08, V-MAN-09, V-REP-10): BH per family (prereg bh_p) with the pooled adjustment printed beside; per-arm fold scheme on every contrast and metric row and 'exact' as the B6/B6r0 V5 label; TOST envelope construction, cluster unit and cluster count on every row; unclustered-equivalent labelling when one cluster per scoring unit; S1(c) min-delta cluster count, interval separation from -0.02, the >= 0.3 gate's 1e-9 tolerance and the 12 boundary pairs; the dead builder-pair cross-check now runs (builder_pairs=bp); the batched B3x/B3i yardstick refits persisted as a verifiable record set under evaluation/discovery/_s1c_yardsticks; S1(d) decided and S1(e) NOT_EVALUATED with its reason; a budget block carrying used_hours/exhausted/demoted_now/ledger.demoted and addendum 2's 40 h ladder ledger (LADDER_BUDGET_HOURS now has one source); record sets the plan never scheduled labelled not_planned; the manifest's confirmation_half_read and v6_target_rows_scored derived from guard counters; run_info records every pass's runtime; registry entries record code_digest_source and an identical re-registration may correct descriptive fields only. Nothing re-validates or invalidates a discovery record: records are verified against the registry's 'discovery' entry (895a6ab9...) and the live discovery code digest is unchanged (d4ddf83c...), because no CODE_FILES file and no RUNNER_OBJECTS function was touched. Tests: test_discovery_runner, test_h3, test_ladder, test_registry."
+    },
+    {
+      "commit": "uncommitted at 257bc3a (the commit that appended POST-HOC addendum 3; the orchestrator commits)",
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/discovery.py",
+          "sha256_lf": "d3dd24aaa67af8c0b1635dab09c74cc1b859d55ac6b7c9e7a4ef6ee88473d45d"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/h3.py",
+          "sha256_lf": "118bc42643e8b737e2728335d9632ddb3ae91637ccfb3981f2c454b7dfe12b69"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/registry.py",
+          "sha256_lf": "531a700ebd213fedb2968a9de5808cf8ee57ab322d944be1cad787ab029b7c59"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_run_h3.py",
+          "sha256_lf": "e982f4034ce20ce097e78988e6bcf5a1368a714a87f037017f800e0a650c3fb9"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_run_ladder.py",
+          "sha256_lf": "ce1e03e75fa6f8cae6b9b6abb0fe387b17d7d9fcbaf09e6ae45d2305180da3fb"
+        }
+      ],
+      "logged_utc": "2026-09-22T05:15:03+00:00",
+      "reason": "POST-HOC addendum 3 in code, before any post-discovery runner starts. Item 1 (freezing eligibility, section 15): discovery.freezing_eligibility + FREEZING_RULE replace the flag passed_items_1_5_v5_primary with eligible_for_freezing (every R19 item R19 EVALUATES in discovery is PASS and no item is FAIL; item 4 NOT_EVALUATED by addendum 1 item 3 does not disqualify), and the literal section 3.1 V5-P trigger is reported separately as section_3_1_v5p_trigger (V5P_TRIGGER_RULE); the V5-P not_run marker says so. Item 2 (deployed configuration, section 11 / F6): h3.deployed_configuration returns the ladder's RETAINED configuration and now includes its base step M0 (= B5) when neither M1 nor M2 is kept (h3.LADDER_BASE), with addendum 2's remaining order (M2 / B6 by the stop-rule scope, then B3i) reached only when the ladder retains no step at all; READINGS['deployed_rule'] states it and no longer asks for a further addendum; h3.py and g19_run_h3.py docstrings follow. Item 3: g19_run_ladder tests the M0-retained not_run case BEFORE the 40 h budget check, so M3-M7 are not_run for the registered reason independently of any ledger demotion and no ladder wall clock is consumed. registry.verify_record now also accepts a SUPERSEDED entry of the record's own stage (registry.superseded_entries) and register_stage_from_tree / the CLI take --force, so re-registering the post-discovery stages under the three-addenda text validates or invalidates no record written earlier (addendum 2 item 5). Nothing re-validates or invalidates a discovery record: no CODE_FILES file and no RUNNER_OBJECTS function was touched, so the live discovery code digest is unchanged (d4ddf83c...) and the 'discovery' (895a6ab9...) and 'discovery_candidates' entries are untouched. Tests: test_h3, test_discovery_runner, test_registry."
+    },
+    {
+      "commit": "uncommitted at 257bc3a (the orchestrator commits)",
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/h3.py",
+          "sha256_lf": "28bf55cf03218061a551840796788a21e2c4629f484b551ce1b9c484ef89fd8d"
+        }
+      ],
+      "logged_utc": "2026-09-22T05:34:35+00:00",
+      "reason": "addendum 3 item 2, follow-up: deployed_configuration's M0 basis now records, when ladder.json -> stop_rule is true, that addendum 3 item 2 was resolved on a state where the stop rule did NOT fire and that the ladder still retains its base step, so the base step is what the rule names and addendum 2's F6 fallback is reached only without a retained step. A transparency string only: the arm it returns is unchanged for every input. The h3 and power stages are re-registered with the new code digest (their records do not exist yet, so nothing is invalidated); tests/test_report.py's synthetic decisions.json now holds a ladder with NO retained step so that it still exercises the F6 fallback, with the retained-M0 case asserted beside it, and tests/test_manifest.py follows the fold-build chain to g19_build_folds_max4 (the section 7 item 6 re-colouring), which is what is on disk for folds/INDEX.json and folds/wildcard_copy_crossings.csv."
+    },
+    {
+      "commit": "uncommitted at 257bc3a (the orchestrator commits)",
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/h3.py",
+          "sha256_lf": "c799057f9af049f4ba74e79b26faf53ab9d4f391f86b80856295bb4ee7d36a1a"
+        }
+      ],
+      "logged_utc": "2026-09-22T05:39:34+00:00",
+      "reason": "addendum 3 item 2, follow-up 2: deployed_configuration is now a thin wrapper over deployed_rule (the rule itself is unchanged) that adds arm_alias = discovery.ARM_ALIASES[arm] and arm_alias_note. Addendum 3 item 2 names the deployed configuration M0 and every 'deployed predictor' sentence must say M0, while M0's discovery records, prediction frames and tables/discovery_summary.csv rows are written under B5; a reader that LOOKS UP a table or record by the deployed arm needs the alias, a reader that PRINTS the deployed predictor needs the name. report.deployed_predictor and g19_make_figures.deployed_arm are outside this task's owned files and still use dep['arm'] for lookups (report.py:802 'ds[arm] == arm' over tables/discovery_summary.csv, report.py:917 verdicts keyed by the aliased arm, g19_make_figures.py:295+311 prediction_frames([arm, 'B3i'])), so they must switch to arm_alias for the lookup and keep arm for the sentence. The h3 and power stages are re-registered with the new code digest; no record of either exists."
+    },
+    {
+      "commit": "uncommitted at 257bc3a (the orchestrator commits)",
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_run_ladder.py",
+          "sha256_lf": "17d42b0ac0ca47694eff3f9279f45d925a3131896f514bdf82b458f9512211c0"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/tests/test_ladder.py",
+          "sha256_lf": "b3d77f458f843b8aea5bc278c1951f59b3353c5f65fd9809dce3f6d9dfddedfe"
+        }
+      ],
+      "logged_utc": "2026-09-22T06:03:31+00:00",
+      "reason": "task L: the ladder's decision files. D05 now states what H6 rests on when the M7 ensemble has not run (POST-HOC addendum 2 item 3: 'H6 / D05 rests on M7 and on the conformal coverage of the other arms') -- new h6_basis() reads the unit-macro split-conformal coverage of the arms that ran from tables/discovery_summary.csv and tables/discovery_comparator_intervals.csv and the scorer's S1(d) block from decisions.json, and D04 always prints the ladder's own wall-clock ledger. Reading only: no metric is recomputed, no new verdict is formed, no fold is fitted; the ladder stage's registered code digest is the discovery entry's and does not move, and no ladder record exists to stale."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_run_power.py",
+          "sha256_lf": "2bbc3e3889619b7cc9a97dfaeb53f6cf8017dc6a27b2dc1cf3f9e2064de38138"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/tests/test_power.py",
+          "sha256_lf": "a55b776714945084ad76eeb1d07ff79d69bc87c251cfbdd3cfffd4e46b43c41d"
+        }
+      ],
+      "logged_utc": "2026-09-22T06:24:28+00:00",
+      "reason": "TASK P: fix the section 8 power check's scored-row guard (finding V-03), which compared discovery.scoring_frame's row_id index with _scored_index's corpus-frame labels and therefore raised 'injected scored rows differ ... 4101 added, 4101 missing' on every contrast; the comparison now runs in row_id space via the new _scored_row_ids helper. No power record existed, so this validates and invalidates nothing; changes no number, only which label space the guard compares. Regression test added in tests/test_power.py."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_run_power.py",
+          "sha256_lf": "bf5147e2a8d26213fcf44c0eafaa8740292deedf62ef41912365f15ed7e39e5a"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/power.py",
+          "sha256_lf": "cbb086ba625525fb3857bdcb8db5e764e32068e8cd1151d40befccf2a3843394"
+        }
+      ],
+      "logged_utc": "2026-09-22T07:18:11+00:00",
+      "reason": "TASK P, fixes 2 and 3 to the never-executed section 8 power runner. (2) g19_run_power.run_contrast now annotates every injected prediction frame with wildcard_copy_partner_in_training via g19_score_discovery.wildcard_flags on the frame's own design stem, as the scorer's Store.frame does; without it D.filtered_pair raised KeyError on the registered wildcard-copy scoring filter, so no contrast could be scored. The crossings depend on the folds only, never on an arm or target, so the injected run is annotated from the table the un-injected run used. (3) power.KappaResult.record now persists the per-item R19 statuses (r19_item1..6, r19_items_failed, r19_items_not_decided, r19_first_failing_item_detail) so an UNDECIDED_UNDERPOWERED verdict can be audited: a kappa failing with a point estimate far above the margin was previously indistinguishable from one failing on the point estimate. Neither change alters any number of the un-injected discovery run; no power record existed, so nothing is validated or invalidated."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/registry.py",
+          "sha256_lf": "1bacab533944932216243a1ab7d26b8d4fc958b489319f6d9253fb920a076836"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/h3.py",
+          "sha256_lf": "7175f11b399e4094ab0b1979fb94834ec10f674634f7cc8b5284f36e8f95773d"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/power.py",
+          "sha256_lf": "2f2468399a7b3b031cb258abf822e3a54f23118852382708a4f61ed5b387f763"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/transfer.py",
+          "sha256_lf": "1cac2bbcc1177cb2d511d3a45c75ad72c3c03974af5b9d4d614fecce0413fe8b"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/report.py",
+          "sha256_lf": "ca226422fd5cf1a0006d1e58a098dc78f28cd2b3e370c52b107fc21e436de861"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_run_h3.py",
+          "sha256_lf": "696adb48d65848e4a2ad3b6fdca5878ce3e79ddb753c550429b9971f0ae39aab"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_run_power.py",
+          "sha256_lf": "ae9e16b6cf549719cc691b3562a155130ae4d7c687a1809d765d01d70ff55801"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_run_ladder.py",
+          "sha256_lf": "b6e4c5f75a30a207c9e85639306ee1c83b30545992057e5839824ea852a53ca9"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_make_figures.py",
+          "sha256_lf": "fe8594781dab0d266a32ba37ffe8946820f63ec00983d0dec82936116ed1ed09"
+        }
+      ],
+      "logged_utc": "2026-09-22T12:21:15+00:00",
+      "reason": "task X verifier fixes, at the source: V-P01 report.verdict_of prints a FAIL as a null only when that contrast's own section 8 power record screened it as an informative null (UNDECIDED (underpowered) / UNDECIDED (no registered power check) otherwise); V-P02 the deployed configuration is looked up by arm_alias (M0's records, frames, summary rows and _support files are written under B5) at h3.d03_markdown, report.section_q2 / section_q4 and g19_make_figures.make_all, with dep['arm'] kept in every printed sentence, plus h3.record_set_code so an edit to h3.py does not invalidate an H3 record set written earlier (addendum 2 item 5); V-P03 the reliability report COMPUTES confirmation_half_read from the halves each estimator read and restricts the reported B7 slopes to the selection half (the both-halves fit is kept beside as a diagnostic); V-P04 / V-L3 transfer.power_verdict labels a contrast whose un-injected scope PASSES as POWERED_NOT_A_NULL instead of INFORMATIVE_NULL; V-P05 the power run's prereg_gate is re-taken for stage 'power' (H3's kept under h3_prereg_gate); V-P06 registry.verify_record orders the superseded fallback by the record's own timestamp and refuses a record written after the supersession; V-P09 the F6 fallback of h3.deployed_rule also requires no evaluated R19 item to FAIL; V-L2 the power runner persists the per-(contrast, kappa) bootstrap input as metrics (per-unit MAE of both arms + cluster labels); V-L4 the ladder ledger records process_seconds beside the budget's seconds and states the discovery overrun in D04 and the report"
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/registry.py",
+          "sha256_lf": "ed95e33f23a733b53aafb28024f8acaed4c8e2e9161c91c2cde79577b88263e0"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/h3.py",
+          "sha256_lf": "e846a10d028946461c0ef1bc50ae49ca966b17d1cad906830e7d40dcf9ff7e4b"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_run_h3.py",
+          "sha256_lf": "8950ecb7490e27e666214284d147b487355a03d314c97e611adffe3f4917663a"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_run_power.py",
+          "sha256_lf": "ca64db86df8b37b7c79490d24c1a0882076e5a3b212a2202a81d4b178c507ef8"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/tests/test_h3.py",
+          "sha256_lf": "2efef0aff894f60e9947de531cd2131f0ad4b5ddfd7ef4a6886cac7773d82fec"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/tests/test_power.py",
+          "sha256_lf": "e76a736fbda1b2a6ab88835067b1ce8fa858b75fcef3e5e0f54565bf89b5368d"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/tests/test_registry.py",
+          "sha256_lf": "6367abe03338f9ee16caf4da6cbdb53161df6e89be80f2e0cd380f62b7335fea"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/tests/test_report.py",
+          "sha256_lf": "c2afcf7defe4c563916991c4ab56e489246959e128d7ff53426b8e23f1aca579"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/tests/test_ladder.py",
+          "sha256_lf": "b97cbbe734d7dca5168913e755bb0edb22808711dca7c7c9fff9cb90dbf46ba5"
+        }
+      ],
+      "logged_utc": "2026-09-22T16:18:10+00:00",
+      "reason": "task X verifier fixes, second pass, while applying V-L1: (a) g19_run_h3.Frames._scoring now annotates every H3 scoring frame with wildcard_copy_partner_in_training from folds/wildcard_copy_crossings.csv, as the scorer's Store.frame and the power runner already do -- without it discovery.filtered_pair raises KeyError and NO H3 contrast could be scored at all, so scripts/g19_run_h3.py --score-only had never run end to end; (b) h3.d03_markdown prints, per contrast, mde_80 against that contrast's own margin, so a FAIL whose 80 %-power detectable effect exceeds the margin is reported as underpowered rather than as a demonstration of no effect (V-L1: the V5 WITH-vs-WITHOUT leg, Delta +0.066866 against delta5 0.105689, mde_80 0.179162); (c) registry.superseded_entries breaks a same-second tie by append order so the newest superseded entry is first; (d) g19_run_power.refuse_unless_ready takes the POWER stage's seal gate from main instead of re-running it; (e) the regression tests for all of the above. The power stage KEEPS its entry ffb79e458b58: its records were written under that code (addendum 2 item 5), and this later edit validates or invalidates none of them"
     }
   ],
   "fallback": "until manifests/digest_registry.json exists every gate reads the constants of evaluation.discovery (N_ADDENDA_EXPECTED, REGISTERED_ADDENDA_SHA256) and the live discovery code digest, exactly as before",
@@ -83,84 +302,85 @@
       "stage": "discovery_candidates"
     },
     "figures": {
-      "addenda_count": 2,
-      "amended_utc": "2026-09-22T04:10:24+00:00",
-      "amendment": "descriptive fields corrected; the below-footer digest, code digest and addenda count are unchanged, so no record's verification changes",
-      "below_footer_sha256": "1016149ea8fbc74a9051ea4c1dd8fb7a5bd26388086325a3dea6c7084d2fcff6",
-      "code_digest": "4de1c89d063279d73820a9d18b5118babb0a976b8cbc9e1382ae4cedb51099e8",
+      "addenda_count": 3,
+      "below_footer_sha256": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
+      "code_digest": "b1cb4cc2ce365f4f80ac5b630b2928845e2ec74e332fe8c35e1176ef1aaa7511",
       "code_digest_source": "the tree: g19_make_figures.code_digest()['combined']",
-      "git_head": "6528835992d4de90fb54107cac9c423f5034b1b0",
-      "note": "registered under POST-HOC addendum 2 before the first post-discovery runner (addendum 2 item 5)",
-      "registered_utc": "2026-09-22T01:59:09+00:00",
+      "git_head": "257bc3a7a525605ce74e8e0bdfd40708fd877981",
+      "note": "task X fixes: figures code re-registered after the verifier fixes",
+      "registered_utc": "2026-09-22T12:21:16+00:00",
       "source": "current tree (below-footer digest and addenda count)",
       "stage": "figures"
     },
     "h3": {
-      "addenda_count": 2,
-      "amended_utc": "2026-09-22T04:10:17+00:00",
-      "amendment": "descriptive fields corrected; the below-footer digest, code digest and addenda count are unchanged, so no record's verification changes",
-      "below_footer_sha256": "1016149ea8fbc74a9051ea4c1dd8fb7a5bd26388086325a3dea6c7084d2fcff6",
-      "code_digest": "9b75fd9ecf3c248115dcf3f8336d342fd423875f9af7dc7b42ca3b228e665507",
+      "addenda_count": 3,
+      "below_footer_sha256": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
+      "code_digest": "741779cb6aad9bce10b5d0ef6f39c6d3ad10e881199ead7a3dfa9110198b54d6",
       "code_digest_source": "the tree: g19_run_h3.code_digest()['combined']",
-      "git_head": "6528835992d4de90fb54107cac9c423f5034b1b0",
-      "note": "registered under POST-HOC addendum 2 before the first post-discovery runner (addendum 2 item 5)",
-      "registered_utc": "2026-09-22T01:58:55+00:00",
+      "git_head": "257bc3a7a525605ce74e8e0bdfd40708fd877981",
+      "note": "task X fixes, second pass: the H3 scoring wildcard annotation and the D03 power table",
+      "registered_utc": "2026-09-22T16:18:10+00:00",
       "source": "current tree (below-footer digest and addenda count)",
       "stage": "h3"
     },
     "ladder": {
-      "addenda_count": 2,
-      "amended_utc": "2026-09-22T04:10:15+00:00",
-      "amendment": "descriptive fields corrected; the below-footer digest, code digest and addenda count are unchanged, so no record's verification changes",
-      "below_footer_sha256": "1016149ea8fbc74a9051ea4c1dd8fb7a5bd26388086325a3dea6c7084d2fcff6",
+      "addenda_count": 3,
+      "below_footer_sha256": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
       "code_digest": "895a6ab9696010c9f8bffb4a6078f55b8f41b0773623a8de77103083157e0504",
       "code_digest_source": "the registry's 'discovery' entry (g19_run_ladder.ladder_code_digest()['discovery']): a ladder record carries the discovery digest beside its own 'ladder_code_digest', and the runner compares the live value with this entry, so the two agree by construction",
-      "git_head": "6528835992d4de90fb54107cac9c423f5034b1b0",
-      "note": "registered under POST-HOC addendum 2 before the first post-discovery runner (addendum 2 item 5)",
-      "registered_utc": "2026-09-22T01:58:52+00:00",
+      "git_head": "257bc3a7a525605ce74e8e0bdfd40708fd877981",
+      "note": "re-registered under POST-HOC addendum 3 (three addenda below the footer) before the first post-discovery runner; addendum 2 item 5. The earlier two-addenda entry is kept under 'superseded' and every record written under it still verifies (verify_record -> matched_entry 'superseded'); the stages whose records exist -- discovery, discovery_candidates -- keep their entries unchanged.",
+      "registered_utc": "2026-09-22T05:15:18+00:00",
       "source": "current tree (below-footer digest and addenda count)",
       "stage": "ladder"
     },
     "power": {
-      "addenda_count": 2,
-      "amended_utc": "2026-09-22T04:10:19+00:00",
-      "amendment": "descriptive fields corrected; the below-footer digest, code digest and addenda count are unchanged, so no record's verification changes",
-      "below_footer_sha256": "1016149ea8fbc74a9051ea4c1dd8fb7a5bd26388086325a3dea6c7084d2fcff6",
-      "code_digest": "d505cd768b087d173ce790b6f43b856ddc3cac1e450985b3bce06cb2dab54b6a",
+      "addenda_count": 3,
+      "below_footer_sha256": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
+      "code_digest": "ffb79e458b5862ea558ee42519ce5190f9e0bd3e971487dfe6d870e389009efe",
       "code_digest_source": "the tree: g19_run_power.code_digest()['combined']",
-      "git_head": "6528835992d4de90fb54107cac9c423f5034b1b0",
-      "note": "registered under POST-HOC addendum 2 before the first post-discovery runner (addendum 2 item 5)",
-      "registered_utc": "2026-09-22T01:58:57+00:00",
+      "git_head": "257bc3a7a525605ce74e8e0bdfd40708fd877981",
+      "note": "task X fixes: power code re-registered after the verifier fixes",
+      "registered_utc": "2026-09-22T12:21:15+00:00",
       "source": "current tree (below-footer digest and addenda count)",
       "stage": "power"
     },
     "process": {
-      "addenda_count": 2,
-      "amended_utc": "2026-09-22T04:10:21+00:00",
-      "amendment": "descriptive fields corrected; the below-footer digest, code digest and addenda count are unchanged, so no record's verification changes",
-      "below_footer_sha256": "1016149ea8fbc74a9051ea4c1dd8fb7a5bd26388086325a3dea6c7084d2fcff6",
+      "addenda_count": 3,
+      "below_footer_sha256": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
       "code_digest": "a8416dc8c8ab3ba9d71ffc16e8e6b3c8b97d3330143046174059567e66bef674",
       "code_digest_source": "the tree: g19_run_process.code_digests()['own']",
-      "git_head": "6528835992d4de90fb54107cac9c423f5034b1b0",
-      "note": "registered under POST-HOC addendum 2 before the first post-discovery runner (addendum 2 item 5)",
-      "registered_utc": "2026-09-22T01:59:06+00:00",
+      "git_head": "257bc3a7a525605ce74e8e0bdfd40708fd877981",
+      "note": "re-registered under POST-HOC addendum 3 (three addenda below the footer) before the first post-discovery runner; addendum 2 item 5. The earlier two-addenda entry is kept under 'superseded' and every record written under it still verifies (verify_record -> matched_entry 'superseded'); the stages whose records exist -- discovery, discovery_candidates -- keep their entries unchanged.",
+      "registered_utc": "2026-09-22T05:15:25+00:00",
       "source": "current tree (below-footer digest and addenda count)",
       "stage": "process"
     },
     "report": {
-      "addenda_count": 2,
-      "amended_utc": "2026-09-22T04:10:25+00:00",
-      "amendment": "descriptive fields corrected; the below-footer digest, code digest and addenda count are unchanged, so no record's verification changes",
-      "below_footer_sha256": "1016149ea8fbc74a9051ea4c1dd8fb7a5bd26388086325a3dea6c7084d2fcff6",
-      "code_digest": "997379d367ab02dbeffaffd43c305fde7025bf51c037d5b25908fe188e1357cf",
+      "addenda_count": 3,
+      "below_footer_sha256": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
+      "code_digest": "f6bb993478b1772734e564b2ca9776f465f760678bd9923b6d9ea8630dd085b5",
       "code_digest_source": "the tree: g19_build_report.code_digest()['combined']",
-      "git_head": "6528835992d4de90fb54107cac9c423f5034b1b0",
-      "note": "registered under POST-HOC addendum 2 before the first post-discovery runner (addendum 2 item 5)",
-      "registered_utc": "2026-09-22T01:59:11+00:00",
+      "git_head": "257bc3a7a525605ce74e8e0bdfd40708fd877981",
+      "note": "task X fixes: report code re-registered after the verifier fixes",
+      "registered_utc": "2026-09-22T12:21:16+00:00",
       "source": "current tree (below-footer digest and addenda count)",
       "stage": "report"
     },
     "scorer": {
+      "addenda_count": 3,
+      "below_footer_sha256": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
+      "code_digest": "895a6ab9696010c9f8bffb4a6078f55b8f41b0773623a8de77103083157e0504",
+      "code_digest_source": "the registry's 'discovery' entry: the scorer verifies discovery records and writes none of its own, so its entry carries the digest those records were written under, NOT a digest of the scorer's own code (editing the scorer therefore changes no entry, and the seal gate does not compare code digests)",
+      "git_head": "257bc3a7a525605ce74e8e0bdfd40708fd877981",
+      "note": "re-registered under POST-HOC addendum 3 (three addenda below the footer) before the first post-discovery runner; addendum 2 item 5. The earlier two-addenda entry is kept under 'superseded' and every record written under it still verifies (verify_record -> matched_entry 'superseded'); the stages whose records exist -- discovery, discovery_candidates -- keep their entries unchanged.",
+      "registered_utc": "2026-09-22T05:15:14+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "scorer"
+    }
+  },
+  "superseded": [
+    {
       "addenda_count": 2,
       "amended_utc": "2026-09-22T04:10:11+00:00",
       "amendment": "descriptive fields corrected; the below-footer digest, code digest and addenda count are unchanged, so no record's verification changes",
@@ -171,8 +391,242 @@
       "note": "registered under POST-HOC addendum 2 before the first post-discovery runner (addendum 2 item 5)",
       "registered_utc": "2026-09-22T01:58:39+00:00",
       "source": "current tree (below-footer digest and addenda count)",
-      "stage": "scorer"
+      "stage": "scorer",
+      "superseded_by_note": "re-registered under POST-HOC addendum 3 (three addenda below the footer) before the first post-discovery runner; addendum 2 item 5. The earlier two-addenda entry is kept under 'superseded' and every record written under it still verifies (verify_record -> matched_entry 'superseded'); the stages whose records exist -- discovery, discovery_candidates -- keep their entries unchanged.",
+      "superseded_utc": "2026-09-22T05:15:14+00:00"
+    },
+    {
+      "addenda_count": 2,
+      "amended_utc": "2026-09-22T04:10:15+00:00",
+      "amendment": "descriptive fields corrected; the below-footer digest, code digest and addenda count are unchanged, so no record's verification changes",
+      "below_footer_sha256": "1016149ea8fbc74a9051ea4c1dd8fb7a5bd26388086325a3dea6c7084d2fcff6",
+      "code_digest": "895a6ab9696010c9f8bffb4a6078f55b8f41b0773623a8de77103083157e0504",
+      "code_digest_source": "the registry's 'discovery' entry (g19_run_ladder.ladder_code_digest()['discovery']): a ladder record carries the discovery digest beside its own 'ladder_code_digest', and the runner compares the live value with this entry, so the two agree by construction",
+      "git_head": "6528835992d4de90fb54107cac9c423f5034b1b0",
+      "note": "registered under POST-HOC addendum 2 before the first post-discovery runner (addendum 2 item 5)",
+      "registered_utc": "2026-09-22T01:58:52+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "ladder",
+      "superseded_by_note": "re-registered under POST-HOC addendum 3 (three addenda below the footer) before the first post-discovery runner; addendum 2 item 5. The earlier two-addenda entry is kept under 'superseded' and every record written under it still verifies (verify_record -> matched_entry 'superseded'); the stages whose records exist -- discovery, discovery_candidates -- keep their entries unchanged.",
+      "superseded_utc": "2026-09-22T05:15:18+00:00"
+    },
+    {
+      "addenda_count": 2,
+      "amended_utc": "2026-09-22T04:10:17+00:00",
+      "amendment": "descriptive fields corrected; the below-footer digest, code digest and addenda count are unchanged, so no record's verification changes",
+      "below_footer_sha256": "1016149ea8fbc74a9051ea4c1dd8fb7a5bd26388086325a3dea6c7084d2fcff6",
+      "code_digest": "9b75fd9ecf3c248115dcf3f8336d342fd423875f9af7dc7b42ca3b228e665507",
+      "code_digest_source": "the tree: g19_run_h3.code_digest()['combined']",
+      "git_head": "6528835992d4de90fb54107cac9c423f5034b1b0",
+      "note": "registered under POST-HOC addendum 2 before the first post-discovery runner (addendum 2 item 5)",
+      "registered_utc": "2026-09-22T01:58:55+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "h3",
+      "superseded_by_note": "re-registered under POST-HOC addendum 3 (three addenda below the footer) before the first post-discovery runner; addendum 2 item 5. The earlier two-addenda entry is kept under 'superseded' and every record written under it still verifies (verify_record -> matched_entry 'superseded'); the stages whose records exist -- discovery, discovery_candidates -- keep their entries unchanged.",
+      "superseded_utc": "2026-09-22T05:15:20+00:00"
+    },
+    {
+      "addenda_count": 2,
+      "amended_utc": "2026-09-22T04:10:19+00:00",
+      "amendment": "descriptive fields corrected; the below-footer digest, code digest and addenda count are unchanged, so no record's verification changes",
+      "below_footer_sha256": "1016149ea8fbc74a9051ea4c1dd8fb7a5bd26388086325a3dea6c7084d2fcff6",
+      "code_digest": "d505cd768b087d173ce790b6f43b856ddc3cac1e450985b3bce06cb2dab54b6a",
+      "code_digest_source": "the tree: g19_run_power.code_digest()['combined']",
+      "git_head": "6528835992d4de90fb54107cac9c423f5034b1b0",
+      "note": "registered under POST-HOC addendum 2 before the first post-discovery runner (addendum 2 item 5)",
+      "registered_utc": "2026-09-22T01:58:57+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "power",
+      "superseded_by_note": "re-registered under POST-HOC addendum 3 (three addenda below the footer) before the first post-discovery runner; addendum 2 item 5. The earlier two-addenda entry is kept under 'superseded' and every record written under it still verifies (verify_record -> matched_entry 'superseded'); the stages whose records exist -- discovery, discovery_candidates -- keep their entries unchanged.",
+      "superseded_utc": "2026-09-22T05:15:22+00:00"
+    },
+    {
+      "addenda_count": 2,
+      "amended_utc": "2026-09-22T04:10:21+00:00",
+      "amendment": "descriptive fields corrected; the below-footer digest, code digest and addenda count are unchanged, so no record's verification changes",
+      "below_footer_sha256": "1016149ea8fbc74a9051ea4c1dd8fb7a5bd26388086325a3dea6c7084d2fcff6",
+      "code_digest": "a8416dc8c8ab3ba9d71ffc16e8e6b3c8b97d3330143046174059567e66bef674",
+      "code_digest_source": "the tree: g19_run_process.code_digests()['own']",
+      "git_head": "6528835992d4de90fb54107cac9c423f5034b1b0",
+      "note": "registered under POST-HOC addendum 2 before the first post-discovery runner (addendum 2 item 5)",
+      "registered_utc": "2026-09-22T01:59:06+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "process",
+      "superseded_by_note": "re-registered under POST-HOC addendum 3 (three addenda below the footer) before the first post-discovery runner; addendum 2 item 5. The earlier two-addenda entry is kept under 'superseded' and every record written under it still verifies (verify_record -> matched_entry 'superseded'); the stages whose records exist -- discovery, discovery_candidates -- keep their entries unchanged.",
+      "superseded_utc": "2026-09-22T05:15:25+00:00"
+    },
+    {
+      "addenda_count": 2,
+      "amended_utc": "2026-09-22T04:10:24+00:00",
+      "amendment": "descriptive fields corrected; the below-footer digest, code digest and addenda count are unchanged, so no record's verification changes",
+      "below_footer_sha256": "1016149ea8fbc74a9051ea4c1dd8fb7a5bd26388086325a3dea6c7084d2fcff6",
+      "code_digest": "4de1c89d063279d73820a9d18b5118babb0a976b8cbc9e1382ae4cedb51099e8",
+      "code_digest_source": "the tree: g19_make_figures.code_digest()['combined']",
+      "git_head": "6528835992d4de90fb54107cac9c423f5034b1b0",
+      "note": "registered under POST-HOC addendum 2 before the first post-discovery runner (addendum 2 item 5)",
+      "registered_utc": "2026-09-22T01:59:09+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "figures",
+      "superseded_by_note": "re-registered under POST-HOC addendum 3 (three addenda below the footer) before the first post-discovery runner; addendum 2 item 5. The earlier two-addenda entry is kept under 'superseded' and every record written under it still verifies (verify_record -> matched_entry 'superseded'); the stages whose records exist -- discovery, discovery_candidates -- keep their entries unchanged.",
+      "superseded_utc": "2026-09-22T05:15:27+00:00"
+    },
+    {
+      "addenda_count": 2,
+      "amended_utc": "2026-09-22T04:10:25+00:00",
+      "amendment": "descriptive fields corrected; the below-footer digest, code digest and addenda count are unchanged, so no record's verification changes",
+      "below_footer_sha256": "1016149ea8fbc74a9051ea4c1dd8fb7a5bd26388086325a3dea6c7084d2fcff6",
+      "code_digest": "997379d367ab02dbeffaffd43c305fde7025bf51c037d5b25908fe188e1357cf",
+      "code_digest_source": "the tree: g19_build_report.code_digest()['combined']",
+      "git_head": "6528835992d4de90fb54107cac9c423f5034b1b0",
+      "note": "registered under POST-HOC addendum 2 before the first post-discovery runner (addendum 2 item 5)",
+      "registered_utc": "2026-09-22T01:59:11+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "report",
+      "superseded_by_note": "re-registered under POST-HOC addendum 3 (three addenda below the footer) before the first post-discovery runner; addendum 2 item 5. The earlier two-addenda entry is kept under 'superseded' and every record written under it still verifies (verify_record -> matched_entry 'superseded'); the stages whose records exist -- discovery, discovery_candidates -- keep their entries unchanged.",
+      "superseded_utc": "2026-09-22T05:15:29+00:00"
+    },
+    {
+      "addenda_count": 3,
+      "below_footer_sha256": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
+      "code_digest": "387dc3eb289fc7a23a40cada96b572f7bb26134da4fa3139762c4c727dbd354c",
+      "code_digest_source": "the tree: g19_run_h3.code_digest()['combined']",
+      "git_head": "257bc3a7a525605ce74e8e0bdfd40708fd877981",
+      "note": "re-registered under POST-HOC addendum 3 (three addenda below the footer) before the first post-discovery runner; addendum 2 item 5. The earlier two-addenda entry is kept under 'superseded' and every record written under it still verifies (verify_record -> matched_entry 'superseded'); the stages whose records exist -- discovery, discovery_candidates -- keep their entries unchanged.",
+      "registered_utc": "2026-09-22T05:15:20+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "h3",
+      "superseded_by_note": "re-registered under POST-HOC addendum 3 (three addenda below the footer) before the first post-discovery runner; addendum 2 item 5. Second registration of this stage under addendum 3: h3.py gained the stop-rule transparency note in deployed_configuration's M0 basis, which changes the h3 and power code digests. No record of either stage exists, and the earlier entries stay under 'superseded', so nothing is invalidated.",
+      "superseded_utc": "2026-09-22T05:34:36+00:00"
+    },
+    {
+      "addenda_count": 3,
+      "below_footer_sha256": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
+      "code_digest": "bf727e26c75124496bba23eaad0de9803c7f682b1fad4f7d559e920dcc213aef",
+      "code_digest_source": "the tree: g19_run_power.code_digest()['combined']",
+      "git_head": "257bc3a7a525605ce74e8e0bdfd40708fd877981",
+      "note": "re-registered under POST-HOC addendum 3 (three addenda below the footer) before the first post-discovery runner; addendum 2 item 5. The earlier two-addenda entry is kept under 'superseded' and every record written under it still verifies (verify_record -> matched_entry 'superseded'); the stages whose records exist -- discovery, discovery_candidates -- keep their entries unchanged.",
+      "registered_utc": "2026-09-22T05:15:22+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "power",
+      "superseded_by_note": "re-registered under POST-HOC addendum 3 (three addenda below the footer) before the first post-discovery runner; addendum 2 item 5. Second registration of this stage under addendum 3: h3.py gained the stop-rule transparency note in deployed_configuration's M0 basis, which changes the h3 and power code digests. No record of either stage exists, and the earlier entries stay under 'superseded', so nothing is invalidated.",
+      "superseded_utc": "2026-09-22T05:34:38+00:00"
+    },
+    {
+      "addenda_count": 3,
+      "below_footer_sha256": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
+      "code_digest": "0d9205464910b1545c5be40a080bb07c6a9380f8b56127547127e4f4f2684c96",
+      "code_digest_source": "the tree: g19_run_h3.code_digest()['combined']",
+      "git_head": "257bc3a7a525605ce74e8e0bdfd40708fd877981",
+      "note": "re-registered under POST-HOC addendum 3 (three addenda below the footer) before the first post-discovery runner; addendum 2 item 5. Second registration of this stage under addendum 3: h3.py gained the stop-rule transparency note in deployed_configuration's M0 basis, which changes the h3 and power code digests. No record of either stage exists, and the earlier entries stay under 'superseded', so nothing is invalidated.",
+      "registered_utc": "2026-09-22T05:34:36+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "h3",
+      "superseded_by_note": "re-registered under POST-HOC addendum 3 (three addenda below the footer) before the first post-discovery runner; addendum 2 item 5. Third registration under addendum 3: h3.deployed_configuration gained arm_alias (the record / table name of the deployed arm) over the unchanged deployed_rule, which changes the h3 and power code digests. No record of either stage exists and the earlier entries stay under 'superseded', so nothing is invalidated.",
+      "superseded_utc": "2026-09-22T05:39:36+00:00"
+    },
+    {
+      "addenda_count": 3,
+      "below_footer_sha256": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
+      "code_digest": "34152cee49c462f34ae2e1f924ff5d1ed581fce2dcde760bacd53822c729b5af",
+      "code_digest_source": "the tree: g19_run_power.code_digest()['combined']",
+      "git_head": "257bc3a7a525605ce74e8e0bdfd40708fd877981",
+      "note": "re-registered under POST-HOC addendum 3 (three addenda below the footer) before the first post-discovery runner; addendum 2 item 5. Second registration of this stage under addendum 3: h3.py gained the stop-rule transparency note in deployed_configuration's M0 basis, which changes the h3 and power code digests. No record of either stage exists, and the earlier entries stay under 'superseded', so nothing is invalidated.",
+      "registered_utc": "2026-09-22T05:34:38+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "power",
+      "superseded_by_note": "re-registered under POST-HOC addendum 3 (three addenda below the footer) before the first post-discovery runner; addendum 2 item 5. Third registration under addendum 3: h3.deployed_configuration gained arm_alias (the record / table name of the deployed arm) over the unchanged deployed_rule, which changes the h3 and power code digests. No record of either stage exists and the earlier entries stay under 'superseded', so nothing is invalidated.",
+      "superseded_utc": "2026-09-22T05:39:38+00:00"
+    },
+    {
+      "addenda_count": 3,
+      "below_footer_sha256": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
+      "code_digest": "54e9858f3a18bad0fc31eed2a4c5765c53be65fa20a44a35ca3205b9f4775f1f",
+      "code_digest_source": "the tree: g19_run_power.code_digest()['combined']",
+      "git_head": "257bc3a7a525605ce74e8e0bdfd40708fd877981",
+      "note": "re-registered under POST-HOC addendum 3 (three addenda below the footer) before the first post-discovery runner; addendum 2 item 5. Third registration under addendum 3: h3.deployed_configuration gained arm_alias (the record / table name of the deployed arm) over the unchanged deployed_rule, which changes the h3 and power code digests. No record of either stage exists and the earlier entries stay under 'superseded', so nothing is invalidated.",
+      "registered_utc": "2026-09-22T05:39:38+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "power",
+      "superseded_by_note": "TASK P: re-registered after the finding V-03 scored-row guard fix in scripts/g19_run_power.py (row_id space, not corpus-label space). 3 addenda / 646201ec. No power record had been written under the superseded entry, so nothing is invalidated.",
+      "superseded_utc": "2026-09-22T06:24:36+00:00"
+    },
+    {
+      "addenda_count": 3,
+      "below_footer_sha256": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
+      "code_digest": "4f7b0892bdad4617ee9ddc9973db1d887b810aa1a5cc7794f6392f1134b83a82",
+      "code_digest_source": "the tree: g19_run_power.code_digest()['combined']",
+      "git_head": "257bc3a7a525605ce74e8e0bdfd40708fd877981",
+      "note": "TASK P: re-registered after the finding V-03 scored-row guard fix in scripts/g19_run_power.py (row_id space, not corpus-label space). 3 addenda / 646201ec. No power record had been written under the superseded entry, so nothing is invalidated.",
+      "registered_utc": "2026-09-22T06:24:36+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "power",
+      "superseded_by_note": "TASK P: re-registered after fixes 2 and 3 (wildcard-copy annotation of the injected frames; per-kappa R19 item statuses). 3 addenda / 646201ec, git_head 257bc3a. No power record had been written under any superseded entry.",
+      "superseded_utc": "2026-09-22T07:18:13+00:00"
+    },
+    {
+      "addenda_count": 3,
+      "below_footer_sha256": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
+      "code_digest": "c5069f9c8736b7403901b6be077ccb0456bec137ba4403e914e6136d06a95b30",
+      "code_digest_source": "the tree: g19_run_h3.code_digest()['combined']",
+      "git_head": "257bc3a7a525605ce74e8e0bdfd40708fd877981",
+      "note": "re-registered under POST-HOC addendum 3 (three addenda below the footer) before the first post-discovery runner; addendum 2 item 5. Third registration under addendum 3: h3.deployed_configuration gained arm_alias (the record / table name of the deployed arm) over the unchanged deployed_rule, which changes the h3 and power code digests. No record of either stage exists and the earlier entries stay under 'superseded', so nothing is invalidated.",
+      "registered_utc": "2026-09-22T05:39:36+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "h3",
+      "superseded_by_note": "task X fixes: h3 code re-registered after the verifier fixes",
+      "superseded_utc": "2026-09-22T12:21:15+00:00"
+    },
+    {
+      "addenda_count": 3,
+      "below_footer_sha256": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
+      "code_digest": "25653a1f3d796f40aab44560af13a1d0f8aed41442051c372fce197fdf6991da",
+      "code_digest_source": "the tree: g19_run_power.code_digest()['combined']",
+      "git_head": "257bc3a7a525605ce74e8e0bdfd40708fd877981",
+      "note": "TASK P: re-registered after fixes 2 and 3 (wildcard-copy annotation of the injected frames; per-kappa R19 item statuses). 3 addenda / 646201ec, git_head 257bc3a. No power record had been written under any superseded entry.",
+      "registered_utc": "2026-09-22T07:18:13+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "power",
+      "superseded_by_note": "task X fixes: power code re-registered after the verifier fixes",
+      "superseded_utc": "2026-09-22T12:21:15+00:00"
+    },
+    {
+      "addenda_count": 3,
+      "below_footer_sha256": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
+      "code_digest": "4de1c89d063279d73820a9d18b5118babb0a976b8cbc9e1382ae4cedb51099e8",
+      "code_digest_source": "the tree: g19_make_figures.code_digest()['combined']",
+      "git_head": "257bc3a7a525605ce74e8e0bdfd40708fd877981",
+      "note": "re-registered under POST-HOC addendum 3 (three addenda below the footer) before the first post-discovery runner; addendum 2 item 5. The earlier two-addenda entry is kept under 'superseded' and every record written under it still verifies (verify_record -> matched_entry 'superseded'); the stages whose records exist -- discovery, discovery_candidates -- keep their entries unchanged.",
+      "registered_utc": "2026-09-22T05:15:27+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "figures",
+      "superseded_by_note": "task X fixes: figures code re-registered after the verifier fixes",
+      "superseded_utc": "2026-09-22T12:21:16+00:00"
+    },
+    {
+      "addenda_count": 3,
+      "below_footer_sha256": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
+      "code_digest": "997379d367ab02dbeffaffd43c305fde7025bf51c037d5b25908fe188e1357cf",
+      "code_digest_source": "the tree: g19_build_report.code_digest()['combined']",
+      "git_head": "257bc3a7a525605ce74e8e0bdfd40708fd877981",
+      "note": "re-registered under POST-HOC addendum 3 (three addenda below the footer) before the first post-discovery runner; addendum 2 item 5. The earlier two-addenda entry is kept under 'superseded' and every record written under it still verifies (verify_record -> matched_entry 'superseded'); the stages whose records exist -- discovery, discovery_candidates -- keep their entries unchanged.",
+      "registered_utc": "2026-09-22T05:15:29+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "report",
+      "superseded_by_note": "task X fixes: report code re-registered after the verifier fixes",
+      "superseded_utc": "2026-09-22T12:21:16+00:00"
+    },
+    {
+      "addenda_count": 3,
+      "below_footer_sha256": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
+      "code_digest": "de05ad5117d18710566d696749cbf65e133ecfa22286ff48ccc44402f9c92096",
+      "code_digest_source": "the tree: g19_run_h3.code_digest()['combined']",
+      "git_head": "257bc3a7a525605ce74e8e0bdfd40708fd877981",
+      "note": "task X fixes: h3 code re-registered after the verifier fixes",
+      "registered_utc": "2026-09-22T12:21:15+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "h3",
+      "superseded_by_note": "task X fixes, second pass: the H3 scoring wildcard annotation and the D03 power table",
+      "superseded_utc": "2026-09-22T16:18:10+00:00"
     }
-  },
-  "superseded": []
+  ]
 }

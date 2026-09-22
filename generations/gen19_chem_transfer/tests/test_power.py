@@ -168,6 +168,36 @@ def test_unknown_state_rows_are_dropped_from_the_injected_refits(tmp_path):
         ET.assert_same_scored_rows(pd.Index(scored), pd.Index(list(scored)[:-1]))
 
 
+def test_finding_v03_is_checked_in_row_id_space_not_in_corpus_label_space():
+    """The scored-row check of ``run_contrast`` compares ``discovery.scoring_frame``'s index, which is ``row_id``, with
+    the row ids of the un-injected run -- NOT with ``_scored_index``'s corpus-frame labels.
+
+    ``Corpus.labels_of`` maps a row id through ``idmap`` to ``frame.index``, so the two label spaces are disjoint
+    whenever the corpus index is not the row id.  Comparing them directly raised
+    "injected scored rows differ from the un-injected run: N added, N missing" for every contrast (equal counts, because
+    the rows are the same and only the labels differ).
+    """
+    df = _frame()
+    known = df[SG.METAL_COL].notna()
+    scored_index = df.index[known & (df[SG.METAL_COL] == "Nd(III)")]
+
+    class _Corpus:
+        frame = df
+
+    row_ids = RP._scored_row_ids(_Corpus(), scored_index)
+    expected = df.loc[scored_index, FI.ROW_ID].astype(str)
+    assert list(row_ids) == list(expected)
+    assert not row_ids.has_duplicates and len(row_ids) == len(scored_index)
+
+    # what a scoring frame of those rows is indexed by (discovery.scoring_frame sets the index to row_id)
+    scoring_frame_index = pd.Index(expected.to_numpy())
+    ET.assert_same_scored_rows(row_ids, scoring_frame_index)                 # the fixed comparison passes
+    # the corpus-label space must be a DIFFERENT space, or this test would not guard anything
+    assert set(map(str, scored_index)) != set(map(str, scoring_frame_index))
+    with pytest.raises(AssertionError, match="injected scored rows differ"):
+        ET.assert_same_scored_rows(pd.Index(scored_index), scoring_frame_index)
+
+
 def test_kappa_min_logic_and_the_underpowered_bound():
     def res(kappa, passed):
         return PW.KappaResult(kappa=kappa, passed=passed, scope_verdict="PASS" if passed else "FAIL",
@@ -422,12 +452,18 @@ def test_power_runner_refuses_without_the_seal_and_without_the_contrast_files(tm
     # the H3 gates run first (discovery complete, scorer decisions), then the contrast files
     monkeypatch.setattr(RP.h3_module(), "refuse_unless_ready",
                         lambda o, **k: {"prereg_gate": {"prereg_sha256": D.REGISTERED_PREREG_SHA256}})
-    with pytest.raises(SystemExit, match="contrast files are missing"):
+    # ``main`` passes the POWER stage's own gate down (task X finding V-P05); without one this function takes it, and
+    # the power stage's seal gate then refuses on its own account
+    with pytest.raises(SystemExit, match="not the registered text"):
         RP.refuse_unless_ready(out, check=lambda: 0, digests=lambda: {})
+    mine = {"stage": RP.STAGE, "prereg_sha256": D.REGISTERED_PREREG_SHA256}
+    with pytest.raises(SystemExit, match="contrast files are missing"):
+        RP.refuse_unless_ready(out, check=lambda: 0, digests=lambda: {}, prereg_gate=mine)
     (D.discovery_root(out)).mkdir(parents=True, exist_ok=True)
     (D.discovery_root(out) / "contrasts_registered.csv").write_text("family\n", encoding="utf-8")
-    gate = RP.refuse_unless_ready(out, check=lambda: 0, digests=lambda: {})
+    gate = RP.refuse_unless_ready(out, check=lambda: 0, digests=lambda: {}, prereg_gate=mine)
     assert gate["contrast_files"]["contrasts_registered.csv"]
+    assert gate["prereg_gate"]["stage"] == "power" and gate["h3_prereg_gate"]["prereg_sha256"]
 
 
 def test_power_paths_and_arm_specs():
@@ -453,3 +489,93 @@ def test_power_paths_and_arm_specs():
     assert H3.with_job("B0", "V1", passed).design_dir == "V1__copy_exact"
     assert H3.v1_scheme_of("B3i", "V1", passed) == "exact" and H3.v1_scheme_of("M2", "V1", passed) == "grouped"
     assert "V-03" in H3.READINGS["comparator_folds"]
+
+
+def test_a_contrast_that_is_not_a_null_is_not_labelled_an_informative_null():
+    """Task X findings V-L3 / V-P04.  Section 8 scopes the check to a contrast "reported as a null"; addendum 2's
+    ``needs_power`` widened the TRIGGER (family in primary / H1b / S1(b) / H3 with full verdict not PASS), not the
+    verdict vocabulary.  Three of the four checked contrasts are the freezing candidates, whose un-injected
+    freezing-screen verdict is PASS -- labelling them INFORMATIVE_NULL made the persisted artefacts call the frozen
+    claim C1 a null."""
+    def res(kappa, passed):
+        return PW.KappaResult(kappa=kappa, passed=passed, scope_verdict="PASS" if passed else "FAIL",
+                              full_verdict="UNDECIDED", point=0.26, margin=0.1057, n_units=105, n_rows=1200)
+    every = [res(k, True) for k in PW.KAPPAS]
+    # the un-injected contrast PASSES its reported scope: it is not a null, and says so -- kappa_min is still reported
+    ok = PW.kappa_min(every, uninjected_verdict="PASS")
+    assert ok["verdict"] == "POWERED_NOT_A_NULL" and ok["kappa_min"] == 0.1 and ok["informative"] is True
+    assert ok["uninjected_is_a_null"] is False and "not a null" in ok["reported"]
+    assert "the null is informative" not in ok["reported"]
+    weak = PW.kappa_min([res(0.1, False), res(0.25, False), res(0.5, False), res(1.0, True)], uninjected_verdict="PASS")
+    assert weak["verdict"] == "NOT_A_NULL_UNDERPOWERED" and weak["informative"] is False
+    # a FAIL is a null and keeps the registered vocabulary
+    null = PW.kappa_min(every, uninjected_verdict="FAIL")
+    assert null["verdict"] == "INFORMATIVE_NULL" and null["uninjected_is_a_null"] is True
+    assert "the null is informative" in null["reported"]
+    under = PW.kappa_min([res(k, False) for k in PW.KAPPAS], uninjected_verdict="FAIL")
+    assert under["verdict"] == "UNDECIDED_UNDERPOWERED" and under["kappa_min"] is None
+    # unknown: the two null labels as before, and the record says the question was not answered
+    unknown = PW.kappa_min(every)
+    assert unknown["verdict"] == "INFORMATIVE_NULL" and unknown["uninjected_is_a_null"] is None
+    assert set(ET.POWER_VERDICTS) == {"INFORMATIVE_NULL", "UNDECIDED_UNDERPOWERED", "POWERED_NOT_A_NULL",
+                                      "NOT_A_NULL_UNDERPOWERED"}
+    # power_record takes the un-injected verdict from the contrast row the scorer wrote
+    rec = PW.power_record("M2 vs B3i@V5", family="primary", design="V5", arms=["M2", "B3i"], results=every, seed=104729,
+                          u_share={}, n_dropped_unknown_state=0,
+                          uninjected={"point": 0.262976, f"verdict_{H3.VERDICT_SCOPE}": "PASS",
+                                      "r19_verdict_full": "UNDECIDED"})
+    assert rec["verdict"] == "POWERED_NOT_A_NULL" and rec["uninjected_is_a_null"] is False
+    fail = PW.power_record("B6 vs B3i@V5", family="H1b", design="V5", arms=["B6", "B3i"], results=every, seed=104729,
+                           u_share={}, n_dropped_unknown_state=0,
+                           uninjected={"point": -0.104441, f"verdict_{H3.VERDICT_SCOPE}": "FAIL",
+                                       "r19_verdict_full": "FAIL"})
+    assert fail["verdict"] == "INFORMATIVE_NULL" and fail["uninjected_is_a_null"] is True
+
+
+def test_the_bootstrap_input_of_every_kappa_is_persisted_as_metrics():
+    """Task X finding V-L2: the check persisted no injected prediction and no injected per-cell MAE, so every reported
+    Delta and every R19 item behind kappa_min could only be re-derived by repeating the fits.  The per-unit MAE of both
+    arms and the cluster labels the paired bootstrap resamples are metrics, not injected values, so they can be written
+    (brief section 33 is unchanged and the same guard runs on the frame)."""
+    idx = [f"cell{i}" for i in range(6)]
+    pu = D.PairedUnits(design="V5", candidate="M2", comparator="B3i",
+                       cand_mae=pd.Series([0.3, 0.4, 0.5, 0.2, 0.6, 0.35], index=idx),
+                       comp_mae=pd.Series([0.6, 0.5, 0.9, 0.3, 0.8, 0.40], index=idx),
+                       clusters={"system": pd.Series(list("aabbcc"), index=idx),
+                                 "publication_group": pd.Series(list("pqpqpq"), index=idx)}, n_rows=120)
+    fr = PW.per_unit_rows(pu, contrast="M2 vs B3i@V5", kappa=0.25, candidate="M2", comparator="B3i", design="V5")
+    assert list(fr.columns)[:5] == ["contrast", "candidate", "comparator", "design", "kappa"]
+    assert set(fr.columns) >= {"unit", "mae_candidate", "mae_comparator", "delta_unit", "cluster_system",
+                               "cluster_publication_group"}
+    assert len(fr) == 6 and (fr["kappa"] == 0.25).all() and fr["unit"].tolist() == idx
+    # the paired difference is the bootstrap's own statistic: MAE(comparator) - MAE(candidate)
+    assert np.allclose(fr["delta_unit"].to_numpy(), pu.comp_mae.to_numpy() - pu.cand_mae.to_numpy())
+    # ... so the reported point estimate re-derives from the persisted rows without any refit
+    assert math.isclose(float(fr["delta_unit"].mean()), float(pu.comp_mae.mean() - pu.cand_mae.mean()))
+    # and it carries no injected target, signal or per-row prediction
+    PW.assert_no_injected_values(fr, "test")
+    with pytest.raises(AssertionError, match="injected values are never persisted"):
+        PW.assert_no_injected_values(fr.assign(log_D_injected=0.0), "test")
+    rec = PW.power_record("M2 vs B3i@V5", family="primary", design="V5", arms=["M2", "B3i"],
+                          results=[PW.KappaResult(kappa=k, passed=True, scope_verdict="PASS", full_verdict="UNDECIDED",
+                                                  point=0.2, margin=0.05, n_units=6, n_rows=120) for k in PW.KAPPAS],
+                          seed=104729, u_share={}, n_dropped_unknown_state=0)
+    assert rec["per_unit_metrics_persisted"] is True and rec["per_unit_metrics"] == PW.PER_UNIT_REL
+    assert "re-derivable without repeating the refits" in rec["readings"]["per_unit_metrics"]
+
+
+def test_the_power_run_records_its_own_stages_seal_gate_not_h3s(tmp_path, monkeypatch):
+    """Task X finding V-P05: ``refuse_unless_ready`` returned the H3 stage's gate unchanged and that dict was written
+    to both the manifest and ``power_checks.json``, so the audit trail named the wrong registry entry -- while the
+    stage-correct ``registry.refuse_unless_sealed("power", ...)`` did run in ``main`` and had its return value
+    discarded.  Addendum 2 item 5 requires a record to be verified against the registry entry of ITS stage."""
+    monkeypatch.setattr(RP.h3_module(), "refuse_unless_ready",
+                        lambda o, **k: {"prereg_gate": {"stage": "h3", "n_addenda": 3}, "discovery_complete": {}})
+    root = tmp_path / "out"
+    (root / "evaluation" / "discovery").mkdir(parents=True)
+    for f in RP.CONTRAST_FILES:
+        (root / "evaluation" / "discovery" / f).write_text("key\n", encoding="utf-8")
+    mine = {"stage": "power", "n_addenda": 3, "seal_check_exit": 0}
+    gate = RP.refuse_unless_ready(root, prereg_gate=mine)
+    assert gate["prereg_gate"] == mine and gate["prereg_gate"]["stage"] == RP.STAGE == "power"
+    assert gate["h3_prereg_gate"]["stage"] == "h3"               # H3's is kept, beside, under its own key

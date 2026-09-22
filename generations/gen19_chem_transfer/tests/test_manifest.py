@@ -105,20 +105,32 @@ def _on_disk(path: str, sha: str) -> bool:
 @pytest.mark.slow
 def test_preseal_chain_manifests_match_disk_or_are_superseded() -> None:
     """Task X, finding VR-01: ``g19_build_folds.json`` keeps the full build's digests of ``INDEX.json`` and
-    ``wildcard_copy_crossings.csv``; ``g19_build_folds_incremental.json`` supersedes exactly those
-    (``merge.full_build_link``).  Every other output of the pre-seal chain matches disk, and ``g19_run_preseal.json``
-    records every stored prediction / support file and every output of the support update."""
+    ``wildcard_copy_crossings.csv``; each later link of the fold-build CHAIN supersedes exactly those
+    (``merge.full_build_link``, all against the same full build).  The chain is the full build, the pre-seal incremental
+    merge and -- since the section 7 item 6 re-colouring of POST-HOC addendum 2 item 2 -- ``g19_build_folds_max4.json``,
+    whose versions of the two shared files are the ones on disk.  Every other output of the pre-seal chain matches disk,
+    and ``g19_run_preseal.json`` records every stored prediction / support file and every output of the support update."""
     if not (paths.MANIFESTS_DIR / "g19_run_preseal.json").exists():
         pytest.skip("pre-seal manifests absent")
-    inc = json.loads((paths.MANIFESTS_DIR / "g19_build_folds_incremental.json").read_text(encoding="utf-8"))
-    link = inc["merge"]["full_build_link"]
-    assert link["base_manifest_sha256"] == paths.digests(paths.MANIFESTS_DIR / "g19_build_folds.json")["sha256"]
-    inc_out = _outputs("g19_build_folds_incremental")
-    for path, sha in _outputs("g19_build_folds").items():
-        if not _on_disk(path, sha):
-            assert link["superseded_outputs"].get(path) == sha, path
-            assert _on_disk(path, inc_out[path]), path
-    for name in ("g19_build_folds_incremental", "g19_run_preseal", "g19_update_support_preseal"):
+    base_sha = paths.digests(paths.MANIFESTS_DIR / "g19_build_folds.json")["sha256"]
+    chain = ["g19_build_folds", "g19_build_folds_incremental"]
+    if (paths.MANIFESTS_DIR / "g19_build_folds_max4.json").exists():
+        chain.append("g19_build_folds_max4")
+    links: dict[str, dict[str, str]] = {}
+    for name in chain[1:]:
+        body = json.loads((paths.MANIFESTS_DIR / f"{name}.json").read_text(encoding="utf-8"))
+        link = body["merge"]["full_build_link"]
+        assert link["base_manifest_sha256"] == base_sha, name     # every link supersedes the SAME full build
+        links[name] = dict(link["superseded_outputs"])
+    latest = _outputs(chain[-1])
+    for i, name in enumerate(chain[:-1]):
+        superseded_later = set().union(*(set(links[n]) for n in chain[i + 1:]))
+        for path, sha in _outputs(name).items():
+            if _on_disk(path, sha):
+                continue
+            assert path in superseded_later, (name, path)
+            assert _on_disk(path, latest[path]), path              # disk holds the LAST link's version
+    for name in (chain[-1], "g19_run_preseal", "g19_update_support_preseal"):
         bad = [path for path, sha in _outputs(name).items() if not _on_disk(path, sha)]
         assert not bad, (name, bad)
     rp = _outputs("g19_run_preseal")

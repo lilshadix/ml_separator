@@ -1497,16 +1497,37 @@ def inject_targets(y: pd.Series, signal: pd.Series, kappa: float) -> pd.Series:
     return (y + float(kappa) * signal).rename("log_D_injected")
 
 
-def power_verdict(r19_passes_by_kappa: Mapping[float, bool]) -> dict[str, Any]:
+#: the power-check verdicts.  Section 8 scopes the check to a contrast "reported as a null", so the NULL labels apply
+#: only to a contrast whose un-injected verdict is FAIL; addendum 2's `needs_power` widened the TRIGGER (any primary /
+#: H1b / S1(b) / H3 contrast whose full verdict is not PASS), not this vocabulary -- a triggered contrast that PASSES
+#: its scope is not a null and must not be labelled one (task X findings V-L3 / V-P04)
+POWER_VERDICTS: tuple[str, ...] = ("INFORMATIVE_NULL", "UNDECIDED_UNDERPOWERED", "POWERED_NOT_A_NULL",
+                                   "NOT_A_NULL_UNDERPOWERED")
+
+
+def power_verdict(r19_passes_by_kappa: Mapping[float, bool], *, uninjected_verdict: str | None = None) -> dict[str, Any]:
     """kappa_min = smallest registered kappa at which R19 passes; a null with kappa_min > 0.25 (or none) is
-    UNDECIDED (underpowered)."""
+    UNDECIDED (underpowered).
+
+    ``uninjected_verdict`` is the contrast's UN-INJECTED verdict on the reported scope (``verdict_freezing_screen`` /
+    ``reported_verdict``).  Only a FAIL is a null: with a PASS the contrast is labelled ``POWERED_NOT_A_NULL`` (or
+    ``NOT_A_NULL_UNDERPOWERED``), because "the null is informative" is false of a contrast that has no null.  Left
+    ``None`` the caller does not know, and the two null labels are returned as before with
+    ``uninjected_is_a_null`` None."""
     missing = [k for k in KAPPAS if not any(math.isclose(k, float(x)) for x in r19_passes_by_kappa)]
     if missing:
         raise ValueError(f"power check needs every registered kappa; missing {missing}")
     passing = sorted(float(k) for k, ok in r19_passes_by_kappa.items() if ok)
     kmin = passing[0] if passing else None
     informative = kmin is not None and kmin <= KAPPA_MIN_INFORMATIVE + 1e-12
-    return {"kappa_min": kmin, "verdict": "INFORMATIVE_NULL" if informative else "UNDECIDED_UNDERPOWERED"}
+    is_null = None if uninjected_verdict in (None, "") else str(uninjected_verdict).upper() == "FAIL"
+    if is_null is False:
+        verdict = "POWERED_NOT_A_NULL" if informative else "NOT_A_NULL_UNDERPOWERED"
+    else:
+        verdict = "INFORMATIVE_NULL" if informative else "UNDECIDED_UNDERPOWERED"
+    return {"kappa_min": kmin, "verdict": verdict, "informative": bool(informative),
+            "uninjected_is_a_null": is_null, "uninjected_verdict": None if uninjected_verdict in (None, "")
+            else str(uninjected_verdict)}
 
 
 @dataclass(frozen=True)

@@ -1067,8 +1067,11 @@ def test_r19_and_stop_rule_wiring_on_synthetic_predictions():
     assert comp["S1a_M2_vs_B3i"]["r19_full"] == "PASS" and comp["S1b_M2_vs_B0"] is None
     assert "optimistically biased" in comp["label"]
     cands = D.freezing_candidates({"M2 vs B3i@V5": good, "B5 vs B3i@V5": dict(bad, family="exploratory")})
-    assert cands == [{"contrast": "M2 vs B3i@V5", "family": "primary", "arms": ["M2", "B3i"], "design": "V5",
-                      "passed_items_1_5_v5_primary": True, "batching_label": "", "s1_forced_undecided": False}]
+    assert [c["contrast"] for c in cands] == ["M2 vs B3i@V5"]
+    assert {k: cands[0][k] for k in ("family", "arms", "design", "eligible_for_freezing",
+                                     "section_3_1_v5p_trigger", "batching_label", "s1_forced_undecided")} == \
+        {"family": "primary", "arms": ["M2", "B3i"], "design": "V5", "eligible_for_freezing": True,
+         "section_3_1_v5p_trigger": True, "batching_label": "", "s1_forced_undecided": False}
     # task X finding V-05: the failed re-coloured check forces S1 UNDECIDED and labels the heavy-arm V5 contrasts
     failed = D.PlanState(v5_batched_check="failed")
     comp_f = D.s1ab_components({"M2 vs B3i@V5": good}, failed)
@@ -1249,7 +1252,14 @@ def test_r19_item4_not_evaluated_and_the_reduced_sensitivity_set():
     for scope in ("stop_rule", "ladder", "freezing_screen"):
         assert lea["scopes"][scope]["verdict"] == "PASS"
     assert lea["scopes"]["items_1_5"]["verdict"] == "UNDECIDED" and lea["scopes"]["full"]["verdict"] == "UNDECIDED"
-    assert D.freezing_candidates({"M2 vs B3i@V5": lea})[0]["passed_items_1_5_v5_primary"] is False
+    # POST-HOC addendum 3 item 1: item 4 NOT_EVALUATED does not disqualify the contrast for FREEZING, while the literal
+    # section 3.1 V5-P trigger (items 1-5 on V5-primary) still cannot fire -- the two are reported separately
+    cand = D.freezing_candidates({"M2 vs B3i@V5": lea})[0]
+    assert cand["eligible_for_freezing"] is True and cand["section_3_1_v5p_trigger"] is False
+    assert cand["eligibility"]["items_not_evaluated_in_discovery"] == {4: D.ITEM4_NOT_EVALUATED}
+    assert cand["eligibility"]["failed_items"] == [] and cand["eligibility"]["r19_verdict_full"] == "UNDECIDED"
+    assert "item 4 NOT_EVALUATED" in cand["eligibility"]["reason"] and "no item FAIL" in cand["eligibility"]["reason"]
+    assert "addendum 3 item 1" in cand["eligibility"]["rule"]
     assert D.stop_rule(lea, lea)["stop"] is False                  # the stop rule is unchanged by the addendum
     row = pd.DataFrame(D.contrast_rows(lea))
     assert (row["r19_item4"] == D.ITEM4_NOT_EVALUATED).all() and (row["sensitivity_set"] == D.ADDENDUM_LABEL).all()
@@ -1263,6 +1273,45 @@ def test_r19_item4_not_evaluated_and_the_reduced_sensitivity_set():
     assert D.r19_verdict([{"status": "PASS"}, {"status": D.ITEM4_NOT_EVALUATED}]) == "UNDECIDED"
     assert D.r19_verdict([{"status": "FAIL"}, {"status": D.ITEM4_NOT_EVALUATED}]) == "FAIL"
     assert D.r19_verdict([{"status": "PASS"}, {"status": "VACUOUS"}]) == "PASS"
+
+
+def test_freezing_eligibility_is_addendum_3_item_1_not_the_literal_reading():
+    """POST-HOC addendum 3 item 1 (section 15): a contrast is eligible for freezing when every R19 item that R19
+    EVALUATES in discovery is PASS and no item is FAIL.  Item 4 is NOT_EVALUATED for every learned arm (addendum 1 item
+    3), so the literal reading of 'passed R19 in discovery' is unsatisfiable and the confirmation run could never
+    happen; an UNTESTABLE item 6 of the reduced set is likewise not a FAIL.  Any FAIL disqualifies."""
+    reduced = {"strict_setting", "HNO3_only_cells", *D.SCORING_FILTER_SENSITIVITIES}
+
+    def elig(res):
+        return D.freezing_eligibility(res)
+
+    lea = _contrast(0.1, 1.5, seeds=D.PLAN_SEEDS, learned=True, reduced=sorted(reduced))
+    e = elig(lea)
+    assert e["eligible"] is True and e["r19_verdict_full"] == "UNDECIDED"
+    assert e["items"] == {1: "PASS", 2: "PASS", 3: "PASS", 4: D.ITEM4_NOT_EVALUATED, 5: "PASS", 6: "PASS"}
+    assert e["evaluated_items"] == {1: "PASS", 2: "PASS", 3: "PASS", 5: "PASS", 6: "PASS"}
+    assert e["items_not_evaluated_in_discovery"] == {4: D.ITEM4_NOT_EVALUATED} and e["failed_items"] == []
+    assert e["reason"].startswith("items [1, 2, 3, 5, 6] PASS")
+    assert "item 4 " + D.ITEM4_NOT_EVALUATED in e["reason"] and e["reason"].endswith("no item FAIL")
+    # a contrast whose full R19 passes on all five seeds is eligible too (nothing is unevaluated)
+    full = _contrast(0.1, 1.5)
+    assert elig(full)["eligible"] is True and elig(full)["items_not_evaluated_in_discovery"] == {}
+    # any FAIL disqualifies, whatever else passes
+    bad = _contrast(1.5, 0.1, seeds=D.PLAN_SEEDS, learned=True, reduced=sorted(reduced))
+    eb = elig(bad)
+    assert eb["eligible"] is False and eb["failed_items"] and eb["r19_verdict_full"] == "FAIL"
+    assert eb["reason"].startswith("FAIL: ") or "FAIL: " in eb["reason"]
+    # an UNTESTABLE item 6 (a refit of the reduced set that could not be evaluated) is not a FAIL
+    unt = _contrast(0.1, 1.5, seeds=D.PLAN_SEEDS, learned=True, reduced=sorted(reduced))
+    items = [dict(i, status=ET.UNTESTABLE) if i["item"] == 6 else dict(i) for i in unt["r19"].items]
+    unt = dict(unt, r19=replace(unt["r19"], items=tuple(items), verdict=D.r19_verdict(items)))
+    eu = elig(unt)
+    assert eu["eligible"] is True and eu["items_not_evaluated_in_discovery"] == {4: D.ITEM4_NOT_EVALUATED,
+                                                                                6: ET.UNTESTABLE}
+    assert "addendum 3 item 1" in D.FREEZING_RULE and "at most five claims" in D.FREEZING_RULE
+    assert "section 3.1" in D.V5P_TRIGGER_RULE and "addendum 3 item 1" in D.V5P_TRIGGER_RULE.lower()
+    # the screen itself is unchanged: only a registered family that passes the freezing screen is listed at all
+    assert D.freezing_candidates({"x vs y@V5": dict(bad, family="primary")}) == []
 
 
 def test_paired_units_refuses_different_rows_and_filters_pair_rows():
@@ -1539,9 +1588,11 @@ def test_scorer_end_to_end_on_synthetic_records(tmp_path):
     assert dec["not_run"]["addendum_1"]["discovery_seeds"] == [s for s in D.DISCOVERY_SEEDS if s != D.PRIMARY_SEED]
     assert "V5-P" in dec["not_run"]["addendum_1"]["sensitivities"]["V5"]
     cands = {c["contrast"]: c for c in res["freezing_candidates"]}
-    # the contrast may still be frozen (items 1-3, 5 and the scoring filters), but the V5-P trigger cannot fire
+    # addendum 3 item 1: the contrast is ELIGIBLE for freezing (no FAIL, every evaluated item PASS) although the literal
+    # section 3.1 V5-P trigger (items 1-5 on V5-primary) cannot fire while item 4 is NOT_EVALUATED
     assert "M2 vs B3i@V5" in cands and "B6 vs B3i@V5" not in cands
-    assert cands["M2 vs B3i@V5"]["passed_items_1_5_v5_primary"] is False
+    assert cands["M2 vs B3i@V5"]["eligible_for_freezing"] is True
+    assert cands["M2 vs B3i@V5"]["section_3_1_v5p_trigger"] is False
     summ = res["summary"]
     mae = summ[(summ["arm"] == "M2") & (summ["metric"] == "mae") & (summ["aggregation"] == "unit_macro")
                & (summ["stratum"] == "all") & (summ["scoring_filter"] == "none")]

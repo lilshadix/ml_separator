@@ -110,6 +110,22 @@ def scorer_module():
     return _script("g19_score_discovery")
 
 
+_CROSSINGS: pd.DataFrame | None = None
+
+
+def crossings() -> pd.DataFrame:
+    """``folds/wildcard_copy_crossings.csv`` as the scorer reads it (``g19_score_discovery.CROSSINGS_CSV``), cached.
+
+    The wildcard-copy crossings depend on the FOLDS only -- which fold hid which row, and which rows are copies of one
+    another -- never on an arm or on a target, so the injected run's frames are annotated from exactly the table the
+    un-injected run used."""
+    global _CROSSINGS
+    if _CROSSINGS is None:
+        sc = scorer_module()
+        _CROSSINGS = pd.read_csv(sc.CROSSINGS_CSV, dtype={"row_id": str, "partner_id": str})
+    return _CROSSINGS
+
+
 def code_digest() -> dict[str, Any]:
     rd = runner_module()
     return D.code_digest(rd.CODE_FILES + (Path(rd.__file__).resolve(),) + CODE_FILES, rd.RUNNER_OBJECTS + CODE_OBJECTS)
@@ -123,11 +139,21 @@ def refuse_unless_ready(out_root: Path, *, check: Callable[[], int] | None = Non
                         digests: Callable[[], Mapping[str, Any]] | None = None, expect_addenda: int | None = None,
                         excluded_ids: Sequence[str] = (), folds_dir: Path | None = None,
                         discovery_code: str | None = None, runners: Mapping[str, Any] | None = None,
-                        jobs: Sequence[D.JobSpec] | None = None, state: D.PlanState | None = None) -> dict[str, Any]:
-    """The H3 runner's three gates plus the contrast files the power check reads."""
+                        jobs: Sequence[D.JobSpec] | None = None, state: D.PlanState | None = None,
+                        prereg_gate: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    """The H3 runner's three gates plus the contrast files the power check reads.
+
+    The H3 gate's ``prereg_gate`` is the H3 stage's, and this run's records are the POWER stage's: addendum 2 item 5
+    says a record is verified "against the registry entry of its stage", so what is RECORDED here is
+    :data:`STAGE`'s own gate -- ``prereg_gate``, the dict ``main`` already took from
+    ``registry.refuse_unless_sealed(STAGE, ...)`` and used to discard -- with H3's kept beside it under
+    ``h3_prereg_gate`` (task X finding V-P05).  Passing no ``prereg_gate`` takes it here instead."""
     gate = h3_module().refuse_unless_ready(out_root, check=check, digests=digests, expect_addenda=expect_addenda,
                                           excluded_ids=excluded_ids, folds_dir=folds_dir,
                                           discovery_code=discovery_code, runners=runners, jobs=jobs, state=state)
+    gate["h3_prereg_gate"] = gate.get("prereg_gate")
+    gate["prereg_gate"] = dict(prereg_gate) if prereg_gate is not None else \
+        REG.refuse_unless_sealed(STAGE, check, digests, expect_addenda=expect_addenda)
     root = D.discovery_root(out_root)
     present = {f: (root / f).exists() for f in CONTRAST_FILES}
     if not all(present.values()):
@@ -280,7 +306,9 @@ def run_contrast(entry: Mapping[str, Any], corpus: Any, attrs: pd.DataFrame, out
     states = corpus.frame[SG.METAL_COL].dropna().astype(str).unique()
     u_share = PW.u_share_for(entry["family"], states)
     scored_index = _scored_index(entry, corpus, state)
+    scored_row_ids = _scored_row_ids(corpus, scored_index)
     results: list[PW.KappaResult] = []
+    unit_rows: list[pd.DataFrame] = []
     n_dropped = 0
     for kappa in kappas:
         run = PW.injected_run(corpus.frame, kappa=float(kappa), seed=seed, scored_index=scored_index, u_share=u_share)
@@ -291,13 +319,19 @@ def run_contrast(entry: Mapping[str, Any], corpus: Any, attrs: pd.DataFrame, out
         for spec in (entry["candidate"], entry["comparator"]):
             preds[spec] = injected_predictions(spec, entry, corpus, icorpus, run, out_root, state, code=code)
         frames = {}
+        sc = scorer_module()
         for spec, pred in preds.items():
+            # the scoring-filter sensitivities of R19 item 6 read wildcard_copy_partner_in_training, which
+            # discovery.prediction_frame does not carry: the scorer adds it from the crossings table per design stem
+            # (g19_score_discovery.Store.frame), and the injected run is annotated the same way on the same folds.
+            stem = FI.design_stem(str(pred["design"].iloc[0]), str(pred["variant"].iloc[0]), str(pred["scheme"].iloc[0]))
+            pred = sc.wildcard_flags(pred, stem, crossings())
             hc = f"registered_half_{'V5' if label in ('V5', 'V5-P', 'V5-PAIR') else design}"
             frames[spec] = D.scoring_frame(pred, iattrs, design=label, v6_mask=v6,
                                           what=f"injected {spec}@{label} kappa={kappa:g}", half_col=hc)
         cand, comp = frames[entry["candidate"]], frames[entry["comparator"]]
-        ET.assert_same_scored_rows(pd.Index(scored_index), cand.index)
-        ET.assert_same_scored_rows(pd.Index(scored_index), comp.index)      # the exact-fold comparator too (V-03)
+        ET.assert_same_scored_rows(scored_row_ids, cand.index)
+        ET.assert_same_scored_rows(scored_row_ids, comp.index)              # the exact-fold comparator too (V-03)
         cs = v1_scheme or H3.v1_scheme_of(parse_arm(entry["candidate"])[0], design, state)
         ks = comp_v1_scheme or H3.v1_scheme_of(parse_arm(entry["comparator"])[0], design, state)
         pu = D.paired_units(cand, comp, label, candidate=entry["candidate"], comparator=entry["comparator"], v6_mask=v6,
@@ -326,10 +360,14 @@ def run_contrast(entry: Mapping[str, Any], corpus: Any, attrs: pd.DataFrame, out
                                       scope_verdict=res["scopes"][H3.VERDICT_SCOPE]["verdict"],
                                       full_verdict=res["r19"].verdict, point=res["point"], margin=res["margin"],
                                       n_units=res["n_units"], n_rows=res["n_rows"], contrast=res))
+        # the bootstrap input of this kappa, as metrics, so kappa_min stays auditable without a refit (finding V-L2)
+        unit_rows.append(PW.per_unit_rows(pu, contrast=entry["key"], kappa=float(kappa), design=label,
+                                          candidate=entry["candidate"], comparator=entry["comparator"]))
         log(f"  kappa={kappa:g}: Delta={res['point']:.4f}, {H3.VERDICT_SCOPE} {results[-1].scope_verdict}")
-    return PW.power_record(entry["key"], family=entry["family"], design=label,
-                           arms=[entry["candidate"], entry["comparator"]], results=results, seed=seed,
-                           u_share=u_share, n_dropped_unknown_state=n_dropped, uninjected=entry.get("uninjected"))
+    rec = PW.power_record(entry["key"], family=entry["family"], design=label,
+                          arms=[entry["candidate"], entry["comparator"]], results=results, seed=seed,
+                          u_share=u_share, n_dropped_unknown_state=n_dropped, uninjected=entry.get("uninjected"))
+    return {**rec, "per_unit_frame": pd.concat(unit_rows, ignore_index=True) if unit_rows else pd.DataFrame()}
 
 
 def _scored_index(entry: Mapping[str, Any], corpus: Any, state: D.PlanState) -> pd.Index:
@@ -341,6 +379,18 @@ def _scored_index(entry: Mapping[str, Any], corpus: Any, state: D.PlanState) -> 
     for fold, _ordinal in corpus.fittable(job):
         ids += [r for r in D.selection_scored_ids(fold) if not bool(corpus.coext_by_id.get(r, False))]
     return corpus.labels_of(sorted(set(ids)))
+
+
+def _scored_row_ids(corpus: Any, scored_index: Iterable[Any]) -> pd.Index:
+    """The ``row_id`` labels of the un-injected run's scored rows.
+
+    :func:`_scored_index` returns the CORPUS FRAME's own labels (``g19_run_discovery.Corpus.labels_of`` maps a row id
+    through ``idmap`` to ``frame.index``), which is the space the injection machinery works in
+    (``transfer.prepare_injected_run``, ``InjectedRun.fold_inputs``).  ``discovery.scoring_frame`` instead indexes its
+    frame by ``row_id``.  Finding V-03 ("both arms score exactly the un-injected run's rows") is therefore checked in
+    row_id space: comparing the two label spaces directly can never pass, because the corpus index is not the row id.
+    """
+    return pd.Index(corpus.frame.loc[pd.Index(list(scored_index)), FI.ROW_ID].astype(str).to_numpy())
 
 
 def kappa_rows(records: Iterable[Mapping[str, Any]]) -> pd.DataFrame:
@@ -369,9 +419,13 @@ def reliability_report(corpus: Any, attrs: pd.DataFrame, out_root: Path, *, incl
     support-score components), PER UNIT (``power.reliability_of``; task X finding V-02), and with ``include_learned`` the
     factor loadings and embeddings as well (:data:`gen19ct.evaluation.power.READINGS` ``reliability_not_fitted``).
 
-    Rows read (task X finding VL2-06): no ``V6_TARGET_ROWS`` row enters any estimate; the per-system |logSF| amplitude
-    (an observed-target statistic) uses the selection half only (``registered_half_V5 == S``); the B7 slopes use both
-    halves minus V6 (a training-like fit, as every discovery fit) and the support components are target-free."""
+    Rows read (task X findings VL2-06 and V-P03): no ``V6_TARGET_ROWS`` row enters any estimate, and every REPORTED
+    quantity reads the selection half only -- the per-system |logSF| amplitude (an observed-target statistic) as
+    before, and now the B7 slopes too.  Section 15 says the confirmation half "contributed to no ladder decision,
+    claim or preferred-model choice", and a section 8 reliability gate IS claim-relevant (below the 0.3 floor a
+    quantity "may neither support nor close a correlation-based claim"), so the both-halves B7 fit is kept only as a
+    labelled diagnostic beside it.  ``confirmation_half_read`` is COMPUTED from the halves each estimator read
+    (``halves_read`` per record), never asserted."""
     from gen19ct.evaluation import pairs as EP
     from gen19ct.models import mass_action as MA
 
@@ -381,9 +435,19 @@ def reliability_report(corpus: Any, attrs: pd.DataFrame, out_root: Path, *, incl
     base_idx = frame.index[~v6]
     sel_idx = frame.index[~v6 & (half == D.SELECTION)]
     groups = frame[I.PUB_GROUP_COL].astype(str)
+    half_of = pd.Series(half, index=frame.index)
+
+    def halves_of(idx: pd.Index) -> list[str]:
+        """The registered halves the rows of ``idx`` come from -- what a quantity ACTUALLY read (task X finding V-P03:
+        the flag is computed from the rows each estimator read, never asserted)."""
+        return sorted({str(x) for x in half_of.reindex(pd.Index(idx)).dropna().unique()})
+
     reads = {"n_rows": int(len(frame)), "n_v6_target_rows_excluded": int(v6.sum()), "n_rows_after_v6": int(len(base_idx)),
              "n_rows_selection_half_after_v6": int(len(sel_idx)),
-             "b7_slopes": "both halves minus V6_TARGET_ROWS (a training-like fit)",
+             "b7_slopes": "selection half (registered_half_V5 == S) minus V6_TARGET_ROWS: section 15 -- the "
+                          "confirmation half contributes to no claim, and a section 8 reliability gate is "
+                          "claim-relevant (a quantity below the 0.3 floor may neither support nor close a "
+                          "correlation-based claim). The both-halves fit is reported beside as a diagnostic only",
              "logsf_amplitudes": "selection half (registered_half_V5 == S) minus V6_TARGET_ROWS: observed logSF of the "
                                  "confirmation half and of the V6 systems is never read",
              "support_score_components": "the discovery _support files (selection-half scored rows) minus V6_TARGET_ROWS"}
@@ -401,13 +465,22 @@ def reliability_report(corpus: Any, attrs: pd.DataFrame, out_root: Path, *, incl
     anion = pd.Series([I.NA_ANION if pd.isna(v) else str(v) for v in frame[SG.ACID_ANION_COL].to_numpy(dtype=object)],
                       index=frame.index, dtype=object)
     unit_b7 = (frame[SG.SYSTEM_COL].astype(object).astype(str) + " | " + anion).where(frame[SG.SYSTEM_COL].notna())
-    full_b7 = fit_b7(base_idx)
+    sel_b7, both_b7 = fit_b7(sel_idx), fit_b7(base_idx)
     for col in ("n", "p_eff"):
-        full = PW.b7_slope_series(full_b7, col)
-        rec = PW.reliability_of("b7_slopes", estimate_rows=lambda idx, c=col: PW.b7_slope_series(fit_b7(idx), c), full=full,
-                                unit_of_row=unit_b7.loc[base_idx], group_of_row=groups.loc[base_idx],
+        def est(idx: pd.Index, c=col) -> pd.Series:
+            return PW.b7_slope_series(fit_b7(idx), c)
+        rec = PW.reliability_of("b7_slopes", estimate_rows=est, full=PW.b7_slope_series(sel_b7, col),
+                                unit_of_row=unit_b7.loc[sel_idx], group_of_row=groups.loc[sel_idx],
                                 n_halves=n_halves, seed=seed)
-        records.append({**rec, "unit": f"B7 {col} per (system, anion)", "rows_read": reads["b7_slopes"]})
+        diag = PW.reliability_of("b7_slopes", estimate_rows=est, full=PW.b7_slope_series(both_b7, col),
+                                 unit_of_row=unit_b7.loc[base_idx], group_of_row=groups.loc[base_idx],
+                                 n_halves=n_halves, seed=seed)
+        records.append({**rec, "unit": f"B7 {col} per (system, anion)", "rows_read": reads["b7_slopes"],
+                        "halves_read": halves_of(sel_idx), "n_rows_read": int(len(sel_idx)),
+                        "both_halves_diagnostic": {"reliability": diag.get("reliability"), "status": diag.get("status"),
+                                                   "halves_read": halves_of(base_idx), "n_rows_read": int(len(base_idx)),
+                                                   "note": "not reported: it reads confirmation-half observed log D "
+                                                           "(section 15), and the gate it feeds is claim-relevant"}})
 
     pair_rows = pd.DataFrame({EM.PUB_GROUP_COL: groups.to_numpy(), EM.SYSTEM_COL: frame[SG.SYSTEM_COL].to_numpy(),
                               EM.CONDITION_KEY_COL: attrs[EM.CONDITION_KEY_COL].reindex(
@@ -429,7 +502,8 @@ def reliability_report(corpus: Any, attrs: pd.DataFrame, out_root: Path, *, incl
     records.append({**PW.reliability_of("logsf_amplitudes", estimate_rows=amplitudes, full=full_amp,
                                         unit_of_row=unit_sys.loc[sel_idx], group_of_row=groups.loc[sel_idx],
                                         n_halves=n_halves, seed=seed),
-                    "unit": "per-system |logSF| amplitude", "rows_read": reads["logsf_amplitudes"]})
+                    "unit": "per-system |logSF| amplitude", "rows_read": reads["logsf_amplitudes"],
+                    "halves_read": halves_of(sel_idx), "n_rows_read": int(len(sel_idx))})
 
     sup_dir = D.discovery_root(out_root) / "_support"
     sup_files = sorted(sup_dir.rglob("*.parquet")) if sup_dir.exists() else []
@@ -446,6 +520,9 @@ def reliability_report(corpus: Any, attrs: pd.DataFrame, out_root: Path, *, incl
         sup = sup[~sup["row_id"].astype(str).map(v6_of).fillna(False).astype(bool).to_numpy()].reset_index(drop=True)
         reads["n_support_rows_v6_excluded"] = n_sup_v6
         unit_cell = sup[list(EM.CELL_COLS)].astype(str).agg(EM.UNIT_KEY_SEP.join, axis=1)
+        half_by_id = pd.Series(half, index=ids.to_numpy())
+        sup_halves = sorted({str(x) for x in half_by_id.reindex(sup["row_id"].astype(str)).dropna().unique()})
+        reads["n_support_rows"] = int(len(sup))
         comps = [c for c in sup.columns if str(c).startswith("support_s")]
         for comp in comps:
             def est(idx: pd.Index, c=comp) -> pd.Series:
@@ -454,7 +531,8 @@ def reliability_report(corpus: Any, attrs: pd.DataFrame, out_root: Path, *, incl
             records.append({**PW.reliability_of("support_score_components", estimate_rows=est, full=full,
                                                 unit_of_row=unit_cell, group_of_row=sup[EM.PUB_GROUP_COL],
                                                 n_halves=n_halves, seed=seed),
-                            "unit": f"{comp} per cell", "rows_read": reads["support_score_components"]})
+                            "unit": f"{comp} per cell", "rows_read": reads["support_score_components"],
+                            "halves_read": sup_halves, "n_rows_read": int(len(sup))})
     else:
         records.append({"quantity": "support_score_components", "unit": "per cell", "method": "none",
                         "status": "NOT_RUN", "reliability": float("nan"), "gate": ET.reliability_gate(float("nan")),
@@ -465,9 +543,20 @@ def reliability_report(corpus: Any, attrs: pd.DataFrame, out_root: Path, *, incl
                         "reliability": float("nan"), "gate": ET.reliability_gate(float("nan")),
                         "detail": PW.READINGS["reliability_not_fitted"]})
     table = PW.reliability_table(records)
+    # computed from the halves each estimator actually read, never asserted (task X finding V-P03)
+    read_halves = sorted({h for r in records for h in (r.get("halves_read") or ())})
+    conf_read = [f"{r.get('quantity')} / {r.get('unit')}" for r in records
+                 if D.CONFIRMATION in (r.get("halves_read") or ())]
     return {"schema": PW.SCHEMA, "records": records, "table": table,
             "floor": PW.RELIABILITY_FLOOR, "n_publication_groups": int(groups.loc[base_idx].nunique()),
-            "rows_read": reads, "confirmation_half_read": False, "v6_target_rows_read": 0,
+            "rows_read": reads, "confirmation_half_read": bool(conf_read),
+            "confirmation_half_read_by": conf_read, "halves_read": read_halves,
+            "confirmation_half_rule": "section 15: the confirmation half contributes to no ladder decision, claim or "
+                                      "preferred-model choice, and a section 8 reliability gate IS claim-relevant (a "
+                                      "quantity below the 0.3 floor may neither support nor close a correlation-based "
+                                      "claim), so every reported quantity here reads the selection half only; the "
+                                      "flag is computed from halves_read of each record",
+            "v6_target_rows_read": 0,
             "quantities": list(PW.RELIABILITY_QUANTITIES), "readings": PW.READINGS,
             "rule": "section 8: every derived per-unit quantity reports its reliability BEFORE any correlation of it is "
                     "read, per unit (split-half >= 4 groups, jackknife 2-3 groups); below the 0.3 floor its correlations "
@@ -497,12 +586,13 @@ def main(argv=None, *, check: Callable[[], int] | None = None, digests: Callable
     ns = parse_args(argv)
     out_root = Path(ns.out_root)
     rd = runner_module()
-    REG.refuse_unless_sealed(STAGE, check, digests, expect_addenda=ns.expect_addenda)
+    # the POWER stage's own seal gate: recorded, not discarded (task X finding V-P05)
+    prereg_gate = REG.refuse_unless_sealed(STAGE, check, digests, expect_addenda=ns.expect_addenda)
     H3.refuse_unless_cheap_complete(out_root)                   # before any heavy load (task X finding VL2-04)
     log("coextractant ids")
     coext = rd.coextractant_ids()
     gate = refuse_unless_ready(out_root, check=check, digests=digests, expect_addenda=ns.expect_addenda,
-                               excluded_ids=coext)
+                               excluded_ids=coext, prereg_gate=prereg_gate)
     state = D.PlanState.read(rd.plan_state_path(out_root))
     root = D.discovery_root(out_root)
     contrasts = PW.read_contrast_files([root / f for f in CONTRAST_FILES]
@@ -545,7 +635,12 @@ def main(argv=None, *, check: Callable[[], int] | None = None, digests: Callable
             run.extra.update({"n_contrasts_checked": len(records),
                               "kappa_min": {r["contrast"]: r.get("kappa_min") for r in records},
                               "power_verdicts": {r["contrast"]: r.get("verdict") for r in records},
-                              "confirmation_half_read": False, "v6_target_rows_scored": 0})
+                              # computed, never asserted (task X finding V-P03): the reliability pass reports which
+                              # halves each estimator read; the contrasts themselves score selection-half rows only
+                              "confirmation_half_read": bool((rel or {}).get("confirmation_half_read")),
+                              "confirmation_half_read_by": list((rel or {}).get("confirmation_half_read_by") or ()),
+                              "halves_read": list((rel or {}).get("halves_read") or ()),
+                              "v6_target_rows_scored": 0})
     log(f"power check: {len(records)} contrast(s); " + ", ".join(f"{r['contrast']}: kappa_min={r.get('kappa_min')}"
                                                                 for r in records))
     return 0
@@ -560,9 +655,19 @@ def write_outputs(out_root: Path, records: Sequence[Mapping[str, Any]], reliabil
         kr = kappa_rows(records)
         outs.append(write_csv(kr, root / "power_kappa.csv"))
         outs.append(write_csv(kr, tables / "power_kappa.csv"))
+        units = [r["per_unit_frame"] for r in records
+                 if isinstance(r.get("per_unit_frame"), pd.DataFrame) and not r["per_unit_frame"].empty]
+        if units:
+            pu = pd.concat(units, ignore_index=True)
+            PW.assert_no_injected_values(pu, "power per-unit metrics table")
+            outs.append(write_csv(pu, root / "per_unit_mae.csv"))
+            outs.append(write_csv(pu, tables / "power_per_unit_mae.csv"))
+        drop = ("per_kappa_contrasts", "per_unit_frame")
         outs.append(write_json(root / "power_checks.json", PW.json_safe(
-            {"schema": PW.SCHEMA, "checks": [{k: v for k, v in r.items() if k != "per_kappa_contrasts"} for r in records],
+            {"schema": PW.SCHEMA, "checks": [{k: v for k, v in r.items() if k not in drop} for r in records],
              "gate": dict(gate or {}), "injected_values_persisted": False,
+             # the bootstrap INPUT is persisted as metrics (per-unit MAE + cluster labels), never an injected value
+             "per_unit_metrics_persisted": bool(units), "per_unit_metrics_path": PW.PER_UNIT_REL,
              "date_utc": _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")})))
     if reliability is not None:
         tab = reliability["table"]

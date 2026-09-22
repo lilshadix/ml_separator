@@ -751,7 +751,9 @@ def enumerate_plan(state: PlanState | None = None, *, safeguard_stems: Sequence[
                                 message=f"{contrast}: addendum 1 item 4: the heavy-arm V5-P run of a freezing "
                                         "candidate is NOT run (V5-P is named among the sensitivities not run); "
                                         "section 3.1's trigger, R19 items 1-5 on V5-primary, cannot fire either, "
-                                        "because item 4 is NOT_EVALUATED in discovery"))
+                                        "because item 4 is NOT_EVALUATED in discovery. Addendum 3 item 1 changes "
+                                        "what 'passed R19 in discovery' means for FREEZING (section 15), not this "
+                                        "trigger, so an eligible_for_freezing contrast still runs no V5-P job"))
         elif design in ("V5-PAIR", "V5PAIR"):
             for arm in [a for a in HEAVY_ARMS if a in need]:
                 pair_run(arm, sc, f"V5-PAIR endpoint of the freezing candidate {contrast} (addendum 1 item 5)",
@@ -2454,18 +2456,69 @@ def heavy_v5_batching_label(arms: Iterable[str], design: str, state: PlanState |
     return "exact" if any(a in B6_ARMS for a in aliased) else ""
 
 
+#: POST-HOC addendum 3 item 1 (section 15): what "passed R19 in discovery" means when a claim is frozen.  The literal
+#: reading is unsatisfiable under addendum 1 item 3 -- R19 item 4 is NOT_EVALUATED in discovery for EVERY learned arm, so
+#: no contrast could be frozen and the confirmation run (with it the single V6 run of section 3.4, S2 and the applied
+#: Pr/Nd question of brief section 34) could never happen
+FREEZING_RULE = ("POST-HOC addendum 3 item 1 (section 15): a contrast is ELIGIBLE FOR FREEZING when every R19 item that "
+                 "R19 EVALUATES in discovery is PASS and no item is FAIL. An item R19 does not evaluate in discovery -- "
+                 "item 4, NOT_EVALUATED by addendum 1 item 3 (one discovery seed), and any UNTESTABLE / NOT_RUN item -- "
+                 "does not disqualify it; item 4 is evaluated at confirmation exactly as registered (5 of 5 withheld "
+                 "seeds). Any FAIL, on any item, makes the contrast ineligible. This is the reading addendum 2 already "
+                 "gives F6 for deployment, and it would have been required whatever the scores were. Everything else "
+                 "about section 15 is unchanged: at most five claims, named in decisions/CONFIRMATION_PLAN.md before the "
+                 "run, one run on the withheld seeds and the confirmation half, V6 once.")
+
+#: the literal section 3.1 trigger of the heavy-arm V5-P runs (R19 items 1-5 on V5-primary), kept as its OWN field: it is
+#: NOT the freezing rule (addendum 3 item 1) and, under addendum 1 item 3, it cannot fire in discovery.  The V5-P runs are
+#: not run in any case (addendum 1 item 4 names V5-P among the sensitivities not run)
+V5P_TRIGGER_RULE = ("section 3.1: the heavy-arm V5-P run of a freezing candidate is triggered by R19 items 1-5 on "
+                    "V5-primary. Item 4 is NOT_EVALUATED in discovery (addendum 1 item 3), so the trigger cannot fire; "
+                    "addendum 1 item 4 does not run the heavy-arm V5-P runs either way. Addendum 3 item 1 changes what "
+                    "'passed R19 in discovery' means for FREEZING (section 15), not this trigger, so the two are "
+                    "reported separately.")
+
+
+def freezing_eligibility(res: Mapping[str, Any]) -> dict[str, Any]:
+    """POST-HOC addendum 3 item 1: is this contrast eligible for freezing, item by item (:data:`FREEZING_RULE`)?
+
+    ``eligible`` is True when no R19 item is FAIL and every item R19 evaluated in discovery is PASS.  The items R19 did
+    not evaluate (:data:`INCONCLUSIVE_STATUSES`: ``NOT_EVALUATED`` of item 4, ``UNTESTABLE``, ``NOT_RUN``) are listed
+    with their status in ``items_not_evaluated_in_discovery`` and named in ``reason``, so the flag is never read without
+    the reason it holds."""
+    items = {int(i["item"]): str(i["status"]) for i in res["r19"].items}
+    failed = [i for i, s in sorted(items.items()) if s == "FAIL"]
+    not_evaluated = {i: s for i, s in sorted(items.items()) if s in INCONCLUSIVE_STATUSES}
+    evaluated = {i: s for i, s in sorted(items.items()) if i not in not_evaluated}
+    eligible = not failed and all(s == "PASS" for s in evaluated.values())
+    passed = [i for i, s in sorted(evaluated.items()) if s == "PASS"]
+    other = {i: s for i, s in sorted(evaluated.items()) if s != "PASS"}
+    parts = [f"items {passed} PASS" if passed else "no item PASS"]
+    if not_evaluated:
+        parts.append("not evaluated in discovery: " + ", ".join(f"item {i} {s}" for i, s in not_evaluated.items()))
+    parts.append("no item FAIL" if not other else "FAIL: " + ", ".join(f"item {i} {s}" for i, s in other.items()))
+    return {"eligible": bool(eligible), "items": items, "evaluated_items": evaluated,
+            "items_not_evaluated_in_discovery": not_evaluated, "failed_items": failed,
+            "r19_verdict_full": res["r19"].verdict, "reason": "; ".join(parts), "rule": FREEZING_RULE}
+
+
 def freezing_candidates(results: Mapping[str, Mapping[str, Any]], state: PlanState | None = None) -> list[dict[str, Any]]:
     """Registered contrasts that pass the freezing screen (R19 items 1-3, 5 and the scoring-filter sensitivities on seed
-    104729), with their design, whether they pass items 1-5 on V5-primary (the section 3.1 trigger of the V5-P heavy
-    runs), the section 7 item 6 batching label and whether S1 is forced UNDECIDED for an S1 family."""
+    104729), with their design, whether they are ELIGIBLE FOR FREEZING (POST-HOC addendum 3 item 1,
+    :func:`freezing_eligibility`, with the item-by-item reason), the literal section 3.1 V5-P trigger
+    (:data:`V5P_TRIGGER_RULE`), the section 7 item 6 batching label and whether S1 is forced UNDECIDED for an S1
+    family."""
     out = []
     for key, r in sorted(results.items()):
         if r["family"] not in REGISTERED_FAMILIES or r["scopes"]["freezing_screen"]["verdict"] != "PASS":
             continue
         arms = [r["candidate"], r["comparator"]]
+        elig = freezing_eligibility(r)
         out.append({"contrast": key, "family": r["family"], "arms": arms, "design": r["design"],
-                    "passed_items_1_5_v5_primary": bool(r["design"] == "V5"
-                                                        and r["scopes"]["items_1_5"]["verdict"] == "PASS"),
+                    "eligible_for_freezing": elig["eligible"], "eligibility": elig,
+                    "section_3_1_v5p_trigger": bool(r["design"] == "V5"
+                                                    and r["scopes"]["items_1_5"]["verdict"] == "PASS"),
+                    "section_3_1_v5p_trigger_rule": V5P_TRIGGER_RULE,
                     "batching_label": heavy_v5_batching_label(arms, r["design"], state),
                     "s1_forced_undecided": bool(state is not None and state.s1_forced_undecided
                                                 and r["family"] in S1_FAMILIES)})

@@ -411,7 +411,14 @@ def test_injected_signal_u_share_and_injection_guards():
     assert np.allclose(out, 1.0 + 0.5 * shared[known])
     with pytest.raises(ValueError, match="kappa"):
         T.inject_targets(y[known], shared[known], 0.3)
+    # task X findings V-L3 / V-P04: the two NULL labels apply only to a contrast that IS a null (its un-injected
+    # reported-scope verdict FAILs); the record also carries `informative` and what it knew about the un-injected run
     assert T.power_verdict({0.1: False, 0.25: True, 0.5: True, 1.0: True}) == \
-        {"kappa_min": 0.25, "verdict": "INFORMATIVE_NULL"}
+        {"kappa_min": 0.25, "verdict": "INFORMATIVE_NULL", "informative": True, "uninjected_is_a_null": None,
+         "uninjected_verdict": None}
     assert T.power_verdict({0.1: False, 0.25: False, 0.5: True, 1.0: True})["verdict"] == "UNDECIDED_UNDERPOWERED"
     assert T.power_verdict({0.1: False, 0.25: False, 0.5: False, 1.0: False})["kappa_min"] is None
+    assert T.power_verdict({0.1: False, 0.25: True, 0.5: True, 1.0: True}, uninjected_verdict="FAIL")["verdict"] \
+        == "INFORMATIVE_NULL"
+    assert T.power_verdict({0.1: False, 0.25: True, 0.5: True, 1.0: True}, uninjected_verdict="PASS")["verdict"] \
+        == "POWERED_NOT_A_NULL"

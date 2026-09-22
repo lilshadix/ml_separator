@@ -63,8 +63,10 @@ digests of the predecessor chain, the keep flags, the stop rule), so a change of
 predecessor record or ladder decision makes them stale.  Decisions: ``evaluation/ladder/decisions/ladder.json`` (the
 resumable ladder state), ``contrasts_<step>.csv``, ``evaluation/ladder/M7/metrics.json``, ``tables/ladder_*.csv``,
 ``decisions/D04_mechanism_experts.md`` and ``decisions/D05_uncertainty.md`` (brief section 29 format, generated from
-the files; "not computed" where an input is absent).  Nothing reads the confirmation half or V6; every scored index
-passes the discovery guards (``g19_run_discovery.prepare_fold``).
+the files; "not computed" where an input is absent -- D04 always prints the ladder's own wall-clock ledger, and when the
+M7 ensemble has not run D05 states what H6 rests on instead: the cross-fitted split-conformal coverage of the arms that
+DID run, read from the scorer's tables, :func:`h6_basis` / :data:`H6_READING`).  Nothing reads the confirmation half or
+V6; every scored index passes the discovery guards (``g19_run_discovery.prepare_fold``).
 
     PYTHONIOENCODING=utf-8 PYTHONPATH=generations/gen19_chem_transfer \\
         .venv/Scripts/python.exe generations/gen19_chem_transfer/scripts/g19_run_ladder.py --check-only
@@ -104,6 +106,8 @@ from gen19ct.models import ladder as LAD  # noqa: E402
 from gen19ct.models import neural as NN  # noqa: E402
 
 NAME = "g19_run_ladder"
+#: process start, for the ledger's process_seconds (task X finding V-L4)
+_PROCESS_T0 = time.perf_counter()
 SCRIPTS = Path(__file__).resolve().parent
 PREDICTION_STEP, INTERVAL_STEP = "point", "intervals"
 #: this runner's own prediction-affecting files (digested beside the discovery code digest)
@@ -1112,25 +1116,48 @@ def ladder_budget_status(ladder_seconds: float, discovery_seconds: float | None 
     st = D.budget_status(float(ladder_seconds), budget_hours=LADDER_BUDGET_HOURS)
     st.update({"ledger": "evaluation/ladder/decisions/wall_clock.json (this runner alone)",
                "discovery_hours_not_counted": None if discovery_seconds is None else round(float(discovery_seconds) / 3600.0, 4),
-               "discovery_budget_hours_unchanged": DISCOVERY_BUDGET_HOURS, "reading": READINGS["budget"],
+               "discovery_budget_hours_unchanged": DISCOVERY_BUDGET_HOURS,
+               "discovery_overrun_hours": (None if discovery_seconds is None
+                                           else round(max(0.0, float(discovery_seconds) / 3600.0
+                                                          - DISCOVERY_BUDGET_HOURS), 4)),
+               "reading": READINGS["budget"],
                "note": ("addendum 2 ('2. Ladder M3-M7' > 'Budget'): the ladder's own 40 h ledger; on exhaustion the steps "
                         "not yet run are demoted in the order M7 -> M6 -> M5 -> M4 -> M3 (section 7 item 5, unchanged); "
                         "--max-hours is an operator pause, never a demotion")})
     return st
 
 
-def record_ladder_wall_clock(out_root: Path, started: str, seconds: float, steps_done: Sequence[str]) -> None:
+def record_ladder_wall_clock(out_root: Path, started: str, seconds: float, steps_done: Sequence[str], *,
+                             process_seconds: float | None = None) -> None:
+    """One invocation of this runner in the ladder ledger.
+
+    ``seconds`` is the BUDGET number: the wall clock of the ladder loop itself (0.0 when every step is ``not_run``, so
+    addendum 2's 40 h stay unconsumed).  ``process_seconds`` is what the invocation actually cost end to end -- gate,
+    corpus load and all -- recorded beside it so the ledger shows the runner RAN and skipped every step, rather than
+    being indistinguishable from a runner that never ran (task X finding V-L4).  Nothing in the budget arithmetic
+    reads ``process_seconds``."""
     body = D.read_record(ladder_wall_clock_path(out_root)) or {"schema": SCHEMA, "invocations": []}
     inv = [i for i in body.get("invocations", []) if i.get("started_utc") != started]
-    inv.append({"started_utc": started, "seconds": round(float(seconds), 1), "steps_done": list(steps_done)})
+    entry = {"started_utc": started, "seconds": round(float(seconds), 1), "steps_done": list(steps_done)}
+    if process_seconds is None:
+        process_seconds = time.perf_counter() - _PROCESS_T0
+    entry["process_seconds"] = round(float(process_seconds), 1)
+    inv.append(entry)
     body["invocations"] = inv
     ladder_s = sum(float(i["seconds"]) for i in inv)
     disc_s = RD.wall_clock_total(out_root)
     body["ladder_hours"] = round(ladder_s / 3600.0, 4)
+    body["ladder_process_hours"] = round(sum(float(i.get("process_seconds") or 0.0) for i in inv) / 3600.0, 4)
     body["discovery_hours_not_counted"] = round(disc_s / 3600.0, 4)
+    body["discovery_budget_hours_unchanged"] = DISCOVERY_BUDGET_HOURS
+    body["discovery_overrun_hours"] = round(max(0.0, disc_s / 3600.0 - DISCOVERY_BUDGET_HOURS), 4)
     body["budget_hours"] = LADDER_BUDGET_HOURS
     body["budget"] = ladder_budget_status(ladder_s, disc_s)
     body["reading"] = READINGS["budget"]
+    body["invocation_reading"] = ("'seconds' is the ladder loop's own wall clock and the ONLY number the 40 h budget "
+                                  "reads; 'process_seconds' is the whole invocation (gate, corpus load, decisions) and "
+                                  "is recorded so an invocation that ran and skipped every step is distinguishable "
+                                  "from one that never ran (task X finding V-L4)")
     paths.ensure_dir(ladder_wall_clock_path(out_root).parent)
     RD._atomic_json(body, ladder_wall_clock_path(out_root))
 
@@ -1309,6 +1336,20 @@ def run_ladder(corpus: Any, out_root: Path, state: D.PlanState, codes: Mapping[s
             lstate.write(lpath)
             done_steps.append(step)
             continue
+        # POST-HOC addendum 3 item 3: "The ladder steps M3-M7 are `not_run` because neither M1 nor M2 is retained
+        # (addendum 2, section 2: the M3-M7 components belong to the factorised model), INDEPENDENTLY of the discovery
+        # ledger's budget demotion; the ladder's own 40 h budget of addendum 2 is therefore not consumed."  Hence this
+        # test precedes the budget check: a step with no factorised base is not_run for the registered reason, never
+        # `demoted` by a ledger, and no step of this ladder run spends a second of the 40 h.
+        pred = lstate.retained_before(step)
+        if pred == "M0":
+            lstate.steps[step] = {"step": step, "status": "not_run", "kept": None, "predecessor": "M0",
+                                  "note": "the retained configuration is M0 (B5): neither M1 nor M2 was kept, so the neural "
+                                          "ladder has no base (section 6 M3-M7 are components of the factorised model); "
+                                          "not_run by POST-HOC addendum 3 item 3, independently of any budget demotion"}
+            lstate.write(lpath)
+            done_steps.append(step)
+            continue
         if used_s() / 3600.0 >= LADDER_BUDGET_HOURS:      # addendum 2: the ladder's own 40 h ledger, checked before each step
             dem = demote_from(step)
             ledger["budget"] = {**ladder_budget_status(used_s(), RD.wall_clock_total(out_root)), "exhausted_before": step,
@@ -1325,14 +1366,6 @@ def run_ladder(corpus: Any, out_root: Path, state: D.PlanState, codes: Mapping[s
             lstate.write(lpath)
             log(f"budget exhausted before {step}: demoted {dem}")
             break
-        pred = lstate.retained_before(step)
-        if pred == "M0":
-            lstate.steps[step] = {"step": step, "status": "not_run", "kept": None, "predecessor": "M0",
-                                  "note": "the retained configuration is M0 (B5): neither M1 nor M2 was kept, so the neural "
-                                          "ladder has no base (section 6 M3-M7 are components of the factorised model)"}
-            lstate.write(lpath)
-            done_steps.append(step)
-            continue
         jobs = ladder_jobs(step, state)
         lstate.steps[step] = {**cur, "step": step, "status": "running", "kept": None, "predecessor": pred,
                               "jobs": [j.key for j in jobs], "note": why}
@@ -1455,6 +1488,117 @@ def run_ladder(corpus: Any, out_root: Path, state: D.PlanState, codes: Mapping[s
 # decision files (brief section 29 format, generated from the files)
 # ============================================================================================= #
 
+#: POST-HOC addendum 2 item 3 ("section 12 uncertainty methods: only what is built is compared"): "CRPS, Spearman(|error|,
+#: SD), the SD-binned reliability curve and the 'knows when it does not know' test are NOT_RUN for every arm before M7
+#: and computed from M7 alone (addendum 1 reading 6(e)); H6 / D05 rests on M7 and on the conformal coverage of the other
+#: arms."  When M7 is ``not_run`` -- POST-HOC addendum 3 item 3, because neither M1 nor M2 is retained -- only the second
+#: half of that sentence exists, so D05 must say so and print THAT coverage: the cross-fitted split-conformal coverage of
+#: the arms that did run, READ from the scorer's tables (:func:`h6_basis`), never recomputed and never a new verdict.
+H6_DESIGNS: tuple[tuple[str, str], ...] = (("V5", "primary"), ("V1", "primary"), ("V2", "primary"))
+H6_COVERAGE_METRICS: tuple[str, ...] = ("coverage_50", "coverage_80", "coverage_95", "width_80")
+H6_READING = ("POST-HOC addendum 2 item 3: 'CRPS, Spearman(|error|, SD), the SD-binned reliability curve and the \"knows "
+              "when it does not know\" test are NOT_RUN for every arm before M7 and computed from M7 alone (addendum 1 "
+              "reading 6(e)); H6 / D05 rests on M7 and on the conformal coverage of the other arms' -- with M7 not_run "
+              "(addendum 3 item 3) H6 rests on the second half alone: the cross-fitted split-conformal coverage of the "
+              "arms that ran, read from tables/discovery_summary.csv and tables/discovery_comparator_intervals.csv")
+
+
+def h6_basis(out_root: Path) -> dict[str, Any]:
+    """What H6 rests on when the M7 ensemble has not run (:data:`H6_READING`).
+
+    Read, never recomputed: the unit-macro split-conformal coverage of every fitted arm
+    (``tables/discovery_summary.csv``) and of every comparator (``tables/discovery_comparator_intervals.csv``, the
+    seed-104729 pre-seal intervals of addendum 1 item 3) on V5-primary, V1 and V2; the scorer's own S1(d) band check
+    (``evaluation/discovery/decisions/decisions.json`` -> ``S1_components.S1d_calibration``, which is the S1 arm's, not
+    every arm's); and the section 12 methods that are NOT_RUN for every arm before M7 (``discovery.UNCERTAINTY_NOT_RUN``).
+    No band verdict is formed here for an arm the scorer did not judge -- a missing input is "not computed".
+    """
+    tables = Path(out_root) / "tables"
+    out: dict[str, Any] = {"reading": H6_READING, "designs": {}, "comparators": {}, "s1d": None,
+                           "not_run_before_M7": dict(D.UNCERTAINTY_NOT_RUN), "sources": [], "missing": []}
+    summary = tables / "discovery_summary.csv"
+    if not summary.exists():
+        out["missing"].append(f"tables/{summary.name} absent: the fitted arms' conformal coverage is not computed")
+    else:
+        out["sources"].append(f"tables/{summary.name}")
+        df = pd.read_csv(summary)
+        df = df[(df["aggregation"] == "unit_macro") & (df["stratum"] == "all") & (df["metric"].isin(H6_COVERAGE_METRICS))]
+        for design, variant in H6_DESIGNS:
+            sub = df[(df["design"] == design) & (df["variant"] == variant)]
+            block: dict[str, Any] = {}
+            for arm, rows in sub.groupby("arm"):
+                vals = {m: float(rows.loc[rows["metric"] == m, "value"].iloc[0]) for m in H6_COVERAGE_METRICS
+                        if bool((rows["metric"] == m).any())}
+                if vals:
+                    block[str(arm)] = {**vals, "half": str(rows["half"].iloc[0]), "n_units": int(rows["n_units"].iloc[0]),
+                                       "status": str(rows["status"].iloc[0])}
+            out["designs"][f"{design}-{variant}"] = block or "not computed: no coverage row in the summary table"
+    comparators = tables / "discovery_comparator_intervals.csv"
+    if not comparators.exists():
+        out["missing"].append(f"tables/{comparators.name} absent: the comparators' conformal coverage is not computed")
+    else:
+        out["sources"].append(f"tables/{comparators.name}")
+        cf = pd.read_csv(comparators)
+        cf = cf[(cf["aggregation"] == "unit_macro") & (cf["metric"].isin(H6_COVERAGE_METRICS))]
+        for design, _variant in H6_DESIGNS:
+            sub = cf[cf["design"] == design]
+            block = {}
+            for arm, rows in sub.groupby("arm"):
+                vals = {m: float(rows.loc[rows["metric"] == m, "value"].iloc[0]) for m in H6_COVERAGE_METRICS
+                        if bool((rows["metric"] == m).any())}
+                if vals:
+                    block[str(arm)] = {**vals, "n_units": int(rows["n_units"].iloc[0]), "seed_set": str(rows["seed_set"].iloc[0])}
+            out["comparators"][design] = block or "not computed: no comparator-interval row"
+    body = D.read_record(decisions_path(out_root)) or {}
+    s1d = ((body.get("S1_components") or {}) if isinstance(body.get("S1_components"), Mapping) else {}).get("S1d_calibration")
+    if isinstance(s1d, Mapping):
+        out["sources"].append("evaluation/discovery/decisions/decisions.json -> S1_components.S1d_calibration")
+        out["s1d"] = {"arm": s1d.get("arm"), "verdict": s1d.get("verdict"), "component": s1d.get("component"),
+                      "bands": s1d.get("bands"), "source": s1d.get("source"),
+                      "scope": "the scorer's S1(d) check is the S1 arm's; no band verdict is computed here for any other arm"}
+    else:
+        out["missing"].append("decisions.json -> S1_components.S1d_calibration absent: the S1(d) band check is not computed")
+    return out
+
+
+def _h6_lines(h6: Mapping[str, Any] | None, retained: str | None) -> list[str]:
+    """The D05 evidence lines for :func:`h6_basis` (brief section 29 "evidence"; "not computed" where a file is absent)."""
+    if h6 is None:
+        return ["- what H6 rests on: not computed (the discovery tables were not read)"]
+    dep = None if retained is None else f"{retained} (= {D.ARM_ALIASES.get(retained, retained)})"
+    L = [f"- {h6.get('reading', H6_READING)}",
+         "- the arms that ran, cross-fitted split-conformal coverage 50 / 80 / 95 and width 80 (unit macro, selection "
+         "half, seed 104729; optimistically biased, no confirmed claim)"
+         + ("" if dep is None else f"; the deployed configuration of POST-HOC addendum 3 item 2 is {dep}")]
+    for design, block in (h6.get("designs") or {}).items():
+        if not isinstance(block, Mapping):
+            L.append(f"  - {design}: {block}")
+            continue
+        for arm, v in sorted(block.items()):
+            tag = "  <- deployed configuration (M0)" if dep is not None and arm == D.ARM_ALIASES.get(retained, retained) else ""
+            L.append(f"  - {design} {arm}: coverage {_fmt(v.get('coverage_50'), 3)} / {_fmt(v.get('coverage_80'), 3)} / "
+                     f"{_fmt(v.get('coverage_95'), 3)}; width 80 {_fmt(v.get('width_80'), 3)}; {_fmt(v.get('n_units'))} units{tag}")
+    for design, block in (h6.get("comparators") or {}).items():
+        if not isinstance(block, Mapping):
+            L.append(f"  - {design} comparators: {block}")
+            continue
+        for arm, v in sorted(block.items()):
+            L.append(f"  - {design} {arm} (comparator; seed-104729 pre-seal intervals, addendum 1 item 3): coverage "
+                     f"{_fmt(v.get('coverage_50'), 3)} / {_fmt(v.get('coverage_80'), 3)} / {_fmt(v.get('coverage_95'), 3)}; "
+                     f"width 80 {_fmt(v.get('width_80'), 3)}; {_fmt(v.get('n_units'))} units")
+    s1d = h6.get("s1d")
+    if isinstance(s1d, Mapping):
+        L.append(f"- the only S1(d) band check computed in discovery: arm {s1d.get('arm')}, {s1d.get('component')}, verdict "
+                 f"{s1d.get('verdict')} ({s1d.get('source')}); {s1d.get('scope')}")
+    else:
+        L.append("- S1(d) band check: not computed")
+    for k, v in (h6.get("not_run_before_M7") or {}).items():
+        L.append(f"- section 12 {k}: {v}")
+    for m in h6.get("missing") or []:
+        L.append(f"- {m}")
+    return L
+
+
 def _fmt(v: Any, nd: int = 4) -> str:
     if v is None:
         return "not computed"
@@ -1487,7 +1631,8 @@ def _step_lines(step: str, rec: Mapping[str, Any] | None) -> list[str]:
     return out
 
 
-def d04_text(lstate: LadderState | None, metrics: Mapping[str, Any] | None) -> str:
+def d04_text(lstate: LadderState | None, metrics: Mapping[str, Any] | None,
+             budget: Mapping[str, Any] | None = None) -> str:
     L = ["# D04 - mechanism experts and the chemistry priors (ladder M3-M6)", "",
          "Generated by `scripts/g19_run_ladder.py` from `evaluation/ladder/decisions/ladder.json` and "
          "`evaluation/ladder/decisions/contrasts_*.csv`. Selection half, seed 104729: every number is optimistically "
@@ -1508,6 +1653,24 @@ def d04_text(lstate: LadderState | None, metrics: Mapping[str, Any] | None) -> s
         if lstate.demoted:
             L += [f"- demoted (the ladder's own {LADDER_BUDGET_HOURS:g} h wall-clock budget of POST-HOC addendum 2, '2. Ladder "
                   f"M3-M7' > 'Budget'; demotion order {list(DEMOTION_ORDER)} unchanged): {lstate.demoted}"]
+        else:
+            L += [f"- demoted: none (no step was demoted by a budget; the ladder's own {LADDER_BUDGET_HOURS:g} h ledger of "
+                  "POST-HOC addendum 2, '2. Ladder M3-M7' > 'Budget', is checked AFTER the addendum-3 item-3 test, so a "
+                  "not_run step spends none of it)"]
+        if budget is not None:
+            L += [f"- ladder wall-clock ledger (evaluation/ladder/decisions/wall_clock.json): used {_fmt(budget.get('used_hours'), 4)} h "
+                  f"of {_fmt(budget.get('budget_hours'), 1)} h, remaining {_fmt(budget.get('remaining_hours'), 4)} h, exhausted "
+                  f"{_fmt(budget.get('exhausted'))}; the discovery wall clock ({_fmt(budget.get('discovery_hours_not_counted'), 4)} h "
+                  f"against its unchanged {_fmt(budget.get('discovery_budget_hours_unchanged'), 1)} h) is recorded beside it and "
+                  "never added (addendum 2)",
+                  f"- **the discovery run OVERRAN its registered budget by {_fmt(budget.get('discovery_overrun_hours'), 4)} h** "
+                  f"({_fmt(budget.get('discovery_hours_not_counted'), 4)} h used against the "
+                  f"{_fmt(budget.get('discovery_budget_hours_unchanged'), 1)} h of section 7 item 5): the discovery ledger acted "
+                  "on it by demoting M7 -> M3 at the time (decisions.json -> budget.discovery.demoted_now), and nothing "
+                  "in the ladder's own budget adds or re-acts on those hours. Stated here rather than only in the "
+                  "ledger (task X finding V-L4)"]
+        else:
+            L += ["- ladder wall-clock ledger: not computed"]
     L += ["", "## metrics", "",
           "Delta = macro MAE(predecessor) - macro MAE(step), log D, per design; R19 items 1-3, 5 and the scoring-filter "
           "sensitivities (ladder scope) on V5-primary; TOST epsilon 0.05 on V1 / V2 (section 8). R19 item 4 is "
@@ -1528,16 +1691,26 @@ def d04_text(lstate: LadderState | None, metrics: Mapping[str, Any] | None) -> s
     else:
         L += [f"- retained configuration after M6: {lstate.retained_before('M7')} (section 6: a component without a "
               "strict-fold benefit is removed and the next step builds on the predecessor)"]
-    L += ["", "## next action", "",
-          "- M7 on the retained configuration (D05); confirmation of any frozen claim on the withheld seeds and the "
-          "confirmation half only (section 15) -- nothing here is confirmed."]
+    L += ["", "## next action", ""]
+    m7 = None if lstate is None else lstate.status("M7")
+    if m7 in STATUS_SKIPPED:
+        L += [f"- M7 is {m7} as well ({(lstate.steps.get('M7') or {}).get('note', '')}), so the uncertainty question of "
+              "D05 rests on the conformal coverage of the arms that ran; confirmation of any frozen claim on the "
+              "withheld seeds and the confirmation half only (section 15) -- nothing here is confirmed."]
+    else:
+        L += ["- M7 on the retained configuration (D05); confirmation of any frozen claim on the withheld seeds and the "
+              "confirmation half only (section 15) -- nothing here is confirmed."]
     return "\n".join(L) + "\n"
 
 
-def d05_text(lstate: LadderState | None, metrics: Mapping[str, Any] | None) -> str:
+def d05_text(lstate: LadderState | None, metrics: Mapping[str, Any] | None,
+             h6: Mapping[str, Any] | None = None) -> str:
+    retained = None if lstate is None else (("M7" if lstate.kept("M7") is True else lstate.retained_before("M7")))
     L = ["# D05 - uncertainty (M7: 5-member heteroscedastic ensemble, normalised split conformal)", "",
-         "Generated by `scripts/g19_run_ladder.py` from `evaluation/ladder/M7/metrics.json`. Selection half, seed "
-         "104729, optimistically biased; section 12 metrics; S1(d) bands of section 9; F3 of section 10.", "",
+         "Generated by `scripts/g19_run_ladder.py` from `evaluation/ladder/M7/metrics.json` and, for what H6 rests on "
+         "when M7 has not run, from `tables/discovery_summary.csv`, `tables/discovery_comparator_intervals.csv` and "
+         "`evaluation/discovery/decisions/decisions.json`. Selection half, seed 104729, optimistically biased; section "
+         "12 metrics; S1(d) bands of section 9; F3 of section 10.", "",
          "## question", "",
          "Does the M7 ensemble give calibrated intervals (50 / 80 / 95 % coverage in the S1(d) bands) with non-inferior "
          "MAE, and does its predictive SD track the error (\"knows when it does not know\", section 12)?", "",
@@ -1546,6 +1719,7 @@ def d05_text(lstate: LadderState | None, metrics: Mapping[str, Any] | None) -> s
         L += ["- not computed: `evaluation/ladder/M7/metrics.json` absent (M7 not run or not judged)"]
         if lstate is not None and lstate.steps.get("M7"):
             L += [f"- M7 status: {lstate.steps['M7'].get('status')}; note: {lstate.steps['M7'].get('note', '')}"]
+        L += _h6_lines(h6, retained)
     else:
         L += [f"- predecessor (retained configuration): {metrics.get('predecessor')}"]
         for d, b in (metrics.get("designs") or {}).items():
@@ -1587,20 +1761,40 @@ def d05_text(lstate: LadderState | None, metrics: Mapping[str, Any] | None) -> s
     L += ["", "## metrics", "",
           "coverage_50 / 80 / 95 and width (unit macro, section 4 averaging), Gaussian CRPS (closed form), "
           "Spearman(|error|, SD) with the primary-cluster percentile interval, coverage by domain-status category "
-          "(section 13; discovery `_support` files), S1(d) bands, F3, TOST on MAE (epsilon 0.05).", "",
-          "## null / supported / ambiguous", ""]
+          "(section 13; discovery `_support` files), S1(d) bands, F3, TOST on MAE (epsilon 0.05)."]
+    if metrics is None:
+        L += ["", "With M7 `not_run` only the cross-fitted split-conformal coverage and width of the arms that ran exist "
+                  "(the coverage rows of `tables/discovery_summary.csv` and `tables/discovery_comparator_intervals.csv`, "
+                  "read above); CRPS, Spearman(|error|, SD), the SD-binned reliability curve and \"knows when it does not "
+                  "know\" have no input at all, because no arm before M7 carries a predictive SD (addendum 2 item 3). "
+                  "Nothing here is a band verdict for an arm the scorer did not judge."]
+    L += ["", "## null / supported / ambiguous", ""]
     v = (metrics or {}).get("verdict") or {}
     kept = v.get("kept")
     L += [f"- calibration (S1(d) on V5-primary): {_fmt(v.get('calibration_s1d_pass'))}",
           f"- MAE non-inferior on V5, V1 and V2: {_fmt(v.get('mae_non_inferior_all_designs'))}",
-          f"- verdict: {'supported' if kept is True else 'null' if kept is False else 'ambiguous / not computed'}", "",
-          "## decision", "",
+          f"- verdict: {'supported' if kept is True else 'null' if kept is False else 'ambiguous / not computed'}"]
+    if metrics is None:
+        L += ["- H6 (does the model know when it does not know?): ambiguous - not evaluable in this generation. Its "
+              "ensemble half is not computed (M7 `not_run`), and its remaining half is the conformal coverage of the "
+              "arms that ran, which is descriptive, selection-half and optimistically biased; no SD-based metric has an "
+              "input."]
+    L += ["", "## decision", "",
           f"- M7 {'is' if kept is True else 'is not' if kept is False else 'is not yet'} the preferred uncertainty model "
-          "(section 12 'preferred model': worse MAE is tolerated only when non-inferior); selection half only.", "",
-          "## next action", "",
+          "(section 12 'preferred model': worse MAE is tolerated only when non-inferior); selection half only."]
+    if metrics is None:
+        L += [f"- H6 / D05 rests on the conformal coverage of the arms that ran, and on nothing else"
+              + ("" if retained is None else f"; the uncertainty of the deployed configuration {retained} "
+                 f"(= {D.ARM_ALIASES.get(retained, retained)}, POST-HOC addendum 3 item 2) is its cross-fitted "
+                 "split-conformal interval, not an ensemble SD") + "."]
+    L += ["", "## next action", "",
           "- The section 12 designs at confirmation (V5, V1, V2 on the withheld seeds; V6 once) decide; the CRPS, "
           "Spearman and 'knows when it does not know' readings need the POST-HOC addendum on the M7 member seeds "
           "(models.ladder.REGISTRATION_CHOICES['member_seed'])."]
+    if metrics is None:
+        L += ["- M7 itself needs a retained M1 or M2 (addendum 2, '2. Ladder M3-M7'; addendum 3 item 3): it is not "
+              "re-scheduled under the present ladder decision, and the confirmation run judges the intervals of the "
+              "deployed configuration instead."]
     return "\n".join(L) + "\n"
 
 
@@ -1608,8 +1802,11 @@ def write_decision_files(out_root: Path) -> list[Path]:
     lstate = LadderState.read(ladder_state_path(out_root))
     metrics = D.read_record(ladder_root(out_root) / "M7" / "metrics.json")
     dec_dir = Path(out_root) / "decisions"
-    outs = [write_text(dec_dir / "D04_mechanism_experts.md", d04_text(lstate, metrics)),
-            write_text(dec_dir / "D05_uncertainty.md", d05_text(lstate, metrics))]
+    budget = ladder_budget_status(budget_used_seconds(out_root), RD.wall_clock_total(out_root))
+    # what H6 rests on when the M7 ensemble has not run (addendum 2 item 3): read from the scorer's tables
+    h6 = h6_basis(out_root) if metrics is None else None
+    outs = [write_text(dec_dir / "D04_mechanism_experts.md", d04_text(lstate, metrics, budget)),
+            write_text(dec_dir / "D05_uncertainty.md", d05_text(lstate, metrics, h6))]
     if lstate is not None:
         rows = [{"step": s, **{k: v for k, v in r.items() if k in ("status", "kept", "predecessor", "note")}}
                 for s, r in lstate.steps.items()]

@@ -421,17 +421,15 @@
         "source": "current tree (below-footer digest and addenda count)",
         "stage": "discovery_candidates"
       },
-      "rule": "addendum 2 item 5: a record is verified against the registry entry of its stage (the below-footer digest and the code digest under which that stage's records were written), never against the live text or live code; the discovery entry is read from the completed run's record fields, not recomputed; no record is rewritten; a later code edit is logged with its commit and reason and validates or invalidates nothing",
+      "rule": "addendum 2 item 5: a record is verified against the registry entry of its stage (the below-footer digest and the code digest under which that stage's records were written), never against the live text or live code; the discovery entry is read from the completed run's record fields, not recomputed; no record is rewritten; a later code edit is logged with its commit and reason and validates or invalidates nothing. When a POST-HOC addendum is appended below the footer, every stage whose records do NOT yet exist is re-registered under the new below-footer digest (register --stage ... --force, the earlier entry kept under 'superseded') while the stages that HAVE written records keep their entries; a record written under a superseded entry of its own stage still verifies against that entry (verify_record -> matched_entry 'superseded'), so appending an addendum invalidates no record",
       "scorer": {
-        "addenda_count": 2,
-        "amended_utc": "2026-09-22T04:10:11+00:00",
-        "amendment": "descriptive fields corrected; the below-footer digest, code digest and addenda count are unchanged, so no record's verification changes",
-        "below_footer_sha256": "1016149ea8fbc74a9051ea4c1dd8fb7a5bd26388086325a3dea6c7084d2fcff6",
+        "addenda_count": 3,
+        "below_footer_sha256": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
         "code_digest": "895a6ab9696010c9f8bffb4a6078f55b8f41b0773623a8de77103083157e0504",
         "code_digest_source": "the registry's 'discovery' entry: the scorer verifies discovery records and writes none of its own, so its entry carries the digest those records were written under, NOT a digest of the scorer's own code (editing the scorer therefore changes no entry, and the seal gate does not compare code digests)",
-        "git_head": "6528835992d4de90fb54107cac9c423f5034b1b0",
-        "note": "registered under POST-HOC addendum 2 before the first post-discovery runner (addendum 2 item 5)",
-        "registered_utc": "2026-09-22T01:58:39+00:00",
+        "git_head": "257bc3a7a525605ce74e8e0bdfd40708fd877981",
+        "note": "re-registered under POST-HOC addendum 3 (three addenda below the footer) before the first post-discovery runner; addendum 2 item 5. The earlier two-addenda entry is kept under 'superseded' and every record written under it still verifies (verify_record -> matched_entry 'superseded'); the stages whose records exist -- discovery, discovery_candidates -- keep their entries unchanged.",
+        "registered_utc": "2026-09-22T05:15:14+00:00",
         "source": "current tree (below-footer digest and addenda count)",
         "stage": "scorer"
       }
@@ -635,9 +633,36 @@
       "batching_label": "batched",
       "contrast": "M2 vs B0@V5",
       "design": "V5",
+      "eligibility": {
+        "eligible": true,
+        "evaluated_items": {
+          "1": "PASS",
+          "2": "PASS",
+          "3": "PASS",
+          "5": "PASS",
+          "6": "PASS"
+        },
+        "failed_items": [],
+        "items": {
+          "1": "PASS",
+          "2": "PASS",
+          "3": "PASS",
+          "4": "NOT_EVALUATED",
+          "5": "PASS",
+          "6": "PASS"
+        },
+        "items_not_evaluated_in_discovery": {
+          "4": "NOT_EVALUATED"
+        },
+        "r19_verdict_full": "UNDECIDED",
+        "reason": "items [1, 2, 3, 5, 6] PASS; not evaluated in discovery: item 4 NOT_EVALUATED; no item FAIL",
+        "rule": "POST-HOC addendum 3 item 1 (section 15): a contrast is ELIGIBLE FOR FREEZING when every R19 item that R19 EVALUATES in discovery is PASS and no item is FAIL. An item R19 does not evaluate in discovery -- item 4, NOT_EVALUATED by addendum 1 item 3 (one discovery seed), and any UNTESTABLE / NOT_RUN item -- does not disqualify it; item 4 is evaluated at confirmation exactly as registered (5 of 5 withheld seeds). Any FAIL, on any item, makes the contrast ineligible. This is the reading addendum 2 already gives F6 for deployment, and it would have been required whatever the scores were. Everything else about section 15 is unchanged: at most five claims, named in decisions/CONFIRMATION_PLAN.md before the run, one run on the withheld seeds and the confirmation half, V6 once."
+      },
+      "eligible_for_freezing": true,
       "family": "S1(b)",
-      "passed_items_1_5_v5_primary": false,
-      "s1_forced_undecided": false
+      "s1_forced_undecided": false,
+      "section_3_1_v5p_trigger": false,
+      "section_3_1_v5p_trigger_rule": "section 3.1: the heavy-arm V5-P run of a freezing candidate is triggered by R19 items 1-5 on V5-primary. Item 4 is NOT_EVALUATED in discovery (addendum 1 item 3), so the trigger cannot fire; addendum 1 item 4 does not run the heavy-arm V5-P runs either way. Addendum 3 item 1 changes what 'passed R19 in discovery' means for FREEZING (section 15), not this trigger, so the two are reported separately."
     },
     {
       "arms": [
@@ -647,9 +672,36 @@
       "batching_label": "batched",
       "contrast": "M2 vs B3i@V5",
       "design": "V5",
+      "eligibility": {
+        "eligible": true,
+        "evaluated_items": {
+          "1": "PASS",
+          "2": "PASS",
+          "3": "PASS",
+          "5": "PASS",
+          "6": "PASS"
+        },
+        "failed_items": [],
+        "items": {
+          "1": "PASS",
+          "2": "PASS",
+          "3": "PASS",
+          "4": "NOT_EVALUATED",
+          "5": "PASS",
+          "6": "PASS"
+        },
+        "items_not_evaluated_in_discovery": {
+          "4": "NOT_EVALUATED"
+        },
+        "r19_verdict_full": "UNDECIDED",
+        "reason": "items [1, 2, 3, 5, 6] PASS; not evaluated in discovery: item 4 NOT_EVALUATED; no item FAIL",
+        "rule": "POST-HOC addendum 3 item 1 (section 15): a contrast is ELIGIBLE FOR FREEZING when every R19 item that R19 EVALUATES in discovery is PASS and no item is FAIL. An item R19 does not evaluate in discovery -- item 4, NOT_EVALUATED by addendum 1 item 3 (one discovery seed), and any UNTESTABLE / NOT_RUN item -- does not disqualify it; item 4 is evaluated at confirmation exactly as registered (5 of 5 withheld seeds). Any FAIL, on any item, makes the contrast ineligible. This is the reading addendum 2 already gives F6 for deployment, and it would have been required whatever the scores were. Everything else about section 15 is unchanged: at most five claims, named in decisions/CONFIRMATION_PLAN.md before the run, one run on the withheld seeds and the confirmation half, V6 once."
+      },
+      "eligible_for_freezing": true,
       "family": "primary",
-      "passed_items_1_5_v5_primary": false,
-      "s1_forced_undecided": false
+      "s1_forced_undecided": false,
+      "section_3_1_v5p_trigger": false,
+      "section_3_1_v5p_trigger_rule": "section 3.1: the heavy-arm V5-P run of a freezing candidate is triggered by R19 items 1-5 on V5-primary. Item 4 is NOT_EVALUATED in discovery (addendum 1 item 3), so the trigger cannot fire; addendum 1 item 4 does not run the heavy-arm V5-P runs either way. Addendum 3 item 1 changes what 'passed R19 in discovery' means for FREEZING (section 15), not this trigger, so the two are reported separately."
     },
     {
       "arms": [
@@ -659,9 +711,36 @@
       "batching_label": "batched",
       "contrast": "M2 vs B6r0@V5",
       "design": "V5",
+      "eligibility": {
+        "eligible": true,
+        "evaluated_items": {
+          "1": "PASS",
+          "2": "PASS",
+          "3": "PASS",
+          "5": "PASS",
+          "6": "PASS"
+        },
+        "failed_items": [],
+        "items": {
+          "1": "PASS",
+          "2": "PASS",
+          "3": "PASS",
+          "4": "NOT_EVALUATED",
+          "5": "PASS",
+          "6": "PASS"
+        },
+        "items_not_evaluated_in_discovery": {
+          "4": "NOT_EVALUATED"
+        },
+        "r19_verdict_full": "UNDECIDED",
+        "reason": "items [1, 2, 3, 5, 6] PASS; not evaluated in discovery: item 4 NOT_EVALUATED; no item FAIL",
+        "rule": "POST-HOC addendum 3 item 1 (section 15): a contrast is ELIGIBLE FOR FREEZING when every R19 item that R19 EVALUATES in discovery is PASS and no item is FAIL. An item R19 does not evaluate in discovery -- item 4, NOT_EVALUATED by addendum 1 item 3 (one discovery seed), and any UNTESTABLE / NOT_RUN item -- does not disqualify it; item 4 is evaluated at confirmation exactly as registered (5 of 5 withheld seeds). Any FAIL, on any item, makes the contrast ineligible. This is the reading addendum 2 already gives F6 for deployment, and it would have been required whatever the scores were. Everything else about section 15 is unchanged: at most five claims, named in decisions/CONFIRMATION_PLAN.md before the run, one run on the withheld seeds and the confirmation half, V6 once."
+      },
+      "eligible_for_freezing": true,
       "family": "S1(b)",
-      "passed_items_1_5_v5_primary": false,
-      "s1_forced_undecided": false
+      "s1_forced_undecided": false,
+      "section_3_1_v5p_trigger": false,
+      "section_3_1_v5p_trigger_rule": "section 3.1: the heavy-arm V5-P run of a freezing candidate is triggered by R19 items 1-5 on V5-primary. Item 4 is NOT_EVALUATED in discovery (addendum 1 item 3), so the trigger cannot fire; addendum 1 item 4 does not run the heavy-arm V5-P runs either way. Addendum 3 item 1 changes what 'passed R19 in discovery' means for FREEZING (section 15), not this trigger, so the two are reported separately."
     }
   ],
   "guard_counters": {
@@ -1137,12 +1216,12 @@
     "status": "not implemented in this runner (open issue); a null without it is reported UNDECIDED"
   },
   "prereg_gate": {
-    "addenda_sha256": "1016149ea8fbc74a9051ea4c1dd8fb7a5bd26388086325a3dea6c7084d2fcff6",
-    "addenda_sha256_registered": "1016149ea8fbc74a9051ea4c1dd8fb7a5bd26388086325a3dea6c7084d2fcff6",
-    "addendum_implemented": 2,
+    "addenda_sha256": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
+    "addenda_sha256_registered": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
+    "addendum_implemented": 3,
     "gate_source": "registry",
-    "n_addenda": 2,
-    "n_addenda_expected": 2,
+    "n_addenda": 3,
+    "n_addenda_expected": 3,
     "prereg_sha256": "135842499a86eb3d478ece01a45718ac5b9673a4134bb4acda550f975bb45641",
     "registry_path": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer\\manifests\\digest_registry.json",
     "seal_check_exit": 0,

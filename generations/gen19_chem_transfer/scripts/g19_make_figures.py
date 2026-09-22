@@ -292,7 +292,10 @@ def make_all(out_root: Path, *, only: Sequence[str] | None = None, n_resamples: 
     figures_dir = Path(out_root) / "figures"
     tables = Path(out_root) / "tables"
     dep = deployed_arm(out_root)
-    arm = dep.get("arm")
+    # the records, prediction frames and _support files of the deployed configuration are written under the name
+    # discovery.ARM_ALIASES gives it (M0 -> B5), so every LOOKUP below takes arm_alias; dep["arm"] stays the name a
+    # figure caption and the skip reasons print (task X finding V-P02)
+    arm, shown_arm = dep.get("arm_alias") or dep.get("arm"), dep.get("arm")
     results: list[FG.FigureResult] = []
     outs: list[Path] = []
     need_store = bool(want & {"F07", "F08", "F09", "F13"}) and arm is not None
@@ -347,7 +350,10 @@ def make_all(out_root: Path, *, only: Sequence[str] | None = None, n_resamples: 
                 outs.append(write_csv(pd.DataFrame(rows), tables / "s1e_error_vs_support.csv"))
                 results.append(FG.fig08_error_vs_support(cells_by_arm, figures_dir, inputs=f08_inputs, stats=stats))
             else:
-                results.append(FG.skipped("F08", f"no current _support files for {arm} on V5-primary", f08_inputs))
+                results.append(FG.skipped("F08", f"no current _support files for the deployed {shown_arm} (records "
+                                                 f"under {arm}) on V5-primary: input missing "
+                                                 f"evaluation/discovery/_support/<V5-primary>/s{D.PRIMARY_SEED}/",
+                                          f08_inputs))
         if "F13" in want:
             pairs_by_design: dict[str, pd.DataFrame] = {}
             f13_inputs = ["evaluation/discovery/decisions/decisions.json"]

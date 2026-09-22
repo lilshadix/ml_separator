@@ -798,8 +798,11 @@ def section_q2(L: Ledger, ctx: Mapping[str, Any]) -> list[str]:
                      f"{_json_value(L, 'decisions', dec, ck + '.margin')} | {comp.get('r19_full')} | {comp.get('reported_verdict')} | "
                      f"{scopes} | {STATUS_DISCOVERY} |")
     lines += ["", "S1(c)-(e) are reported under Q3 (direction), Q6 (support distance) and Q7 (calibration).", "",
-              "Strata of the deployed predictor's V5 error (macro MAE per stratum, `tables/discovery_summary.csv`):", ""]
-    arm = dep.get("arm")
+              f"Strata of the deployed predictor ({dep.get('arm') or 'undecided'})'s V5 error (macro MAE per stratum, "
+              "`tables/discovery_summary.csv`):", ""]
+    # the summary table writes the deployed arm's rows under the name its RECORDS use (M0 -> B5,
+    # discovery.ARM_ALIASES), so the lookup takes arm_alias and the sentence keeps arm (task X finding V-P02)
+    arm = dep.get("arm_alias") or dep.get("arm")
     if arm and arm not in CLOSED_FORM_ARMS:
         ds = L.csv("discovery_summary")
         if ds is not None:
@@ -914,8 +917,12 @@ def section_q3(L: Ledger, ctx: Mapping[str, Any]) -> list[str]:
 
 def section_q4(L: Ledger, ctx: Mapping[str, Any]) -> list[str]:
     ver, f4, summ = L.json("h3_verdicts"), L.json("h3_f4"), L.json("h3_summary")
-    dep_arm = ((summ or {}).get("deployed") or {}).get("arm") or ctx["deployed"].get("arm")
-    dv = (ver or {}).get(dep_arm or "", {}).get("verdict") if ver else None
+    sdep = (summ or {}).get("deployed") or {}
+    dep_arm = sdep.get("arm") or ctx["deployed"].get("arm")
+    # h3_verdicts.json is keyed by the arm the H3 RECORDS use (M0 -> B5, discovery.ARM_ALIASES); the printed sentences
+    # keep dep_arm (task X finding V-P02)
+    dep_key = sdep.get("arm_alias") or ctx["deployed"].get("arm_alias") or dep_arm
+    dv = (ver or {}).get(dep_key or "", {}).get("verdict") if ver else None
     if ver is None:
         head = f"{HEAD_UNSHOWN} gain from actinide data: the section 11 ablation has not run ({L.missing(L.rel('h3_verdicts'))})."
     elif dv == "helps":
@@ -939,7 +946,8 @@ def section_q4(L: Ledger, ctx: Mapping[str, Any]) -> list[str]:
     for arm, v in sorted(ver.items()):
         ni = v.get("v1_v2_non_inferior") or {}
         km = v.get("kappa_min")
-        lines.append(f"| {arm}{' (deployed)' if arm == dep_arm else ''} | **{v.get('verdict')}** | {v.get('v5_with_beats_without')} | "
+        mark = f" (deployed = {dep_arm})" if arm == dep_key else ""
+        lines.append(f"| {arm}{mark} | **{v.get('verdict')}** | {v.get('v5_with_beats_without')} | "
                      f"{v.get('v5_with_beats_permuted')} | {json.dumps(ni)} | {(v.get('tost_v5_with_minus_without') or {}).get('verdict')} | "
                      f"{L.value(km, L.rel('h3_verdicts'), f'{arm}.kappa_min', 2) if km is not None else v.get('kappa_status')} | {STATUS_DISCOVERY} |")
     hc = L.csv("h3_contrasts")
@@ -1518,12 +1526,26 @@ def not_run_section(L: Ledger, ctx: Mapping[str, Any]) -> list[str]:
         lines += ["", f"**Ladder demotions** (section 7 item 5 budget): {ladder.get('demoted') or 'none'}; notes: {ladder.get('notes') or 'none'}"]
     wc = L.json("wall_clock")
     if wc is not None:
+        used = json_get(wc, "total_hours") if "total_hours" in wc else None
+        cap = json_get(wc, "budget.budget_hours") if (wc.get("budget") or {}).get("budget_hours") is not None else None
+        over = (None if used is None or cap is None else round(max(0.0, float(used) - float(cap)), 4))
         lines += ["", f"**Discovery wall clock**: {_json_value(L, 'wall_clock', wc, 'total_hours', 2)} h of the "
                   f"{_json_value(L, 'wall_clock', wc, 'budget.budget_hours', 0)} h budget (`{L.rel('wall_clock')}`); exhausted = "
-                  f"{_json_str(L, 'wall_clock', wc, 'budget.exhausted')}"]
+                  f"{_json_str(L, 'wall_clock', wc, 'budget.exhausted')}"
+                  + ("" if not over else f" -- **an overrun of {over:.4f} h**, acted on by the discovery ledger's own "
+                                         "demotion of M7-M3 at the time and added to no later budget (task X finding V-L4)")]
     lwc = L.json("ladder_wall_clock")
-    if lwc is not None and "total_hours" in lwc:
-        lines.append(f"- ladder wall clock: {_json_value(L, 'ladder_wall_clock', lwc, 'total_hours', 2)} h (`{L.rel('ladder_wall_clock')}`)")
+    if lwc is not None:
+        key = "total_hours" if "total_hours" in lwc else ("ladder_hours" if "ladder_hours" in lwc else None)
+        if key is not None:
+            inv = lwc.get("invocations") or []
+            proc = sum(float(i.get("process_seconds") or 0.0) for i in inv)
+            lines.append(f"- ladder wall clock: {_json_value(L, 'ladder_wall_clock', lwc, key, 4)} h charged to the "
+                         f"{_json_value(L, 'ladder_wall_clock', lwc, 'budget_hours', 0)} h ladder budget over "
+                         f"{L.count(len(inv), L.rel('ladder_wall_clock'), 'invocations')} invocation(s) "
+                         f"(`{L.rel('ladder_wall_clock')}`)"
+                         + (f"; {proc:.1f} s of process wall clock, so the runner ran and skipped every step"
+                            if proc else "; no per-invocation process wall clock recorded"))
     ps = ctx["plan_state"]
     if ps is not None:
         lines += ["", f"**B6 checks** (sections 3.1 / 3.2, `{L.rel('plan_state')}`): V5 batched-vs-exact = {ps.get('v5_batched_check')} "
@@ -1854,13 +1876,37 @@ def d02_text(L: Ledger, ctx: Mapping[str, Any], extra: Mapping[str, Any]) -> str
             lines.append(_regime_row(L, k, STATUS_DISCOVERY, "ladder"))
     lines += ["", "## null / supported / ambiguous", ""]
 
+    # section 8 / addendum 3 item 3: "the power check runs BEFORE any null is reported", and "a null with kappa_min >
+    # 0.25 log D is reported as UNDECIDED (underpowered)".  A FAILED contrast is therefore printed as a null ONLY when
+    # its own power record screened it as an informative null; with an underpowered record, or with no registered power
+    # check at all, it prints UNDECIDED and says which (task X finding V-P01).
+    pw_checks = ((L.json("power_checks") or {}).get("checks") or [])
+    pw_index = {str(c.get("contrast")): (i, c) for i, c in enumerate(pw_checks)}
+
+    def power_reading(key: str) -> str:
+        if key not in pw_index:
+            return (f"**UNDECIDED (no registered power check)** -- section 8 requires the signal-injection check before "
+                    f"a failed contrast is reported as a null ({L.missing(L.rel('power_checks'), 'checks[].contrast=' + key)})")
+        i, c = pw_index[key]
+        km, pv = c.get("kappa_min"), str(c.get("verdict"))
+        shown = (L.value(km, L.rel("power_checks"), f"checks[{i}].kappa_min", 2) if km is not None
+                 else "none in the registered grid")
+        if pv == "INFORMATIVE_NULL":
+            return f"null (informative: kappa_min {shown}, `{L.rel('power_checks')}` -> `checks[{i}].verdict`)"
+        return (f"**UNDECIDED (underpowered)** -- kappa_min {shown} (`{L.rel('power_checks')}` -> "
+                f"`checks[{i}].verdict` {pv})")
+
     def verdict_of(key: str) -> str:
         row = contrast_row(L, "discovery_contrasts", key)
         if row is None:
             return f"ambiguous / not run ({L.missing(L.rel('discovery_contrasts'), 'key=' + key)})"
         v = _s(row, "reported_verdict")
         fs = _s(row, "verdict_freezing_screen")
-        return {"PASS": "supported", "FAIL": "null"}.get(v, f"ambiguous ({v or 'UNDECIDED'}; freezing screen {fs or 'n/a'})")
+        if v == "PASS":
+            return "supported"
+        if v == "FAIL":
+            return power_reading(key)
+        return f"ambiguous ({v or 'UNDECIDED'}; freezing screen {fs or 'n/a'})"
     for k, label in (("M2 vs B3i@V5", "H1"), ("B6 vs B3i@V5", "H1b"), ("M2 vs FLAT_CAT@V5", "H4 factorised vs flat"),
                      ("M2 vs M0@V5", "H4 factorised vs descriptor"), ("M3 vs M2@V5", "H4 + mechanism"),
                      ("B6 vs B6r0@V5", "H4 linear analogue")):

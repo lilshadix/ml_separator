@@ -230,6 +230,169 @@ def test_deployed_configuration_reads_the_ladder_runner_then_the_scorer_then_b3i
     assert H3.transforms_for("B3i")[0] == "WITH"                         # a closed-form arm has none
 
 
+def _dropped_ladder_decisions(**stop) -> dict:
+    """The scorer's ladder block as ``g19_score_discovery.ladder`` writes it when M1 and M2 are DROPPED: the base step
+    M0 (= B5) is kept, so the ladder's retained configuration is M0."""
+    return {"ladder": {"M0": {"step": "M0", "kept": True, "note": "base (B5)"},
+                       "M1": {"step": "M1", "kept": False, "predecessor": "M0"},
+                       "M2": {"step": "M2", "kept": False, "predecessor": "M0"}},
+            "stop_rule": {"M2_vs_B3i": {"verdict": stop.get("M2", "PASS")},
+                          "B6_vs_B3i": {"verdict": stop.get("B6", "FAIL")}}}
+
+
+def _not_run_ladder() -> dict:
+    """``ladder.json`` after the ladder runner skipped M3-M7 (``not_run``: neither M1 nor M2 is retained, so the neural
+    ladder has no base -- addendum 2 section 2, recorded by addendum 3 item 3)."""
+    return {"stop_rule": False, "discovery_ladder": {"M1": False, "M2": False},
+            "steps": {s: {"step": s, "status": "not_run", "kept": None, "predecessor": "M0"} for s in H3.LADDER_ARMS},
+            "demoted": [], "notes": []}
+
+
+def test_deployed_configuration_is_the_ladders_retained_step_m0_when_m1_and_m2_are_dropped():
+    """POST-HOC addendum 3 item 2: the deployed configuration is the LADDER'S RETAINED configuration, and that includes
+    its base step M0 (= B5) when neither M1 nor M2 is kept.  Addendum 2's order deployed M2 by the stop-rule fallback
+    here, which would contradict the registered ladder decision; that order now applies only when the ladder retains no
+    step at all."""
+    dec, lad = _dropped_ladder_decisions(), _not_run_ladder()
+    assert H3.ladder_complete(lad)["complete"]                       # 'not_run' is a skipped status
+    dep = H3.deployed_configuration(dec, lad)
+    assert dep["arm"] == "M0" and dep["status"] == "decided" and dep["retained_ladder_step"] == "M0"
+    assert "addendum 3 item 2" in dep["basis"] and "B5" in dep["basis"]
+    # the deployed predictor is REPORTED as M0 and its records / tables are LOOKED UP as B5 (discovery.ARM_ALIASES)
+    assert dep["arm_alias"] == "B5" and "tables/discovery_summary.csv" in dep["arm_alias_note"]
+    assert H3.deployed_configuration({"ladder": {"M1": {"kept": True}, "M2": {"kept": False}},
+                                      "stop_rule": {}}, _ladder())["arm_alias"] == "M1"
+    assert H3.deployed_configuration({}, _ladder())["arm_alias"] is None      # pending: no alias either
+    assert dep["ladder_kept"]["M0"] is True and dep["ladder_kept"]["M1"] is dep["ladder_kept"]["M2"] is False
+    assert dep["keys"]["ladder"]["M0"] == "ladder.M0.kept"
+    # M2 passes the stop-rule scope against B3i and is STILL not deployed: the ladder decision governs
+    assert dep["stop_rule_pass"]["M2_vs_B3i"] is True
+    # ... and that holds whatever the stop-rule verdicts are, because the ladder retains a step
+    for stop in ({"M2": "PASS", "B6": "PASS"}, {"M2": "FAIL", "B6": "PASS"}, {"M2": "FAIL", "B6": "FAIL"}):
+        assert H3.deployed_configuration(_dropped_ladder_decisions(**stop), lad)["arm"] == "M0"
+    # H3 trains its WITH / WITHOUT / control arms on M0, i.e. on B5 (models.boosted), and M0 IS a reference arm, so the
+    # model arms are two, not three
+    assert H3.model_arms(dep["arm"]) == ("B5", "B6")
+    assert isinstance(H3.frozen_runner(dep["arm"]), H3.FrozenBoosted) and H3.frozen_runner(dep["arm"]).arms == ("B5",)
+    assert not H3.is_ladder_arm(dep["arm"]) and not H3.is_deterministic(dep["arm"])
+    assert H3.transforms_for(dep["arm"]) == H3.TRANSFORMS             # WITH is the discovery B5 record, never refitted
+    assert H3.h3_arm_name(dep["arm"], "WITHOUT") == "B5:WITHOUT"
+    assert H3.batching_arms(dep["arm"]) == ["B5"]                     # B5 is a heavy arm in its own right
+    # B5 has no section 15 metal embedding, so addendum 2 item 4's shared-only re-run does not apply to it
+    assert not H3.shared_only_applicable(dep["arm"])
+    # the record directories of the WITH arm are B5's own discovery directories at the plan's schemes
+    st = D.PlanState(v5_batched_check="passed_after_recolour", v1_tenfold_check="failed")
+    assert H3.with_design_dir(dep["arm"], "V5", st) == "V5__primary_batched_max4"
+    assert H3.with_design_dir(dep["arm"], "V1", st) == "V1__copy_exact"
+    assert H3.with_design_dir(dep["arm"], "V2", st) == "V2__element_exact"
+    assert H3.with_job(dep["arm"], "V5", st).arm == "B5"
+    assert "M0" in H3.READINGS["deployed_rule"] and "addendum 3 item 2" in H3.READINGS["deployed_rule"]
+    # the reading no longer asks for a further addendum on this point (report.readings_needing_addenda)
+    assert "needs a POST-HOC addendum" not in H3.READINGS["deployed_rule"]
+
+
+def test_deployed_rule_returns_the_ladders_retained_step_whenever_one_exists():
+    """Regression for addendum 3 item 2: with a retained ladder step the rule returns THAT step and never falls through
+    to addendum 2's stop-rule order; only a ladder with no retained step at all reaches the fallbacks."""
+    stop_both = {"M2_vs_B3i": {"verdict": "PASS"}, "B6_vs_B3i": {"verdict": "PASS"}}
+    cases = [("M0", {"M0": {"kept": True}, "M1": {"kept": False}, "M2": {"kept": False}}, _not_run_ladder()),
+             ("M1", {"M0": {"kept": True}, "M1": {"kept": True}, "M2": {"kept": False}}, _ladder()),
+             ("M2", {"M0": {"kept": True}, "M1": {"kept": True}, "M2": {"kept": True}}, _ladder()),
+             ("M3", {"M0": {"kept": True}, "M1": {"kept": True}, "M2": {"kept": True}}, _ladder(M3=True)),
+             ("M7", {"M0": {"kept": True}, "M1": {"kept": True}, "M2": {"kept": True}}, _ladder(M3=True, M7=True))]
+    for expected, lad_block, ladder_json in cases:
+        dep = H3.deployed_configuration({"ladder": lad_block, "stop_rule": stop_both}, ladder_json)
+        assert dep["arm"] == expected, f"{expected}: got {dep['arm']} -- {dep['basis']}"
+        assert dep["status"] == "decided" and not dep.get("fallback")
+    # no retained step at all (no M0 row): addendum 2's order, unchanged
+    no_base = {"ladder": {"M1": {"kept": False}, "M2": {"kept": False}}, "stop_rule": stop_both}
+    assert H3.deployed_configuration(no_base, _ladder())["arm"] == "M2"
+    b6_only = {"ladder": {"M1": {"kept": False}, "M2": {"kept": False}},
+               "stop_rule": {"M2_vs_B3i": {"verdict": "FAIL"}, "B6_vs_B3i": {"verdict": "PASS"}}}
+    assert H3.deployed_configuration(b6_only, _ladder())["arm"] == "B6"
+    neither = {"ladder": {"M1": {"kept": False}, "M2": {"kept": False}, "M0": {"kept": False}},
+               "stop_rule": {"M2_vs_B3i": {"verdict": "FAIL"}, "B6_vs_B3i": {"verdict": "FAIL"}}}
+    dep = H3.deployed_configuration(neither, _ladder())
+    assert dep["arm"] == H3.FALLBACK_DEPLOYED and dep["fallback"] and "no retained step" in dep["basis"]
+    # a pending M1 / M2 decision still wins over the base step: M2 could yet be retained
+    pending = {"ladder": {"M0": {"kept": True}, "M1": {"kept": False}, "M2": {"kept": None}}, "stop_rule": stop_both}
+    assert H3.deployed_configuration(pending, _ladder())["status"] == "pending"
+
+
+def test_frozen_boosted_refits_m0_at_the_with_records_config_and_iterations(monkeypatch):
+    """Addendum 3 item 2 makes M0 = B5 the H3 arm, so the frozen-refit path must refit it through ``models.boosted`` at
+    the WITH record's SELECTED CatBoost configuration and tree count of that fold (no re-tuning), with the discovery
+    runner's cross-fitted calibration on the WITH record's tuning block."""
+    from gen19ct.models import boosted as BO
+
+    # a B5 discovery record as the runner writes it (BoostedRunner.point: arm_record = {arm, frozen, inner_design})
+    rec = {"selected_config": "depth8_l23", "model_seed": 10000033,
+           "arm_record": {"arm": {"tuning": {"inner_folds_used": [0, 1, 2], "selected": "depth8_l23"}},
+                          "frozen": {"config": {"label": "depth8_l23", "depth": 8, "l2_leaf_reg": 3.0,
+                                                "learning_rate": 0.05, "loss_function": "RMSE", "eval_metric": "MAE",
+                                                "max_iterations": 3000, "early_stopping_rounds": 200,
+                                                "one_hot_max_size": 10, "thread_count": 2},
+                                     "iterations": 2934}}}
+    hp = H3.selected_hyperparameters("M0", rec)                      # M0 is read through the B5 layout
+    assert hp["family"] == "boosted" and hp["iterations"] == 2934 and hp["model_seed"] == 10000033
+    assert "label" not in hp["config"] and hp["config"]["depth"] == 8
+    assert hp == H3.selected_hyperparameters("B5", rec)
+
+    seen: dict = {}
+
+    class FakeArm:
+        def __init__(self, name, **kw):
+            seen.update(name=name, **kw)
+            self.model_seed = 10000033
+            self.fitted = SimpleNamespace(config=SimpleNamespace(label="depth8_l23", record=lambda: {"depth": 8}),
+                                          iterations=kw["iterations"], columns=("f1", "f2"))
+
+        def fit(self, rows, ctx):
+            seen["n_train_rows"] = len(rows)
+            return self
+
+        def predict(self, rows):
+            return pd.DataFrame({"mean_logD": np.zeros(len(rows))}, index=rows.index)
+
+    monkeypatch.setattr(BO, "BoostedArm", FakeArm)
+    monkeypatch.setattr(BO, "CatBoostConfig", lambda **kw: SimpleNamespace(**kw))
+    monkeypatch.setattr(H3, "_runner_module",
+                        lambda: SimpleNamespace(inner_design_object=lambda job, c: "design-obj",
+                                                max_cells_per_batch=lambda job: 4,
+                                                ArmOutput=lambda **kw: SimpleNamespace(**kw)))
+    df = pd.DataFrame({"y": np.arange(6.0)}, index=[f"r{i}" for i in range(6)])
+    fc = _stub_fc(df, df.index[:2], ordinal=7)
+    out = H3.FrozenBoosted("B5").point(fc, rec)["B5"]
+    # the refit is frozen: the record's configuration and tree count, the fold's own model seed, no grid
+    assert seen["name"] == "B5" and seen["iterations"] == 2934 and seen["config"].depth == 8
+    assert seen["fold_index"] == 7 and seen["n_train_rows"] == 4 and seen["max_cells_per_batch"] == 4
+    assert out.selected_config == "depth8_l23" and out.model_seed == 10000033 and len(out.pred) == 2
+    assert out.record["selected_hyperparameters"]["iterations"] == 2934
+    assert out.record["frozen"]["iterations"] == 2934
+
+    # the calibration step is the discovery runner's own cross-fitted plan, on the WITH record's tuning block
+    called: dict = {}
+
+    class FakeBoostedRunner:
+        def __init__(self, name):
+            called["name"] = name
+
+        def calibration(self, fold_ctx, arm_record):
+            called["inner_folds_used"] = arm_record["arm"]["tuning"]["inner_folds_used"]
+            return "cross-fit-conformal", {"cross_fit": True, "calibration_folds": [0, 1, 2]}
+
+    monkeypatch.setattr(H3, "_runner_module",
+                        lambda: SimpleNamespace(_calibration_splits=lambda fc: (None, [0, 1, 2]),
+                                                BoostedRunner=FakeBoostedRunner))
+    cal, plan = H3.FrozenBoosted("B5").calibration(fc, rec["arm_record"])
+    assert cal == "cross-fit-conformal" and plan["cross_fit"] and called["name"] == "B5"
+    assert called["inner_folds_used"] == [0, 1, 2]
+    # a fold whose available inner folds differ from the WITH record's is recorded, never silently calibrated
+    other = {"arm": {"tuning": {"inner_folds_used": [0, 1]}}}
+    cal, plan = H3.FrozenBoosted("B5").calibration(fc, other)
+    assert cal is None and plan["status"] == H3.NOT_CALIBRATED_DIFFER
+
+
 def test_ladder_done_statuses_and_frozen_runner_agree_with_the_ladder_runner():
     RL = H3._ladder_module()
     assert H3.LADDER_DONE_STATUSES == set(RL.STATUS_DONE + RL.STATUS_SKIPPED) - {"complete"}
@@ -952,3 +1115,132 @@ def test_calibration_guard_records_not_calibrated_when_the_inner_folds_differ(mo
     cal, cplan = H3.FrozenLadder("M3").calibration(fc, {"inner_folds_used": [0]})
     assert cal is None and cplan["status"] == H3.NOT_CALIBRATED_DIFFER
     assert "VL2-05" in H3.READINGS["calibration_guard"]
+
+
+def _no_retained_step_ladder() -> dict:
+    """``ladder.json`` with no retained step at all: addendum 2's F6 order (M2 / B6 by the stop-rule scope, then B3i) is
+    reached only here (addendum 3 item 2)."""
+    return {**_not_run_ladder(), "discovery_ladder": {"M1": False, "M2": False}}
+
+
+def _cands(*contrasts: str) -> list[dict]:
+    """``decisions.json -> freezing_candidates`` as the scorer writes it: only contrasts that PASS the freezing screen
+    are listed, each with its addendum-3 item-1 eligibility."""
+    return [{"contrast": c, "family": "primary", "design": "V5", "eligible_for_freezing": True,
+             "eligibility": {"eligible": True, "failed_items": [], "reason": "items [1, 2, 3, 5, 6] PASS"}}
+            for c in contrasts]
+
+
+def test_the_f6_fallback_also_requires_that_no_evaluated_r19_item_fails():
+    """Task X finding V-P09.  POST-HOC addendum 2 resolved that, with no retained ladder step, M2 (and B6 for H1b) "is
+    deployed by the fallback only when its contrast passes the stop-rule scope (items 1, 2, 3, 5) AND item 6 over the
+    reduced sensitivity set - no evaluated item may FAIL".  ``decisions.json -> stop_rule`` carries items 1, 2, 3 and 5
+    only, so item 6 comes from the scorer's ``freezing_candidates`` screen."""
+    lad = _no_retained_step_ladder()
+    dec = {**_dropped_ladder_decisions(), "ladder": {"M0": {"kept": False}, "M1": {"kept": False}, "M2": {"kept": False}}}
+    # M2 passes the stop-rule scope AND no evaluated item fails -> M2 deploys, and the basis says both halves held
+    ok = H3.deployed_rule({**dec, "freezing_candidates": _cands("M2 vs B3i@V5")}, lad)
+    assert ok["arm"] == "M2" and "no evaluated R19 item FAILs" in ok["basis"]
+    assert ok["f6_no_evaluated_fail"] == {"M2_vs_B3i": True, "B6_vs_B3i": False}
+    assert ok["keys"]["f6_no_evaluated_fail"]["M2_vs_B3i"].startswith("freezing_candidates[contrast=M2 vs B3i@V5]")
+    assert "no evaluated item may FAIL" in ok["f6_rule"]
+    # the scorer lists no M2 contrast: it did not pass the screen, so the stop rule alone no longer deploys M2 -- and
+    # B6 fails the stop rule, so the registered fallback B3i is deployed
+    none = H3.deployed_rule({**dec, "freezing_candidates": _cands("M2 vs B0@V5")}, lad)
+    assert none["arm"] == H3.FALLBACK_DEPLOYED and none["fallback"] is True
+    assert none["stop_rule_pass"]["M2_vs_B3i"] is True and none["f6_no_evaluated_fail"]["M2_vs_B3i"] is False
+    assert "with no evaluated R19 item FAILing" in none["basis"]
+    # B6's own fallback is gated the same way
+    b6 = H3.deployed_rule({**dec, "stop_rule": {"M2_vs_B3i": {"verdict": "FAIL"}, "B6_vs_B3i": {"verdict": "PASS"}},
+                           "freezing_candidates": _cands("B6 vs B3i@V5")}, lad)
+    assert b6["arm"] == "B6" and "no evaluated R19 item FAILs" in b6["basis"]
+    assert H3.deployed_rule({**dec, "stop_rule": {"M2_vs_B3i": {"verdict": "FAIL"}, "B6_vs_B3i": {"verdict": "PASS"}},
+                             "freezing_candidates": []}, lad)["arm"] == H3.FALLBACK_DEPLOYED
+    # without a freezing_candidates block at all item 6 is UNKNOWN: the rule does not block, and says the check did not
+    # run rather than claiming it passed
+    unk = H3.deployed_rule(dec, lad)
+    assert unk["arm"] == "M2" and unk["f6_no_evaluated_fail"] == {"M2_vs_B3i": None, "B6_vs_B3i": None}
+    assert "item 6 not checked" in unk["basis"]
+    # a retained ladder step still wins over all of this (addendum 3 item 2)
+    assert H3.deployed_rule({**_dropped_ladder_decisions(), "freezing_candidates": []}, _not_run_ladder())["arm"] == "M0"
+
+
+def test_d03_reads_the_deployed_arms_verdict_by_its_alias_and_prints_its_reported_name():
+    """Task X finding V-P02: ``h3_summary -> verdicts`` is keyed by the arm the RECORDS use (M0's records are written
+    under B5, ``discovery.ARM_ALIASES``), so D03 looked its own deployed arm up under "M0", found nothing, printed
+    'not computed' and forced the Decision line to "no" even on *helps* -- contradicting section 11."""
+    dep = H3.deployed_configuration(_dropped_ladder_decisions(), _not_run_ladder())
+    assert dep["arm"] == "M0" and dep["arm_alias"] == "B5"
+    summary = {"deployed": dep, "verdicts": {"B5": {"verdict": "helps"}, "B6": {"verdict": "UNDECIDED"}},
+               "f4": {}, "transforms": ["WITHOUT"], "git_head": "abc"}
+    md = H3.d03_markdown(summary, None, None)
+    assert "Deployed arm reading (M0, records under B5): **supported (actinide rows help lanthanide prediction)**" in md
+    assert "Actinide rows enter the deployed Ln configuration: **yes**" in md
+    assert "not computed**." not in md.split("Deployed arm reading")[1].split("\n")[0]
+    # hurts / UNDECIDED still read through the alias, and only *helps* admits the rows (section 11)
+    for v, decision in (("hurts", "no"), ("equivalent", "no"), ("UNDECIDED", "no")):
+        m = H3.d03_markdown({**summary, "verdicts": {"B5": {"verdict": v}}}, None, None)
+        assert f"Actinide rows enter the deployed Ln configuration: **{decision}**" in m
+    # an arm whose reported name IS its record name prints no redundant alias clause
+    m2 = H3.d03_markdown({**summary, "deployed": {"arm": "B6", "arm_alias": "B6"}}, None, None)
+    assert "Deployed arm reading (B6): **ambiguous**" in m2
+
+
+def test_d03_prints_the_power_of_each_contrast_at_its_own_margin():
+    """Task X finding V-L1: the V5 WITH-vs-WITHOUT leg answers POSITIVE but below delta5, and its ``mde_80`` exceeds
+    delta5, so the leg can never read 'helps' whatever the truth.  D03 says so instead of leaving a bare FAIL."""
+    prim = pd.DataFrame([{"model_arm": "B5", "transform": "WITHOUT", "contrast": "B5:WITH vs B5:WITHOUT", "design": "V5",
+                          "cluster_unit": "system", "primary_cluster_unit": True, "point": 0.066866, "margin": 0.105689,
+                          "percentile_low": 0.011249, "percentile_high": 0.245690, "bca_low": 0.009038,
+                          "bca_high": 0.225950, "p_two_sided": 0.0064, "mde_80": 0.179162, "loco_min": 0.049541,
+                          f"verdict_{H3.VERDICT_SCOPE}": "FAIL", "r19_verdict_full": "FAIL",
+                          "tost_verdict_eps0.05": "PASS"},
+                         {"model_arm": "B6", "transform": "WITHOUT", "contrast": "B6:WITH vs B6:WITHOUT", "design": "V1",
+                          "cluster_unit": "publication_group", "primary_cluster_unit": True, "point": 0.01,
+                          "margin": 0.05, "percentile_low": -0.01, "percentile_high": 0.03, "bca_low": -0.01,
+                          "bca_high": 0.03, "p_two_sided": 0.4, "mde_80": 0.02, "loco_min": 0.0,
+                          f"verdict_{H3.VERDICT_SCOPE}": "FAIL", "r19_verdict_full": "FAIL",
+                          "tost_verdict_eps0.05": "PASS"}])
+    md = H3.d03_markdown({"deployed": {"arm": "M0", "arm_alias": "B5"}, "verdicts": {}, "f4": {}}, prim, None)
+    assert "UNDERPOWERED at this margin: no kappa of the design can make item 1 PASS" in md
+    assert "0.179" in md and "0.106" in md and "0.050" in md
+    row = next(ln for ln in md.split("\n") if ln.startswith("| B6 |") and "0.020" in ln)
+    assert "powered at this margin" in row and "UNDERPOWERED" not in row
+
+
+def test_an_h3_record_set_is_verified_with_the_code_digest_it_was_written_under(tmp_path):
+    """Task X finding V-P02, second half.  ``h3.py`` is inside the H3 code digest, and an H3 fold record's resume
+    digest hashes that code digest -- so fixing a READING in this module would re-digest all 43 records on disk and
+    force a refit of a leg that is already complete.  Addendum 2 item 5: a later edit "can neither validate nor
+    invalidate a record written earlier", so the SET is verified with the code digest its own records carry, whenever
+    the registry still holds that digest for this stage (exactly ``registry.record_dir_code`` for discovery records).
+    Fitting is unaffected: records are written under the live code."""
+    reg, d = tmp_path / "reg.json", tmp_path / "records"
+    d.mkdir()
+    OLD, NEW, FOREIGN = "0a" * 32, "0b" * 32, "ff" * 32
+    for i in range(3):
+        (d / f"s104729_S_b{i:03d}.json").write_text(json.dumps({"code_digest": OLD, "fold_id": f"b{i}"}), encoding="utf-8")
+    REG.register_stage("h3", below_footer_sha256="a1" * 32, code_digest=OLD, git_head=None, addenda_count=3,
+                       note="before the reading fix", path=reg)
+    # while the live code IS the registered code nothing changes
+    same = H3.record_set_code(d, OLD, path=reg)
+    assert same["code"] == OLD and same["resolved"] == "live" and same["record_code"] == OLD
+    # after the edit the stage is re-registered; the set still verifies against the digest it was written under
+    REG.register_stage("h3", below_footer_sha256="a1" * 32, code_digest=NEW, git_head=None, addenda_count=3,
+                       note="after the reading fix", path=reg, force=True)
+    got = H3.record_set_code(d, NEW, path=reg)
+    assert got["code"] == OLD and got["resolved"] == "superseded" and got["superseded_utc"]
+    assert "invalidates no record written earlier" in got["note"]
+    # a digest the registry never held, current or superseded, does NOT resolve: the live digest governs and the
+    # existing StaleRecordError path fires
+    (d / "s104729_S_b000.json").write_text(json.dumps({"code_digest": FOREIGN}), encoding="utf-8")
+    mixed = H3.record_set_code(d, NEW, path=reg)
+    assert mixed["code"] == NEW and mixed["resolved"] == "live" and "mixes code digests" in mixed["note"]
+    for i in range(3):
+        (d / f"s104729_S_b{i:03d}.json").write_text(json.dumps({"code_digest": FOREIGN}), encoding="utf-8")
+    foreign = H3.record_set_code(d, NEW, path=reg)
+    assert foreign["code"] == NEW and foreign["resolved"] == "live" and "is no entry of stage" in foreign["note"]
+    # an empty / absent directory falls back to the live digest and says why
+    assert H3.record_set_code(tmp_path / "nope", NEW, path=reg) == {"code": NEW, "resolved": "live", "record_code": None}
+    (d / "s104729_S_b000.json").unlink(); (d / "s104729_S_b001.json").unlink(); (d / "s104729_S_b002.json").unlink()
+    assert H3.record_set_code(d, NEW, path=reg)["note"] == "the directory holds no record"
