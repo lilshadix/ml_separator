@@ -1776,3 +1776,53 @@ the stop rule; the grids of §5 and §6; confirmation on the withheld seeds.
 - Direction thresholds (F13): |observed logSF| ≥ 0.3 on every design as primary, plus ≥ 0.1 for V6 only, one panel per (design, threshold) — the §4 rule. Every figure names its inputs and writes a companion CSV; an absent frame yields `skipped` with the reason. The report lists every runner reading still naming a further addendum.
 
 **What does not change.** Designs, folds, halves, hiding and guards (the re-colouring is §7 item 6 as registered); the V6 carve-out and single V6 run; metrics and averaging units; comparators; margins ρ5, γ5, η5 and ε; S1, S2 and F1–F6; R19 items 1–6 and the reduced set of addendum 1 item 4; the stop rule; the grids of §5 and §6; confirmation on the withheld seeds.
+
+## POST-HOC addendum 3 (2026-09-22, orchestrator Claude Code; results seen: yes - the discovery selection-half scores and verdicts)
+
+**Results seen.** The discovery run is complete and scored on the selection half, seed 104729
+(`evaluation/discovery/decisions/{decisions,stop_rule,plan_state}.json`, `tables/discovery_*`): the stop
+rule does not fire (M2 vs B3i on V5-primary passes items 1, 2, 3 and 5 with the point estimate above
+delta5); B6 vs B3i fails; the ladder keeps M0 and drops M1 and M2, because M0 - the descriptor CatBoost
+of section 5 / section 6 - has the lower V5 macro MAE; every full R19 verdict is UNDECIDED because item 4
+is NOT_EVALUATED in discovery by addendum 1 item 3. Nothing has run on V6; no confirmation-half row has
+been scored; the withheld seeds are untouched. The two items below are forced by that state and are
+resolved now, before the ladder, H3, the power check or the confirmation run produce anything.
+
+**1. What "passed R19 in discovery" means when freezing a claim (section 15).** Section 15 freezes at
+most five claims that "passed R19 in discovery". Addendum 1 item 3 makes R19 item 4 NOT_EVALUATED in
+discovery for every learned arm, so no contrast can satisfy the literal reading and the confirmation run
+- and with it the single V6 run of section 3.4, S2 and the whole applied Pr/Nd question of brief section
+34 - could never happen. **Resolved:** a contrast is eligible for freezing when every item R19 evaluates
+in discovery is PASS and no item is FAIL; item 4, NOT_EVALUATED by addendum 1 item 3, does not
+disqualify it, and is evaluated at confirmation exactly as registered (5 of 5 withheld seeds). This is
+the same reading addendum 2 gives F6 for deployment and would have been required whatever the scores
+were; the scorer's `passed_items_1_5_v5_primary` flag is renamed and recomputed accordingly. Everything
+else about section 15 is unchanged: at most five claims, named in `decisions/CONFIRMATION_PLAN.md`
+before the run, one run on the withheld seeds and the confirmation half, V6 once.
+
+**2. The deployed configuration when the ladder keeps M0 (section 11, brief section 10 F6).** Addendum 2
+resolves "the retained ladder configuration" to the highest kept ladder step, then M2 or M1 when kept,
+then M2 when it passes the stop-rule scope, then B6, then B3i - and states that B5, B7 and B8 are not
+candidates. That list was written when M0 could not be the retained configuration. The ladder has now
+kept M0 and dropped M1 and M2, so the rule as written would deploy M2 for H3 and the process layer while
+the registered ladder decision retains a different model that is better on the primary design.
+**Resolved:** the deployed configuration is the ladder's retained configuration, which includes **M0
+(= B5, the registered descriptor arm of section 5 and the M0 row of the section 6 ladder)** when neither
+M1 nor M2 is kept; the rest of addendum 2's order is unchanged and applies only when the ladder has no
+retained step. H3 (section 11) therefore trains its WITH / WITHOUT / control arms on M0, at M0's
+selected hyperparameters per fold, and every report sentence about "the deployed predictor" names M0.
+The factorised M2 is still the H1 candidate and is reported as such: H1 is about M2 against the lookup,
+and section 31's architecture question is answered by the M2 - M0 contrast, not by what is deployed.
+
+**3. Consequences that follow from the registered text and are recorded here, not changed.** The ladder
+steps M3-M7 are `not_run` because neither M1 nor M2 is retained (addendum 2, section 2: the M3-M7
+components belong to the factorised model), independently of the discovery ledger's budget demotion; the
+ladder's own 40 h budget of addendum 2 is therefore not consumed. The signal-injection power check of
+section 8 runs before any failed H1, H1b or H3 contrast is reported as a null. S1 stays UNDECIDED in
+discovery by construction, so the process layer of section 14 runs only in the exploratory mode
+addendum 2 describes, with every output labelled transfer-unsupported.
+
+**What does not change.** Designs, folds, halves, hiding and guards; the V6 carve-out and the single V6
+run; metrics and averaging units; comparators; margins rho5, gamma5, eta5 and epsilon; S1, S2 and
+F1-F6; R19 items 1-6 and the reduced set of addendum 1 item 4; the stop rule; the grids of sections 5
+and 6; confirmation on the withheld seeds.
