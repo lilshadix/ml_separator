@@ -1826,3 +1826,47 @@ addendum 2 describes, with every output labelled transfer-unsupported.
 run; metrics and averaging units; comparators; margins rho5, gamma5, eta5 and epsilon; S1, S2 and
 F1-F6; R19 items 1-6 and the reduced set of addendum 1 item 4; the stop rule; the grids of sections 5
 and 6; confirmation on the withheld seeds.
+
+## POST-HOC addendum 4 (2026-09-23, orchestrator Claude Code; results seen: yes - the discovery scores and the H3 V5 leg)
+
+**Results seen.** Everything addendum 3 lists, plus: the H3 V5 leg of the deployed arm M0 is complete
+(WITH from discovery, WITHOUT and ACT_PERMUTED refits, 28 batches each) and its deltas are computed; the
+section 8 power check and the reliability report have run. V6, the confirmation half and the withheld
+seeds remain untouched.
+
+**1. ACT_METAL_SHUFFLED is not run (section 11 Controls).** Section 11 lists two controls but registers
+deltas only for **WITH - WITHOUT** and **WITH - PERMUTED**; no registered delta, verdict or failure
+condition uses ACT_METAL_SHUFFLED. Completing it would cost about a third of the H3 budget - the ablation
+refits the deployed CatBoost and its conformal calibration per fold, measured at about 620 s per fold -
+for a quantity nothing reads. **Resolved, compute-driven:** ACT_METAL_SHUFFLED is not run; the single
+fold already fitted is labelled exploratory and is not scored. WITH - PERMUTED, which section 11 uses to
+separate actinide chemistry from row count, is unchanged and runs on every design.
+
+**2. H3 design scope and its compute cap.** Section 11's Ln test set is the V5-primary Ln(III) cells, the
+V2 Ln(III) folds and the Ln rows of the V1 selection folds, and its arms are the retained ladder
+configuration plus B6 and B5 as transparent references; here the retained configuration IS B5 (= M0), so
+the arm set is B5 and B6. That is registered and is run in full. Section 11 registers no compute budget;
+**resolved:** H3 gets a cap of 20 h of wall clock on 2 workers, recorded in
+`evaluation/h3/decisions/wall_clock.json`. If the cap is reached, the priority order is V5 (done), then
+V2, then V1, and any design not reached is reported NOT_RUN with its reason - no verdict is taken from a
+partial design.
+
+**3. Records written under a superseded code digest are refitted, not accepted.** Addendum 2 change 5
+verifies a record against the digests registered for its stage. While H3 was running, its module was
+corrected (the deployed-arm alias fix and the F6 guard), which superseded the `h3` entry; 13
+ACT_PERMUTED folds were written after that point. **Resolved:** those records are deleted and refitted
+under the current registered `h3` digest before any H3 delta is scored; records written before the
+supersession keep their entry and verify as registered. No discovery record is touched.
+
+**4. What the power check may conclude.** Section 8 requires the injection check before a failed H1, H1b
+or H3 contrast is reported as a null. The check is implemented and has run; three contrasts it was asked
+about are not nulls at all (their point estimates favour the comparator, so the registered wording
+"null" never applies) and are reported as **POWERED_NOT_A_NULL**; B6 vs B3i, the one genuine failure,
+has no kappa at which R19 passes and is therefore **UNDECIDED (underpowered)**, never "no effect". A
+contrast with no registered power check is reported UNDECIDED, never null. This is the registered rule
+made explicit, not a change to it.
+
+**What does not change.** Designs, folds, halves, hiding and guards; the V6 carve-out and the single V6
+run; metrics and averaging units; comparators; margins rho5, gamma5, eta5 and epsilon; S1, S2 and
+F1-F6; R19 items 1-6 and the reduced set of addendum 1 item 4; the stop rule; the grids of sections 5
+and 6; confirmation on the withheld seeds; the deployed configuration of addendum 3 item 2.
