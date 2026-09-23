@@ -593,15 +593,16 @@ ACT_PERMUTED_LEG = (
     "permuted by construction the section 2 near-duplicate VALUE comparison reads the corpus's RECORDED log D, not the "
     "permuted one -- without it the guard fails folds the recorded data never had. The runner refuses here rather than "
     "scoring a control contrast whose control is not applied. "
-    "AND THE RECORD LAYOUT HAS NO PLACE FOR THE TRANSFORM EITHER, which is the sharpest form of the same gap and is "
-    "measured: run_fold writes to confirmation.fold_paths(out_root, ARM, design_dir, seed_index, fold_id), where the arm "
-    "is the key of ArmOutput -- 'B6' -- so BOTH C4 legs resolve to the identical file "
-    "records/B6/V2__element_exact/i<k>/<fold>.json. The WITH leg writes it, the ACT_PERMUTED leg finds it and returns "
-    "skipped_done, and CONFIRMATION_PLAN gives C4 candidate 'B6' and comparator 'B6', so claim_paired_units would read "
-    "ONE frame as both sides and C4's delta would be exactly 0.0 on all five seeds -- reported as a claim that failed "
-    "R19 item 4, on an artefact of the path. Whatever the transform's implementation, the record path must carry it "
-    "(the H3 runner's own layout is <arm>/<transform>/<design>/s<seed>), and choosing that layout for this run is part "
-    "of the same registered work")
+    "THE RECORD LAYOUT part of this gap is now CLOSED and is no longer a reason to refuse, but it is recorded because "
+    "it is what the refusal was protecting against: run_fold wrote to confirmation.fold_paths(out_root, ARM, "
+    "design_dir, seed_index, fold_id), where the arm is the key of ArmOutput -- 'B6' -- so BOTH C4 legs resolved to the "
+    "identical file records/B6/V2__element_exact/i<k>/<fold>.json (measured). The WITH leg wrote it, the ACT_PERMUTED "
+    "leg found it and returned skipped_done, and CONFIRMATION_PLAN gives C4 candidate 'B6' and comparator 'B6', so "
+    "claim_paired_units would have read ONE frame as both sides and C4's delta would have been exactly 0.0 on all five "
+    "seeds -- reported as a claim that failed R19 item 4, on an artefact of the path. fold_paths now carries the "
+    "transform in the H3 runner's own layout (<arm>/<transform>/<design>/i<k>), read_seed_predictions takes it, and "
+    "assert_inventory_paths refuses at inventory time -- before the gates -- any inventory in which two jobs share a "
+    "record directory. What is still missing is (a), (b) and (c) above: the transform itself")
 
 #: the stages of the single run, and which of them this tree implements.  The runner refuses at the first stage whose
 #: code is not written, NAMING it -- it never produces a number from a stage that does not exist.  Everything above the
@@ -748,9 +749,16 @@ def m1_record_locator(out_root: Path, *, seed_index: int, code: str, store: CF.S
         # schema; ``run_fold`` writes ``steps["prediction"]``).  Checking for "point" here would have refused every M1
         # record that exists, which is the same failure again one layer down
         if rec is None or not pq.exists() or POINT_STEP not in (rec.get("steps") or {}):
-            raise RuntimeError(f"{what}: M2 needs {arm}'s per-fold values of this fold (run the {arm} job of this "
-                               f"design file and withheld-seed index first; section 6 resolution). Looked for "
-                               f"{js.name} under records/{arm}/{mjob.design_dir}/{CF.seed_token(seed_index)}")
+            # A MissingSiblingRecordError (a RuntimeError subclass, so the type and message every caller sees are
+            # unchanged), because addendum 8 item 1 makes the absent case an incompletion of the M2 FOLD, not of the
+            # run: the fit loop files it as CF.INCOMPLETE_M1_RECORD_MISSING and carries on.  As a bare RuntimeError it
+            # reached the loop's defect arm, and ONE M1 fold left incomplete by a guard failure (14 such folds happened
+            # in H3) ended the whole 56 h run at its M2 sibling -- irrecoverably, since a code fix to get past it
+            # changes the confirmation digest and addendum 8 item 2 then refuses every record already written
+            raise CF.MissingSiblingRecordError(
+                f"{what}: M2 needs {arm}'s per-fold values of this fold (run the {arm} job of this "
+                f"design file and withheld-seed index first; section 6 resolution). Looked for "
+                f"{js.name} under records/{arm}/{mjob.design_dir}/{CF.seed_token(seed_index)}")
         bad = {k: (rec.get(k), v) for k, v in (("fold_hash", fold.fold_hash), ("code_digest", str(code)),
                                                ("seed_index", int(seed_index)), ("registry_stage", STAGE))
                if rec.get(k) != v}
@@ -761,9 +769,107 @@ def m1_record_locator(out_root: Path, *, seed_index: int, code: str, store: CF.S
         v = REG.verify_record(rec, STAGE)
         if v.get("ok") is False:
             raise D.StaleRecordError(f"{what}: {arm}'s record of this fold does not verify against the registry entry "
-                                     f"of stage {STAGE!r}: {v.get('reason')}")
-        return {**rec, "digest": CF.confirmation_record_digest(rec)}
+                                     f"of stage {STAGE!r}: {verification_reason(v)}")
+        # the VALUES M2 is about to consume are ``arm_record.selected``; the record's own top-level ``selected_config``
+        # is that configuration's LABEL.  A record whose label and whose nested block disagree is internally
+        # inconsistent -- neither this code nor any reader can say which of the two the fit used -- so it is refused
+        # here rather than silently adopted.  (The digest covers both since CF.RECORD_IDENTITY_NESTED; this check is
+        # what makes the two agree before it is taken.)
+        sel = (rec.get("arm_record") or {}).get("selected")
+        if not isinstance(sel, Mapping) or not {"emb_dim", "weight_decay"} <= set(sel):
+            raise D.StaleRecordError(f"{what}: {arm}'s record of this fold carries no arm_record.selected "
+                                     f"configuration, which is what M2 takes (addendum 8 item 1); refit the {arm} job.")
+        label = configuration_label(sel)
+        if label is not None and str(rec.get("selected_config")) != label:
+            raise D.StaleRecordError(f"{what}: {arm}'s record of this fold is internally inconsistent -- its "
+                                     f"selected_config label is {str(rec.get('selected_config'))!r} while its "
+                                     f"arm_record.selected is {label!r}, so which configuration the fit used cannot be "
+                                     f"told. Nothing is adopted from it: refit the {arm} job.")
+        out = {**rec, "digest": CF.confirmation_record_digest(rec)}
+        used.append(out)
+        return out
+
+    locate.used = used = []     # type: ignore[attr-defined]  -- what THIS fold took, for the pairing audit in run_fold
     return locate
+
+
+def configuration_label(selected: Mapping[str, Any]) -> str | None:
+    """``neural.NeuralConfig(...).label()`` of a record's ``arm_record.selected``, or ``None`` when it does not make one.
+
+    The label is how the record's top-level ``selected_config`` is written (``NeuralRunner.point``), so rebuilding it
+    from the nested values is what detects the two having drifted apart.
+    """
+    from gen19ct.models import neural as NN
+
+    try:
+        return NN.NeuralConfig(int(selected["emb_dim"]), float(selected["weight_decay"]),
+                               int(selected.get("rank") or 0)).label()
+    except Exception:                                    # noqa: BLE001 -- a label we cannot rebuild is not a mismatch
+        return None
+
+
+#: POST-HOC addendum 8 item 1 names three things M2 takes from the M1 record of the SAME fold: the retained
+#: CONFIGURATION, the STOPPING COUNT and the MODEL SEED.  Two of the three are taken and are checkable here; the third
+#: is not this run's to change, and the record says so rather than leaving the difference silent:
+#:
+#: * configuration -- ``NeuralRunner.point`` builds ``m1_used`` from ``arm_record.selected`` of the located record, and
+#:   ``m1_config_used`` in M2's own record is that value.  TAKEN.
+#: * model seed -- section 15's rule is ``42 + fold*1009 + 9,999,991``, a function of the fold alone, so M1's and M2's
+#:   agree by construction.  That is not the same as HAVING BEEN TAKEN, so it is ASSERTED against the located record
+#:   and a mismatch makes the M2 fold INCOMPLETE instead of scored.
+#: * stopping count -- M2's is its own.  ``NN.tune_m2`` selects M2's RANK (M1's configuration fixes emb_dim and weight
+#:   decay only, and is handed over with rank 0) and the epoch count belongs to the selected rank's fit, so M2's
+#:   ``n_epochs`` is not M1's and cannot be without changing what section 7 registers as M2's tuning -- the procedure
+#:   discovery ran and the procedure the frozen claims' discovery-side numbers come from.  Forcing M1's count here
+#:   would make the confirmation M2 a different estimator from the discovery M2, which no addendum registers.  So the
+#:   pairing block RECORDS both counts, and the difference is reported rather than hidden.
+M2_PAIRING_READING = (
+    "POST-HOC addendum 8 item 1: M2 takes its configuration and its model seed from the M1 record of the SAME "
+    "confirmation fold, design file and withheld-seed index (m1_record_digest names which record); the model seed is "
+    "asserted equal to that record's and a mismatch makes the M2 fold INCOMPLETE. The STOPPING COUNT is M2's own: "
+    "section 7 registers M2's tuning as a selection over the RANK that M1 does not have, and the epoch count belongs "
+    "to the selected rank's fit, so taking M1's count would make this M2 a different estimator from the discovery M2 "
+    "the frozen claims were frozen on. Both counts are recorded here so the difference from the addendum's literal "
+    "wording is visible in every M2 record rather than inferred from the code.")
+
+
+def m2_pairing(m1: Mapping[str, Any], m2_record: Mapping[str, Any], *, what: str) -> dict[str, Any]:
+    """The audit block written into an M2 record beside ``m1_record_digest`` (:data:`M2_PAIRING_READING`).
+
+    Raises ``StaleRecordError`` -- an INCOMPLETE fold, not a dead run -- when M2's model seed is not the M1 record's.
+    """
+    m1a = m1.get("arm_record") or {}
+    want, got = m1.get("model_seed"), m2_record.get("model_seed")
+    if want is not None and got is not None and int(want) != int(got):
+        raise D.StaleRecordError(f"{what}: M2's model seed {int(got)} is not the model seed {int(want)} of the M1 "
+                                 "record of this fold; addendum 8 item 1 takes it from that record, so this M2 fold is "
+                                 "INCOMPLETE rather than scored.")
+    return {"reading": M2_PAIRING_READING, "m1_record_digest": m1.get("digest"),
+            "m1_selected": m1a.get("selected"), "m1_selected_config": m1.get("selected_config"),
+            "m1_model_seed": want, "m2_model_seed": got,
+            "m1_n_epochs": m1a.get("n_epochs"), "m2_n_epochs": (m2_record.get("arm_record") or {}).get("n_epochs"),
+            "configuration_source": "the M1 record of this fold", "model_seed_source": "asserted equal to it",
+            "stopping_count_source": "M2's own tuning (section 7), NOT M1's -- see reading"}
+
+
+def verification_reason(v: Mapping[str, Any]) -> str:
+    """Why ``registry.verify_record`` said no, in words -- never the bare ``None`` it leaves on a plain mismatch.
+
+    ``verify_record`` sets ``reason`` only for the stale-after-supersession case; an ordinary field mismatch carries
+    ``mismatches`` and no reason at all, so every message built as ``f"{path}: {v.get('reason')}"`` printed
+    ``<path>: None`` and named nothing (task X finding).
+    """
+    if v.get("reason"):
+        return str(v["reason"])
+    mism = v.get("mismatches") or {}
+    if mism:
+        return ("the record's " + ", ".join(f"{k} ({str((val or (None, None))[0])[:12]}... vs the entry's "
+                                            f"{str((val or (None, None))[1])[:12]}...)"
+                                            for k, val in sorted(mism.items()))
+                + f" does not match the registry entry of stage {v.get('stage')!r}")
+    if v.get("ok") is None:
+        return str(v.get("reason") or f"no registry entry for stage {v.get('stage')!r}")
+    return f"verify_record returned {json.dumps({k: str(x)[:60] for k, x in v.items() if k != 'registry_entry'})}"
 
 
 def prepare_fold(job: D.JobSpec, fold: FI.Fold, ordinal: int, corpus: Any, out_root: Path, state: D.PlanState, *,
@@ -944,13 +1050,36 @@ def run_fold(job: D.JobSpec, fold: FI.Fold, ordinal: int, corpus: Any, out_root:
     runner = rd.runner_for(job, runners)
     what = f"{CF.scrub(job.key, store)}/{CF.scrub(fold.fold_id, store)}"
     is_v6 = CF.is_v6(job.design)
-    pq, js = CF.fold_paths(out_root, job.arm, job.design_dir, seed_index, CF.scrub(fold.fold_id, store))
+    # the section 11 training transform of an arm that has one (claim C4's WITH / ACT_PERMUTED legs) is part of the
+    # record PATH: without it both legs of C4 are the same file and the second is skipped and then scored -- see
+    # confirmation.fold_paths.  Every other job of this run carries no condition and its path is unchanged
+    transform = str(getattr(job, "condition", "") or "")
+    pq, js = CF.fold_paths(out_root, job.arm, job.design_dir, seed_index, CF.scrub(fold.fold_id, store), transform)
     if js.exists():
+        # POST-HOC addendum 8 item 2, at the level the addendum puts it: a resume "must refuse any fold whose stored
+        # record was written under a code digest other than the one now registered for the confirmation stage".  The
+        # run-level lock compares the STARTED marker's digest with the live one and ``read_seed_predictions`` compares
+        # every record with it at scoring time; neither covers a fold whose record was written under another digest while
+        # the marker's own digest still matches -- the item 6 refit pass, a record left by an invocation that died before
+        # the marker was written, a hand-copied record -- and the skip path returned ``skipped_done`` before even
+        # ``refuse_unless_writable`` ran.  Refusing HERE is the difference between stopping at dispatch and stopping at
+        # the end of a 56 h run.  The message is built from the SCRUBBED label (addendum 6 item 4).
+        prev = D.read_record(js)
+        seen = None if prev is None else str(prev.get("code_digest") or "")
+        if prev is None or seen != str(code):
+            # a RedactedRunError, not a StaleRecordError: the addendum says the resume must REFUSE this fold, and a
+            # StaleRecordError is an AssertionError, which the fit loop would file as an incompletion and carry on
+            raise CF.RedactedRunError(
+                f"{what}: a record of this fold already exists but was written under "
+                f"{'no code digest' if not seen else 'a different code digest'} than the one registered for stage "
+                f"{STAGE!r} ({str(code)[:12]}...{'' if not seen else f', found {seen[:12]}...'}); --resume may only "
+                "complete folds MISSING from the run it continues (POST-HOC addendum 8 item 2). Nothing is re-fitted, "
+                "nothing is deleted and nothing is scored from a mixed-code record set.")
         return {"job": job.key, "fold_id": fold.fold_id, "status": "skipped_done"}
     REG.refuse_unless_writable(STAGE, code)
+    locator = m1_record_locator(out_root, seed_index=seed_index, code=code, store=store, fold=fold, what=what)
     fc, info = prepare_fold(job, fold, ordinal, corpus, out_root, state, code=code, what=what,
-                            sibling_record=m1_record_locator(out_root, seed_index=seed_index, code=code, store=store,
-                                                             fold=fold, what=what))
+                            sibling_record=locator)
     outputs = runner.point(fc)
     do_intervals = INTERVAL_STEP in steps and bool(getattr(runner, "has_interval_step", False))
     out = {}
@@ -975,6 +1104,10 @@ def run_fold(job: D.JobSpec, fold: FI.Fold, ordinal: int, corpus: Any, out_root:
                "prereg_addenda_sha256": (prereg or {}).get("addenda_sha256"),
                "prereg_n_addenda": (prereg or {}).get("n_addenda"), "addendum_implemented": REG.addenda_count(STAGE),
                "selected_config": o.selected_config, "model_seed": o.model_seed, "arm_record": o.record,
+               **({"m2_pairing": m2_pairing(locator.used[-1],
+                                            {"model_seed": o.model_seed, "arm_record": o.record},
+                                            what=f"{what}/{arm}")}
+                  if getattr(locator, "used", None) and (o.record or {}).get("m1_record_digest") else {}),
                "steps": {POINT_STEP: {"seconds": round(o.seconds, 3),
                                         "date_utc": _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")},
                          **({INTERVAL_STEP: {"seconds": 0.0, "in_point_step": True, **o.intervals}}
@@ -1007,7 +1140,7 @@ def run_fold(job: D.JobSpec, fold: FI.Fold, ordinal: int, corpus: Any, out_root:
                                    f"{what} intervals")
             else:
                 CF.assert_confirmation_rows(frame["row_id"], corpus.half_by_id[job.design], f"{what} intervals")
-        pq2, js2 = CF.fold_paths(out_root, arm, job.design_dir, seed_index, CF.scrub(fold.fold_id, store))
+        pq2, js2 = CF.fold_paths(out_root, arm, job.design_dir, seed_index, CF.scrub(fold.fold_id, store), transform)
         pq2.parent.mkdir(parents=True, exist_ok=True)
         # the frame's numeric columns hold no seed; its fold_id and any seed-labelled column are scrubbed
         scrubbed = frame.copy()
@@ -1106,6 +1239,20 @@ def job_spec_of(job: CF.ConfJob, seed: int, *, transform: str = "", fold_seed: i
                      fold_seed=None if fold_seed is None else int(fold_seed),
                      stage=CF.STAGE, group=job.purpose, purpose=job.purpose,
                      condition=(transform or job.transform) or None)
+
+
+def assert_inventory_paths(jobs: Sequence[CF.ConfJob], what: str = "the confirmation inventory") -> list[str]:
+    """Every job of the run writes into its OWN record directory (``confirmation.assert_distinct_record_dirs``).
+
+    Checked on the enumerated inventory, before the gates and before a single fold is fitted, because the failure mode
+    it catches is silent: the second job of a shared directory finds the first's record, returns ``skipped_done`` and
+    is then scored as if it had run.  Claim C4's two legs -- arm ``B6``, design ``V2__element__exact``, the same seed
+    index, transforms ``WITH`` and ``ACT_PERMUTED`` -- are exactly that case, and the transform is now part of the
+    path (``confirmation.fold_paths``).  The returned list is the directory key of each job, in inventory order.
+    """
+    specs = [(j.arm, job_spec_of(j, 0).design_dir, int(j.seed_index), str(j.transform or "")) for j in jobs]
+    CF.assert_distinct_record_dirs(specs, what)
+    return [CF.record_dir_key(*s) for s in specs]
 
 
 def fold_seeded_spec(job: CF.ConfJob, seed: int, corpus: Any) -> D.JobSpec:
@@ -1257,6 +1404,16 @@ def _conf_worker_fold(spec: D.JobSpec, fold_id: str, ordinal: int, out_root: str
         r = run_fold(spec, fold, ordinal, corpus, Path(out_root), store=store, seed_index=int(seed_index),
                      runners=CW.runners, code=code, state=state, prereg=prereg, pair_attrs=attrs)
         return {"status": str(r["status"]), "job": job_key, "fold_id": CF.scrub(fold_id, store)}
+    except CF.MissingSiblingRecordError as exc:
+        # addendum 8 item 1's ABSENT case: the M2 FOLD is incomplete, the run is not.  Before the defect arm, which
+        # would have raised RedactedRunError in the parent and ended the run at the first M1 fold left incomplete
+        return {"status": "m1_record_missing", "job": job_key, "fold_id": CF.scrub(fold_id, store),
+                "detail": CF.scrub(str(exc), store)}
+    except D.StaleRecordError as exc:
+        # BEFORE the guard arm: a StaleRecordError IS an AssertionError, so the guard arm used to swallow every stale
+        # record into the one status addendum 6 item 3(b) reserves for a guard failure (addendum 8 item 1's own status)
+        return {"status": "stale_record", "job": job_key, "fold_id": CF.scrub(fold_id, store),
+                "detail": CF.scrub(str(exc), store)}
     except AssertionError as exc:
         return {"status": "guard_failure", "job": job_key, "fold_id": CF.scrub(fold_id, store),
                 "detail": CF.scrub(str(exc), store)}
@@ -1308,29 +1465,50 @@ def fit_loop(jobs: Sequence[CF.ConfJob], store: CF.SeedStore, out_root: Path, *,
     for j in jobs:
         by_index.setdefault(int(j.seed_index), []).append(j)
 
+    #: worker status -> the ledger's INCOMPLETE vocabulary (addendum 6 item 3(b), addendum 8 item 1)
+    incomplete = {"guard_failure": CF.INCOMPLETE_GUARD_FAILURE, "stale_record": CF.INCOMPLETE_STALE_RECORD,
+                  "m1_record_missing": CF.INCOMPLETE_M1_RECORD_MISSING}
+
     def absorb(job: CF.ConfJob, r: Mapping[str, Any], seconds: float) -> None:
         """One completion, from either path, into the ledger -- with the worker's classification honoured."""
-        if r["status"] == "guard_failure":
+        if r["status"] in incomplete:
             led.errors.append({"job": job.key, "fold_id": r.get("fold_id"),
-                               "status": CF.INCOMPLETE_GUARD_FAILURE, "detail": r.get("detail")})
+                               "status": incomplete[str(r["status"])], "detail": r.get("detail")})
             led.note(job.key, "error")
             return
         if r["status"] == "error":
             raise CF.RedactedRunError(f"{CF.scrub(job.key, store)}/{r.get('fold_id')}: {r.get('detail')}")
         led.note(job.key, str(r["status"]), seconds)
 
+    def scrubbed(what: str, fn: Callable, *a: Any, **k: Any) -> Any:
+        """Call ``fn``, and let NOTHING out of it that has not passed through :func:`confirmation.scrub`.
+
+        The dispatch preamble -- ``attach_seed_folds``, ``fold_seeded_spec``, ``confirmation_fittable_folds`` -- sits
+        between the pool's ``try`` and its ``finally`` with no handler of its own, and it is the one part of the loop
+        that holds a SEEDED ``JobSpec``: ``confirmation_job_folds`` raises "``{job.key}``: fold file ... holds seeds
+        ..." built from a key that carries the withheld seed, and ``FI.read_design`` raises with whatever it read.  Any
+        such exception reached ``main`` raw, with its message and its frames (task X finding, the E4 class of defect
+        one phase later).  Reachable or not, no message of this run leaves unscrubbed (POST-HOC addendum 6 item 4).
+        """
+        try:
+            return fn(*a, **k)
+        except BaseException as exc:                  # noqa: BLE001 -- re-raised SCRUBBED and ``from None``
+            raise CF.RedactedRunError(f"{what}: {type(exc).__name__}: {CF.scrub(str(exc), store)}") from None
+
     try:
         for i in sorted(by_index):
             seed = store.seed(i) if i in store.indices() else CF.ITEM6_REFIT_SEED
-            attached = attach_seed_folds(corpus, out_root, i) if i in store.indices() else {}
+            attached = (scrubbed(f"attaching the withheld-seed designs of i{i}", attach_seed_folds, corpus, out_root, i)
+                        if i in store.indices() else {})
             log(f"seed index i{i}: {len(by_index[i])} job(s), {len(attached)} withheld-seed design(s) attached, "
                 f"{workers} worker(s)")
             for job in by_index[i]:
-                spec = fold_seeded_spec(job, seed, corpus)
+                spec = scrubbed(CF.scrub(job.key, store), fold_seeded_spec, job, seed, corpus)
                 # discovery's ``fittable`` is its own: it drops every confirmation-half fold and keeps the folds whose
                 # SELECTION-half rows are scorable, so on this half it returns either nothing or exactly what this run
                 # may never fit.  The confirmation selector is confirmation.confirmation_fittable_folds
-                folds = CF.confirmation_fittable_folds(spec, corpus.folds(spec.stem), corpus.coext_ids)
+                folds = scrubbed(CF.scrub(job.key, store), CF.confirmation_fittable_folds,
+                                 spec, corpus.folds(spec.stem), corpus.coext_ids)
                 if not folds:
                     led.errors.append({"job": job.key, "status": CF.INCOMPLETE_GUARD_FAILURE,
                                        "detail": "no fittable fold: the design file is empty, or every fold's scored "
@@ -1346,6 +1524,20 @@ def fit_loop(jobs: Sequence[CF.ConfJob], store: CF.SeedStore, out_root: Path, *,
                         try:
                             r = run_fold(spec, fold, ordinal, corpus, out_root, store=store, seed_index=i,
                                          runners=runners, code=code, state=state, prereg=prereg, pair_attrs=pair_attrs)
+                        except CF.MissingSiblingRecordError as exc:   # addendum 8 item 1's ABSENT case: this FOLD is
+                            led.errors.append({"job": job.key,        # incomplete, the run continues
+                                               "fold_id": CF.scrub(fold.fold_id, store),
+                                               "status": CF.INCOMPLETE_M1_RECORD_MISSING,
+                                               "detail": CF.scrub(str(exc), store)})
+                            led.note(job.key, "error")
+                            continue
+                        except D.StaleRecordError as exc:  # BEFORE the guard arm: it IS an AssertionError (addendum 8
+                            led.errors.append({"job": job.key,       # item 1's own status, never the guard's)
+                                               "fold_id": CF.scrub(fold.fold_id, store),
+                                               "status": CF.INCOMPLETE_STALE_RECORD,
+                                               "detail": CF.scrub(str(exc), store)})
+                            led.note(job.key, "error")
+                            continue
                         except AssertionError as exc:    # a guard failure is named as such, never as a compute cap
                             led.errors.append({"job": job.key, "fold_id": CF.scrub(fold.fold_id, store),
                                                "status": CF.INCOMPLETE_GUARD_FAILURE,
@@ -1418,6 +1610,37 @@ REFIT_STEMS: dict[str, dict[str, tuple[str, str]]] = {
 LIVE_CODE = "__live__"
 _LIVE_CODE_CACHE: dict[str, str] = {}
 
+#: ``(arm, design_dir, seed_index)`` of every record set the fit loop left INCOMPLETE -- a fold of that job that carries
+#: no record because a guard failed, because its M1 sibling was missing (addendum 8 item 1) or because a record on disk
+#: did not verify.  :func:`read_seed_predictions` returns ``None`` for such a set, which is what makes every reader --
+#: ``score_claims``, the S1(c), S1(d)/(e) and S2 assemblies -- report the CONTRAST incomplete instead of scoring it.
+#:
+#: Why this exists.  Until the fix of addendum 8 item 1's absent case, an incomplete M2 fold ENDED the run, so no
+#: partial record set ever reached the assembly.  Now the run continues past it, and ``read_seed_predictions`` reads the
+#: directory: the folds that were written come back, the missing one simply is not there, and ``claim_paired_units``
+#: intersects the two arms' rows and would have scored the claim on FEWER UNITS, silently -- exactly the "verdict from
+#: part of a design" POST-HOC addendum 6 item 3(a) forbids.  A count check cannot serve instead: the number of folds of
+#: a batched colouring depends on the seed.  So the LOOP names what it failed to write, and the reader refuses it.
+INCOMPLETE_RECORD_SETS: set[tuple[str, str, int]] = set()
+
+
+def mark_incomplete_record_sets(ledger: FitLedger, jobs: Sequence[CF.ConfJob]) -> list[dict[str, Any]]:
+    """Fill :data:`INCOMPLETE_RECORD_SETS` from the ledger's errors, and return what was marked (for the manifest).
+
+    Called once, between the fit loop and the assembly.  The (arm, design_dir, seed index) of a ledger error is taken
+    from the job inventory by ``ConfJob.key``, never parsed out of the string.
+    """
+    by_key = {j.key: (j.arm, job_spec_of(j, 0).design_dir, int(j.seed_index)) for j in jobs}
+    marked = []
+    for e in ledger.errors:
+        trip = by_key.get(str(e.get("job")))
+        if trip is None:                                  # a job not in this inventory cannot be scored anyway
+            continue
+        INCOMPLETE_RECORD_SETS.add(trip)
+        marked.append({"arm": trip[0], "design_dir": trip[1], "seed_index": trip[2], "job": e.get("job"),
+                       "fold_id": e.get("fold_id"), "status": e.get("status")})
+    return marked
+
 
 def live_code() -> str:
     """This tree's combined code digest, computed once per process (:data:`LIVE_CODE`)."""
@@ -1427,7 +1650,8 @@ def live_code() -> str:
 
 
 def read_seed_predictions(out_root: Path, arm: str, design_dir: str, seed_index: int, *, code: str | None = LIVE_CODE,
-                          require_complete: Sequence[str] | None = None) -> pd.DataFrame | None:
+                          require_complete: Sequence[str] | None = None,
+                          transform: str = "") -> pd.DataFrame | None:
     """One arm's confirmation predictions of one design and one OPAQUE seed index, every record verified.
 
     A record is verified against the registry entry of stage ``confirmation`` (addendum 2 item 5); an incomplete record
@@ -1440,7 +1664,11 @@ def read_seed_predictions(out_root: Path, arm: str, design_dir: str, seed_index:
     """
     if code == LIVE_CODE:
         code = live_code()
-    d = CF.conf_root(out_root) / "records" / arm / design_dir / CF.seed_token(seed_index)
+    if (str(arm), str(design_dir), int(seed_index)) in INCOMPLETE_RECORD_SETS:
+        # the fit loop could not write every fold of this set: the CONTRAST is incomplete and carries no verdict
+        # (POST-HOC addendum 6 item 3(a)); nothing is scored from the folds that did get written
+        return None
+    d = CF.fold_paths(out_root, arm, design_dir, seed_index, "_", transform)[1].parent
     if not d.exists():
         return None
     frames, seen = [], set()
@@ -1450,7 +1678,7 @@ def read_seed_predictions(out_root: Path, arm: str, design_dir: str, seed_index:
             return None
         v = REG.verify_record(rec, CF.STAGE)
         if v.get("ok") is False:
-            raise D.StaleRecordError(f"{js}: {v.get('reason')}")
+            raise D.StaleRecordError(f"{js}: {verification_reason(v)}")
         if code is not None and str(rec.get("code_digest")) != str(code):
             raise D.StaleRecordError(f"{js}: written under code {str(rec.get('code_digest'))[:12]}..., not "
                                      f"{str(code)[:12]}...")
@@ -2515,6 +2743,7 @@ def main(argv: Sequence[str] | None = None, *, check: Callable[[], int] | None =
 
     if ns.dry_run:
         jobs = CF.enumerate_jobs(plan)
+        record_dirs = assert_inventory_paths(jobs)
         cost = CF.cost_estimate(jobs)
         folds = [p.record() for p in build_confirmation_folds(None, out_root, dry_run=True)]
         body = {"mode": "dry_run", "claims": plan["claim_ids"], "n_jobs": cost["n_jobs"], "n_folds": cost["n_folds"],
@@ -2522,7 +2751,7 @@ def main(argv: Sequence[str] | None = None, *, check: Callable[[], int] | None =
                 "by_purpose_serial_hours": cost["by_purpose_serial_hours"], "fold_files_to_build": folds,
                 "not_run": {"v6_actinide_deltas": CF.V6_ACTINIDE_DELTAS_NOT_RUN["status"],
                             "power_check": CF.POWER_CHECK_NOT_RUN["status"]},
-                "jobs": cost["jobs"], "basis": cost["basis"],
+                "jobs": cost["jobs"], "basis": cost["basis"], "n_distinct_record_dirs": len(set(record_dirs)),
                 "run_stages": [{"stage": n, "implemented": ok, "what": why} for n, ok, why in RUN_STAGES],
                 "note": "no seed was read: --dry-run enumerates from the plan and the measured unit costs alone"}
         print(json.dumps(body, indent=2, default=str))
@@ -2570,6 +2799,8 @@ def main(argv: Sequence[str] | None = None, *, check: Callable[[], int] | None =
         state = D.PlanState.read(D.discovery_root(out_root) / "decisions" / "plan_state.json")
         corpus = confirmation_corpus()
         jobs = CF.enumerate_jobs(plan)
+        # no two jobs may write into one record directory: the second would be skipped and then SCORED as if it had run
+        run.extra["record_dirs"] = assert_inventory_paths(jobs)
         # the pair key attributes the V6 interval step needs (addendum 7 item 1) are the assembly's own ``attrs``: built
         # once, before the loop, so the S2(c) pair calibration and the S2 assembly read one frame
         attrs = pair_attributes()
@@ -2577,6 +2808,9 @@ def main(argv: Sequence[str] | None = None, *, check: Callable[[], int] | None =
                        prereg=g["prereg"], limit=ns.max_folds, pair_attrs=attrs, workers=int(ns.workers),
                        seed_store_path=ns.seed_store)
         run.extra["fit"] = CF.scrub(led.record(), store)
+        # every record set the loop left incomplete is named BEFORE the assembly reads anything, so a contrast with a
+        # missing fold is reported INCOMPLETE rather than scored on the folds that were written (addendum 6 item 3(a))
+        run.extra["incomplete_record_sets"] = CF.scrub(mark_incomplete_record_sets(led, jobs), store)
         # 3. assembly, on the records the loop wrote
         claims = score_claims(out_root, plan, attrs, corpus, store=store, design_dirs=CLAIM_DESIGN_DIRS)
         s1c = s1c_assembly(out_root, attrs, corpus, store=store)

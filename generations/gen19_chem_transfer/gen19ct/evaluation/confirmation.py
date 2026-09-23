@@ -87,6 +87,22 @@ NOT_RUN = "NOT_RUN"
 NOT_EVALUATED = "NOT_EVALUATED"
 UNDECIDED = "UNDECIDED"
 INCOMPLETE_GUARD_FAILURE = "INCOMPLETE_GUARD_FAILURE"
+#: An incompletion whose cause is a STALE RECORD, not a guard: POST-HOC addendum 8 item 1's "if that M1 record is absent
+#: or fails verification, the M2 fold is INCOMPLETE and reported as such".  ``discovery.StaleRecordError`` subclasses
+#: ``AssertionError``, so the fit loop's guard arm caught every stale-record refusal and filed it as
+#: :data:`INCOMPLETE_GUARD_FAILURE` -- the one vocabulary addendum 6 item 3(b) reserves for a guard failure -- and the run
+#: carried on.  A stale record is neither a guard failure nor a compute cap, so it carries its own status.
+INCOMPLETE_STALE_RECORD = "INCOMPLETE_STALE_RECORD"
+#: The other half of addendum 8 item 1's "absent OR fails verification": the M1 record of this fold does not EXIST.
+#: It is not a stale record (nothing is on disk to be stale), not a guard failure and not a defect of this code -- it is
+#: the ordinary consequence of M1's own fold of the same design and seed index having been left INCOMPLETE, by a guard
+#: failure or by a death mid-run.  The addendum's sentence is "the M2 fold is INCOMPLETE and reported as such": ONE
+#: fold, not the run.  Before this the absent case raised a bare ``RuntimeError``, which the fit loop classified as a
+#: defect and re-raised as :class:`RedactedRunError` -- so ONE incomplete M1 fold (14 such folds happened in H3) ended
+#: the whole confirmation run, and ``--resume`` re-attempted the same M1 fold, failed the same guard and died at the
+#: same M2 fold: an unrecoverable loop, because fixing the code changes the confirmation digest and addendum 8 item 2
+#: then refuses every record already written (task X finding).
+INCOMPLETE_M1_RECORD_MISSING = "INCOMPLETE_M1_RECORD_MISSING"
 #: POST-HOC addendum 6 item 3(a): the completeness unit is the CONTRAST RECORD SET, never the design
 COMPLETENESS_UNIT = "contrast_record_set"
 #: the two V6 metal states of section 3.4, hidden TOGETHER per system
@@ -133,7 +149,13 @@ READINGS: dict[str, str] = {
                          "design is incomplete, reported with its own status and carrying no verdict, no per-unit row "
                          "and no failure-condition input; an incompletion caused by a GUARD failure rather than a "
                          "compute cap is INCOMPLETE_GUARD_FAILURE, so the cap's vocabulary is never used for it (this "
-                         "run has no compute cap: addendum 5 item 1 fixed its scope instead)",
+                         "run has no compute cap: addendum 5 item 1 fixed its scope instead), and an incompletion whose "
+                         "cause is a STALE RECORD is INCOMPLETE_STALE_RECORD -- addendum 8 item 1's 'if that M1 record "
+                         "is absent or fails verification, the M2 fold is INCOMPLETE and reported as such'. "
+                         "discovery.StaleRecordError subclasses AssertionError, so before this every stale-record "
+                         "refusal was filed under the GUARD vocabulary and the run continued. The ABSENT half of the "
+                         "same sentence is INCOMPLETE_M1_RECORD_MISSING: the addendum makes the M2 FOLD incomplete, "
+                         "never the run, so a missing M1 record marks that one fold and the loop carries on",
     "v6_folds_in_run": "POST-HOC addendum 6 item 2: the V6 folds are built ONCE, INSIDE this run, by the registered "
                        "section 3.4 rule (the 13 systems; per system the V5 state-level hiding applied to Pr(III) x S "
                        "and Nd(III) x S TOGETHER, support_graph.hide_cells(component_aware=True), which removes the "
@@ -222,10 +244,14 @@ READINGS: dict[str, str] = {
                          "their cost and their consequence recorded (V6_ACTINIDE_DELTAS_NOT_RUN)",
     "power_not_run": "POST-HOC addendum 5 items 1 and 4: no section 8 power check runs here; the debt is inventoried, "
                      "not discharged, and every contrast owing one is UNDECIDED, never a null (POWER_CHECK_NOT_RUN)",
-    "idempotence": "section 15's 'nothing is re-run' as a lock: the runner refuses to start when "
-                   "evaluation/confirmation/decisions/confirmation.json exists unless --resume, and --resume may only "
-                   "COMPLETE unfitted folds -- it re-scores no claim under a code digest different from the one the "
-                   "lock records, and it never widens the claim list (lock_verdict). The lock is spent at the START, "
+    "idempotence": "section 15's 'nothing is re-run' as a lock, with POST-HOC addendum 8 item 2's line between a run "
+                   "that ended without writing decisions/confirmation.json (NOT consumed: --resume may complete its "
+                   "missing folds, under the same code digest and with no new claim) and one that wrote it (SPENT: "
+                   "the runner refuses, with or without --resume -- re-opening it would re-run assembly and overwrite "
+                   "confirmation.json, the tables and CONFIRMATION.md, which is a second scoring of the single run). "
+                   "A resume may only COMPLETE unfitted folds -- it re-scores no claim under a code digest different "
+                   "from the one the lock records, and it never widens the claim list (lock_verdict). "
+                   "The lock is spent at the START, "
                    "not at the end: decisions/confirmation.json is written last, so the runner also writes "
                    "decisions/run_started.json once the gates pass and before any fold file or record exists "
                    "(started_path), and lock_verdict refuses on EITHER file. Without it a run that died after writing "
@@ -349,11 +375,50 @@ def plan_path(out_root: Path | str) -> Path:
     return Path(out_root) / PLAN_REL
 
 
-def fold_paths(out_root: Path | str, arm: str, design_dir: str, seed_index: int, fold_id: str) -> tuple[Path, Path]:
+def fold_paths(out_root: Path | str, arm: str, design_dir: str, seed_index: int, fold_id: str,
+               transform: str = "") -> tuple[Path, Path]:
     """Prediction parquet and record JSON of one confirmation fold.  The directory carries the OPAQUE seed index, never
-    a seed: ``evaluation/confirmation/records/<arm>/<design_dir>/i<index>/<fold_id>.{parquet,json}``."""
-    d = conf_root(out_root) / "records" / arm / design_dir / f"i{int(seed_index)}"
+    a seed: ``evaluation/confirmation/records/<arm>[/<transform>]/<design_dir>/i<index>/<fold_id>.{parquet,json}``.
+
+    ``transform`` is the section 11 training transform of an arm that HAS one -- claim C4's ``WITH`` and
+    ``ACT_PERMUTED`` legs, which are the same arm ``B6`` on the same design file and the same seed index and are
+    therefore the same path without it.  Measured: both legs resolved to
+    ``records/B6/V2__element_exact/i1/f000.json``, so the WITH leg wrote it, the ACT_PERMUTED leg found it and returned
+    ``skipped_done``, and C4 -- whose plan names candidate ``B6`` and comparator ``B6`` -- would have been scored from
+    ONE frame read as both sides, with a delta of exactly 0.0 on all five seeds reported as a failed R19 item 4 (task X
+    finding).  The layout with the transform is the H3 runner's own (``<arm>/<transform>/<design>/s<seed>``).  Empty --
+    every arm of this run that has no transform -- the path is unchanged, so no other record moves.
+    """
+    d = conf_root(out_root) / "records" / arm
+    if transform:
+        d = d / str(transform)
+    d = d / design_dir / f"i{int(seed_index)}"
     return d / f"{fold_id}.parquet", d / f"{fold_id}.json"
+
+
+def record_dir_key(arm: str, design_dir: str, seed_index: int, transform: str = "") -> str:
+    """The record DIRECTORY one job writes into, as a string -- what :func:`assert_distinct_record_dirs` compares."""
+    return "/".join([str(arm)] + ([str(transform)] if transform else []) + [str(design_dir), f"i{int(seed_index)}"])
+
+
+def assert_distinct_record_dirs(specs: Iterable[tuple[str, str, int, str]], what: str = "the run inventory") -> None:
+    """Raise unless every job of the inventory writes into a DIFFERENT record directory.
+
+    Two jobs sharing one directory is never benign here: the second finds the first's record, returns ``skipped_done``
+    and is scored as if it had run -- which is how C4's control leg would have produced a delta of exactly 0.0 rather
+    than a refusal.  ``specs`` is ``(arm, design_dir, seed_index, transform)`` per job; it is checked at inventory
+    time, before the gates spend anything, so a collision costs seconds instead of a run.
+    """
+    seen: dict[str, list[str]] = {}
+    for arm, design_dir, seed_index, transform in specs:
+        seen.setdefault(record_dir_key(arm, design_dir, seed_index, transform), []).append(
+            f"{arm}{':' + transform if transform else ''}@{design_dir}/i{seed_index}")
+    clash = {k: v for k, v in seen.items() if len(v) > 1}
+    if clash:
+        raise AssertionError(f"{what}: {len(clash)} record directory(ies) are written by more than one job "
+                             f"({json.dumps(clash, sort_keys=True)}). The second job of a directory finds the first's "
+                             "record, returns skipped_done and is then SCORED as if it had run; nothing is fitted "
+                             "until each job has its own path.")
 
 
 def folds_dir(out_root: Path | str) -> Path:
@@ -381,16 +446,40 @@ RECORD_IDENTITY_FIELDS: tuple[str, ...] = ("schema", "registry_stage", "arm", "s
                                            "seed_index", "code_digest", "prereg_sha256", "prereg_addenda_sha256",
                                            "selected_config", "model_seed")
 
+#: the NESTED fields an M2 fit actually CONSUMES from its M1 record, which the top-level ones do not cover.
+#: ``NeuralRunner.point`` reads ``arm_record.selected`` (emb_dim, weight_decay) and ``NeuralRunner.calibration`` reads
+#: ``arm_record.scores`` / ``fits`` / ``split_unit_errors`` (cross-fitted) or ``arm_record.selected`` + ``n_epochs``
+#: (not cross-fitted) plus ``arm_record.model_seed``; the top-level ``selected_config`` is only the LABEL of the first.
+#: Without these in the digest, an M1 record whose nested block says one configuration and whose label says another
+#: hashes identically to the untampered one, and ``m1_record_digest`` -- the field addendum 8 item 1 requires "so the
+#: pairing is auditable" -- audits a pairing that is not the one M2 used (task X finding).
+RECORD_IDENTITY_NESTED: tuple[tuple[str, ...], ...] = (("arm_record", "selected"), ("arm_record", "n_epochs"),
+                                                       ("arm_record", "model_seed"),
+                                                       ("arm_record", "inner_folds_used"))
+
+
+def _nested(record: Mapping[str, Any], path: Sequence[str]) -> Any:
+    cur: Any = record
+    for key in path:
+        if not isinstance(cur, Mapping):
+            return None
+        cur = cur.get(key)
+    return cur
+
 
 def confirmation_record_digest(record: Mapping[str, Any]) -> str:
-    """A stable content digest of one confirmation record's identity (:data:`RECORD_IDENTITY_FIELDS`).
+    """A stable content digest of one confirmation record's identity (:data:`RECORD_IDENTITY_FIELDS` and
+    :data:`RECORD_IDENTITY_NESTED`).
 
     It is what M2's record stores as ``m1_record_digest`` in this run: discovery stores the M1 fold digest there and a
     confirmation record has none, so without this the field would be ``null`` and the link from an M2 fit to the exact
     M1 fit it took its hyperparameters from would not be recorded at all.  It is an implementation reading of section
     6's "M2 keeps each outer fold's retained M1 hyperparameters", not a registered quantity: nothing is scored from it.
+
+    It covers the VALUES M2 consumes, not only their labels: see :data:`RECORD_IDENTITY_NESTED`.
     """
-    body = {k: record.get(k) for k in RECORD_IDENTITY_FIELDS}
+    body: dict[str, Any] = {k: record.get(k) for k in RECORD_IDENTITY_FIELDS}
+    body.update({".".join(p): _nested(record, p) for p in RECORD_IDENTITY_NESTED})
     return hashlib.sha256(json.dumps(body, sort_keys=True, default=str).encode("utf-8")).hexdigest()
 
 
@@ -852,6 +941,17 @@ class RedactedRunError(RuntimeError):
     A withheld seed must not reach a traceback: every message this run can print is built from the opaque index, and an
     exception raised deeper (``prepare_fold``'s ``ValueError``, a runner's ``KeyError``) is re-raised as this, with the
     original chain suppressed, so no ``__context__`` frame can carry the seed either (POST-HOC addendum 6 item 4).
+    """
+
+
+class MissingSiblingRecordError(RuntimeError):
+    """The M1 record this M2 fold needs does not exist (:data:`INCOMPLETE_M1_RECORD_MISSING`).
+
+    A ``RuntimeError`` subclass, so the message and the type every caller of the locator already sees are unchanged;
+    what changes is that the fit loop can now tell this apart from a defect and mark the FOLD incomplete instead of
+    ending the run (POST-HOC addendum 8 item 1: "If that M1 record is absent or fails verification, the M2 fold is
+    INCOMPLETE and reported as such").  Its sibling cause -- a record that exists and does not verify -- is
+    ``discovery.StaleRecordError`` and :data:`INCOMPLETE_STALE_RECORD`.
     """
 
 
@@ -1430,9 +1530,11 @@ def lock_verdict(out_root: Path | str, *, resume: bool, code_digest: str, claim_
     """Whether this invocation may proceed (:data:`READINGS` ``idempotence``).
 
     First run: neither ``decisions/confirmation.json`` nor the START marker (:func:`started_path`) exists -> proceed.
-    Second run: refuse, unless ``--resume``, and then only to COMPLETE unfitted folds -- the recorded code digest must
-    be the live one and the claim list must not grow, so no claim is ever re-scored under different code and no sixth
-    claim appears.
+    Started but unfinished (the marker exists, ``decisions/confirmation.json`` does not): refuse, unless ``--resume``,
+    and then only to COMPLETE unfitted folds -- the recorded code digest must be the live one and the claim list must
+    not grow, so no claim is ever re-scored under different code and no sixth claim appears.
+    Finished (``decisions/confirmation.json`` exists): refuse, ``--resume`` or not (POST-HOC addendum 8 item 2, "once
+    confirmation.json exists the run is spent").
 
     The marker is consulted because ``decisions/confirmation.json`` is written LAST: a run that died after writing
     records left the lock reading ``first_run``, so a second invocation could have mixed record sets written under two
@@ -1472,28 +1574,26 @@ def lock_verdict(out_root: Path | str, *, resume: bool, code_digest: str, claim_
         return {"ok": True, "mode": "resume_unfinished", "decisions": str(p), "started_marker": str(started),
                 "recorded_code_digest": prev_code, "claim_ids": prev_ids,
                 "may_only": "complete unfitted folds of the started run", "reading": READINGS["idempotence"]}
+    # decisions/confirmation.json EXISTS: the run is SPENT, and --resume does not unspend it.  POST-HOC addendum 8
+    # item 2 draws the line exactly here -- "a run that ends WITHOUT writing decisions/confirmation.json has not
+    # consumed the run; it may be continued with --resume ... ONCE confirmation.json exists the run is spent and the
+    # runner refuses".  This branch used to let --resume through (ok True, mode "resume") whenever the code digest and
+    # the claim list matched, and the resumed invocation re-ran assembly and OVERWROTE confirmation.json, the tables
+    # and CONFIRMATION.md -- a second scoring of the single registered run, which is what section 15's "nothing is
+    # re-run" forbids (task X finding).  Resumption lives on the STARTED marker above, which is the unfinished run.
     prev = json.loads(p.read_text(encoding="utf-8"))
     prev_code = str(prev.get("code_digest", ""))
     prev_ids = list(prev.get("claim_ids") or [])
-    if not resume:
-        return {"ok": False, "mode": "already_run", "decisions": str(p),
-                "reason": f"{p} exists: the confirmation run is registered to happen ONCE (section 15: 'Whatever "
-                          "confirmation returns is the result. No sixth claim is added and nothing is re-run'). Pass "
-                          "--resume to COMPLETE unfitted folds; nothing else is permitted.",
-                "reading": READINGS["idempotence"]}
-    if prev_code and prev_code != str(code_digest):
-        return {"ok": False, "mode": "resume_refused_code_changed", "decisions": str(p),
-                "recorded_code_digest": prev_code, "live_code_digest": str(code_digest),
-                "reason": "--resume may only complete unfitted folds: the code digest of the recorded run differs from "
-                          "the live one, so scoring a claim now would score it under different code. Nothing is "
-                          "re-scored and nothing is deleted.", "reading": READINGS["idempotence"]}
-    extra = sorted(set(claim_ids) - set(prev_ids))
-    if extra:
-        return {"ok": False, "mode": "resume_refused_claims_grew", "decisions": str(p), "new_claims": extra,
-                "reason": f"--resume may not widen the claim list; {extra} are not in the recorded run ({prev_ids}).",
-                "reading": READINGS["idempotence"]}
-    return {"ok": True, "mode": "resume", "decisions": str(p), "recorded_code_digest": prev_code,
-            "claim_ids": prev_ids, "may_only": "complete unfitted folds", "reading": READINGS["idempotence"]}
+    return {"ok": False, "mode": "already_run" if not resume else "already_run_resume_refused", "decisions": str(p),
+            "recorded_code_digest": prev_code, "claim_ids": prev_ids, "resume_requested": bool(resume),
+            "written_utc": prev.get("written_utc"),
+            "reason": f"{p} exists: the confirmation run is registered to happen ONCE (section 15: 'Whatever "
+                      "confirmation returns is the result. No sixth claim is added and nothing is re-run'), and "
+                      "POST-HOC addendum 8 item 2 fixes when it is spent: 'Once confirmation.json exists the run is "
+                      "spent and the runner refuses.' --resume completes the unfitted folds of a run that ended "
+                      "WITHOUT writing this file (the run_started.json marker); it cannot re-open a finished one. "
+                      "Nothing is re-fitted, nothing is re-scored, nothing is deleted and this file is not rewritten.",
+            "reading": READINGS["idempotence"]}
 
 
 # --------------------------------------------------------------------------------------------- #

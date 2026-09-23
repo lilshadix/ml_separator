@@ -155,22 +155,38 @@ def test_gate_refuses_a_missing_store_file(root, plan_file, registry):
         _gate(root, root.parent / "absent_store.json", registry_path=registry)
 
 
-def test_gate_refuses_a_second_run_without_resume(root, plan_file, registry):
+def test_gate_refuses_a_second_run_with_or_without_resume(root, plan_file, registry):
+    """A FINISHED run (decisions/confirmation.json) is spent: --resume completes an UNFINISHED one, never re-opens this
+    one (POST-HOC addendum 8 item 2)."""
     store_path = _write_store(root, root.parent / "outside_store.json")
     CF.write_decisions(root, {"code_digest": RC.code_digest()["combined"], "claim_ids": ["C1", "C4"]})
     with pytest.raises(SystemExit, match="nothing is re-run"):
         _gate(root, store_path, registry_path=registry)
+    with pytest.raises(SystemExit, match="spent"):
+        _gate(root, store_path, resume=True, registry_path=registry)
+    # ... while the STARTED marker of a run that did not finish is what --resume may complete
+    CF.decisions_path(root).unlink()
+    from gen19ct.manifest import write_json as _wj
+    _wj(CF.started_path(root), {"code_digest": RC.code_digest()["combined"], "claim_ids": ["C1", "C4"]})
     g = _gate(root, store_path, resume=True, registry_path=registry)
-    assert g["lock"]["mode"] == "resume" and g["lock"]["may_only"] == "complete unfitted folds"
+    assert g["lock"]["mode"] == "resume_unfinished"
+    assert g["lock"]["may_only"] == "complete unfitted folds of the started run"
 
 
 def test_resume_refuses_new_code_or_a_wider_claim_list(root, plan_file, registry):
-    CF.write_decisions(root, {"code_digest": "other-code", "claim_ids": ["C1"]})
+    """On the run --resume may continue: the one that STARTED and never wrote decisions/confirmation.json."""
+    from gen19ct.manifest import write_json as _wj
+
+    _wj(CF.started_path(root), {"code_digest": "other-code", "claim_ids": ["C1"]})
     v = CF.lock_verdict(root, resume=True, code_digest="live-code", claim_ids=["C1"])
     assert v["ok"] is False and v["mode"] == "resume_refused_code_changed"
-    CF.write_decisions(root, {"code_digest": "live-code", "claim_ids": ["C1"]})
+    _wj(CF.started_path(root), {"code_digest": "live-code", "claim_ids": ["C1"]})
     v2 = CF.lock_verdict(root, resume=True, code_digest="live-code", claim_ids=["C1", "C9"])
     assert v2["ok"] is False and v2["new_claims"] == ["C9"]
+    # and a FINISHED run is refused whatever its code and claims are (addendum 8 item 2)
+    CF.write_decisions(root, {"code_digest": "live-code", "claim_ids": ["C1"]})
+    v3 = CF.lock_verdict(root, resume=True, code_digest="live-code", claim_ids=["C1"])
+    assert v3["ok"] is False and v3["mode"] == "already_run_resume_refused"
 
 
 def test_a_claim_not_in_the_plan_is_refused(root, plan_file):
@@ -604,11 +620,18 @@ def test_the_writers_reveal_the_seeds_only_in_CONFIRMATION_md_and_only_at_the_en
 
 def test_the_lock_allows_only_resume_and_never_a_second_scoring(root, plan_file, registry):
     """Section 15's "nothing is re-run" as the lock, with --resume the only second invocation."""
+    from gen19ct.manifest import write_json as _wj
+
     CF.write_decisions(root, {"code_digest": "x" * 64, "claim_ids": ["C1", "C4"]})
     first = CF.lock_verdict(root, resume=False, code_digest="x" * 64, claim_ids=["C1", "C4"])
     assert first["ok"] is False and first["mode"] == "already_run"
+    spent = CF.lock_verdict(root, resume=True, code_digest="x" * 64, claim_ids=["C1", "C4"])
+    assert spent["ok"] is False and spent["mode"] == "already_run_resume_refused"   # addendum 8 item 2
+    # the second invocation --resume may serve is the one that STARTED and did not finish
+    CF.decisions_path(root).unlink()
+    _wj(CF.started_path(root), {"code_digest": "x" * 64, "claim_ids": ["C1", "C4"]})
     ok = CF.lock_verdict(root, resume=True, code_digest="x" * 64, claim_ids=["C1", "C4"])
-    assert ok["ok"] is True and ok["mode"] == "resume" and ok["may_only"] == "complete unfitted folds"
+    assert ok["ok"] is True and ok["mode"] == "resume_unfinished"
     grew = CF.lock_verdict(root, resume=True, code_digest="x" * 64, claim_ids=["C1", "C4", "C9"])
     assert grew["ok"] is False and grew["new_claims"] == ["C9"]
     newcode = CF.lock_verdict(root, resume=True, code_digest="y" * 64, claim_ids=["C1"])
@@ -1215,6 +1238,16 @@ def test_the_v6_path_end_to_end_on_a_synthetic_mini_corpus(root, tmp_path, monke
     assert pc["method"] == CF.S2C_PAIR_CONFORMAL and not pc["fallback"]
     assert pc["n_calibration_pairs"] >= CF.S2C_MIN_CALIBRATION_PAIRS and pc["n_calibration_rows"] > 0
     assert sum(s["n_pairs"] for s in pc["per_inner_split"]) == pc["n_calibration_pairs"]
+    # E6, WIRED: the recorded consequence of the registered calibration population reaches the record, not only the
+    # library function -- the composition of the calibration pairs and the exploratory Pr/Nd-only quantiles beside it
+    pop = pc["population"]
+    assert 0.0 <= pop["prnd_share"] <= 1.0 and pop["n_pairs"] == pc["n_calibration_pairs"]
+    assert 0 <= pop["n_prnd_pairs"] <= pop["n_pairs"] and sum(pop["by_state_pair"].values()) <= pop["n_pairs"]
+    assert pop["prnd_state_pair"] == " | ".join(sorted(CF.V6_METALS)) and pop["n_distinct_state_pairs"] >= 1
+    assert pop["median_abs_residual"] is not None
+    po = pc["prnd_only"]                                  # the EXPLORATORY Pr/Nd-only diagnostic, beside it
+    assert po["n_calibration_pairs"] == pop["n_prnd_pairs"] and "EXPLORATORY" in po["label"]
+    assert po["reading"] == CF.READINGS["s2c_calibration_population"]
     assert set(pc["quantiles"]) == {"50", "80", "95"} and all(v >= 0 for v in pc["quantiles"].values())
     assert pc["quantiles"]["50"] <= pc["quantiles"]["80"] <= pc["quantiles"]["95"]
     # and the fallback itself: below the registered minimum no pair quantile is produced at all
@@ -1708,3 +1741,822 @@ def test_e7_the_v6_run_is_not_at_frozen_configurations_and_c4s_control_is_not_pe
     assert calls["transformed_frame"] == calls["h3_training_rows"] == calls["frozen_runner"] == 0
     # the cost basis says so too, so no reader can take the 8.5 h V6 line for the tuned figure
     assert "132 h" in CF.cost_estimate(CF.enumerate_jobs(plan))["basis"]
+
+
+# --------------------------------------------------------------------------------------------- #
+# the gaps the third verification round left open: an M2 V5 CONFIRMATION-HALF fold end to end, a REAL
+# two-process pool with overlapping per-fold clocks and a killed worker, and every raise of the build phase
+# --------------------------------------------------------------------------------------------- #
+
+#: the V5 cell the synthetic V5 fold hides: NOT the V6 system's Pr/Nd, so ``assert_v6_scope`` holds in both directions
+V5_SMOKE_CELL = ("La(III)", "S2")
+
+
+def _v5_corpus(tmp_path: Path, *, n_folds: int = 1) -> tuple[Any, list[FI.Fold]]:
+    """The same mini-corpus as :func:`_v6_corpus` with ``n_folds`` **V5 primary batched_max4** folds whose scored rows
+    are in the CONFIRMATION half -- the design claims C1-C3 are scored on.
+
+    Each fold hides one cell (state x system) that is not the V6 system's Pr/Nd, so the V6 carve-out holds in both
+    directions and the fold is one the confirmation run may fit.  The folds are written as a real design file, so
+    ``Corpus.folds`` / ``Corpus.design_hash`` read them exactly as the run does.
+    """
+    df = _v6_frame()
+    rd = RC.runner_module()
+    is_v6 = (df[SG.SYSTEM_COL] == V6_SMOKE_SYSTEM) & df[SG.METAL_COL].isin(["Pr(III)", "Nd(III)"])
+    v6 = pd.Series(is_v6.to_numpy(dtype=bool), index=df.index)
+    coext = pd.Series(False, index=df.index)
+    halves = {d: pd.Series("C", index=df.index) for d in ("V5", "V5P", "V5PAIR", "V1", "V2")}
+    folds_dir = tmp_path / "folds"
+    folds_dir.mkdir(parents=True, exist_ok=True)
+    cells = [(st, sy) for sy in V6_SMOKE_SYSTEMS[1:] for st in V6_SMOKE_STATES][:n_folds]
+    assert len(cells) == n_folds and all(not (sy == V6_SMOKE_SYSTEM) for _, sy in cells)
+    folds = []
+    for k, (state, system) in enumerate(cells):
+        m = (df[SG.METAL_COL] == state) & (df[SG.SYSTEM_COL] == system)
+        hid = df.loc[m, FI.ROW_ID].astype(str).tolist()
+        # a withheld-seed colouring written by the run carries seed=None on every fold and an already-scrubbed id
+        folds.append(FI.make_fold(design="V5", variant="primary", scheme="batched_max4",
+                                  fold_id=f"si1_C_b{k:03d}", half="C", seed=None, hidden=hid, scored=hid,
+                                  unit_type="cell", units=[f"{state} x {system}"], batch_id=f"b{k:03d}",
+                                  row_unit={r: f"{state} x {system}" for r in hid},
+                                  row_half={r: "C" for r in hid},
+                                  meta={"cells": [[state, system]], "component_aware": True, "carved_out": False,
+                                        "max_cells_per_batch": 4, "parent_structure": False}))
+    FI.write_design(folds, folds_dir)
+    corpus = rd.Corpus(frame=df, slim=df, table=I.RowTable(df), v6=v6, coext=coext, systems=None, comps=None, cv=None,
+                       pmap=None, row_half=halves, folds_dir=folds_dir)
+    return corpus, folds
+
+
+@pytest.mark.slow
+def test_m2_reads_m1s_record_on_a_v5_confirmation_half_fold_too(root, tmp_path, monkeypatch):
+    """E1 on the design the frozen claims are scored on: an **M2 V5 confirmation-half** fold, end to end.
+
+    The V6 leg is covered by ``test_m2_reads_m1s_confirmation_record_and_refuses_a_missing_or_stale_one``; claims C1-C3
+    and S1(c) are M2 on V5 / V5-PAIR, which is 63 of the plan's 97 M2 hours, and no test exercised that path at all.
+    POST-HOC addendum 8 item 1 is asserted where it bites: M2 takes the M1 record of the SAME confirmation fold, the same
+    design file and the same withheld-seed INDEX -- never another index -- and stores that record's digest.
+    """
+    monkeypatch.setattr(REG, "registry_path", lambda r=None: root / "manifests" / "digest_registry.json")
+    store_path = _write_store(root, root.parent / "v5_store.json")
+    store = CF.load_seed_store(store_path, root=root, seal=SEAL, prereg_paths=_prereg_paths(root))
+    code = RC.code_digest()["combined"]
+    REG.register_stage(CF.STAGE, below_footer_sha256="a" * 64, code_digest=code, git_head=None, addenda_count=8,
+                       note="v5 m2", path=root / "manifests" / "digest_registry.json")
+    corpus, folds = _v5_corpus(tmp_path)
+    fold = folds[0]
+    rd = RC.runner_module()
+    out_root, i = tmp_path / "out", 2
+    kw = dict(store=store, seed_index=i, runners=rd.default_runners(), code=code, state=D.PlanState(guard_mode={}),
+              prereg={"addenda_sha256": "a" * 64, "n_addenda": 8})
+
+    def spec(arm):
+        return D.JobSpec(kind="fit", arm=arm, design="V5", variant="primary", scheme="batched_max4",
+                         seed=store.seed(i), writes=(arm,))
+
+    # ---- before M1 exists: the refusal points at the CONFIRMATION layout and names no seed
+    with pytest.raises(RuntimeError) as ei:
+        RC.run_fold(spec("M2"), fold, 0, corpus, out_root, **kw)
+    msg = str(ei.value)
+    assert "M2 needs M1's per-fold values" in msg and "records/M1/" in msg and CF.seed_token(i) in msg
+    assert "evaluation/discovery" not in msg.replace("\\", "/")
+    assert not any(str(s) in msg for s in FAKE_SEEDS)
+
+    # ---- M1 then M2 on the confirmation half, end to end
+    r1 = RC.run_fold(spec("M1"), fold, 0, corpus, out_root, **kw)
+    r2 = RC.run_fold(spec("M2"), fold, 0, corpus, out_root, **kw)
+    assert r1["status"] == r2["status"] == "fitted"
+    m1rec = json.loads(Path(r1["records"]["M1"]).read_text(encoding="utf-8"))
+    m2rec = json.loads(Path(r2["records"]["M2"]).read_text(encoding="utf-8"))
+    assert m1rec["half"] == m2rec["half"] == D.CONFIRMATION and m2rec["seed_index"] == i
+    ar = m2rec["arm_record"]
+    assert ar["m1_config_used"]["emb_dim"] == m1rec["arm_record"]["selected"]["emb_dim"]
+    assert ar["m1_config_used"]["weight_decay"] == m1rec["arm_record"]["selected"]["weight_decay"]
+    assert ar["m1_record_digest"] == CF.confirmation_record_digest(m1rec)      # WHICH M1 fit, recorded
+    assert m2rec["model_seed"] == m1rec["model_seed"] == rd.model_seed_of(0)   # the same fold's model seed (section 15)
+    # the pairing block of addendum 8 item 1, on a REAL record: the digest, the configuration taken, the model seed
+    # asserted equal to M1's, and the two stopping counts printed side by side because M2's is its own (section 7)
+    pair = m2rec["m2_pairing"]
+    assert pair["m1_record_digest"] == ar["m1_record_digest"] and pair["m1_model_seed"] == pair["m2_model_seed"]
+    assert pair["m1_selected"] == m1rec["arm_record"]["selected"]
+    assert pair["m1_n_epochs"] == m1rec["arm_record"]["n_epochs"]
+    assert pair["m2_n_epochs"] == m2rec["arm_record"]["n_epochs"]
+    assert pair["configuration_source"] == "the M1 record of this fold" and "NOT M1's" in pair["stopping_count_source"]
+    assert "m2_pairing" not in m1rec                                          # M1 takes nothing from anybody
+    # every scored prediction is a confirmation-half row and none is a V6 row
+    pred = pd.read_parquet(Path(r2["records"]["M2"]).with_suffix(".parquet"))
+    assert set(pred["half"]) == {D.CONFIRMATION}
+    assert not corpus.v6.reindex(corpus.labels_of(list(pred["row_id"]))).any()
+    assert not any(str(s) in json.dumps(m2rec, default=str) for s in FAKE_SEEDS)
+
+    # ---- addendum 8 item 1: ANOTHER seed index is not a source.  The i2 M1 record exists; an i3 M2 fold refuses
+    with pytest.raises(RuntimeError, match="M2 needs M1's per-fold values"):
+        RC.run_fold(spec("M2"), fold, 0, corpus, out_root, **{**kw, "seed_index": 3})
+    # ---- and a DISCOVERY record of the same fold is not a source either: the locator reads records/M1 only
+    dpq, djs = D.fold_paths(out_root, spec("M1"), "M1", fold.fold_id)
+    djs.parent.mkdir(parents=True, exist_ok=True)
+    djs.write_text(json.dumps(m1rec), encoding="utf-8")
+    dpq.write_bytes(Path(r1["records"]["M1"]).with_suffix(".parquet").read_bytes())
+    CF.fold_paths(out_root, "M2", spec("M2").design_dir, i, CF.scrub(fold.fold_id, store))[1].unlink()
+    CF.fold_paths(out_root, "M1", spec("M1").design_dir, i, CF.scrub(fold.fold_id, store))[1].unlink()
+    with pytest.raises(RuntimeError, match="M2 needs M1's per-fold values"):
+        RC.run_fold(spec("M2"), fold, 0, corpus, out_root, **kw)
+
+
+#: the worker-side probe of the REAL pool test.  It lives in a file written to ``tmp_path`` because a spawned worker must
+#: be able to import the function the parent submitted, and ``sys.path`` (which ``tmp_path`` is added to) is what
+#: ``multiprocessing.spawn`` carries into the child.  It writes a marker per fold instead of fitting one: fitting a real
+#: fold in a spawned worker would need the real corpus, and a real V6 or confirmation-half fit is the one thing this run
+#: gets once.
+POOL_PROBE = '''
+"""Worker-side probe for the two-worker dispatch test: real processes, real clocks, no fit."""
+import importlib.util, json, os, sys, time
+from pathlib import Path
+
+G19 = Path(os.environ["G19_ROOT"])
+
+
+def _rc():
+    if "g19_run_confirmation" in sys.modules:
+        return sys.modules["g19_run_confirmation"]
+    if str(G19) not in sys.path:
+        sys.path.insert(0, str(G19))
+    spec = importlib.util.spec_from_file_location("g19_run_confirmation", G19 / "scripts" / "g19_run_confirmation.py")
+    m = importlib.util.module_from_spec(spec)
+    sys.modules["g19_run_confirmation"] = m
+    spec.loader.exec_module(m)
+    return m
+
+
+def init(store_path, out_root):
+    """The initializer's contract: load and VERIFY the store in the worker, and leave the pre-flight self-check passing."""
+    rc = _rc()
+    sealm = rc.seal_module()
+    cf = sys.modules["gen19ct.evaluation.confirmation"]
+    store = cf.load_seed_store(store_path, root=Path(out_root), seal=sealm,
+                               prereg_paths=sealm.PreregPaths(root=Path(out_root), repo_root=Path(out_root).parent))
+    if not store.verified:
+        raise SystemExit("refused: a worker's seed store does not verify")
+    rc.CW.store = store
+    rc.CW.corpus = type("C", (), {"table": type("T", (), {"n": 4242})()})()
+    rc.CW.runners = {"probe": 1}
+    rc.CW.attached, rc.CW.pair_attrs = None, None
+
+
+def fold(spec, fold_id, ordinal, out_root, seed_index, code, state_rec, prereg, job_key):
+    """``_conf_worker_fold``'s signature. Writes a marker, sleeps, and returns its own pid and clock."""
+    marker = Path(out_root) / "markers" / f"{fold_id}.json"
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    if marker.exists():
+        return {"status": "skipped_done", "job": job_key, "fold_id": fold_id, "pid": os.getpid()}
+    if os.environ.get("G19_KILL_ON") == fold_id:
+        os._exit(9)                      # the worker dies mid-fold, exactly as an OOM kill would
+    t0 = time.time()
+    time.sleep(0.8)
+    t1 = time.time()
+    marker.write_text(json.dumps({"fold_id": fold_id, "pid": os.getpid(), "t0": t0, "t1": t1}), encoding="utf-8")
+    return {"status": "fitted", "job": job_key, "fold_id": fold_id, "pid": os.getpid(), "t0": t0, "t1": t1}
+'''
+
+
+@pytest.mark.slow
+def test_two_real_workers_overlap_and_a_killed_worker_leaves_a_resumable_run(root, tmp_path, monkeypatch):
+    """E2, the part the in-process pool cannot show: ``fit_loop`` at ``--workers 2`` really runs two folds at once, and a
+    worker that dies leaves the finished folds on disk for ``--resume`` (POST-HOC addendum 8 item 2).
+
+    ``test_fit_loop_dispatches_to_a_pool...`` drives the dispatch loop through an in-process stand-in and
+    ``test_a_real_two_worker_pool...`` proves a spawned worker can verify the store and load the corpus; neither shows two
+    folds in flight at the same wall-clock instant, which is the whole claim behind the 56 h wall figure the plan
+    advertises.  Here the loop dispatches four folds to a REAL ``ProcessPoolExecutor`` of 2 and the per-fold clocks are
+    compared: at least one pair overlaps, and at least two distinct pids did the work.
+    """
+    import os as _os
+    from concurrent.futures.process import BrokenProcessPool
+
+    (tmp_path / "poolprobe.py").write_text(POOL_PROBE, encoding="utf-8")
+    monkeypatch.syspath_prepend(str(tmp_path))
+    monkeypatch.setenv("G19_ROOT", str(paths.G19_ROOT))
+    monkeypatch.delenv("G19_KILL_ON", raising=False)
+    import poolprobe                                                    # noqa: PLC0415 -- written just above
+
+    store_path = _write_store(root, root.parent / "realpool_store.json")
+    store = CF.load_seed_store(store_path, root=root, seal=SEAL, prereg_paths=_prereg_paths(root))
+    corpus, folds = _v5_corpus(tmp_path, n_folds=4)
+    code = RC.code_digest()["combined"]
+    monkeypatch.setattr(RC, "_conf_worker_fold", poolprobe.fold)
+    monkeypatch.setattr(RC, "_init_conf_worker", poolprobe.init)
+    monkeypatch.setattr(RC, "attach_seed_folds", lambda *a, **k: {})
+    out_root = root                      # the worker verifies the store against root/manifests
+    job = CF.ConfJob("real pool", "M1", "V5", "V5__primary__batched_max4", 1, len(folds))
+    kw = dict(corpus=corpus, state=D.PlanState(guard_mode={}), runners={}, code=code,
+              prereg={"addenda_sha256": "a" * 64, "n_addenda": 8}, workers=2, seed_store_path=str(store_path))
+
+    # ---- four folds, two real workers
+    led = RC.fit_loop([job], store, out_root, **kw)
+    rec = led.record()
+    rec = led.record()
+    assert rec["workers_used"] == 2 and rec["n_folds_fitted"] == 4 and rec["n_errors"] == 0
+    pre = rec["worker_preflight"]
+    assert pre and all(p["store_verified"] and p["n_rows"] == 4242 for p in pre)
+    assert _os.getpid() not in {p["pid"] for p in pre}                   # the pre-flight ran in the CHILDREN
+    marks = [json.loads(p.read_text(encoding="utf-8")) for p in sorted((out_root / "markers").glob("*.json"))]
+    assert len(marks) == 4
+    assert len({m["pid"] for m in marks}) >= 2, marks                    # two worker processes did the work
+    overlaps = [(a["fold_id"], b["fold_id"]) for a in marks for b in marks
+                if a["fold_id"] < b["fold_id"] and a["t0"] < b["t1"] and b["t0"] < a["t1"]]
+    assert overlaps, marks                                               # ... AT THE SAME TIME
+    t0 = min(m["t0"] for m in marks)
+    print("per-fold clocks (pid, start, end, seconds, relative to the first start):")
+    for m in sorted(marks, key=lambda m: m["t0"]):
+        print(f'  {m["fold_id"]:14s} pid={m["pid"]:<7d} {m["t0"] - t0:6.3f} -> {m["t1"] - t0:6.3f}')
+    print(f"  overlapping pairs: {overlaps}")
+    assert not any(str(s) in json.dumps(marks) for s in FAKE_SEEDS)
+
+    # ---- resume: the done folds are skipped, nothing is refitted
+    led2 = RC.fit_loop([job], store, out_root, **kw)
+    assert led2.record()["n_folds_skipped_already_done"] == 4 and led2.record()["n_folds_fitted"] == 0
+
+    # ---- a worker KILLED mid-fold: the run stops, the completed folds survive, and a resume finishes the rest
+    out2 = tmp_path / "killed"
+    (out2 / "manifests").mkdir(parents=True, exist_ok=True)
+    (out2 / "manifests" / "confirmation_seeds_sha256.txt").write_text(
+        (root / "manifests" / "confirmation_seeds_sha256.txt").read_text(encoding="utf-8"), encoding="utf-8")
+    monkeypatch.setenv("G19_KILL_ON", folds[3].fold_id)
+    with pytest.raises(BrokenProcessPool):
+        RC.fit_loop([job], store, out2, **kw)
+    done = sorted(p.stem for p in (out2 / "markers").glob("*.json"))
+    assert done and folds[3].fold_id not in done                         # the killed fold wrote nothing
+    monkeypatch.delenv("G19_KILL_ON")
+    led3 = RC.fit_loop([job], store, out2, **kw)
+    r3 = led3.record()
+    assert r3["n_folds_skipped_already_done"] == len(done) and r3["n_folds_fitted"] == len(folds) - len(done)
+    assert len(list((out2 / "markers").glob("*.json"))) == len(folds)
+
+
+#: the seed-shaped fold id every build-phase raise is driven with: exactly what a batched withheld-seed colouring carries
+#: before ``write_seed_design`` scrubs it
+#: the per-half statistics ``cell_holdout.v5_batched_folds`` / ``v5pair_batched_folds`` return, as the build phase
+#: reads them (``n_batches`` / ``largest_batch`` / ``n_cells_moved_to_singleton`` per half)
+_BATCH_STATS = {h: {"n_batches": 1, "largest_batch": 1, "n_cells_moved_to_singleton": 0} for h in ("S", "C")}
+
+
+def _seedy(seed: int, k: int = 0) -> str:
+    return f"s{seed}_C_b{k:03d}"
+
+
+def _throw(exc):
+    def f(*a, **k):
+        raise exc
+    return f
+
+
+def _stub_fold_corpus(seed: int) -> Any:
+    """A :class:`RC.FoldCorpus`-shaped stand-in whose builders are stubs, so each REAL raise of the build phase can be
+    driven with a seed-shaped fold id without the 12 k-row corpus."""
+    df = pd.DataFrame({FI.ROW_ID: ["a", "b", "c", "d"], SG.METAL_COL: ["La(III)", "Ce(III)", "Pr(III)", "Nd(III)"],
+                       SG.SYSTEM_COL: ["S1", "S1", "S2", "S2"],
+                       # build_v5pair_batched reads the publication group column off the frame before any stub is reached
+                       FI.GROUP_COL: ["g1", "g1", "g2", "g2"]})
+    return SimpleNamespace(frame=df, v6=pd.Series([False, False, True, True]),
+                           halves=pd.Series("C", index=df.index), cells_tab=pd.DataFrame(),
+                           condition_key=pd.Series("ck0", index=df.index),
+                           book=SimpleNamespace(validate=lambda folds: None), builder=SimpleNamespace(),
+                           pmap=None, v6_systems=["S1"], universe={"a", "b", "c", "d"})
+
+
+def _batch_fold(seed: int, k: int, cells, *, carved: bool = False, cap: int = RC.MAX_CELLS_PER_BATCH) -> FI.Fold:
+    return FI.make_fold(design="V5", variant="primary", scheme="batched_max4", fold_id=_seedy(seed, k), half="C",
+                        seed=seed, hidden=["a"], scored=["a"], unit_type="cell", units=["u"], batch_id=f"b{k:03d}",
+                        row_unit={"a": "u"}, row_half={"a": "C"},
+                        meta={"cells": [list(c) for c in cells], "carved_out": carved, "max_cells_per_batch": cap,
+                              "component_aware": True, "parent_structure": False})
+
+
+@pytest.mark.slow
+def test_every_raise_of_the_build_phase_is_scrubbed_and_writes_no_seed(root, tmp_path, monkeypatch):
+    """E4 in full: **every** raise of the fold-build phase driven with a seed-shaped value.
+
+    ``test_the_fold_build_phase_cannot_print_a_withheld_seed`` drives ONE stubbed raise. Addendum 6 item 4 is a property
+    of the phase, not of one call site, so each raise is executed here -- the four per-batch assertions of
+    ``build_v5_batched``, the book guard, a failure inside ``write_seed_design``, the three of ``build_v5pair_batched``
+    including ``cell_holdout.check_pair_isolation``, ``build_v6_folds``' guard, the unknown-stem ``ValueError`` and
+    ``assert_fold_v6_scope`` -- and after each one the message, the whole traceback and every file written under
+    ``out_root`` are checked for all five placeholder seeds. The two helpers whose real messages carry the fold id
+    (``folds.io.guard`` and ``check_pair_isolation``) are also called directly, to show that the raw text really does
+    name the seed and that only the wrapper keeps it off the terminal.
+    """
+    import traceback as _tb
+
+    store_path = _write_store(root, root.parent / "raise_store.json")
+    store = CF.load_seed_store(store_path, root=root, seal=SEAL, prereg_paths=_prereg_paths(root))
+    seed = store.seed(1)
+    seeds = [str(s) for s in FAKE_SEEDS]
+    assert str(seed) in seeds
+    V5STEM, PAIRSTEM = "V5__primary__batched_max4", "V5PAIR__primary__batched"
+
+    # ---- the REAL raises of the two helpers folds.io and cell_holdout own, with a seed-shaped fold id
+    seedy_fold = _batch_fold(seed, 0, [("La(III)", "S1")])
+    with pytest.raises(AssertionError, match="hidden ids missing from the frame") as g1:
+        FI.guard(seedy_fold, pd.DataFrame({FI.ROW_ID: ["z"]}), pd.Index([0]), ["z"], "V5")
+    assert str(seed) in str(g1.value)                    # the raw message DOES name the seed -- that is the hazard
+    pair_fold = FI.make_fold(design="V5PAIR", variant="primary", scheme="batched", fold_id=_seedy(seed, 1), half="C",
+                             seed=seed, hidden=["a"], scored=["a"], unit_type="cell_pair", units=["u"],
+                             row_unit={"a": "u"}, row_half={"a": "C"}, meta={})
+    with pytest.raises(AssertionError, match="not hidden-scored") as g2:
+        # both members are TRAINING rows, so the fold-crossing level passes and the hidden-scored level -- the one whose
+        # message is built from the fold id -- is the one that raises
+        CH.check_pair_isolation(pair_fold, pd.DataFrame({"row_id_a": ["c"], "row_id_b": ["d"], "fold_id": ["x"]}),
+                                ["a", "c", "d"])
+    assert str(seed) in str(g2.value)
+
+    # ---- each raise, driven through build_confirmation_folds, which is the only thing between it and the terminal
+    cases: list[tuple] = []
+
+    def case(name, setup, needle, kind=AssertionError, stem=V5STEM, with_v6=False):
+        cases.append((name, setup, needle, kind, stem, with_v6))
+
+    def v5_returns(folds, *, scored_cells=(("La(III)", "S1"),)):
+        def setup(mp, fc):
+            mp.setattr(fc.builder, "_variant_cells", lambda *a: (list(scored_cells), list(scored_cells), None),
+                       raising=False)
+            mp.setattr(CH, "cell_masks", lambda *a, **k: {})
+            mp.setattr(CH, "EligibilitySpace", lambda *a, **k: None)
+            mp.setattr(CH, "v5_batched_folds", lambda *a, **k: (folds, _BATCH_STATS))
+            mp.setattr(CH, "guard_v5", lambda *a, **k: {"ok": True, "level": "V5"})
+        return setup
+
+    case("v5 cover", v5_returns([_batch_fold(seed, 0, [("Ce(III)", "S9")])]),
+         "batches do not cover every scored cell exactly once")
+    case("v5 two cells one state", v5_returns([_batch_fold(seed, 0, [("La(III)", "S1"), ("La(III)", "S2")])],
+                                              scored_cells=(("La(III)", "S1"), ("La(III)", "S2"))),
+         "two cells of one batch share a metal state or a system")
+    case("v5 cap", v5_returns([_batch_fold(seed, 0, [("La(III)", "S1")], cap=99)]), "the section 7 item 6 cap")
+    case("v5 carved out", v5_returns([_batch_fold(seed, 0, [("La(III)", "S1")], carved=True)]),
+         "a carved-out cell was batched")
+
+    def v5_guard_fails(mp, fc):
+        v5_returns([_batch_fold(seed, 0, [("La(III)", "S1")])])(mp, fc)
+        mp.setattr(CH, "guard_v5", lambda *a, **k: {"ok": False, "level": "V5"})
+    case("v5 guard", v5_guard_fails, "a withheld-seed batch fails the V5 guard")
+
+    def v5_book_rejects(mp, fc):
+        v5_returns([_batch_fold(seed, 0, [("La(III)", "S1")])])(mp, fc)
+        mp.setattr(fc.book, "validate", _throw(AssertionError(f"{_seedy(seed)}: the book rejects the batch")),
+                   raising=False)
+    case("v5 book", v5_book_rejects, "the book rejects the batch")
+
+    def v5_write_fails(mp, fc):
+        v5_returns([_batch_fold(seed, 0, [("La(III)", "S1")])])(mp, fc)
+        mp.setattr(FI, "write_design", _throw(AssertionError(
+            f"fold isolation violated in V5/primary/batched_max4/{_seedy(seed)}: dict")))
+    case("v5 write_design", v5_write_fails, "fold isolation violated in")
+
+    def pair_setup(*, units_ok=True, pairs_ok=True, isolation=True, guard=True):
+        unit = FI.make_fold(design="V5PAIR", variant="primary", scheme="cell_pair", fold_id="u0", half="C", seed=None,
+                            hidden=["a"], scored=["a"], unit_type="cell_pair", units=["u"],
+                            row_unit={"a": "u"}, row_half={"a": "C"}, meta={"cells": [["La(III)", "S1"]]})
+        batch = FI.make_fold(design="V5PAIR", variant="primary", scheme="batched", fold_id=_seedy(seed, 2), half="C",
+                             seed=seed, hidden=["a"], scored=["a"], unit_type="cell_pair", units=["u"],
+                             row_unit={"a": "u"}, row_half={"a": "C"},
+                             meta={"cells": [["La(III)", "S1"]], "unit_fold_ids": ["u0" if units_ok else "u9"]})
+        ptab = pd.DataFrame({"fold_id": [batch.fold_id], "unit_fold_id": ["u0" if pairs_ok else "u9"],
+                             "row_id_a": ["a"], "row_id_b": ["b"]})
+        upairs = pd.DataFrame({"fold_id": ["u0"], "row_id_a": ["a"], "row_id_b": ["b"]})
+
+        def setup(mp, fc):
+            mp.setattr(FI, "read_design", lambda *a, **k: [unit])
+            mp.setattr(RC.pd, "read_parquet", lambda *a, **k: upairs)
+            mp.setattr(CH, "cell_masks", lambda *a, **k: {})
+            mp.setattr(CH, "EligibilitySpace", lambda *a, **k: None)
+            mp.setattr(CH, "v5pair_batched_folds",
+                       lambda *a, **k: ([batch], ptab, {**_BATCH_STATS, "n_test_test_row_pairs": 1}))
+            mp.setattr(FI, "design_hash", lambda *a, **k: "0" * 64)
+            mp.setattr(CH, "check_pair_isolation", (lambda *a, **k: None) if isolation else
+                       _throw(AssertionError(f"{_seedy(seed, 2)}: 1 pair(s) with a member that is not hidden-scored")))
+            mp.setattr(CH, "guard_v5", lambda *a, **k: {"ok": bool(guard), "level": "V5"})
+        return setup
+
+    case("pair units", pair_setup(units_ok=False), "batches do not cover every unit fold exactly once", stem=PAIRSTEM)
+    case("pair list", pair_setup(pairs_ok=False), "the batch pair list is not the union", stem=PAIRSTEM)
+    case("pair isolation", pair_setup(isolation=False), "not hidden-scored", stem=PAIRSTEM)
+    case("pair guard", pair_setup(guard=False), "fails the V5 guard", stem=PAIRSTEM)
+    case("unknown stem", lambda mp, fc: None, "no registered builder for stem", CF.RedactedRunError, "V9__nope__exact")
+
+    def v6_guard_fails(mp, fc):
+        v5_returns([_batch_fold(seed, 0, [("La(III)", "S1")])])(mp, fc)
+        mp.setattr(RC, "build_v6_folds", _throw(AssertionError(f"V6: a fold fails the V5 guard ({_seedy(seed)})")))
+    case("v6 guard", v6_guard_fails, "V6: a fold fails the V5 guard", AssertionError, V5STEM, True)
+
+    def scope_fails(mp, fc):
+        v5_returns([_batch_fold(seed, 0, [("La(III)", "S1")])])(mp, fc)
+        # assert_fold_v6_scope runs AFTER the design file is written, so this case reaches write_seed_design; the writer
+        # is stubbed (the stub corpus carries none of folds.io's FRAME_COLUMNS) and the ONE thing under test here is that
+        # the scope assertion's seed-shaped message is scrubbed
+        def _write(sc, d, extra=None):
+            Path(d).mkdir(parents=True, exist_ok=True)
+            (Path(d) / "design.json").write_text(json.dumps({"extra": extra}, default=str), encoding="utf-8")
+            return (Path(d) / "design.parquet", Path(d) / "design.json",
+                    {"design_hash": "0" * 64, "assignment_sha256": "1" * 64, "n_scored_units": 1,
+                     "n_distinct_scored_rows": 1, "by_half": {"C": {"n_folds": 1}}})
+        mp.setattr(FI, "write_design", _write)
+        mp.setattr(RC, "assert_fold_v6_scope",
+                   _throw(AssertionError(f"{_seedy(seed)}: a V6 row is scored outside the V6 job")))
+    case("v6 scope", scope_fails, "a V6 row is scored outside the V6 job")
+
+    for k, (name, setup, needle, kind, stem, with_v6) in enumerate(cases):
+        out = tmp_path / f"case{k}"
+        out.mkdir(parents=True, exist_ok=True)
+        with monkeypatch.context() as mp:
+            fc = _stub_fold_corpus(seed)
+            mp.setattr(RC, "load_fold_corpus", lambda fc=fc: fc)
+            mp.setattr(RC, "build_v6_folds", lambda c: ([], {}))
+            setup(mp, fc)
+            with pytest.raises(kind) as ei:
+                RC.build_confirmation_folds(store, out, stems=(stem,), with_v6=with_v6)
+        txt = str(ei.value)
+        tb = "".join(_tb.format_exception(ei.value))
+        assert needle in txt, (name, txt)
+        assert "building the withheld-seed fold files" in txt, (name, txt)
+        assert not any(s in txt for s in seeds), (name, txt)                  # the MESSAGE is scrubbed
+        assert not any(s in tb for s in seeds), (name, tb)                    # ... and so is the whole traceback
+        assert ei.value.__context__ is None or ei.value.__suppress_context__  # no chained frame carries it either
+        if "_C_b" in txt:
+            assert CF.seed_token(1) + "_C_b" in txt, (name, txt)              # the opaque index replaced the seed
+        leaked = []
+        for p in out.rglob("*"):
+            if not p.is_file():
+                continue
+            body = p.read_bytes().decode("utf-8", "replace")
+            if any(s in body or s in str(p) for s in seeds):
+                leaked.append(str(p))
+        assert not leaked, (name, leaked)                                     # no WRITTEN file carries one either
+    assert len(cases) == 14
+
+
+@pytest.mark.slow
+def test_a_resume_refuses_a_fold_whose_record_carries_another_code_digest(root, tmp_path, monkeypatch):
+    """The remaining half of POST-HOC addendum 8 item 2, at the level the addendum states it.
+
+    The addendum: ``--resume`` "may only fit folds that are missing and must refuse any fold whose stored record was
+    written under a different code digest than the one now registered for the ``confirmation`` stage". Two guards existed
+    -- the run-level lock (the START marker's digest against the live one) and ``read_seed_predictions`` at scoring time
+    -- and neither covers the case the addendum names: a fold record under digest B while the marker records A == live.
+    ``run_fold`` returned ``skipped_done`` on the mere existence of the JSON, before ``refuse_unless_writable`` even ran,
+    so such a fold was silently kept and the run died 56 h later at the scoring gate instead of at dispatch.
+    """
+    monkeypatch.setattr(REG, "registry_path", lambda r=None: root / "manifests" / "digest_registry.json")
+    store = CF.load_seed_store(_write_store(root, root.parent / "resume_store.json"), root=root, seal=SEAL,
+                               prereg_paths=_prereg_paths(root))
+    code = RC.code_digest()["combined"]
+    REG.register_stage(CF.STAGE, below_footer_sha256="a" * 64, code_digest=code, git_head=None, addenda_count=8,
+                       note="resume", path=root / "manifests" / "digest_registry.json")
+    corpus, folds = _v5_corpus(tmp_path)
+    fold, out_root, i = folds[0], tmp_path / "out", 1
+    spec = D.JobSpec(kind="fit", arm="M1", design="V5", variant="primary", scheme="batched_max4",
+                     seed=store.seed(i), writes=("M1",))
+    kw = dict(store=store, seed_index=i, runners=RC.runner_module().default_runners(), code=code,
+              state=D.PlanState(guard_mode={}), prereg={"addenda_sha256": "a" * 64, "n_addenda": 8})
+
+    # the fold is fitted once, then a second invocation SKIPS it: the resume contract, unchanged
+    assert RC.run_fold(spec, fold, 0, corpus, out_root, **kw)["status"] == "fitted"
+    assert RC.run_fold(spec, fold, 0, corpus, out_root, **kw)["status"] == "skipped_done"
+
+    # ... but a record written under ANOTHER code digest is refused rather than skipped, and named
+    js = CF.fold_paths(out_root, "M1", spec.design_dir, i, CF.scrub(fold.fold_id, store))[1]
+    rec = json.loads(js.read_text(encoding="utf-8"))
+    js.write_text(json.dumps({**rec, "code_digest": "b7" * 32}), encoding="utf-8")
+    with pytest.raises(CF.RedactedRunError) as ei:
+        RC.run_fold(spec, fold, 0, corpus, out_root, **kw)
+    msg = str(ei.value)
+    assert "addendum 8 item 2" in msg and "b7b7b7b7b7b7" in msg and code[:12] in msg
+    assert "complete folds MISSING" in msg
+    assert not any(str(s) in msg for s in FAKE_SEEDS)              # the label is the scrubbed one
+    # a record with no code digest at all is refused the same way, and the run is not allowed to guess
+    js.write_text(json.dumps({k: v for k, v in rec.items() if k != "code_digest"}), encoding="utf-8")
+    with pytest.raises(CF.RedactedRunError, match="no code digest"):
+        RC.run_fold(spec, fold, 0, corpus, out_root, **kw)
+    # through the fit loop it REFUSES -- it is not an AssertionError, so it is not filed as an incompletion and the run
+    # stops, which is what "must refuse" means (addendum 8 item 2)
+    js.write_text(json.dumps({**rec, "code_digest": "b7" * 32}), encoding="utf-8")
+    job = CF.ConfJob("resume", "M1", "V5", "V5__primary__batched_max4", i, 1)
+    monkeypatch.setattr(RC, "attach_seed_folds", lambda *a, **k: {})
+    loop = dict(corpus=corpus, state=D.PlanState(guard_mode={}), runners=RC.runner_module().default_runners(),
+                code=code, prereg={"addenda_sha256": "a" * 64, "n_addenda": 8}, workers=1)
+    with pytest.raises(CF.RedactedRunError) as e2:
+        RC.fit_loop([job], store, out_root, **loop)
+    assert "addendum 8 item 2" in str(e2.value) and not any(str(s) in str(e2.value) for s in FAKE_SEEDS)
+
+    # ---- and the OTHER half of the same vocabulary bug: a stale M1 record is INCOMPLETE_STALE_RECORD, never the guard's
+    js.write_text(json.dumps(rec), encoding="utf-8")                       # M1 restored under the live digest
+    m2 = D.JobSpec(kind="fit", arm="M2", design="V5", variant="primary", scheme="batched_max4",
+                   seed=store.seed(i), writes=("M2",))
+    assert RC.run_fold(m2, fold, 0, corpus, out_root, **kw)["status"] == "fitted"
+    CF.fold_paths(out_root, "M2", m2.design_dir, i, CF.scrub(fold.fold_id, store))[1].unlink()
+    js.write_text(json.dumps({**rec, "fold_hash": "0" * 40}), encoding="utf-8")   # M1's record no longer verifies
+    with pytest.raises(D.StaleRecordError):
+        RC.run_fold(m2, fold, 0, corpus, out_root, **kw)
+    led = RC.fit_loop([CF.ConfJob("resume", "M2", "V5", "V5__primary__batched_max4", i, 1)], store, out_root, **loop)
+    errs = led.record()["errors"]
+    assert [e["status"] for e in errs] == [CF.INCOMPLETE_STALE_RECORD]           # NOT INCOMPLETE_GUARD_FAILURE
+    assert "fold_hash" in errs[0]["detail"] and not any(str(s) in json.dumps(errs) for s in FAKE_SEEDS)
+    assert CF.INCOMPLETE_STALE_RECORD in led.record()["guard_failure_vocabulary"]
+    # and the record that caused each refusal is still on disk exactly as it was: nothing is deleted or refitted
+    assert json.loads(js.read_text(encoding="utf-8"))["fold_hash"] == "0" * 40
+    assert not CF.fold_paths(out_root, "M2", m2.design_dir, i, CF.scrub(fold.fold_id, store))[1].exists()
+
+
+# --------------------------------------------------------------------------------------------- #
+# TASK X, round four: what the fourth verification round found by execution -- a missing M1 record ended
+# the RUN instead of the M2 FOLD, a finished run was resumable, C4's two legs shared one record path, and
+# the audited M1 pairing did not pin the values M2 consumes
+# --------------------------------------------------------------------------------------------- #
+
+@pytest.mark.slow
+def test_a_missing_m1_record_ends_the_m2_fold_not_the_run(root, tmp_path, monkeypatch):
+    """POST-HOC addendum 8 item 1: "If that M1 record is absent ... the **M2 fold** is INCOMPLETE and reported as such".
+
+    Measured before the fix: ``m1_record_locator.locate`` raised a bare ``RuntimeError``, which the fit loop's defect
+    arm re-raised as ``RedactedRunError`` -- the ledger never recorded the fold and the run STOPPED.  Since
+    ``enumerate_jobs`` puts M1 before M2 at each seed index, one M1 fold lost to a guard failure (14 such folds happened
+    in H3) killed the whole 56 h run at its M2 sibling, and ``--resume`` died at the same fold for ever, because a code
+    fix changes the confirmation digest and addendum 8 item 2 then refuses every record already written.
+    """
+    monkeypatch.setattr(REG, "registry_path", lambda r=None: root / "manifests" / "digest_registry.json")
+    store = CF.load_seed_store(_write_store(root, root.parent / "m1_missing_store.json"), root=root, seal=SEAL,
+                               prereg_paths=_prereg_paths(root))
+    code = RC.code_digest()["combined"]
+    REG.register_stage(CF.STAGE, below_footer_sha256="a" * 64, code_digest=code, git_head=None, addenda_count=8,
+                       note="m1 missing", path=root / "manifests" / "digest_registry.json")
+    corpus, folds = _v5_corpus(tmp_path)
+    fold, out_root, i = folds[0], tmp_path / "out", 1
+    monkeypatch.setattr(RC, "attach_seed_folds", lambda *a, **k: {})
+    loop = dict(corpus=corpus, state=D.PlanState(guard_mode={}), runners=RC.runner_module().default_runners(),
+                code=code, prereg={"addenda_sha256": "a" * 64, "n_addenda": 8}, workers=1)
+    m2 = CF.ConfJob("claims C1-C3 (core)", "M2", "V5", "V5__primary__batched_max4", i, 1)
+    m1 = CF.ConfJob("claims C1-C3 (core)", "M1", "V5", "V5__primary__batched_max4", i, 1)
+
+    # the M2 job whose M1 record is missing, and a LATER job in the same loop: the fold is incomplete, the run goes on
+    led = RC.fit_loop([m2, m1], store, out_root, **loop)
+    errs = led.record()["errors"]
+    assert [e["status"] for e in errs] == [CF.INCOMPLETE_M1_RECORD_MISSING]
+    assert errs[0]["fold_id"] == CF.scrub(fold.fold_id, store) and "records/M1/" in errs[0]["detail"]
+    assert led.record()["n_folds_fitted"] == 1                           # the M1 job after it still ran
+    assert CF.fold_paths(out_root, "M1", "V5__primary_batched_max4", i, CF.scrub(fold.fold_id, store))[1].exists()
+    assert not any(str(s) in json.dumps(led.record()) for s in FAKE_SEEDS)
+
+    # ... and once M1's record exists, the same M2 fold fits: the incompletion is of the fold, and it is recoverable
+    led2 = RC.fit_loop([m2], store, out_root, **loop)
+    assert led2.record()["errors"] == [] and led2.record()["n_folds_fitted"] == 1
+
+    # the WORKER path classifies it identically (the parent maps the status through ``absorb``)
+    monkeypatch.setattr(RC.CW, "store", store, raising=False)
+    monkeypatch.setattr(RC.CW, "corpus", corpus, raising=False)
+    monkeypatch.setattr(RC.CW, "attached", i, raising=False)
+    monkeypatch.setattr(RC.CW, "runners", {}, raising=False)
+
+    def absent(*a, **k):
+        raise CF.MissingSiblingRecordError(f"M2@V5/i{i}/f: M2 needs M1's per-fold values of this fold")
+
+    monkeypatch.setattr(RC, "run_fold", absent)
+    spec = D.JobSpec(kind="fit", arm="M2", design="V5", variant="primary", scheme="batched_max4",
+                     seed=store.seed(i), writes=("M2",))
+    r = RC._conf_worker_fold(spec, fold.fold_id, 0, str(out_root), i, code, D.PlanState(guard_mode={}).record(),
+                             None, "M2@V5__primary__batched_max4/i1")
+    assert r["status"] == "m1_record_missing" and not any(str(s) in json.dumps(r) for s in FAKE_SEEDS)
+    # ... and a MissingSiblingRecordError is a RuntimeError, so no caller of the locator sees a different type
+    assert issubclass(CF.MissingSiblingRecordError, RuntimeError)
+
+
+def test_a_finished_run_is_never_resumable(root, plan_file, registry):
+    """POST-HOC addendum 8 item 2: "Once ``confirmation.json`` exists the run is spent and the runner refuses."
+
+    ``lock_verdict`` returned ``{"ok": True, "mode": "resume"}`` for a FINISHED run whenever the code digest and the
+    claim list matched, so a post-completion ``--resume`` passed the gate, re-ran assembly and overwrote
+    ``confirmation.json``, the tables and ``CONFIRMATION.md`` -- a second scoring of the single registered run.
+    Resumption belongs to the STARTED marker, which is the run that did not finish.
+    """
+    code = RC.code_digest()["combined"]
+    CF.write_decisions(root, {"code_digest": code, "claim_ids": ["C1", "C4"]})
+    for resume in (False, True):
+        v = CF.lock_verdict(root, resume=resume, code_digest=code, claim_ids=["C1", "C4"])
+        assert v["ok"] is False and v["mode"] == ("already_run_resume_refused" if resume else "already_run")
+        assert "spent" in v["reason"] and "addendum 8 item 2" in v["reason"]
+    store_path = _write_store(root, root.parent / "spent_store.json")
+    with pytest.raises(SystemExit, match="spent"):
+        _gate(root, store_path, resume=True, registry_path=registry)
+    # the file is not rewritten by the refusal
+    assert json.loads(CF.decisions_path(root).read_text(encoding="utf-8"))["claim_ids"] == ["C1", "C4"]
+
+    # ---- the UNFINISHED run is the one --resume may complete, and its two refusals still bite there
+    CF.decisions_path(root).unlink()
+    from gen19ct.manifest import write_json as _wj
+    marker = CF.started_path(root)
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    _wj(marker, {"code_digest": code, "claim_ids": ["C1", "C4"], "started_utc": "2026-09-24T00:00:00+00:00"})
+    assert CF.lock_verdict(root, resume=False, code_digest=code, claim_ids=["C1"])["mode"] == "already_started"
+    ok = CF.lock_verdict(root, resume=True, code_digest=code, claim_ids=["C1", "C4"])
+    assert ok["ok"] is True and ok["mode"] == "resume_unfinished"
+    assert CF.lock_verdict(root, resume=True, code_digest="y" * 64,
+                           claim_ids=["C1"])["mode"] == "resume_refused_code_changed"
+    assert CF.lock_verdict(root, resume=True, code_digest=code,
+                           claim_ids=["C1", "C9"])["mode"] == "resume_refused_claims_grew"
+
+
+def test_the_m1_pairing_digest_pins_the_values_m2_consumes(root, tmp_path, monkeypatch):
+    """POST-HOC addendum 8 item 1: "M2's record stores the M1 record's digest so the pairing is auditable."
+
+    ``RECORD_IDENTITY_FIELDS`` covered the top-level ``selected_config`` LABEL, while ``NeuralRunner.point`` consumes
+    ``arm_record.selected``.  Measured: tampering M1's ``arm_record.selected`` from emb_dim 8 / wd 0.01 to 16 / 0.0001
+    left ``m1_record_digest`` identical, and M2 adopted the tampered values -- the audit named a pairing that was not
+    the one used.
+    """
+    rec = {"schema": CF.SCHEMA, "registry_stage": CF.STAGE, "arm": "M1", "stem": "V5__primary__batched_max4",
+           "fold_id": "si1_C_b000", "fold_hash": "h" * 40, "seed_index": 1, "code_digest": "c" * 64,
+           "prereg_sha256": "p" * 64, "prereg_addenda_sha256": "a" * 64, "model_seed": 10000033,
+           "selected_config": RC.configuration_label({"emb_dim": 8, "weight_decay": 0.01, "rank": 0}),
+           "arm_record": {"selected": {"emb_dim": 8, "weight_decay": 0.01, "rank": 0}, "n_epochs": 166,
+                          "model_seed": 10000033, "inner_folds_used": [0, 1, 2]}}
+    base = CF.confirmation_record_digest(rec)
+    for tamper in ({"emb_dim": 16, "weight_decay": 0.01, "rank": 0},
+                   {"emb_dim": 8, "weight_decay": 0.0001, "rank": 0}):
+        moved = {**rec, "arm_record": {**rec["arm_record"], "selected": tamper}}
+        assert CF.confirmation_record_digest(moved) != base
+    for key, value in (("n_epochs", 999), ("model_seed", 42), ("inner_folds_used", [0, 1])):
+        moved = {**rec, "arm_record": {**rec["arm_record"], key: value}}
+        assert CF.confirmation_record_digest(moved) != base, key
+
+    # ... and the locator refuses a record whose label and whose nested configuration disagree, rather than adopting one
+    monkeypatch.setattr(REG, "registry_path", lambda r=None: root / "manifests" / "digest_registry.json")
+    store = CF.load_seed_store(_write_store(root, root.parent / "pin_store.json"), root=root, seal=SEAL,
+                               prereg_paths=_prereg_paths(root))
+    REG.register_stage(CF.STAGE, below_footer_sha256="a" * 64, code_digest="c" * 64, git_head=None, addenda_count=8,
+                       note="pin", path=root / "manifests" / "digest_registry.json")
+    fold = FI.make_fold(design="V5", variant="primary", scheme="batched_max4", fold_id="si1_C_b000", half="C",
+                        seed=None, hidden=["a"], scored=["a"], unit_type="cell", units=["u"], batch_id="b000",
+                        row_unit={"a": "u"}, row_half={"a": "C"}, meta={})
+    rec["fold_hash"] = fold.fold_hash
+    out_root = tmp_path / "pin"
+    pq, js = CF.fold_paths(out_root, "M1", "V5__primary_batched_max4", 1, "si1_C_b000")
+    js.parent.mkdir(parents=True, exist_ok=True)
+    mjob = D.JobSpec(kind="fit", arm="M1", design="V5", variant="primary", scheme="batched_max4",
+                     seed=store.seed(1), writes=("M1",))
+    loc = RC.m1_record_locator(out_root, seed_index=1, code="c" * 64, store=store, fold=fold, what="M2@V5/i1/f")
+    good = {**rec, "steps": {RC.POINT_STEP: {"seconds": 1.0}}}
+    js.write_text(json.dumps(good), encoding="utf-8")
+    pq.write_bytes(b"not a parquet, but it exists")
+    assert loc(mjob, "M1")["digest"] == CF.confirmation_record_digest(good)
+    js.write_text(json.dumps({**good, "arm_record": {**good["arm_record"],
+                                                     "selected": {"emb_dim": 16, "weight_decay": 0.0001, "rank": 0}}}),
+                  encoding="utf-8")
+    with pytest.raises(D.StaleRecordError, match="internally inconsistent"):
+        loc(mjob, "M1")
+    js.write_text(json.dumps({**good, "arm_record": {"n_epochs": 1}}), encoding="utf-8")
+    with pytest.raises(D.StaleRecordError, match="arm_record.selected"):
+        loc(mjob, "M1")
+
+    # ---- and the pairing block: the model seed is ASSERTED to be M1's, the stopping count is recorded as M2's own
+    m1 = {**good, "digest": "d" * 64}
+    pairing = RC.m2_pairing(m1, {"model_seed": 10000033, "arm_record": {"n_epochs": 140}}, what="M2@V5/i1/f")
+    assert pairing["m1_record_digest"] == "d" * 64 and pairing["m1_n_epochs"] == 166 and pairing["m2_n_epochs"] == 140
+    assert "NOT M1's" in pairing["stopping_count_source"] and "section 7" in pairing["reading"]
+    with pytest.raises(D.StaleRecordError, match="model seed"):
+        RC.m2_pairing(m1, {"model_seed": 99, "arm_record": {"n_epochs": 140}}, what="M2@V5/i1/f")
+
+
+def test_c4s_two_legs_can_never_share_one_record(root):
+    """Measured: ``job_spec_of`` puts the transform in ``JobSpec.condition``, and ``design_dir`` / ``fold_paths``
+    ignored it, so ``B6:WITH`` and ``B6:ACT_PERMUTED`` both resolved to
+    ``records/B6/V2__element_exact/i1/f000.json`` -- the second leg returned ``skipped_done`` and C4's delta was
+    exactly 0.0 on all five seeds, an artefact of the path reported as a failed R19 item 4."""
+    legs = [CF.ConfJob("C4", "B6", "V2", "V2__element__exact", 1, 1, transform=t)
+            for t in ("WITH", "ACT_PERMUTED")]
+    specs = [RC.job_spec_of(j, 111111) for j in legs]
+    ps = [CF.fold_paths(Path("X"), s.arm, s.design_dir, 1, "f000", s.condition or "")[1] for s in specs]
+    assert ps[0] != ps[1] and [p.parent.parent.parent.name for p in ps] == ["WITH", "ACT_PERMUTED"]
+    assert [p.parent.parent.parent.parent.name for p in ps] == ["B6", "B6"]        # <arm>/<transform>/<design>/i<k>
+    # an arm with no transform keeps the path it had: no other record moves
+    plain = CF.fold_paths(Path("X"), "M1", "V5__primary_batched_max4", 1, "f000")
+    assert plain[1].parent.parent.name == "V5__primary_batched_max4" and plain[1].parent.parent.parent.name == "M1"
+    # the inventory is checked BEFORE the gates: a colliding one refuses, naming both jobs
+    with pytest.raises(AssertionError, match="more than one job"):
+        CF.assert_distinct_record_dirs([("B6", "V2__element_exact", 1, ""), ("B6", "V2__element_exact", 1, "")])
+    assert RC.assert_inventory_paths(legs) == ["B6/WITH/V2__element_exact/i1", "B6/ACT_PERMUTED/V2__element_exact/i1"]
+    # ... and the REAL inventory of the frozen plan has one directory per job
+    plan = CF.read_plan(CF.plan_path(paths.G19_ROOT))
+    jobs = CF.enumerate_jobs(plan)
+    keys = RC.assert_inventory_paths(jobs)
+    assert len(keys) == len(set(keys)) == len(jobs)
+
+
+def test_a_refusal_says_why_the_record_does_not_verify(root):
+    """``registry.verify_record`` sets ``reason`` only for the stale-after-supersession case, so every message built as
+    ``f"{path}: {v.get('reason')}"`` printed ``<path>: None`` -- the mixed-code refusal of a 56 h run naming nothing."""
+    v = {"ok": False, "stage": CF.STAGE, "mismatches": {"code_digest": ("aa" * 32, "bb" * 32)},
+         "registry_entry": {"code_digest": "bb" * 32}}
+    msg = RC.verification_reason(v)
+    assert "code_digest" in msg and "aaaaaaaaaaaa" in msg and "bbbbbbbbbbbb" in msg and "None" not in msg
+    assert RC.verification_reason({"ok": None, "stage": "confirmation", "mismatches": {}}) == \
+        "no registry entry for stage 'confirmation'"
+    assert RC.verification_reason({"ok": False, "reason": "written after supersession"}) == "written after supersession"
+
+
+def test_the_dispatch_preamble_of_the_fit_loop_cannot_print_a_withheld_seed(root, monkeypatch):
+    """The E4 class of defect one phase later: the fit loop's preamble holds a SEEDED ``JobSpec`` and had no handler.
+
+    ``attach_seed_folds``, ``fold_seeded_spec`` and ``confirmation_fittable_folds`` are called between the pool's
+    ``try`` and its ``finally``; ``confirmation_job_folds`` raises ``f"{job.key}: fold file ... holds seeds ..."`` and
+    ``job.key`` of a confirmation ``JobSpec`` carries the withheld seed, so such an exception reached ``main`` raw --
+    message and frames -- which POST-HOC addendum 6 item 4 forbids.  Every one of the three is now scrubbed.
+    """
+    store_path = _write_store(root, root.parent / "preamble_store.json")
+    store = CF.load_seed_store(store_path, root=root, seal=SEAL, prereg_paths=_prereg_paths(root))
+    seed = store.seed(1)
+
+    class _C:
+        coext_ids: list = []
+
+        def __init__(self):
+            self.guard_cache: dict = {}
+            self._folds: dict = {}
+
+        def folds(self, stem):
+            return [_fold("f_c", "C", {"a": "C"})]
+
+    job = CF.ConfJob("p", "M2", "V5", "V5__primary__batched_max4", 1, 1)
+    loop = dict(corpus=_C(), state=D.PlanState(), runners={}, code="c", prereg={})
+
+    # (a) the REAL raise of the selector, on the real message it builds from a seeded job.key
+    def seedy_selector(spec, folds, excluded):
+        raise ValueError(f"{spec.key}: fold file {spec.stem} holds seeds ['{seed}', 'None']; give fold_seed")
+
+    monkeypatch.setattr(RC, "attach_seed_folds", lambda *a, **k: {})
+    monkeypatch.setattr(CF, "confirmation_fittable_folds", seedy_selector)
+    with pytest.raises(CF.RedactedRunError) as ei:
+        RC.fit_loop([job], store, root, **loop)
+    msg = str(ei.value)
+    assert str(seed) not in msg and "i1" in msg and ei.value.__cause__ is None and ei.value.__suppress_context__
+    assert not any(str(s) in msg for s in FAKE_SEEDS)
+    assert "ValueError" in msg                                    # the class is named, the seed is not
+
+    # (b) the spec builder and (c) the fold attachment, on the same contract
+    monkeypatch.setattr(CF, "confirmation_fittable_folds", lambda *a, **k: [])
+    monkeypatch.setattr(RC, "fold_seeded_spec", lambda *a, **k: (_ for _ in ()).throw(KeyError(f"s{seed}")))
+    with pytest.raises(CF.RedactedRunError) as e2:
+        RC.fit_loop([job], store, root, **loop)
+    assert not any(str(s) in str(e2.value) for s in FAKE_SEEDS) and "i1" in str(e2.value)
+    monkeypatch.undo()
+
+    monkeypatch.setattr(RC, "attach_seed_folds",
+                        lambda *a, **k: (_ for _ in ()).throw(OSError(f"cannot read folds/i1/s{seed}.json")))
+    with pytest.raises(CF.RedactedRunError) as e3:
+        RC.fit_loop([job], store, root, **loop)
+    assert not any(str(s) in str(e3.value) for s in FAKE_SEEDS) and "i1" in str(e3.value)
+
+
+def test_a_record_set_the_loop_left_incomplete_is_never_scored_on_the_folds_it_did_write(root, tmp_path, monkeypatch):
+    """The consequence of making a missing M1 record incomplete instead of fatal, closed at the reader.
+
+    While an incomplete M2 fold ENDED the run, no partial record set could reach the assembly.  Now the run continues,
+    so ``read_seed_predictions`` would read the directory, find the folds that WERE written, and
+    ``claim_paired_units`` would intersect the two arms and score the claim on fewer units -- the "verdict from part of
+    a design" POST-HOC addendum 6 item 3(a) forbids.  The loop names what it failed to write and the reader refuses it.
+    """
+    monkeypatch.setattr(REG, "registry_path", lambda r=None: root / "manifests" / "digest_registry.json")
+    store = CF.load_seed_store(_write_store(root, root.parent / "partial_store.json"), root=root, seal=SEAL,
+                               prereg_paths=_prereg_paths(root))
+    code = RC.code_digest()["combined"]
+    REG.register_stage(CF.STAGE, below_footer_sha256="a" * 64, code_digest=code, git_head=None, addenda_count=8,
+                       note="partial", path=root / "manifests" / "digest_registry.json")
+    corpus, folds = _v5_corpus(tmp_path, n_folds=2)
+    out_root, i = tmp_path / "out", 1
+    monkeypatch.setattr(RC, "attach_seed_folds", lambda *a, **k: {})
+    monkeypatch.setattr(RC, "INCOMPLETE_RECORD_SETS", set())
+    loop = dict(corpus=corpus, state=D.PlanState(guard_mode={}), runners=RC.runner_module().default_runners(),
+                code=code, prereg={"addenda_sha256": "a" * 64, "n_addenda": 8}, workers=1)
+    m1 = CF.ConfJob("claims C1-C3 (core)", "M1", "V5", "V5__primary__batched_max4", i, 2)
+
+    # one of the two folds fails its guard; the other is written
+    real = RC.run_fold
+
+    def one_bad(job, fold, ordinal, *a, **k):
+        if fold.fold_id.endswith("b001"):
+            raise AssertionError(f"{job.arm}: the guard of this fold failed")
+        return real(job, fold, ordinal, *a, **k)
+
+    monkeypatch.setattr(RC, "run_fold", one_bad)
+    led = RC.fit_loop([m1], store, out_root, **loop)
+    assert [e["status"] for e in led.errors] == [CF.INCOMPLETE_GUARD_FAILURE]
+    assert led.record()["n_folds_fitted"] == 1
+    monkeypatch.setattr(RC, "run_fold", real)
+
+    # the directory holds ONE of the two records, so the unguarded reader would return a frame
+    dd = RC.job_spec_of(m1, store.seed(i)).design_dir
+    assert RC.read_seed_predictions(out_root, "M1", dd, i, code=code) is not None
+    # ... and once the loop's own incompletions are named, the same read returns None and the claim carries no verdict
+    marked = RC.mark_incomplete_record_sets(led, [m1])
+    assert marked and marked[0]["arm"] == "M1" and marked[0]["design_dir"] == dd and marked[0]["seed_index"] == i
+    assert ("M1", dd, i) in RC.INCOMPLETE_RECORD_SETS
+    assert RC.read_seed_predictions(out_root, "M1", dd, i, code=code) is None
+    # a DIFFERENT seed index of the same arm and design is untouched: the unit is the record set, not the design
+    assert ("M1", dd, i + 1) not in RC.INCOMPLETE_RECORD_SETS
+    assert not any(str(s) in json.dumps(marked) for s in FAKE_SEEDS)
