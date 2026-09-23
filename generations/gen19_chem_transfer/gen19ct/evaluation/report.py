@@ -47,6 +47,9 @@ import pandas as pd
 
 from gen19ct import paths
 from gen19ct.evaluation import calibration as EC
+# POST-HOC addendum 4 item 4: the labels the power check may be reported under live with the check (power.REPORTED_LABEL,
+# power.NO_POWER_CHECK_LABEL, power.ADDENDUM4_WORDING) so the report and the runner cannot drift apart
+from gen19ct.evaluation import power as PW
 from gen19ct.evaluation import transfer as ET
 
 SCHEMA = "gen19.report.v1"
@@ -1884,8 +1887,11 @@ def d02_text(L: Ledger, ctx: Mapping[str, Any], extra: Mapping[str, Any]) -> str
     pw_index = {str(c.get("contrast")): (i, c) for i, c in enumerate(pw_checks)}
 
     def power_reading(key: str) -> str:
+        # POST-HOC addendum 4 item 4: the three outcomes the check may report, and no other.  A POWERED_NOT_A_NULL /
+        # NOT_A_NULL_UNDERPOWERED record is a contrast that is NOT a null -- it must never print as "UNDECIDED
+        # (underpowered)" (the earlier fall-through), because the registered wording "null" never applies to it.
         if key not in pw_index:
-            return (f"**UNDECIDED (no registered power check)** -- section 8 requires the signal-injection check before "
+            return (f"**{PW.NO_POWER_CHECK_LABEL}** -- section 8 requires the signal-injection check before "
                     f"a failed contrast is reported as a null ({L.missing(L.rel('power_checks'), 'checks[].contrast=' + key)})")
         i, c = pw_index[key]
         km, pv = c.get("kappa_min"), str(c.get("verdict"))
@@ -1893,8 +1899,11 @@ def d02_text(L: Ledger, ctx: Mapping[str, Any], extra: Mapping[str, Any]) -> str
                  else "none in the registered grid")
         if pv == "INFORMATIVE_NULL":
             return f"null (informative: kappa_min {shown}, `{L.rel('power_checks')}` -> `checks[{i}].verdict`)"
-        return (f"**UNDECIDED (underpowered)** -- kappa_min {shown} (`{L.rel('power_checks')}` -> "
-                f"`checks[{i}].verdict` {pv})")
+        if pv in ("POWERED_NOT_A_NULL", "NOT_A_NULL_UNDERPOWERED"):
+            return (f"**{PW.REPORTED_LABEL[pv]}** -- not a null: {c.get('uninjected_point_favours') or 'the point estimate has a direction'}; "
+                    f"kappa_min {shown} (`{L.rel('power_checks')}` -> `checks[{i}].verdict` {pv})")
+        return (f"**{PW.REPORTED_LABEL.get(pv, 'UNDECIDED (underpowered)')}** -- kappa_min {shown} "
+                f"(`{L.rel('power_checks')}` -> `checks[{i}].verdict` {pv})")
 
     def verdict_of(key: str) -> str:
         row = contrast_row(L, "discovery_contrasts", key)

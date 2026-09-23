@@ -226,6 +226,21 @@ def record_run_utc(record: Mapping[str, Any]) -> str | None:
     return max(times) if times else None
 
 
+def record_run_utc_source(record: Mapping[str, Any]) -> str:
+    """WHERE :func:`record_run_utc` took the timestamp from: ``"written_utc"``, ``"max(steps.*.date_utc)"`` or
+    ``"none"``.
+
+    The ordering check that protects a record written BEFORE a supersession rests on this stamp, and a record without
+    ``written_utc`` is ordered by a DERIVED value, so the source has to be reported wherever the exemption is claimed
+    rather than re-derived by the reader (task X finding numbers VH-05)."""
+    if record.get("written_utc"):
+        return "written_utc"
+    steps = record.get("steps")
+    if isinstance(steps, Mapping) and any(isinstance(s, Mapping) and s.get("date_utc") for s in steps.values()):
+        return "max(steps.*.date_utc)"
+    return "none"
+
+
 def registered_code_digests(stage: str, path: Path | None = None) -> list[dict[str, Any]]:
     """Every code digest a record of ``stage`` may legitimately carry, newest first: the stage's current entry, then its
     superseded entries (:func:`superseded_entries`).  Each item is ``{"code_digest", "entry", "matched_entry",

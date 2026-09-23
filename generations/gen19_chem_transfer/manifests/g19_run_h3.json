@@ -4,6 +4,7 @@
     "dry_run": false,
     "expect_addenda": null,
     "max_hours": null,
+    "no_budget": false,
     "no_manifest": false,
     "no_negative_transfer": false,
     "only": null,
@@ -13,7 +14,8 @@
       "point",
       "intervals"
     ],
-    "with_pairs": false
+    "with_pairs": false,
+    "workers": 1
   },
   "code_parts": {
     "gen19ct.evaluation.discovery.CrossFitResidualConformal": "5f408eb3cc5c62f72d757538125618d958e6215ebd5c62662c26d9a9d966ddfe",
@@ -40,10 +42,10 @@
     "gen19ct.evaluation.h3.FrozenNeural": "4bdec697812f3d8706c4bd4d965c7db4bac34f6a544c781c85e96ba0dc0b34a2",
     "gen19ct.evaluation.h3.FrozenSharedOnly": "c2ffd4fb95c90b679574ebacafcea7cc87497860a847d9ab1e413ee8e2e8a0cb",
     "gen19ct.evaluation.h3.b6_cross_fit_configs": "1c8d35b36b4ec1aa112fd1bf4570212ce7a43f125681da5bf1f9288024747b20",
-    "gen19ct.evaluation.h3.fold_digest": "6a12d5387b9045050b399d4edd4ed02118980d47dd17e5fdc59e2bef08f238a9",
+    "gen19ct.evaluation.h3.fold_digest": "812ddb781e151049a0ab95ce5daf824344bd5da1ab3df9b9e420fc2763095022",
     "gen19ct.evaluation.h3.ln_rows": "0fddeb4caddf416318d3c65fbcdaec9264e2657d4fdde58c053ea7d9eb82b36c",
     "gen19ct.evaluation.h3.selected_hyperparameters": "84dfddac4602db6c35eb16924436aeccaded0d11d0cabb317df17862c9a2f5d6",
-    "gen19ct.evaluation.h3.shared_only_condition": "ede7b2d9cfdeb588a7e22ef9d9f0d074fd0490b5b683cead398ceced7a596d90",
+    "gen19ct.evaluation.h3.shared_only_condition": "2bbc527242dac1bef876a0989c28c95845d67e653d45143ea7c23b5d0b47730a",
     "gen19ct.evaluation.h3.shared_only_job": "d17b54d2105d43c14162cd65da5632f1a26d4297b5706d4881a2cbb64d0cda33",
     "gen19ct.evaluation.h3.transformed_frame": "0580a708abefd350978e152619adad1f600dde690f2182c91cf0d7a6d3b3d2e9",
     "gen19ct.evaluation.h3.without_mask": "e0856a4897c090e12ab07177bb4e12c124840a01c62ddaf52eb6702cd3999648",
@@ -56,7 +58,7 @@
     "generations/gen19_chem_transfer/gen19ct/data/leakage.py": "f9a65a3aa38dc515b12cef5d485ddba2940548b242cdc75d1e88062d377d0a53",
     "generations/gen19_chem_transfer/gen19ct/data/load.py": "152c70349a6c0c698dc90c0a064998c68d1c8d12d2ec0e75bd54f291582bfd69",
     "generations/gen19_chem_transfer/gen19ct/data/normalize.py": "01bc2a15361989dc349f8824b39da13661cc8618d33abef73a04199cd3a50d97",
-    "generations/gen19_chem_transfer/gen19ct/evaluation/h3.py": "e846a10d028946461c0ef1bc50ae49ca966b17d1cad906830e7d40dcf9ff7e4b",
+    "generations/gen19_chem_transfer/gen19ct/evaluation/h3.py": "bff7a38761c5108963d4360e0af6e26c80fcbc4834945493449da1c37c6764c0",
     "generations/gen19_chem_transfer/gen19ct/evaluation/support.py": "1ae9786785ff6a5fc08aea95dce9ceff1495e21d10447cfa91866d7f0c4c68f2",
     "generations/gen19_chem_transfer/gen19ct/folds/cell_holdout.py": "a0c8e219c04c4c689d1c0a42ba4d37f6350c7769dbd1e42bea6687a1b74362f8",
     "generations/gen19_chem_transfer/gen19ct/folds/io.py": "97defcdc99c0315fbc6cb6954bf8e2d336755b1f3bde2f34434e73bb5162b12f",
@@ -73,9 +75,9 @@
     "generations/gen19_chem_transfer/gen19ct/models/previous_gen.py": "a12455c1f39e233dd4fff4321727030c9031ca347c029615a8a9494799a23353",
     "generations/gen19_chem_transfer/gen19ct/models/shared_only.py": "e47231d7daadb813a2891734b8a9dc1ae26613af8042c43fa7fb0fe326e5d38a",
     "generations/gen19_chem_transfer/scripts/g19_run_discovery.py": "623f5f6b58eb6c1fb70462916c248431a44e6c6ead832353960846ca27c6cd4b",
-    "generations/gen19_chem_transfer/scripts/g19_run_h3.py": "8950ecb7490e27e666214284d147b487355a03d314c97e611adffe3f4917663a"
+    "generations/gen19_chem_transfer/scripts/g19_run_h3.py": "edef8dc9cba5b0414496bc8eb6ed5877e61a4014fc8dd3c46196ade115860796"
   },
-  "code_sha256": "741779cb6aad9bce10b5d0ef6f39c6d3ad10e881199ead7a3dfa9110198b54d6",
+  "code_sha256": "474aa8e8e5fc1153495a5a83ff942ac6db61e1c7789bd0010cbd88161a9d6b8c",
   "confirmation_half_read": false,
   "deployed": {
     "arm": "M0",
@@ -152,19 +154,42 @@
     "deployed_arm": "B5",
     "deployed_trained_with_actinide_rows": true,
     "designs_computed": [
+      "V2",
       "V5"
     ],
     "designs_not_computed": [
-      "V1",
+      "V1"
+    ],
+    "designs_where_readings_disagree": [
       "V2"
     ],
     "failure": false,
+    "failure_bca": true,
+    "failure_either_interval": true,
+    "failure_percentile": false,
+    "interval_read": "percentile",
+    "interval_reading_not_registered": "NOT REGISTERED: section 10 F4 says '95 % interval excluding 0' without naming a construction, while section 8 registers the percentile and the BCa 95 % interval for every contrast and R19 item 2 requires BOTH to exclude 0. f4_check decides on the PERCENTILE interval (failure / failure_percentile) and reports the BCa reading beside it (failure_bca, failure_either_interval, per_design.<design>.bca_beats). For a FAILURE condition the conservative choice is the reading that triggers more readily -- EITHER interval -- not the one that requires both, so failure_either_interval is the conservative value and the difference is printed wherever F4 is quoted. A POST-HOC addendum naming the interval F4 reads is REQUESTED and not yet written; until then no F4 statement may be quoted without both readings",
     "per_design": {
       "V1": {
+        "reason": "no reversed WITHOUT-vs-WITH contrast of this design was scored (the design is NOT_RUN, or its record set is absent): POST-HOC addendum 4 item 2",
         "status": "not computed"
       },
       "V2": {
-        "status": "not computed"
+        "bca_95": [
+          0.003148734214400464,
+          0.078274853209036
+        ],
+        "bca_also_excludes_0": true,
+        "bca_beats": true,
+        "cluster_unit": "metal_state",
+        "percentile_95": [
+          -0.0013987874159652831,
+          0.06421297385806476
+        ],
+        "point": 0.026415684977688314,
+        "readings_disagree": true,
+        "status": "computed",
+        "without_beats_with_interval_excludes_0": false
       },
       "V5": {
         "bca_95": [
@@ -172,12 +197,14 @@
           -0.009038393971887528
         ],
         "bca_also_excludes_0": false,
+        "bca_beats": false,
         "cluster_unit": "system",
         "percentile_95": [
           -0.24568987239116918,
           -0.011249209939739472
         ],
         "point": -0.06686613328403818,
+        "readings_disagree": false,
         "status": "computed",
         "without_beats_with_interval_excludes_0": false
       }
@@ -379,7 +406,7 @@
       }
     }
   },
-  "git_head": "257bc3a7a525605ce74e8e0bdfd40708fd877981",
+  "git_head": "593bc09bb52a3862895de79bc60bb5fd95f06353",
   "inputs": [],
   "ledger": {},
   "model_arms": [
@@ -388,10 +415,22 @@
   ],
   "outputs": [
     {
-      "bytes": 7689,
+      "bytes": 35717,
       "path": "generations/gen19_chem_transfer/decisions/D03_actinide_transfer.md",
-      "sha256": "6353c3ba4ebab3e11a17fe315413cc20865a4472842a62e22cdd0ed8ef8b9bf0",
-      "sha256_lf": "6353c3ba4ebab3e11a17fe315413cc20865a4472842a62e22cdd0ed8ef8b9bf0"
+      "sha256": "c77e3eee149ef6c202cdfe69a5150502011782f1c37d7efcda400be690999635",
+      "sha256_lf": "c77e3eee149ef6c202cdfe69a5150502011782f1c37d7efcda400be690999635"
+    },
+    {
+      "bytes": 18632,
+      "path": "generations/gen19_chem_transfer/evaluation/h3/decisions/deviations.json",
+      "sha256": "ae60f526b53bc9dbcbbc60a7261079b978a7d496bb2c6bae5943de3f7d901f43",
+      "sha256_lf": "ae60f526b53bc9dbcbbc60a7261079b978a7d496bb2c6bae5943de3f7d901f43"
+    },
+    {
+      "bytes": 381569,
+      "path": "generations/gen19_chem_transfer/evaluation/h3/decisions/h3_decisions.json",
+      "sha256": "3a986edff4ea76cdc1fc9de088e03cbe520aa108c98f912cf2bba59ff5be6d61",
+      "sha256_lf": "3a986edff4ea76cdc1fc9de088e03cbe520aa108c98f912cf2bba59ff5be6d61"
     },
     {
       "bytes": 10551,
@@ -400,127 +439,138 @@
       "sha256_lf": "d0da0d5738dda42dba06ca917a4149ce4871b8aff398f5958c8c06da18e7695d"
     },
     {
-      "bytes": 10989,
+      "bytes": 29466,
       "path": "generations/gen19_chem_transfer/evaluation/h3/h3_contrasts.csv",
-      "sha256": "a73206e1c1d08257928020b922ca3b82cd743208c08de131bda84e51008068a2",
-      "sha256_lf": "a73206e1c1d08257928020b922ca3b82cd743208c08de131bda84e51008068a2"
+      "sha256": "1eeb97f909aa70d0924d0a3fbf929f5c4e19f6277bf87db10876bc1cd8e4793a",
+      "sha256_lf": "1eeb97f909aa70d0924d0a3fbf929f5c4e19f6277bf87db10876bc1cd8e4793a"
     },
     {
-      "bytes": 7808,
+      "bytes": 23075,
       "path": "generations/gen19_chem_transfer/evaluation/h3/h3_deltas.csv",
-      "sha256": "633d2a0d8162fe83ca813434be86cdc2eb72406d2f80e8fbec5ead098a50510b",
-      "sha256_lf": "633d2a0d8162fe83ca813434be86cdc2eb72406d2f80e8fbec5ead098a50510b"
+      "sha256": "bc0367d4756cd810be3bd543b7d1d5384fef94cfee32e721a4626d02d84be13b",
+      "sha256_lf": "bc0367d4756cd810be3bd543b7d1d5384fef94cfee32e721a4626d02d84be13b"
     },
     {
-      "bytes": 1089,
+      "bytes": 2725,
       "path": "generations/gen19_chem_transfer/evaluation/h3/h3_f4.json",
-      "sha256": "0e81731471b0da7bc6d7f40af005fb3fc96e5a6b183db3a89042a7b183836b1f",
-      "sha256_lf": "0e81731471b0da7bc6d7f40af005fb3fc96e5a6b183db3a89042a7b183836b1f"
+      "sha256": "72e3e8544bff7c4224942fd880a1ee7c8a1f62fc43fe3741f98bd7c5604b07af",
+      "sha256_lf": "72e3e8544bff7c4224942fd880a1ee7c8a1f62fc43fe3741f98bd7c5604b07af"
     },
     {
-      "bytes": 28301,
+      "bytes": 58528,
       "path": "generations/gen19_chem_transfer/evaluation/h3/h3_per_unit_deltas.csv",
-      "sha256": "340c62b141f65ae39d8b2c66ba7bc5867be5b5b33eae35b8062f709c70a73f57",
-      "sha256_lf": "340c62b141f65ae39d8b2c66ba7bc5867be5b5b33eae35b8062f709c70a73f57"
+      "sha256": "22e0a07866e86b9406fc1a014c3e35a569e06e28a55809f3aa64b9bb7b1c4188",
+      "sha256_lf": "22e0a07866e86b9406fc1a014c3e35a569e06e28a55809f3aa64b9bb7b1c4188"
     },
     {
-      "bytes": 8027,
+      "bytes": 31509,
       "path": "generations/gen19_chem_transfer/evaluation/h3/h3_r19_items.csv",
-      "sha256": "39706f2d830b6776f4f6e3e5d7ecd581cc7150a0301734afcb648ece9d200e81",
-      "sha256_lf": "39706f2d830b6776f4f6e3e5d7ecd581cc7150a0301734afcb648ece9d200e81"
+      "sha256": "bef415c4422ca9674b47d4b25157d9427cac89077ad487cd225200f43737cbf8",
+      "sha256_lf": "bef415c4422ca9674b47d4b25157d9427cac89077ad487cd225200f43737cbf8"
     },
     {
       "bytes": 10943,
       "path": "generations/gen19_chem_transfer/evaluation/h3/h3_run_ledger.json",
-      "sha256": "9ec1dfa9aad8fefa1cdc0777f878096f8d87c7de66f7fd2cd8f3f1f189c3b815",
-      "sha256_lf": "9ec1dfa9aad8fefa1cdc0777f878096f8d87c7de66f7fd2cd8f3f1f189c3b815"
+      "sha256": "3e64f53e86deb0935f04835db002796cf690e3d7c78775cdbe10f52f38912817",
+      "sha256_lf": "3e64f53e86deb0935f04835db002796cf690e3d7c78775cdbe10f52f38912817"
     },
     {
-      "bytes": 37657,
+      "bytes": 442595,
       "path": "generations/gen19_chem_transfer/evaluation/h3/h3_summary.json",
-      "sha256": "465ecd65f4130b112cd2a24fb162d2c53cf2d3ec7583f41b2757208061eaf670",
-      "sha256_lf": "465ecd65f4130b112cd2a24fb162d2c53cf2d3ec7583f41b2757208061eaf670"
+      "sha256": "c3b5eeab6f2e6950b468d09d0c0d00cd0ed10d7846d5ebb2a7c4397b1b66b601",
+      "sha256_lf": "c3b5eeab6f2e6950b468d09d0c0d00cd0ed10d7846d5ebb2a7c4397b1b66b601"
     },
     {
-      "bytes": 3127,
+      "bytes": 21221,
       "path": "generations/gen19_chem_transfer/evaluation/h3/h3_verdicts.json",
-      "sha256": "671df30451ad05dc03f772b4ac93d9a90740ff16eb7cce8ba6de0948bc38bb53",
-      "sha256_lf": "671df30451ad05dc03f772b4ac93d9a90740ff16eb7cce8ba6de0948bc38bb53"
+      "sha256": "96b895e6aa627e3245db71393ad577d135da736226f4c01a5fa43ebd5939cdb6",
+      "sha256_lf": "96b895e6aa627e3245db71393ad577d135da736226f4c01a5fa43ebd5939cdb6"
     },
     {
-      "bytes": 18833,
+      "bytes": 22988,
       "path": "generations/gen19_chem_transfer/evaluation/h3/negative_transfer/cells.csv",
-      "sha256": "33efff6dc0ac367f7ef71740480ceb3f6f1002a86b9d5cf0d9ab379c247dbd3c",
-      "sha256_lf": "33efff6dc0ac367f7ef71740480ceb3f6f1002a86b9d5cf0d9ab379c247dbd3c"
+      "sha256": "b851df4a70ff517a349cff5a5bf6e25ef6fbf0df121963a56431452b7628e2f2",
+      "sha256_lf": "b851df4a70ff517a349cff5a5bf6e25ef6fbf0df121963a56431452b7628e2f2"
     },
     {
-      "bytes": 387,
+      "bytes": 2881,
+      "path": "generations/gen19_chem_transfer/evaluation/h3/negative_transfer/condition.json",
+      "sha256": "a9be3ac4926ca968588e4e911d0515e9af8bc0e514a98825116e72ea40b46ab4",
+      "sha256_lf": "a9be3ac4926ca968588e4e911d0515e9af8bc0e514a98825116e72ea40b46ab4"
+    },
+    {
+      "bytes": 538,
       "path": "generations/gen19_chem_transfer/evaluation/h3/negative_transfer/per_cell_covariates.csv",
-      "sha256": "dac3a71d4989086dcc9cd294a34b5eeca8add1ad1ae1864cb4bb03b831504a67",
-      "sha256_lf": "dac3a71d4989086dcc9cd294a34b5eeca8add1ad1ae1864cb4bb03b831504a67"
+      "sha256": "bd4d108513f7c0cd03a12a0cfbd84a7e944e00f86be05e3a464200fca259415e",
+      "sha256_lf": "bd4d108513f7c0cd03a12a0cfbd84a7e944e00f86be05e3a464200fca259415e"
     },
     {
-      "bytes": 444,
+      "bytes": 802,
       "path": "generations/gen19_chem_transfer/evaluation/h3/negative_transfer/per_family.csv",
-      "sha256": "9193ed65e2c5ab1a56f9b6775c5fb771d5372c7d39c2f482dec39b93606703c7",
-      "sha256_lf": "9193ed65e2c5ab1a56f9b6775c5fb771d5372c7d39c2f482dec39b93606703c7"
+      "sha256": "ac86e80ec628ac52c6ee3f81dd413b1337801bb7a1dd7749e487679c4f9cfa4f",
+      "sha256_lf": "ac86e80ec628ac52c6ee3f81dd413b1337801bb7a1dd7749e487679c4f9cfa4f"
     },
     {
-      "bytes": 296,
+      "bytes": 516,
       "path": "generations/gen19_chem_transfer/evaluation/h3/negative_transfer/per_mechanism.csv",
-      "sha256": "b1812fef5a965f4414d67fce75396161b57cc536ae57793e978b55f483759783",
-      "sha256_lf": "b1812fef5a965f4414d67fce75396161b57cc536ae57793e978b55f483759783"
+      "sha256": "eb1188e61966edf5be3dd9cac0ba1b46e6569e2137f1d46cde925193b4351f1b",
+      "sha256_lf": "eb1188e61966edf5be3dd9cac0ba1b46e6569e2137f1d46cde925193b4351f1b"
     },
     {
-      "bytes": 676,
+      "bytes": 1103,
       "path": "generations/gen19_chem_transfer/evaluation/h3/negative_transfer/strata.csv",
-      "sha256": "5266a208055050a39fadb1dcea919292cc5aa72c4b172e38551a3320a46707f0",
-      "sha256_lf": "5266a208055050a39fadb1dcea919292cc5aa72c4b172e38551a3320a46707f0"
+      "sha256": "dd90315b2647039ac45f3821e4bacf8d6c047de771a150b2f99168d6f1db197d",
+      "sha256_lf": "dd90315b2647039ac45f3821e4bacf8d6c047de771a150b2f99168d6f1db197d"
     },
     {
-      "bytes": 2822,
+      "bytes": 2840,
       "path": "generations/gen19_chem_transfer/evaluation/h3/shared_only/shared_only.json",
-      "sha256": "04f968e66c093eab236dea5e0b9126ec6e0c9f3c51a9e9975919b847de1cda83",
-      "sha256_lf": "04f968e66c093eab236dea5e0b9126ec6e0c9f3c51a9e9975919b847de1cda83"
+      "sha256": "8863cbfb82c11a4436c5ed07d1ab67cd5d0ecbd0e4fb46adc11f7be03a20d012",
+      "sha256_lf": "8863cbfb82c11a4436c5ed07d1ab67cd5d0ecbd0e4fb46adc11f7be03a20d012"
     },
     {
-      "bytes": 10989,
+      "bytes": 29466,
       "path": "generations/gen19_chem_transfer/tables/h3_contrasts.csv",
-      "sha256": "a73206e1c1d08257928020b922ca3b82cd743208c08de131bda84e51008068a2",
-      "sha256_lf": "a73206e1c1d08257928020b922ca3b82cd743208c08de131bda84e51008068a2"
+      "sha256": "1eeb97f909aa70d0924d0a3fbf929f5c4e19f6277bf87db10876bc1cd8e4793a",
+      "sha256_lf": "1eeb97f909aa70d0924d0a3fbf929f5c4e19f6277bf87db10876bc1cd8e4793a"
     },
     {
-      "bytes": 28301,
+      "bytes": 58528,
       "path": "generations/gen19_chem_transfer/tables/h3_per_unit_deltas.csv",
-      "sha256": "340c62b141f65ae39d8b2c66ba7bc5867be5b5b33eae35b8062f709c70a73f57",
-      "sha256_lf": "340c62b141f65ae39d8b2c66ba7bc5867be5b5b33eae35b8062f709c70a73f57"
+      "sha256": "22e0a07866e86b9406fc1a014c3e35a569e06e28a55809f3aa64b9bb7b1c4188",
+      "sha256_lf": "22e0a07866e86b9406fc1a014c3e35a569e06e28a55809f3aa64b9bb7b1c4188"
     }
   ],
   "prereg_gate": {
-    "addenda_sha256": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
-    "addenda_sha256_registered": "646201ec3c0b2b0bc2c3e22051832b716c9a6c558d118e36ce49974f6f2e425a",
-    "addendum_implemented": 3,
+    "addenda_sha256": "22c61a442912f441a7640fad91d6455d85544e3eadec14622d2a0b64c88579d7",
+    "addenda_sha256_registered": "22c61a442912f441a7640fad91d6455d85544e3eadec14622d2a0b64c88579d7",
+    "addendum_implemented": 4,
     "gate_source": "registry",
-    "n_addenda": 3,
-    "n_addenda_expected": 3,
+    "n_addenda": 4,
+    "n_addenda_expected": 4,
     "prereg_sha256": "135842499a86eb3d478ece01a45718ac5b9673a4134bb4acda550f975bb45641",
     "registry_path": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer\\manifests\\digest_registry.json",
     "seal_check_exit": 0,
     "stage": "h3"
   },
   "readings": {
+    "act_metal_shuffled": "POST-HOC addendum 4 item 1 (compute-driven): section 11 lists two controls but registers deltas only for WITH - WITHOUT and WITH - PERMUTED, and no registered delta, verdict or failure condition uses ACT_METAL_SHUFFLED; completing it would cost about a third of the H3 budget (the ablation refits the deployed CatBoost and its conformal calibration per fold, measured at about 620 s per fold) for a quantity nothing reads. ACT_METAL_SHUFFLED is NOT run; the single fold already fitted is labelled exploratory and is not scored. WITH - PERMUTED, which section 11 uses to separate actinide chemistry from row count, is unchanged and runs on every design",
     "actinide_dependent": "a cell's eligibility 'depends on actinide partners' when the eligible_cells rule of the fold builder (folds.cell_holdout.EligibilitySpace.check) passes on all rows and fails once every actinide row is removed",
     "calibration_guard": "a refit whose fold has different inner folds from the WITH record's inner_folds_used is recorded with intervals_status not_calibrated_inner_folds_differ_from_the_with_record instead of a calibration at foreign selections (as FrozenB6 already did; task X finding VL2-05)",
     "comparator_folds": "a closed-form arm (B0-B4 variants, B7) in an H3 or injected re-run is fitted on the exact leave-one-cell-out folds of section 3.1 (V5__primary_exact, V1__copy_exact, V2__element_exact) as the discovery comparator is, not on the heavy arm's batched folds, and is paired with the heavy arm on the scored rows / units; on V5-PAIR every arm uses the seed-104729 batched folds (addendum 1 item 5) (task X finding V-03)",
     "crps": "CRPS is NOT_RUN: no arm has a predictive SD (discovery.UNCERTAINTY_NOT_RUN)",
     "deployed_rule": "POST-HOC addendum 3 item 2: the configuration deployed for lanthanide prediction ('the retained ladder configuration', section 11) is the ladder's RETAINED configuration -- the highest kept ladder step: evaluation/ladder/decisions/ladder.json -> steps.<step>.kept == true for M7 > M6 > M5 > M4 > M3 (only from a registered ladder run, i.e. ladder.json -> stop_rule == false: under the stop rule M3-M6 are exploratory_not_run and M7 runs for H6 only, so no ladder step deploys), then the scorer's decisions.json -> ladder.<step>.kept == true (M2 before M1), then the ladder's BASE step M0 (= B5, the registered descriptor arm of section 5 and the M0 row of the section 6 ladder) when decisions.json -> ladder.M0.kept == true and neither M1 nor M2 is kept. Addendum 2's remaining order applies ONLY when the ladder has no retained step at all (no ladder block / M0 not kept): M2 when stop_rule.M2_vs_B3i.verdict == PASS; else B6 when stop_rule.B6_vs_B3i.verdict == PASS; else the registered V5 lookup comparator B3i (section 10 F6: the best-passing baseline; the process chain's D source stays gen18 B1). The rule is undecidable (the runners refuse) while ladder.json is absent or any step M3-M7 is not in a done / skipped status, or while a discovery ladder decision is pending (kept == null) (task X finding V-01)",
+    "design_priority": "POST-HOC addendum 4 item 2: the H3 job plan is ordered V5 -> V2 -> V1 (DESIGN_PRIORITY) and the cap is checked before each fold; a design the cap does not reach is written NOT_RUN with its reason. The UNIT of NOT_RUN is the DESIGN, not one record set: a design is NOT_RUN as soon as ANY arm x transform record set it needs is missing or incomplete, EVEN IF another leg of the same design is complete, because 'no verdict is taken from a partial design'. A NOT_RUN design contributes no contrast, no R19 item row, no delta, no per-unit row, no F4 entry (NOT_COMPUTED) and no non-inferiority input (None): drop_not_run_designs removes every row of it before any output is written, designs_scored and designs_not_run are asserted DISJOINT, assert_no_partial_design raises if an incomplete record set ever reaches a contrast, and h3_verdict reports designs_not_run in inputs_missing so a helps verdict cannot be read off V5 alone. The complete legs of a NOT_RUN design are named in the entry (complete_legs): they exist on disk and are scored as soon as the design completes, but nothing is read from them while the design is NOT_RUN (task X finding protocol VH-01 / numbers VH-02)",
     "equivalent": "TOST (90 % interval, epsilon 0.05, primary cluster) of WITH - WITHOUT on the V5 Ln cells",
     "f4_designs": "F4 'the WITHOUT arm beats it on the Ln test set (95 % interval excluding 0)' is evaluated per design (V5 Ln cells, V1 Ln rows, V2 Ln states) with the primary-cluster percentile interval of the reversed contrast (WITHOUT candidate), and F4 holds when ANY design shows it (the conservative reading)",
+    "h3_budget": "POST-HOC addendum 4 item 2: section 11 registers no compute budget, so H3 gets a cap of 20 h of wall clock on 2 workers, recorded in evaluation/h3/decisions/wall_clock.json and CHECKED BEFORE EACH FOLD. The budget number is WALL CLOCK, not worker-seconds: the ledger records every invocation's [started_utc, ended_utc] interval and h3_wall_clock_total sums the UNION of those intervals, so two workers running the same hour consume one hour of the cap; the sum over workers is recorded beside it as worker_seconds and is never the number compared with the cap. More than 2 concurrent workers is refused (H3_WORKERS). --max-hours stays an operator pause, never a NOT_RUN reason",
     "helps_non_inferior": "non-inferiority on V1 / V2 is the TOST 'non_inferior' flag of WITH - WITHOUT and WITH - ACT_PERMUTED on the V1 and V2 Ln sets",
     "ladder_arm_refit": "when the deployed configuration is a ladder step M3-M7, WITH is its evaluation/ladder record of the same design, seed and fold (verified against the digests the current code and ladder decisions produce) and WITHOUT / ACT_PERMUTED / ACT_METAL_SHUFFLED are refitted at that record's selected LadderConfig, epoch count and model seed (M7: the 5 member seeds and the publication-group bootstrap of the transformed training rows), with the ladder's cross-fitted calibration at the WITH record's cross-fit selections (M7: normalised split conformal); the H3 record digest carries the WITH record's digest, which carries the ladder code digest, so a ladder code or decision change stales the H3 record transitively (INFERRED; needs a POST-HOC addendum)",
     "ln_test_set": "Ln(III) = a known metal state whose element is La-Lu and whose oxidation state is III; the Ln test set of a design is the Ln(III) scored rows of its selection-half folds (V5: Ln(III) cells; V2: every Ln(III) state in the selection half, the focus-7 subset printed beside; V1: Ln(III) rows of the selection folds); V6_TARGET_ROWS and the acidic co-extractant rows are excluded by the discovery scoring guards",
-    "margins": "R19 item 1 margin of an H3 contrast: delta5 on the V5 Ln cells, 0.05 on V1 / V2 (the scorer's reading of section 9 for the designs it names no margin for)",
+    "logsf_delta": "section 11 scopes Delta logSF MAE to 'V5-PAIR Ln pairs; V6 at confirmation'. It is NOT_DEFINED for either H3 arm in discovery: POST-HOC addendum 1 item 5 runs the seed-104729 batched V5-PAIR folds for M2 and for the B3x / B3i counterweight only, plus any freezing candidate WITH a pair endpoint, and neither H3 arm is one of those -- B5 (= M0, the deployed arm) and B6 have no V5-PAIR record, so there is no Ln-Ln pair prediction of either arm to difference, under any transform. logsf_delta is therefore never reached: plan_jobs plans the pair design only under --with-pairs, and with it the pair jobs would find no WITH record and be reported NOT_RUN rather than fitted. Producing the quantity would mean fitting V5-PAIR for B5 and B6, which addendum 1 item 5 does not run; it is reported NOT_DEFINED here and is a registered V6 quantity at confirmation",
+    "margins": "R19 item 1 margin of an H3 contrast: delta5 on the V5 Ln cells, 0.05 on V1 / V2. This is REGISTERED, not a scorer reading: POST-HOC addendum 2, '3. H3' > 'margins' reads 'delta5 on V5 Ln cells, 0.05 on V1 / V2', and the same addendum's discovery reading says '`margins`: delta5 on V5; 0.05 for S1(b) and for V1 / V2 (section 9 names none; the floor of the delta5 formula)'. R19 item 1 compares the POINT estimate with that margin ('the point estimate Delta >= the design's margin delta'), not an interval bound, so a V1 / V2 contrast needs no further addendum to be read against 0.05 (task X finding numbers VH-01)",
     "r19_scope": "a discovery-stage H3 contrast 'passes R19' on the freezing-screen scope (items 1-3, 5 and the scoring-filter sensitivities on seed 104729): R19 item 4 is NOT_EVALUATED in discovery (addendum 1 item 3) and section 11 names no refit sensitivity, so the full verdict is at best UNDECIDED; the full verdict is printed beside and confirmation decides item 4",
+    "record_digest_basis": "addendum 2 item 5 and POST-HOC addendum 4 item 3: an EXISTING H3 fold record is verified with the code digest AND the below-footer digest it was WRITTEN under -- its own fields, accepted only when registry.verify_record matches them to an entry of stage 'h3' (current or superseded, ordered by the record's own timestamp). A record written before a supersession therefore keeps its entry and verifies as registered, while a record a runner holding stale code wrote AFTER the supersession does not verify (stale_after_supersession) and is refitted under the current registered digest. New records are always written under the LIVE code and the currently registered below-footer digest",
     "shared_only_embedding": "POST-HOC addendum 2 item 4 ('it is implemented in a NEW module (an H3-side subclass of neural.FactorisedNet with the e_series and e_ox offsets held at zero; no existing file edited) before scripts/g19_run_h3.py runs, and executes only under section 11's condition that WITHOUT beats WITH; otherwise D03 reports it as not run'): the WITH arm re-run with a shared-only metal embedding (no e_series, e_ox) is models.shared_only (FrozenSharedOnly), refitted at the WITH record's SELECTED hyperparameters, stopping count and model seed with the cross-fitted calibration at the WITH record's selections, scored against the full section 15 embedding (WITH) on the V5 Ln cells and the V1 / V2 Ln sets as an exploratory negative-transfer contrast; it runs only when section 11, negative-transfer investigation: 'run if WITHOUT is better, point estimate or passed' -- read on the deployed arm's V5 Ln-cell contrast WITHOUT vs WITH (h3_verdicts.json): hurts == true (WITHOUT passes R19 on the freezing_screen scope against WITH; the 'passed' half) OR v5_without_vs_with_point > 0 (the reversed contrast's Delta macro MAE = MAE(WITH) - MAE(WITHOUT) under the primary cluster unit; the 'point estimate' half); otherwise D03 says 'not run (condition not met)'; a deployed arm without a metal embedding (B6, B5, a closed-form comparator) makes it not applicable. Reading of the item's 'no existing file edited': no file of the DISCOVERY import closure was edited (neural.FactorisedNet has no switch; the zeroed offsets live in the new models/shared_only.py); the H3-side files evaluation/h3.py and scripts/g19_run_h3.py, outside that closure and part of no discovery record's digest, were extended to plan, fit, score and report the re-run",
     "tuning": "the WITHOUT / ACT_PERMUTED / ACT_METAL_SHUFFLED arms are refitted at the hyperparameters the WITH run SELECTED on the same fold (its record's selected configuration, iteration / epoch count and model seed), not re-tuned; their cross-fitted conformal calibration uses the WITH record's cross-fit selections. Section 11 says 'same architecture, same folds, same seeds' and is silent on re-tuning; re-tuning would multiply the cost by the inner grid (INFERRED; needs a POST-HOC addendum)"
   },
@@ -533,12 +583,12 @@
       "condition": "section 11, negative-transfer investigation: 'run if WITHOUT is better, point estimate or passed' -- read on the deployed arm's V5 Ln-cell contrast WITHOUT vs WITH (h3_verdicts.json): hurts == true (WITHOUT passes R19 on the freezing_screen scope against WITH; the 'passed' half) OR v5_without_vs_with_point > 0 (the reversed contrast's Delta macro MAE = MAE(WITH) - MAE(WITHOUT) under the primary cluster unit; the 'point estimate' half)",
       "deployed_arm": "B5",
       "met": false,
-      "point_estimate_favours_without": null,
+      "point_estimate_favours_without": false,
       "reading": "POST-HOC addendum 2 item 4 ('it is implemented in a NEW module (an H3-side subclass of neural.FactorisedNet with the e_series and e_ox offsets held at zero; no existing file edited) before scripts/g19_run_h3.py runs, and executes only under section 11's condition that WITHOUT beats WITH; otherwise D03 reports it as not run'): the WITH arm re-run with a shared-only metal embedding (no e_series, e_ox) is models.shared_only (FrozenSharedOnly), refitted at the WITH record's SELECTED hyperparameters, stopping count and model seed with the cross-fitted calibration at the WITH record's selections, scored against the full section 15 embedding (WITH) on the V5 Ln cells and the V1 / V2 Ln sets as an exploratory negative-transfer contrast; it runs only when section 11, negative-transfer investigation: 'run if WITHOUT is better, point estimate or passed' -- read on the deployed arm's V5 Ln-cell contrast WITHOUT vs WITH (h3_verdicts.json): hurts == true (WITHOUT passes R19 on the freezing_screen scope against WITH; the 'passed' half) OR v5_without_vs_with_point > 0 (the reversed contrast's Delta macro MAE = MAE(WITH) - MAE(WITHOUT) under the primary cluster unit; the 'point estimate' half); otherwise D03 says 'not run (condition not met)'; a deployed arm without a metal embedding (B6, B5, a closed-form comparator) makes it not applicable. Reading of the item's 'no existing file edited': no file of the DISCOVERY import closure was edited (neural.FactorisedNet has no switch; the zeroed offsets live in the new models/shared_only.py); the H3-side files evaluation/h3.py and scripts/g19_run_h3.py, outside that closure and part of no discovery record's digest, were extended to plan, fit, score and report the re-run",
       "reason": "B5 has no e_series / e_ox offsets to remove",
       "status": "not run (not applicable: B5 has no section 15 metal embedding)",
-      "v5_without_vs_with_point": null,
-      "without_passed_r19_v5": null
+      "v5_without_vs_with_point": -0.06686613328403818,
+      "without_passed_r19_v5": false
     },
     "contrasts": [],
     "designs": {},
@@ -550,14 +600,60 @@
   "verdicts": {
     "B5": {
       "actinide_rows_enter_deployed_configuration": false,
+      "designs_not_run": {
+        "V1": {
+          "also": [
+            "B6:ACT_PERMUTED@V1 record set is incomplete (25 of 39 folds; missing ['REMAINDER', 'pub_97510df3a0', 'pub_a470dfb784', 'pub_a9266a9412', 'pub_ad5a7268e5'])"
+          ],
+          "blocking_errors": [
+            {
+              "ended_utc": "2026-09-22T23:33:17+00:00",
+              "note": "error in B5:ACT_PERMUTED@V1: AssertionError: inner split inner_s104729_f1 failed the isolation check",
+              "started_utc": "2026-09-22T17:48:28+00:00",
+              "what": "B5:ACT_PERMUTED@V1"
+            },
+            {
+              "ended_utc": "2026-09-22T23:42:22+00:00",
+              "note": "error in B6:ACT_PERMUTED@V1: AssertionError: inner split ('pub_007f4c9de0', 'pub_07cea54708', 'pub_0af6736cb1', 'pub_0f30549d71', 'pub_10aec04d23', 'pub_13adc25944', 'pub_1739bfaf95', 'pub_1845fd6492', 'pub_1927dff570', 'pub_19783c039b', 'pub_1b7737c507', 'pub_1d18e32c4e', 'pub_23f10a0918', 'pub_2c76a46f18', 'pub_2e9f2dbea9', 'pub_328cdbeabc', 'pub_392f966ef2', 'pub_3f3b6220e0', 'pub_40c355ae86', 'pub_44555064e1', 'pub_4a1871d85d', 'pub_51c0693f9c', 'pub_58e30f4932', 'pub_5df1eef2f5', 'pub_6f71d61137', 'pub_7730cdd232', 'pub_792969545c', 'pub_886ede1e0e', 'pub_890299c726', 'pub_8a081dc888', 'pub_8dafaf94bc', 'pub_9428119866', 'pub_989b35f30b', 'pub_9a3afbee00', 'pub_a470dfb784', 'pub_a49146c8fd', 'pub_a6126dc686', 'pub_a671b3a07d', 'pub_ab5ae597b9', 'pub_ad5a7268e5', 'pub_aed382b25f', 'pub_b048b54fa9', 'pub_b0b3296ec5', 'pub_bef16e560c', 'pub_c07b8473b8', 'pub_c75976ca9f', 'pub_c8195b4ca7', 'pub_cd72e4a7bb', 'pub_cdc2243314', 'pub_d0909358c9', 'pub_dc1c90a4de', 'pub_dfa96a5118', 'pub_e4bbba9576', 'pub_e4dd361427', 'pub_f5d1922154', 'pub_fdc02269b7') failed the isolation check",
+              "started_utc": "2026-09-22T23:40:21+00:00",
+              "what": "B6:ACT_PERMUTED@V1"
+            }
+          ],
+          "budget": null,
+          "complete_legs": [
+            "B5:WITHOUT@V1",
+            "B6:WITHOUT@V1"
+          ],
+          "complete_legs_reading": "these record sets are COMPLETE and stay on disk; while the design is NOT_RUN nothing is read from them -- no contrast, delta, per-unit row, F4 entry or non-inferiority input (POST-HOC addendum 4 item 2)",
+          "contributes": "no contrast row, no R19 item row, no delta, no per-unit row, no F4 entry (NOT_COMPUTED) and no V1 / V2 non-inferiority input (None)",
+          "design": "V1",
+          "deviation": "POST-HOC addendum 4 item 2 registers the H3 design scope (V5 Ln cells, V2 Ln folds, V1 Ln rows; arms B5 and B6) and says 'That is registered and is run in full'. The 20 h cap is the only registered reason a design may stay incomplete, and it was NOT reached, so V1 being incomplete is a DEVIATION from the addendum, not an application of the cap -- cause: error in B5:ACT_PERMUTED@V1: AssertionError: inner split inner_s104729_f1 failed the isolation check; error in B6:ACT_PERMUTED@V1: AssertionError: inner split ('pub_007f4c9de0', 'pub_07cea54708', 'pub_0af6736cb1', 'pub_0f30549d71', 'pub_10aec04d23', 'pub_13adc25944', 'pub_1739bfaf95', 'pub_1845fd6492', 'pub_1927dff570', 'pub_19783c039b', 'pub_1b7737c507', 'pub_1d18e32c4e', 'pub_23f10a0918', 'pub_2c76a46f18', 'pub_2e9f2dbea9', 'pub_328cdbeabc', 'pub_392f966ef2', 'pub_3f3b6220e0', 'pub_40c355ae86', 'pub_44555064e1', 'pub_4a1871d85d', 'pub_51c0693f9c', 'pub_58e30f4932', 'pub_5df1eef2f5', 'pub_6f71d61137', 'pub_7730cdd232', 'pub_792969545c', 'pub_886ede1e0e', 'pub_890299c726', 'pub_8a081dc888', 'pub_8dafaf94bc', 'pub_9428119866', 'pub_989b35f30b', 'pub_9a3afbee00', 'pub_a470dfb784', 'pub_a49146c8fd', 'pub_a6126dc686', 'pub_a671b3a07d', 'pub_ab5ae597b9', 'pub_ad5a7268e5', 'pub_aed382b25f', 'pub_b048b54fa9', 'pub_b0b3296ec5', 'pub_bef16e560c', 'pub_c07b8473b8', 'pub_c75976ca9f', 'pub_c8195b4ca7', 'pub_cd72e4a7bb', 'pub_cdc2243314', 'pub_d0909358c9', 'pub_dc1c90a4de', 'pub_dfa96a5118', 'pub_e4bbba9576', 'pub_e4dd361427', 'pub_f5d1922154', 'pub_fdc02269b7') failed the isolation check",
+          "n_folds_done": 25,
+          "n_folds_expected": 39,
+          "reading": "POST-HOC addendum 4 item 2: the H3 job plan is ordered V5 -> V2 -> V1 (DESIGN_PRIORITY) and the cap is checked before each fold; a design the cap does not reach is written NOT_RUN with its reason. The UNIT of NOT_RUN is the DESIGN, not one record set: a design is NOT_RUN as soon as ANY arm x transform record set it needs is missing or incomplete, EVEN IF another leg of the same design is complete, because 'no verdict is taken from a partial design'. A NOT_RUN design contributes no contrast, no R19 item row, no delta, no per-unit row, no F4 entry (NOT_COMPUTED) and no non-inferiority input (None): drop_not_run_designs removes every row of it before any output is written, designs_scored and designs_not_run are asserted DISJOINT, assert_no_partial_design raises if an incomplete record set ever reaches a contrast, and h3_verdict reports designs_not_run in inputs_missing so a helps verdict cannot be read off V5 alone. The complete legs of a NOT_RUN design are named in the entry (complete_legs): they exist on disk and are scored as soon as the design completes, but nothing is read from them while the design is NOT_RUN (task X finding protocol VH-01 / numbers VH-02)",
+          "reason": "B5:ACT_PERMUTED@V1 record set is incomplete (25 of 39 folds; missing ['REMAINDER', 'pub_97510df3a0', 'pub_a470dfb784', 'pub_a9266a9412', 'pub_ad5a7268e5'])",
+          "rule": "POST-HOC addendum 4 item 2: any design not reached is reported NOT_RUN with its reason -- no verdict is taken from a partial design",
+          "status": "NOT_RUN",
+          "stopped_by": "error in B5:ACT_PERMUTED@V1: AssertionError: inner split inner_s104729_f1 failed the isolation check; error in B6:ACT_PERMUTED@V1: AssertionError: inner split ('pub_007f4c9de0', 'pub_07cea54708', 'pub_0af6736cb1', 'pub_0f30549d71', 'pub_10aec04d23', 'pub_13adc25944', 'pub_1739bfaf95', 'pub_1845fd6492', 'pub_1927dff570', 'pub_19783c039b', 'pub_1b7737c507', 'pub_1d18e32c4e', 'pub_23f10a0918', 'pub_2c76a46f18', 'pub_2e9f2dbea9', 'pub_328cdbeabc', 'pub_392f966ef2', 'pub_3f3b6220e0', 'pub_40c355ae86', 'pub_44555064e1', 'pub_4a1871d85d', 'pub_51c0693f9c', 'pub_58e30f4932', 'pub_5df1eef2f5', 'pub_6f71d61137', 'pub_7730cdd232', 'pub_792969545c', 'pub_886ede1e0e', 'pub_890299c726', 'pub_8a081dc888', 'pub_8dafaf94bc', 'pub_9428119866', 'pub_989b35f30b', 'pub_9a3afbee00', 'pub_a470dfb784', 'pub_a49146c8fd', 'pub_a6126dc686', 'pub_a671b3a07d', 'pub_ab5ae597b9', 'pub_ad5a7268e5', 'pub_aed382b25f', 'pub_b048b54fa9', 'pub_b0b3296ec5', 'pub_bef16e560c', 'pub_c07b8473b8', 'pub_c75976ca9f', 'pub_c8195b4ca7', 'pub_cd72e4a7bb', 'pub_cdc2243314', 'pub_d0909358c9', 'pub_dc1c90a4de', 'pub_dfa96a5118', 'pub_e4bbba9576', 'pub_e4dd361427', 'pub_f5d1922154', 'pub_fdc02269b7') failed the isolation check",
+          "verdict_taken": false
+        }
+      },
+      "designs_scored": [
+        "V2",
+        "V5"
+      ],
       "equivalent": false,
       "helps": false,
       "hurts": false,
-      "inputs_missing": [],
+      "inputs_missing": [
+        "V1: NOT_RUN"
+      ],
       "kappa_min": null,
       "kappa_status": "not computed",
       "label": "discovery, optimistically biased (selection half; seed 104729); R19 item 4 decided at confirmation",
       "readings": {
+        "act_metal_shuffled": "POST-HOC addendum 4 item 1 (compute-driven): section 11 lists two controls but registers deltas only for WITH - WITHOUT and WITH - PERMUTED, and no registered delta, verdict or failure condition uses ACT_METAL_SHUFFLED; completing it would cost about a third of the H3 budget (the ablation refits the deployed CatBoost and its conformal calibration per fold, measured at about 620 s per fold) for a quantity nothing reads. ACT_METAL_SHUFFLED is NOT run; the single fold already fitted is labelled exploratory and is not scored. WITH - PERMUTED, which section 11 uses to separate actinide chemistry from row count, is unchanged and runs on every design",
+        "design_priority": "POST-HOC addendum 4 item 2: the H3 job plan is ordered V5 -> V2 -> V1 (DESIGN_PRIORITY) and the cap is checked before each fold; a design the cap does not reach is written NOT_RUN with its reason. The UNIT of NOT_RUN is the DESIGN, not one record set: a design is NOT_RUN as soon as ANY arm x transform record set it needs is missing or incomplete, EVEN IF another leg of the same design is complete, because 'no verdict is taken from a partial design'. A NOT_RUN design contributes no contrast, no R19 item row, no delta, no per-unit row, no F4 entry (NOT_COMPUTED) and no non-inferiority input (None): drop_not_run_designs removes every row of it before any output is written, designs_scored and designs_not_run are asserted DISJOINT, assert_no_partial_design raises if an incomplete record set ever reaches a contrast, and h3_verdict reports designs_not_run in inputs_missing so a helps verdict cannot be read off V5 alone. The complete legs of a NOT_RUN design are named in the entry (complete_legs): they exist on disk and are scored as soon as the design completes, but nothing is read from them while the design is NOT_RUN (task X finding protocol VH-01 / numbers VH-02)",
         "equivalent": "TOST (90 % interval, epsilon 0.05, primary cluster) of WITH - WITHOUT on the V5 Ln cells",
         "helps_non_inferior": "non-inferiority on V1 / V2 is the TOST 'non_inferior' flag of WITH - WITHOUT and WITH - ACT_PERMUTED on the V1 and V2 Ln sets",
         "r19_scope": "a discovery-stage H3 contrast 'passes R19' on the freezing-screen scope (items 1-3, 5 and the scoring-filter sensitivities on seed 104729): R19 item 4 is NOT_EVALUATED in discovery (addendum 1 item 3) and section 11 names no refit sensitivity, so the full verdict is at best UNDECIDED; the full verdict is printed beside and confirmation decides item 4"
@@ -570,6 +666,13 @@
         "non_inferior": true,
         "verdict": "PASS"
       },
+      "transforms_exploratory_not_scored": {
+        "ACT_METAL_SHUFFLED": "exploratory_not_scored"
+      },
+      "transforms_scored": [
+        "WITHOUT",
+        "ACT_PERMUTED"
+      ],
       "underpowered": false,
       "v1_v2_non_inferior": {
         "V1": {
@@ -577,8 +680,8 @@
           "WITHOUT": null
         },
         "V2": {
-          "ACT_PERMUTED": null,
-          "WITHOUT": null
+          "ACT_PERMUTED": true,
+          "WITHOUT": false
         }
       },
       "v5_with_beats_permuted": false,
@@ -588,24 +691,79 @@
     },
     "B6": {
       "actinide_rows_enter_deployed_configuration": false,
+      "designs_not_run": {
+        "V1": {
+          "also": [
+            "B6:ACT_PERMUTED@V1 record set is incomplete (25 of 39 folds; missing ['REMAINDER', 'pub_97510df3a0', 'pub_a470dfb784', 'pub_a9266a9412', 'pub_ad5a7268e5'])"
+          ],
+          "blocking_errors": [
+            {
+              "ended_utc": "2026-09-22T23:33:17+00:00",
+              "note": "error in B5:ACT_PERMUTED@V1: AssertionError: inner split inner_s104729_f1 failed the isolation check",
+              "started_utc": "2026-09-22T17:48:28+00:00",
+              "what": "B5:ACT_PERMUTED@V1"
+            },
+            {
+              "ended_utc": "2026-09-22T23:42:22+00:00",
+              "note": "error in B6:ACT_PERMUTED@V1: AssertionError: inner split ('pub_007f4c9de0', 'pub_07cea54708', 'pub_0af6736cb1', 'pub_0f30549d71', 'pub_10aec04d23', 'pub_13adc25944', 'pub_1739bfaf95', 'pub_1845fd6492', 'pub_1927dff570', 'pub_19783c039b', 'pub_1b7737c507', 'pub_1d18e32c4e', 'pub_23f10a0918', 'pub_2c76a46f18', 'pub_2e9f2dbea9', 'pub_328cdbeabc', 'pub_392f966ef2', 'pub_3f3b6220e0', 'pub_40c355ae86', 'pub_44555064e1', 'pub_4a1871d85d', 'pub_51c0693f9c', 'pub_58e30f4932', 'pub_5df1eef2f5', 'pub_6f71d61137', 'pub_7730cdd232', 'pub_792969545c', 'pub_886ede1e0e', 'pub_890299c726', 'pub_8a081dc888', 'pub_8dafaf94bc', 'pub_9428119866', 'pub_989b35f30b', 'pub_9a3afbee00', 'pub_a470dfb784', 'pub_a49146c8fd', 'pub_a6126dc686', 'pub_a671b3a07d', 'pub_ab5ae597b9', 'pub_ad5a7268e5', 'pub_aed382b25f', 'pub_b048b54fa9', 'pub_b0b3296ec5', 'pub_bef16e560c', 'pub_c07b8473b8', 'pub_c75976ca9f', 'pub_c8195b4ca7', 'pub_cd72e4a7bb', 'pub_cdc2243314', 'pub_d0909358c9', 'pub_dc1c90a4de', 'pub_dfa96a5118', 'pub_e4bbba9576', 'pub_e4dd361427', 'pub_f5d1922154', 'pub_fdc02269b7') failed the isolation check",
+              "started_utc": "2026-09-22T23:40:21+00:00",
+              "what": "B6:ACT_PERMUTED@V1"
+            }
+          ],
+          "budget": null,
+          "complete_legs": [
+            "B5:WITHOUT@V1",
+            "B6:WITHOUT@V1"
+          ],
+          "complete_legs_reading": "these record sets are COMPLETE and stay on disk; while the design is NOT_RUN nothing is read from them -- no contrast, delta, per-unit row, F4 entry or non-inferiority input (POST-HOC addendum 4 item 2)",
+          "contributes": "no contrast row, no R19 item row, no delta, no per-unit row, no F4 entry (NOT_COMPUTED) and no V1 / V2 non-inferiority input (None)",
+          "design": "V1",
+          "deviation": "POST-HOC addendum 4 item 2 registers the H3 design scope (V5 Ln cells, V2 Ln folds, V1 Ln rows; arms B5 and B6) and says 'That is registered and is run in full'. The 20 h cap is the only registered reason a design may stay incomplete, and it was NOT reached, so V1 being incomplete is a DEVIATION from the addendum, not an application of the cap -- cause: error in B5:ACT_PERMUTED@V1: AssertionError: inner split inner_s104729_f1 failed the isolation check; error in B6:ACT_PERMUTED@V1: AssertionError: inner split ('pub_007f4c9de0', 'pub_07cea54708', 'pub_0af6736cb1', 'pub_0f30549d71', 'pub_10aec04d23', 'pub_13adc25944', 'pub_1739bfaf95', 'pub_1845fd6492', 'pub_1927dff570', 'pub_19783c039b', 'pub_1b7737c507', 'pub_1d18e32c4e', 'pub_23f10a0918', 'pub_2c76a46f18', 'pub_2e9f2dbea9', 'pub_328cdbeabc', 'pub_392f966ef2', 'pub_3f3b6220e0', 'pub_40c355ae86', 'pub_44555064e1', 'pub_4a1871d85d', 'pub_51c0693f9c', 'pub_58e30f4932', 'pub_5df1eef2f5', 'pub_6f71d61137', 'pub_7730cdd232', 'pub_792969545c', 'pub_886ede1e0e', 'pub_890299c726', 'pub_8a081dc888', 'pub_8dafaf94bc', 'pub_9428119866', 'pub_989b35f30b', 'pub_9a3afbee00', 'pub_a470dfb784', 'pub_a49146c8fd', 'pub_a6126dc686', 'pub_a671b3a07d', 'pub_ab5ae597b9', 'pub_ad5a7268e5', 'pub_aed382b25f', 'pub_b048b54fa9', 'pub_b0b3296ec5', 'pub_bef16e560c', 'pub_c07b8473b8', 'pub_c75976ca9f', 'pub_c8195b4ca7', 'pub_cd72e4a7bb', 'pub_cdc2243314', 'pub_d0909358c9', 'pub_dc1c90a4de', 'pub_dfa96a5118', 'pub_e4bbba9576', 'pub_e4dd361427', 'pub_f5d1922154', 'pub_fdc02269b7') failed the isolation check",
+          "n_folds_done": 25,
+          "n_folds_expected": 39,
+          "reading": "POST-HOC addendum 4 item 2: the H3 job plan is ordered V5 -> V2 -> V1 (DESIGN_PRIORITY) and the cap is checked before each fold; a design the cap does not reach is written NOT_RUN with its reason. The UNIT of NOT_RUN is the DESIGN, not one record set: a design is NOT_RUN as soon as ANY arm x transform record set it needs is missing or incomplete, EVEN IF another leg of the same design is complete, because 'no verdict is taken from a partial design'. A NOT_RUN design contributes no contrast, no R19 item row, no delta, no per-unit row, no F4 entry (NOT_COMPUTED) and no non-inferiority input (None): drop_not_run_designs removes every row of it before any output is written, designs_scored and designs_not_run are asserted DISJOINT, assert_no_partial_design raises if an incomplete record set ever reaches a contrast, and h3_verdict reports designs_not_run in inputs_missing so a helps verdict cannot be read off V5 alone. The complete legs of a NOT_RUN design are named in the entry (complete_legs): they exist on disk and are scored as soon as the design completes, but nothing is read from them while the design is NOT_RUN (task X finding protocol VH-01 / numbers VH-02)",
+          "reason": "B5:ACT_PERMUTED@V1 record set is incomplete (25 of 39 folds; missing ['REMAINDER', 'pub_97510df3a0', 'pub_a470dfb784', 'pub_a9266a9412', 'pub_ad5a7268e5'])",
+          "rule": "POST-HOC addendum 4 item 2: any design not reached is reported NOT_RUN with its reason -- no verdict is taken from a partial design",
+          "status": "NOT_RUN",
+          "stopped_by": "error in B5:ACT_PERMUTED@V1: AssertionError: inner split inner_s104729_f1 failed the isolation check; error in B6:ACT_PERMUTED@V1: AssertionError: inner split ('pub_007f4c9de0', 'pub_07cea54708', 'pub_0af6736cb1', 'pub_0f30549d71', 'pub_10aec04d23', 'pub_13adc25944', 'pub_1739bfaf95', 'pub_1845fd6492', 'pub_1927dff570', 'pub_19783c039b', 'pub_1b7737c507', 'pub_1d18e32c4e', 'pub_23f10a0918', 'pub_2c76a46f18', 'pub_2e9f2dbea9', 'pub_328cdbeabc', 'pub_392f966ef2', 'pub_3f3b6220e0', 'pub_40c355ae86', 'pub_44555064e1', 'pub_4a1871d85d', 'pub_51c0693f9c', 'pub_58e30f4932', 'pub_5df1eef2f5', 'pub_6f71d61137', 'pub_7730cdd232', 'pub_792969545c', 'pub_886ede1e0e', 'pub_890299c726', 'pub_8a081dc888', 'pub_8dafaf94bc', 'pub_9428119866', 'pub_989b35f30b', 'pub_9a3afbee00', 'pub_a470dfb784', 'pub_a49146c8fd', 'pub_a6126dc686', 'pub_a671b3a07d', 'pub_ab5ae597b9', 'pub_ad5a7268e5', 'pub_aed382b25f', 'pub_b048b54fa9', 'pub_b0b3296ec5', 'pub_bef16e560c', 'pub_c07b8473b8', 'pub_c75976ca9f', 'pub_c8195b4ca7', 'pub_cd72e4a7bb', 'pub_cdc2243314', 'pub_d0909358c9', 'pub_dc1c90a4de', 'pub_dfa96a5118', 'pub_e4bbba9576', 'pub_e4dd361427', 'pub_f5d1922154', 'pub_fdc02269b7') failed the isolation check",
+          "verdict_taken": false
+        }
+      },
+      "designs_scored": [
+        "V2",
+        "V5"
+      ],
       "equivalent": false,
       "helps": false,
       "hurts": false,
       "inputs_missing": [
-        "V5 WITH vs WITHOUT",
-        "V5 WITH vs ACT_PERMUTED",
-        "V5 WITHOUT vs WITH"
+        "V1: NOT_RUN"
       ],
       "kappa_min": null,
       "kappa_status": "not computed",
       "label": "discovery, optimistically biased (selection half; seed 104729); R19 item 4 decided at confirmation",
       "readings": {
+        "act_metal_shuffled": "POST-HOC addendum 4 item 1 (compute-driven): section 11 lists two controls but registers deltas only for WITH - WITHOUT and WITH - PERMUTED, and no registered delta, verdict or failure condition uses ACT_METAL_SHUFFLED; completing it would cost about a third of the H3 budget (the ablation refits the deployed CatBoost and its conformal calibration per fold, measured at about 620 s per fold) for a quantity nothing reads. ACT_METAL_SHUFFLED is NOT run; the single fold already fitted is labelled exploratory and is not scored. WITH - PERMUTED, which section 11 uses to separate actinide chemistry from row count, is unchanged and runs on every design",
+        "design_priority": "POST-HOC addendum 4 item 2: the H3 job plan is ordered V5 -> V2 -> V1 (DESIGN_PRIORITY) and the cap is checked before each fold; a design the cap does not reach is written NOT_RUN with its reason. The UNIT of NOT_RUN is the DESIGN, not one record set: a design is NOT_RUN as soon as ANY arm x transform record set it needs is missing or incomplete, EVEN IF another leg of the same design is complete, because 'no verdict is taken from a partial design'. A NOT_RUN design contributes no contrast, no R19 item row, no delta, no per-unit row, no F4 entry (NOT_COMPUTED) and no non-inferiority input (None): drop_not_run_designs removes every row of it before any output is written, designs_scored and designs_not_run are asserted DISJOINT, assert_no_partial_design raises if an incomplete record set ever reaches a contrast, and h3_verdict reports designs_not_run in inputs_missing so a helps verdict cannot be read off V5 alone. The complete legs of a NOT_RUN design are named in the entry (complete_legs): they exist on disk and are scored as soon as the design completes, but nothing is read from them while the design is NOT_RUN (task X finding protocol VH-01 / numbers VH-02)",
         "equivalent": "TOST (90 % interval, epsilon 0.05, primary cluster) of WITH - WITHOUT on the V5 Ln cells",
         "helps_non_inferior": "non-inferiority on V1 / V2 is the TOST 'non_inferior' flag of WITH - WITHOUT and WITH - ACT_PERMUTED on the V1 and V2 Ln sets",
         "r19_scope": "a discovery-stage H3 contrast 'passes R19' on the freezing-screen scope (items 1-3, 5 and the scoring-filter sensitivities on seed 104729): R19 item 4 is NOT_EVALUATED in discovery (addendum 1 item 3) and section 11 names no refit sensitivity, so the full verdict is at best UNDECIDED; the full verdict is printed beside and confirmation decides item 4"
       },
       "scope": "freezing_screen",
-      "tost_v5_with_minus_without": null,
+      "tost_v5_with_minus_without": {
+        "equivalent": false,
+        "high_90": 0.13723308806725093,
+        "low_90": -0.026451003040808847,
+        "non_inferior": true,
+        "verdict": "PASS"
+      },
+      "transforms_exploratory_not_scored": {
+        "ACT_METAL_SHUFFLED": "exploratory_not_scored"
+      },
+      "transforms_scored": [
+        "WITHOUT",
+        "ACT_PERMUTED"
+      ],
       "underpowered": false,
       "v1_v2_non_inferior": {
         "V1": {
@@ -613,13 +771,13 @@
           "WITHOUT": null
         },
         "V2": {
-          "ACT_PERMUTED": null,
-          "WITHOUT": null
+          "ACT_PERMUTED": true,
+          "WITHOUT": false
         }
       },
-      "v5_with_beats_permuted": null,
-      "v5_with_beats_without": null,
-      "v5_without_vs_with_point": null,
+      "v5_with_beats_permuted": false,
+      "v5_with_beats_without": false,
+      "v5_without_vs_with_point": -0.03168479648029843,
       "verdict": "UNDECIDED"
     }
   }

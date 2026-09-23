@@ -19,8 +19,11 @@ Design (section 11, implemented as follows)
 * **Transforms** (:data:`TRANSFORMS`, ``discovery.h3_training_rows``): WITH is the discovery record of the same arm,
   design, seed and fold (same architecture, same folds and batches, same seeds -- nothing is refitted for it); WITHOUT
   removes every actinide training row (unknown-state actinide rows included); ACT_PERMUTED permutes ``log_D`` among
-  actinide training rows within (system, publication group); ACT_METAL_SHUFFLED shuffles the actinide metal-state labels
-  within a system.  The transformed arms are refitted at the WITH run's SELECTED hyperparameters of the same fold
+  actinide training rows within (system, publication group).  **POST-HOC addendum 4 item 1**: ACT_METAL_SHUFFLED (which
+  shuffles the actinide metal-state labels within a system) is NOT RUN -- no registered delta, verdict or failure
+  condition reads it -- and the one fold already fitted is :data:`EXPLORATORY_NOT_SCORED`
+  (:data:`EXPLORATORY_TRANSFORMS`, :func:`exploratory_records`); it is kept on disk and enters no contrast, table or
+  verdict.  The transformed arms are refitted at the WITH run's SELECTED hyperparameters of the same fold
   (:class:`FrozenNeural`, :class:`FrozenBoosted`, :class:`FrozenB6`, :class:`FrozenLadder` for a deployed ladder step
   M3-M7 whose WITH record is its ``evaluation/ladder`` record; the closed-form comparators need none and are fitted on
   the exact leave-one-cell-out folds of section 3.1 as in discovery), with the cross-fitted split-conformal calibration
@@ -29,7 +32,14 @@ Design (section 11, implemented as follows)
   carve-out and ``V6_TARGET_ROWS`` guard applied by ``discovery.scoring_frame``), every Ln(III) state of V2 in the
   selection half, the Ln(III) rows of the V1 selection folds.  Cells whose eligibility depends on actinide partners
   (:func:`actinide_dependent_cells`) are scored in both arms and reported as a stratum.
-* **Deltas**: WITH - WITHOUT and WITH - PERMUTED (and WITH - SHUFFLED) with the section 8 paired cluster bootstrap and
+* **Designs, priority and the compute cap** (:data:`DESIGN_PRIORITY`, :data:`H3_BUDGET_HOURS`): section 11's Ln test set
+  is run in full -- V5-primary Ln cells, V2 Ln folds, V1 Ln rows -- under the **POST-HOC addendum 4 item 2** cap of 20 h
+  of wall clock on 2 workers, ledgered in ``evaluation/h3/decisions/wall_clock.json``
+  (:func:`h3_wall_clock_path`, :func:`h3_budget_status`) and checked before each fold.  The priority order is
+  V5 -> V2 -> V1 (:func:`plan_priority_key`); a design the cap does not reach is :data:`NOT_RUN` with its reason
+  (:func:`not_run_design`) and **no verdict is taken from a partial design** (:func:`assert_no_partial_design`,
+  asserted in the scorer).
+* **Deltas**: WITH - WITHOUT and WITH - PERMUTED with the section 8 paired cluster bootstrap and
   R19 through ``discovery.evaluate_contrast`` (:func:`h3_contrast`); the reversed contrast (the transform as candidate)
   gives *hurts* and F4.  Delta macro MAE (R19), Delta rank accuracy (:func:`rank_accuracy_delta`), Delta calibration
   |cov80 - 0.80|, |cov95 - 0.95| and mean width (:func:`calibration_delta`; CRPS NOT_RUN without a predictive SD,
@@ -45,8 +55,10 @@ quoted as registered).
 """
 from __future__ import annotations
 
+import datetime as _dt
 import importlib.util
 import json
+import re
 import sys
 import time
 from collections.abc import Iterable, Mapping, Sequence
@@ -72,12 +84,34 @@ from gen19ct.models import interface as I
 
 SCHEMA = "gen19.h3.v1"
 FAMILY = "H3"
-#: the training transforms that are refitted (WITH is the discovery record; ``discovery.H3_ARMS`` lists all four)
-TRANSFORMS: tuple[str, ...] = ("WITHOUT", "ACT_PERMUTED", "ACT_METAL_SHUFFLED")
+#: the training transforms that are refitted AND SCORED (WITH is the discovery record; ``discovery.H3_ARMS`` lists all
+#: four of the sealed text's).  POST-HOC addendum 4 item 1 drops ACT_METAL_SHUFFLED from the plan: section 11 registers
+#: deltas only for WITH - WITHOUT and WITH - PERMUTED, so nothing reads it
+TRANSFORMS: tuple[str, ...] = ("WITHOUT", "ACT_PERMUTED")
+#: POST-HOC addendum 4 item 1: the transform that is NOT RUN.  The one fold already fitted before the addendum stays on
+#: disk, is labelled :data:`EXPLORATORY_NOT_SCORED` in the H3 decisions and enters no contrast, table or verdict
+EXPLORATORY_TRANSFORMS: tuple[str, ...] = ("ACT_METAL_SHUFFLED",)
+EXPLORATORY_NOT_SCORED = "exploratory_not_scored"
+ACT_METAL_SHUFFLED_NOT_RUN = (
+    "POST-HOC addendum 4 item 1 (compute-driven): section 11 lists two controls but registers deltas only for "
+    "WITH - WITHOUT and WITH - PERMUTED, and no registered delta, verdict or failure condition uses "
+    "ACT_METAL_SHUFFLED; completing it would cost about a third of the H3 budget (the ablation refits the deployed "
+    "CatBoost and its conformal calibration per fold, measured at about 620 s per fold) for a quantity nothing reads. "
+    "ACT_METAL_SHUFFLED is NOT run; the single fold already fitted is labelled exploratory and is not scored. "
+    "WITH - PERMUTED, which section 11 uses to separate actinide chemistry from row count, is unchanged and runs on "
+    "every design")
 ALL_ARMS: tuple[str, ...] = D.H3_ARMS
 #: section 11 designs: token -> (design, variant); the scheme follows the WITH run (``with_design_dir``)
 DESIGNS: dict[str, tuple[str, str]] = {"V5": ("V5", "primary"), "V2": ("V2", "element"), "V1": ("V1", "copy")}
 PAIR_DESIGN = "V5PAIR"
+#: POST-HOC addendum 4 item 2: "If the cap is reached, the priority order is V5 (done), then V2, then V1, and any design
+#: not reached is reported NOT_RUN with its reason - no verdict is taken from a partial design"
+DESIGN_PRIORITY: tuple[str, ...] = ("V5", "V2", "V1")
+#: POST-HOC addendum 4 item 2: "H3 gets a cap of 20 h of wall clock on 2 workers, recorded in
+#: evaluation/h3/decisions/wall_clock.json"
+H3_BUDGET_HOURS = 20.0
+H3_WORKERS = 2
+NOT_RUN = "NOT_RUN"
 #: section 11 transparent references
 REFERENCE_ARMS: tuple[str, ...] = ("B6", "B5")
 #: the fallback "deployed" arm when no learned configuration passes (section 10 F6: the best-passing baseline; the
@@ -104,13 +138,63 @@ F6_FALLBACK_RULE = ("POST-HOC addendum 2 (F6): with no retained ladder step, M2 
                     "screen is that scope plus item 6 with no evaluated item FAILing (discovery.freezing_candidates / "
                     "freezing_eligibility). A contrast the scorer did not list did not pass that screen; a decisions.json "
                     "with no freezing_candidates block leaves item 6 unchecked and the basis says so.")
+#: section 10 F4 says "95 % interval excluding 0" in the singular and names no construction; section 8 registers the
+#: percentile AND the BCa interval for every contrast and R19 item 2 requires both.  Which interval a FAILURE condition
+#: reads is therefore an undisclosed reading, and an undisclosed reading may not decide a failure condition silently:
+#: :func:`f4_check` keeps the percentile value as the decided one and reports the BCa reading beside it until a POST-HOC
+#: addendum names the interval (task X finding protocol VH-02 / numbers VH-03)
+F4_INTERVAL_READING = (
+    "NOT REGISTERED: section 10 F4 says '95 % interval excluding 0' without naming a construction, while section 8 "
+    "registers the percentile and the BCa 95 % interval for every contrast and R19 item 2 requires BOTH to exclude 0. "
+    "f4_check decides on the PERCENTILE interval (failure / failure_percentile) and reports the BCa reading beside it "
+    "(failure_bca, failure_either_interval, per_design.<design>.bca_beats). For a FAILURE condition the conservative "
+    "choice is the reading that triggers more readily -- EITHER interval -- not the one that requires both, so "
+    "failure_either_interval is the conservative value and the difference is printed wherever F4 is quoted. A POST-HOC "
+    "addendum naming the interval F4 reads is REQUESTED and not yet written; until then no F4 statement may be quoted "
+    "without both readings")
+#: POST-HOC addendum 4 item 3 says the 13 stale records are "refitted under the CURRENT registered h3 digest before any
+#: H3 delta is scored".  Taken literally that is unsatisfiable in a stage whose code digest also covers scoring and
+#: reporting: the refits were written under the entry that was current at 17:51-19:50 on 2026-09-22, and three
+#: reporting-only edits to h3.py (the per_unit_delta_table TypeError fix and two D03 fixes) superseded that entry before
+#: scoring ran, so NO h3 record verifies against the current entry.  The operative reading is addendum 2 change 5's
+#: (task X findings numbers VH-04 / protocol VH-06)
+OPERATIVE_DIGEST_READING = (
+    "OPERATIVE READING (addendum 2 change 5): a record is valid under the registry entry that was CURRENT WHEN IT WAS "
+    "WRITTEN, verified through registry.verify_record at the record's own timestamp -- not under whatever entry is "
+    "current when a delta is scored. POST-HOC addendum 4 item 3's 'refitted under the current registered digest before "
+    "any H3 delta is scored' is satisfied as 'refitted under the digest that was current at the moment of the refit, and "
+    "never under the digest that was already superseded when the refit started'. Reading it as 'current at scoring time' "
+    "would make every reporting-only edit to h3.py re-invalidate all 445 records, which addendum 2 change 5 explicitly "
+    "forbids ('a later change can neither validate nor invalidate a record written earlier'). A POST-HOC addendum "
+    "wording this is REQUESTED; splitting the fitting closure from the scoring / reporting closure in the h3 code digest "
+    "would remove the question")
 #: the intervals status recorded when a refit's inner folds differ from the WITH record's (no calibration is invented)
 NOT_CALIBRATED_DIFFER = "not_calibrated_inner_folds_differ_from_the_with_record"
 #: the R19 scope a discovery-stage H3 verdict is read on (R19 item 4 is NOT_EVALUATED in discovery, addendum 1 item 3)
 VERDICT_SCOPE = "freezing_screen"
 STAGE = "11_h3"
 REFIT_NOT_RUN = "not run: section 11 names no refit sensitivity for the ablation; the scoring-filter sensitivities apply"
+#: the registered V5 sensitivities addendum 1 item 4 DOES run for other families but not for H3, each with the reason
+#: specific to H3.  ``discovery.LEARNED_REFITS_NOT_RUN`` covers only the refits the addendum drops for a learned arm in
+#: discovery, so without these two names R19 item 6 of an H3 V5 contrast reported a PASS over the reduced set while 2 of
+#: the design's 11 registered sensitivities appeared in neither the decided set nor the not-run list
+#: (task X finding protocol VH-03)
+H3_REFITS_NOT_RUN: dict[str, str] = {
+    "strict_setting": "not run for H3: POST-HOC addendum 1 item 4 runs the V5 strict refit on seed 104729 for H1 (M2), "
+                      "H1b (B6), H4 (M0, FLAT_CAT, M2, B6, B6r0) and any freezing candidate; an H3 contrast pairs WITH "
+                      "against a section 11 TRANSFORM refit (WITHOUT / ACT_PERMUTED), and no strict-setting refit of a "
+                      "transform arm is registered or fitted anywhere, so the sensitivity is UNTESTABLE for every H3 "
+                      "contrast",
+    "HNO3_only_cells": "not run for H3: POST-HOC addendum 1 item 4 runs the V5 HNO3-only refit on seed 104729 for H1 "
+                       "(M2), H1b (B6), H4 (M0, FLAT_CAT, M2, B6, B6r0) and any freezing candidate; an H3 contrast pairs "
+                       "WITH against a section 11 TRANSFORM refit (WITHOUT / ACT_PERMUTED), and no HNO3-only refit of a "
+                       "transform arm is registered or fitted anywhere, so the sensitivity is UNTESTABLE for every H3 "
+                       "contrast"}
 NOT_COMPUTED = "not computed"
+#: POST-HOC addendum 4 item 4: what an UNDECIDED H3 verdict with no registered section 8 power check is reported as --
+#: never a null, never "no effect".  Duplicated from ``power.NO_POWER_CHECK_LABEL`` because ``power`` imports this
+#: module; ``tests/test_h3.py`` asserts the two strings stay identical.
+NO_POWER_CHECK_LABEL = "UNDECIDED (no registered power check)"
 STEPS = D.STEPS
 #: section 11's last bullet (addendum 2 item 4): the WITH arm re-run with a shared-only metal embedding; its records live
 #: under ``evaluation/h3/records/<arm>/SHARED_ONLY`` and its rows are labelled with this transform token
@@ -121,6 +205,22 @@ SHARED_ONLY_FAMILY = "H3 negative-transfer investigation (shared-only embedding)
 SHARED_ONLY_NOT_RUN = "not run (condition not met)"
 #: the arms with a section 15 metal embedding the re-run applies to (M1 / M2 and the ladder steps built on them)
 EMBEDDING_ARMS: tuple[str, ...] = ("M1", "M2") + LADDER_ARMS
+#: section 11 states ONE condition for the whole negative-transfer investigation ("run if WITHOUT is better, point
+#: estimate or passed") and names no design and no contrast.  The tables used to be written on the CLI flag alone, while
+#: two artifacts stated two different triggers (D03 read it on V2, ``shared_only.json`` on V5), so the condition is now
+#: evaluated in ONE place on ONE reading -- the same reading ``shared_only_condition`` already used -- and recorded beside
+#: the tables (task X finding protocol VH-05)
+NEGATIVE_TRANSFER_CONDITION = (
+    "section 11, negative-transfer investigation: 'run if WITHOUT is better, point estimate or passed' -- read on the "
+    "DEPLOYED arm's V5 Ln-cell contrast WITHOUT vs WITH, the primary design of section 11's Ln test set and the same "
+    "contrast the shared-only re-run's condition reads (h3_verdicts.json): hurts == true (WITHOUT passes R19 on the "
+    "freezing_screen scope against WITH; the 'passed' half) OR v5_without_vs_with_point > 0 (Delta macro MAE = MAE(WITH) "
+    "- MAE(WITHOUT) under the primary cluster unit; the 'point estimate' half). Section 11 names neither the design nor "
+    "the contrast, so this is a READING and a POST-HOC addendum fixing it is REQUESTED; the per-cell tables are V5 "
+    "tables, which is why the V5 contrast is the one read. When the condition is NOT met the tables are still written "
+    "(they cost nothing, the per-cell deltas already exist) but they are labelled EXPLORATORY, not 'the section 11 "
+    "negative-transfer investigation', and no reading is taken from them")
+NEGATIVE_TRANSFER_EXPLORATORY = "exploratory (section 11 condition not met on the registered reading)"
 SHARED_ONLY_CONDITION = ("section 11, negative-transfer investigation: 'run if WITHOUT is better, point estimate or passed' "
                          "-- read on the deployed arm's V5 Ln-cell contrast WITHOUT vs WITH (h3_verdicts.json): "
                          "hurts == true (WITHOUT passes R19 on the freezing_screen scope against WITH; the 'passed' half) "
@@ -173,8 +273,12 @@ READINGS: dict[str, str] = {
                  "scoring-filter sensitivities on seed 104729): R19 item 4 is NOT_EVALUATED in discovery (addendum 1 "
                  "item 3) and section 11 names no refit sensitivity, so the full verdict is at best UNDECIDED; the full "
                  "verdict is printed beside and confirmation decides item 4",
-    "margins": "R19 item 1 margin of an H3 contrast: delta5 on the V5 Ln cells, 0.05 on V1 / V2 (the scorer's reading of "
-               "section 9 for the designs it names no margin for)",
+    "margins": "R19 item 1 margin of an H3 contrast: delta5 on the V5 Ln cells, 0.05 on V1 / V2. This is REGISTERED, not "
+               "a scorer reading: POST-HOC addendum 2, '3. H3' > 'margins' reads 'delta5 on V5 Ln cells, 0.05 on V1 / "
+               "V2', and the same addendum's discovery reading says '`margins`: delta5 on V5; 0.05 for S1(b) and for V1 "
+               "/ V2 (section 9 names none; the floor of the delta5 formula)'. R19 item 1 compares the POINT estimate "
+               "with that margin ('the point estimate Delta >= the design's margin delta'), not an interval bound, so a "
+               "V1 / V2 contrast needs no further addendum to be read against 0.05 (task X finding numbers VH-01)",
     "f4_designs": "F4 'the WITHOUT arm beats it on the Ln test set (95 % interval excluding 0)' is evaluated per design "
                   "(V5 Ln cells, V1 Ln rows, V2 Ln states) with the primary-cluster percentile interval of the reversed "
                   "contrast (WITHOUT candidate), and F4 holds when ANY design shows it (the conservative reading)",
@@ -200,6 +304,44 @@ READINGS: dict[str, str] = {
                              "evaluation/h3.py and scripts/g19_run_h3.py, outside that closure and part of no discovery "
                              "record's digest, were extended to plan, fit, score and report the re-run",
     "crps": "CRPS is NOT_RUN: no arm has a predictive SD (discovery.UNCERTAINTY_NOT_RUN)",
+    "logsf_delta": "section 11 scopes Delta logSF MAE to 'V5-PAIR Ln pairs; V6 at confirmation'. It is NOT_DEFINED for "
+                   "either H3 arm in discovery: POST-HOC addendum 1 item 5 runs the seed-104729 batched V5-PAIR folds "
+                   "for M2 and for the B3x / B3i counterweight only, plus any freezing candidate WITH a pair endpoint, "
+                   "and neither H3 arm is one of those -- B5 (= M0, the deployed arm) and B6 have no V5-PAIR record, so "
+                   "there is no Ln-Ln pair prediction of either arm to difference, under any transform. logsf_delta is "
+                   "therefore never reached: plan_jobs plans the pair design only under --with-pairs, and with it the "
+                   "pair jobs would find no WITH record and be reported NOT_RUN rather than fitted. Producing the "
+                   "quantity would mean fitting V5-PAIR for B5 and B6, which addendum 1 item 5 does not run; it is "
+                   "reported NOT_DEFINED here and is a registered V6 quantity at confirmation",
+    "act_metal_shuffled": ACT_METAL_SHUFFLED_NOT_RUN,
+    "h3_budget": "POST-HOC addendum 4 item 2: section 11 registers no compute budget, so H3 gets a cap of 20 h of wall "
+                 "clock on 2 workers, recorded in evaluation/h3/decisions/wall_clock.json and CHECKED BEFORE EACH FOLD. "
+                 "The budget number is WALL CLOCK, not worker-seconds: the ledger records every invocation's "
+                 "[started_utc, ended_utc] interval and h3_wall_clock_total sums the UNION of those intervals, so two "
+                 "workers running the same hour consume one hour of the cap; the sum over workers is recorded beside it "
+                 "as worker_seconds and is never the number compared with the cap. More than 2 concurrent workers is "
+                 "refused (H3_WORKERS). --max-hours stays an operator pause, never a NOT_RUN reason",
+    "design_priority": "POST-HOC addendum 4 item 2: the H3 job plan is ordered V5 -> V2 -> V1 (DESIGN_PRIORITY) and the "
+                       "cap is checked before each fold; a design the cap does not reach is written NOT_RUN with its "
+                       "reason. The UNIT of NOT_RUN is the DESIGN, not one record set: a design is NOT_RUN as soon as ANY "
+                       "arm x transform record set it needs is missing or incomplete, EVEN IF another leg of the same "
+                       "design is complete, because 'no verdict is taken from a partial design'. A NOT_RUN design "
+                       "contributes no contrast, no R19 item row, no delta, no per-unit row, no F4 entry (NOT_COMPUTED) "
+                       "and no non-inferiority input (None): drop_not_run_designs removes every row of it before any "
+                       "output is written, designs_scored and designs_not_run are asserted DISJOINT, "
+                       "assert_no_partial_design raises if an incomplete record set ever reaches a contrast, and "
+                       "h3_verdict reports designs_not_run in inputs_missing so a helps verdict cannot be read off V5 "
+                       "alone. The complete legs of a NOT_RUN design are named in the entry (complete_legs): they exist "
+                       "on disk and are scored as soon as the design completes, but nothing is read from them while the "
+                       "design is NOT_RUN (task X finding protocol VH-01 / numbers VH-02)",
+    "record_digest_basis": "addendum 2 item 5 and POST-HOC addendum 4 item 3: an EXISTING H3 fold record is verified "
+                           "with the code digest AND the below-footer digest it was WRITTEN under -- its own fields, "
+                           "accepted only when registry.verify_record matches them to an entry of stage 'h3' (current or "
+                           "superseded, ordered by the record's own timestamp). A record written before a supersession "
+                           "therefore keeps its entry and verifies as registered, while a record a runner holding stale "
+                           "code wrote AFTER the supersession does not verify (stale_after_supersession) and is refitted "
+                           "under the current registered digest. New records are always written under the LIVE code and "
+                           "the currently registered below-footer digest",
 }
 
 
@@ -378,8 +520,29 @@ def batching_arms(arm: str) -> list[str]:
 
 
 def transforms_for(arm: str) -> tuple[str, ...]:
-    """A learned arm's WITH is its discovery record; a closed-form arm has no discovery record, so WITH is fitted."""
+    """The transforms of ``arm`` that are FITTED AND SCORED: a learned arm's WITH is its discovery record; a closed-form
+    arm has no discovery record, so WITH is fitted.  ACT_METAL_SHUFFLED is not among them (POST-HOC addendum 4 item 1,
+    :data:`EXPLORATORY_TRANSFORMS`)."""
     return (("WITH",) if is_deterministic(arm) else ()) + TRANSFORMS
+
+
+def is_scored_transform(transform: str) -> bool:
+    """Whether ``transform`` may enter a contrast, delta, table or verdict (POST-HOC addendum 4 item 1)."""
+    return str(transform) not in EXPLORATORY_TRANSFORMS
+
+
+def plan_priority_key(entry: Mapping[str, Any]) -> tuple[int, str, str]:
+    """Sort key of one job-plan entry under the POST-HOC addendum 4 item 2 priority order V5 -> V2 -> V1: the design
+    first (a design outside :data:`DESIGN_PRIORITY`, e.g. V5PAIR, sorts after every priority design), then the model arm
+    and the transform, so the cap is spent on the highest-priority design of EVERY arm before the next design starts."""
+    design = str(entry.get("design"))
+    idx = DESIGN_PRIORITY.index(design) if design in DESIGN_PRIORITY else len(DESIGN_PRIORITY)
+    return (idx, str(entry.get("model_arm")), str(entry.get("transform")))
+
+
+def order_by_priority(plan: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
+    """``plan`` in the registered priority order (:func:`plan_priority_key`); stable within a design."""
+    return [dict(e) for e in sorted(plan, key=plan_priority_key)]
 
 
 def with_design_dir(arm: str, design: str, state: D.PlanState) -> str:
@@ -456,8 +619,15 @@ def shared_only_condition(verdict: Mapping[str, Any] | None, *, deployed_arm: st
                            "point_estimate_favours_without": None, "met": False, "status": SHARED_ONLY_NOT_RUN,
                            "reading": READINGS["shared_only_embedding"]}
     if not applicable:
+        # the condition's two inputs are recorded even when the arm makes the re-run inapplicable: they are known, so
+        # D03 must print them rather than "not computed" (the re-run stays not run either way)
+        pt0 = None if verdict is None else verdict.get("v5_without_vs_with_point")
         out.update(status=f"not run (not applicable: {arm} has no section 15 metal embedding)",
-                   reason=f"{arm} has no e_series / e_ox offsets to remove")
+                   reason=f"{arm} has no e_series / e_ox offsets to remove",
+                   without_passed_r19_v5=None if verdict is None or verdict.get("hurts") is None
+                   else bool(verdict.get("hurts")),
+                   v5_without_vs_with_point=None if pt0 is None else float(pt0),
+                   point_estimate_favours_without=None if pt0 is None else bool(float(pt0) > 0))
         return out
     if verdict is None:
         out.update(status="not run (condition undecided: the deployed arm's H3 verdict is absent)",
@@ -479,6 +649,90 @@ def shared_only_condition(verdict: Mapping[str, Any] | None, *, deployed_arm: st
                reason=("WITHOUT passes R19 against WITH on the V5 Ln cells" if passed else
                        ("the V5 point estimate favours WITHOUT" if favours else
                         "WITHOUT neither passes R19 against WITH nor has the better V5 point estimate")))
+    return out
+
+
+def negative_transfer_condition(verdict: Mapping[str, Any] | None, *, deployed_arm: str,
+                                design: str = "V5") -> dict[str, Any]:
+    """Section 11's negative-transfer trigger, evaluated and recorded (:data:`NEGATIVE_TRANSFER_CONDITION`).
+
+    Returns ``met``, both halves of the condition and the status the tables carry: ``"section 11 negative-transfer
+    investigation"`` when met, :data:`NEGATIVE_TRANSFER_EXPLORATORY` when not.  The condition is read on the deployed
+    arm's V5 Ln-cell reversed contrast only -- one design, one contrast -- so the trigger can never be reported as met on
+    one design in one file and unmet on another in the next (task X finding protocol VH-05)."""
+    arm = D.ARM_ALIASES.get(deployed_arm, deployed_arm)
+    out: dict[str, Any] = {"condition": NEGATIVE_TRANSFER_CONDITION, "deployed_arm": arm, "design_read": str(design),
+                           "contrast_read": f"{arm}:WITHOUT vs {arm}:WITH@{design}",
+                           "without_passed_r19_v5": None, "v5_without_vs_with_point": None,
+                           "point_estimate_favours_without": None, "met": False,
+                           "status": NEGATIVE_TRANSFER_EXPLORATORY,
+                           "tables_label": NEGATIVE_TRANSFER_EXPLORATORY,
+                           "addendum_requested": True}
+    if verdict is None:
+        out["reason"] = (f"the deployed arm's H3 verdict is absent, so the condition is undecided; the tables are "
+                        f"{NEGATIVE_TRANSFER_EXPLORATORY}")
+        return out
+    passed = verdict.get("hurts")
+    pt = None
+    try:
+        pt = None if verdict.get("v5_without_vs_with_point") is None else float(verdict["v5_without_vs_with_point"])
+    except (TypeError, ValueError):
+        pt = None
+    favours = bool(pt is not None and np.isfinite(pt) and pt > 0)
+    met = bool(passed) or favours
+    out.update(without_passed_r19_v5=None if passed is None else bool(passed), v5_without_vs_with_point=pt,
+               point_estimate_favours_without=None if pt is None else favours, met=met,
+               status="section 11 negative-transfer investigation (condition met)" if met
+               else NEGATIVE_TRANSFER_EXPLORATORY,
+               tables_label="section 11 negative-transfer investigation" if met else NEGATIVE_TRANSFER_EXPLORATORY,
+               reason=("WITHOUT passes R19 against WITH on the V5 Ln cells" if passed else
+                       ("the V5 point estimate favours WITHOUT" if favours else
+                        "WITHOUT neither passes R19 against WITH nor has the better V5 point estimate on the deployed "
+                        "arm's V5 Ln cells, so section 11's condition is NOT met")))
+    return out
+
+
+def stratum_excluded_headline(per_cell: pd.DataFrame, dependent: pd.DataFrame | None, *, point: float | None = None,
+                             delta_col: str = "delta_mae") -> dict[str, Any]:
+    """Section 11: "Cells whose eligibility depends on actinide partners are scored in both arms and reported as a
+    separate stratum."
+
+    The registered headline Delta is the macro over ALL scored V5 Ln cells, and it stays the registered number.  This
+    reports the same macro with that stratum EXCLUDED beside it, with the stratum's share of the headline, the median and
+    the share of cells with Delta > 0, so nobody reads a headline carried by two cells as a broad effect
+    (task X finding protocol VH-08)."""
+    out: dict[str, Any] = {"rule": "section 11: the actinide-partner-eligibility cells are a separate REPORTING unit; "
+                                   "the registered headline is the all-cell macro and this is printed beside it, never "
+                                   "instead of it",
+                           "status": NOT_COMPUTED}
+    if per_cell is None or per_cell.empty or delta_col not in per_cell.columns:
+        return out
+    d = pd.to_numeric(per_cell[delta_col], errors="coerce")
+    keys = None
+    if dependent is not None and not dependent.empty and "actinide_dependent" in dependent.columns:
+        dep_keys = {(str(a), str(b)) for a, b, f in zip(dependent[EM.METAL_STATE_COL], dependent[EM.SYSTEM_COL],
+                                                        dependent["actinide_dependent"]) if bool(f)}
+        keys = pd.Series([(str(a), str(b)) in dep_keys
+                          for a, b in zip(per_cell[EM.METAL_STATE_COL], per_cell[EM.SYSTEM_COL])],
+                         index=per_cell.index)
+    n_all = int(d.notna().sum())
+    all_macro = float(d.mean())
+    out.update({"status": "computed", "n_cells_all": n_all, "macro_delta_all_cells": all_macro,
+                "median_delta_all_cells": float(d.median()),
+                "share_delta_positive_all_cells": float((d > 0).mean()),
+                "headline_point": None if point is None else float(point)})
+    if keys is None:
+        out["stratum"] = NOT_COMPUTED
+        return out
+    inc = d[~keys.to_numpy()]
+    out.update({"n_cells_actinide_dependent": int(keys.sum()), "n_cells_excluding_stratum": int(inc.notna().sum()),
+                "macro_delta_excluding_stratum": float(inc.mean()) if len(inc) else None,
+                "median_delta_excluding_stratum": float(inc.median()) if len(inc) else None,
+                "share_delta_positive_excluding_stratum": float((inc > 0).mean()) if len(inc) else None,
+                "macro_delta_actinide_dependent": float(d[keys.to_numpy()].mean()) if bool(keys.any()) else None,
+                "stratum_contribution_to_macro": (float(d[keys.to_numpy()].sum()) / n_all) if n_all else None})
+    contrib, tot = out["stratum_contribution_to_macro"], out["macro_delta_all_cells"]
+    out["stratum_share_of_macro"] = None if not contrib or not tot else float(contrib / tot)
     return out
 
 
@@ -592,13 +846,17 @@ def h3_contrast(with_fr: pd.DataFrame, other_fr: pd.DataFrame, *, design: str, m
         sens[name] = ET.UNTESTABLE if c.empty else D.paired_units(c, k, label, candidate=cand_name, comparator=comp_name,
                                                                   **kw).delta
         reduced.append(name)
-    not_run = {n: REFIT_NOT_RUN for n in reg if n not in reduced}
+    not_run = {n: H3_REFITS_NOT_RUN.get(n, REFIT_NOT_RUN) for n in reg if n not in reduced}
     for n in not_run:
         sens[n] = ET.UNTESTABLE
     det = is_deterministic(model_arm)
     res = D.evaluate_contrast(name=f"{cand_name} vs {comp_name}", family=family, design=label, primary=pu, margin=margin,
                               seed_deltas={int(seed): pu.delta}, sensitivities=sens, deterministic=det, learned=not det,
-                              reduced_sensitivities=reduced if not det else None, n_resamples=n_resamples)
+                              reduced_sensitivities=reduced if not det else None, n_resamples=n_resamples,
+                              # every registered sensitivity of the design that H3 does not decide is DECLARED, including
+                              # the two ``discovery.LEARNED_REFITS_NOT_RUN`` does not cover for V5 (strict_setting,
+                              # HNO3_only_cells): task X finding protocol VH-03
+                              sensitivities_not_run_extra=not_run)
     res.update({"model_arm": D.ARM_ALIASES.get(model_arm, model_arm), "transform": transform,
                 "direction": "hurts (transform candidate)" if hurts else "helps (WITH candidate)",
                 "h3_refits_not_run": not_run, "n_ln_rows": int(len(a)), "verdict_scope": VERDICT_SCOPE,
@@ -734,7 +992,9 @@ def per_unit_delta_table(with_fr: pd.DataFrame, other_fr: pd.DataFrame, *, desig
     rem = None if remainder_groups is None else list(remainder_groups)
     kw: dict[str, Any] = {"v6_mask": v6_mask}
     if label == "V1":
-        kw.update(v1_scheme=v1_scheme, v1_group_col=EM.PUB_GROUP_COL, remainder_groups=rem)
+        # discovery.unit_mae fixes the V1 group column itself (EM.PUB_GROUP_COL, the section 3.2 unit); passing it here
+        # raised TypeError, so the V1 per-unit table could never be built (fixed 2026-09-23, not score-driven)
+        kw.update(v1_scheme=v1_scheme, remainder_groups=rem)
     pa = D.unit_mae(fa, label, **kw)
     pb = D.unit_mae(fb, label, **kw).loc[pa.index]
     ucols = list(EM.registered_unit_cols(label))
@@ -805,7 +1065,8 @@ def _ni(res: Mapping[str, Any] | None) -> bool | None:
 
 
 def h3_verdict(*, helps: Mapping[str, Mapping[str, Mapping[str, Any]]], hurts: Mapping[str, Mapping[str, Any]],
-               kappa_min: float | None = None, kappa_status: str = NOT_COMPUTED) -> dict[str, Any]:
+               kappa_min: float | None = None, kappa_status: str = NOT_COMPUTED,
+               designs_not_run: Mapping[str, Any] | None = None) -> dict[str, Any]:
     """Section 11 verdicts of one model arm.
 
     ``helps[design][transform]`` are the WITH-candidate contrasts (:func:`h3_contrast`), ``hurts[transform]`` the V5
@@ -830,6 +1091,11 @@ def h3_verdict(*, helps: Mapping[str, Mapping[str, Mapping[str, Any]]], hurts: M
         verdict = "UNDECIDED"
     inputs_missing = [k for k, v in (("V5 WITH vs WITHOUT", h_wo), ("V5 WITH vs ACT_PERMUTED", h_pm),
                                      ("V5 WITHOUT vs WITH", hurts_wo)) if v is None]
+    # POST-HOC addendum 4 item 2: a design the 20 h cap did not reach is NOT_RUN, and no verdict is taken from it; it is
+    # named here so a "helps" verdict can never be read off V5 alone (helps_ok already requires V1 and V2 non-inferiority,
+    # which a NOT_RUN design leaves None)
+    nrun = {str(d): dict(v) if isinstance(v, Mapping) else v for d, v in dict(designs_not_run or {}).items()}
+    inputs_missing += [f"{d}: {NOT_RUN}" for d in sorted(nrun)]
     rev = hurts.get("WITHOUT")
     rev_point = None if rev is None or rev.get("point") is None else float(rev["point"])
     return {"verdict": verdict, "helps": helps_ok, "hurts": bool(hurts_wo), "equivalent": equivalent,
@@ -843,32 +1109,57 @@ def h3_verdict(*, helps: Mapping[str, Mapping[str, Mapping[str, Any]]], hurts: M
             "underpowered": (verdict == "UNDECIDED" and kappa_min is not None and kappa_min > ET.KAPPA_MIN_INFORMATIVE),
             "actinide_rows_enter_deployed_configuration": verdict == "helps",
             "inputs_missing": inputs_missing, "scope": VERDICT_SCOPE,
+            "designs_not_run": nrun, "designs_scored": sorted(d for d in helps if d not in nrun),
+            "transforms_scored": list(TRANSFORMS),
+            "transforms_exploratory_not_scored": {t: EXPLORATORY_NOT_SCORED for t in EXPLORATORY_TRANSFORMS},
             "label": "discovery, optimistically biased (selection half; seed 104729); R19 item 4 decided at confirmation",
-            "readings": {k: READINGS[k] for k in ("r19_scope", "equivalent", "helps_non_inferior")}}
+            "readings": {k: READINGS[k] for k in ("r19_scope", "equivalent", "helps_non_inferior", "act_metal_shuffled",
+                                                  "design_priority")}}
 
 
 def f4_check(hurts_by_design: Mapping[str, Mapping[str, Any]], *, deployed_arm: str,
              trained_with_actinides: bool = True) -> dict[str, Any]:
     """Section 10 F4: the deployed configuration was trained with actinide rows and the WITHOUT arm beats it on the Ln
     test set with the 95 % interval excluding 0 -- per design the reversed contrast's point > 0 and the primary-cluster
-    percentile (and BCa, printed) lower bound > 0; F4 holds when any design shows it (:data:`READINGS` ``f4_designs``)."""
+    lower bound > 0; F4 holds when any design shows it (:data:`READINGS` ``f4_designs``).
+
+    **Which interval is a READING, and BOTH are reported** (task X finding protocol VH-02 / numbers VH-03): section 10 F4
+    says "95 % interval" in the singular and names no construction, while section 8 registers the percentile AND the BCa
+    interval for every contrast and R19 item 2 requires both to exclude 0.  The decided value (``failure``) stays the
+    PERCENTILE reading it has always been, and the BCa reading is computed and reported beside it
+    (``failure_bca``, ``failure_either_interval``, per design ``bca_beats``), so a design where the two disagree is
+    visible instead of silently decided.  No POST-HOC addendum names the interval an F4 reads: until one does, every
+    quotation of F4 must carry both readings."""
     per = {}
     for design, res in sorted(hurts_by_design.items()):
         if res is None:
-            per[design] = {"status": NOT_COMPUTED}
+            per[design] = {"status": NOT_COMPUTED,
+                           "reason": "no reversed WITHOUT-vs-WITH contrast of this design was scored (the design is "
+                                     f"{NOT_RUN}, or its record set is absent): POST-HOC addendum 4 item 2"}
             continue
         br = res["bootstraps"][res["primary_cluster_unit"]]
         plo, phi = br.percentile_interval()
         blo, bhi = br.bca_interval()
-        beats = bool(np.isfinite(res["point"]) and res["point"] > 0 and np.isfinite(plo) and plo > 0)
+        pos = bool(np.isfinite(res["point"]) and res["point"] > 0)
+        beats = bool(pos and np.isfinite(plo) and plo > 0)
+        bca_beats = bool(pos and np.isfinite(blo) and blo > 0)
         per[design] = {"status": "computed", "point": res["point"], "percentile_95": [plo, phi], "bca_95": [blo, bhi],
                        "cluster_unit": res["primary_cluster_unit"], "without_beats_with_interval_excludes_0": beats,
-                       "bca_also_excludes_0": bool(np.isfinite(blo) and blo > 0)}
+                       "bca_also_excludes_0": bool(np.isfinite(blo) and blo > 0), "bca_beats": bca_beats,
+                       "readings_disagree": bool(beats != bca_beats)}
     any_beats = any(p.get("without_beats_with_interval_excludes_0") for p in per.values())
+    any_bca = any(p.get("bca_beats") for p in per.values())
     computed = [d for d, p in per.items() if p["status"] == "computed"]
+    disagree = sorted(d for d, p in per.items() if p.get("readings_disagree"))
     return {"failure": bool(trained_with_actinides and any_beats), "deployed_arm": deployed_arm,
             "deployed_trained_with_actinide_rows": bool(trained_with_actinides), "per_design": per,
             "designs_computed": computed, "designs_not_computed": [d for d in per if d not in computed],
+            "interval_read": "percentile",
+            "failure_percentile": bool(trained_with_actinides and any_beats),
+            "failure_bca": bool(trained_with_actinides and any_bca),
+            "failure_either_interval": bool(trained_with_actinides and (any_beats or any_bca)),
+            "designs_where_readings_disagree": disagree,
+            "interval_reading_not_registered": F4_INTERVAL_READING,
             "rule": "F4 -- negative actinide transfer (section 10)", "reading": READINGS["f4_designs"],
             "status": "computed" if computed else NOT_COMPUTED}
 
@@ -998,6 +1289,363 @@ def h3_root(out_root: Path) -> Path:
     return Path(out_root) / "evaluation" / "h3"
 
 
+# --------------------------------------------------------------------------------------------- #
+# the 20 h wall-clock cap of POST-HOC addendum 4 item 2 and the NOT_RUN designs
+# --------------------------------------------------------------------------------------------- #
+
+def h3_decisions_dir(out_root: Path) -> Path:
+    return h3_root(out_root) / "decisions"
+
+
+def h3_wall_clock_path(out_root: Path) -> Path:
+    """``evaluation/h3/decisions/wall_clock.json`` -- the ledger POST-HOC addendum 4 item 2 names."""
+    return h3_decisions_dir(out_root) / "wall_clock.json"
+
+
+def h3_decisions_path(out_root: Path) -> Path:
+    """``evaluation/h3/decisions/h3_decisions.json`` -- the exploratory transforms, the per-design statuses and the
+    refits of POST-HOC addendum 4 items 1-3."""
+    return h3_decisions_dir(out_root) / "h3_decisions.json"
+
+
+def _rel(path: Path) -> str:
+    """``paths.rel`` where the path is inside the repository, its own POSIX form otherwise (a ``tmp_path`` in tests)."""
+    try:
+        return paths.rel(path)
+    except ValueError:
+        return Path(path).resolve().as_posix()
+
+
+def _iso(stamp: Any) -> float | None:
+    try:
+        return _dt.datetime.fromisoformat(str(stamp)).timestamp()
+    except (TypeError, ValueError):
+        return None
+
+
+def union_seconds(intervals: Iterable[tuple[float, float]]) -> float:
+    """Seconds covered by the UNION of ``[start, end]`` intervals: the WALL CLOCK of several workers, so two workers
+    running the same hour consume one hour (:data:`READINGS` ``h3_budget``)."""
+    spans = sorted((float(a), float(b)) for a, b in intervals if b is not None and a is not None and float(b) >= float(a))
+    total, cur_a, cur_b = 0.0, None, None
+    for a, b in spans:
+        if cur_a is None:
+            cur_a, cur_b = a, b
+        elif a <= cur_b:
+            cur_b = max(cur_b, b)
+        else:
+            total += cur_b - cur_a
+            cur_a, cur_b = a, b
+    return total + (0.0 if cur_a is None else cur_b - cur_a)
+
+
+def h3_wall_clock(out_root: Path) -> dict[str, Any]:
+    """The ledger's wall clock: ``wall_seconds`` (the union of every recorded invocation's interval -- the number the cap
+    reads), ``worker_seconds`` (their sum) and the invocation count.  An invocation without usable timestamps falls back
+    to its own ``seconds`` so it can never be counted as free."""
+    body = D.read_record(h3_wall_clock_path(out_root)) or {}
+    invs = list(body.get("invocations") or [])
+    spans, extra, worker = [], 0.0, 0.0
+    for inv in invs:
+        secs = float(inv.get("seconds") or 0.0)
+        worker += secs
+        a, b = _iso(inv.get("started_utc")), _iso(inv.get("ended_utc"))
+        if a is None:
+            extra += secs
+            continue
+        spans.append((a, b if b is not None else a + secs))
+    return {"wall_seconds": union_seconds(spans) + extra, "worker_seconds": worker, "n_invocations": len(invs),
+            "ledger": _rel(h3_wall_clock_path(out_root))}
+
+
+def h3_budget_status(wall_seconds: float, *, worker_seconds: float | None = None,
+                     budget_hours: float = H3_BUDGET_HOURS) -> dict[str, Any]:
+    """POST-HOC addendum 4 item 2: wall clock against the 20 h cap, with the priority order and what a reached cap does.
+
+    ``wall_seconds`` is the union of the workers' intervals (:func:`h3_wall_clock`); ``worker_seconds`` is recorded
+    beside it and is NEVER the number compared with the cap."""
+    used_h = float(wall_seconds) / 3600.0
+    exhausted = used_h >= float(budget_hours)
+    return {"budget_hours": float(budget_hours), "workers_max": H3_WORKERS, "used_hours": round(used_h, 4),
+            "remaining_hours": round(float(budget_hours) - used_h, 4), "exhausted": exhausted,
+            "worker_hours": None if worker_seconds is None else round(float(worker_seconds) / 3600.0, 4),
+            "priority_order": list(DESIGN_PRIORITY), "ledger": "evaluation/h3/decisions/wall_clock.json",
+            "on_exhaustion": ("the design being fitted and every later design in the priority order are reported "
+                              f"{NOT_RUN} with the reason; no verdict is taken from a partial design"),
+            "reading": READINGS["h3_budget"]}
+
+
+def record_h3_wall_clock(out_root: Path, *, started: str, ended: str, seconds: float, designs_done: Sequence[str],
+                         workers: int = 1, process_seconds: float | None = None, note: str | None = None,
+                         path: Path | None = None) -> Path:
+    """Append one invocation to ``evaluation/h3/decisions/wall_clock.json`` and rewrite the budget block.
+
+    ``seconds`` is the fitting loop's own wall clock -- the number the cap reads; ``process_seconds`` is the whole
+    invocation (gate, corpus load, scoring), recorded so an invocation that ran and skipped every fold is
+    distinguishable from one that never ran."""
+    from gen19ct.manifest import write_json as _write_json
+
+    p = h3_wall_clock_path(out_root) if path is None else Path(path)
+    body = D.read_record(p) or {"schema": SCHEMA, "invocations": []}
+    body["invocations"] = list(body.get("invocations") or []) + [json_safe({
+        "started_utc": str(started), "ended_utc": str(ended), "seconds": round(float(seconds), 3),
+        "process_seconds": None if process_seconds is None else round(float(process_seconds), 3),
+        "designs_done": list(designs_done), "workers": int(workers), "note": note})]
+    paths.ensure_dir(p.parent)
+    _write_json(p, body)                                    # so the clock below reads what was just appended
+    wc = h3_wall_clock(out_root) if path is None else {
+        "wall_seconds": union_seconds([(a, b) for a, b in
+                                       ((_iso(i.get("started_utc")), _iso(i.get("ended_utc"))) for i in body["invocations"])
+                                       if a is not None and b is not None]),
+        "worker_seconds": sum(float(i.get("seconds") or 0.0) for i in body["invocations"]),
+        "n_invocations": len(body["invocations"]), "ledger": str(p)}
+    body.update({"budget_hours": H3_BUDGET_HOURS, "workers_max": H3_WORKERS,
+                 "wall_hours": round(wc["wall_seconds"] / 3600.0, 4),
+                 "worker_hours": round(wc["worker_seconds"] / 3600.0, 4),
+                 "budget": h3_budget_status(wc["wall_seconds"], worker_seconds=wc["worker_seconds"]),
+                 "invocation_reading": ("'seconds' is the fitting loop's own wall clock; the cap reads the UNION of the "
+                                        "invocations' [started_utc, ended_utc] intervals (wall clock on up to "
+                                        f"{H3_WORKERS} workers), never the sum"),
+                 "reading": READINGS["h3_budget"]})
+    return _write_json(p, body)
+
+
+def open_h3_wall_clock(out_root: Path, *, prior_legs: Mapping[str, Any] | None = None, note: str | None = None,
+                       path: Path | None = None) -> Path:
+    """Create ``evaluation/h3/decisions/wall_clock.json`` with an EMPTY invocation list, the 20 h cap and its reading.
+
+    POST-HOC addendum 4 item 2 grants the cap on 2026-09-23, after the V5 leg of the deployed arm had already been
+    fitted; ``prior_legs`` records what that leg cost, measured from its own fold records, as a number the ledger
+    REPORTS and does not count -- the cap governs the work the addendum scopes ("V5 (done), then V2, then V1").  An
+    existing ledger is left untouched (its invocations are the cap's only input)."""
+    from gen19ct.manifest import write_json as _write_json
+
+    p = h3_wall_clock_path(out_root) if path is None else Path(path)
+    if p.exists():
+        return p
+    body: dict[str, Any] = {
+        "schema": SCHEMA, "invocations": [], "budget_hours": H3_BUDGET_HOURS, "workers_max": H3_WORKERS,
+        "wall_hours": 0.0, "worker_hours": 0.0, "budget": h3_budget_status(0.0, worker_seconds=0.0),
+        "opened_utc": _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds"),
+        "prior_legs_not_counted": dict(prior_legs or {}),
+        "prior_legs_reading": ("POST-HOC addendum 4 item 2 grants the cap after the V5 leg of the deployed arm was "
+                               "already fitted and names the priority order 'V5 (done), then V2, then V1', so the cap "
+                               "governs the work from here; what the finished leg cost is measured from its own fold "
+                               "records and REPORTED, never subtracted from the 20 h. If the orchestrator reads the cap "
+                               "as covering H3 end to end, the prior hours below are the number to subtract"),
+        "invocation_reading": ("'seconds' is the fitting loop's own wall clock; the cap reads the UNION of the "
+                               "invocations' [started_utc, ended_utc] intervals (wall clock on up to "
+                               f"{H3_WORKERS} workers), never the sum"),
+        "note": note, "reading": READINGS["h3_budget"]}
+    paths.ensure_dir(p.parent)
+    return _write_json(p, body)
+
+
+def measure_leg_seconds(out_root: Path, *, model_arm: str, transform: str, design_dir: str,
+                        seed: int = D.PRIMARY_SEED) -> dict[str, Any]:
+    """The wall clock one finished H3 leg cost, from its own fold records (``steps.<step>.seconds``): the per-fold mean
+    and median and the serial total.  Used to price the remaining folds and to report what a finished leg cost."""
+    d = h3_root(out_root) / "records" / D.ARM_ALIASES.get(model_arm, model_arm) / transform / design_dir / f"s{int(seed)}"
+    secs = []
+    for js in sorted(d.glob("*.json")) if d.exists() else []:
+        rec = D.read_record(js)
+        steps = (rec or {}).get("steps") or {}
+        secs.append(sum(float(s.get("seconds") or 0.0) for s in steps.values() if isinstance(s, Mapping)))
+    secs.sort()
+    n = len(secs)
+    return {"dir": _rel(d), "n_folds": n, "total_seconds": round(sum(secs), 1),
+            "total_hours": round(sum(secs) / 3600.0, 4),
+            "mean_seconds": None if not n else round(sum(secs) / n, 1),
+            "median_seconds": None if not n else round(secs[n // 2] if n % 2 else (secs[n // 2 - 1] + secs[n // 2]) / 2, 1),
+            "min_seconds": None if not n else round(secs[0], 1), "max_seconds": None if not n else round(secs[-1], 1)}
+
+
+#: what a NOT_RUN design contributes, printed in its entry so the claim can be checked against the files
+NOT_RUN_CONTRIBUTES = ("no contrast row, no R19 item row, no delta, no per-unit row, no F4 entry (NOT_COMPUTED) and no "
+                       "V1 / V2 non-inferiority input (None)")
+
+
+def not_run_design(design: str, reason: str, *, budget: Mapping[str, Any] | None = None,
+                   n_folds_expected: int | None = None, n_folds_done: int | None = None,
+                   blocked_by: str | None = None) -> dict[str, Any]:
+    """The record of a design the plan did not reach or did not finish (POST-HOC addendum 4 item 2): ``NOT_RUN`` with its
+    reason, never a partial verdict.
+
+    ``blocked_by`` names the DEVIATION when the design was not stopped by the 20 h cap but by an error (addendum 4 item 2
+    registers the arm set and says "That is registered and is run in full", so a design left incomplete by anything other
+    than the cap is a deviation and is labelled one: task X finding protocol VH-07)."""
+    cap = budget is not None and bool(dict(budget).get("exhausted"))
+    return {"design": str(design), "status": NOT_RUN, "reason": str(reason),
+            "n_folds_expected": None if n_folds_expected is None else int(n_folds_expected),
+            "n_folds_done": None if n_folds_done is None else int(n_folds_done),
+            "budget": None if budget is None else dict(budget), "verdict_taken": False,
+            "contributes": NOT_RUN_CONTRIBUTES, "complete_legs": [],
+            "stopped_by": "the 20 h wall-clock cap" if cap else (blocked_by or "not the cap"),
+            "deviation": None if cap else (
+                "POST-HOC addendum 4 item 2 registers the design scope and says 'That is registered and is run in "
+                "full'; this design is incomplete and the 20 h cap was NOT reached, so its non-completion is a "
+                "DEVIATION from the addendum, not an application of the cap"
+                + (f" -- blocked by: {blocked_by}" if blocked_by else "")),
+            "rule": "POST-HOC addendum 4 item 2: any design not reached is reported NOT_RUN with its reason -- no "
+                    "verdict is taken from a partial design", "reading": READINGS["design_priority"]}
+
+
+def blocking_errors(out_root: Path) -> dict[str, list[dict[str, Any]]]:
+    """The fold errors the wall-clock ledger recorded, grouped by design (``<arm>:<transform>@<design>``).
+
+    POST-HOC addendum 4 item 2 registers the H3 design scope and says it "is run in full"; the cap is the only registered
+    reason a design may stay incomplete.  When a design is incomplete while the cap is unreached, the reason is an error,
+    and the error must be named in the NOT_RUN entry and in D03 rather than hidden behind the cap's vocabulary
+    (task X finding protocol VH-07).  The ledger's ``invocations[*].note`` is the only place the runner records it."""
+    led = D.read_record(h3_wall_clock_path(out_root)) or {}
+    out: dict[str, list[dict[str, Any]]] = {}
+    for inv in led.get("invocations") or []:
+        note = str((inv or {}).get("note") or "")
+        if not note.startswith("error in "):
+            continue
+        # "error in B5:ACT_PERMUTED@V1: AssertionError: ..." -- the job key itself contains colons, so it is matched, not
+        # split off
+        m = re.search(r"([A-Za-z0-9_]+:[A-Za-z0-9_]+@([A-Za-z0-9_]+))", note)
+        what, design = (m.group(1), m.group(2)) if m else (note[len("error in "):].strip(), "")
+        out.setdefault(design, []).append({"what": what, "note": note, "started_utc": (inv or {}).get("started_utc"),
+                                           "ended_utc": (inv or {}).get("ended_utc")})
+    return out
+
+
+def attach_not_run_context(not_run: Mapping[str, Any], *, scored_triples: Iterable[tuple[str, str, str]] = (),
+                           blocking: Mapping[str, list[dict[str, Any]]] | None = None) -> dict[str, Any]:
+    """Fill in, per ``NOT_RUN`` design, the legs that ARE complete and WHAT stopped it.
+
+    Two things must not be lost when a design is suppressed: the record sets that are complete (real compute, kept on disk
+    and scored as soon as the design completes) and the true cause, which addendum 4 item 2's vocabulary otherwise makes
+    look like the 20 h cap.  When the cap is not exhausted the entry carries the blocking error from the wall-clock ledger
+    and is labelled a DEVIATION (task X findings protocol VH-01 and VH-07)."""
+    trip = list(scored_triples)
+    out = dict(not_run)
+    for design, st in out.items():
+        if not isinstance(st, dict):
+            continue
+        st["complete_legs"] = sorted({f"{a}:{t}@{d}" for a, t, d in trip if str(d) == str(design)})
+        st["complete_legs_reading"] = ("these record sets are COMPLETE and stay on disk; while the design is NOT_RUN "
+                                      "nothing is read from them -- no contrast, delta, per-unit row, F4 entry or "
+                                      "non-inferiority input (POST-HOC addendum 4 item 2)")
+        errs = list((blocking or {}).get(str(design)) or [])
+        cap = bool((st.get("budget") or {}).get("exhausted"))
+        if errs:
+            st["blocking_errors"] = errs
+        if not cap:
+            st["stopped_by"] = "; ".join(str(e.get("note")) for e in errs) if errs else "not the cap (cause not recorded)"
+            st["deviation"] = (
+                "POST-HOC addendum 4 item 2 registers the H3 design scope (V5 Ln cells, V2 Ln folds, V1 Ln rows; arms B5 "
+                "and B6) and says 'That is registered and is run in full'. The 20 h cap is the only registered reason a "
+                f"design may stay incomplete, and it was NOT reached, so {design} being incomplete is a DEVIATION from "
+                "the addendum, not an application of the cap"
+                + (f" -- cause: {st['stopped_by']}" if errs else ""))
+    return out
+
+
+def drop_not_run_designs(not_run: Mapping[str, Any], *, frames: Mapping[str, pd.DataFrame | None] = (),
+                         rows: Mapping[str, list[dict[str, Any]]] = (),
+                         nested: Iterable[Mapping[str, Any]] = ()) -> dict[str, Any]:
+    """POST-HOC addendum 4 item 2, "no verdict is taken from a partial design": remove every row, frame row and nested
+    ``[arm][design]`` entry of a ``NOT_RUN`` design, in place for the nested mappings and by returning filtered copies for
+    the tabular ones.
+
+    The unit of NOT_RUN is the DESIGN (:data:`READINGS` ``design_priority``): a design one of whose arm x transform record
+    sets is incomplete is NOT_RUN even when another leg is complete, so the complete leg's rows must not reach a table
+    either -- otherwise ``designs_scored`` and ``designs_not_run`` name the same design and D03 prints both NOT_RUN and a
+    FAIL verdict for it (task X finding protocol VH-01)."""
+    bad = {str(d) for d in dict(not_run or {})}
+    dropped: dict[str, Any] = {"designs": sorted(bad), "n_rows_dropped": {}, "n_frame_rows_dropped": {}}
+    out_rows = {k: [r for r in v if str(r.get("design")) not in bad] for k, v in dict(rows or {}).items()}
+    for k, v in dict(rows or {}).items():
+        dropped["n_rows_dropped"][k] = len(v) - len(out_rows[k])
+    out_frames: dict[str, pd.DataFrame | None] = {}
+    for k, fr in dict(frames or {}).items():
+        if fr is None or getattr(fr, "empty", True) or "design" not in getattr(fr, "columns", ()):
+            out_frames[k] = fr
+            dropped["n_frame_rows_dropped"][k] = 0
+            continue
+        keep = ~fr["design"].astype(str).isin(sorted(bad))
+        out_frames[k] = fr[keep].reset_index(drop=True)
+        dropped["n_frame_rows_dropped"][k] = int((~keep).sum())
+    for holder in nested:
+        for arm in list(holder):
+            per = holder[arm]
+            if isinstance(per, dict):
+                for d in list(per):
+                    if str(d) in bad:
+                        per.pop(d)
+    dropped["rows"], dropped["frames"] = out_rows, out_frames
+    return dropped
+
+
+def design_status(record_sets: Mapping[str, Any], design: str, transform: str, model_arm: str) -> dict[str, Any]:
+    """The ``read_record_set`` status of one (transform, arm, design) as :class:`Frames` recorded it, as a design
+    status: ``complete`` / ``NOT_RUN`` (missing) / ``NOT_RUN`` (partial: n of m folds)."""
+    hit = [(k, v) for k, v in dict(record_sets).items()
+           if isinstance(v, Mapping) and str(v.get("what") or "") == f"{model_arm}:{transform}@{design}"]
+    if not hit:
+        return not_run_design(design, f"no record set of {model_arm}:{transform}@{design} was read")
+    key, st = hit[0]
+    if str(st.get("status")) == "complete":
+        return {"design": str(design), "status": "complete", "key": key, "n_folds": st.get("n_found"),
+                "verdict_taken": True}
+    return not_run_design(design, f"{model_arm}:{transform}@{design} record set is {st.get('status')} "
+                                  f"({st.get('n_found')} of {st.get('n_expected')} folds; "
+                                  f"missing {list(st.get('missing_folds') or [])[:5]})",
+                          n_folds_expected=st.get("n_expected"), n_folds_done=st.get("n_found"))
+
+
+def assert_no_partial_design(record_sets: Mapping[str, Any], scored: Iterable[tuple[str, str, str]]) -> dict[str, Any]:
+    """POST-HOC addendum 4 item 2: "no verdict is taken from a partial design".
+
+    ``scored`` lists the (model arm, transform, design) triples a contrast was actually computed for.  Every one of them
+    must have a COMPLETE record set; a partial (``incomplete``) one raises :class:`AssertionError`, because
+    :func:`h3_contrast` would then silently score a subset of the design's folds.  Returns the per-triple statuses."""
+    out: dict[str, Any] = {}
+    bad = []
+    for arm, transform, design in scored:
+        st = design_status(record_sets, design, transform, arm)
+        out[f"{arm}:{transform}@{design}"] = st
+        if st["status"] != "complete":
+            bad.append(f"{arm}:{transform}@{design}: {st['reason']}")
+    if bad:
+        raise AssertionError("POST-HOC addendum 4 item 2: no verdict is taken from a partial design, yet a contrast was "
+                             f"scored on an incomplete record set: {bad}")
+    return out
+
+
+def exploratory_records(out_root: Path, *, model_arms: Sequence[str] = (), state: D.PlanState | None = None,
+                        designs: Sequence[str] = tuple(DESIGNS), seed: int = D.PRIMARY_SEED) -> dict[str, Any]:
+    """POST-HOC addendum 4 item 1: every ACT_METAL_SHUFFLED record on disk, labelled
+    :data:`EXPLORATORY_NOT_SCORED`.
+
+    The records are neither deleted nor rewritten; this is the H3 decisions entry that says they exist and are not
+    scored.  Directories are listed from disk (``records/<arm>/<transform>``), so the inventory does not depend on the
+    plan."""
+    root = h3_root(out_root) / "records"
+    found: list[dict[str, Any]] = []
+    for transform in EXPLORATORY_TRANSFORMS:
+        for d in sorted(root.glob(f"*/{transform}/*/*")) if root.exists() else []:
+            if not d.is_dir():
+                continue
+            js = sorted(d.glob("*.json"))
+            found.append({"dir": _rel(d), "arm": d.parts[-4], "transform": transform, "design_dir": d.parts[-2],
+                          "seed_dir": d.name, "n_records": len(js), "folds": [p.stem for p in js]})
+    return {"transforms": list(EXPLORATORY_TRANSFORMS), "status": EXPLORATORY_NOT_SCORED,
+            "n_records": sum(f["n_records"] for f in found), "record_sets": found,
+            "scored": False, "deleted": False,
+            "reason": ACT_METAL_SHUFFLED_NOT_RUN,
+            "rule": "POST-HOC addendum 4 item 1: ACT_METAL_SHUFFLED is not run; the single fold already fitted is "
+                    "labelled exploratory and is not scored (it is kept on disk, never rewritten)"}
+
+
+# --------------------------------------------------------------------------------------------- #
+# record layout and digests
+# --------------------------------------------------------------------------------------------- #
+
+
 def record_dir(out_root: Path, model_arm: str, transform: str, job: D.JobSpec) -> Path:
     return h3_root(out_root) / "records" / D.ARM_ALIASES.get(model_arm, model_arm) / transform / job.design_dir / f"s{job.seed}"
 
@@ -1009,16 +1657,144 @@ def fold_paths(out_root: Path, model_arm: str, transform: str, job: D.JobSpec, f
 
 
 def fold_digest(job: D.JobSpec, fold: FI.Fold, code: str, *, transform: str, with_digest: str | None, guard_mode: str,
-                design_hash: str, ordinal: int, model_seed: int | None) -> str:
+                design_hash: str, ordinal: int, model_seed: int | None, addenda: str | None = None) -> str:
     """The resume / verification digest of one H3 fold: ``discovery.fold_digest`` of the H3 job with the transform, the
     WITH record's digest (the hyperparameters it supplies), the guard mode, the fold file's design hash, the model fold
     number and seed and the registered pre-registration and addenda digests.  The addenda digest is the H3 stage's
-    registry entry when ``manifests/digest_registry.json`` exists (addendum 2 item 5), else ``REGISTERED_ADDENDA_SHA256``."""
+    registry entry when ``manifests/digest_registry.json`` exists (addendum 2 item 5), else ``REGISTERED_ADDENDA_SHA256``.
+
+    ``addenda`` overrides it with the below-footer digest an EXISTING record was WRITTEN under, exactly as ``code`` is
+    overridden for the same reason (:func:`record_digest_basis`, :data:`READINGS` ``record_digest_basis``); a record
+    being written now passes neither and carries the live pair."""
     return D.fold_digest(job, fold, code, {"schema": SCHEMA, "transform": transform, "with_record_digest": with_digest,
                                            "guard_mode": guard_mode, "design_hash": str(design_hash),
                                            "model_fold_number": int(ordinal), "model_seed": model_seed,
                                            "prereg_sha256": D.REGISTERED_PREREG_SHA256,
-                                           "prereg_addenda_sha256": REG.below_footer_sha256("h3")})
+                                           "prereg_addenda_sha256": (REG.below_footer_sha256("h3") if addenda is None
+                                                                     else str(addenda))})
+
+
+def record_digest_basis(record: Mapping[str, Any] | None, live_code: str, *, stage: str = "h3",
+                        path: Path | None = None) -> dict[str, Any]:
+    """The (code digest, below-footer digest) ONE existing H3 fold record's digest is verified with.
+
+    Addendum 2 item 5 ("a record is verified against the registry entry of its stage ... a later edit can neither
+    validate nor invalidate a record written earlier") and POST-HOC addendum 4 item 3 ("records written before the
+    supersession keep their entry and verify as registered"): the record's own ``code_digest`` and
+    ``prereg_addenda_sha256`` are used when :func:`registry.verify_record` matches them to an entry of ``stage`` --
+    current or superseded, ordered by the record's own timestamp.  Otherwise the LIVE pair is returned, so a stale
+    record (``stale_after_supersession``) and a foreign record fail exactly where they did before and are refitted.
+
+    Per RECORD, not per directory: after the addendum 4 item 3 refits a transform's directory holds records of two
+    entries, and each must still be verified against its own."""
+    live = {"code": str(live_code), "addenda": REG.below_footer_sha256(stage, path), "resolved": "live",
+            "record_code": None, "record_addenda": None}
+    if record is None:
+        return {**live, "note": "no record on disk; the live code and registered below-footer digest govern"}
+    have_code, have_add = record.get("code_digest"), record.get("prereg_addenda_sha256")
+    live = {**live, "record_code": have_code, "record_addenda": have_add}
+    if str(have_code) == live["code"] and str(have_add) == live["addenda"]:
+        return {**live, "resolved": "current"}
+    v = REG.verify_record(record, stage, path=path)
+    if v.get("ok") is not True or not have_code or not have_add:
+        return {**live, "verify": {k: v.get(k) for k in ("ok", "reason", "stale_after_supersession")},
+                "note": "the record does not verify against any entry of this stage at its own timestamp: the live "
+                        "digests govern and the record is refitted (POST-HOC addendum 4 item 3)"}
+    return {"code": str(have_code), "addenda": str(have_add), "resolved": str(v.get("matched_entry") or "superseded"),
+            "record_code": have_code, "record_addenda": have_add,
+            "superseded_utc": (v.get("superseded_match") or {}).get("superseded_utc"),
+            "written_utc": v.get("written_utc"),
+            "note": f"the record was written under the {v.get('matched_entry')} entry of stage {stage!r} and verifies "
+                    "against it (addendum 2 item 5; POST-HOC addendum 4 item 3)",
+            "reading": READINGS["record_digest_basis"]}
+
+
+def stale_records(out_root: Path, *, stage: str = "h3", path: Path | None = None) -> dict[str, Any]:
+    """Every H3 fold record that does NOT verify against any entry of stage ``stage`` at its own timestamp.
+
+    POST-HOC addendum 4 item 3: "Records written under a superseded code digest are refitted, not accepted" -- a record
+    a runner holding stale code wrote AFTER its entry was superseded (``registry.verify_record`` ->
+    ``stale_after_supersession``).  Returns the stale records, the verifying ones and the unverifiable ones grouped by
+    record set.  Nothing is deleted here (:func:`delete_records`).
+
+    A stale record of an EXPLORATORY transform is reported separately (``stale_exploratory``) and is NOT in ``stale``:
+    POST-HOC addendum 4 item 1 keeps the one ACT_METAL_SHUFFLED fold on disk as :data:`EXPLORATORY_NOT_SCORED`, and item
+    3's refits are the records a delta is scored from."""
+    root = h3_root(out_root) / "records"
+    stale: list[dict[str, Any]] = []
+    stale_expl: list[dict[str, Any]] = []
+    ok: list[dict[str, Any]] = []
+    other: list[dict[str, Any]] = []
+    for js in sorted(root.glob("*/*/*/*/*.json")) if root.exists() else []:
+        rec = D.read_record(js)
+        if rec is None:
+            other.append({"path": _rel(js), "reason": "unreadable record"})
+            continue
+        v = REG.verify_record(rec, stage, path=path)
+        row = {"path": _rel(js), "arm": rec.get("model_arm"), "transform": rec.get("transform"),
+               "design_dir": js.parts[-3], "seed_dir": js.parts[-2], "stem": rec.get("stem"),
+               "fold_id": rec.get("fold_id"), "code_digest": rec.get("code_digest"),
+               "prereg_addenda_sha256": rec.get("prereg_addenda_sha256"), "written_utc": REG.record_run_utc(rec),
+               # the ordering that exempts a pre-supersession record from refitting rests on this stamp; a record
+               # without written_utc is ordered by a DERIVED one, so the source and the check are recorded per record
+               # (task X findings numbers VH-04 / VH-05)
+               "written_utc_source": REG.record_run_utc_source(rec),
+               "ordering_checked": bool(v.get("ordering_checked")),
+               "superseded_utc_of_matched_entry": (v.get("superseded_match") or {}).get("superseded_utc"),
+               "matched_entry": v.get("matched_entry")}
+        if v.get("ok") is True:
+            ok.append(row)
+        elif v.get("stale_after_supersession"):
+            hit = {**row, "stale_after_supersession": v["stale_after_supersession"], "reason": v.get("reason")}
+            if is_scored_transform(str(row.get("transform"))):
+                stale.append(hit)
+            else:
+                stale_expl.append({**hit, "status": EXPLORATORY_NOT_SCORED, "kept": True,
+                                   "kept_reason": "POST-HOC addendum 4 item 1: the fold already fitted is labelled "
+                                                  "exploratory and is not scored; it is not refitted and not deleted"})
+        else:
+            other.append({**row, "ok": v.get("ok"), "reason": v.get("reason")})
+    by_entry: dict[str, int] = {}
+    src: dict[str, int] = {}
+    for r in (*ok, *stale, *stale_expl):
+        by_entry[str(r.get("matched_entry"))] = by_entry.get(str(r.get("matched_entry")), 0) + 1
+        src[str(r.get("written_utc_source"))] = src.get(str(r.get("written_utc_source")), 0) + 1
+    return {"stage": stage, "n_records": len(stale) + len(stale_expl) + len(ok) + len(other), "stale": stale,
+            "stale_exploratory": stale_expl, "verifying": ok, "not_verifying_other": other,
+            "matched_entry_counts": by_entry, "written_utc_source_counts": src,
+            "rule": "POST-HOC addendum 4 item 3: a record written after its stage's entry was superseded, still carrying "
+                    "the superseded digests, is DELETED and refitted under the current registered digest before any H3 "
+                    "delta is scored; records written before the supersession keep their entry and verify as registered",
+            # what "verifies" MEANS here, stated because no H3 record verifies against the CURRENT entry: the refits were
+            # written under the entry that was current at the moment of the refit, and three later reporting-only edits
+            # to h3.py superseded it before scoring (task X findings numbers VH-04 / protocol VH-06)
+            "operative_reading": OPERATIVE_DIGEST_READING}
+
+
+def delete_records(rows: Sequence[Mapping[str, Any]], *, out_root: Path | None = None, dry_run: bool = True
+                   ) -> dict[str, Any]:
+    """Delete exactly the listed fold records and their prediction parquets (POST-HOC addendum 4 item 3).
+
+    ``dry_run`` (the default) only reports what would go.  Each row is one ``*.json`` path as :func:`stale_records`
+    reports it; the sibling ``*.parquet`` goes with it, because a prediction without a record raises."""
+    base = paths.REPO_ROOT if out_root is None else Path(out_root)
+    planned, removed, missing = [], [], []
+    for row in rows:
+        js = Path(row["path"])
+        js = js if js.is_absolute() else base / js
+        pq = js.with_suffix(".parquet")
+        for p in (js, pq):
+            if not p.exists():
+                missing.append(_rel(p))
+                continue
+            planned.append(_rel(p))
+            if not dry_run:
+                p.unlink()
+                removed.append(_rel(p))
+    return {"dry_run": bool(dry_run), "n_records": len(rows), "planned": planned, "removed": removed,
+            "already_absent": missing,
+            "rule": "POST-HOC addendum 4 item 3: exactly the records that do not verify at their own timestamp are "
+                    "deleted; nothing else is touched and no record is rewritten"}
 
 
 def record_set_code(directory: Path, live: str, *, stage: str = "h3", path: Path | None = None) -> dict[str, Any]:
@@ -1068,15 +1844,20 @@ def read_record_set(root: Path, expected: Mapping[str, Mapping[str, str]], *, st
                     what: str = "") -> tuple[pd.DataFrame | None, dict[str, Any]]:
     """The verified fold records of one H3 (model arm, transform, design, seed) directory, exactly as
     ``discovery.read_discovery_record_set`` verifies discovery records: ``expected`` maps every fittable fold id to
-    ``{"digest", "fold_hash"}`` as the current code computes them; a foreign fold, a differing digest or fold hash, a
-    prediction without a record or a record lacking a step raises :class:`discovery.StaleRecordError`; missing folds
-    give ``(None, status)``."""
+    ``{"digest", "fold_hash"}`` as the current code computes them; a foreign fold, a differing digest or fold hash or a
+    prediction without a record raises :class:`discovery.StaleRecordError`; missing folds give ``(None, status)``.
+
+    A record that LACKS one of the requested ``steps`` (a fold whose ``intervals`` step never ran, e.g. after the job
+    stopped on an error) is NOT counted as found: the set reads ``incomplete`` and the fold is named in
+    ``folds_missing_steps``.  Callers ask for the steps whose columns they read -- :class:`Frames` asks for
+    :data:`STEPS` -- so a point-only record can never make a set read complete and turn an interval-based delta silently
+    NOT_RUN through :func:`_has_intervals` (task X finding numbers VH-06)."""
     exp = {str(k): dict(v) for k, v in expected.items()}
-    status: dict[str, Any] = {"what": what, "n_expected": len(exp)}
+    status: dict[str, Any] = {"what": what, "n_expected": len(exp), "steps_required": list(steps)}
     if not Path(root).exists():
         return None, {**status, "status": "missing", "n_found": 0}
     by_name = {D.safe_fold_name(k): k for k in exp}
-    frames, found = [], set()
+    frames, found, partial = [], set(), {}
     for pq in sorted(Path(root).glob("*.parquet")):
         rec = D.read_record(pq.with_suffix(".json"))
         if rec is None:
@@ -1091,13 +1872,19 @@ def read_record_set(root: Path, expected: Mapping[str, Mapping[str, str]], *, st
             raise D.StaleRecordError(f"{pq}: fold hash differs from the registered fold")
         missing = [s for s in steps if s not in (rec.get("steps") or {})]
         if missing:
-            raise D.StaleRecordError(f"{pq}: record lacks step(s) {missing}")
+            # not found, not an error: the fold has to be re-run for the missing step, and the set must read
+            # ``incomplete`` rather than count a point-only record as complete (task X finding numbers VH-06)
+            partial[fid] = {"steps_done": sorted(rec.get("steps") or {}), "steps_missing": missing,
+                            "intervals_status": rec.get("intervals_status")}
+            continue
         fr = pd.read_parquet(pq)
         if len(fr) and (fr["fold_id"].astype(str) != fid).any():
             raise D.StaleRecordError(f"{pq}: parquet rows of another fold")
         frames.append(fr)
         found.add(fid)
     status["n_found"] = len(found)
+    if partial:
+        status["folds_missing_steps"] = {k: partial[k] for k in sorted(partial)}
     if found != set(exp):
         return None, {**status, "status": "incomplete", "missing_folds": sorted(set(exp) - found)[:10]}
     out = pd.concat(frames, ignore_index=True) if frames else None
@@ -1673,10 +2460,134 @@ def _fmt(v: Any, fmt: str = "{:.3f}") -> str:
         return str(v)
 
 
+def _addendum4_lines(summary: Mapping[str, Any]) -> list[str]:
+    """The D03 paragraph of POST-HOC addendum 4: the dropped control, the 20 h cap and every ``NOT_RUN`` design."""
+    expl = summary.get("exploratory") or {}
+    bud = summary.get("budget") or {}
+    nrun = summary.get("designs_not_run") or {}
+    lines = ["POST-HOC addendum 4:", "",
+             f"- item 1 -- ACT_METAL_SHUFFLED is **not run**; the {expl.get('n_records', 0)} fold(s) already fitted are "
+             f"`{expl.get('status', EXPLORATORY_NOT_SCORED)}` and enter no contrast, table or verdict. {ACT_METAL_SHUFFLED_NOT_RUN}.",
+             f"- item 2 -- compute cap: {_fmt(bud.get('used_hours'), '{:.2f}')} h of "
+             f"{bud.get('budget_hours', H3_BUDGET_HOURS)} h wall clock used on at most {bud.get('workers_max', H3_WORKERS)} "
+             f"workers (`evaluation/h3/decisions/wall_clock.json`); priority order "
+             f"{' -> '.join(bud.get('priority_order') or DESIGN_PRIORITY)}; exhausted = {bud.get('exhausted')}."]
+    if nrun:
+        for d, rec in sorted(nrun.items()):
+            r = rec if isinstance(rec, Mapping) else {}
+            lines.append(f"- design **{d}: {NOT_RUN}** -- {r.get('reason', NOT_COMPUTED)}. It contributes "
+                         f"{r.get('contributes', NOT_RUN_CONTRIBUTES)}; `designs_scored` does not name it.")
+            if r.get("complete_legs"):
+                lines.append(f"  - complete legs kept on disk but **not scored**: {', '.join(r['complete_legs'])} "
+                             f"-- {r.get('complete_legs_reading', '')}")
+            if r.get("deviation"):
+                lines.append(f"  - **DEVIATION (not the cap):** {r['deviation']}")
+            for e in r.get("blocking_errors") or []:
+                lines.append(f"  - blocking error: `{e.get('note')}` (invocation {e.get('started_utc')} -> "
+                             f"{e.get('ended_utc')}; `evaluation/h3/decisions/wall_clock.json -> invocations[*].note`)")
+    else:
+        lines.append(f"- every design in {', '.join(DESIGN_PRIORITY)} was reached (no {NOT_RUN} design).")
+    ref = summary.get("refits") or {}
+    if ref:
+        counts = ref.get("matched_entry_counts") or {}
+        lines.append(f"- item 3 -- {len(ref.get('verifying') or [])} fold record(s) verify against the registry entry they "
+                     f"were written under (`matched_entry`: "
+                     + (", ".join(f"{k} = {v}" for k, v in sorted(counts.items())) if counts else NOT_COMPUTED)
+                     + f"); {len(ref.get('stale') or [])} scored-transform record(s) still carry a "
+                     "superseded `h3` digest written after the supersession (these are deleted and refitted before any "
+                     f"delta is scored, and must be 0 here); {len(ref.get('stale_exploratory') or [])} exploratory "
+                     f"record(s) are `{EXPLORATORY_NOT_SCORED}` and are neither refitted nor deleted.")
+        lines.append(f"  - **what \"verifies\" means here.** {ref.get('operative_reading', OPERATIVE_DIGEST_READING)}")
+        src = ref.get("written_utc_source_counts") or {}
+        if src:
+            lines.append("  - timestamp the ordering check used, per record: "
+                         + ", ".join(f"`{k}` = {v}" for k, v in sorted(src.items()))
+                         + " (a record without `written_utc` is ordered by the derived "
+                           "`max(steps.*.date_utc)`; both are recorded per record in "
+                           "`evaluation/h3/decisions/refits.json` and `h3_summary.json -> refits`).")
+    lines.append("")
+    return lines
+
+
+#: POST-HOC addendum 2, reading ``needs_power``: "a contrast needs the check when its family is primary (H1), H1b, S1(b)
+#: or H3 and its full R19 verdict is not PASS".  Every H3 contrast of this run satisfies it and none was checked, so the
+#: debt is INVENTORIED rather than left as an absence (task X finding protocol VH-09)
+NEEDS_POWER_RULE = ("POST-HOC addendum 2 (reading 'needs_power'): a contrast needs the section 8 signal-injection check "
+                    "when its family is primary (H1), H1b, S1(b) or H3 and its full R19 verdict is not PASS. An H3 "
+                    "contrast that owes the check and did not get one is reported '" + NO_POWER_CHECK_LABEL + "' "
+                    "(POST-HOC addendum 4 item 4, third clause), never a null and never 'no effect'; the debt is listed "
+                    "here so it is a RECORDED debt rather than an absence")
+
+
+def power_root_checks_path(out_root: Path) -> Path:
+    """``evaluation/power/power_checks.json`` (named here because ``power`` imports this module, not the other way)."""
+    return Path(out_root) / "evaluation" / "power" / "power_checks.json"
+
+
+def power_checked_keys(out_root: Path) -> list[str]:
+    """The contrast keys a section 8 power run has actually checked (``evaluation/power/power_checks.json ->
+    checks[*].{key, contrast}``); empty when no power run has written the file."""
+    body = D.read_record(power_root_checks_path(out_root)) or {}
+    out: set[str] = set()
+    for c in body.get("checks") or []:
+        for k in ("key", "contrast"):
+            if isinstance(c, Mapping) and c.get(k):
+                out.add(str(c[k]))
+    return sorted(out)
+
+
+def needs_power_inventory(contrasts: pd.DataFrame | None, *, checked: Iterable[str] = (),
+                         family: str = FAMILY) -> dict[str, Any]:
+    """Which H3 contrasts owe the section 8 power check, and which of them have one (:data:`NEEDS_POWER_RULE`).
+
+    ``checked`` are the contrast keys a power run actually checked (``power_checks.json -> checks[*].contrast`` / ``key``).
+    Every primary-cluster row of the family whose ``r19_verdict_full`` is not PASS is listed with its verdict, whether a
+    check was run and why not."""
+    done = {str(c) for c in checked}
+    rows: list[dict[str, Any]] = []
+    if contrasts is not None and not getattr(contrasts, "empty", True):
+        fr = contrasts
+        if "primary_cluster_unit" in fr.columns:
+            fr = fr[fr["primary_cluster_unit"].astype(bool)]
+        if "family" in fr.columns:
+            fr = fr[fr["family"].astype(str) == str(family)]
+        for _, r in fr.iterrows():
+            full = str(r.get("r19_verdict_full") or NOT_COMPUTED)
+            key = str(r.get("key") or r.get("contrast") or "")
+            run = key in done or str(r.get("contrast") or "") in done
+            rows.append({"key": key, "contrast": r.get("contrast"), "design": r.get("design"),
+                         "family": r.get("family"), "r19_verdict_full": full,
+                         "needs_power_check": full != "PASS", "check_run": bool(run),
+                         "reason": ("checked" if run else
+                                    "full R19 verdict is PASS, so no check is owed" if full == "PASS" else
+                                    "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict "
+                                    f"is reported '{NO_POWER_CHECK_LABEL}'")})
+    owed = [r for r in rows if r["needs_power_check"]]
+    return {"rule": NEEDS_POWER_RULE, "family": str(family), "n_contrasts": len(rows), "n_owed": len(owed),
+            "n_owed_and_run": sum(1 for r in owed if r["check_run"]),
+            "n_owed_and_not_run": sum(1 for r in owed if not r["check_run"]),
+            "label_when_not_run": NO_POWER_CHECK_LABEL, "checked_keys": sorted(done), "contrasts": rows}
+
+
+def item_status_map(r19_items: pd.DataFrame | None, item: int = 1) -> dict[str, str]:
+    """``contrast key -> the status of R19 item ``item``` from the R19 item table, for statements that must agree with the
+    item they talk about (task X finding protocol VH-04)."""
+    if r19_items is None or getattr(r19_items, "empty", True) or "item" not in getattr(r19_items, "columns", ()):
+        return {}
+    sub = r19_items[pd.to_numeric(r19_items["item"], errors="coerce") == int(item)]
+    key = "key" if "key" in sub.columns else "contrast"
+    return {str(k): str(s) for k, s in zip(sub[key], sub["status"])}
+
+
 def d03_markdown(summary: Mapping[str, Any], contrasts: pd.DataFrame | None, deltas: pd.DataFrame | None,
-                 negative: Mapping[str, pd.DataFrame] | None = None) -> str:
+                 negative: Mapping[str, pd.DataFrame] | None = None,
+                 r19_items: pd.DataFrame | None = None) -> str:
     """``decisions/D03_actinide_transfer.md`` (brief section 29: question, evidence, metrics, verdict, decision, next
-    action) from the H3 outputs; every absent quantity prints ``not computed``."""
+    action) from the H3 outputs; every absent quantity prints ``not computed``.
+
+    ``r19_items`` is the R19 item table: the power sentence beside each contrast is gated on that contrast's OWN item-1
+    status, so it can never tell the reader that a contrast which PASSES item 1 "can never pass item 1"
+    (task X finding protocol VH-04)."""
     dep = summary.get("deployed") or {}
     ver = summary.get("verdicts") or {}
     # task X finding V-P02: the verdicts are keyed by the arm the RECORDS use (M0's records are written under B5,
@@ -1691,21 +2602,25 @@ def d03_markdown(summary: Mapping[str, Any], contrasts: pd.DataFrame | None, del
              "`readings`.*", "",
              "## Question", "",
              "Same architecture, same folds, same seeds, same lanthanide test set: does training WITH actinide rows beat "
-             "training WITHOUT them (and the ACT_PERMUTED / ACT_METAL_SHUFFLED controls) on hidden Ln(III) cells (V5), "
+             "training WITHOUT them (and the ACT_PERMUTED control) on hidden Ln(III) cells (V5), "
              "unseen Ln(III) states (V2) and unseen publications (V1)? Is the transfer negative (F4)?", "",
              "## Evidence", "",
              "| file | contents |", "|---|---|",
              "| `evaluation/h3/h3_contrasts.csv` | R19 rows (one per cluster unit) of every WITH vs transform and transform vs WITH contrast |",
              "| `evaluation/h3/h3_r19_items.csv` | R19 items 1-6 per contrast |",
-             "| `evaluation/h3/h3_deltas.csv` | Delta rank accuracy, Delta calibration, Delta logSF MAE with intervals |",
+             "| `evaluation/h3/h3_deltas.csv` | Delta rank accuracy and Delta calibration with intervals; Delta logSF MAE "
+             "and CRPS appear only as their status rows (both absent here -- see below for why) |",
              "| `evaluation/h3/h3_per_unit_deltas.csv` | per Ln unit MAE of both arms |",
+             "| `evaluation/h3/h3_actinide_dependent_cells.csv` | the eligibility of every scored V5 cell with and "
+             "without actinide rows (the section 11 stratum) |",
              "| `evaluation/h3/negative_transfer/*.csv` | section 11 negative-transfer tables (descriptive) |",
              "| `evaluation/h3/h3_summary.json`, `h3_verdicts.json`, `h3_f4.json` | verdicts, F4, deployed rule, readings |",
              "| `evaluation/h3/records/<arm>/<transform>/...` | per-fold predictions and records of the refitted arms |", "",
              "## Metrics", "",
              f"Deployed configuration: **{dep.get('arm') or NOT_COMPUTED}** ({dep.get('basis') or NOT_COMPUTED}).",
-             f"Model arms: {', '.join(summary.get('model_arms') or []) or NOT_COMPUTED}. Transforms: "
+             f"Model arms: {', '.join(summary.get('model_arms') or []) or NOT_COMPUTED}. Transforms scored: "
              f"{', '.join(summary.get('transforms') or []) or NOT_COMPUTED}.", ""]
+    lines += _addendum4_lines(summary)
     if contrasts is not None and not contrasts.empty and "primary_cluster_unit" in contrasts.columns:
         prim = contrasts[contrasts["primary_cluster_unit"].astype(bool)]
         lines += ["| model arm | contrast | design | Delta MAE | margin | pct 95 % | BCa 95 % | p | scope verdict | full R19 | TOST |",
@@ -1715,21 +2630,48 @@ def d03_markdown(summary: Mapping[str, Any], contrasts: pd.DataFrame | None, del
                          f"[{_fmt(r['percentile_low'])}, {_fmt(r['percentile_high'])}] | [{_fmt(r['bca_low'])}, {_fmt(r['bca_high'])}] | "
                          f"{_fmt(r['p_two_sided'], '{:.4f}')} | {r.get(f'verdict_{VERDICT_SCOPE}', NOT_COMPUTED)} | "
                          f"{r.get('r19_verdict_full', NOT_COMPUTED)} | {r.get('tost_verdict_eps0.05', NOT_COMPUTED)} |")
+        item1 = item_status_map(r19_items, 1)
         lines += ["", "Power of each contrast at its own margin (`mde_80`, the 80 %-power detectable effect of the same "
-                      "paired cluster bootstrap): a contrast whose `mde_80` EXCEEDS its margin cannot reach item 1 "
-                      "whatever the truth, so its FAIL is underpowered, not a demonstration of no effect (task X "
-                      "finding V-L1).", "",
-                  "| model arm | contrast | design | cluster unit | Delta MAE | margin | mde_80 | LOCO min | reading |",
-                  "|---|---|---|---|---|---|---|---|---|"]
+                      "paired cluster bootstrap): a contrast that FAILS item 1 while its `mde_80` EXCEEDS its margin "
+                      "could not have reached item 1 whatever the truth, so that FAIL is underpowered, not a "
+                      "demonstration of no effect (task X finding V-L1). The sentence is read off each contrast's OWN "
+                      "item-1 status (`h3_r19_items.csv`), never off `mde_80` alone: a contrast that PASSES item 1 has "
+                      "reached it, and `mde_80` above the margin then says only that a FAIL would have been "
+                      "uninformative (task X finding protocol VH-04).", "",
+                  "| model arm | contrast | design | cluster unit | Delta MAE | margin | mde_80 | LOCO min | item 1 | reading |",
+                  "|---|---|---|---|---|---|---|---|---|---|"]
         for _, r in prim.sort_values(["model_arm", "design", "contrast"]).iterrows():
             m, mde = r.get("margin"), r.get("mde_80")
             ok = None if m is None or mde is None or not (np.isfinite(float(m)) and np.isfinite(float(mde))) \
                 else float(mde) <= float(m)
+            st = item1.get(str(r.get("key") or ""), item1.get(f"{r['contrast']}@{r['design']}", NOT_COMPUTED))
             read = (NOT_COMPUTED if ok is None else
                     "powered at this margin" if ok else
-                    "**UNDERPOWERED at this margin: no kappa of the design can make item 1 PASS**")
+                    "**item 1 PASS; the margin is below `mde_80`, so a FAIL here would have been uninformative**"
+                    if st == "PASS" else
+                    "**UNDERPOWERED at this margin: item 1 FAILs and no kappa of the design could have made it PASS**"
+                    if st == "FAIL" else
+                    f"margin below `mde_80`; item 1 is {st}, so no underpowered-FAIL statement is made")
             lines.append(f"| {r.get('model_arm')} | {r['contrast']} | {r['design']} | {r.get('cluster_unit')} | "
-                         f"{_fmt(r['point'])} | {_fmt(m)} | {_fmt(mde)} | {_fmt(r.get('loco_min'))} | {read} |")
+                         f"{_fmt(r['point'])} | {_fmt(m)} | {_fmt(mde)} | {_fmt(r.get('loco_min'))} | {st} | {read} |")
+        # R19 item 6's accounting: every registered sensitivity of the design is either decided or declared not run.
+        # The two V5 refits addendum 1 item 4 runs for H1 / H1b / H4 / freezing candidates but not for an H3 transform
+        # arm (strict_setting, HNO3_only_cells) are declared here by name (task X finding protocol VH-03).
+        if "sensitivities_not_run" in prim.columns:
+            lines += ["", "R19 item 6 accounting -- which registered sensitivities of the design DECIDED item 6 and "
+                          "which were not run (an H3 contrast pairs WITH against a section 11 transform refit, and no "
+                          "strict-setting or HNO3-only refit of a transform arm is registered or fitted anywhere, so "
+                          "those two V5 sensitivities are UNTESTABLE for every H3 contrast):", "",
+                      "| contrast | design | sensitivity set | not run (declared) |", "|---|---|---|---|"]
+            seen: set[str] = set()
+            for _, r in prim.sort_values(["model_arm", "design", "contrast"]).iterrows():
+                k = f"{r['contrast']}@{r['design']}"
+                if k in seen:
+                    continue
+                seen.add(k)
+                lines.append(f"| {r['contrast']} | {r['design']} | {r.get('sensitivity_set', NOT_COMPUTED)} | "
+                             f"{r.get('sensitivities_not_run') or 'none'} |")
+            lines.append("")
     else:
         lines.append(f"Contrasts: {NOT_COMPUTED}.")
     lines.append("")
@@ -1744,6 +2686,12 @@ def d03_markdown(summary: Mapping[str, Any], contrasts: pd.DataFrame | None, del
                          f"{_fmt(r.get('percentile_high'))}] | {r.get('status', NOT_COMPUTED)} |")
     else:
         lines.append(f"Delta rank accuracy / calibration / logSF: {NOT_COMPUTED}.")
+    # section 11's fourth delta: named with its reason whenever it is absent, never silently missing from the table
+    nc = summary.get("not_computed") or {}
+    lines += ["", f"Delta logSF MAE (`{PAIR_DESIGN}` Ln-Ln pairs): "
+                  + ("computed above." if nc.get("logsf_mae_delta") in (None, "") else
+                     f"**NOT_DEFINED.** {nc['logsf_mae_delta']}"),
+              "", f"CRPS: **NOT_RUN.** {nc.get('crps', READINGS['crps'])}"]
     lines += ["", "## Verdict (null / supported / ambiguous)", ""]
     if ver:
         for arm, v in sorted(ver.items()):
@@ -1751,7 +2699,11 @@ def d03_markdown(summary: Mapping[str, Any], contrasts: pd.DataFrame | None, del
                          f"beats ACT_PERMUTED: {v.get('v5_with_beats_permuted')}; V1/V2 non-inferior: {v.get('v1_v2_non_inferior')}; "
                          f"TOST WITH-WITHOUT (V5): {(v.get('tost_v5_with_minus_without') or {}).get('verdict', NOT_COMPUTED)}; "
                          f"kappa_min: {v.get('kappa_min') if v.get('kappa_min') is not None else v.get('kappa_status', NOT_COMPUTED)}"
-                         + (" -- UNDECIDED (underpowered)" if v.get("underpowered") else ""))
+                         + (" -- UNDECIDED (underpowered)" if v.get("underpowered") else
+                            # POST-HOC addendum 4 item 4: an UNDECIDED contrast with no registered power check is
+                            # reported UNDECIDED (no registered power check), never a null and never "no effect"
+                            f" -- **{NO_POWER_CHECK_LABEL}**" if v.get("verdict") == "UNDECIDED"
+                            and v.get("kappa_min") is None else ""))
         mapping = {"helps": "supported (actinide rows help lanthanide prediction)", "hurts": "supported (negative transfer)",
                    "equivalent": "null (no difference inside +-0.05)", "UNDECIDED": "ambiguous"}
         dv = ver.get(dep_key, {}).get("verdict")
@@ -1760,11 +2712,78 @@ def d03_markdown(summary: Mapping[str, Any], contrasts: pd.DataFrame | None, del
                       + f"): **{mapping.get(dv, NOT_COMPUTED)}**."]
     else:
         lines.append(f"Verdicts: {NOT_COMPUTED}.")
-    lines += ["", f"**F4 (negative actinide transfer): {'HOLDS -- gen19 is unsuccessful on F4' if f4.get('failure') else ('does not hold' if f4.get('status') == 'computed' else NOT_COMPUTED)}.** "
+    lines += ["", f"**F4 (negative actinide transfer), percentile reading: {'HOLDS -- gen19 is unsuccessful on F4' if f4.get('failure') else ('does not hold' if f4.get('status') == 'computed' else NOT_COMPUTED)}.** "
               f"Deployed arm {f4.get('deployed_arm', NOT_COMPUTED)}; per design: "
               + ", ".join(f"{d}: {'beats' if p.get('without_beats_with_interval_excludes_0') else ('no' if p.get('status') == 'computed' else NOT_COMPUTED)}"
-                          for d, p in sorted((f4.get("per_design") or {}).items())) + ".", ""]
+                          for d, p in sorted((f4.get("per_design") or {}).items())) + ".",
+              "", f"**F4, BCa reading: {'HOLDS' if f4.get('failure_bca') else 'does not hold'}** "
+                  "(section 8 registers the percentile AND the BCa 95 % interval for every contrast; per design: "
+              + ", ".join(f"{d}: {'beats' if p.get('bca_beats') else ('no' if p.get('status') == 'computed' else NOT_COMPUTED)}"
+                          for d, p in sorted((f4.get("per_design") or {}).items()))
+              + f"). Conservative reading (EITHER interval): **{'HOLDS' if f4.get('failure_either_interval') else 'does not hold'}**."
+                + (f" The two readings DISAGREE on: {', '.join(f4.get('designs_where_readings_disagree') or [])}."
+                   if f4.get("designs_where_readings_disagree") else " The two readings agree on every computed design."),
+              "", f"*Which interval F4 reads is a reading, not registered text.* {f4.get('interval_reading_not_registered', F4_INTERVAL_READING)}",
+              ""]
+    per_f4 = f4.get("per_design") or {}
+    if per_f4:
+        lines += ["| design | reversed Delta (WITHOUT - WITH) | percentile 95 % | BCa 95 % | percentile reading | BCa reading |",
+                  "|---|---|---|---|---|---|"]
+        for d, p in sorted(per_f4.items()):
+            if p.get("status") != "computed":
+                lines.append(f"| {d} | {NOT_COMPUTED} | - | - | - | {p.get('reason', NOT_COMPUTED)} |")
+                continue
+            pc, bc = p.get("percentile_95") or [None, None], p.get("bca_95") or [None, None]
+            lines.append(f"| {d} | {_fmt(p.get('point'))} | [{_fmt(pc[0])}, {_fmt(pc[1])}] | [{_fmt(bc[0])}, {_fmt(bc[1])}] | "
+                         f"{'F4 holds' if p.get('without_beats_with_interval_excludes_0') else 'no'} | "
+                         f"{'F4 holds' if p.get('bca_beats') else 'no'} |")
+        lines.append("")
+    strat = summary.get("actinide_dependent_stratum") or {}
+    if strat.get("status") == "computed":
+        lines += ["**Section 11's separate stratum beside the V5 headline.** The registered headline Delta is the macro "
+                  "over every scored V5 Ln cell; section 11 makes the cells whose eligibility depends on actinide "
+                  "partners a separate REPORTING unit, so the same macro without them is printed beside it (the "
+                  "registered number is unchanged):", "",
+                  "| quantity | all cells | excluding the actinide-partner-eligibility stratum |", "|---|---|---|",
+                  f"| cells | {strat.get('n_cells_all')} | {strat.get('n_cells_excluding_stratum')} |",
+                  f"| macro Delta MAE | {_fmt(strat.get('macro_delta_all_cells'), '{:.6f}')} | "
+                  f"{_fmt(strat.get('macro_delta_excluding_stratum'), '{:.6f}')} |",
+                  f"| median Delta MAE | {_fmt(strat.get('median_delta_all_cells'), '{:.6f}')} | "
+                  f"{_fmt(strat.get('median_delta_excluding_stratum'), '{:.6f}')} |",
+                  f"| share Delta > 0 | {_fmt(strat.get('share_delta_positive_all_cells'), '{:.3f}')} | "
+                  f"{_fmt(strat.get('share_delta_positive_excluding_stratum'), '{:.3f}')} |", "",
+                  f"The {strat.get('n_cells_actinide_dependent')} stratum cell(s) have macro Delta "
+                  f"{_fmt(strat.get('macro_delta_actinide_dependent'), '{:.6f}')} and contribute "
+                  f"{_fmt(strat.get('stratum_contribution_to_macro'), '{:.6f}')} of the headline "
+                  f"{_fmt(strat.get('macro_delta_all_cells'), '{:.6f}')}, i.e. "
+                  f"{_fmt(None if strat.get('stratum_share_of_macro') is None else 100.0 * strat['stratum_share_of_macro'], '{:.1f}')} %. "
+                  "They are by construction the cells that stop being eligible once actinide rows are removed, so the "
+                  "headline must not be read as a broad effect (task X finding protocol VH-08).", ""]
     if negative:
+        # section 11's condition, evaluated in ONE place on ONE reading and recorded beside the tables
+        # (h3.negative_transfer_condition; task X finding protocol VH-05).  The per-design point estimates are printed
+        # beside it as context, never as a second trigger.
+        cond = summary.get("negative_transfer_condition") or {}
+        rev = pd.DataFrame() if contrasts is None or contrasts.empty else contrasts[
+            (contrasts.get("model_arm") == dep_key) & (contrasts.get("transform") == "WITHOUT")
+            & contrasts.get("primary_cluster_unit", pd.Series(False, index=contrasts.index)).astype(bool)
+            & contrasts["contrast"].astype(str).str.startswith(f"{dep_key}:WITHOUT vs")]
+        trig = {str(r["design"]): float(r["point"]) for _, r in rev.iterrows()} if not rev.empty else {}
+        lines += ["Negative-transfer investigation (section 11, \"run if WITHOUT is better, point estimate or passed\"): "
+                  + (f"**triggered** ({cond.get('reason', NOT_COMPUTED)})" if cond.get("met") else
+                     f"**NOT triggered** -- {cond.get('reason', NOT_COMPUTED)}; the tables below are "
+                     f"**{cond.get('tables_label', NEGATIVE_TRANSFER_EXPLORATORY)}** and no reading is taken from them")
+                  + f". Condition read on **{cond.get('contrast_read', NOT_COMPUTED)}** "
+                    f"(design {cond.get('design_read', NOT_COMPUTED)}): passed R19 = "
+                    f"{cond.get('without_passed_r19_v5')}, point estimate MAE(WITH) - MAE(WITHOUT) = "
+                    f"{_fmt(cond.get('v5_without_vs_with_point'), '{:.6f}')}, favours WITHOUT = "
+                    f"{cond.get('point_estimate_favours_without')}.",
+                  "", f"*The design and contrast the trigger is read on are a reading, not registered text.* "
+                      f"{cond.get('condition', NEGATIVE_TRANSFER_CONDITION)}",
+                  "", "Reversed point estimates of every SCORED design of the deployed arm, printed as context only "
+                      "(a NOT_RUN design contributes none): "
+                  + ("; ".join(f"{d}: {_fmt(p, '{:.6f}')}" for d, p in sorted(trig.items())) if trig else NOT_COMPUTED)
+                  + ". R19-passing negative transfer is F4 above; the tables here are descriptive.", ""]
         strata = negative.get("strata")
         if strata is not None and not strata.empty:
             lines += ["Negative-transfer strata (V5 per-cell Delta MAE = MAE(WITHOUT) - MAE(WITH); descriptive):", "",
@@ -1773,16 +2792,60 @@ def d03_markdown(summary: Mapping[str, Any], contrasts: pd.DataFrame | None, del
                 lines.append(f"| {r['stratum']} | {r['in_stratum']} | {r['n_cells']} | {r['n_systems']} | {_fmt(r['mean_delta_mae'])} | "
                              f"{_fmt(r['median_delta_mae'])} | {_fmt(r['share_delta_positive'], '{:.2f}')} |")
             lines.append("")
+        # section 11's remaining negative-transfer inputs: the per-family and per-mechanism deltas, and the per-cell
+        # delta against the system's actinide row count and its median |An/Ln logSF|
+        for key, title in (("per_family", "Per family"), ("per_mechanism", "Per mechanism")):
+            tab = negative.get(key)
+            if tab is not None and not tab.empty:
+                lines += [f"{title} (same per-cell Delta MAE; descriptive):", "",
+                          "| group | cells | systems | mean Delta | median Delta | share Delta > 0 | mean MAE WITH | mean MAE WITHOUT |",
+                          "|---|---|---|---|---|---|---|---|"]
+                for _, r in tab.iterrows():
+                    lines.append(f"| {r['group']} | {r['n_cells']} | {r['n_systems']} | {_fmt(r['mean_delta_mae'])} | "
+                                 f"{_fmt(r['median_delta_mae'])} | {_fmt(r['share_delta_positive'], '{:.2f}')} | "
+                                 f"{_fmt(r['mean_mae_with'])} | {_fmt(r['mean_mae_transform'])} |")
+                lines.append("")
+        cov = negative.get("per_cell_covariates")
+        if cov is not None and not cov.empty:
+            lines += ["Per-cell Delta MAE against the section 11 covariates (Spearman, system-cluster percentile "
+                      "interval; read only after the section 8 reliability report):", "",
+                      "| covariate | cells | systems | Spearman | pct 95 % | status |", "|---|---|---|---|---|---|"]
+            for _, r in cov.iterrows():
+                lines.append(f"| {r['covariate']} | {r['n_cells']} | {r['n_systems']} | {_fmt(r['spearman'])} | "
+                             f"[{_fmt(r['percentile_low'])}, {_fmt(r['percentile_high'])}] | {r.get('status', NOT_COMPUTED)} |")
+            lines.append("")
     else:
         lines += [f"Negative-transfer investigation: {NOT_COMPUTED} (run when WITHOUT is better, section 11).", ""]
     lines += shared_only_lines(summary.get("shared_only"))
+    debt = summary.get("power_debt") or {}
+    if debt:
+        lines += ["## Section 8 power check owed (a recorded debt, not an absence)", "",
+                  f"{debt.get('rule', NEEDS_POWER_RULE)}", "",
+                  f"- H3 contrasts (primary cluster): **{debt.get('n_contrasts')}**; owe the check: "
+                  f"**{debt.get('n_owed')}**; checked: **{debt.get('n_owed_and_run')}**; "
+                  f"**owed and NOT run: {debt.get('n_owed_and_not_run')}**.",
+                  f"- every H3 verdict quoted anywhere therefore carries `{debt.get('label_when_not_run', NO_POWER_CHECK_LABEL)}` "
+                  "(POST-HOC addendum 4 item 4).", "",
+                  "| contrast | design | full R19 | owes the check | check run | reason |", "|---|---|---|---|---|---|"]
+        for r in debt.get("contrasts") or []:
+            lines.append(f"| {r.get('contrast')} | {r.get('design')} | {r.get('r19_verdict_full')} | "
+                         f"{r.get('needs_power_check')} | {r.get('check_run')} | {r.get('reason')} |")
+        lines.append("")
     lines += ["## Decision", "",
               (f"Actinide rows enter the deployed Ln configuration: **{'yes' if ver.get(dep_key, {}).get('verdict') == 'helps' else 'no'}** "
                "(section 11: only on *helps*)."), "",
               "## Next action", "",
               "- confirmation: the frozen H3 claims (if any) on the withheld seeds and the V6 deltas (section 15);",
-              "- a POST-HOC addendum for every reading in `h3_summary.json -> readings` before a result is quoted as registered;",
-              "- the section 8 power check (`scripts/g19_run_power.py`) for every UNDECIDED contrast (kappa_min above).", ""]
+              "- a POST-HOC addendum for every reading in `h3_summary.json -> readings` before a result is quoted as registered, "
+              "and in particular for the four this run records as REQUESTED: the interval F4 reads (`f4.interval_read`), "
+              "the design and contrast section 11's negative-transfer trigger is read on "
+              "(`negative_transfer_condition.condition`), the operative reading of addendum 4 item 3 "
+              "(`refits.operative_reading`) and, if the V1 WITHOUT leg is to be scored while ACT_PERMUTED@V1 is "
+              "incomplete, a narrowing of addendum 4 item 2's NOT_RUN unit from the design to the record set;",
+              f"- the section 8 power check (`scripts/g19_run_power.py`) for the {debt.get('n_owed_and_not_run', 0)} H3 "
+              "contrast(s) that owe it (table above);",
+              "- the V1 deviation: the design is registered to run in full and is blocked by a deterministic isolation-check "
+              "failure, not by the 20 h cap (see POST-HOC addendum 4 item 2 above).", ""]
     return "\n".join(lines)
 
 

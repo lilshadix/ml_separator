@@ -629,7 +629,7 @@ def main(argv=None, *, check: Callable[[], int] | None = None, digests: Callable
                                             v1_scheme=v1s, remainder_groups=rem))
         rel = None if ns.no_reliability else reliability_report(corpus, attrs, out_root,
                                                                include_learned=ns.include_learned)
-        outs = write_outputs(out_root, records, rel, gate=gate)
+        outs = write_outputs(out_root, records, rel, gate=gate, contrasts=contrasts)
         if run is not None:
             run.outputs(*outs)
             run.extra.update({"n_contrasts_checked": len(records),
@@ -647,7 +647,7 @@ def main(argv=None, *, check: Callable[[], int] | None = None, digests: Callable
 
 
 def write_outputs(out_root: Path, records: Sequence[Mapping[str, Any]], reliability: Mapping[str, Any] | None, *,
-                  gate: Mapping[str, Any] | None = None) -> list[Path]:
+                  gate: Mapping[str, Any] | None = None, contrasts: pd.DataFrame | None = None) -> list[Path]:
     root = PW.power_root(out_root)
     tables = Path(out_root) / "tables"
     outs: list[Path] = []
@@ -665,6 +665,9 @@ def write_outputs(out_root: Path, records: Sequence[Mapping[str, Any]], reliabil
         drop = ("per_kappa_contrasts", "per_unit_frame")
         outs.append(write_json(root / "power_checks.json", PW.json_safe(
             {"schema": PW.SCHEMA, "checks": [{k: v for k, v in r.items() if k not in drop} for r in records],
+             # which H3 contrasts OWE the check and which have one: the debt is inventoried in the file, so an unrun
+             # check is a recorded debt rather than an absence (task X finding protocol VH-09)
+             "needs_power": H3.needs_power_inventory(contrasts, checked=[str(r.get("contrast")) for r in records]),
              "gate": dict(gate or {}), "injected_values_persisted": False,
              # the bootstrap INPUT is persisted as metrics (per-unit MAE + cluster labels), never an injected value
              "per_unit_metrics_persisted": bool(units), "per_unit_metrics_path": PW.PER_UNIT_REL,

@@ -2,19 +2,42 @@
   "deployed_arm": "B5",
   "deployed_trained_with_actinide_rows": true,
   "designs_computed": [
+    "V2",
     "V5"
   ],
   "designs_not_computed": [
-    "V1",
+    "V1"
+  ],
+  "designs_where_readings_disagree": [
     "V2"
   ],
   "failure": false,
+  "failure_bca": true,
+  "failure_either_interval": true,
+  "failure_percentile": false,
+  "interval_read": "percentile",
+  "interval_reading_not_registered": "NOT REGISTERED: section 10 F4 says '95 % interval excluding 0' without naming a construction, while section 8 registers the percentile and the BCa 95 % interval for every contrast and R19 item 2 requires BOTH to exclude 0. f4_check decides on the PERCENTILE interval (failure / failure_percentile) and reports the BCa reading beside it (failure_bca, failure_either_interval, per_design.<design>.bca_beats). For a FAILURE condition the conservative choice is the reading that triggers more readily -- EITHER interval -- not the one that requires both, so failure_either_interval is the conservative value and the difference is printed wherever F4 is quoted. A POST-HOC addendum naming the interval F4 reads is REQUESTED and not yet written; until then no F4 statement may be quoted without both readings",
   "per_design": {
     "V1": {
+      "reason": "no reversed WITHOUT-vs-WITH contrast of this design was scored (the design is NOT_RUN, or its record set is absent): POST-HOC addendum 4 item 2",
       "status": "not computed"
     },
     "V2": {
-      "status": "not computed"
+      "bca_95": [
+        0.003148734214400464,
+        0.078274853209036
+      ],
+      "bca_also_excludes_0": true,
+      "bca_beats": true,
+      "cluster_unit": "metal_state",
+      "percentile_95": [
+        -0.0013987874159652831,
+        0.06421297385806476
+      ],
+      "point": 0.026415684977688314,
+      "readings_disagree": true,
+      "status": "computed",
+      "without_beats_with_interval_excludes_0": false
     },
     "V5": {
       "bca_95": [
@@ -22,12 +45,14 @@
         -0.009038393971887528
       ],
       "bca_also_excludes_0": false,
+      "bca_beats": false,
       "cluster_unit": "system",
       "percentile_95": [
         -0.24568987239116918,
         -0.011249209939739472
       ],
       "point": -0.06686613328403818,
+      "readings_disagree": false,
       "status": "computed",
       "without_beats_with_interval_excludes_0": false
     }

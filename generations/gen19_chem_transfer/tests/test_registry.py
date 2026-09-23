@@ -644,3 +644,43 @@ def test_registered_code_digests_lists_the_current_entry_then_the_superseded_one
     assert [g["matched_entry"] for g in got] == ["current", "superseded", "superseded"]
     assert got[0]["superseded_utc"] is None and got[1]["superseded_utc"]
     assert REG.registered_code_digests("power", p) == []
+
+
+@pytest.mark.real_registry
+def test_the_real_registry_re_registers_every_post_discovery_stage_under_addendum_4(tmp_path):
+    """POST-HOC addendum 4 (this task): appending the fourth addendum changed the below-footer digest, so every stage
+    whose runner has still to be used is re-registered under it while ``discovery`` and ``discovery_candidates`` --
+    whose records exist -- keep their entries (``registry.READINGS['registry']``).  Every earlier entry stays under
+    ``superseded``, which is what a record written before the re-registration verifies against."""
+    if not REAL_REGISTRY.exists():
+        pytest.skip("the registry is created after the discovery run")
+    live = REG.below_footer_digest()
+    if int(live["n_addenda"]) != 4:
+        pytest.skip(f"the sealed text carries {live['n_addenda']} addenda, not 4")
+    for stage in ("discovery", "discovery_candidates"):
+        e = REG.registered(stage)
+        assert e is not None and e["below_footer_sha256"] != live["below_footer_sha256"], stage
+        assert e["addenda_count"] < 4, stage                   # the records exist: the entry is NOT moved
+    for stage in ("scorer", "ladder", "h3", "power", "process", "figures", "report"):
+        e = REG.registered(stage)
+        assert e is not None, stage
+        assert e["below_footer_sha256"] == live["below_footer_sha256"], stage
+        assert e["addenda_count"] == 4, stage
+        assert REG.gate_expectations(stage)["source"] == "registry"
+        assert REG.superseded_entries(stage), f"{stage}: the earlier entry must be kept, never overwritten"
+
+
+@pytest.mark.real_registry
+def test_every_real_h3_record_verifies_against_the_entry_it_was_written_under(tmp_path):
+    """POST-HOC addendum 4 item 3: "records written before the supersession keep their entry and verify as registered",
+    and the records written after it were deleted and are refitted -- so no H3 record on disk may be stale."""
+    if not REAL_REGISTRY.exists() or REG.registered("h3") is None:
+        pytest.skip("the registry has no h3 entry yet")
+    found = H3.stale_records(paths.G19_ROOT, stage="h3")
+    assert not found["stale"], [r["path"] for r in found["stale"]]
+    assert not found["not_verifying_other"], found["not_verifying_other"][:3]
+    for row in found["verifying"]:
+        rec = json.loads((paths.REPO_ROOT / row["path"]).read_text(encoding="utf-8"))
+        basis = H3.record_digest_basis(rec, "live-code-that-is-not-the-registered-one")
+        assert basis["code"] == rec["code_digest"] and basis["addenda"] == rec["prereg_addenda_sha256"]
+        assert basis["resolved"] in ("current", "superseded")

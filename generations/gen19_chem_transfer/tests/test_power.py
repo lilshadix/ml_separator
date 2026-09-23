@@ -579,3 +579,53 @@ def test_the_power_run_records_its_own_stages_seal_gate_not_h3s(tmp_path, monkey
     gate = RP.refuse_unless_ready(root, prereg_gate=mine)
     assert gate["prereg_gate"] == mine and gate["prereg_gate"]["stage"] == RP.STAGE == "power"
     assert gate["h3_prereg_gate"]["stage"] == "h3"               # H3's is kept, beside, under its own key
+
+
+def test_addendum_4_item_4_fixes_what_the_power_check_may_conclude():
+    """POST-HOC addendum 4 item 4: **POWERED_NOT_A_NULL** for a contrast that is not a null (its point estimate has a
+    direction, so the registered wording "null" never applies), **UNDECIDED (underpowered)** for a genuine failure with
+    no kappa at which R19 passes -- never "no effect" -- and **UNDECIDED (no registered power check)** otherwise."""
+    def res(kappa, passed, point=0.26):
+        return PW.KappaResult(kappa=kappa, passed=passed, scope_verdict="PASS" if passed else "FAIL",
+                              full_verdict="UNDECIDED", point=point, margin=0.1057, n_units=105, n_rows=1200)
+    every = [res(k, True) for k in PW.KAPPAS]
+    assert PW.REPORTED_LABEL["POWERED_NOT_A_NULL"] == PW.REPORTED_LABEL["NOT_A_NULL_UNDERPOWERED"] == "POWERED_NOT_A_NULL"
+    assert PW.REPORTED_LABEL["UNDECIDED_UNDERPOWERED"] == "UNDECIDED (underpowered)"
+    assert PW.NO_POWER_CHECK_LABEL == "UNDECIDED (no registered power check)"
+    assert "never 'no effect'" in PW.ADDENDUM4_WORDING and "never null" in PW.ADDENDUM4_WORDING
+    # not a null: the label and the DIRECTION of the point estimate are both on the record
+    ok = PW.kappa_min(every, uninjected_verdict="PASS", uninjected_point=0.262976)
+    assert ok["reported_label"] == "POWERED_NOT_A_NULL" and ok["reported"].startswith("POWERED_NOT_A_NULL")
+    assert "favours the CANDIDATE arm" in ok["uninjected_point_favours"] and "+0.263" in ok["reported"]
+    assert "UNDECIDED (underpowered)" not in ok["reported"] and ok["wording_rule"] == PW.ADDENDUM4_WORDING
+    weak = PW.kappa_min([res(0.1, False), res(0.25, False), res(0.5, False), res(1.0, True)],
+                        uninjected_verdict="PASS", uninjected_point=-0.3)
+    assert weak["verdict"] == "NOT_A_NULL_UNDERPOWERED" and weak["reported_label"] == "POWERED_NOT_A_NULL"
+    assert "favours the COMPARATOR" in weak["uninjected_point_favours"]
+    # a genuine failure with no passing kappa: UNDECIDED (underpowered), and the record says no kappa passes
+    under = PW.kappa_min([res(k, False) for k in PW.KAPPAS], uninjected_verdict="FAIL", uninjected_point=-0.02)
+    assert under["kappa_min"] is None and under["reported_label"] == "UNDECIDED (underpowered)"
+    assert under["reported"].startswith("UNDECIDED (underpowered)") and "no registered kappa makes R19 pass" in under["reported"]
+    assert "no effect" not in under["reported"]
+    # the wording rule travels with every power record
+    rec = PW.power_record("M2 vs B3i@V5", family="primary", design="V5", arms=["M2", "B3i"], results=every,
+                          seed=104729, u_share={}, n_dropped_unknown_state=0,
+                          uninjected={"point": 0.262976, f"verdict_{H3.VERDICT_SCOPE}": "PASS"})
+    assert rec["wording_rule"] == PW.ADDENDUM4_WORDING and rec["reported_label"] == "POWERED_NOT_A_NULL"
+    assert rec["uninjected_point"] == 0.262976 and "favours the CANDIDATE arm" in rec["uninjected_point_favours"]
+    assert PW._favours(None).endswith("not computed") and PW._favours(float("nan")).endswith("not finite")
+
+
+def test_the_persisted_power_checks_carry_only_the_three_addendum_4_outcomes():
+    """The real ``evaluation/power/power_checks.json``: three contrasts are POWERED_NOT_A_NULL and the one genuine
+    failure (B6 vs B3i@V5) is UNDECIDED (underpowered) with no passing kappa -- exactly what addendum 4 item 4 states."""
+    p = paths.G19_ROOT / "evaluation" / "power" / "power_checks.json"
+    if not p.exists():
+        pytest.skip("the power check has not run")
+    checks = json.loads(p.read_text(encoding="utf-8")).get("checks") or []
+    assert checks and all(str(c["verdict"]) in PW.REPORTED_LABEL for c in checks)
+    labels = {str(c["contrast"]): PW.REPORTED_LABEL[str(c["verdict"])] for c in checks}
+    assert sum(v == "POWERED_NOT_A_NULL" for v in labels.values()) == 3
+    assert labels.get("B6 vs B3i@V5") == "UNDECIDED (underpowered)"
+    assert next(c for c in checks if c["contrast"] == "B6 vs B3i@V5")["kappa_min"] is None
+    assert not any(PW.REPORTED_LABEL[str(c["verdict"])] == "null (informative)" for c in checks)

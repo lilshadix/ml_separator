@@ -1888,11 +1888,18 @@ def r19_verdict(items: Iterable[Mapping[str, Any]]) -> str:
     return "UNDECIDED" if any(s in INCONCLUSIVE_STATUSES for s in st) else "PASS"
 
 
-def reduced_item6(design: str, sensitivities: Mapping[str, Any], reduced: Sequence[str]) -> tuple[dict[str, Any],
-                                                                                                  dict[str, str]]:
+def reduced_item6(design: str, sensitivities: Mapping[str, Any], reduced: Sequence[str],
+                  not_run_extra: Mapping[str, str] | None = None) -> tuple[dict[str, Any], dict[str, str]]:
     """Addendum 1 item 4: R19 item 6 of a LEARNED-arm contrast, decided on ``reduced`` -- the refits that were run plus
     every registered scoring-filter sensitivity -- and labelled :data:`ADDENDUM_LABEL`.  Returns the item and the
-    sensitivities that were not run, by name and reason (:data:`LEARNED_REFITS_NOT_RUN`), which the report prints."""
+    sensitivities that were not run, by name and reason (:data:`LEARNED_REFITS_NOT_RUN`), which the report prints.
+
+    ``not_run_extra`` adds not-run sensitivities a CALLER knows about that :data:`LEARNED_REFITS_NOT_RUN` does not cover,
+    keyed by name with the reason.  :data:`LEARNED_REFITS_NOT_RUN` lists the refits addendum 1 item 4 drops for a learned
+    arm *in discovery*; a caller outside that accounting -- H3, whose transform arms have no V5 strict and no V5
+    HNO3-only refit at all -- must declare its own, or item 6 would report a PASS over the reduced set while two of the
+    design's eleven registered sensitivities are silently absent from both the decided set and the not-run list
+    (task X finding protocol VH-03)."""
     fail, untestable = [], []
     for n in reduced:
         if n not in sensitivities:
@@ -1907,11 +1914,24 @@ def reduced_item6(design: str, sensitivities: Mapping[str, Any], reduced: Sequen
             fail.append(f"{n}: Delta={fv:.6g}")
     registered = set(ET.REGISTERED_SENSITIVITIES[design])
     not_run = {n: why for n, why in LEARNED_REFITS_NOT_RUN.get(design, {}).items() if n in registered}
+    extra = {n: why for n, why in dict(not_run_extra or {}).items()
+             if n in registered and n not in reduced and n not in not_run}
     body = "; ".join(fail + [f"{n}: UNTESTABLE" for n in untestable]) or \
         f"positive in every sensitivity of the reduced set {list(reduced)}"
     status = "FAIL" if fail else ("UNTESTABLE" if untestable else "PASS")
-    return ({"item": 6, "name": "positive_in_every_registered_sensitivity", "status": status,
-             "detail": f"{ADDENDUM_LABEL}: {body}; not run (addendum 1 item 4): {sorted(not_run)}",
+    # every registered sensitivity of the design is either DECIDED (in ``reduced``) or DECLARED not run: a name in
+    # neither list would be an undisclosed omission behind a PASS (task X finding protocol VH-03)
+    undeclared = sorted(registered - set(reduced) - set(not_run) - set(extra))
+    detail = f"{ADDENDUM_LABEL}: {body}; not run (addendum 1 item 4): {sorted(not_run)}"
+    if extra:
+        detail += (f"; not run for this family, declared by the caller: {sorted(extra)}")
+    detail += f"; decided on {len(list(reduced))} of {len(registered)} registered sensitivities"
+    if undeclared:
+        detail += f"; UNDECLARED (a defect): {undeclared}"
+    not_run.update(extra)
+    return ({"item": 6, "name": "positive_in_every_registered_sensitivity", "status": status, "detail": detail,
+             "n_registered_sensitivities": len(registered), "n_sensitivities_decided": len(list(reduced)),
+             "n_sensitivities_not_run": len(not_run), "sensitivities_undeclared": ", ".join(undeclared),
              "sensitivity_set": ADDENDUM_LABEL, "sensitivities_not_run": ", ".join(sorted(not_run))}, not_run)
 
 
@@ -1938,7 +1958,8 @@ def evaluate_contrast(*, name: str, family: str, design: str, primary: PairedUni
                       seed_deltas: Mapping[int, float | None], sensitivities: Mapping[str, float | str],
                       deterministic: bool = False, n_resamples: int = ET.N_RESAMPLES,
                       bootstrap_seed: int = ET.BOOTSTRAP_SEED, learned: bool = False,
-                      reduced_sensitivities: Sequence[str] | None = None) -> dict[str, Any]:
+                      reduced_sensitivities: Sequence[str] | None = None,
+                      sensitivities_not_run_extra: Mapping[str, str] | None = None) -> dict[str, Any]:
     """R19 (section 8) of one registered or exploratory contrast on the selection half.
 
     ``primary`` is the seed-104729 paired units (items 1-3, 5 and the TOST come from them), ``seed_deltas`` the
@@ -1972,7 +1993,7 @@ def evaluate_contrast(*, name: str, family: str, design: str, primary: PairedUni
         items = [dict(i, status="NOT_RUN", detail=f"{n_have} of {ET.N_SEEDS} discovery seeds scored")
                  if i["item"] == 4 else i for i in items]
     if reduced_sensitivities is not None:
-        item6, not_run = reduced_item6(design, sens, list(reduced_sensitivities))
+        item6, not_run = reduced_item6(design, sens, list(reduced_sensitivities), sensitivities_not_run_extra)
         items = [item6 if i["item"] == 6 else i for i in items]
     if items != list(r.items):
         r = replace(r, items=tuple(items), verdict=r19_verdict(items))

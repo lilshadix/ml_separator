@@ -381,7 +381,9 @@ def test_frames_do_not_cache_an_absent_record_set_and_reread_after_the_rerun(tmp
     calls = {"n": 0}
     frame = pd.DataFrame({"row_id": ["r1"], "mean_logD": [0.1]})
 
-    def read_set(root, exp, *, what):
+    def read_set(root, exp, *, what, steps=H3.STEPS):
+        # task X finding numbers VH-06: ``Frames.h3_frame`` asks for the steps whose columns it reads
+        assert tuple(steps) == tuple(H3.STEPS)
         calls["n"] += 1
         return (None, {"status": "missing"}) if calls["n"] == 1 else (frame, {"status": "complete"})
 

@@ -830,3 +830,24 @@ def test_the_deployed_predictors_tables_and_verdicts_are_looked_up_by_the_record
     q4 = rep.split("## Q4.")[1].split("## Q5.")[0]
     assert "use actinide rows: WITH beats WITHOUT and ACT_PERMUTED" in q4       # the *helps* branch, not UNDECIDED
     assert "| B5 (deployed = M0) |" in q4
+
+
+def test_a_powered_not_a_null_record_never_prints_as_undecided_underpowered(full_root: Path) -> None:
+    """POST-HOC addendum 4 item 4.  ``power_reading`` fell through to "UNDECIDED (underpowered)" for EVERY verdict that
+    was not INFORMATIVE_NULL, so a POWERED_NOT_A_NULL record -- a contrast that is not a null at all -- would have been
+    printed as an underpowered null.  The three outcomes the addendum allows are the only three printed."""
+    ev = full_root / "evaluation"
+    write_json(ev / "power" / "power_checks.json", {"checks": [
+        {"contrast": "B6 vs B3i@V5", "kappa_min": 0.1, "verdict": "POWERED_NOT_A_NULL",
+         "uninjected_point_favours": "its point estimate (+0.263) favours the CANDIDATE arm"},
+        {"contrast": "M2 vs B3i@V5", "kappa_min": None, "verdict": "UNDECIDED_UNDERPOWERED"}]})
+    d02 = R.build_report(full_root, extra={"git_head": "abc"})["d02"]
+    block = d02.split("## null / supported / ambiguous")[1].split("## decision")[0]
+    lines = {ln.split(" (")[0].removeprefix("- "): ln for ln in block.strip().split("\n") if ln.startswith("- ")}
+    assert "**POWERED_NOT_A_NULL**" in lines["H1b"] and "favours the CANDIDATE arm" in lines["H1b"]
+    assert "UNDECIDED (underpowered)" not in lines["H1b"] and ": null" not in lines["H1b"]
+    assert "**UNDECIDED (underpowered)**" in lines["H1"] and "none in the registered grid" in lines["H1"]
+    assert "no effect" not in block
+    # the labels come from the power module, so the report and the check cannot drift apart
+    assert R.PW.REPORTED_LABEL["POWERED_NOT_A_NULL"] == "POWERED_NOT_A_NULL"
+    assert R.PW.NO_POWER_CHECK_LABEL in d02 or "no registered power check" in block

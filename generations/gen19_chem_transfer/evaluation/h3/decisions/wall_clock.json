@@ -1,0 +1,114 @@
+{
+  "budget": {
+    "budget_hours": 20.0,
+    "exhausted": false,
+    "ledger": "evaluation/h3/decisions/wall_clock.json",
+    "on_exhaustion": "the design being fitted and every later design in the priority order are reported NOT_RUN with the reason; no verdict is taken from a partial design",
+    "priority_order": [
+      "V5",
+      "V2",
+      "V1"
+    ],
+    "reading": "POST-HOC addendum 4 item 2: section 11 registers no compute budget, so H3 gets a cap of 20 h of wall clock on 2 workers, recorded in evaluation/h3/decisions/wall_clock.json and CHECKED BEFORE EACH FOLD. The budget number is WALL CLOCK, not worker-seconds: the ledger records every invocation's [started_utc, ended_utc] interval and h3_wall_clock_total sums the UNION of those intervals, so two workers running the same hour consume one hour of the cap; the sum over workers is recorded beside it as worker_seconds and is never the number compared with the cap. More than 2 concurrent workers is refused (H3_WORKERS). --max-hours stays an operator pause, never a NOT_RUN reason",
+    "remaining_hours": 14.2158,
+    "used_hours": 5.7842,
+    "worker_hours": 9.7832,
+    "workers_max": 2
+  },
+  "budget_hours": 20.0,
+  "invocation_reading": "'seconds' is the fitting loop's own wall clock; the cap reads the UNION of the invocations' [started_utc, ended_utc] intervals (wall clock on up to 2 workers), never the sum",
+  "invocations": [
+    {
+      "designs_done": [],
+      "ended_utc": "2026-09-22T17:45:29+00:00",
+      "note": null,
+      "process_seconds": 13.137,
+      "seconds": 0.0,
+      "started_utc": "2026-09-22T17:45:16+00:00",
+      "workers": 2
+    },
+    {
+      "designs_done": [
+        "V1",
+        "V2",
+        "V5"
+      ],
+      "ended_utc": "2026-09-22T21:49:41+00:00",
+      "note": null,
+      "process_seconds": 14452.281,
+      "seconds": 14437.447,
+      "started_utc": "2026-09-22T17:48:48+00:00",
+      "workers": 2
+    },
+    {
+      "designs_done": [
+        "V1",
+        "V2",
+        "V5"
+      ],
+      "ended_utc": "2026-09-22T23:33:17+00:00",
+      "note": "error in B5:ACT_PERMUTED@V1: AssertionError: inner split inner_s104729_f1 failed the isolation check",
+      "process_seconds": 20689.285,
+      "seconds": 20674.837,
+      "started_utc": "2026-09-22T17:48:28+00:00",
+      "workers": 2
+    },
+    {
+      "designs_done": [
+        "V1",
+        "V2",
+        "V5"
+      ],
+      "ended_utc": "2026-09-22T23:42:22+00:00",
+      "note": "error in B6:ACT_PERMUTED@V1: AssertionError: inner split ('pub_007f4c9de0', 'pub_07cea54708', 'pub_0af6736cb1', 'pub_0f30549d71', 'pub_10aec04d23', 'pub_13adc25944', 'pub_1739bfaf95', 'pub_1845fd6492', 'pub_1927dff570', 'pub_19783c039b', 'pub_1b7737c507', 'pub_1d18e32c4e', 'pub_23f10a0918', 'pub_2c76a46f18', 'pub_2e9f2dbea9', 'pub_328cdbeabc', 'pub_392f966ef2', 'pub_3f3b6220e0', 'pub_40c355ae86', 'pub_44555064e1', 'pub_4a1871d85d', 'pub_51c0693f9c', 'pub_58e30f4932', 'pub_5df1eef2f5', 'pub_6f71d61137', 'pub_7730cdd232', 'pub_792969545c', 'pub_886ede1e0e', 'pub_890299c726', 'pub_8a081dc888', 'pub_8dafaf94bc', 'pub_9428119866', 'pub_989b35f30b', 'pub_9a3afbee00', 'pub_a470dfb784', 'pub_a49146c8fd', 'pub_a6126dc686', 'pub_a671b3a07d', 'pub_ab5ae597b9', 'pub_ad5a7268e5', 'pub_aed382b25f', 'pub_b048b54fa9', 'pub_b0b3296ec5', 'pub_bef16e560c', 'pub_c07b8473b8', 'pub_c75976ca9f', 'pub_c8195b4ca7', 'pub_cd72e4a7bb', 'pub_cdc2243314', 'pub_d0909358c9', 'pub_dc1c90a4de', 'pub_dfa96a5118', 'pub_e4bbba9576', 'pub_e4dd361427', 'pub_f5d1922154', 'pub_fdc02269b7') failed the isolation check",
+      "process_seconds": 120.658,
+      "seconds": 107.351,
+      "started_utc": "2026-09-22T23:40:21+00:00",
+      "workers": 2
+    }
+  ],
+  "note": "opened by TASK A after POST-HOC addendum 4 was appended and the stale records were deleted; no fold has run under the cap yet",
+  "opened_utc": "2026-09-22T17:16:19+00:00",
+  "prior_legs_not_counted": {
+    "B5:ACT_METAL_SHUFFLED@V5__primary_batched_max4": {
+      "dir": "generations/gen19_chem_transfer/evaluation/h3/records/B5/ACT_METAL_SHUFFLED/V5__primary_batched_max4/s104729",
+      "max_seconds": 183.7,
+      "mean_seconds": 183.7,
+      "median_seconds": 183.7,
+      "min_seconds": 183.7,
+      "n_folds": 1,
+      "scored": false,
+      "total_hours": 0.051,
+      "total_seconds": 183.7
+    },
+    "B5:ACT_PERMUTED@V5__primary_batched_max4": {
+      "dir": "generations/gen19_chem_transfer/evaluation/h3/records/B5/ACT_PERMUTED/V5__primary_batched_max4/s104729",
+      "max_seconds": 711.0,
+      "mean_seconds": 574.3,
+      "median_seconds": 565.6,
+      "min_seconds": 318.3,
+      "n_folds": 15,
+      "scored": true,
+      "total_hours": 2.3928,
+      "total_seconds": 8614.1
+    },
+    "B5:WITHOUT@V5__primary_batched_max4": {
+      "dir": "generations/gen19_chem_transfer/evaluation/h3/records/B5/WITHOUT/V5__primary_batched_max4/s104729",
+      "max_seconds": 621.8,
+      "mean_seconds": 495.8,
+      "median_seconds": 515.3,
+      "min_seconds": 298.4,
+      "n_folds": 28,
+      "scored": true,
+      "total_hours": 3.8561,
+      "total_seconds": 13882.0
+    },
+    "total_hours": 6.2999
+  },
+  "prior_legs_reading": "POST-HOC addendum 4 item 2 grants the cap after the V5 leg of the deployed arm was already fitted and names the priority order 'V5 (done), then V2, then V1', so the cap governs the work from here; what the finished leg cost is measured from its own fold records and REPORTED, never subtracted from the 20 h. If the orchestrator reads the cap as covering H3 end to end, the prior hours below are the number to subtract",
+  "reading": "POST-HOC addendum 4 item 2: section 11 registers no compute budget, so H3 gets a cap of 20 h of wall clock on 2 workers, recorded in evaluation/h3/decisions/wall_clock.json and CHECKED BEFORE EACH FOLD. The budget number is WALL CLOCK, not worker-seconds: the ledger records every invocation's [started_utc, ended_utc] interval and h3_wall_clock_total sums the UNION of those intervals, so two workers running the same hour consume one hour of the cap; the sum over workers is recorded beside it as worker_seconds and is never the number compared with the cap. More than 2 concurrent workers is refused (H3_WORKERS). --max-hours stays an operator pause, never a NOT_RUN reason",
+  "schema": "gen19.h3.v1",
+  "wall_hours": 5.7842,
+  "worker_hours": 9.7832,
+  "workers_max": 2
+}

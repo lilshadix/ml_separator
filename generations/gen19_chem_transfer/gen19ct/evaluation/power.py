@@ -10,7 +10,11 @@ Signal injection (section 8 "Signal-injection power check")
 * Which contrasts need it (:func:`contrasts_needing_power`): a failed **H1 / H1b / H3** contrast of the scorer's
   contrast files -- ``discovery.POWER_CHECK_FAMILIES`` mapped onto the registered families ``primary`` (H1: M2 vs B3i),
   ``H1b`` (B6 vs B3i), ``S1(b)`` and ``H3`` -- whose full R19 verdict is not PASS.  Before such a null is reported the
-  check runs; a null with ``kappa_min > 0.25`` is UNDECIDED (underpowered), ``transfer.power_verdict``.
+  check runs; a null with ``kappa_min > 0.25`` is UNDECIDED (underpowered), ``transfer.power_verdict``.  **POST-HOC
+  addendum 4 item 4** (:data:`ADDENDUM4_WORDING`, :data:`REPORTED_LABEL`) fixes what the check may CONCLUDE: a contrast
+  that is not a null at all is **POWERED_NOT_A_NULL**, a genuine failure with no passing kappa is **UNDECIDED
+  (underpowered)** -- never "no effect" -- and a failed contrast with no registered check is **UNDECIDED (no registered
+  power check)**, never null.
 * The signal (``transfer.injected_signal``, reused): ``s_row = u_m v_s``, ``u ~ N(0, 1)`` per metal state, ``v ~ N(0, 1)``
   per system, seeded and standardised.  For **H3** every An(III) state shares the ``u`` of its nearest-CN8-radius Ln(III)
   (:func:`h3_u_share`), so a cross-metal lookup cannot exploit it but actinide transfer can.
@@ -76,6 +80,23 @@ N_SPLIT_HALVES = 20
 SPLIT_HALF_SEED = ET.BOOTSTRAP_SEED
 RELIABILITY_FLOOR = ET.RELIABILITY_FLOOR
 NOT_COMPUTED = "not computed"
+
+#: POST-HOC addendum 4 item 4, "What the power check may conclude" -- the registered rule made explicit
+ADDENDUM4_WORDING = (
+    "POST-HOC addendum 4 item 4: section 8 requires the injection check before a failed H1, H1b or H3 contrast is "
+    "reported as a null. A contrast that is not a null at all -- its un-injected verdict PASSES its reported scope and "
+    "its point estimate has a direction -- is reported POWERED_NOT_A_NULL, because the registered wording 'null' never "
+    "applies to it. A genuine failure with no kappa at which R19 passes is UNDECIDED (underpowered), never 'no effect'. "
+    "A contrast with no registered power check is reported UNDECIDED (no registered power check), never null. This is "
+    "the registered rule made explicit, not a change to it")
+#: the label each internal verdict is REPORTED under (POST-HOC addendum 4 item 4); the report and D03 / D02 print these
+REPORTED_LABEL: dict[str, str] = {
+    "INFORMATIVE_NULL": "null (informative)",
+    "UNDECIDED_UNDERPOWERED": "UNDECIDED (underpowered)",
+    "POWERED_NOT_A_NULL": "POWERED_NOT_A_NULL",
+    "NOT_A_NULL_UNDERPOWERED": "POWERED_NOT_A_NULL"}
+#: what a FAILED contrast with no power record is reported as (POST-HOC addendum 4 item 4)
+NO_POWER_CHECK_LABEL = "UNDECIDED (no registered power check)"
 
 READINGS: dict[str, str] = {
     "needs_power": "a contrast needs the power check when its family is one of "
@@ -303,24 +324,56 @@ class KappaResult:
         return out
 
 
-def kappa_min(results: Iterable[KappaResult], *, uninjected_verdict: str | None = None) -> dict[str, Any]:
+def _favours(point: Any) -> str:
+    """Which side a contrast's point estimate favours.  ``discovery.evaluate_contrast`` / ``h3.h3_contrast`` define
+    Delta = MAE(comparator) - MAE(candidate), so a POSITIVE point favours the CANDIDATE and a negative one the
+    comparator; either way the contrast is not a null."""
+    try:
+        p = float(point)
+    except (TypeError, ValueError):
+        return "its point estimate is not computed"
+    if not np.isfinite(p):
+        return "its point estimate is not finite"
+    if p > 0:
+        return (f"its point estimate ({p:+.4g}) favours the CANDIDATE arm (Delta = MAE(comparator) - MAE(candidate), so "
+                "positive favours the candidate)")
+    if p < 0:
+        return (f"its point estimate ({p:+.4g}) favours the COMPARATOR (Delta = MAE(comparator) - MAE(candidate), so "
+                "negative favours the comparator)")
+    return "its point estimate is exactly 0"
+
+
+def kappa_min(results: Iterable[KappaResult], *, uninjected_verdict: str | None = None,
+              uninjected_point: Any = None) -> dict[str, Any]:
     """``transfer.power_verdict`` over the registered kappa grid: kappa_min and INFORMATIVE_NULL /
     UNDECIDED_UNDERPOWERED (a null with kappa_min > 0.25 is underpowered) -- or, when the UN-INJECTED contrast is not a
     null at all (its reported-scope verdict PASSES), POWERED_NOT_A_NULL / NOT_A_NULL_UNDERPOWERED: section 8 scopes the
     check to a contrast "reported as a null", so a contrast that passes its scope is never reported as one (task X
-    findings V-L3 / V-P04)."""
+    findings V-L3 / V-P04).
+
+    POST-HOC addendum 4 item 4 fixes the WORDING of the three outcomes (:data:`ADDENDUM4_WORDING`) and is quoted in the
+    record: **POWERED_NOT_A_NULL** for a contrast that is not a null (its point estimate has a direction and the
+    registered wording "null" never applies), **UNDECIDED (underpowered)** for a genuine failure with no passing kappa,
+    and **UNDECIDED (no registered power check)** for a failed contrast with no record at all -- never "no effect".
+    ``uninjected_point`` is the un-injected point estimate, named in the sentence so the direction is on the record
+    (:func:`_favours`)."""
     by_kappa = {float(r.kappa): bool(r.passed) for r in results}
     verdict = ET.power_verdict(by_kappa, uninjected_verdict=uninjected_verdict)
     sensitivity = ("a signal of kappa_min SD would have been detected" if verdict["informative"]
-                   else "the design could not detect a signal at or below 0.25 log D")
+                   else "the design could not detect a signal at or below 0.25 log D"
+                        + ("" if by_kappa and any(by_kappa.values()) else "; no registered kappa makes R19 pass"))
+    direction = _favours(uninjected_point)
+    not_a_null = ("not a null: the un-injected contrast PASSES its reported scope and "
+                  f"{direction}, so the registered wording 'null' never applies and nothing is reported as a null here; "
+                  f"sensitivity for the record -- {sensitivity}")
     reported = {"INFORMATIVE_NULL": f"the null is informative: {sensitivity}",
                 "UNDECIDED_UNDERPOWERED": f"UNDECIDED (underpowered): {sensitivity}",
-                "POWERED_NOT_A_NULL": ("not a null: the un-injected contrast PASSES its reported scope, so nothing is "
-                                       f"reported as a null here; sensitivity for the record -- {sensitivity}"),
-                "NOT_A_NULL_UNDERPOWERED": ("not a null: the un-injected contrast PASSES its reported scope; "
-                                            f"sensitivity for the record -- {sensitivity}")}[verdict["verdict"]]
+                "POWERED_NOT_A_NULL": f"POWERED_NOT_A_NULL -- {not_a_null}",
+                "NOT_A_NULL_UNDERPOWERED": f"POWERED_NOT_A_NULL -- {not_a_null}"}[verdict["verdict"]]
     return {**verdict, "passes_by_kappa": by_kappa, "kappas": list(KAPPAS),
-            "kappa_min_informative": ET.KAPPA_MIN_INFORMATIVE, "reported": reported}
+            "kappa_min_informative": ET.KAPPA_MIN_INFORMATIVE, "reported": reported,
+            "reported_label": REPORTED_LABEL[verdict["verdict"]], "uninjected_point": uninjected_point,
+            "uninjected_point_favours": direction, "wording_rule": ADDENDUM4_WORDING}
 
 
 def power_record(contrast_key: str, *, family: str, design: str, arms: Sequence[str], results: Sequence[KappaResult],
@@ -328,7 +381,8 @@ def power_record(contrast_key: str, *, family: str, design: str, arms: Sequence[
                  uninjected: Mapping[str, Any] | None = None) -> dict[str, Any]:
     """The power-check record of one contrast (metrics only)."""
     un = dict(uninjected or {})
-    km = kappa_min(results, uninjected_verdict=un.get("reported_verdict") or un.get(f"verdict_{H3.VERDICT_SCOPE}"))
+    km = kappa_min(results, uninjected_verdict=un.get("reported_verdict") or un.get(f"verdict_{H3.VERDICT_SCOPE}"),
+                   uninjected_point=un.get("point"))
     return {"schema": SCHEMA, "contrast": contrast_key, "family": family, "design": design, "arms": list(arms),
             "injection_seed": int(seed), "u_share": {str(k): str(v) for k, v in sorted(dict(u_share).items())},
             "n_u_shared_states": len(u_share), "n_rows_dropped_unknown_state": int(n_dropped_unknown_state),
@@ -337,6 +391,7 @@ def power_record(contrast_key: str, *, family: str, design: str, arms: Sequence[
             "per_unit_metrics": PER_UNIT_REL, "per_unit_metrics_persisted": True,
             "readings": {k: READINGS[k] for k in ("injection_seed", "h3_u_share", "refit", "scored_rows", "r19_scope",
                                                   "no_persisted_values", "per_unit_metrics")},
+            "wording_rule": ADDENDUM4_WORDING,
             "label": "signal-injection power check (section 8); injected values are not data (brief section 33)"}
 
 

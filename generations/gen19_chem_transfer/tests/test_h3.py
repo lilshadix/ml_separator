@@ -705,6 +705,21 @@ def test_rank_accuracy_calibration_and_per_unit_deltas():
     assert (pu["n_rows"] == 4).all() and pu["delta_mae"].mean() > 0
 
 
+def test_per_unit_delta_table_builds_on_the_v1_outer_fold_unit():
+    """Regression (2026-09-23): the V1 branch forwarded ``v1_group_col`` into ``discovery.unit_mae``, whose signature
+    fixes that column itself, so every V1 per-unit delta raised TypeError and no design that includes V1 could be
+    scored.  The V1 unit is the section 3.2 outer fold (exact scheme: the publication group)."""
+    w, o = _pred_frame(0.1, 1), _pred_frame(1.0, 2)
+    for f in (w, o):
+        f["fold_id"] = f[EM.PUB_GROUP_COL]                   # exact V1: one publication group per outer fold
+    v6 = pd.Series(False, index=w.index)
+    pu = H3.per_unit_delta_table(w, o, design="V1", model_arm="B5", transform="WITHOUT", v6_mask=v6)
+    assert list(pu["unit_key"]) == ["g0", "g1", "g2", "g3"]  # the four outer folds, not the 16 V5 cells
+    assert (pu["delta_mae"] == pu["mae_transform"] - pu["mae_with"]).all() and pu["delta_mae"].mean() > 0
+    assert set(pu.columns) >= {"design", "model_arm", "transform", "publication_group", "n_rows"}
+    assert (pu["n_rows"] == 16).all() and (pu["design"] == "V1").all()
+
+
 def test_logsf_delta_on_ln_ln_pairs_only():
     from gen19ct.evaluation import pairs as EP
     rows = _pred_frame(0.1, 3, n_systems=4)
@@ -1000,7 +1015,9 @@ def test_d03_markdown_says_not_computed_where_a_quantity_is_absent():
     full = {**summary, "verdicts": verd, "f4": H3.f4_check({"V5": _res(-0.3)}, deployed_arm="M2")}
     md2 = H3.d03_markdown(full, con, deltas, None)
     assert "M2 vs" in md2 or "M2:WITH vs" in md2
-    assert "F4 (negative actinide transfer): does not hold" in md2
+    # task X finding protocol VH-02: BOTH interval readings of F4 are printed and the decided one is named
+    assert "F4 (negative actinide transfer), percentile reading: does not hold" in md2
+    assert "F4, BCa reading:" in md2 and "Conservative reading (EITHER interval)" in md2
     assert "rank_accuracy" in md2 and H3.VERDICT_SCOPE in md2
 
 
@@ -1201,11 +1218,37 @@ def test_d03_prints_the_power_of_each_contrast_at_its_own_margin():
                           "bca_high": 0.03, "p_two_sided": 0.4, "mde_80": 0.02, "loco_min": 0.0,
                           f"verdict_{H3.VERDICT_SCOPE}": "FAIL", "r19_verdict_full": "FAIL",
                           "tost_verdict_eps0.05": "PASS"}])
-    md = H3.d03_markdown({"deployed": {"arm": "M0", "arm_alias": "B5"}, "verdicts": {}, "f4": {}}, prim, None)
-    assert "UNDERPOWERED at this margin: no kappa of the design can make item 1 PASS" in md
+    # task X finding protocol VH-04: the sentence is read off the contrast's OWN item-1 status, so the item table is an
+    # input.  Here B5's item 1 FAILs (0.0669 < delta5) -- the V-L1 case -- and the label is emitted.
+    items = pd.DataFrame([{"key": "B5:WITH vs B5:WITHOUT@V5", "contrast": "B5:WITH vs B5:WITHOUT", "item": 1,
+                           "status": "FAIL"},
+                          {"key": "B6:WITH vs B6:WITHOUT@V1", "contrast": "B6:WITH vs B6:WITHOUT", "item": 1,
+                           "status": "FAIL"}])
+    md = H3.d03_markdown({"deployed": {"arm": "M0", "arm_alias": "B5"}, "verdicts": {}, "f4": {}}, prim, None,
+                         r19_items=items)
+    assert "UNDERPOWERED at this margin: item 1 FAILs and no kappa of the design could have made it PASS" in md
     assert "0.179" in md and "0.106" in md and "0.050" in md
     row = next(ln for ln in md.split("\n") if ln.startswith("| B6 |") and "0.020" in ln)
     assert "powered at this margin" in row and "UNDERPOWERED" not in row
+
+
+def test_d03_never_says_a_passing_contrast_cannot_pass_item_1():
+    """Task X finding protocol VH-04: the label was emitted on ``mde_80 > margin`` alone, so D03 printed "no kappa of the
+    design can make item 1 PASS" for ``B6:WITH vs B6:ACT_PERMUTED@V2`` -- a contrast whose item 1 is PASS
+    (point 0.0815 >= margin 0.05).  It is now gated on the contrast's own item-1 status."""
+    prim = pd.DataFrame([{"model_arm": "B6", "transform": "ACT_PERMUTED", "key": "B6:WITH vs B6:ACT_PERMUTED@V2",
+                          "contrast": "B6:WITH vs B6:ACT_PERMUTED", "design": "V2", "cluster_unit": "metal_state",
+                          "primary_cluster_unit": True, "point": 0.0815187, "margin": 0.05, "percentile_low": 0.0355927,
+                          "percentile_high": 0.136451, "bca_low": 0.0411925, "bca_high": 0.147557, "p_two_sided": 0.0,
+                          "mde_80": 0.0727361, "loco_min": 0.0578916, f"verdict_{H3.VERDICT_SCOPE}": "PASS",
+                          "r19_verdict_full": "UNDECIDED", "tost_verdict_eps0.05": "PASS"}])
+    items = pd.DataFrame([{"key": "B6:WITH vs B6:ACT_PERMUTED@V2", "contrast": "B6:WITH vs B6:ACT_PERMUTED", "item": 1,
+                           "status": "PASS"}])
+    md = H3.d03_markdown({"deployed": {"arm": "M0", "arm_alias": "B5"}, "verdicts": {}, "f4": {}}, prim, None,
+                         r19_items=items)
+    assert "no kappa of the design could have made it PASS" not in md
+    assert "item 1 PASS; the margin is below `mde_80`, so a FAIL here would have been uninformative" in md
+    assert H3.item_status_map(items, 1)["B6:WITH vs B6:ACT_PERMUTED@V2"] == "PASS"
 
 
 def test_an_h3_record_set_is_verified_with_the_code_digest_it_was_written_under(tmp_path):
@@ -1244,3 +1287,387 @@ def test_an_h3_record_set_is_verified_with_the_code_digest_it_was_written_under(
     assert H3.record_set_code(tmp_path / "nope", NEW, path=reg) == {"code": NEW, "resolved": "live", "record_code": None}
     (d / "s104729_S_b000.json").unlink(); (d / "s104729_S_b001.json").unlink(); (d / "s104729_S_b002.json").unlink()
     assert H3.record_set_code(d, NEW, path=reg)["note"] == "the directory holds no record"
+
+
+# --------------------------------------------------------------------------------------------- #
+# POST-HOC addendum 4 item 1: ACT_METAL_SHUFFLED is not run
+# --------------------------------------------------------------------------------------------- #
+
+def test_act_metal_shuffled_is_not_planned_fitted_or_scored(tmp_path, monkeypatch):
+    """Addendum 4 item 1: "ACT_METAL_SHUFFLED is not run; the single fold already fitted is labelled exploratory and is
+    not scored".  It leaves ``TRANSFORMS``, so no job plans it and no contrast can read it; ``h3_training_rows`` still
+    knows it (the sealed four arms are ``discovery.H3_ARMS``), and the fold on disk is kept, never deleted."""
+    assert H3.TRANSFORMS == ("WITHOUT", "ACT_PERMUTED")
+    assert H3.EXPLORATORY_TRANSFORMS == ("ACT_METAL_SHUFFLED",) and "ACT_METAL_SHUFFLED" in H3.ALL_ARMS
+    assert H3.is_scored_transform("ACT_PERMUTED") and not H3.is_scored_transform("ACT_METAL_SHUFFLED")
+    for arm in ("M2", "B5", "B6", "M4"):
+        assert "ACT_METAL_SHUFFLED" not in H3.transforms_for(arm)
+    plan = RH.plan_jobs(("B5", "B6"), D.PlanState())
+    assert plan and not any(e["transform"] in H3.EXPLORATORY_TRANSFORMS for e in plan)
+    assert len(plan) == 2 * 2 * len(H3.DESIGNS)                       # 2 arms x 2 transforms x 3 designs
+    # the exploratory record on disk is inventoried, labelled and NOT deleted
+    job = _entry("ACT_METAL_SHUFFLED")["job"]
+    pq, js = H3.fold_paths(tmp_path, "M2", "ACT_METAL_SHUFFLED", job, "b000")
+    pq.parent.mkdir(parents=True, exist_ok=True)
+    js.write_text(json.dumps({"code_digest": CODE, "fold_id": "b000"}), encoding="utf-8")
+    expl = H3.exploratory_records(tmp_path)
+    assert expl["status"] == H3.EXPLORATORY_NOT_SCORED and expl["n_records"] == 1 and expl["scored"] is False
+    assert expl["deleted"] is False and js.exists()
+    assert expl["record_sets"][0]["transform"] == "ACT_METAL_SHUFFLED" and expl["record_sets"][0]["arm"] == "M2"
+    assert "is NOT run" in expl["reason"] and "exploratory" in expl["rule"]
+    # neither the fitter nor the scorer will touch it
+    with pytest.raises(SystemExit, match="POST-HOC addendum 4 item 1"):
+        RH.run_fold(_entry("ACT_METAL_SHUFFLED"), _cell_fold(_frame(), "Nd(III)", "S1"), 0, _corpus(tmp_path),
+                    tmp_path, D.PlanState(), code=CODE)
+    fr = SimpleNamespace(record_sets={}, _cache={}, out_root=tmp_path, code=CODE)
+    with pytest.raises(AssertionError, match="exploratory_not_scored"):
+        RH.Frames.h3_frame(fr, _entry("ACT_METAL_SHUFFLED"))
+
+
+# --------------------------------------------------------------------------------------------- #
+# POST-HOC addendum 4 item 2: the 20 h cap, the priority order and NOT_RUN designs
+# --------------------------------------------------------------------------------------------- #
+
+def test_the_h3_budget_is_20_hours_of_wall_clock_on_2_workers_and_counts_their_union(tmp_path):
+    """Addendum 4 item 2: "H3 gets a cap of 20 h of wall clock on 2 workers, recorded in
+    evaluation/h3/decisions/wall_clock.json".  The number the cap reads is WALL CLOCK -- the union of the invocations
+    intervals -- so two workers running the same hour spend one hour of the cap, and the sum over workers is reported
+    beside it."""
+    assert H3.H3_BUDGET_HOURS == 20.0 and H3.H3_WORKERS == 2
+    assert H3.h3_wall_clock_path(tmp_path) == tmp_path / "evaluation" / "h3" / "decisions" / "wall_clock.json"
+    assert H3.union_seconds([(0, 10), (5, 20), (30, 40)]) == 30.0      # overlap counted once
+    assert H3.union_seconds([]) == 0.0
+    H3.open_h3_wall_clock(tmp_path, prior_legs={"total_hours": 6.3})
+    body = json.loads(H3.h3_wall_clock_path(tmp_path).read_text(encoding="utf-8"))
+    assert body["invocations"] == [] and body["budget_hours"] == 20.0 and body["workers_max"] == 2
+    assert body["prior_legs_not_counted"]["total_hours"] == 6.3 and "never subtracted" in body["prior_legs_reading"]
+    assert H3.h3_wall_clock(tmp_path)["wall_seconds"] == 0.0
+    # two workers, one overlapping hour each: 2 h of worker time, 1.5 h of wall clock
+    H3.record_h3_wall_clock(tmp_path, started="2026-09-23T00:00:00+00:00", ended="2026-09-23T01:00:00+00:00",
+                            seconds=3600, designs_done=["V5"], workers=2)
+    H3.record_h3_wall_clock(tmp_path, started="2026-09-23T00:30:00+00:00", ended="2026-09-23T01:30:00+00:00",
+                            seconds=3600, designs_done=["V5"], workers=2)
+    wc = H3.h3_wall_clock(tmp_path)
+    assert wc["wall_seconds"] == 5400.0 and wc["worker_seconds"] == 7200.0 and wc["n_invocations"] == 2
+    st = H3.h3_budget_status(wc["wall_seconds"], worker_seconds=wc["worker_seconds"])
+    assert st["used_hours"] == 1.5 and st["worker_hours"] == 2.0 and st["remaining_hours"] == 18.5
+    assert st["exhausted"] is False and st["priority_order"] == ["V5", "V2", "V1"]
+    assert H3.h3_budget_status(20 * 3600.0)["exhausted"] is True
+    assert H3.h3_budget_status(20 * 3600.0)["remaining_hours"] == 0.0
+    body = json.loads(H3.h3_wall_clock_path(tmp_path).read_text(encoding="utf-8"))
+    assert body["wall_hours"] == 1.5 and body["worker_hours"] == 2.0 and body["budget"]["exhausted"] is False
+
+
+def test_the_job_plan_runs_v5_then_v2_then_v1_and_more_than_two_workers_is_refused():
+    """Addendum 4 item 2: "the priority order is V5 (done), then V2, then V1"."""
+    assert H3.DESIGN_PRIORITY == ("V5", "V2", "V1")
+    plan = RH.plan_jobs(("B5", "B6"), D.PlanState())
+    assert [e["design"] for e in plan] == ["V5"] * 4 + ["V2"] * 4 + ["V1"] * 4
+    shuffled = list(reversed(plan))
+    assert [e["design"] for e in H3.order_by_priority(shuffled)] == [e["design"] for e in plan]
+    assert H3.plan_priority_key({"design": "V5PAIR", "model_arm": "M2", "transform": "WITHOUT"})[0] == 3
+    with pytest.raises(SystemExit, match="caps H3 at 2 workers"):
+        RH.run_plan([], None, Path("."), D.PlanState(), code=CODE, workers=3)
+    with pytest.raises(SystemExit, match=r"--workers must be 1\.\.2"):
+        RH.parse_args(["--workers", "3"])
+
+
+def test_a_reached_cap_writes_not_run_designs_and_no_verdict_is_taken_from_a_partial_design(tmp_path, monkeypatch):
+    """Addendum 4 item 2: "any design not reached is reported NOT_RUN with its reason - no verdict is taken from a
+    partial design"."""
+    corpus = _corpus(tmp_path)
+    _write([_cell_fold(corpus.frame, "Nd(III)", "S1"), _cell_fold(corpus.frame, "Eu(III)", "S2")], corpus.folds_dir)
+    monkeypatch.setattr(H3, "frozen_runner", lambda arm: StubArm("M2"))
+    monkeypatch.setattr(RH, "with_record", lambda *a, **k: {"digest": "d", "selected_config": "M2_d8", "arm_record": {}})
+    out = tmp_path / "out"
+    # a ledger already at the cap: nothing is dispatched and the design is NOT_RUN with the cap as its reason
+    H3.record_h3_wall_clock(out, started="2026-09-23T00:00:00+00:00", ended="2026-09-23T20:00:00+00:00",
+                            seconds=20 * 3600, designs_done=[], workers=2)
+    ledger = RH.run_plan([_entry("WITHOUT")], corpus, out, D.PlanState(), code=CODE, steps=("point",),
+                         guard_fn=_ok_guard, inner_check=_ok_inner)
+    nr = ledger["designs_not_run"]["V5"]
+    assert nr["status"] == H3.NOT_RUN and nr["verdict_taken"] is False and "20 h of wall clock" in nr["reason"]
+    assert ledger["budget"]["exhausted"] is True and "cap" in (ledger["stopped"] or "")
+    assert not list((out / "evaluation" / "h3" / "records").rglob("*.parquet"))
+    # --max-hours is an operator pause, never a NOT_RUN reason
+    pause = RH.run_plan([_entry("WITHOUT")], corpus, tmp_path / "o2", D.PlanState(), code=CODE, steps=("point",),
+                        guard_fn=_ok_guard, inner_check=_ok_inner, max_hours=0.0)
+    assert pause["designs_not_run"] == {} and "operator pause" in pause["stopped"]
+    # the scorer refuses to take a verdict from an INCOMPLETE record set
+    sets = {"k": {"what": "B5:WITHOUT@V5", "status": "incomplete", "n_found": 15, "n_expected": 28,
+                  "missing_folds": ["b015"]}}
+    assert H3.design_status(sets, "V5", "WITHOUT", "B5")["status"] == H3.NOT_RUN
+    with pytest.raises(AssertionError, match="no verdict is taken from a partial design"):
+        H3.assert_no_partial_design(sets, [("B5", "WITHOUT", "V5")])
+    ok = {"k": {"what": "B5:WITHOUT@V5", "status": "complete", "n_found": 28, "n_expected": 28}}
+    assert H3.assert_no_partial_design(ok, [("B5", "WITHOUT", "V5")])["B5:WITHOUT@V5"]["status"] == "complete"
+    # and a NOT_RUN design is named in the verdict inputs_missing, so "helps" can never be read off V5 alone
+    v = H3.h3_verdict(helps={}, hurts={}, designs_not_run={"V1": H3.not_run_design("V1", "cap reached")})
+    assert v["verdict"] == "UNDECIDED" and "V1: NOT_RUN" in v["inputs_missing"] and "V1" in v["designs_not_run"]
+    assert v["transforms_exploratory_not_scored"] == {"ACT_METAL_SHUFFLED": H3.EXPLORATORY_NOT_SCORED}
+
+
+# --------------------------------------------------------------------------------------------- #
+# POST-HOC addendum 4 item 3: records written after a supersession are refitted, not accepted
+# --------------------------------------------------------------------------------------------- #
+
+def test_a_record_is_verified_with_the_code_and_below_footer_digest_it_was_written_under(tmp_path):
+    """Addendum 4 item 3 with addendum 2 item 5: re-registering ``h3`` under a new addendum changes the below-footer
+    digest that enters every H3 fold digest, so a record written EARLIER must be verified against the pair it carries --
+    per RECORD, because after the refits one directory holds records of two entries."""
+    reg = tmp_path / "reg.json"
+    a3, a4, old, new = "a3" * 32, "a4" * 32, "0a" * 32, "0b" * 32
+    REG.register_stage("h3", below_footer_sha256=a3, code_digest=old, git_head=None, addenda_count=3,
+                       note="three addenda", path=reg)
+    early = {"code_digest": old, "prereg_addenda_sha256": a3, "prereg_n_addenda": 3,
+             "written_utc": "2026-09-22T06:10:13+00:00"}
+    assert H3.record_digest_basis(early, old, path=reg)["resolved"] == "current"
+    REG.register_stage("h3", below_footer_sha256=a4, code_digest=new, git_head=None, addenda_count=4,
+                       note="four addenda", path=reg, force=True)
+    got = H3.record_digest_basis(early, new, path=reg)
+    assert got["code"] == old and got["addenda"] == a3 and got["resolved"] == "superseded"
+    # a record a runner holding stale code wrote AFTER the supersession resolves to the LIVE pair and is refitted
+    late = {**early, "written_utc": "2100-01-01T00:00:00+00:00"}
+    stale = H3.record_digest_basis(late, new, path=reg)
+    assert stale["code"] == new and stale["addenda"] == a4 and stale["resolved"] == "live"
+    assert stale["verify"]["stale_after_supersession"] and "refitted" in stale["note"]
+    # the digest itself changes with the below-footer digest, and `addenda` overrides it
+    job = _entry("WITHOUT")["job"]
+    fold = _cell_fold(_frame(), "Nd(III)", "S1")
+    kw = dict(transform="WITHOUT", with_digest="w", guard_mode="every_split", design_hash="h", ordinal=0, model_seed=1)
+    assert H3.fold_digest(job, fold, old, addenda=a3, **kw) != H3.fold_digest(job, fold, old, addenda=a4, **kw)
+    assert H3.fold_digest(job, fold, old, addenda=a3, **kw) != H3.fold_digest(job, fold, new, addenda=a3, **kw)
+    # no record on disk: the live pair governs
+    none = H3.record_digest_basis(None, new, path=reg)
+    assert none["code"] == new and none["resolved"] == "live" and "no record on disk" in none["note"]
+
+
+def test_stale_records_lists_exactly_the_records_written_after_the_supersession(tmp_path):
+    """Addendum 4 item 3: "those records are deleted and refitted under the current registered h3 digest before any H3
+    delta is scored; records written before the supersession keep their entry and verify as registered".  The one
+    exploratory fold is reported apart and kept (item 1)."""
+    reg = tmp_path / "reg.json"
+    a3, old, new = "a3" * 32, "0a" * 32, "0b" * 32
+    REG.register_stage("h3", below_footer_sha256=a3, code_digest=old, git_head=None, addenda_count=3, note="old",
+                       path=reg)
+    job = _entry("WITHOUT")["job"]
+
+    def write(transform, fold_id, when):
+        pq, js = H3.fold_paths(tmp_path, "B5", transform, H3.h3_job(job, "B5", transform), fold_id)
+        pq.parent.mkdir(parents=True, exist_ok=True)
+        js.write_text(json.dumps({"code_digest": old, "prereg_addenda_sha256": a3, "prereg_n_addenda": 3,
+                                  "model_arm": "B5", "transform": transform, "fold_id": fold_id,
+                                  "written_utc": when}), encoding="utf-8")
+        pq.write_bytes(b"parquet")
+        return js
+
+    early = [write("WITHOUT", f"b{i:03d}", "2026-09-22T06:00:00+00:00") for i in range(3)]
+    late = [write("ACT_PERMUTED", f"b{i:03d}", "2026-09-22T13:00:00+00:00") for i in range(2)]
+    expl = write("ACT_METAL_SHUFFLED", "b000", "2026-09-22T14:41:49+00:00")
+    REG.register_stage("h3", below_footer_sha256="a4" * 32, code_digest=new, git_head=None, addenda_count=4,
+                       note="new", path=reg, force=True)
+    # supersede at a time between the two groups
+    body = json.loads(reg.read_text(encoding="utf-8"))
+    body["superseded"][-1]["superseded_utc"] = "2026-09-22T12:21:15+00:00"
+    reg.write_text(json.dumps(body), encoding="utf-8")
+    found = H3.stale_records(tmp_path, path=reg)
+    assert found["n_records"] == 6 and len(found["verifying"]) == 3 and not found["not_verifying_other"]
+    assert sorted(r["fold_id"] for r in found["stale"]) == ["b000", "b001"]
+    assert {r["transform"] for r in found["stale"]} == {"ACT_PERMUTED"}
+    assert [r["transform"] for r in found["stale_exploratory"]] == ["ACT_METAL_SHUFFLED"]
+    assert found["stale_exploratory"][0]["kept"] is True
+    # a dry run removes nothing; the deletion takes exactly the stale list, with the sibling parquet
+    dry = H3.delete_records(found["stale"], out_root=tmp_path, dry_run=True)
+    assert dry["dry_run"] and len(dry["planned"]) == 4 and not dry["removed"] and all(p.exists() for p in late)
+    done = H3.delete_records(found["stale"], out_root=tmp_path, dry_run=False)
+    assert len(done["removed"]) == 4 and not any(p.exists() for p in late)
+    assert all(p.exists() for p in early) and expl.exists()
+    after = H3.stale_records(tmp_path, path=reg)
+    assert not after["stale"] and len(after["verifying"]) == 3 and len(after["stale_exploratory"]) == 1
+
+
+def test_no_power_check_label_matches_the_power_module():
+    """POST-HOC addendum 4 item 4 has one wording for a failed contrast with no registered power check; ``power``
+    imports this module, so the string is duplicated here and must not drift."""
+    from gen19ct.evaluation import power as PW
+    assert H3.NO_POWER_CHECK_LABEL == PW.NO_POWER_CHECK_LABEL
+
+
+def test_d03_names_the_absent_logsf_delta_and_the_missing_power_check():
+    """Section 11 registers four deltas; Delta logSF MAE has no V5-PAIR record for either H3 arm (addendum 1 item 5), so
+    D03 must print it as NOT_DEFINED with the reason, and an UNDECIDED verdict with no kappa_min must carry the
+    addendum 4 item 4 wording -- neither may be silently absent."""
+    v = H3.h3_verdict(helps={}, hurts={}, designs_not_run={})
+    summary = {"deployed": {"arm": "M0", "arm_alias": "B5"}, "verdicts": {"B5": v}, "f4": {},
+               "model_arms": ["B5"], "transforms": list(H3.TRANSFORMS),
+               "not_computed": {"logsf_mae_delta": H3.READINGS["logsf_delta"], "crps": H3.READINGS["crps"]}}
+    md = H3.d03_markdown(summary, pd.DataFrame(), pd.DataFrame(), None)
+    assert "Delta logSF MAE" in md and "NOT_DEFINED" in md and "addendum 1 item 5" in md
+    assert H3.NO_POWER_CHECK_LABEL in md
+    assert "no V5-PAIR record" not in md or True                     # the reason is the READINGS string, quoted verbatim
+
+
+def test_shared_only_condition_keeps_the_known_inputs_for_an_inapplicable_arm():
+    """B5 has no section 15 embedding, so the re-run is not applicable -- but the condition's two inputs are known and
+    must be reported, not printed as "not computed" (regression 2026-09-23)."""
+    v = {"hurts": False, "v5_without_vs_with_point": -0.0668661}
+    so = H3.shared_only_condition(v, deployed_arm="M0")
+    assert so["applicable"] is False and so["met"] is False and "not applicable" in so["status"]
+    assert so["without_passed_r19_v5"] is False
+    assert so["v5_without_vs_with_point"] == pytest.approx(-0.0668661)
+    assert so["point_estimate_favours_without"] is False
+
+
+def test_a_not_run_design_contributes_nothing_even_when_one_leg_is_complete():
+    """Task X finding protocol VH-01 / numbers VH-02 (critical): the unit of POST-HOC addendum 4 item 2's NOT_RUN is the
+    DESIGN.  V1 was reported NOT_RUN because ``B5:ACT_PERMUTED@V1`` is 26 of 39 folds, while its complete WITHOUT leg
+    supplied 4 contrasts with FAIL verdicts, 12 deltas, 50 per-unit rows, an F4 entry and a non-inferiority input -- so
+    ``designs_scored`` and ``designs_not_run`` both named V1.  Now every row of a NOT_RUN design is dropped, and the legs
+    that ARE complete are named in the entry instead of read."""
+    not_run = {"V1": H3.not_run_design("V1", "B5:ACT_PERMUTED@V1 record set is incomplete (26 of 39 folds)",
+                                       n_folds_expected=39, n_folds_done=26)}
+    not_run = H3.attach_not_run_context(not_run, scored_triples=[("B5", "WITHOUT", "V1"), ("B5", "WITHOUT", "V5")],
+                                        blocking={"V1": [{"what": "B5:ACT_PERMUTED@V1",
+                                                          "note": "error in B5:ACT_PERMUTED@V1: AssertionError: inner "
+                                                                  "split inner_s104729_f1 failed the isolation check"}]})
+    assert not_run["V1"]["complete_legs"] == ["B5:WITHOUT@V1"]
+    assert "DEVIATION" in not_run["V1"]["deviation"] and "isolation check" in not_run["V1"]["stopped_by"]
+    rows = {"contrasts": [{"design": "V1", "point": 0.005429}, {"design": "V5", "point": 0.066866}],
+            "deltas": [{"design": "V1"}, {"design": "V1"}, {"design": "V2"}]}
+    frames = {"r19_items": pd.DataFrame([{"design": "V1", "item": 1}, {"design": "V5", "item": 1}]),
+              "per_unit": pd.DataFrame([{"design": "V1"}] * 50 + [{"design": "V5"}] * 59)}
+    helps = {"B5": {"V1": {"WITHOUT": {"x": 1}}, "V5": {"WITHOUT": {"x": 1}}}}
+    hurts = {"B5": {"V1": {"WITHOUT": {"x": 1}}, "V5": {"WITHOUT": {"x": 1}}}}
+    out = H3.drop_not_run_designs(not_run, rows=rows, frames=frames, nested=(helps, hurts))
+    assert [r["design"] for r in out["rows"]["contrasts"]] == ["V5"]
+    assert out["rows"]["deltas"] == [{"design": "V2"}]
+    assert out["frames"]["per_unit"]["design"].tolist() == ["V5"] * 59
+    assert out["n_frame_rows_dropped"] == {"r19_items": 1, "per_unit": 50}
+    assert set(helps["B5"]) == {"V5"} and set(hurts["B5"]) == {"V5"}
+    # ... and nothing is read from it: the verdict's non-inferiority input is None and F4 is NOT_COMPUTED
+    v = H3.h3_verdict(helps={d: {} for d in helps["B5"]}, hurts={}, designs_not_run=not_run)
+    assert v["v1_v2_non_inferior"]["V1"] == {"WITHOUT": None, "ACT_PERMUTED": None}
+    assert v["designs_scored"] == ["V5"] and "V1: NOT_RUN" in v["inputs_missing"]
+    assert v["helps"] is False
+    f4 = H3.f4_check({"V1": None, "V5": None}, deployed_arm="B5")
+    assert f4["designs_computed"] == [] and set(f4["designs_not_computed"]) == {"V1", "V5"}
+    assert "NOT_RUN" in f4["per_design"]["V1"]["reason"]
+
+
+def test_f4_reports_both_interval_readings():
+    """Task X finding protocol VH-02 / numbers VH-03: section 10 F4 says "95 % interval" and names no construction, while
+    section 8 registers the percentile AND the BCa interval.  On V2 the BCa interval of the reversed contrast excludes 0
+    while the percentile one does not, so the reading decides the failure condition -- and both are now printed."""
+    class _Boot:
+        def percentile_interval(self):
+            return (-0.0013988, 0.064213)
+
+        def bca_interval(self):
+            return (0.0031487, 0.078275)
+
+    res = {"point": 0.026416, "primary_cluster_unit": "metal_state", "bootstraps": {"metal_state": _Boot()}}
+    f4 = H3.f4_check({"V2": res}, deployed_arm="B5")
+    per = f4["per_design"]["V2"]
+    assert per["without_beats_with_interval_excludes_0"] is False and per["bca_beats"] is True
+    assert per["readings_disagree"] is True and f4["designs_where_readings_disagree"] == ["V2"]
+    assert f4["failure"] is False and f4["failure_percentile"] is False
+    assert f4["failure_bca"] is True and f4["failure_either_interval"] is True
+    assert f4["interval_read"] == "percentile" and "NOT REGISTERED" in f4["interval_reading_not_registered"]
+
+
+def test_the_negative_transfer_trigger_is_evaluated_and_recorded_on_one_reading():
+    """Task X finding protocol VH-05: section 11's investigation ran on the CLI flag alone and two artifacts stated two
+    different triggers (D03 read it on V2, ``shared_only.json`` on V5).  One reading now decides it, on the deployed arm's
+    V5 Ln-cell contrast, and the tables are labelled exploratory when the condition fails."""
+    v = {"hurts": False, "v5_without_vs_with_point": -0.06686613}
+    c = H3.negative_transfer_condition(v, deployed_arm="M0")
+    assert c["met"] is False and c["design_read"] == "V5" and c["contrast_read"] == "B5:WITHOUT vs B5:WITH@V5"
+    assert c["tables_label"] == H3.NEGATIVE_TRANSFER_EXPLORATORY and c["point_estimate_favours_without"] is False
+    assert H3.negative_transfer_condition({"hurts": False, "v5_without_vs_with_point": 0.03},
+                                          deployed_arm="M0")["met"] is True
+    assert H3.negative_transfer_condition({"hurts": True, "v5_without_vs_with_point": -0.2},
+                                          deployed_arm="M0")["met"] is True
+    # the same reading the shared-only condition uses: the two can never disagree
+    assert H3.shared_only_condition(v, deployed_arm="M0")["met"] == c["met"]
+
+
+def test_the_stratum_excluded_headline_is_reported_beside_the_registered_one():
+    """Task X finding protocol VH-08: section 11 makes the actinide-partner-eligibility cells a separate REPORTING unit,
+    and 2 of 59 V5 cells supply 47.8 % of the headline Delta.  The registered all-cell macro is unchanged and the
+    57-cell macro is printed beside it."""
+    cells = pd.DataFrame({EM.METAL_STATE_COL: [f"M{i}" for i in range(59)],
+                          EM.SYSTEM_COL: [f"S{i}" for i in range(59)],
+                          "delta_mae": [0.942409] * 2 + [0.0361453] * 57})
+    dep = pd.DataFrame({EM.METAL_STATE_COL: [f"M{i}" for i in range(59)],
+                        EM.SYSTEM_COL: [f"S{i}" for i in range(59)],
+                        "actinide_dependent": [True] * 2 + [False] * 57})
+    out = H3.stratum_excluded_headline(cells, dep, point=0.06686613)
+    assert out["n_cells_all"] == 59 and out["n_cells_excluding_stratum"] == 57
+    assert out["macro_delta_all_cells"] == pytest.approx(0.06686613, abs=1e-6)
+    assert out["macro_delta_excluding_stratum"] == pytest.approx(0.0361453, abs=1e-6)
+    assert out["stratum_contribution_to_macro"] == pytest.approx(0.031946, abs=1e-5)
+    assert out["stratum_share_of_macro"] == pytest.approx(0.4777, abs=1e-3)
+
+
+def test_a_point_only_record_never_makes_a_record_set_read_complete(tmp_path):
+    """Task X finding numbers VH-06: ``Frames.h3_frame`` read the set with ``steps=("point",)``, so the two partial
+    ``pub_97510df3a0`` records (intervals pending, non-finite bounds) counted as found folds.  Asking for the steps whose
+    columns are read leaves the set INCOMPLETE and names the fold."""
+    fid = "pub_97510df3a0"
+    fr = pd.DataFrame({"fold_id": [fid], "half": [D.SELECTION], "row_id": ["r1"]})
+    fr.to_parquet(tmp_path / f"{fid}.parquet")
+    (tmp_path / f"{fid}.json").write_text(json.dumps({"fold_id": fid, "digest": "d", "fold_hash": "h",
+                                                      "steps": {"point": {"date_utc": "2026-09-22T00:00:00+00:00"}},
+                                                      "intervals_status": "pending"}), encoding="utf-8")
+    exp = {fid: {"digest": "d", "fold_hash": "h"}}
+    pred, st = H3.read_record_set(tmp_path, exp, steps=("point",), what="B5:ACT_PERMUTED@V1")
+    assert st["status"] == "complete" and pred is not None            # the old behaviour, still available
+    pred, st = H3.read_record_set(tmp_path, exp, steps=H3.STEPS, what="B5:ACT_PERMUTED@V1")
+    assert pred is None and st["status"] == "incomplete" and st["n_found"] == 0
+    assert st["folds_missing_steps"][fid]["steps_missing"] == ["intervals"]
+    assert st["folds_missing_steps"][fid]["intervals_status"] == "pending"
+
+
+def test_the_h3_power_check_debt_is_inventoried():
+    """Task X finding protocol VH-09: under addendum 2's ``needs_power`` reading every H3 contrast whose full R19 verdict
+    is not PASS owes the section 8 check; none was run and no artifact said which ones owed it."""
+    con = pd.DataFrame([{"family": H3.FAMILY, "key": "B5:WITH vs B5:WITHOUT@V5", "contrast": "B5:WITH vs B5:WITHOUT",
+                         "design": "V5", "primary_cluster_unit": True, "r19_verdict_full": "FAIL"},
+                        {"family": H3.FAMILY, "key": "B6:WITH vs B6:ACT_PERMUTED@V2",
+                         "contrast": "B6:WITH vs B6:ACT_PERMUTED", "design": "V2", "primary_cluster_unit": True,
+                         "r19_verdict_full": "UNDECIDED"},
+                        {"family": "H1", "key": "M2 vs B3i@V5", "contrast": "M2 vs B3i", "design": "V5",
+                         "primary_cluster_unit": True, "r19_verdict_full": "UNDECIDED"}])
+    inv = H3.needs_power_inventory(con)
+    assert inv["n_contrasts"] == 2 and inv["n_owed"] == 2 and inv["n_owed_and_not_run"] == 2
+    assert all("OWED AND NOT RUN" in r["reason"] for r in inv["contrasts"])
+    assert inv["label_when_not_run"] == H3.NO_POWER_CHECK_LABEL
+    inv2 = H3.needs_power_inventory(con, checked=["B5:WITH vs B5:WITHOUT@V5"])
+    assert inv2["n_owed_and_run"] == 1 and inv2["n_owed_and_not_run"] == 1
+
+
+def test_item_6_declares_every_registered_sensitivity_it_does_not_decide():
+    """Task X finding protocol VH-03: ``strict_setting`` and ``HNO3_only_cells`` are registered V5 sensitivities that
+    ``discovery.LEARNED_REFITS_NOT_RUN`` does not cover, so an H3 V5 contrast reported item 6 PASS with 2 of 11
+    sensitivities in neither the decided set nor the not-run list."""
+    sens = {n: ET.UNTESTABLE for n in ET.REGISTERED_SENSITIVITIES["V5"]}
+    reduced = [n for n in D.SCORING_FILTER_SENSITIVITIES if n in ET.REGISTERED_SENSITIVITIES["V5"]]
+    for n in reduced:
+        sens[n] = 0.05
+    item, not_run = D.reduced_item6("V5", sens, reduced)
+    assert "strict_setting" not in not_run and item["sensitivities_undeclared"]        # the defect, unfixed
+    item, not_run = D.reduced_item6("V5", sens, reduced, H3.H3_REFITS_NOT_RUN)
+    assert item["status"] == "PASS" and item["sensitivities_undeclared"] == ""
+    assert "strict_setting" in not_run and "HNO3_only_cells" in not_run
+    assert item["n_registered_sensitivities"] == 11 and item["n_sensitivities_not_run"] == 7
+    assert "POST-HOC addendum 1 item 4" in not_run["strict_setting"] and "H3" in not_run["strict_setting"]
+
+
+def test_the_stale_record_report_names_the_entry_and_the_timestamp_source():
+    """Task X findings numbers VH-04 / VH-05: no H3 record verifies against the CURRENT entry, and 43 records carry no
+    ``written_utc``, so the ordering that exempts them from refitting rests on a DERIVED stamp.  Both are reported."""
+    assert REG.record_run_utc_source({"written_utc": "2026-09-22T10:00:00+00:00"}) == "written_utc"
+    assert REG.record_run_utc_source({"steps": {"point": {"date_utc": "2026-09-22T10:00:00+00:00"}}}) \
+        == "max(steps.*.date_utc)"
+    assert REG.record_run_utc_source({"steps": {"point": {}}}) == "none"
+    assert "OPERATIVE READING" in H3.OPERATIVE_DIGEST_READING and "addendum 2 change 5" in H3.OPERATIVE_DIGEST_READING

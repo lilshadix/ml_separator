@@ -1,0 +1,188 @@
+{
+  "assumptions": [
+    "the fold counts are the fittable folds of the WITH record set each H3 job follows (B5 V5 batched_max4 28, B6 V5 exact 105, V2 exact 12, V1 copy_exact 39 per arm and transform)",
+    "a B5 fold with no H3 record yet is priced from its discovery per-fold seconds scaled by the measured H3/discovery ratio of the only leg that has both (B5 on V5): the refit repeats the fit without tuning",
+    "a B6 fold is priced at its FULL discovery per-fold seconds, tuning included, which over-prices the refit",
+    "2 workers halve the wall clock only if the work splits evenly; the B5 legs dominate, so split by transform (B5:WITHOUT and B5:ACT_PERMUTED) rather than by arm",
+    "the cap reads wall clock, not worker-seconds (h3.READINGS['h3_budget'])"
+  ],
+  "budget_hours": 20.0,
+  "cumulative_wall_clock_hours_at_2_workers_by_priority": {
+    "V1": 5.703,
+    "V2": 3.102,
+    "V5": 1.317
+  },
+  "discovery_per_fold_seconds": {
+    "B5@V1__copy_exact": 828.0,
+    "B5@V2__element_exact": 1891.3,
+    "B5@V5__primary_batched_max4": 2062.3,
+    "B6@V1__copy_exact": 9.5,
+    "B6@V2__element_exact": 9.0,
+    "B6@V5__primary_exact": 9.6
+  },
+  "fits_inside_the_cap": true,
+  "git_head": "593bc09bb52a3862895de79bc60bb5fd95f06353",
+  "h3_over_discovery_ratio": 0.2785,
+  "headroom_hours": 14.297,
+  "measured_per_fold_seconds": {
+    "ACT_PERMUTED": {
+      "max": 711.0,
+      "mean": 574.3,
+      "median": 565.6,
+      "min": 318.3,
+      "n": 15
+    },
+    "WITHOUT": {
+      "max": 621.8,
+      "mean": 495.8,
+      "median": 515.3,
+      "min": 298.4,
+      "n": 28
+    }
+  },
+  "n_folds_remaining": 427,
+  "priority_order": [
+    "V5",
+    "V2",
+    "V1"
+  ],
+  "purpose": "POST-HOC addendum 4 item 2 cost estimate for the H3 folds that remain, against the 20 h wall-clock cap on 2 workers",
+  "rows": [
+    {
+      "arm": "B5",
+      "design": "V5",
+      "design_dir": "V5__primary_batched_max4",
+      "key": "B5:ACT_PERMUTED@V5",
+      "n_folds": 13,
+      "per_fold_seconds": 574.3,
+      "per_fold_source": "measured: the 15 ACT_PERMUTED H3 folds of this leg",
+      "serial_hours": 2.074,
+      "serial_seconds": 7465.6
+    },
+    {
+      "arm": "B6",
+      "design": "V5",
+      "design_dir": "V5__primary_exact",
+      "key": "B6:WITHOUT@V5",
+      "n_folds": 105,
+      "per_fold_seconds": 9.6,
+      "per_fold_source": "the B6 discovery mean 9.6 s (tuning included: an upper bound for a refit)",
+      "serial_hours": 0.28,
+      "serial_seconds": 1008.9
+    },
+    {
+      "arm": "B6",
+      "design": "V5",
+      "design_dir": "V5__primary_exact",
+      "key": "B6:ACT_PERMUTED@V5",
+      "n_folds": 105,
+      "per_fold_seconds": 9.6,
+      "per_fold_source": "the B6 discovery mean 9.6 s (tuning included: an upper bound for a refit)",
+      "serial_hours": 0.28,
+      "serial_seconds": 1008.9
+    },
+    {
+      "arm": "B5",
+      "design": "V2",
+      "design_dir": "V2__element_exact",
+      "key": "B5:WITHOUT@V2",
+      "n_folds": 12,
+      "per_fold_seconds": 526.6,
+      "per_fold_source": "discovery mean 1891.3 s x the measured H3/discovery ratio 0.278",
+      "serial_hours": 1.755,
+      "serial_seconds": 6319.7
+    },
+    {
+      "arm": "B5",
+      "design": "V2",
+      "design_dir": "V2__element_exact",
+      "key": "B5:ACT_PERMUTED@V2",
+      "n_folds": 12,
+      "per_fold_seconds": 526.6,
+      "per_fold_source": "discovery mean 1891.3 s x the measured H3/discovery ratio 0.278",
+      "serial_hours": 1.755,
+      "serial_seconds": 6319.7
+    },
+    {
+      "arm": "B6",
+      "design": "V2",
+      "design_dir": "V2__element_exact",
+      "key": "B6:WITHOUT@V2",
+      "n_folds": 12,
+      "per_fold_seconds": 9.0,
+      "per_fold_source": "the B6 discovery mean 9.0 s (tuning included: an upper bound for a refit)",
+      "serial_hours": 0.03,
+      "serial_seconds": 107.9
+    },
+    {
+      "arm": "B6",
+      "design": "V2",
+      "design_dir": "V2__element_exact",
+      "key": "B6:ACT_PERMUTED@V2",
+      "n_folds": 12,
+      "per_fold_seconds": 9.0,
+      "per_fold_source": "the B6 discovery mean 9.0 s (tuning included: an upper bound for a refit)",
+      "serial_hours": 0.03,
+      "serial_seconds": 107.9
+    },
+    {
+      "arm": "B5",
+      "design": "V1",
+      "design_dir": "V1__copy_exact",
+      "key": "B5:WITHOUT@V1",
+      "n_folds": 39,
+      "per_fold_seconds": 230.6,
+      "per_fold_source": "discovery mean 828.0 s x the measured H3/discovery ratio 0.278",
+      "serial_hours": 2.498,
+      "serial_seconds": 8991.7
+    },
+    {
+      "arm": "B5",
+      "design": "V1",
+      "design_dir": "V1__copy_exact",
+      "key": "B5:ACT_PERMUTED@V1",
+      "n_folds": 39,
+      "per_fold_seconds": 230.6,
+      "per_fold_source": "discovery mean 828.0 s x the measured H3/discovery ratio 0.278",
+      "serial_hours": 2.498,
+      "serial_seconds": 8991.7
+    },
+    {
+      "arm": "B6",
+      "design": "V1",
+      "design_dir": "V1__copy_exact",
+      "key": "B6:WITHOUT@V1",
+      "n_folds": 39,
+      "per_fold_seconds": 9.5,
+      "per_fold_source": "the B6 discovery mean 9.5 s (tuning included: an upper bound for a refit)",
+      "serial_hours": 0.103,
+      "serial_seconds": 369.3
+    },
+    {
+      "arm": "B6",
+      "design": "V1",
+      "design_dir": "V1__copy_exact",
+      "key": "B6:ACT_PERMUTED@V1",
+      "n_folds": 39,
+      "per_fold_seconds": 9.5,
+      "per_fold_source": "the B6 discovery mean 9.5 s (tuning included: an upper bound for a refit)",
+      "serial_hours": 0.103,
+      "serial_seconds": 369.3
+    }
+  ],
+  "schema": "gen19.h3.v1",
+  "serial_hours_by_design": {
+    "V1": 5.202,
+    "V2": 3.57,
+    "V5": 2.634
+  },
+  "serial_hours_total": 11.406,
+  "wall_clock_hours_at_2_workers": 5.703,
+  "workers": 2,
+  "worst_case_every_fold_at_the_slowest_measured_b5_fold": {
+    "note": "an implausible bound: B6 is measured at about 9.5 s per discovery fold, 60x cheaper than B5",
+    "per_fold_seconds": 711.0,
+    "serial_hours": 84.335,
+    "wall_clock_hours_at_2_workers": 42.167
+  }
+}
