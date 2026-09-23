@@ -173,18 +173,40 @@ READINGS: dict[str, str] = {
            "0.1) beats every yardstick Y in {HEAVIER, B3x-derived, B3i-derived, B8} by >= 0.05 under the paired rule of "
            "S1(c), pooled AND in the HNO3 pairs. A system whose observed or predicted median is 0 or undefined counts "
            "as NOT agreeing (the conservative side of a sign count)",
-    "s2c_interval_reading": "section 9 S2(c) fixes the BANDS ([0.70, 0.90] at 80 %, >= 0.88 at 95 %) and the population "
-                            "(the V6 pairs) but names no construction for the interval of a PREDICTED logSF, and no "
-                            "other registered text does: the arms' conformal intervals are per ROW, and logSF is a "
-                            "DIFFERENCE of two rows. Two constructions are therefore computed and printed, and the "
-                            "choice is declared rather than hidden: 'interval_arithmetic' (PRIMARY) is the interval of "
-                            "the difference under NO assumption about the dependence of the two rows' errors, "
-                            "[lo_a - hi_b, hi_a - lo_b]; 'quadrature' halves-widths in root-sum-square, which assumes "
-                            "independence. The verdict is the primary reading's, the other is reported beside it and "
-                            "readings_disagree says whether the choice mattered. This reading was fixed before any V6 "
-                            "number existed (V6 runs once, in this run) and is NOT score-informed; the "
-                            "pre-registration needs a one-line resolution naming the construction",
-    "s2_averaging_unit": "section 4 / metrics.REGISTERED_UNIT_COLS: the registered averaging unit of V6 is the SYSTEM, "
+    "s2c_interval_reading": "REGISTERED by POST-HOC addendum 7 item 1 (the resolution the earlier wording REQUESTED): "
+                            "'the logSF interval is a split-conformal interval fitted directly on the PAIR residuals -- "
+                            "the absolute deviation of the predicted logSF from the observed logSF over the comparable "
+                            "pairs of the fold's inner calibration set, with the same finite-sample quantile section 12 "
+                            "registers for rows. A fold whose inner calibration set holds fewer than 20 comparable "
+                            "pairs falls back to the convolution of the two row intervals under independence "
+                            "(half-widths added in quadrature), and every such fold is flagged and counted in the "
+                            "coverage table. Both constructions are printed; the conformal-on-pairs one is the "
+                            "registered value.' Section 9 S2(c) fixes the bands ([0.70, 0.90] at 80 %, >= 0.88 at 95 %) "
+                            "and the population (the V6 pairs); the addendum fixes the construction, before any V6 "
+                            "number exists. So the verdict is 'pair_conformal' -- per outer fold, the pair residuals of "
+                            "that fold's inner calibration comparable pairs (section 2's key: publication group, system, "
+                            "condition key, within one inner split), the quantile ceil((n + 1) * level)-th smallest -- "
+                            "and 'quadrature' is printed beside it with readings_disagree saying whether the choice "
+                            "mattered. The earlier 'interval_arithmetic' reading ([lo_a - hi_b, hi_a - lo_b]) is "
+                            "withdrawn: the addendum's reason is that a difference of two row intervals is not itself a "
+                            "calibrated interval",
+    "s2c_calibration_population": "RECORDED CONSEQUENCE of the population POST-HOC addendum 7 item 1 registers, not a "
+                                  "change to it. The addendum calibrates on 'the comparable pairs of the fold's inner "
+                                  "calibration set': section 2's pair key is (publication group, system, condition "
+                                  "key), so ANY two distinct metal states of one condition group are a calibration pair "
+                                  "-- Am/Eu counts exactly as much as Nd/Pr. The pairs S2(c) SCORES are Nd/Pr only, and "
+                                  "|logSF_Nd/Pr| is small (adjacent lanthanides). A calibration population dominated by "
+                                  "wider-separated pairs therefore yields a pair quantile that is too LARGE and an "
+                                  "interval biased WIDE, which pushes coverage UP: the registered [0.70, 0.90] band at "
+                                  "80 % can FAIL on the HIGH side as an artefact of the population rather than as "
+                                  "miscalibration, and a >= 0.88 pass at 95 % can be earned by width. The registered "
+                                  "value is unchanged and is the verdict. What is added is the evidence: the "
+                                  "composition of every fold's calibration pairs by metal-state pair, the Pr/Nd share, "
+                                  "the median residual overall and on the Pr/Nd subset, and a Pr/Nd-RESTRICTED quantile "
+                                  "set printed as an EXPLORATORY diagnostic that decides nothing (it is not registered "
+                                  "and no addendum authorises it as the verdict). Read a high-side 80 % FAIL together "
+                                  "with prnd_share and the two medians before calling it miscalibration",
+    "s2_averaging_unit": "section 4 / metrics.REGISTERED_UNIT_COLS: the registered averaging unit of V6 is the SYSTEM,"
                          "so every V6 macro number -- log D MAE and logSF MAE alike -- is a per-system mean then an "
                          "equal-weight mean over the 13 systems, never a pooled mean over pairs. A pooled pair mean is "
                          "printed beside it as a side aggregation (metrics: role 'side') and decides nothing. S2(a)'s "
@@ -203,7 +225,14 @@ READINGS: dict[str, str] = {
     "idempotence": "section 15's 'nothing is re-run' as a lock: the runner refuses to start when "
                    "evaluation/confirmation/decisions/confirmation.json exists unless --resume, and --resume may only "
                    "COMPLETE unfitted folds -- it re-scores no claim under a code digest different from the one the "
-                   "lock records, and it never widens the claim list (lock_verdict)",
+                   "lock records, and it never widens the claim list (lock_verdict). The lock is spent at the START, "
+                   "not at the end: decisions/confirmation.json is written last, so the runner also writes "
+                   "decisions/run_started.json once the gates pass and before any fold file or record exists "
+                   "(started_path), and lock_verdict refuses on EITHER file. Without it a run that died after writing "
+                   "records left the lock reading first_run, and a second invocation -- under changed code, after a "
+                   "stage re-registration -- would have scored one claim from two record sets written under two code "
+                   "digests (task X finding). Every record set a claim is scored from is also checked, record by "
+                   "record, against the LIVE code digest (read_seed_predictions)",
 }
 
 #: POST-HOC addendum 5 item 1, with the cost that drove it and the consequence of not running it
@@ -259,7 +288,24 @@ UNIT_SECONDS: dict[str, float] = {
     # B6@V5__primary__exact is the measurement; B3i / B0 / B3x are closed form and keyed by arm below
     "B6@V5__strict__exact": 9.6, "B6@V5__hno3_only__exact": 9.6,
     "M1@V6__prnd__exact": 0.2785 * 684.8, "M2@V6__prnd__exact": 0.2785 * 303.6, "B8@V6__prnd__exact": 0.2785 * 699.6,
-    "B3i": 0.0, "B0": 0.0, "B3x": 0.0, "FLAT": 0.0, "HEAVIER": 0.0,
+    # The closed-form comparators are NOT free.  They were priced 0.0 s here on the strength of
+    # ``discovery.READINGS['comparator_intervals']`` -- no comparator-interval job ran in discovery, and
+    # ``evaluation/discovery/`` holds no B0 / B3i / B3x record -- so nothing had ever MEASURED that zero, and it silently
+    # priced 1,702 of the run's 3,418 folds at nothing (task X finding).  Each one pays ``prepare_fold`` plus a full
+    # ``interface.ConformalWrapper`` fit over the design's inner calibration splits (90 of them on a V5 / V6 exact fold,
+    # 3 on a V5-PAIR batched one), which is the whole cost of a closed-form arm.  MEASURED on this machine, mean over
+    # the first 10 REAL selection-half folds of each stem (``prepare_fold`` + ``ComparatorIntervalsRunner.point``, the
+    # two steps the run executes), writing no record and touching no confirmation-half or V6 row -- a cost benchmark of
+    # the same kind as the pre-seal one in ``manifests/run_info/g19_run_preseal_jobs.json``:
+    #   B3i @ V5__primary__exact 8.43 s, V5__strict__exact 8.65 s, V5__hno3_only__exact 8.51 s  (90 inner splits)
+    #   B0  @ V5__primary__exact 1.40 s, V5__strict__exact 1.40 s                               (90 inner splits)
+    #   B3x @ V5__primary__exact 1.54 s, V5PAIR__primary__batched 1.56 s                        (90 / 3 inner splits)
+    # The first fold of a design pays the guard-cache fill (34 s for B3i) and the rest run at 11-13 s falling to ~8 s, so
+    # these means are conservative for a 111-fold job.  The V6 legs take the same arm's V5-exact figure: addendum 7 item
+    # 2 gives a V6 comparator-interval job the V5 ``InnerCellCalibration`` splitter, and its training set is the corpus
+    # minus one system's Pr/Nd, so the fit is the V5-exact one -- the 0.2785 frozen-configuration factor is a TUNING
+    # saving and a closed-form arm has no tuning to skip.
+    "B3i": 8.6, "B0": 1.4, "B3x": 1.6, "FLAT": 0.0, "HEAVIER": 0.0,
 }
 #: the measured parallel efficiency of this machine at 2 workers (discovery: 149.91 h serial in 76.5955 h of wall clock)
 PARALLEL_EFFICIENCY_2_WORKERS = 1.96
@@ -314,6 +360,38 @@ def folds_dir(out_root: Path | str) -> Path:
     """Where the withheld-seed fold files live.  Separate from ``folds/`` so no registered discovery design is touched,
     and named by seed INDEX only."""
     return conf_root(out_root) / "folds"
+
+
+def started_path(out_root: Path | str) -> Path:
+    """The START marker of the single run: written once the gates have passed and BEFORE any fold file or record.
+
+    ``decisions/confirmation.json`` is written LAST, so on its own it spends the once-only lock only when the run
+    finishes.  A run that wrote 2,000 records and then died left the lock reading ``first_run``, and a second
+    invocation without ``--resume`` -- under changed code, after a re-registration -- would have mixed two record sets
+    into one score (task X finding).  This marker makes the lock spend at the START, which is what section 15's "one
+    run" means, while ``--resume`` keeps its exact registered power: complete unfitted folds, under the SAME code
+    digest, with no new claim."""
+    return conf_root(out_root) / "decisions" / "run_started.json"
+
+
+#: the fields of a confirmation record that identify WHICH fit it is.  A confirmation record carries no ``digest``
+#: (discovery's :func:`g19_run_discovery.fold_digest` is a resume key of the discovery layout), so where discovery
+#: names an M1 record by its fold digest this run names it by the digest of these fields.
+RECORD_IDENTITY_FIELDS: tuple[str, ...] = ("schema", "registry_stage", "arm", "stem", "fold_id", "fold_hash",
+                                           "seed_index", "code_digest", "prereg_sha256", "prereg_addenda_sha256",
+                                           "selected_config", "model_seed")
+
+
+def confirmation_record_digest(record: Mapping[str, Any]) -> str:
+    """A stable content digest of one confirmation record's identity (:data:`RECORD_IDENTITY_FIELDS`).
+
+    It is what M2's record stores as ``m1_record_digest`` in this run: discovery stores the M1 fold digest there and a
+    confirmation record has none, so without this the field would be ``null`` and the link from an M2 fit to the exact
+    M1 fit it took its hyperparameters from would not be recorded at all.  It is an implementation reading of section
+    6's "M2 keeps each outer fold's retained M1 hyperparameters", not a registered quantity: nothing is scored from it.
+    """
+    body = {k: record.get(k) for k in RECORD_IDENTITY_FIELDS}
+    return hashlib.sha256(json.dumps(body, sort_keys=True, default=str).encode("utf-8")).hexdigest()
 
 
 # --------------------------------------------------------------------------------------------- #
@@ -697,9 +775,17 @@ def cost_estimate(jobs: Sequence[ConfJob]) -> dict[str, Any]:
             "serial_hours": tot, "wall_hours_2_workers": tot / PARALLEL_EFFICIENCY_2_WORKERS,
             "by_purpose_serial_hours": dict(sorted(by_purpose.items())),
             "unknown_unit_cost": sorted({r["key"] for r in rows if not np.isfinite(r["unit_seconds"])}),
-            "basis": "measured per-fold means (point + intervals) of the discovery and H3 records on this machine; the "
-                     "parallel efficiency 1.96x at 2 workers is measured (discovery: 149.91 h serial in 76.5955 h wall). "
-                     "Treat +-30 % as the honest band: discovery itself overran its 60 h budget by 28 %",
+            "basis": "measured per-fold means (point + intervals) of the discovery and H3 records on this machine, and "
+                     "for the closed-form comparators B0 / B3i / B3x -- which have no discovery record at all and had "
+                     "been priced 0.0 s, 1,702 of these folds -- the measured mean of prepare_fold + "
+                     "ComparatorIntervalsRunner.point over the first 10 real selection-half folds of each stem "
+                     "(UNIT_SECONDS). The parallel efficiency 1.96x at 2 workers is measured (discovery: 149.91 h serial "
+                     "in 76.5955 h wall) and the confirmation fit loop now actually uses a 2-process pool, so the wall "
+                     "figure is reachable. Treat +-30 % as the honest band: discovery itself overran its 60 h budget by "
+                     "28 %. The V6 learned-arm lines assume the section 3.4 FROZEN configurations (the 0.2785 factor is "
+                     "a tuning saving): the tree as it stands re-tunes them, which is why the runner refuses at stage "
+                     "'v6_frozen_configurations' -- implemented as registered, the V6 block is the 8.5 h costed here; "
+                     "run as the code stands it would be about 30 h, and the plan about 132 h rather than 110 h",
             "not_in_this_estimate": {"v6_actinide_deltas": V6_ACTINIDE_DELTAS_NOT_RUN["cost_hours_serial"],
                                      "power_check": POWER_CHECK_NOT_RUN["inventory"]}}
 
@@ -1067,32 +1153,213 @@ def s2a_direction(per_yardstick_per_seed_by_system: Mapping[str, Mapping[int, Ma
             "reading": READINGS["s2a"]}
 
 
-#: the two constructions of a predicted logSF interval from the two rows' conformal intervals.  Section 9 S2(c) fixes
-#: the BANDS and the pair population but names no construction, and no other registered text does either, so both are
-#: computed and printed; the PRIMARY one assumes nothing about the dependence of the two rows' errors.
-S2C_INTERVAL_READINGS: tuple[str, ...] = ("interval_arithmetic", "quadrature")
-S2C_PRIMARY_READING = "interval_arithmetic"
+#: the two constructions of a predicted logSF interval that POST-HOC addendum 7 item 1 registers: ``pair_conformal``
+#: (the REGISTERED value -- split conformal fitted on the PAIR residuals of the fold's inner calibration comparable
+#: pairs, with the section 12 finite-sample quantile) and ``quadrature`` (the convolution of the two row intervals under
+#: independence, half-widths added in root-sum-square), which is printed beside it and is also the per-fold FALLBACK
+#: when the fold's inner calibration set holds fewer than :data:`S2C_MIN_CALIBRATION_PAIRS` comparable pairs.
+S2C_INTERVAL_READINGS: tuple[str, ...] = ("pair_conformal", "quadrature")
+S2C_PRIMARY_READING = "pair_conformal"
+#: addendum 7 item 1: "a fold whose inner calibration set holds fewer than 20 comparable pairs falls back to the
+#: convolution of the two row intervals under independence (half-widths added in quadrature), and every such fold is
+#: flagged and counted in the coverage table"
+S2C_MIN_CALIBRATION_PAIRS = 20
+S2C_PAIR_CONFORMAL = "pair_conformal"
+S2C_QUADRATURE_FALLBACK = "quadrature_fallback"
+
+
+def pair_calibration_residuals(detail: Sequence[Mapping[str, Any]], rows: pd.DataFrame, *, what: str) -> dict[str, Any]:
+    """The absolute PAIR residuals of one outer fold's inner calibration set (POST-HOC addendum 7 item 1).
+
+    ``detail`` is ``ConformalWrapper.calibration_detail`` -- one entry per inner split, carrying that split's
+    calibration rows and their SIGNED residuals ``prediction - observed`` (``interface.calibration_detail_of``).  Each
+    entry's rows are read from ``row_ids`` when the caller has translated the table's index labels into row ids, else
+    from ``labels``.  ``rows`` is an attribute frame indexed the same way, carrying the section 2 pair key columns
+    (``pairs.PAIR_KEY_COLS``), the metal state and the observed log D.
+
+    The comparable pairs are section 2's -- same publication group, system and condition key -- formed WITHIN one inner
+    split, exactly as the outer pairs are formed within one fold: a pair whose members came from two different inner
+    splits would combine two differently fitted models.  A pair's residual is
+    ``(pred_a - pred_b) - (y_a - y_b) = signed_a - signed_b``, so the absolute pair residual needs no second prediction
+    pass and is algebraically the deviation of the predicted logSF from the observed logSF.
+    """
+    from gen19ct.evaluation import pairs as EP
+
+    need = list(EP.PAIR_KEY_COLS) + [EM.METAL_STATE_COL, EM.Y_COL]
+    missing = [c for c in need if c not in rows.columns]
+    if missing:
+        raise KeyError(f"{what}: the calibration rows lack {missing}; a pair calibration cannot be fitted")
+    frames, signed, per_split = [], {}, []
+    for k, sp in enumerate(detail):
+        ids = [str(r) for r in (sp.get("row_ids") if sp.get("row_ids") is not None else sp["labels"])]
+        sig = np.asarray(sp["signed"], dtype=float)
+        if len(ids) != len(sig):
+            raise AssertionError(f"{what}: inner split {sp.get('unit')!r} has {len(ids)} rows and {len(sig)} residuals")
+        miss = [r for r in ids if r not in rows.index]
+        if miss:
+            raise KeyError(f"{what}: {len(miss)} calibration row(s) are not in the attribute frame (first {miss[0]!r})")
+        sub = rows.loc[ids, need].copy()
+        labels = [f"s{k}{ET.FOLD_LABEL_SEP}{r}" for r in ids]
+        sub.index = pd.Index(labels)
+        sub["fold"] = f"s{k}"
+        frames.append(sub)
+        signed.update(dict(zip(labels, sig.tolist())))
+        per_split.append({"inner_split": str(sp.get("unit")), "inner_fold": int(sp.get("fold", -1)),
+                          "n_calibration_rows": len(ids)})
+    if not frames:
+        return {"abs_residuals": np.zeros(0, dtype=float), "n_pairs": 0, "n_calibration_rows": 0,
+                "n_inner_splits": 0, "per_split": [],
+                # the same keys the populated return carries, so no caller has to branch (v6_pair_conformal returns
+                # before this on an empty detail, but a direct caller must not meet a KeyError)
+                "population": _pair_population(pd.DataFrame(), pd.DataFrame(), np.zeros(0))[0],
+                "prnd_only_abs_residuals": np.zeros(0, dtype=float),
+                "population_reading": READINGS["s2c_calibration_population"]}
+    df = pd.concat(frames)
+    cp = EP.comparable_pairs(df, fold_col="fold")
+    s = pd.Series(signed, dtype=float)
+    res = np.abs(cp["idx_a"].map(s).to_numpy(dtype=float) - cp["idx_b"].map(s).to_numpy(dtype=float))
+    if len(res) and not np.isfinite(res).all():
+        raise AssertionError(f"{what}: a non-finite pair residual in the inner calibration set")
+    counts = cp["fold"].astype(str).value_counts().to_dict() if len(cp) else {}
+    for i, row in enumerate(per_split):
+        row["n_pairs"] = int(counts.get(f"s{i}", 0))
+    comp, prnd = _pair_population(cp, df, res)
+    return {"abs_residuals": res, "n_pairs": int(len(res)), "n_calibration_rows": int(len(df)),
+            "n_inner_splits": len(frames), "per_split": per_split,
+            "population": comp, "prnd_only_abs_residuals": prnd,
+            "population_reading": READINGS["s2c_calibration_population"]}
+
+
+def _pair_population(cp: pd.DataFrame, df: pd.DataFrame, res: np.ndarray) -> tuple[dict[str, Any], np.ndarray]:
+    """What the inner calibration comparable pairs ARE, by unordered metal-state pair, and the Pr/Nd subset of them.
+
+    POST-HOC addendum 7 item 1 registers the calibration population as "the comparable pairs of the fold's inner
+    calibration set", which is section 2's pair key (publication group, system, condition key) and therefore ANY two
+    distinct metal states -- Am/Eu counts exactly as much as Nd/Pr.  The pairs S2(c) then SCORES are Nd/Pr only, whose
+    |logSF| is small, so a calibration set dominated by wider-separated pairs gives a pair quantile that is too LARGE
+    and an interval biased WIDE: coverage is pushed up, and the registered [0.70, 0.90] band at 80 % can FAIL on the
+    HIGH side as an artefact of the population rather than as miscalibration.  The code is as registered and is not
+    changed here; the composition and the Pr/Nd-restricted residuals are recorded so the consequence is a number rather
+    than a caveat, and the Pr/Nd-only construction is an EXPLORATORY diagnostic that decides nothing.
+    """
+    if not len(cp):
+        return {"n_pairs": 0, "n_prnd_pairs": 0, "by_state_pair": {}, "prnd_share": None,
+                "median_abs_residual": None, "median_abs_residual_prnd": None}, np.zeros(0, dtype=float)
+    sa = cp["idx_a"].map(df[EM.METAL_STATE_COL]).astype(str).to_numpy()
+    sb = cp["idx_b"].map(df[EM.METAL_STATE_COL]).astype(str).to_numpy()
+    keys = [" | ".join(sorted((a, b))) for a, b in zip(sa, sb)]
+    want = " | ".join(sorted(V6_METALS))
+    is_prnd = np.asarray([k == want for k in keys], dtype=bool)
+    by: dict[str, int] = {}
+    for k in keys:
+        by[k] = by.get(k, 0) + 1
+    return ({"n_pairs": int(len(keys)), "n_prnd_pairs": int(is_prnd.sum()),
+             "prnd_state_pair": want, "prnd_share": float(is_prnd.mean()),
+             "by_state_pair": dict(sorted(by.items(), key=lambda kv: (-kv[1], kv[0]))[:20]),
+             "n_distinct_state_pairs": len(by),
+             "median_abs_residual": float(np.median(res)) if len(res) else None,
+             "median_abs_residual_prnd": float(np.median(res[is_prnd])) if is_prnd.any() else None},
+            res[is_prnd])
+
+
+def prnd_only_quantiles(abs_residuals: Sequence[float], *, min_pairs: int = S2C_MIN_CALIBRATION_PAIRS
+                        ) -> dict[str, Any]:
+    """EXPLORATORY: the same quantile rule on the Pr/Nd-only subset of the calibration pairs.
+
+    Not registered, not a verdict, and not one of :data:`S2C_INTERVAL_READINGS`.  It exists so that the artefact
+    ``READINGS['s2c_calibration_population']`` names is a number: if these quantiles are materially smaller than the
+    registered ones, the registered interval is wide because of the calibration population and a high-side 80 % FAIL is
+    that, not miscalibration.
+    """
+    from gen19ct.models import interface as I
+
+    r = np.asarray(list(abs_residuals), dtype=float)
+    n = int(len(r))
+    out: dict[str, Any] = {"n_calibration_pairs": n, "min_calibration_pairs": int(min_pairs),
+                           "label": "EXPLORATORY diagnostic, not registered and not the S2(c) verdict",
+                           "reading": READINGS["s2c_calibration_population"]}
+    out["quantiles"] = {} if n < int(min_pairs) else {str(int(round(lv * 100))): float(I.conformal_quantile(r, lv))
+                                                      for lv in I.LEVELS}
+    return out
+
+
+def pair_conformal_quantiles(abs_residuals: Sequence[float], *, min_pairs: int = S2C_MIN_CALIBRATION_PAIRS
+                             ) -> dict[str, Any]:
+    """The section 12 finite-sample split-conformal quantile of the pair residuals at each registered level, or the
+    declared fallback when there are fewer than ``min_pairs`` of them (POST-HOC addendum 7 item 1).
+
+    ``method`` is :data:`S2C_PAIR_CONFORMAL` or :data:`S2C_QUADRATURE_FALLBACK`; ``fallback`` is the flag the coverage
+    table counts.  A fallback fold carries no pair quantile at all -- its pair interval IS the quadrature one -- so the
+    two constructions are never silently mixed inside one number without the count saying so.
+    """
+    from gen19ct.models import interface as I
+
+    r = np.asarray(list(abs_residuals), dtype=float)
+    n = int(len(r))
+    fallback = n < int(min_pairs)
+    out = {"n_calibration_pairs": n, "min_calibration_pairs": int(min_pairs), "fallback": bool(fallback),
+           "method": S2C_QUADRATURE_FALLBACK if fallback else S2C_PAIR_CONFORMAL,
+           "quantile_rule": "interface.conformal_quantile: the ceil((n + 1) * level)-th smallest absolute PAIR residual "
+                            "(the finite-sample quantile section 12 registers for rows)",
+           "reading": READINGS["s2c_interval_reading"]}
+    if fallback:
+        out["quantiles"] = {}
+        return out
+    out["quantiles"] = {str(int(round(lv * 100))): float(I.conformal_quantile(r, lv)) for lv in I.LEVELS}
+    return out
 
 
 def s2c_coverage(coverage_by_reading: Mapping[str, Mapping[str, float]], *,
-                 primary: str = S2C_PRIMARY_READING) -> dict[str, Any]:
+                 primary: str = S2C_PRIMARY_READING, fallback_folds: Mapping[str, Any] | None = None,
+                 population: Mapping[str, Any] | None = None) -> dict[str, Any]:
     """S2(c): pooled logSF interval coverage in [0.70, 0.90] at 80 % and >= 0.88 at 95 % over the V6 pairs.
 
     ``coverage_by_reading`` maps each construction of :data:`S2C_INTERVAL_READINGS` to {"80": cov, "95": cov}.  The
-    verdict is the ``primary`` reading's; the other is printed, and ``readings_disagree`` says whether the choice
-    mattered -- the honest way to report a band test whose registered text fixes the bands but not the arithmetic.
+    verdict is the registered ``primary`` reading's (``pair_conformal``, POST-HOC addendum 7 item 1); the other is
+    printed, and ``readings_disagree`` says whether the choice mattered.
+
+    ``fallback_folds`` is the addendum's flag and count: how many folds (and which, and how many of their pairs) fell
+    back to the quadrature construction because their inner calibration set held fewer than
+    :data:`S2C_MIN_CALIBRATION_PAIRS` comparable pairs.  It is carried into the verdict block so the coverage table
+    cannot show a pair-conformal number without saying how much of it is the fallback.
+
+    ``population`` is the recorded consequence of the registered calibration population
+    (``READINGS['s2c_calibration_population']``): the calibration pairs are ANY two distinct metal states of a condition
+    group while the SCORED pairs are Nd/Pr only, so the interval is biased wide and a high-side 80 % FAIL may be that
+    artefact.  It is carried into the verdict block for the same reason the fallback count is -- so the number cannot be
+    read without it -- and it changes no verdict.
     """
     per = {r: coverage_bands(c, S2C_BANDS, min_95=S2C_MIN_95) for r, c in sorted(coverage_by_reading.items())}
+    flag = {"n_folds": 0, "n_pairs": 0, "min_calibration_pairs": S2C_MIN_CALIBRATION_PAIRS, **dict(fallback_folds or {})}
+    pop = {"reading": READINGS["s2c_calibration_population"], **dict(population or {})}
     if primary not in per:
         return {"status": NOT_EVALUATED, "per_reading": per, "primary_reading": primary,
+                "quadrature_fallback": flag, "calibration_population": pop,
                 "detail": f"the primary reading {primary!r} was not computed; S2(c) carries no verdict",
                 "reading": READINGS["s2c_interval_reading"]}
     statuses = {r: v["status"] for r, v in per.items()}
+    nfb = int(flag.get("n_folds") or 0)
+    share = pop.get("prnd_share")
+    # is the 80 % band missed on the HIGH side?  That is the direction a wide-biased interval fails in, so it is the one
+    # the population note must be read with (a low-side miss is NOT explained by the population)
+    r80 = next((r for r in per[primary]["per_level"] if str(r["level"]) == "80" and r["band"][1] <= 1.0
+                and r["band"][0] == S2C_BANDS["80"][0]), None)
+    wide = None if r80 is None or bool(r80["in_band"]) else bool(float(r80["coverage"]) > float(r80["band"][1]))
+    note = ""
+    if share is not None:
+        note = (f"; {float(share):.1%} of the inner calibration comparable pairs are the scored Pr/Nd state pair, the "
+                f"rest are other metal-state pairs of the same condition groups, so the registered interval is biased "
+                f"WIDE and a high-side 80 % FAIL may be that artefact (calibration_population)")
     return {"status": per[primary]["status"], "per_reading": per, "primary_reading": primary,
             "coverage": dict(coverage_by_reading.get(primary) or {}), "statuses_by_reading": statuses,
-            "readings_disagree": len(set(statuses.values())) > 1,
+            "readings_disagree": len(set(statuses.values())) > 1, "quadrature_fallback": flag,
+            "calibration_population": pop, "high_side_80": wide,
             "bands": {k: list(v) for k, v in S2C_BANDS.items()}, "min_95": S2C_MIN_95,
-            "detail": per[primary]["detail"], "reading": READINGS["s2c_interval_reading"]}
+            "detail": per[primary]["detail"]
+                      + (f"; {nfb} fold(s) with < {S2C_MIN_CALIBRATION_PAIRS} calibration pairs fell back to quadrature "
+                         f"({flag.get('n_pairs')} of the scored pairs)" if nfb else "; no fold used the fallback")
+                      + note,
+            "reading": READINGS["s2c_interval_reading"]}
 
 
 def s2b_magnitude(*, logsf_mae: float, flat_logsf_mae: float, lookup_logsf_mae: float,
@@ -1162,13 +1429,49 @@ def s1d_calibration(coverage: Mapping[str, float], by_category: Mapping[str, Map
 def lock_verdict(out_root: Path | str, *, resume: bool, code_digest: str, claim_ids: Sequence[str]) -> dict[str, Any]:
     """Whether this invocation may proceed (:data:`READINGS` ``idempotence``).
 
-    First run: ``decisions/confirmation.json`` absent -> proceed.  Second run: refuse, unless ``--resume``, and then
-    only to COMPLETE unfitted folds -- the recorded code digest must be the live one and the claim list must not grow,
-    so no claim is ever re-scored under different code and no sixth claim appears.
+    First run: neither ``decisions/confirmation.json`` nor the START marker (:func:`started_path`) exists -> proceed.
+    Second run: refuse, unless ``--resume``, and then only to COMPLETE unfitted folds -- the recorded code digest must
+    be the live one and the claim list must not grow, so no claim is ever re-scored under different code and no sixth
+    claim appears.
+
+    The marker is consulted because ``decisions/confirmation.json`` is written LAST: a run that died after writing
+    records left the lock reading ``first_run``, so a second invocation could have mixed record sets written under two
+    code digests into one score (task X finding).  Whichever of the two exists governs; when both do, the decisions
+    file wins, because it is the completed run's own record of the code and claims.
     """
     p = decisions_path(out_root)
+    started = started_path(out_root)
+    if not p.exists() and not started.exists():
+        return {"ok": True, "mode": "first_run", "decisions": str(p), "started_marker": str(started),
+                "reading": READINGS["idempotence"]}
     if not p.exists():
-        return {"ok": True, "mode": "first_run", "decisions": str(p), "reading": READINGS["idempotence"]}
+        prev = json.loads(started.read_text(encoding="utf-8"))
+        prev_code, prev_ids = str(prev.get("code_digest", "")), list(prev.get("claim_ids") or [])
+        if not resume:
+            return {"ok": False, "mode": "already_started", "decisions": str(p), "started_marker": str(started),
+                    "started_utc": prev.get("started_utc"),
+                    "reason": f"{started} exists: the single registered run of section 15 has already STARTED (and did "
+                              "not finish -- decisions/confirmation.json was never written). It is registered to happen "
+                              "ONCE. Pass --resume to COMPLETE its unfitted folds under the same code digest; nothing "
+                              "else is permitted, and no record is deleted or re-scored.",
+                    "reading": READINGS["idempotence"]}
+        if prev_code and prev_code != str(code_digest):
+            return {"ok": False, "mode": "resume_refused_code_changed", "decisions": str(p),
+                    "started_marker": str(started), "recorded_code_digest": prev_code,
+                    "live_code_digest": str(code_digest),
+                    "reason": "--resume may only complete unfitted folds: the code digest of the STARTED run differs "
+                              "from the live one, so the records already on disk and the ones a resume would write "
+                              "would be two different code sets scored as one. Nothing is re-scored and nothing is "
+                              "deleted.", "reading": READINGS["idempotence"]}
+        extra = sorted(set(claim_ids) - set(prev_ids))
+        if extra:
+            return {"ok": False, "mode": "resume_refused_claims_grew", "decisions": str(p),
+                    "started_marker": str(started), "new_claims": extra,
+                    "reason": f"--resume may not widen the claim list; {extra} are not in the started run ({prev_ids}).",
+                    "reading": READINGS["idempotence"]}
+        return {"ok": True, "mode": "resume_unfinished", "decisions": str(p), "started_marker": str(started),
+                "recorded_code_digest": prev_code, "claim_ids": prev_ids,
+                "may_only": "complete unfitted folds of the started run", "reading": READINGS["idempotence"]}
     prev = json.loads(p.read_text(encoding="utf-8"))
     prev_code = str(prev.get("code_digest", ""))
     prev_ids = list(prev.get("claim_ids") or [])

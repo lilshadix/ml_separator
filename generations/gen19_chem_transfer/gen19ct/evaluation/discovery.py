@@ -1412,7 +1412,7 @@ class CrossFitResidualConformal(I.ConformalWrapper):
         splits = self.splitter.splits(table, mask, context)
         if not splits:
             raise ValueError("the inner design produced no calibration split")
-        res, units = [], []
+        res, units, detail = [], [], []
         for sp in splits:
             if int(sp.fold) not in self.arms_by_fold:
                 raise AssertionError(f"inner split {sp.unit} belongs to fold {sp.fold}, not a calibration fold "
@@ -1428,6 +1428,8 @@ class CrossFitResidualConformal(I.ConformalWrapper):
                 raise AssertionError(f"{self.name}: non-finite calibration prediction in {sp.unit}")
             res.append(np.abs(table.y[sp.cal_positions] - mean))
             units.append(sp.unit)
+            detail.append(I.calibration_detail_of(sp, table, mean))
+        self._last_detail = detail
         return np.concatenate(res), units
 
     def fit_table(self, table: I.RowTable, mask: np.ndarray, context: I.FitContext) -> "CrossFitResidualConformal":
@@ -1435,6 +1437,7 @@ class CrossFitResidualConformal(I.ConformalWrapper):
             raise ValueError("CrossFitResidualConformal is single-seed (the job's run seed)")
         self.fit_seed = context.seed
         self.residuals, self.calibration_units = self._calibrate(table, mask, context)
+        self.calibration_detail = list(self._last_detail)
         self.quantiles = {lv: I.conformal_quantile(self.residuals, lv) for lv in I.LEVELS}
         return self
 

@@ -2013,3 +2013,33 @@ text rather than a stale constant.
 V6 run; metrics and averaging units; comparators; margins rho5, gamma5, eta5 and epsilon; S1, S2(a),
 S2(b), S2(d) and F1-F6; R19 items 1-6 and the reduced set; the stop rule; the grids of sections 5 and 6;
 the core confirmation scope of addendum 5 item 1; the seed pooling of addendum 6 item 1.
+
+## POST-HOC addendum 8 (2026-09-24, orchestrator Claude Code; results seen: yes - discovery, the ladder, the power check and H3, none from the confirmation half)
+
+**Results seen.** As addendum 7. The once-only lock is unspent and `evaluation/confirmation/` holds no
+record; nothing has run on the confirmation half, on V6 or with the withheld seeds.
+
+**1. Where M2 takes M1's retained hyperparameters at confirmation.** Addendum 2 reading 6(d) registers
+that M2 keeps "that outer fold's retained M1 hyperparameters". In discovery the outer fold is a
+selection-half fold and M1's record sits beside M2's. At confirmation the outer folds are
+confirmation-half and V6 folds, and the plan fits M1 on each of them, so the reading has an exact
+meaning that the code was not using: **M2 takes M1's retained configuration, stopping count and model
+seed from the M1 record of the SAME confirmation fold, the same design and the same withheld seed index**
+- never from a discovery record, never from another seed, and never by re-tuning. If that M1 record is
+absent or fails verification, the M2 fold is INCOMPLETE and reported as such; M2's cross-fitted
+calibration uses the same source. The fold's M1 record digest is stored in M2's record so the pairing is
+auditable.
+
+**2. What the single run may repeat.** Section 15 registers one run. **Resolved:** a run that ends
+without writing `decisions/confirmation.json` has not consumed the run; it may be continued with
+`--resume`, which may only fit folds that are missing and must refuse any fold whose stored record was
+written under a different code digest than the one now registered for the `confirmation` stage. Once
+`confirmation.json` exists the run is spent and the runner refuses. Every scored record set must carry
+one code digest; a mixed set is refused rather than scored. This is the operational reading of "one run",
+fixed before the run, and it changes no metric, margin or verdict rule.
+
+**What does not change.** Designs, folds, halves, hiding and guards; the V6 carve-out outside the single
+V6 run; metrics and averaging units; comparators; margins rho5, gamma5, eta5 and epsilon; S1, S2 and
+F1-F6; R19 items 1-6 and the reduced set; the stop rule; the grids of sections 5 and 6; the core
+confirmation scope of addendum 5 item 1; the seed pooling of addendum 6 item 1; the S2(c) interval and V6
+inner design of addendum 7.

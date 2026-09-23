@@ -45,13 +45,22 @@ import json
 import sys
 import time
 from collections.abc import Callable, Mapping, Sequence
+from concurrent.futures import FIRST_COMPLETED, ProcessPoolExecutor, wait
 from dataclasses import dataclass, field
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 HERE = Path(__file__).resolve().parent
 if str(HERE.parent) not in sys.path:                                     # noqa: E402
     sys.path.insert(0, str(HERE.parent))
+# the scripts directory too, so that a SPAWNED worker can resolve ``import g19_run_confirmation`` by name.  Run as a
+# script this is already ``sys.path[0]`` and the module is ``__main__`` (which multiprocessing re-imports as
+# ``__mp_main__``); imported by file path -- the tests, and any other caller -- it is not, and the child cannot find the
+# pool's initializer at all.  ``multiprocessing.spawn`` hands the child the parent's ``sys.path``, so adding it here is
+# what makes ``--workers 2`` work under both invocation modes.
+if str(HERE) not in sys.path:                                            # noqa: E402
+    sys.path.insert(0, str(HERE))
 
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
@@ -70,6 +79,12 @@ from gen19ct.models import interface as I  # noqa: E402
 
 NAME = "g19_run_confirmation"
 STAGE = CF.STAGE
+#: the interval step's key in a record's ``steps`` block and in ``run_fold``'s ``steps`` argument -- the discovery
+#: runner's own name (``g19_run_discovery.INTERVAL_STEP``).  The point step keeps this script's existing key
+#: ``"prediction"``, which its readers and its tests already use.
+INTERVAL_STEP = "intervals"
+#: the POINT step's key in a confirmation record's ``steps`` block -- this script's own, NOT discovery's ``"point"``
+POINT_STEP = "prediction"
 #: this script's own prediction-affecting code, beside the discovery runner's (``code_digest``)
 CODE_FILES: tuple[Path, ...] = (paths.G19_ROOT / "gen19ct" / "evaluation" / "confirmation.py", Path(__file__).resolve())
 CODE_OBJECTS: tuple[Any, ...] = (CF.SeedStore, CF.confirmation_scored_ids, CF.assert_confirmation_rows,
@@ -77,7 +92,9 @@ CODE_OBJECTS: tuple[Any, ...] = (CF.SeedStore, CF.confirmation_scored_ids, CF.as
                                  CF.s1c_confirmation, CF.s2a_sign_count, CF.s2b_magnitude, CF.coverage_bands,
                                  CF.lock_verdict, CF.enumerate_jobs, CF.scrub,
                                  CF.fit_scored_ids, CF.confirmation_job_folds, CF.confirmation_fittable_folds,
-                                 CF.s2a_direction, CF.s2c_coverage)
+                                 CF.s2a_direction, CF.s2c_coverage,
+                                 CF.pair_calibration_residuals, CF.pair_conformal_quantiles,
+                                 CF.confirmation_record_digest, CF.prnd_only_quantiles)
 MAX_WORKERS = 2
 
 
@@ -443,6 +460,29 @@ def build_confirmation_folds(store: CF.SeedStore | None, out_root: Path, *, stem
                                       design_hash="", rule=FOLD_RULES[design if design in FOLD_RULES else "V5"],
                                       expected_n_folds=CF.FOLD_COUNTS_CONFIRMATION.get(stem)))
         return plans
+    try:
+        return _build_confirmation_folds(store, out_root, indices, stems, with_v6, corpus)
+    except BaseException as exc:                     # noqa: BLE001 -- re-raised, scrubbed, with the context suppressed
+        # POST-HOC addendum 6 item 4: no artefact and no LOG LINE of this run may contain a withheld seed.  Until
+        # write_seed_design has scrubbed them, a batched fold carries the raw id ``s<withheld seed>_C_b000`` -- so every
+        # assertion of this phase (``build_v5_batched``'s cap / cover / carve-out checks, ``folds.io.guard``'s "fold
+        # isolation violated in .../{fold_id}", ``cell_holdout.check_pair_isolation``) is built from a string that names
+        # the seed.  ``fit_loop`` scrubs both of its except arms; this phase, which runs BEFORE it, had no wrapper at
+        # all, and ``Run.__exit__`` returns early on an exception, so nothing would have been written and the leak would
+        # have been to the terminal (task X finding).  The type is preserved for an AssertionError, because a fold-build
+        # guard failure is a guard failure and addendum 6 item 3(b) fixes its vocabulary; anything else becomes a
+        # RedactedRunError, as in the fit loop.  ``from None`` suppresses the chained context, which carries the raw text.
+        if store is None:
+            raise
+        msg = CF.scrub(f"{type(exc).__name__}: {exc}", store)
+        if isinstance(exc, AssertionError):
+            raise AssertionError(f"building the withheld-seed fold files: {msg}") from None
+        raise CF.RedactedRunError(f"building the withheld-seed fold files: {msg}") from None
+
+
+def _build_confirmation_folds(store: CF.SeedStore | None, out_root: Path, indices: Sequence[int],
+                              stems: Sequence[str], with_v6: bool, corpus: FoldCorpus | None) -> list[FoldPlan]:
+    """The body of :func:`build_confirmation_folds`, wrapped there so nothing it raises can print a withheld seed."""
     fc = corpus if corpus is not None else load_fold_corpus()
     v6_ids = set(fc.frame.loc[fc.v6.to_numpy(dtype=bool), FI.ROW_ID].astype(str))
     v6_folds, v6_stats = (build_v6_folds(fc) if with_v6 else ([], {}))
@@ -483,30 +523,85 @@ def build_confirmation_folds(store: CF.SeedStore | None, out_root: Path, *, stem
     return plans
 
 
-#: The ONE stage this tree does not implement, named exactly.  Section 3.4's V6 design is *"the V5 state-level rule of
-#: section 3.1"*, so the two hooks ``prepare_fold`` owns are supplied here (:func:`v6_guard`, :func:`v6_inner_check`);
-#: the rest of the fitting path lives INSIDE the discovery arm runners, which branch on ``g19_run_discovery.v5_family``
-#: -- ``("V5", "V5P", "V5PAIR")``, not V6 -- and cannot be reached from this script.  MEASURED, not assumed:
-#: ``v5_family(V6 job)`` is False and ``inner_design_signature(V6 job)`` is None.
-V6_ARM_FITTING_GAP = (
-    "the arms' own V6 branches inside scripts/g19_run_discovery.py. Section 3.4 defines V6 as the V5 state-level rule "
-    "of section 3.1, so every V6 job needs the V5 inner design and the V5 guards; this script supplies the two hooks "
-    "prepare_fold owns (v6_guard, v6_inner_check, both this file's own code), but FOUR sites branch on "
-    "g19_run_discovery.v5_family(job) -- ('V5', 'V5P', 'V5PAIR'), which V6 is not -- and they are inside the runner "
-    "classes, unreachable from here: (1) validation_splits and (2) _calibration_splits send a V6 job down the "
-    "registered V1 / V2 tuning path instead of the addendum-1 simultaneous V5 design (boosted.inner_design_for DOES "
-    "return the V5 design for V6, so this may silently produce numbers rather than raise -- which is worse); "
-    "(3) inner_design_record then labels that draw 'the registered V1 / V2 inner design, unchanged by addendum 1', "
-    "which is false for V6, and inner_design_signature(job) is None for V6, so the addendum-1 drift check of "
-    "simultaneous_inner_design never runs and the resume digest carries no inner-design signature; "
-    "(4) ComparatorIntervalsRunner.point picks interface.InnerMetalCalibration -- the V2 METAL-holdout inner design -- "
-    "for the B3x / B3i yardsticks on V6, because its branch is 'V5 / V1 / else'. The fix is four one-line V6 branches "
-    "in g19_run_discovery.py (v5_family, the two guard dispatchers if they are to own V6 rather than this script, the "
-    "comparator splitter) plus a V6 entry in inner_design_signature -- an ORCHESTRATOR decision, because it changes the "
-    "discovery stage's code digest and that stage must then be re-registered. V6 runs ONCE (section 3.4), so no fold "
-    "of it can be fitted as a rehearsal: this path cannot be validated before the single run, and shipping it unnamed "
-    "would risk spending the run on an INCOMPLETE_GUARD_FAILURE at the first V6 fold. Everything else -- the claims "
-    "C1-C4, S1(c), S1(d) / S1(e) and the whole S2 assembly that reads the V6 records -- is implemented and tested.")
+#: Section 3.4's V6 design is *"the V5 state-level rule of section 3.1"*, so the two hooks ``prepare_fold`` owns are
+#: supplied here (:func:`v6_guard`, :func:`v6_inner_check`) and the rest of the fitting path lives INSIDE the discovery
+#: arm runners, which branched on ``g19_run_discovery.v5_family`` -- ``("V5", "V5P", "V5PAIR")``, not V6.  POST-HOC
+#: addendum 7 item 2 registers the reading and the four dispatch sites are corrected; MEASURED, not assumed:
+#: ``v5_family(V6 job)`` is now True and ``inner_design_signature(V6 job)`` is the V5 primary signature.
+V6_ARM_FITTING = (
+    "the arms' own V6 branches inside scripts/g19_run_discovery.py, corrected under POST-HOC addendum 7 item 2. "
+    "Section 3.4 defines V6 as the V5 state-level rule of section 3.1 and section 7 registers 'V6: V5-style inner "
+    "cells', which addendum 1 item 1 makes the simultaneous-hiding design; the addendum records that reading and the "
+    "four sites that branched on g19_run_discovery.v5_family(job) -- ('V5', 'V5P', 'V5PAIR'), which V6 was not -- are "
+    "fixed: (1) validation_splits and (2) _calibration_splits now send a V6 job to the addendum-1 simultaneous V5 "
+    "inner design instead of the registered V1 / V2 tuning path; (3) inner_design_record labels that draw as the V5 "
+    "design and inner_design_signature(job) carries the V5 PRIMARY signature, so the addendum-1 drift check of "
+    "simultaneous_inner_design runs on the V6 path and the resume digest carries the inner-design signature; "
+    "(4) ComparatorIntervalsRunner.point gives the B3x / B3i yardsticks of the V6 run interface.InnerCellCalibration "
+    "-- the V5 cell design -- instead of the V2 METAL-holdout one. v5_family now reads ('V5', 'V5P', 'V5PAIR', 'V6'); "
+    "the comparator branch reads ('V5', 'V6') and deliberately not v5_family, because V5-P / V5-PAIR "
+    "comparator-interval jobs exist (the S1(c) yardstick B3x@V5PAIR__primary__batched) and widening that branch would "
+    "change the S1(c) yardstick intervals, which no addendum registers. The edit is logged in "
+    "manifests/digest_registry.json, it changes the discovery stage's CODE digest (so no discovery job can be refitted "
+    "under it, which is correct: discovery is complete), and it validates or invalidates no record written earlier -- no "
+    "discovery, candidates, ladder, H3 or power job is of design V6 (addendum 2 item 5). V6 still runs ONCE "
+    "(section 3.4), so no fold of the real corpus is fitted as a rehearsal; the path is exercised end to end on a "
+    "SYNTHETIC mini-corpus with a fake seed store instead (tests/test_confirmation.py).")
+
+#: MEASURED on the synthetic V6 fold, not read: one ``run_fold`` of a V6 M1 job called ``neural.tune_m1`` once and fitted
+#: **9 configurations over 27 inner fits** (3 inner folds x 9 grid points), and the recorded ``selected_config`` was chosen
+#: by THIS run's own inner scores.  Section 3.4 says the opposite.
+FROZEN_CONFIGURATIONS = (
+    "the section 3.4 'frozen configurations' of the single V6 run. Section 3.4: *'Once only. V6 is not run in Phase C or "
+    "discovery. It runs once, with the frozen configurations and the withheld seeds (section 15).'* "
+    "confirmation.enumerate_jobs marks every V6 job ConfJob(tuned=False) and marks the C4 ACT_PERMUTED leg the same "
+    "way -- and NOTHING READS THAT FLAG: it is set in three places in confirmation.py and read nowhere. So the fit loop "
+    "hands a V6 job g19_run_discovery.default_runners()['M1'] / ['M2'], the TUNING runners, and the single applied test "
+    "re-tunes on the V6 folds. MEASURED, not inferred: a V6 M1 fold fitted 9 configurations over 27 inner fits and its "
+    "record's selected_config came from this run's own inner macro MAE (B8 is unaffected: 'B8 has no tuning'). Two "
+    "consequences. (1) The V6 leg is not the registered applied test: its configuration is chosen inside the run that "
+    "scores it, which is the one thing section 7's 'V6 is touched once' exists to prevent -- it is not selection on the "
+    "OUTER V6 scores, so it is not the same defect as peeking, but it is not what section 3.4 registers either. (2) The "
+    "cost is understated: UNIT_SECONDS prices the V6 learned arms at 0.2785 x their tuned V5 cost precisely BECAUSE no "
+    "tuning was expected, so the V6 block is about 30 h serial rather than 8.5 h and the plan about 132 h rather than "
+    "110 h. WHY THIS IS NOT FIXED HERE: section 3.4 says 'the frozen configurations' and names no source, and a V6 fold "
+    "did not exist in discovery, so there is no per-fold retained configuration to carry. Which configuration a V6 fold "
+    "inherits -- the deployed one of addendum 3 item 2, the per-seed V5-primary selection, the seed-104729 one -- is a "
+    "REGISTERED CHOICE that no addendum makes. It needs an orchestrator decision and an addendum, exactly as the "
+    "'frozen configurations' wording itself does. Until then the runner refuses here rather than producing a V6 number "
+    "from a configuration this run chose for itself. The machinery already exists and is tested: h3.frozen_runner "
+    "('FrozenNeural', 'FrozenB6', ...) refits at a recorded configuration with no re-tuning, and scripts/g19_run_h3.py "
+    "drives it")
+
+#: MEASURED with call counters over one full ``run_fold``: ``h3.transformed_frame`` 0, ``discovery.h3_training_rows`` 0,
+#: ``h3.frozen_runner`` 0.  The permutation the contrast IS never happens.
+ACT_PERMUTED_LEG = (
+    "the section 11 training transform of claim C4's control leg. confirmation.enumerate_jobs enumerates C4 as B6 with "
+    "transform 'WITH' and B6 with transform 'ACT_PERMUTED' on the V2 folds, job_spec_of turns that into "
+    "JobSpec.condition -- and NOTHING IN THIS RUNNER READS JobSpec.condition. There is no call to "
+    "h3.transformed_frame, to discovery.h3_training_rows or to h3.frozen_runner anywhere in this script or in "
+    "g19_run_discovery.py: the transform lives in scripts/g19_run_h3.py, which the confirmation loop does not use. "
+    "MEASURED with call counters over a complete run_fold: all three are called ZERO times. So the ACT_PERMUTED leg "
+    "would be fitted on the RECORDED log D -- the identical training data as the WITH leg -- and re-tuned on it, and "
+    "C4's delta would measure a conformal-seed difference rather than the actinide permutation section 11 defines. That "
+    "is worse than a refusal: it produces a NUMBER, and a near-zero one, for the H3 control contrast. Three registered "
+    "things are missing and each is registered work: (a) section 11's permutation of training log D within (system, "
+    "publication group) applied to the fold's TRAINING rows only (h3.transformed_frame); (b) the plan's own rule for "
+    "this leg, 'refitted at the WITH run's selected hyperparameters of the same fold' -- a frozen refit off the WITH "
+    "record of the same fold, which is h3.FrozenB6 and which needs the same sibling-record locator this run already "
+    "has for M2's M1 record; (c) POST-HOC addendum 5 item 2's guard rule, that for an arm whose training target is "
+    "permuted by construction the section 2 near-duplicate VALUE comparison reads the corpus's RECORDED log D, not the "
+    "permuted one -- without it the guard fails folds the recorded data never had. The runner refuses here rather than "
+    "scoring a control contrast whose control is not applied. "
+    "AND THE RECORD LAYOUT HAS NO PLACE FOR THE TRANSFORM EITHER, which is the sharpest form of the same gap and is "
+    "measured: run_fold writes to confirmation.fold_paths(out_root, ARM, design_dir, seed_index, fold_id), where the arm "
+    "is the key of ArmOutput -- 'B6' -- so BOTH C4 legs resolve to the identical file "
+    "records/B6/V2__element_exact/i<k>/<fold>.json. The WITH leg writes it, the ACT_PERMUTED leg finds it and returns "
+    "skipped_done, and CONFIRMATION_PLAN gives C4 candidate 'B6' and comparator 'B6', so claim_paired_units would read "
+    "ONE frame as both sides and C4's delta would be exactly 0.0 on all five seeds -- reported as a claim that failed "
+    "R19 item 4, on an artefact of the path. Whatever the transform's implementation, the record path must carry it "
+    "(the H3 runner's own layout is <arm>/<transform>/<design>/s<seed>), and choosing that layout for this run is part "
+    "of the same registered work")
 
 #: the stages of the single run, and which of them this tree implements.  The runner refuses at the first stage whose
 #: code is not written, NAMING it -- it never produces a number from a stage that does not exist.  Everything above the
@@ -530,7 +625,12 @@ RUN_STAGES: tuple[tuple[str, bool, str], ...] = (
                                         "v5pair_batched_folds per seed, and the V6 design of section 3.4 "
                                         "(support_graph.hide_cells(component_aware=True) on Pr(III) x S and Nd(III) x S "
                                         "together, 13 systems)"),
-    ("fit_loop", True, "the corpus load and the job -> fold dispatch at <= 2 workers with the wall-clock ledger"),
+    ("fit_loop", True, "the corpus load and the job -> fold dispatch with the wall-clock ledger, in process at "
+                       "--workers 1 and over a ProcessPoolExecutor of at most 2 workers above it (fold-level "
+                       "parallelism inside a job, at most --workers folds in flight; each worker loads and VERIFIES the "
+                       "seed store itself and returns only scrubbed values). --workers was accepted, bounds-checked, "
+                       "logged and then ignored while the plan, the dry run and this line all advertised the 2-worker "
+                       "wall clock; the flag now does what they say"),
     ("s1c_s1d_s1e_assembly", True, "assembling S1(c)'s per-seed per-system direction deltas from the V5-PAIR records "
                                     "(the statistic itself is implemented and tested: "
                                     "confirmation.seed_mean_system_bootstrap / s1c_confirmation), and S1(d) / S1(e) "
@@ -540,7 +640,31 @@ RUN_STAGES: tuple[tuple[str, bool, str], ...] = (
     ("writers", True, "wiring decisions/confirmation.json, tables/confirmation_*.csv|md and decisions/CONFIRMATION.md "
                        "to a completed run (the writers themselves are implemented and tested: "
                        "confirmation.write_decisions / confirmation_tables / confirmation_report)"),
-    ("v6_arm_fitting", False, V6_ARM_FITTING_GAP),
+    ("v6_arm_fitting", True, V6_ARM_FITTING),
+    ("s2c_pair_conformal", True, "POST-HOC addendum 7 item 1's registered S2(c) logSF interval: split conformal on the "
+                                 "PAIR residuals of each fold's inner calibration comparable pairs with the section 12 "
+                                 "finite-sample quantile (confirmation.pair_calibration_residuals / "
+                                 "pair_conformal_quantiles), the quadrature fallback below 20 calibration pairs flagged "
+                                 "and counted, and both constructions printed -- with the consequence of the registered "
+                                 "calibration population RECORDED beside it (CF.READINGS "
+                                 "['s2c_calibration_population']): the addendum calibrates on 'the comparable pairs', "
+                                 "which is any two distinct metal states of a condition group, while the scored pairs "
+                                 "are Pr/Nd only, so the interval is biased WIDE and a high-side 80 % FAIL may be that "
+                                 "artefact. The composition, the two medians and an EXPLORATORY Pr/Nd-only coverage are "
+                                 "recorded; the registered value is unchanged and is the verdict"),
+    ("m2_reads_m1_at_confirmation", True, "section 6's 'M2 keeps each outer fold's retained M1 hyperparameters' on THIS "
+                                          "run's records: FoldContext.sibling_record / m1_record_locator. Discovery's "
+                                          "NeuralRunner.m1_record resolves evaluation/discovery/M1/<design>/s<withheld "
+                                          "seed>/<fold>.json, which this run never writes, so every M2 fold raised "
+                                          "'M2 needs M1's per-fold values' -- M2 on V5-primary (claims C1-C3), on "
+                                          "V5-PAIR (S1(c)) and on V6 (S2), about 97 of the 110 h plan. The locator "
+                                          "reads evaluation/confirmation/records/M1/<design>/i<k>/ and applies the "
+                                          "equivalent staleness check on the fields a confirmation record carries "
+                                          "(fold_hash, the LIVE code digest, the seed index, the registry stage, a "
+                                          "completed point step, the parquet, registry.verify_record), with every "
+                                          "message built from the scrubbed label"),
+    ("v6_frozen_configurations", False, FROZEN_CONFIGURATIONS),
+    ("c4_act_permuted_training_transform", False, ACT_PERMUTED_LEG),
 )
 
 
@@ -592,9 +716,59 @@ def v6_inner_check(job: D.JobSpec, corpus: Any) -> Callable[[pd.Index, pd.Index]
     return check
 
 
+def m1_record_locator(out_root: Path, *, seed_index: int, code: str, store: CF.SeedStore | None, fold: FI.Fold,
+                      what: str) -> Callable[[D.JobSpec, str], dict[str, Any]]:
+    """How an M2 fold of THIS run finds and validates the M1 record of the same fold (``FoldContext.sibling_record``).
+
+    Section 6's resolution is that M2 keeps each outer fold's retained M1 hyperparameters, so ``NeuralRunner.m1_record``
+    reads M1's record of the same fold.  Discovery's own locator is ``discovery.fold_paths`` --
+    ``evaluation/discovery/M1/<design file>/s<seed>/<fold>.json``, verified against ``fold_digest``.  Neither half of
+    that works here and BOTH failures are fatal, not cosmetic:
+
+    * this run writes ``evaluation/confirmation/records/M1/<design file>/i<k>/<fold>.json``, so discovery's path is a
+      directory that names the WITHHELD SEED and can never exist -- every M2 fold raised
+      ``RuntimeError: M2 needs M1's per-fold values``, which is M2 on V5-primary (claims C1-C3), on V5-PAIR (S1(c)) and
+      on V6 (S2), i.e. almost the whole plan;
+    * a confirmation record carries no ``digest`` field, so discovery's staleness branch compared ``None`` with a fold
+      digest and was unreachable.
+
+    The equivalent check here is over the fields a confirmation record DOES carry: the same fold (``fold_hash``), the
+    same code (``code_digest``, the live one), the same withheld-seed index, the registry stage, a completed ``point``
+    step and an existing prediction parquet -- plus ``registry.verify_record``, the same verification
+    ``read_seed_predictions`` applies before scoring.  The returned record carries ``digest`` =
+    :func:`confirmation.confirmation_record_digest` so M2's own record records WHICH M1 fit it used.
+
+    Every message is built from the SCRUBBED ``what`` (addendum 6 item 4): discovery's carried ``job.key``, and the
+    reproduction showed the withheld seed in both the message and the path it printed.
+    """
+    def locate(mjob: D.JobSpec, arm: str) -> dict[str, Any]:
+        pq, js = CF.fold_paths(out_root, arm, mjob.design_dir, seed_index, CF.scrub(fold.fold_id, store))
+        rec = D.read_record(js)
+        # NB the point step's key in a CONFIRMATION record is "prediction", not discovery's "point" (this script's own
+        # schema; ``run_fold`` writes ``steps["prediction"]``).  Checking for "point" here would have refused every M1
+        # record that exists, which is the same failure again one layer down
+        if rec is None or not pq.exists() or POINT_STEP not in (rec.get("steps") or {}):
+            raise RuntimeError(f"{what}: M2 needs {arm}'s per-fold values of this fold (run the {arm} job of this "
+                               f"design file and withheld-seed index first; section 6 resolution). Looked for "
+                               f"{js.name} under records/{arm}/{mjob.design_dir}/{CF.seed_token(seed_index)}")
+        bad = {k: (rec.get(k), v) for k, v in (("fold_hash", fold.fold_hash), ("code_digest", str(code)),
+                                               ("seed_index", int(seed_index)), ("registry_stage", STAGE))
+               if rec.get(k) != v}
+        if bad:
+            raise D.StaleRecordError(f"{what}: {arm}'s record of this fold does not match this run "
+                                     f"({sorted(bad)} differ); it was written under different code, a different fold "
+                                     f"file or a different seed index. Nothing is re-scored: refit the {arm} job.")
+        v = REG.verify_record(rec, STAGE)
+        if v.get("ok") is False:
+            raise D.StaleRecordError(f"{what}: {arm}'s record of this fold does not verify against the registry entry "
+                                     f"of stage {STAGE!r}: {v.get('reason')}")
+        return {**rec, "digest": CF.confirmation_record_digest(rec)}
+    return locate
+
+
 def prepare_fold(job: D.JobSpec, fold: FI.Fold, ordinal: int, corpus: Any, out_root: Path, state: D.PlanState, *,
                  code: str = "", guard_fn: Callable | None = None, inner_check: Callable | None = None,
-                 what: str | None = None) -> tuple[Any, dict[str, Any]]:
+                 what: str | None = None, sibling_record: Callable | None = None) -> tuple[Any, dict[str, Any]]:
     """Discovery's ``prepare_fold`` with the CONFIRMATION half (:data:`confirmation.READINGS` ``half``).
 
     Discovery's own refuses a confirmation-half fold, so this is the mirror: the scored rows are the rows this run
@@ -630,7 +804,8 @@ def prepare_fold(job: D.JobSpec, fold: FI.Fold, ordinal: int, corpus: Any, out_r
     # design and the support file are its code, and the only difference is the half the scored rows come from
     fc, info = _prepare_with_half(rd, job, fold, ordinal, corpus, out_root, state, code, sc_ids, sc_labels,
                                   guard_fn or (v6_guard if is_v6 else None),
-                                  inner_check or (v6_inner_check if is_v6 else None), what)
+                                  inner_check or (v6_inner_check if is_v6 else None), what,
+                                  sibling_record=sibling_record)
     info = dict(info)
     info.update(half="NA" if is_v6 else D.CONFIRMATION, n_scored_confirmation=len(sc_ids),
                 reading=CF.READINGS["v6_half"] if is_v6 else CF.READINGS["half"])
@@ -640,7 +815,8 @@ def prepare_fold(job: D.JobSpec, fold: FI.Fold, ordinal: int, corpus: Any, out_r
 def _prepare_with_half(rd: Any, job: D.JobSpec, fold: FI.Fold, ordinal: int, corpus: Any, out_root: Path,
                        state: D.PlanState, code: str, sc_ids: Sequence[str], sc_labels: pd.Index,
                        guard_fn: Callable | None, inner_check: Callable | None,
-                       what: str | None = None) -> tuple[Any, dict[str, Any]]:
+                       what: str | None = None, sibling_record: Callable | None = None
+                       ) -> tuple[Any, dict[str, Any]]:
     """The body of discovery's ``prepare_fold`` on confirmation-half scored rows (its assertions kept, in its order)."""
     what = what or f"{job.key}/{fold.fold_id}"
     st = corpus.frame.loc[sc_labels, SG.METAL_COL]
@@ -668,20 +844,101 @@ def _prepare_with_half(rd: Any, job: D.JobSpec, fold: FI.Fold, ordinal: int, cor
     fc = rd.FoldContext(job=job, fold=fold, ordinal=ordinal, corpus=corpus, mask=mask, hidden=hidden,
                         sc_ids=list(sc_ids), sc_labels=sc_labels, positions=t.positions(sc_labels), ctx=ctx,
                         out_root=out_root, guard_mode=gmode, batching_label=rd.batching_label(job, state), code=code,
-                        state=state, design_hash=corpus.design_hash(job.stem))
+                        state=state, design_hash=corpus.design_hash(job.stem), sibling_record=sibling_record)
     info = {"n_hidden": len(hidden), "n_train": int(mask.sum()), "n_scored_confirmation": len(sc_ids),
             "n_sr_iii_dropped": int(len(sr_extra)), "outer_guard": guards, "inner_guard_mode": gmode}
     return fc, info
 
 
+def confirmation_prediction_frame(pred: pd.DataFrame, *, job: D.JobSpec, arm: str, fold: FI.Fold, ordinal: int,
+                                  row_ids: Sequence[str], **kw: Any) -> pd.DataFrame:
+    """``discovery.prediction_frame``'s registered layout (:data:`discovery.PREDICTION_COLUMNS`) for a fold of THIS run.
+
+    Discovery's own ends with ``if (out["half"] != SELECTION).any(): raise`` -- correct for the half it was written for,
+    and by construction fatal to every fold of this run: a confirmation-half fold's rows are half ``C`` and a V6 fold's
+    are ``NA`` (:data:`confirmation.READINGS` ``v6_half``).  So its code builds the frame, on a copy of the fold whose
+    halves read ``S``, and the true half is written back and asserted here -- the same mirror ``prepare_fold`` is: every
+    assertion kept, only the half switched.  Nothing else in the layout is touched, so a confirmation prediction frame
+    is column-for-column a discovery one.
+    """
+    from dataclasses import replace as _dc_replace
+
+    want = "NA" if CF.is_v6(fold.design) else D.CONFIRMATION
+    as_selection = _dc_replace(fold, half=D.SELECTION, row_half={str(r): D.SELECTION for r in fold.row_half})
+    out = D.prediction_frame(pred, job=job, arm=arm, fold=as_selection, ordinal=ordinal, row_ids=row_ids, **kw)
+    out["half"] = [str(fold.row_half.get(r, fold.half)) for r in out["row_id"]]
+    bad = sorted(set(out.loc[out["half"] != want, "half"]))
+    if bad:
+        raise AssertionError(f"{arm}/{fold.fold_id}: a prediction whose half is {bad}, not {want!r} -- this run scores "
+                             f"the {'V6 rows' if want == 'NA' else 'confirmation half'} and nothing else")
+    return out
+
+
+_PAIR_ATTRS: pd.DataFrame | None = None
+
+
+def pair_attributes() -> pd.DataFrame:
+    """The row attributes a PAIR calibration needs (POST-HOC addendum 7 item 1), indexed by ``row_id``: the section 2
+    pair key columns (publication group, system, condition key), the metal state and the observed log D.
+
+    These are the scorer's own attributes (``g19_score_discovery.build_attrs``), which is where ``condition_key`` lives:
+    the model frame the arms are fitted on does not carry it.  Built once per process and cached, because the single V6
+    run needs it for every V6 fold of every withheld seed.
+    """
+    global _PAIR_ATTRS
+    if _PAIR_ATTRS is None:
+        _PAIR_ATTRS = _script("g19_score_discovery").build_attrs()
+    return _PAIR_ATTRS
+
+
+def v6_pair_conformal(fc: Any, cal: Any, *, what: str, attrs: pd.DataFrame | None = None) -> dict[str, Any]:
+    """One V6 fold's PAIR split-conformal quantiles: POST-HOC addendum 7 item 1's registered S2(c) construction.
+
+    ``cal`` is the fitted calibration wrapper of that fold; ``cal.calibration_detail`` carries, per inner split, the
+    calibration rows (as TABLE INDEX LABELS) and their SIGNED residuals (``interface.calibration_detail_of``).  The
+    labels are translated here into ``canonical_measurement_id`` row ids -- the key the attribute frame is indexed by --
+    and ``confirmation.pair_calibration_residuals`` then forms the inner calibration COMPARABLE pairs and their absolute
+    residuals, from which ``confirmation.pair_conformal_quantiles`` takes the section 12 finite-sample quantile, or
+    declares the quadrature fallback below ``CF.S2C_MIN_CALIBRATION_PAIRS`` pairs.
+    """
+    detail = list(getattr(cal, "calibration_detail", None) or [])
+    if detail:
+        id_of = fc.corpus.frame[FI.ROW_ID].astype(str)
+        detail = [{**sp, "row_ids": [str(v) for v in id_of.loc[list(sp["labels"])]]} for sp in detail]
+    if not detail:
+        return {"n_calibration_pairs": 0, "min_calibration_pairs": CF.S2C_MIN_CALIBRATION_PAIRS, "fallback": True,
+                "method": CF.S2C_QUADRATURE_FALLBACK, "quantiles": {},
+                "why": "the calibration wrapper exposed no per-split calibration detail, so no pair residual exists",
+                "reading": CF.READINGS["s2c_interval_reading"]}
+    rows = pair_attributes() if attrs is None else attrs
+    res = CF.pair_calibration_residuals(detail, rows, what=what)
+    out = {**CF.pair_conformal_quantiles(res["abs_residuals"]),
+           "n_calibration_rows": res["n_calibration_rows"], "n_inner_splits": res["n_inner_splits"],
+           "per_inner_split": res["per_split"],
+           # the RECORDED CONSEQUENCE of the registered population (CF.READINGS['s2c_calibration_population']): the
+           # calibration pairs are any two distinct metal states of a condition group, the SCORED pairs are Pr/Nd only,
+           # so the registered interval is biased wide.  The composition and the Pr/Nd-only quantiles are recorded; the
+           # registered value is untouched and remains the verdict
+           "population": res["population"],
+           "prnd_only": CF.prnd_only_quantiles(res["prnd_only_abs_residuals"])}
+    return out
+
+
 def run_fold(job: D.JobSpec, fold: FI.Fold, ordinal: int, corpus: Any, out_root: Path, *, store: CF.SeedStore,
              seed_index: int, runners: Mapping[str, Any], code: str, state: D.PlanState,
-             steps: Sequence[str] = ("point", "intervals"), prereg: Mapping[str, Any] | None = None) -> dict[str, Any]:
+             steps: Sequence[str] = ("point", "intervals"), prereg: Mapping[str, Any] | None = None,
+             pair_attrs: pd.DataFrame | None = None) -> dict[str, Any]:
     """Fit (or skip) one confirmation fold and write its prediction parquet and record, SCRUBBED of the seed.
 
     The record is discovery's schema with ``registry_stage`` = ``confirmation``, the opaque ``seed_index``, and the
     withheld seed nowhere: :func:`confirmation.scrub` runs over the whole record and over the prediction frame's labels
     before either is written.
+
+    ``"intervals"`` in ``steps`` runs discovery's interval step for an arm that has one (``runner.calibration`` ->
+    ``discovery.CrossFitResidualConformal`` on the fold's inner splits, ``discovery.attach_intervals`` on the frame),
+    and on a V6 fold also POST-HOC addendum 7 item 1's PAIR conformal calibration (:func:`v6_pair_conformal`,
+    :func:`attach_pair_conformal`), which is what S2(c) reads.  Unlike discovery's two-phase resume this runs before the
+    record is written, so a fold's parquet and JSON are written exactly once.
     """
     rd = runner_module()
     runner = rd.runner_for(job, runners)
@@ -691,14 +948,17 @@ def run_fold(job: D.JobSpec, fold: FI.Fold, ordinal: int, corpus: Any, out_root:
     if js.exists():
         return {"job": job.key, "fold_id": fold.fold_id, "status": "skipped_done"}
     REG.refuse_unless_writable(STAGE, code)
-    fc, info = prepare_fold(job, fold, ordinal, corpus, out_root, state, code=code, what=what)
+    fc, info = prepare_fold(job, fold, ordinal, corpus, out_root, state, code=code, what=what,
+                            sibling_record=m1_record_locator(out_root, seed_index=seed_index, code=code, store=store,
+                                                             fold=fold, what=what))
     outputs = runner.point(fc)
+    do_intervals = INTERVAL_STEP in steps and bool(getattr(runner, "has_interval_step", False))
     out = {}
     for arm, o in outputs.items():
-        frame = D.prediction_frame(o.pred, job=job, arm=arm, fold=fold, ordinal=ordinal, row_ids=fc.sc_ids,
-                                   selected_config=o.selected_config, model_seed=o.model_seed,
-                                   intervals_status="split_conformal_inner" if o.intervals else "pending",
-                                   batching_label=fc.batching_label, fit_seconds=o.seconds)
+        frame = confirmation_prediction_frame(o.pred, job=job, arm=arm, fold=fold, ordinal=ordinal, row_ids=fc.sc_ids,
+                                              selected_config=o.selected_config, model_seed=o.model_seed,
+                                              intervals_status="split_conformal_inner" if o.intervals else "pending",
+                                              batching_label=fc.batching_label, fit_seconds=o.seconds)
         if is_v6:
             # V6 is not a confirmation-HALF design (READINGS['v6_half']): the written rows are checked against the V6
             # scope instead -- every one a V6_TARGET_ROW -- which is the guard section 3.4 gives this design
@@ -715,9 +975,38 @@ def run_fold(job: D.JobSpec, fold: FI.Fold, ordinal: int, corpus: Any, out_root:
                "prereg_addenda_sha256": (prereg or {}).get("addenda_sha256"),
                "prereg_n_addenda": (prereg or {}).get("n_addenda"), "addendum_implemented": REG.addenda_count(STAGE),
                "selected_config": o.selected_config, "model_seed": o.model_seed, "arm_record": o.record,
-               "steps": {"prediction": {"seconds": round(o.seconds, 3),
-                                        "date_utc": _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")}},
+               "steps": {POINT_STEP: {"seconds": round(o.seconds, 3),
+                                        "date_utc": _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")},
+                         **({INTERVAL_STEP: {"seconds": 0.0, "in_point_step": True, **o.intervals}}
+                            if o.intervals is not None else {})},
                **info}
+        if do_intervals and INTERVAL_STEP not in rec["steps"]:
+            t0 = time.perf_counter()
+            cal, plan = runner.calibration(fc, o.record)
+            if cal is None:
+                frame = frame.assign(intervals_status=plan["status"])
+                rec["steps"][INTERVAL_STEP] = {"seconds": round(time.perf_counter() - t0, 3), "status": plan["status"],
+                                               "plan": plan, "n_calibration": 0,
+                                               "method": "not calibrated (discovery.calibration_folds)"}
+            else:
+                cal.fit_table(corpus.table, fc.mask, fc.ctx)
+                frame = D.attach_intervals(frame, cal.quantiles, len(cal.residuals))
+                step = {"seconds": round(time.perf_counter() - t0, 3), "status": "calibrated", "plan": plan,
+                        "method": "discovery.CrossFitResidualConformal (cross-fitted inner splits)", **cal.record()}
+                if is_v6:
+                    # POST-HOC addendum 7 item 1: the S2(c) logSF interval is split conformal on the PAIR residuals of
+                    # this fold's inner calibration comparable pairs, with the quadrature fallback below 20 pairs
+                    pc = v6_pair_conformal(fc, cal, what=f"{what}/{arm} S2(c) pair calibration", attrs=pair_attrs)
+                    frame = attach_pair_conformal(frame, pc)
+                    step["pair_conformal"] = pc
+                rec["steps"][INTERVAL_STEP] = step
+            if is_v6:
+                CF.assert_v6_scope(corpus.labels_of(list(frame["row_id"])),
+                                   corpus.v6 if isinstance(corpus.v6, pd.Series)
+                                   else pd.Series(corpus.v6, index=corpus.frame.index), job.design,
+                                   f"{what} intervals")
+            else:
+                CF.assert_confirmation_rows(frame["row_id"], corpus.half_by_id[job.design], f"{what} intervals")
         pq2, js2 = CF.fold_paths(out_root, arm, job.design_dir, seed_index, CF.scrub(fold.fold_id, store))
         pq2.parent.mkdir(parents=True, exist_ok=True)
         # the frame's numeric columns hold no seed; its fold_id and any seed-labelled column are scrubbed
@@ -876,6 +1165,11 @@ class FitLedger:
     skipped: int = 0
     errors: list[dict[str, Any]] = field(default_factory=list)
     by_job: dict[str, dict[str, Any]] = field(default_factory=dict)
+    #: the number of worker processes the fit loop ACTUALLY dispatched to (1 = in process), recorded so the run's own
+    #: manifest can never advertise a wall clock it did not run at
+    workers: int = 1
+    #: the pool's pre-flight self-check, one entry per probe (:func:`_conf_worker_state`); empty at ``workers`` 1
+    worker_preflight: list[dict[str, Any]] = field(default_factory=list)
 
     def note(self, key: str, status: str, seconds: float = 0.0) -> None:
         b = self.by_job.setdefault(key, {"fitted": 0, "skipped": 0, "errors": 0, "seconds": 0.0})
@@ -889,60 +1183,211 @@ class FitLedger:
 
     def record(self) -> dict[str, Any]:
         return {"n_folds_fitted": self.fitted, "n_folds_skipped_already_done": self.skipped,
+                "fit_seconds_summed_over_folds": self.seconds,
+                "elapsed_hours": (time.perf_counter() - self.started) / 3600.0 if self.started else None,
                 "wall_clock_hours": self.seconds / 3600.0, "n_errors": len(self.errors), "errors": self.errors[:20],
-                "by_job": dict(sorted(self.by_job.items())), "workers_max": MAX_WORKERS,
+                "by_job": dict(sorted(self.by_job.items())), "workers_max": MAX_WORKERS, "workers_used": int(self.workers),
+                "worker_preflight": list(self.worker_preflight),
                 "guard_failure_vocabulary": CF.READINGS["completeness_unit"]}
+
+
+#: the worker process's own copy of what a fold needs.  Built once per worker by :func:`_init_conf_worker`, exactly as
+#: ``g19_run_discovery.W`` / ``_init_worker`` do for discovery: the corpus is 12 k rows of frame plus a ``RowTable``, far
+#: too large to pickle per fold, and the runners hold torch modules.
+CW = SimpleNamespace(corpus=None, runners=None, store=None, attached=None, pair_attrs=None)
+
+
+def _init_conf_worker(store_path: str, out_root: str) -> None:
+    """One-time worker setup: torch threads, the corpus, the runners, and the VERIFIED seed store.
+
+    The store is loaded from its path IN the worker rather than pickled in, so the withheld seeds cross no process
+    boundary as data and the worker verifies them against the section 15 commitment itself, exactly as the parent did.
+    A worker that cannot verify the store cannot run a fold.
+    """
+    import torch
+
+    torch.set_num_threads(2)
+    sealm = seal_module()
+    CW.store = CF.load_seed_store(store_path, root=Path(out_root), seal=sealm,
+                                  prereg_paths=sealm.PreregPaths(root=Path(out_root), repo_root=paths.REPO_ROOT))
+    if not CW.store.verified:
+        raise SystemExit("refused: a worker's seed store does not verify against the section 15 commitment")
+    CW.corpus = confirmation_corpus()
+    CW.runners = runner_module().default_runners()
+    CW.attached = None
+    CW.pair_attrs = None
+
+
+def _conf_worker_state() -> dict[str, Any]:
+    """What one worker holds, for the pool's PRE-FLIGHT self-check -- it names no seed and fits nothing.
+
+    The fit loop calls it once per worker before it dispatches a fold, so a store that does not verify, a corpus that
+    does not load or an import that does not resolve inside a spawned process is found in seconds rather than after the
+    parent has written the first records of a 110 h run that can happen only once.
+    """
+    st = CW.store
+    return {"pid": __import__("os").getpid(), "n_rows": (0 if CW.corpus is None else int(CW.corpus.table.n)),
+            "n_runners": (0 if CW.runners is None else len(CW.runners)),
+            "store_verified": bool(st is not None and st.verified),
+            "seed_commitment_sha256": (None if st is None else st.digest),
+            "n_seed_indices": (0 if st is None else len(st.indices()))}
+
+
+def _conf_worker_fold(spec: D.JobSpec, fold_id: str, ordinal: int, out_root: str, seed_index: int, code: str,
+                      state_rec: dict, prereg: dict | None, job_key: str) -> dict[str, Any]:
+    """One fold, in a worker.  Every value that leaves this function is already SCRUBBED (addendum 6 item 4).
+
+    The error is classified here, not in the parent, because only here is the exception object available: an
+    ``AssertionError`` is a guard failure (addendum 6 item 3(b)) and anything else is a defect that stops the run.  The
+    traceback is NOT returned: it is built from the raw frames, whose locals and messages name the withheld seed, and
+    scrubbing a 4 kB traceback is a promise this code will not make.  The scrubbed message and the classification are.
+    """
+    store = CW.store
+    try:
+        corpus = CW.corpus
+        if CW.attached != int(seed_index):
+            attach_seed_folds(corpus, Path(out_root), int(seed_index))
+            CW.attached = int(seed_index)
+        fold = next(f for f in corpus.folds(spec.stem) if f.fold_id == fold_id)
+        state = D.PlanState(**{k: state_rec[k] for k in ("v5_batched_check", "v1_tenfold_check", "guard_mode",
+                                                         "freezing_candidates", "notes")})
+        attrs = CW.pair_attrs
+        if attrs is None and CF.is_v6(spec.design):
+            attrs = pair_attributes()                   # built and cached in this worker; only a V6 fold needs it
+        r = run_fold(spec, fold, ordinal, corpus, Path(out_root), store=store, seed_index=int(seed_index),
+                     runners=CW.runners, code=code, state=state, prereg=prereg, pair_attrs=attrs)
+        return {"status": str(r["status"]), "job": job_key, "fold_id": CF.scrub(fold_id, store)}
+    except AssertionError as exc:
+        return {"status": "guard_failure", "job": job_key, "fold_id": CF.scrub(fold_id, store),
+                "detail": CF.scrub(str(exc), store)}
+    except BaseException as exc:                       # noqa: BLE001 -- classified and SCRUBBED before it leaves
+        return {"status": "error", "job": job_key, "fold_id": CF.scrub(fold_id, store),
+                "detail": CF.scrub(f"{type(exc).__name__}: {exc}", store),
+                "traceback_suppressed": "a worker traceback is not returned: its frames name the withheld seed "
+                                        "(addendum 6 item 4). The scrubbed message and the classification are"}
 
 
 def fit_loop(jobs: Sequence[CF.ConfJob], store: CF.SeedStore, out_root: Path, *, corpus: Any, state: D.PlanState,
              runners: Mapping[str, Any], code: str, prereg: Mapping[str, Any], ledger: FitLedger | None = None,
-             limit: int | None = None) -> FitLedger:
+             limit: int | None = None, pair_attrs: pd.DataFrame | None = None, workers: int = 1,
+             seed_store_path: str | None = None) -> FitLedger:
     """Fit every job of the core run, seed index by seed index, in the inventory's registered order.
 
     Grouping by seed index attaches each seed's fold files once.  Resumability is by digest: :func:`run_fold` returns
     ``skipped_done`` when the record exists, so ``--resume`` completes unfitted folds and re-fits nothing.  A seed index
     of 0 is the R19 item 6 refit pass on the PUBLIC discovery seed 104729 (addendum 1 item 4), which reads the registered
     fold files.  ``limit`` stops after that many fitted folds (the test path).
+
+    ``workers`` > 1 dispatches the folds of one job to a ``ProcessPoolExecutor`` of that size, fold-level parallelism
+    inside a job, exactly as ``g19_run_discovery.run_jobs`` does -- at most ``workers`` folds in flight, so the ledger
+    and the ``--max-folds`` pause see every completion.  It needs ``seed_store_path``, because a worker loads and
+    verifies the store itself instead of being handed the seeds.  This loop was sequential while ``--workers`` was
+    accepted, bounds-checked, logged and then ignored, and the plan, the dry run and the stage table all advertised the
+    2-worker wall clock (task X finding): the flag now does what all three say it does.
     """
     led = ledger or FitLedger(started=time.perf_counter())
+    led.workers = int(workers)
+    if int(workers) > 1 and not seed_store_path:
+        raise SystemExit("refused: --workers > 1 needs the seed-store path, because a worker verifies the store itself")
+    pool = ProcessPoolExecutor(max_workers=int(workers), initializer=_init_conf_worker,
+                              initargs=(str(seed_store_path), str(out_root))) if int(workers) > 1 else None
+    if pool is not None:
+        # PRE-FLIGHT: every worker up, its store verified, its corpus loaded -- before the first fold is dispatched, so a
+        # spawn / import / verification failure costs seconds instead of surfacing inside the single registered run
+        probes = [f.result() for f in [pool.submit(_conf_worker_state) for _ in range(int(workers) * 2)]]
+        if not all(p["store_verified"] and p["n_rows"] > 0 and p["n_runners"] > 0 for p in probes):
+            pool.shutdown(wait=True)
+            raise SystemExit(f"refused: a worker is not ready ({probes}); the run is not started")
+        if len({p["seed_commitment_sha256"] for p in probes} | {store.digest}) != 1:
+            pool.shutdown(wait=True)
+            raise SystemExit("refused: a worker's seed store is not the parent's (different commitment digest)")
+        led.worker_preflight = probes
+        log(f"pool pre-flight: {len({p['pid'] for p in probes})} worker process(es), each with "
+            f"{probes[0]['n_rows']} corpus rows and a verified store")
     by_index: dict[int, list[CF.ConfJob]] = {}
     for j in jobs:
         by_index.setdefault(int(j.seed_index), []).append(j)
-    for i in sorted(by_index):
-        seed = store.seed(i) if i in store.indices() else CF.ITEM6_REFIT_SEED
-        attached = attach_seed_folds(corpus, out_root, i) if i in store.indices() else {}
-        log(f"seed index i{i}: {len(by_index[i])} job(s), {len(attached)} withheld-seed design(s) attached")
-        for job in by_index[i]:
-            spec = fold_seeded_spec(job, seed, corpus)
-            # discovery's ``fittable`` is its own: it drops every confirmation-half fold and keeps the folds whose
-            # SELECTION-half rows are scorable, so on this half it returns either nothing or exactly what this run may
-            # never fit.  The confirmation selector is confirmation.confirmation_fittable_folds
-            folds = CF.confirmation_fittable_folds(spec, corpus.folds(spec.stem), corpus.coext_ids)
-            if not folds:
-                led.errors.append({"job": job.key, "status": CF.INCOMPLETE_GUARD_FAILURE,
-                                   "detail": "no fittable fold: the design file is empty, or every fold's scored rows "
-                                             "are outside the confirmation half / are acidic co-extractant rows"})
-                led.note(job.key, "error")
-                continue
-            for fold, ordinal in folds:
-                if limit is not None and led.fitted >= int(limit):
-                    return led
-                t0 = time.perf_counter()
-                try:
-                    r = run_fold(spec, fold, ordinal, corpus, out_root, store=store, seed_index=i, runners=runners,
-                                 code=code, state=state, prereg=prereg)
-                except AssertionError as exc:          # a guard failure is named as such, never as a compute cap
-                    led.errors.append({"job": job.key, "fold_id": CF.scrub(fold.fold_id, store),
-                                       "status": CF.INCOMPLETE_GUARD_FAILURE, "detail": CF.scrub(str(exc), store)})
+
+    def absorb(job: CF.ConfJob, r: Mapping[str, Any], seconds: float) -> None:
+        """One completion, from either path, into the ledger -- with the worker's classification honoured."""
+        if r["status"] == "guard_failure":
+            led.errors.append({"job": job.key, "fold_id": r.get("fold_id"),
+                               "status": CF.INCOMPLETE_GUARD_FAILURE, "detail": r.get("detail")})
+            led.note(job.key, "error")
+            return
+        if r["status"] == "error":
+            raise CF.RedactedRunError(f"{CF.scrub(job.key, store)}/{r.get('fold_id')}: {r.get('detail')}")
+        led.note(job.key, str(r["status"]), seconds)
+
+    try:
+        for i in sorted(by_index):
+            seed = store.seed(i) if i in store.indices() else CF.ITEM6_REFIT_SEED
+            attached = attach_seed_folds(corpus, out_root, i) if i in store.indices() else {}
+            log(f"seed index i{i}: {len(by_index[i])} job(s), {len(attached)} withheld-seed design(s) attached, "
+                f"{workers} worker(s)")
+            for job in by_index[i]:
+                spec = fold_seeded_spec(job, seed, corpus)
+                # discovery's ``fittable`` is its own: it drops every confirmation-half fold and keeps the folds whose
+                # SELECTION-half rows are scorable, so on this half it returns either nothing or exactly what this run
+                # may never fit.  The confirmation selector is confirmation.confirmation_fittable_folds
+                folds = CF.confirmation_fittable_folds(spec, corpus.folds(spec.stem), corpus.coext_ids)
+                if not folds:
+                    led.errors.append({"job": job.key, "status": CF.INCOMPLETE_GUARD_FAILURE,
+                                       "detail": "no fittable fold: the design file is empty, or every fold's scored "
+                                                 "rows are outside the confirmation half / are acidic co-extractant "
+                                                 "rows"})
                     led.note(job.key, "error")
                     continue
-                except Exception as exc:
-                    # NOT a guard failure: a defect, and the run stops.  It is re-raised SCRUBBED and ``from None`` so
-                    # that neither the message nor the chained context can print a withheld seed (addendum 6 item 4);
-                    # every deeper message that could carry one is built from job.key, which does
-                    raise CF.RedactedRunError(f"{CF.scrub(job.key, store)}/{CF.scrub(fold.fold_id, store)}: "
-                                              f"{type(exc).__name__}: {CF.scrub(str(exc), store)}") from None
-                led.note(job.key, str(r["status"]), time.perf_counter() - t0)
+                if pool is None:
+                    for fold, ordinal in folds:
+                        if limit is not None and led.fitted >= int(limit):
+                            return led
+                        t0 = time.perf_counter()
+                        try:
+                            r = run_fold(spec, fold, ordinal, corpus, out_root, store=store, seed_index=i,
+                                         runners=runners, code=code, state=state, prereg=prereg, pair_attrs=pair_attrs)
+                        except AssertionError as exc:    # a guard failure is named as such, never as a compute cap
+                            led.errors.append({"job": job.key, "fold_id": CF.scrub(fold.fold_id, store),
+                                               "status": CF.INCOMPLETE_GUARD_FAILURE,
+                                               "detail": CF.scrub(str(exc), store)})
+                            led.note(job.key, "error")
+                            continue
+                        except Exception as exc:
+                            # NOT a guard failure: a defect, and the run stops.  It is re-raised SCRUBBED and
+                            # ``from None`` so that neither the message nor the chained context can print a withheld
+                            # seed (addendum 6 item 4); every deeper message that could carry one is built from job.key
+                            raise CF.RedactedRunError(f"{CF.scrub(job.key, store)}/{CF.scrub(fold.fold_id, store)}: "
+                                                      f"{type(exc).__name__}: {CF.scrub(str(exc), store)}") from None
+                        absorb(job, r, time.perf_counter() - t0)
+                    continue
+                # at most ``workers`` folds in flight, so every completion reaches the ledger before the next dispatch.
+                # ``--max-folds`` stops SUBMITTING once the limit is reached, drains what is running and returns -- it may
+                # overshoot by up to ``workers - 1`` folds, which is a completed fold on disk and resumable, and it never
+                # abandons a fold of a job it then leaves behind
+                pending, inflight, halt = iter(folds), {}, False
+                while True:
+                    while not halt and len(inflight) < int(workers):
+                        if limit is not None and led.fitted >= int(limit):
+                            halt = True
+                            break
+                        nxt = next(pending, None)
+                        if nxt is None:
+                            break
+                        fold, ordinal = nxt
+                        fu = pool.submit(_conf_worker_fold, spec, fold.fold_id, ordinal, str(out_root), i, code,
+                                         state.record(), None if prereg is None else dict(prereg), job.key)
+                        inflight[fu] = time.perf_counter()
+                    if not inflight:
+                        break
+                    done, _rest = wait(list(inflight), return_when=FIRST_COMPLETED)
+                    for fu in done:
+                        t0 = inflight.pop(fu)
+                        absorb(job, fu.result(), time.perf_counter() - t0)
+                if halt:
+                    return led
+    finally:
+        if pool is not None:
+            pool.shutdown(wait=True)
     return led
 
 
@@ -964,14 +1409,37 @@ REFIT_STEMS: dict[str, dict[str, tuple[str, str]]] = {
 }
 
 
-def read_seed_predictions(out_root: Path, arm: str, design_dir: str, seed_index: int, *, code: str | None = None,
+#: the sentinel value of ``read_seed_predictions(code=...)`` meaning "the LIVE code digest of this tree", which is the
+#: DEFAULT.  It used to default to ``None`` -- no check at all -- and not one of its call sites passed anything, so a
+#: record set written under two different code digests would have been concatenated and scored in silence (task X
+#: finding).  The registry-vs-live match of gate (b) is not a substitute: the addendum 7 item 3 re-registration procedure
+#: moves the registry entry to the new code, which is exactly when a stale record on disk becomes dangerous.  ``None``
+#: still means "do not check" and is now something a caller has to ask for.
+LIVE_CODE = "__live__"
+_LIVE_CODE_CACHE: dict[str, str] = {}
+
+
+def live_code() -> str:
+    """This tree's combined code digest, computed once per process (:data:`LIVE_CODE`)."""
+    if "v" not in _LIVE_CODE_CACHE:
+        _LIVE_CODE_CACHE["v"] = str(code_digest()["combined"])
+    return _LIVE_CODE_CACHE["v"]
+
+
+def read_seed_predictions(out_root: Path, arm: str, design_dir: str, seed_index: int, *, code: str | None = LIVE_CODE,
                           require_complete: Sequence[str] | None = None) -> pd.DataFrame | None:
     """One arm's confirmation predictions of one design and one OPAQUE seed index, every record verified.
 
     A record is verified against the registry entry of stage ``confirmation`` (addendum 2 item 5); an incomplete record
     set returns ``None`` and the caller reports the CONTRAST incomplete, never a verdict from part of a design
     (POST-HOC addendum 6 item 3(a)).  ``require_complete`` names the fold ids that must all be present.
+
+    ``code`` defaults to :data:`LIVE_CODE`, the live digest of this tree: every record of the set must have been written
+    under it, or the read raises rather than scoring a mixed set.  Pass ``None`` to skip that check (nothing in the run
+    does).
     """
+    if code == LIVE_CODE:
+        code = live_code()
     d = CF.conf_root(out_root) / "records" / arm / design_dir / CF.seed_token(seed_index)
     if not d.exists():
         return None
@@ -1478,16 +1946,66 @@ def v6_logsf_mae_by_system(pairs: pd.DataFrame, logsf: pd.Series, *, keep: np.nd
     return pd.Series(err, index=sub.index).groupby(sub[EM.SYSTEM_COL].astype(str).to_numpy()).mean()
 
 
-def v6_logsf_intervals(frame: pd.DataFrame, pairs: pd.DataFrame, level: str) -> dict[str, pd.DataFrame]:
-    """The predicted-logSF interval of every pair at one level, under both constructions of
-    :data:`CF.S2C_INTERVAL_READINGS` (:data:`CF.READINGS` ``s2c_interval_reading``).
+def pair_quantile_column(level: str) -> str:
+    """The prediction frame's column holding the fold's PAIR conformal quantile at one level (written by
+    :func:`attach_pair_conformal`; constant within a fold, because a V6 pair never crosses a fold)."""
+    return f"pair_conformal_q{level}"
 
-    ``interval_arithmetic`` (PRIMARY) is ``[lo_a - hi_b, hi_a - lo_b]``: the interval of the DIFFERENCE with no
-    assumption about the dependence of the two rows' errors.  ``quadrature`` combines the half-widths in root-sum-square,
-    which assumes independence.  Section 9 S2(c) fixes the bands and the population but names neither, so both are
-    reported and the choice is declared.
+
+def prnd_quantile_column(level: str) -> str:
+    """The frame's column holding the fold's EXPLORATORY Pr/Nd-only pair quantile at one level.
+
+    Not registered and not a verdict: it exists so the consequence of the registered calibration population
+    (``CF.READINGS['s2c_calibration_population']``) is a coverage number rather than a caveat."""
+    return f"pair_prnd_only_q{level}"
+
+
+#: the flag columns :func:`attach_pair_conformal` writes beside the quantiles.  The last two carry the composition of the
+#: fold's calibration pairs, so the recorded consequence of the registered population travels with the predictions.
+PAIR_METHOD_COL, PAIR_N_CAL_COL = "pair_interval_method", "pair_n_calibration_pairs"
+PAIR_PRND_SHARE_COL, PAIR_N_PRND_COL = "pair_calibration_prnd_share", "pair_calibration_n_prnd_pairs"
+
+
+def attach_pair_conformal(frame: pd.DataFrame, pair_conformal: Mapping[str, Any]) -> pd.DataFrame:
+    """Write one fold's PAIR conformal quantiles and the addendum-7 fallback flag onto its prediction frame.
+
+    A V6 fold is one system and every comparable Pr/Nd pair lies inside it, so the fold's pair quantile is the right
+    thing to carry per row: the pair reader picks it up from either member.  A fold that fell back carries no quantile
+    and the method :data:`CF.S2C_QUADRATURE_FALLBACK`, which the coverage table counts.
     """
-    lo, hi = f"lo{level}", f"hi{level}"
+    out = frame.copy()
+    q = dict(pair_conformal.get("quantiles") or {})
+    for lv in ("50", "80", "95"):
+        out[pair_quantile_column(lv)] = float(q[lv]) if lv in q else float("nan")
+    out[PAIR_METHOD_COL] = str(pair_conformal.get("method") or CF.S2C_QUADRATURE_FALLBACK)
+    out[PAIR_N_CAL_COL] = float(pair_conformal.get("n_calibration_pairs") or 0)
+    # the recorded consequence of the REGISTERED calibration population (CF.READINGS['s2c_calibration_population']):
+    # the composition of this fold's calibration pairs and the EXPLORATORY Pr/Nd-only quantiles, carried per row for the
+    # same reason the registered quantile is -- a V6 pair never crosses a fold, so either member supplies them
+    pop = dict(pair_conformal.get("population") or {})
+    out[PAIR_PRND_SHARE_COL] = float(pop["prnd_share"]) if pop.get("prnd_share") is not None else float("nan")
+    out[PAIR_N_PRND_COL] = float(pop.get("n_prnd_pairs") or 0)
+    pq = dict((pair_conformal.get("prnd_only") or {}).get("quantiles") or {})
+    for lv in ("50", "80", "95"):
+        out[prnd_quantile_column(lv)] = float(pq[lv]) if lv in pq else float("nan")
+    return out
+
+
+def v6_logsf_intervals(frame: pd.DataFrame, pairs: pd.DataFrame, level: str) -> dict[str, pd.DataFrame]:
+    """The predicted-logSF interval of every pair at one level, under both constructions POST-HOC addendum 7 item 1
+    registers (:data:`CF.S2C_INTERVAL_READINGS`; :data:`CF.READINGS` ``s2c_interval_reading``).
+
+    ``pair_conformal`` (the REGISTERED value) is ``predicted logSF +- q``, where ``q`` is the split-conformal quantile
+    fitted on the PAIR residuals of that fold's inner calibration comparable pairs (:func:`attach_pair_conformal` carries
+    it per row).  A pair whose fold fell back -- fewer than ``CF.S2C_MIN_CALIBRATION_PAIRS`` calibration pairs, so no
+    pair quantile exists -- takes the ``quadrature`` interval instead, and ``fallback`` marks it so the coverage table
+    can count it.  ``quadrature`` is the convolution of the two ROW intervals under independence (half-widths in
+    root-sum-square about the predicted difference) and is always computed, so both constructions are printed.
+
+    The row interval columns are ``metrics.interval_columns`` (``lower_80`` / ``upper_80``), the names
+    ``discovery.attach_intervals`` writes.
+    """
+    lo, hi = EM.interval_columns(float(level) / 100.0)
     if lo not in frame.columns or hi not in frame.columns:
         return {}
     la, ha = pairs["idx_a"].map(frame[lo]), pairs["idx_a"].map(frame[hi])
@@ -1496,13 +2014,46 @@ def v6_logsf_intervals(frame: pd.DataFrame, pairs: pd.DataFrame, level: str) -> 
     if pd.concat([la, ha, lb, hb, pa, pb], axis=1).isna().any().any():
         return {}
     centre = pa.to_numpy(dtype=float) - pb.to_numpy(dtype=float)
-    arith = pd.DataFrame({"lo": la.to_numpy(dtype=float) - hb.to_numpy(dtype=float),
-                          "hi": ha.to_numpy(dtype=float) - lb.to_numpy(dtype=float)}, index=pairs.index)
     wa = (ha.to_numpy(dtype=float) - la.to_numpy(dtype=float)) / 2.0
     wb = (hb.to_numpy(dtype=float) - lb.to_numpy(dtype=float)) / 2.0
     w = np.sqrt(wa ** 2 + wb ** 2)
-    quad = pd.DataFrame({"lo": centre - w, "hi": centre + w}, index=pairs.index)
-    return {"interval_arithmetic": arith, "quadrature": quad}
+    quad = pd.DataFrame({"lo": centre - w, "hi": centre + w, "fallback": False}, index=pairs.index)
+    qcol = pair_quantile_column(level)
+    if qcol not in frame.columns:
+        return {"quadrature": quad}
+    qa = pairs["idx_a"].map(frame[qcol]).to_numpy(dtype=float)
+    qb = pairs["idx_b"].map(frame[qcol]).to_numpy(dtype=float)
+    both = np.isfinite(qa) & np.isfinite(qb)
+    if both.any() and not np.allclose(qa[both], qb[both], equal_nan=False):
+        raise AssertionError("S2(c): the two members of a V6 pair carry different PAIR conformal quantiles, so they were "
+                             "predicted in different folds; a V6 pair never crosses a fold (section 3.4)")
+    q = np.where(np.isfinite(qa), qa, qb)
+    fb = ~np.isfinite(q)
+    conf = pd.DataFrame({"lo": np.where(fb, quad["lo"].to_numpy(dtype=float), centre - q),
+                         "hi": np.where(fb, quad["hi"].to_numpy(dtype=float), centre + q),
+                         "fallback": fb}, index=pairs.index)
+    return {"pair_conformal": conf, "quadrature": quad}
+
+
+def v6_logsf_intervals_prnd_only(frame: pd.DataFrame, pairs: pd.DataFrame, level: str) -> pd.DataFrame | None:
+    """EXPLORATORY: the same interval built from the Pr/Nd-ONLY calibration pairs, never a registered reading.
+
+    Deliberately NOT a third entry of :func:`v6_logsf_intervals`, whose keys are the two constructions POST-HOC addendum
+    7 item 1 registers.  It answers one question and only that: is the registered interval wide because the calibration
+    population is not the scored population (``CF.READINGS['s2c_calibration_population']``)?  ``None`` when no fold has
+    enough Pr/Nd calibration pairs to build it.
+    """
+    qcol = prnd_quantile_column(level)
+    if qcol not in frame.columns or EM.PRED_COL not in frame.columns:
+        return None
+    pa, pb = pairs["idx_a"].map(frame[EM.PRED_COL]), pairs["idx_b"].map(frame[EM.PRED_COL])
+    qa = pairs["idx_a"].map(frame[qcol]).to_numpy(dtype=float)
+    qb = pairs["idx_b"].map(frame[qcol]).to_numpy(dtype=float)
+    q = np.where(np.isfinite(qa), qa, qb)
+    if not np.isfinite(q).any() or pd.concat([pa, pb], axis=1).isna().any().any():
+        return None
+    centre = pa.to_numpy(dtype=float) - pb.to_numpy(dtype=float)
+    return pd.DataFrame({"lo": centre - q, "hi": centre + q, "defined": np.isfinite(q)}, index=pairs.index)
 
 
 def s2_seed_block(out_root: Path, attrs: pd.DataFrame, corpus: Any, *, seed_index: int, v6: pd.Series,
@@ -1553,11 +2104,32 @@ def s2_seed_block(out_root: Path, attrs: pd.DataFrame, corpus: Any, *, seed_inde
     lookup_unit = None if lookup_logd is None else EM.design_per_unit_table(
         cin["frame"].assign(**{EM.PRED_COL: lookup_logd.to_numpy()}), CF.V6_DESIGN, v6_mask=None)
     cov: dict[str, dict[str, float]] = {}
+    fb: dict[str, Any] = {"n_pairs": 0, "n_folds": 0, "folds": [], "min_calibration_pairs": CF.S2C_MIN_CALIBRATION_PAIRS}
     obs_logsf = pairs["logsf_obs"].to_numpy(dtype=float)
     for lvl in ("80", "95"):
         for reading, iv in v6_logsf_intervals(cin["frame"], pairs, lvl).items():
             inside = (obs_logsf >= iv["lo"].to_numpy(dtype=float)) & (obs_logsf <= iv["hi"].to_numpy(dtype=float))
             cov.setdefault(reading, {})[lvl] = float(inside.mean())     # POOLED over the pairs (section 9 S2(c))
+            if reading == CF.S2C_PRIMARY_READING:
+                # addendum 7 item 1: every fold that fell back to quadrature is FLAGGED AND COUNTED in the coverage table
+                m = iv["fallback"].to_numpy(dtype=bool)
+                fb = {**fb, "n_pairs": int(m.sum()),
+                      "folds": sorted({str(f) for f in pairs.loc[m, "fold"].astype(str)}) if m.any() else []}
+                fb["n_folds"] = len(fb["folds"])
+    if PAIR_METHOD_COL in cin["frame"].columns:
+        fb["method_counts_by_row"] = {str(k): int(v) for k, v in
+                                      cin["frame"][PAIR_METHOD_COL].astype(str).value_counts().items()}
+    # the recorded consequence of the REGISTERED calibration population, as numbers on this seed's own pairs
+    pop = _calibration_population_summary(cin["frame"], pairs)
+    expl: dict[str, float] = {}
+    for lvl in ("80", "95"):
+        iv = v6_logsf_intervals_prnd_only(cin["frame"], pairs, lvl)
+        if iv is not None:
+            d = iv["defined"].to_numpy(dtype=bool)
+            if d.any():
+                expl[lvl] = float(((obs_logsf[d] >= iv.loc[d, "lo"].to_numpy(dtype=float)) &
+                                   (obs_logsf[d] <= iv.loc[d, "hi"].to_numpy(dtype=float))).mean())
+                expl[f"n_pairs_{lvl}"] = int(d.sum())
     block = {
         "n_rows": int(len(cin["frame"])), "n_pairs": int(len(pairs)),
         "n_pairs_by_stratum": {k: int(np.asarray(m, dtype=bool).sum()) for k, m in strata.items()},
@@ -1576,10 +2148,35 @@ def s2_seed_block(out_root: Path, attrs: pd.DataFrame, corpus: Any, *, seed_inde
         "logd_mae_by_system": {str(k): float(v) for k, v in logd_unit["mae"].items()},
         "lookup_logd_mae_by_system": None if lookup_unit is None else
         {str(k): float(v) for k, v in lookup_unit["mae"].items()},
-        "logsf_interval_coverage": cov,
+        "logsf_interval_coverage": cov, "logsf_interval_quadrature_fallback": fb,
+        "s2c_calibration_population": pop,
+        "s2c_exploratory_prnd_only_coverage": {**expl, "label": "EXPLORATORY, not registered, decides nothing",
+                                               "reading": CF.READINGS["s2c_calibration_population"]},
         "yardsticks_scored": sorted(yards), "yardsticks_not_scored": absent,
     }
     return block, absent
+
+
+def _calibration_population_summary(frame: pd.DataFrame, pairs: pd.DataFrame) -> dict[str, Any]:
+    """One seed's calibration-pair composition, read off the per-fold columns :func:`attach_pair_conformal` wrote.
+
+    Pooled over the folds by their number of calibration pairs, because that is how the pooled S2(c) coverage weights
+    them: a fold with 400 calibration pairs and one with 30 do not contribute equally to the bias.
+    """
+    if PAIR_PRND_SHARE_COL not in frame.columns:
+        return {"available": False, "why": f"{PAIR_PRND_SHARE_COL} is not in the prediction frame (a fold written before "
+                                           "the population was recorded)", "reading": CF.READINGS["s2c_calibration_population"]}
+    per = frame.groupby(frame["fold"].astype(str))[[PAIR_PRND_SHARE_COL, PAIR_N_CAL_COL, PAIR_N_PRND_COL]].first()
+    n = per[PAIR_N_CAL_COL].to_numpy(dtype=float)
+    npr = per[PAIR_N_PRND_COL].to_numpy(dtype=float)
+    tot = float(np.nansum(n))
+    return {"available": True, "n_folds": int(len(per)),
+            "n_calibration_pairs_total": tot, "n_prnd_calibration_pairs_total": float(np.nansum(npr)),
+            "prnd_share_pooled": (float(np.nansum(npr) / tot) if tot else None),
+            "prnd_share_by_fold": {str(k): (None if not np.isfinite(v) else float(v))
+                                   for k, v in per[PAIR_PRND_SHARE_COL].items()},
+            "n_scored_pairs": int(len(pairs)),
+            "reading": CF.READINGS["s2c_calibration_population"]}
 
 
 def s2_assembly(out_root: Path, attrs: pd.DataFrame, corpus: Any, *, store: CF.SeedStore,
@@ -1681,7 +2278,23 @@ def s2_assembly(out_root: Path, attrs: pd.DataFrame, corpus: Any, *, store: CF.S
     s2c = CF.s2c_coverage({r: {lvl: float(np.nanmean([per_seed[i]["logsf_interval_coverage"][r].get(lvl, np.nan)
                                                       for i in sorted(per_seed)])) for lvl in ("80", "95")}
                            for r in CF.S2C_INTERVAL_READINGS
-                           if all(per_seed[i]["logsf_interval_coverage"].get(r) for i in per_seed)})
+                           if all(per_seed[i]["logsf_interval_coverage"].get(r) for i in per_seed)},
+                          fallback_folds={
+                              "n_folds": max((int((per_seed[i].get("logsf_interval_quadrature_fallback") or {})
+                                                  .get("n_folds") or 0) for i in per_seed), default=0),
+                              "n_pairs": max((int((per_seed[i].get("logsf_interval_quadrature_fallback") or {})
+                                                  .get("n_pairs") or 0) for i in per_seed), default=0),
+                              "by_seed_index": {int(i): (per_seed[i].get("logsf_interval_quadrature_fallback") or {})
+                                                for i in sorted(per_seed)}},
+                          population={
+                              "prnd_share": next((v for v in (((per_seed[i].get("s2c_calibration_population") or {})
+                                                               .get("prnd_share_pooled")) for i in sorted(per_seed))
+                                                  if v is not None), None),
+                              "by_seed_index": {int(i): (per_seed[i].get("s2c_calibration_population") or {})
+                                               for i in sorted(per_seed)},
+                              "exploratory_prnd_only_coverage": {
+                                  int(i): (per_seed[i].get("s2c_exploratory_prnd_only_coverage") or {})
+                                  for i in sorted(per_seed)}})
     parts = (s2a["status"], s2b["status"], s2c["status"])
     return {"status": "COMPLETE", "per_seed": per_seed, "s2a": s2a, "s2b": s2b, "s2c": s2c,
             "s2d": {"status": CF.NOT_RUN, "why": "conditional on Phase H; section 14's process layer runs only in the "
@@ -1937,6 +2550,19 @@ def main(argv: Sequence[str] | None = None, *, check: Callable[[], int] | None =
         run.extra["gate"] = {k: v for k, v in g.items() if k != "readings"}
         rd = runner_module()
         code = code_digest()["combined"]
+        # 0. SPEND THE LOCK.  decisions/confirmation.json is written last, so on its own the lock is only spent by a run
+        #    that FINISHES; a run that died after writing records left it reading first_run and a second invocation could
+        #    have mixed two code sets into one score.  The marker is written here: after every gate has passed and the
+        #    RUN_STAGES refusal above, and before the first fold file or record exists (confirmation.started_path)
+        started = CF.started_path(out_root)
+        if not started.exists():
+            write_json(started, {"schema": CF.SCHEMA, "stage": STAGE,
+                                 "started_utc": _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds"),
+                                 "code_digest": code, "claim_ids": plan["claim_ids"], "plan_sha256": plan["sha256"],
+                                 "seed_commitment_sha256": store.digest, "workers": int(ns.workers),
+                                 "reading": CF.READINGS["idempotence"]})
+            log(f"the once-only lock is now SPENT: {started} (section 15; --resume may complete unfitted folds)")
+        run.extra["started_marker"] = str(started)
         # 1. the withheld-seed fold files, built inside the run (addendum 6 item 2), hashes recorded
         plans = build_confirmation_folds(store, out_root)
         run.extra["fold_files"] = [p.record() for p in plans]
@@ -1944,11 +2570,14 @@ def main(argv: Sequence[str] | None = None, *, check: Callable[[], int] | None =
         state = D.PlanState.read(D.discovery_root(out_root) / "decisions" / "plan_state.json")
         corpus = confirmation_corpus()
         jobs = CF.enumerate_jobs(plan)
+        # the pair key attributes the V6 interval step needs (addendum 7 item 1) are the assembly's own ``attrs``: built
+        # once, before the loop, so the S2(c) pair calibration and the S2 assembly read one frame
+        attrs = pair_attributes()
         led = fit_loop(jobs, store, out_root, corpus=corpus, state=state, runners=rd.default_runners(), code=code,
-                       prereg=g["prereg"], limit=ns.max_folds)
+                       prereg=g["prereg"], limit=ns.max_folds, pair_attrs=attrs, workers=int(ns.workers),
+                       seed_store_path=ns.seed_store)
         run.extra["fit"] = CF.scrub(led.record(), store)
         # 3. assembly, on the records the loop wrote
-        attrs = _script("g19_score_discovery").build_attrs()
         claims = score_claims(out_root, plan, attrs, corpus, store=store, design_dirs=CLAIM_DESIGN_DIRS)
         s1c = s1c_assembly(out_root, attrs, corpus, store=store)
         s1de = s1d_s1e_assembly(out_root, attrs, corpus, store=store)
@@ -1962,7 +2591,8 @@ def main(argv: Sequence[str] | None = None, *, check: Callable[[], int] | None =
     # the run manifest is written when the Run context exits, i.e. AFTER write_outputs' own scans, so it would be the
     # one artefact of this run no scan ever read.  It is scrubbed field by field, but the scan is the proof, not the
     # intent (confirmation.scrub / scan_for_seed_leak), so it is scanned here
-    mfs = [paths.MANIFESTS_DIR / f"{NAME}.json", paths.MANIFESTS_DIR / "run_info" / f"{NAME}.json"]
+    mfs = [paths.MANIFESTS_DIR / f"{NAME}.json", paths.MANIFESTS_DIR / "run_info" / f"{NAME}.json",
+           CF.started_path(out_root)]
     final = CF.scan_for_seed_leak(store, [p for p in [*mfs, *written] if Path(p).exists()],
                                   allow=[CF.report_path(out_root)], require=[CF.report_path(out_root)])
     if not final["ok"]:

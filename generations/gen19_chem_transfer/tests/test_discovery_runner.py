@@ -329,15 +329,21 @@ def test_seal_check_refusal_stops_before_anything(tmp_path, monkeypatch):
     monkeypatch.setattr(RD, "seal_check", lambda: 2)
     with pytest.raises(SystemExit, match="exited 2"):
         RD.refuse_unless_sealed()
-    exp = REG.gate_expectations("discovery")                  # the registry's discovery entry (addendum-1 values)
+    # POST-HOC addendum 7 item 3: the gate reads the stage's REGISTRY entry, which every addendum moves to the current
+    # sealed text -- so what is asserted here is agreement with the SEALED FILE, never with a stale constant
+    exp = REG.gate_expectations("discovery")
+    live = REG.below_footer_digest()
     good = {"footer": D.REGISTERED_PREREG_SHA256, "recomputed": D.REGISTERED_PREREG_SHA256,
             "digest_file": D.REGISTERED_PREREG_SHA256, "addenda_sha256": exp["below_footer_sha256"],
             "n_addenda": exp["n_addenda"]}
     rec = RD.refuse_unless_sealed(lambda: 0, lambda: good)
     assert rec["prereg_sha256"] == D.REGISTERED_PREREG_SHA256
     assert rec["addenda_sha256"] == rec["addenda_sha256_registered"] == exp["below_footer_sha256"]
-    assert exp["below_footer_sha256"] == D.REGISTERED_ADDENDA_SHA256
-    assert rec["n_addenda"] == rec["n_addenda_expected"] == exp["n_addenda"] == 1 and rec["stage"] == "discovery"
+    if exp["source"] == "registry":
+        assert exp["below_footer_sha256"] == live["below_footer_sha256"] and exp["n_addenda"] == live["n_addenda"]
+    else:                                                     # no registry file: the constants govern (addendum 1)
+        assert exp["below_footer_sha256"] == D.REGISTERED_ADDENDA_SHA256 and exp["n_addenda"] == 1
+    assert rec["n_addenda"] == rec["n_addenda_expected"] == exp["n_addenda"] and rec["stage"] == "discovery"
 
 
 def test_prereg_gate_pins_the_registered_digest(tmp_path):
@@ -376,7 +382,7 @@ def test_seal_gate_pins_the_number_of_posthoc_addenda(tmp_path):
         with pytest.raises(SystemExit, match=f"carries {n} POST-HOC"):
             RD.refuse_unless_sealed(lambda: 0, lambda k=n: {**base, "n_addenda": k})
         deliberate = RD.refuse_unless_sealed(lambda: 0, lambda k=n: {**base, "n_addenda": k}, expect_addenda=n)
-        assert deliberate["n_addenda"] == n and deliberate["addendum_implemented"] == exp["n_addenda"] == 1
+        assert deliberate["n_addenda"] == n and deliberate["addendum_implemented"] == exp["n_addenda"]
         # ... but --expect-addenda never passes an addendum text the stage is not registered under (finding V-F01)
         with pytest.raises(SystemExit, match="addendum text was edited or extended"):
             RD.refuse_unless_sealed(lambda: 0, lambda k=n: {**base, "n_addenda": k, "addenda_sha256": "abc"},
@@ -389,7 +395,8 @@ def test_seal_gate_pins_the_number_of_posthoc_addenda(tmp_path):
     with pytest.raises(SystemExit, match=f"carries {sc['n_addenda'] + 1} POST-HOC"):
         SD.main(["--out-root", str(out), "--no-manifest"], check=lambda: 0,
                 digests=lambda: {**base, "addenda_sha256": sc["below_footer_sha256"], "n_addenda": sc["n_addenda"] + 1})
-    # the sealed file on disk is the text the SCORER stage is registered under; the discovery entry keeps addendum 1's
+    # POST-HOC addendum 7 item 3: the sealed file on disk is the text EVERY stage is registered under, so the scorer's
+    # expectation is the sealed text itself and not a constant
     real = RD.prereg_digests()
     assert real["n_addenda"] == sc["n_addenda"] and len(str(real["addenda_sha256"])) == 64
     assert real["addenda_sha256"] == sc["below_footer_sha256"]
@@ -432,11 +439,15 @@ def test_seal_gate_pins_the_addendum_text_not_only_its_count(tmp_path):
     SD = _load_script("g19_score_discovery")
     with pytest.raises(SystemExit, match="addendum text was edited"):
         SD.main(["--out-root", str(out), "--no-manifest"], check=lambda: 0, digests=lambda: tam)
-    # the real file is the text the scorer stage is registered under; the discovery entry keeps the addendum-1 digest
+    # the real file is the text every stage is registered under (addendum 7 item 3), the discovery stage included; the
+    # addendum-1 digest its records carry is kept as a SUPERSEDED entry, where those records still verify
     assert real["addenda_sha256"] == sc["below_footer_sha256"]
     gate = RD.refuse_unless_sealed(lambda: 0, lambda: real, stage="scorer")
     assert gate["addenda_sha256_registered"] == sc["below_footer_sha256"]
-    assert REG.gate_expectations("discovery")["below_footer_sha256"] == D.REGISTERED_ADDENDA_SHA256
+    assert REG.gate_expectations("discovery")["below_footer_sha256"] == real["addenda_sha256"]
+    if real["n_addenda"] > 1:
+        assert any(e["below_footer_sha256"] == D.REGISTERED_ADDENDA_SHA256
+                   for e in REG.superseded_entries("discovery"))
 
 
 # --------------------------------------------------------------------------------------------- #

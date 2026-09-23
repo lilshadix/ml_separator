@@ -14,6 +14,8 @@ import importlib.util
 import json
 import sys
 from pathlib import Path
+from types import SimpleNamespace
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -24,6 +26,7 @@ from gen19ct.chemistry import support_graph as SG
 from gen19ct.evaluation import confirmation as CF
 from gen19ct.evaluation import discovery as D
 from gen19ct.evaluation import metrics as EM
+from gen19ct.evaluation import pairs as EP
 from gen19ct.evaluation import registry as REG
 from gen19ct.evaluation import transfer as ET
 from gen19ct.folds import cell_holdout as CH
@@ -566,9 +569,12 @@ def test_dry_run_reads_no_seed_and_writes_nothing(root, plan_file, capsys):
     assert body["not_run"] == {"v6_actinide_deltas": CF.NOT_RUN, "power_check": CF.NOT_RUN}
     assert not CF.decisions_path(root).exists()
     assert not any(str(s) in out for s in FAKE_SEEDS)
-    # the dry run NAMES the stage that is not written, so the plan is never read as a plan that could start
-    assert [s["stage"] for s in body["run_stages"] if not s["implemented"]] == ["v6_arm_fitting"]
-    assert {s["stage"] for s in body["run_stages"]} >= {"withheld_seed_fold_files", "fit_loop", "writers"}
+    # POST-HOC addendum 7 items 1-2 are written; task X found two further registered stages that are NOT, so the dry run
+    # names them and the runner refuses on them before the once-only lock is spent
+    assert [s["stage"] for s in body["run_stages"] if not s["implemented"]] == ["v6_frozen_configurations",
+                                                                               "c4_act_permuted_training_transform"]
+    assert {s["stage"] for s in body["run_stages"]} >= {"withheld_seed_fold_files", "fit_loop", "writers",
+                                                        "v6_arm_fitting", "s2c_pair_conformal"}
 
 
 def test_the_writers_reveal_the_seeds_only_in_CONFIRMATION_md_and_only_at_the_end(root, tmp_path):
@@ -837,40 +843,83 @@ def test_s2a_needs_every_yardstick_in_both_strata():
 
 
 def test_s2c_reports_both_interval_readings_and_says_when_they_disagree():
-    """TASK X E6. Section 9 S2(c) fixes the bands but not the construction of a predicted-logSF interval; both are
-    computed, the primary decides, and the record says whether the choice mattered."""
-    r = CF.s2c_coverage({"interval_arithmetic": {"80": 0.80, "95": 0.92},
+    """POST-HOC addendum 7 item 1 registers the construction: the pair-conformal reading DECIDES, the quadrature one is
+    printed beside it, the record says whether the choice mattered, and the fallback folds are flagged and counted."""
+    r = CF.s2c_coverage({"pair_conformal": {"80": 0.80, "95": 0.92},
                          "quadrature": {"80": 0.62, "95": 0.80}})
     assert r["status"] == "PASS" and r["readings_disagree"]
-    assert r["statuses_by_reading"] == {"interval_arithmetic": "PASS", "quadrature": "FAIL"}
-    assert CF.s2c_coverage({"quadrature": {"80": 0.8, "95": 0.9}})["status"] == CF.NOT_EVALUATED
-    assert CF.S2C_PRIMARY_READING == "interval_arithmetic"
+    assert r["statuses_by_reading"] == {"pair_conformal": "PASS", "quadrature": "FAIL"}
+    assert r["quadrature_fallback"] == {"n_folds": 0, "n_pairs": 0,
+                                        "min_calibration_pairs": CF.S2C_MIN_CALIBRATION_PAIRS}
+    assert "no fold used the fallback" in r["detail"]
+    # the registered value is missing -> no verdict, and the fallback flag is still carried
+    nv = CF.s2c_coverage({"quadrature": {"80": 0.8, "95": 0.9}})
+    assert nv["status"] == CF.NOT_EVALUATED and nv["quadrature_fallback"]["n_folds"] == 0
+    # a fallback is COUNTED in the verdict block, never hidden inside the number
+    fb = CF.s2c_coverage({"pair_conformal": {"80": 0.80, "95": 0.92}, "quadrature": {"80": 0.80, "95": 0.92}},
+                         fallback_folds={"n_folds": 2, "n_pairs": 9})
+    assert fb["status"] == "PASS" and not fb["readings_disagree"]
+    assert fb["quadrature_fallback"]["n_folds"] == 2 and "fell back to quadrature" in fb["detail"]
+    assert CF.S2C_PRIMARY_READING == "pair_conformal" and CF.S2C_MIN_CALIBRATION_PAIRS == 20
+    assert CF.S2C_INTERVAL_READINGS == ("pair_conformal", "quadrature")
 
 
-def test_a_v6_pair_interval_is_the_interval_of_the_difference():
-    """TASK X E6. ``interval_arithmetic`` is ``[lo_a - hi_b, hi_a - lo_b]``; ``quadrature`` is the root-sum-square of the
-    half-widths about the predicted difference, which is never wider."""
-    frame = pd.DataFrame({"lo80": [0.0, 1.0], "hi80": [2.0, 3.0], EM.PRED_COL: [1.0, 2.0]}, index=["A", "B"])
+def test_a_v6_pair_interval_is_the_pair_conformal_one_with_the_quadrature_fallback():
+    """POST-HOC addendum 7 item 1. The registered ``pair_conformal`` interval is the predicted difference +- the PAIR
+    conformal quantile of the fold; ``quadrature`` is the root-sum-square of the two ROW half-widths about the same
+    centre and is always printed; a pair whose fold carries no pair quantile takes the quadrature interval and is
+    flagged.  The row interval columns are ``metrics.interval_columns``, not the ``lo80`` / ``hi80`` the earlier reading
+    looked for and would never have found on a real frame."""
+    lo, hi = EM.interval_columns(0.80)
+    assert (lo, hi) == ("lower_80", "upper_80")
+    frame = pd.DataFrame({lo: [0.0, 1.0], hi: [2.0, 3.0], EM.PRED_COL: [1.0, 2.0],
+                          RC.pair_quantile_column("80"): [0.4, 0.4]}, index=["A", "B"])
     pairs = pd.DataFrame({"idx_a": ["A"], "idx_b": ["B"]})
     iv = RC.v6_logsf_intervals(frame, pairs, "80")
-    assert iv["interval_arithmetic"]["lo"].iloc[0] == pytest.approx(-3.0)
-    assert iv["interval_arithmetic"]["hi"].iloc[0] == pytest.approx(1.0)
+    assert set(iv) == {"pair_conformal", "quadrature"} == set(CF.S2C_INTERVAL_READINGS)
+    assert iv["pair_conformal"]["lo"].iloc[0] == pytest.approx(-1.4)      # centre -1.0, +- the pair quantile 0.4
+    assert iv["pair_conformal"]["hi"].iloc[0] == pytest.approx(-0.6)
+    assert not bool(iv["pair_conformal"]["fallback"].iloc[0])
     assert iv["quadrature"]["lo"].iloc[0] == pytest.approx(-1.0 - np.sqrt(2.0))
     assert iv["quadrature"]["hi"].iloc[0] == pytest.approx(-1.0 + np.sqrt(2.0))
-    assert not RC.v6_logsf_intervals(frame.drop(columns=["lo80"]), pairs, "80")
+    # a fold that fell back carries NaN as its pair quantile: the pair takes quadrature and says so
+    ivf = RC.v6_logsf_intervals(frame.assign(**{RC.pair_quantile_column("80"): [np.nan, np.nan]}), pairs, "80")
+    assert bool(ivf["pair_conformal"]["fallback"].iloc[0])
+    assert ivf["pair_conformal"]["lo"].iloc[0] == pytest.approx(ivf["quadrature"]["lo"].iloc[0])
+    # without the pair quantile column at all: only the printed construction, never a pair_conformal verdict
+    assert set(RC.v6_logsf_intervals(frame.drop(columns=[RC.pair_quantile_column("80")]), pairs, "80")) == {"quadrature"}
+    assert not RC.v6_logsf_intervals(frame.drop(columns=[lo]), pairs, "80")
+    # two members with DIFFERENT pair quantiles would mean two folds, which section 3.4 forbids
+    with pytest.raises(AssertionError, match="different PAIR conformal quantiles"):
+        RC.v6_logsf_intervals(frame.assign(**{RC.pair_quantile_column("80"): [0.4, 0.9]}), pairs, "80")
 
 
-def test_the_run_names_the_one_stage_it_does_not_implement():
-    """TASK X E2/E6. V6 runs ONCE, so its fitting path cannot be rehearsed; while the arms have no V6 branch the runner
-    refuses BEFORE the lock, naming what is missing, rather than producing a number from code that does not exist."""
-    todo = [n for n, ok, _ in RC.RUN_STAGES if not ok]
-    assert todo == ["v6_arm_fitting"]
+def test_the_v6_dispatch_is_the_v5_inner_design_and_the_refusal_machinery_still_works():
+    """POST-HOC addendum 7 item 2. A V6 job now takes the V5 inner design of section 7 as amended by addendum 1 item 1:
+    the simultaneous-hiding inner cells, their calibration and their recorded signature.  MEASURED on the live runner,
+    not assumed.  ``RC.refusal`` still names every unimplemented stage (task X found two, below)."""
+    import inspect
+
+    from gen19ct.models import inner_design as ID
+
+    assert [n for n, ok, _ in RC.RUN_STAGES if not ok] == ["v6_frozen_configurations",
+                                                           "c4_act_permuted_training_transform"]
     rd = RC.runner_module()
     job = D.JobSpec(kind="fit", arm="M2", design="V6", variant="prnd", scheme="exact", seed=7)
-    assert not rd.v5_family(job)                       # the measured cause, not an assumption
-    assert rd.inner_design_signature(job) is None
+    assert rd.v5_family(job) and rd.inner_variant(job) == "primary"
+    sig = rd.inner_design_signature(job)
+    assert sig is not None and sig["inner_design"] == D.INNER_DESIGN_NAME and sig["module"] == D.INNER_DESIGN_MODULE
+    assert sig == rd.inner_design_signature(D.JobSpec(kind="fit", arm="M2", design="V5", variant="primary",
+                                                      scheme="exact", seed=7))
+    assert type(rd.boosted_design(job)).__name__ == "V5SimultaneousTuning"
+    desc = ID.learned_arm_inner_design("V6", "primary", frame=pd.DataFrame({"acid_primary": ["HNO3"]},
+                                                                          index=["r0"])).describe()
+    assert all(desc[k] == sig[k] for k in sig if k != "module")
+    # the comparator splitter of a V6 job: the V5 CELL design, not the V2 metal-holdout one
+    src = inspect.getsource(rd.ComparatorIntervalsRunner.point)
+    assert 'job.design in ("V5", "V6")' in src and "InnerCellCalibration" in src
     text = RC.refusal("v6_arm_fitting")
-    assert "v5_family" in text and "runs ONCE" in text and "has NOT been spent" in text
+    assert "has NOT been spent" in text and "NOT IMPLEMENTED" in text
 
 
 def test_a_non_guard_error_in_the_fit_loop_is_redacted(root, monkeypatch):
@@ -1033,3 +1082,629 @@ def test_s2_assembles_every_part_of_section_9_s2(monkeypatch):
     out3 = RC.s2_assembly(None, attrs, _Corpus(), store=_Store())
     assert out3["status"] == "INCOMPLETE" and out3["verdict"] == CF.UNDECIDED
     assert out3["completeness_unit"] == CF.COMPLETENESS_UNIT
+
+
+# --------------------------------------------------------------------------------------------- #
+# POST-HOC addendum 7 items 1-2: the V6 path end to end on a SYNTHETIC mini-corpus
+# --------------------------------------------------------------------------------------------- #
+
+#: five systems and five states, because the registered V5 PRIMARY eligibility (``k10_p1_m3``) needs >= 4 other systems
+#: for the metal and >= 4 other states for the system before ONE cell is eligible at all
+V6_SMOKE_SYSTEMS = ("S1", "S2", "S3", "S4", "S5")
+V6_SMOKE_STATES = ("Pr(III)", "Nd(III)", "La(III)", "Ce(III)", "Sm(III)")
+#: the V6 system of the mini-corpus: its Pr(III) and Nd(III) rows are the V6_TARGET_ROWS
+V6_SMOKE_SYSTEM = "S1"
+V6_SMOKE_GROUPS = ("g1", "g2", "g3", "g4")
+
+
+def _v6_frame() -> pd.DataFrame:
+    """A mini-corpus the V5 PRIMARY inner design is satisfiable on: 25 cells of 12 rows each over six condition keys,
+    every cell inside ONE publication group (so its majority group -- the unit the inner folds are assigned by -- is
+    unambiguous) and the four groups spread over the cells, so the three inner folds all hold cells.  The V6 system's
+    Pr(III) and Nd(III) rows share a group, so they form section 2 comparable pairs at each condition key."""
+    rng = np.random.default_rng(1907)
+    recs = []
+    for si, sy in enumerate(V6_SMOKE_SYSTEMS):
+        for mi, st in enumerate(V6_SMOKE_STATES):
+            grp = (V6_SMOKE_GROUPS[0] if (sy == V6_SMOKE_SYSTEM and st in ("Pr(III)", "Nd(III)"))
+                   else V6_SMOKE_GROUPS[(si + mi) % len(V6_SMOKE_GROUPS)])
+            for k in range(12):
+                recs.append({FI.ROW_ID: f"V:{si}{mi}{k:02d}", SG.METAL_COL: st,
+                             SG.ELEMENT_COL: SG.metal_properties(st)["symbol"], SG.SYSTEM_COL: sy,
+                             SG.PUB_COL: f"pub_{grp}", FI.GROUP_COL: grp, I.PUB_GROUP_COL: grp,
+                             "acid_primary": "HNO3", SG.ACID_ANION_COL: "nitrate",
+                             SG.LOG_ACID_COL: float(k % 6) / 6.0, SG.LOG_EXT_COL: -1.0 + 0.1 * si,
+                             SG.TEMP_COL: 25.0, "condition_key": f"ck{k % 6}",
+                             # the columns folds.io.FRAME_COLUMNS / leakage.KEY_* need for the V6 guards
+                             "duplicate_group_id": f"dg_{si}{mi}{k:02d}", "g19_ox": 3,
+                             "solvent_key": "kerosene", "acid_concentration_M": 1.0 + (k % 6),
+                             "extractant_primary_concentration_M": 0.1 + 0.01 * si,
+                             # the archive columns normalize.condition_vector needs (the arms' condition block)
+                             "components": None, "acid_signature": "HNO3", "acid_anion": "nitrate",
+                             "acid_concentration_organic_M": np.nan, "nitrate_concentration_M": 1.0 + (k % 6),
+                             "n_organic_extractants": 1, "metal_concentration_M": 1e-3,
+                             "phase_ratio_org_aq": 1.0, "solvent_primary": "kerosene", "solvent_components": None,
+                             "modifier_name": None, "modifier_concentration_M": np.nan,
+                             "contact_time_min": 30.0, "shaking_time_min": 30.0,
+                             I.TARGET_COL: float(0.4 * mi + 0.3 * si + 0.2 * (k % 6) + 0.05 * rng.normal())})
+    df = pd.DataFrame(recs)
+    df.index = pd.Index([f"V{i}" for i in range(len(df))])
+    return df
+
+
+def _v6_corpus(tmp_path: Path) -> tuple[Any, FI.Fold, pd.DataFrame]:
+    """The mini-corpus, its ONE V6 fold (Pr(III) x S1 and Nd(III) x S1 hidden together, section 3.4) and the pair-key
+    attribute frame the S2 assembly and the S2(c) pair calibration read."""
+    df = _v6_frame()
+    rd = RC.runner_module()
+    is_v6 = (df[SG.SYSTEM_COL] == V6_SMOKE_SYSTEM) & df[SG.METAL_COL].isin(["Pr(III)", "Nd(III)"])
+    v6 = pd.Series(is_v6.to_numpy(dtype=bool), index=df.index)
+    coext = pd.Series(False, index=df.index)
+    halves = {d: pd.Series("C", index=df.index) for d in ("V5", "V5P", "V5PAIR", "V1", "V2")}
+    folds_dir = tmp_path / "folds"
+    folds_dir.mkdir(parents=True, exist_ok=True)
+    hid = df.loc[is_v6, FI.ROW_ID].astype(str).tolist()
+    fold = FI.make_fold(design=CF.V6_DESIGN, variant=CF.V6_VARIANT_NAME, scheme=CF.V6_SCHEME,
+                        fold_id=f"v6_prnd__{V6_SMOKE_SYSTEM}", half="NA", seed=None, hidden=hid, scored=hid,
+                        unit_type="system", units=[V6_SMOKE_SYSTEM],
+                        row_unit={r: V6_SMOKE_SYSTEM for r in hid}, row_half={r: "NA" for r in hid},
+                        meta={"cells": [["Pr(III)", V6_SMOKE_SYSTEM], ["Nd(III)", V6_SMOKE_SYSTEM]],
+                              "component_aware": True})
+    FI.write_design([fold], folds_dir)
+    corpus = rd.Corpus(frame=df, slim=df, table=I.RowTable(df), v6=v6, coext=coext, systems=None, comps=None, cv=None,
+                       pmap=None, row_half=halves, folds_dir=folds_dir)
+    attrs = pd.DataFrame({"row_id": df[FI.ROW_ID].astype(str).to_numpy(),
+                          EM.PUB_GROUP_COL: df[FI.GROUP_COL].astype(str).to_numpy(),
+                          EM.SYSTEM_COL: df[SG.SYSTEM_COL].astype(str).to_numpy(),
+                          EM.CONDITION_KEY_COL: df["condition_key"].astype(str).to_numpy(),
+                          EM.METAL_STATE_COL: df[SG.METAL_COL].astype(object).to_numpy(),
+                          EM.Y_COL: df[I.TARGET_COL].to_numpy(dtype=float),
+                          RC.ACID_STRATUM_COL: "HNO3"}).set_index("row_id", drop=False)
+    return corpus, fold, attrs
+
+
+@pytest.mark.slow
+def test_the_v6_path_end_to_end_on_a_synthetic_mini_corpus(root, tmp_path, monkeypatch, capsys):
+    """POST-HOC addendum 7 items 1-2, exercised END TO END on a SYNTHETIC mini-corpus with a fake seed store: one V6
+    fold, one arm (M1, in the V6 inventory), prepare_fold -> tune -> refit -> predict -> intervals -> record -> score.
+
+    The real V6 hold-out runs ONCE (section 3.4) and is untouched here: the corpus, the fold, the attributes and the
+    five seeds are all the test's own, in ``tmp_path``.  What this proves about the corrected dispatch:
+
+    * the V6 job is tuned and calibrated on the addendum-1 SIMULTANEOUS V5 inner design, and its record says so;
+    * the V6 guards pass (``v6_guard``, ``v6_inner_check``) and the carve-out holds in both directions;
+    * the interval step runs and writes the row intervals AND the addendum-7 PAIR conformal quantiles;
+    * the pair guard (``v6_guard_scored_pairs``) accepts the scored pairs, and S2(a), S2(b) and S2(c) assemble from them;
+    * no withheld-seed-shaped label appears in any record, parquet value or log line.
+    """
+    monkeypatch.setattr(REG, "registry_path", lambda r=None: root / "manifests" / "digest_registry.json")
+    store_path = _write_store(root, root.parent / "v6_smoke_store.json")
+    store = CF.load_seed_store(store_path, root=root, seal=SEAL, prereg_paths=_prereg_paths(root))
+    code = RC.code_digest()["combined"]
+    REG.register_stage(CF.STAGE, below_footer_sha256="a" * 64, code_digest=code, git_head=None, addenda_count=7,
+                       note="v6 smoke test", path=root / "manifests" / "digest_registry.json")
+    corpus, fold, attrs = _v6_corpus(tmp_path)
+    rd = RC.runner_module()
+    seed_index = 1
+    seed = store.seed(seed_index)
+    job = D.JobSpec(kind="fit", arm="M1", design=CF.V6_DESIGN, variant=CF.V6_VARIANT_NAME, scheme=CF.V6_SCHEME,
+                    seed=seed, writes=("M1",))
+    assert rd.v5_family(job) and rd.inner_design_signature(job) is not None      # the corrected dispatch, measured
+    out_root = tmp_path / "out"
+    r = RC.run_fold(job, fold, 0, corpus, out_root, store=store, seed_index=seed_index,
+                    runners=rd.default_runners(), code=code, state=D.PlanState(guard_mode={}),
+                    prereg={"addenda_sha256": "a" * 64, "n_addenda": 7}, pair_attrs=attrs)
+    assert r["status"] == "fitted"
+
+    # ---- the record: the V5 inner design, the V6 half reading, the guards, and both interval constructions
+    js = Path(r["records"]["M1"])
+    rec = json.loads(js.read_text(encoding="utf-8"))
+    assert rec["registry_stage"] == CF.STAGE and rec["half"] == "NA" and rec["seed_index"] == seed_index
+    idr = rec["arm_record"]["inner_design"]
+    assert idr["design"] == D.INNER_DESIGN_NAME and "V1 / V2" not in json.dumps(idr)   # NOT the V1 / V2 label
+    assert idr["n_inner_folds"] >= 1 and idr["reading"] == D.READINGS["addendum1_inner_design"]
+    assert rec["reading"] == CF.READINGS["v6_half"]
+    assert all(g["ok"] for g in rec["outer_guard"])
+    istep = rec["steps"][RC.INTERVAL_STEP]
+    assert istep["status"] == "calibrated" and istep["n_calibration"] > 0
+    pc = istep["pair_conformal"]
+    assert pc["min_calibration_pairs"] == CF.S2C_MIN_CALIBRATION_PAIRS
+    assert pc["method"] in (CF.S2C_PAIR_CONFORMAL, CF.S2C_QUADRATURE_FALLBACK)
+    assert pc["fallback"] == (pc["n_calibration_pairs"] < CF.S2C_MIN_CALIBRATION_PAIRS)
+    # the REGISTERED path is what this corpus exercises, so a later change cannot leave only the fallback tested
+    assert pc["method"] == CF.S2C_PAIR_CONFORMAL and not pc["fallback"]
+    assert pc["n_calibration_pairs"] >= CF.S2C_MIN_CALIBRATION_PAIRS and pc["n_calibration_rows"] > 0
+    assert sum(s["n_pairs"] for s in pc["per_inner_split"]) == pc["n_calibration_pairs"]
+    assert set(pc["quantiles"]) == {"50", "80", "95"} and all(v >= 0 for v in pc["quantiles"].values())
+    assert pc["quantiles"]["50"] <= pc["quantiles"]["80"] <= pc["quantiles"]["95"]
+    # and the fallback itself: below the registered minimum no pair quantile is produced at all
+    few = CF.pair_conformal_quantiles([0.1] * (CF.S2C_MIN_CALIBRATION_PAIRS - 1))
+    assert few["fallback"] and few["method"] == CF.S2C_QUADRATURE_FALLBACK and few["quantiles"] == {}
+    assert REG.verify_record(rec, CF.STAGE, root / "manifests" / "digest_registry.json")["ok"] is True
+
+    # ---- the prediction frame: the row intervals and the pair quantile columns
+    pred = pd.read_parquet(js.with_suffix(".parquet"))
+    lo80, hi80 = EM.interval_columns(0.80)
+    assert {lo80, hi80, RC.pair_quantile_column("80"), RC.PAIR_METHOD_COL, RC.PAIR_N_CAL_COL} <= set(pred.columns)
+    assert (pred[hi80] > pred[lo80]).all() and pred["intervals_status"].eq("split_conformal_inner").all()
+    assert set(pred["row_id"]) == set(fold.scored_row_ids)
+
+    # ---- the pair guard and S2(a)-(c) on those predictions
+    v6 = pd.Series(corpus.v6.to_numpy(dtype=bool), index=corpus.frame[FI.ROW_ID].astype(str).to_numpy())
+    cin = RC.v6_pair_inputs(pred, attrs, corpus, v6=v6, what="v6 smoke")
+    pairs = cin["pairs"]
+    assert len(pairs) > 0 and set(pairs["fold"].astype(str)) == {fold.fold_id}
+    obs = pairs["logsf_obs"].to_numpy(dtype=float)
+    cov, fb = {}, {}
+    for lvl in ("80", "95"):
+        iv = RC.v6_logsf_intervals(cin["frame"], pairs, lvl)
+        assert set(iv) == set(CF.S2C_INTERVAL_READINGS)
+        for reading, f in iv.items():
+            inside = (obs >= f["lo"].to_numpy(dtype=float)) & (obs <= f["hi"].to_numpy(dtype=float))
+            cov.setdefault(reading, {})[lvl] = float(inside.mean())
+            if reading == CF.S2C_PRIMARY_READING:
+                fb = {"n_pairs": int(f["fallback"].to_numpy(dtype=bool).sum())}
+    s2c = CF.s2c_coverage(cov, fallback_folds=fb)
+    assert s2c["status"] in ("PASS", "FAIL") and s2c["primary_reading"] == CF.S2C_PRIMARY_READING
+    assert set(s2c["per_reading"]) == set(CF.S2C_INTERVAL_READINGS)
+    # S2(a): the sign count and one paired direction contrast against HEAVIER, which needs no fitted yardstick
+    sysv = pairs[EM.SYSTEM_COL].astype(str).to_numpy()
+    sign = CF.s2a_sign_count({str(k): float(v) for k, v in pairs.groupby(sysv)["logsf_obs"].median().items()},
+                             {str(k): float(v) for k, v in cin["logsf"].groupby(sysv).median().items()})
+    assert sign["status"] in ("PASS", "FAIL") and sign["n_systems_scored"] == 1
+    d = RC.v6_direction_by_system(pairs, cin["logsf"], EP.heavier_direction(pairs), direction_only=True)
+    assert d["threshold"] == EP.V6_DIRECTION_THRESHOLD and set(d["delta_by_system"]) <= {V6_SMOKE_SYSTEM}
+    # S2(b): the per-system logSF MAE against FLAT, on the same pairs
+    mae = RC.v6_logsf_mae_by_system(pairs, cin["logsf"])
+    flat = RC.v6_logsf_mae_by_system(pairs, EP.flat_logsf(pairs))
+    s2b = CF.s2b_magnitude(logsf_mae=float(mae.mean()), flat_logsf_mae=float(flat.mean()),
+                           lookup_logsf_mae=float(flat.mean()), gain_interval_excludes_zero=True,
+                           logd_macro_mae=0.1, v5_lookup_comparator_mae=0.7670)
+    assert s2b["status"] in ("PASS", "FAIL") and np.isfinite(s2b["gain_over_flat"])
+
+    # ---- no withheld-seed-shaped label anywhere: the record, the parquet, the paths, the logs
+    blobs = [js.read_text(encoding="utf-8"), json.dumps(rec, default=str), str(js), str(js.with_suffix(".parquet")),
+             capsys.readouterr().out, json.dumps(s2c, default=str), json.dumps(sign, default=str),
+             json.dumps(d, default=str)]
+    for col in pred.columns:
+        if pred[col].dtype == object:
+            blobs.append(" ".join(map(str, pred[col].tolist())))
+    for s in FAKE_SEEDS + [seed]:
+        for b in blobs:
+            assert str(s) not in b, (s, b[:200])
+    assert CF.seed_token(seed_index) in str(js)                  # the opaque index is what labels the record instead
+
+
+# --------------------------------------------------------------------------------------------- #
+# task X: the six errors the verification pass found, each fixed and each measured here
+# --------------------------------------------------------------------------------------------- #
+
+@pytest.mark.slow
+def test_m2_reads_m1s_confirmation_record_and_refuses_a_missing_or_stale_one(root, tmp_path, monkeypatch):
+    """E1, the blocking one: M2 at confirmation reads M1's CONFIRMATION record of the same fold.
+
+    ``NeuralRunner.m1_record`` resolved ``evaluation/discovery/M1/<design>/s<withheld seed>/<fold>.json``, a path this
+    run never writes and whose directory names the withheld seed, so EVERY M2 fold raised "M2 needs M1's per-fold
+    values" -- M2 on V5-primary (claims C1-C3), on V5-PAIR (S1(c)) and on V6 (S2). Measured here on the synthetic V6
+    fold: M2 refuses before M1 exists, succeeds after it, records WHICH M1 record it used, and refuses a record written
+    under different code.
+    """
+    monkeypatch.setattr(REG, "registry_path", lambda r=None: root / "manifests" / "digest_registry.json")
+    store_path = _write_store(root, root.parent / "m2_store.json")
+    store = CF.load_seed_store(store_path, root=root, seal=SEAL, prereg_paths=_prereg_paths(root))
+    code = RC.code_digest()["combined"]
+    REG.register_stage(CF.STAGE, below_footer_sha256="a" * 64, code_digest=code, git_head=None, addenda_count=7,
+                       note="m2 path", path=root / "manifests" / "digest_registry.json")
+    corpus, fold, attrs = _v6_corpus(tmp_path)
+    rd = RC.runner_module()
+    out_root, i = tmp_path / "out", 1
+    seed = store.seed(i)
+    kw = dict(store=store, seed_index=i, runners=rd.default_runners(), code=code,
+              state=D.PlanState(guard_mode={}), prereg={"addenda_sha256": "a" * 64, "n_addenda": 7}, pair_attrs=attrs)
+
+    def spec(arm):
+        return D.JobSpec(kind="fit", arm=arm, design=CF.V6_DESIGN, variant=CF.V6_VARIANT_NAME, scheme=CF.V6_SCHEME,
+                         seed=seed, writes=(arm,))
+
+    # ---- before M1 exists: a NAMED refusal that carries no withheld seed and points at the confirmation layout
+    with pytest.raises(RuntimeError) as ei:
+        RC.run_fold(spec("M2"), fold, 0, corpus, out_root, **kw)
+    msg = str(ei.value)
+    assert "M2 needs M1's per-fold values" in msg and "records/M1/" in msg and CF.seed_token(i) in msg
+    assert not any(str(s) in msg for s in FAKE_SEEDS + [seed])
+    assert "evaluation/discovery" not in msg.replace("\\", "/")
+
+    # ---- M1, then M2: the confirmation path, end to end
+    r1 = RC.run_fold(spec("M1"), fold, 0, corpus, out_root, **kw)
+    assert r1["status"] == "fitted"
+    r2 = RC.run_fold(spec("M2"), fold, 0, corpus, out_root, **kw)
+    assert r2["status"] == "fitted"
+    m1rec = json.loads(Path(r1["records"]["M1"]).read_text(encoding="utf-8"))
+    m2rec = json.loads(Path(r2["records"]["M2"]).read_text(encoding="utf-8"))
+    ar = m2rec["arm_record"]
+    assert ar["m1_config_used"] is not None
+    assert ar["m1_config_used"]["emb_dim"] == m1rec["arm_record"]["selected"]["emb_dim"]
+    # the link is RECORDED: M2 names the exact M1 record it took its hyperparameters from (no discovery fold digest here)
+    assert ar["m1_record_digest"] == CF.confirmation_record_digest(m1rec)
+    assert not any(str(s) in json.dumps(m2rec, default=str) for s in FAKE_SEEDS + [seed])
+
+    # ---- a stale M1: written under different code -> StaleRecordError, nothing re-scored
+    js1 = Path(r1["records"]["M1"])
+    js1.write_text(json.dumps({**m1rec, "code_digest": "f" * 64}), encoding="utf-8")
+    CF.fold_paths(out_root, "M2", spec("M2").design_dir, i, CF.scrub(fold.fold_id, store))[1].unlink()
+    with pytest.raises(D.StaleRecordError) as es:
+        RC.run_fold(spec("M2"), fold, 0, corpus, out_root, **kw)
+    assert "code_digest" in str(es.value) and not any(str(s) in str(es.value) for s in FAKE_SEEDS + [seed])
+
+    # ---- and discovery's own path is untouched: with no locator, m1_record is discovery's
+    fc, _ = RC.prepare_fold(spec("M2"), fold, 0, corpus, out_root, D.PlanState(guard_mode={}), code=code, what="disc")
+    assert fc.sibling_record is None
+    with pytest.raises(RuntimeError, match="M1's per-fold values"):
+        rd.NeuralRunner("M2").m1_record(fc)
+
+
+def test_fit_loop_dispatches_to_a_pool_and_the_worker_returns_only_scrubbed_values(root, tmp_path, monkeypatch):
+    """E2: ``--workers`` was accepted, bounds-checked, logged and then ignored -- ``fit_loop`` was a sequential loop with
+    no ``ProcessPoolExecutor`` anywhere, while the plan, the dry run and the stage table all advertised the 2-worker wall
+    clock. The pool's dispatch loop and the worker body are exercised here in process (the real spawn is the next test),
+    on the synthetic corpus: the ledger absorbing each completion, resumability through the pool, and the worker's own
+    classification of a guard failure and of a defect -- both already SCRUBBED when they leave the worker.
+    """
+    monkeypatch.setattr(REG, "registry_path", lambda r=None: root / "manifests" / "digest_registry.json")
+    store_path = _write_store(root, root.parent / "pool_store.json")
+    store = CF.load_seed_store(store_path, root=root, seal=SEAL, prereg_paths=_prereg_paths(root))
+    code = RC.code_digest()["combined"]
+    REG.register_stage(CF.STAGE, below_footer_sha256="a" * 64, code_digest=code, git_head=None, addenda_count=7,
+                       note="pool", path=root / "manifests" / "digest_registry.json")
+    corpus, fold, attrs = _v6_corpus(tmp_path)
+    rd = RC.runner_module()
+    out_root = tmp_path / "out"
+    seen = []
+
+    class InlinePool:
+        """The pool's interface, run in process on the synthetic corpus: ``_conf_worker_fold`` is called for real."""
+
+        def __init__(self, **kw):
+            RC.CW.corpus, RC.CW.runners, RC.CW.store = corpus, rd.default_runners(), store
+            RC.CW.attached, RC.CW.pair_attrs = None, attrs
+
+        def submit(self, fn, *a):
+            from concurrent.futures import Future
+            f = Future()
+            f.set_running_or_notify_cancel()
+            try:
+                f.set_result(fn(*a))
+            except BaseException as exc:                  # noqa: BLE001 -- the pool's own contract
+                f.set_exception(exc)
+            seen.append(1)
+            return f
+
+        def shutdown(self, wait=True):
+            pass
+
+    monkeypatch.setattr(RC, "ProcessPoolExecutor", InlinePool)
+    monkeypatch.setattr(RC, "attach_seed_folds", lambda *a, **k: {})
+    monkeypatch.setattr(RC, "_conf_worker_state",
+                        lambda: {"pid": 1, "n_rows": int(corpus.table.n), "n_runners": 1, "store_verified": True,
+                                 "seed_commitment_sha256": store.digest, "n_seed_indices": CF.N_SEEDS})
+    job = CF.ConfJob("pool", "M1", "V6", CF.V6_STEM, 1, 1, tuned=False)
+    kw = dict(corpus=corpus, state=D.PlanState(guard_mode={}), runners=rd.default_runners(), code=code,
+              prereg={"addenda_sha256": "a" * 64, "n_addenda": 7}, workers=2, seed_store_path=str(store_path),
+              pair_attrs=attrs)
+    led = RC.fit_loop([job], store, out_root, **kw)
+    rec = led.record()
+    assert rec["workers_used"] == 2 and rec["n_folds_fitted"] == 1 and rec["n_errors"] == 0
+    assert rec["worker_preflight"] and rec["worker_preflight"][0]["store_verified"] is True
+    assert seen                                        # the pool really was submitted to
+    assert CF.fold_paths(out_root, "M1", "V6__prnd_exact", 1, fold.fold_id)[1].exists()
+    # the second invocation skips the done fold rather than refitting it (resumability through the pool)
+    led2 = RC.fit_loop([job], store, out_root, **kw)
+    assert led2.record()["n_folds_skipped_already_done"] == 1 and led2.record()["n_folds_fitted"] == 0
+
+    # ---- the worker's own error classification, and that nothing unscrubbed leaves it
+    spec = D.JobSpec(kind="fit", arm="M1", design=CF.V6_DESIGN, variant=CF.V6_VARIANT_NAME, scheme=CF.V6_SCHEME,
+                     seed=store.seed(1), writes=("M1",))
+    state_rec = D.PlanState(guard_mode={}).record()
+
+    def _raise(exc):
+        def f(*a, **k):
+            raise exc
+        return f
+
+    monkeypatch.setattr(RC, "run_fold", _raise(AssertionError("guard at " + str(store.seed(1)))))
+    g = RC._conf_worker_fold(spec, fold.fold_id, 0, str(out_root), 1, code, state_rec, None, "k")
+    assert g["status"] == "guard_failure" and not any(str(s) in json.dumps(g) for s in FAKE_SEEDS)
+    monkeypatch.setattr(RC, "run_fold", _raise(KeyError("boom " + str(store.seed(1)))))
+    e = RC._conf_worker_fold(spec, fold.fold_id, 0, str(out_root), 1, code, state_rec, None, "k")
+    assert e["status"] == "error" and "traceback_suppressed" in e
+    assert not any(str(s) in json.dumps(e) for s in FAKE_SEEDS)
+    # and the parent turns a worker error into the redacted run error that stops the run
+    with pytest.raises(CF.RedactedRunError):
+        RC.fit_loop([job], store, tmp_path / "out2", **kw)
+
+
+def test_a_real_two_worker_pool_spawns_verifies_its_store_and_loads_the_corpus(root, monkeypatch):
+    """E2, the part only a real process can prove: a spawned worker imports this script, loads the REAL corpus and
+    VERIFIES the seed store itself.
+
+    It fits nothing: the only thing submitted is the pre-flight self-check :func:`RC._conf_worker_state`, which reports
+    what the worker holds. That is deliberate -- fitting a real fold here would be a confirmation-half or V6 score, and
+    section 3.4 gives V6 exactly one run. The store is the test's PLACEHOLDER one and ``out_root`` is ``tmp_path``, whose
+    ``manifests/`` holds its matching commitment, so the worker's verification is real against a fake commitment.
+    """
+    from concurrent.futures import ProcessPoolExecutor
+
+    store_path = _write_store(root, root.parent / "spawn_store.json")
+    store = CF.load_seed_store(store_path, root=root, seal=SEAL, prereg_paths=_prereg_paths(root))
+    pool = ProcessPoolExecutor(max_workers=2, initializer=RC._init_conf_worker,
+                               initargs=(str(store_path), str(root)))
+    try:
+        probes = [f.result() for f in [pool.submit(RC._conf_worker_state) for _ in range(4)]]
+    finally:
+        pool.shutdown(wait=True)
+    pids = {p["pid"] for p in probes}
+    # a SPAWNED process really ran (the pid is not this one) and never more than the pool's size.  The pool spawns
+    # lazily, so four fast probes can all land on one worker; what this proves is that a child can import this script,
+    # run the initializer, load the corpus and verify the store -- the four things --workers 2 depends on
+    import os
+    assert 1 <= len(pids) <= 2 and os.getpid() not in pids
+    assert all(p["store_verified"] for p in probes)
+    assert all(p["seed_commitment_sha256"] == store.digest for p in probes)
+    assert all(p["n_rows"] > 1000 and p["n_runners"] > 0 for p in probes)
+    assert all(p["n_seed_indices"] == CF.N_SEEDS for p in probes)
+    assert not any(str(s) in json.dumps(probes) for s in FAKE_SEEDS)  # the probe names no seed
+
+
+def test_the_closed_form_comparators_are_not_priced_at_zero():
+    """E3: 1,702 of the 3,418 folds -- every B0 / B3i / B3x job -- were priced 0.0 s on a zero nothing had measured.
+
+    Each one pays ``prepare_fold`` plus a full ``ConformalWrapper`` fit over the design's inner calibration splits.  The
+    measured means are in ``CF.UNIT_SECONDS``; what this asserts is that no enumerated fold is free and that the plan's
+    own arithmetic now includes them.
+    """
+    plan = CF.read_plan(CF.plan_path(paths.G19_ROOT))
+    jobs = CF.enumerate_jobs(plan)
+    free = [j.key for j in jobs if j.unit_seconds == 0.0]
+    assert not free, free
+    comparator_folds = sum(j.n_folds for j in jobs if j.arm in D.COMPARATOR_INTERVAL_ARMS)
+    assert comparator_folds == 1702, comparator_folds
+    cost = CF.cost_estimate(jobs)
+    assert not cost["unknown_unit_cost"]
+    added = sum(j.unit_seconds * j.n_folds for j in jobs if j.arm in D.COMPARATOR_INTERVAL_ARMS) / 3600.0
+    assert 1.0 < added < 6.0, added          # the band the verification pass predicted; measured at about 2.2 h
+    assert cost["serial_hours"] > 108.05     # strictly more than the figure that priced them at nothing
+
+
+def test_the_fold_build_phase_cannot_print_a_withheld_seed(root, tmp_path, monkeypatch):
+    """E4: until ``write_seed_design`` scrubs them, a batched fold carries the raw id ``s<withheld seed>_C_b000``.
+
+    ``build_v5_batched`` / ``build_v5pair_batched`` raise ``AssertionError(f"{f.fold_id}: ...")``, and ``folds.io.guard``
+    and ``cell_holdout.check_pair_isolation`` do the same, so every assertion of this phase names the seed.  ``fit_loop``
+    scrubs both of its except arms; this phase, which runs BEFORE it, had no wrapper at all, and ``Run.__exit__`` returns
+    early on an exception, so the leak was to the terminal (addendum 6 item 4 forbids it).
+    """
+    import traceback as _tb
+
+    store_path = _write_store(root, root.parent / "build_store.json")
+    store = CF.load_seed_store(store_path, root=root, seal=SEAL, prereg_paths=_prereg_paths(root))
+    seeds = [str(s) for s in FAKE_SEEDS]
+
+    def boom(fc, variant_name, seed):
+        raise AssertionError(f"s{seed}_C_b000: two cells of one batch share a metal state or a system")
+
+    stub = SimpleNamespace(frame=pd.DataFrame({FI.ROW_ID: ["a"]}), v6=pd.Series([False]))
+    monkeypatch.setattr(RC, "load_fold_corpus", lambda: stub)
+    monkeypatch.setattr(RC, "build_v6_folds", lambda fc: ([], {}))
+    monkeypatch.setattr(RC, "build_v5_batched", boom)
+    with pytest.raises(AssertionError) as ei:
+        RC.build_confirmation_folds(store, tmp_path, stems=("V5__primary__batched_max4",), with_v6=False)
+    txt = str(ei.value)
+    assert "two cells of one batch" in txt and "si1_C_b000" in txt        # the id survives, the SEED does not
+    assert not any(s in txt for s in seeds)
+    assert ei.value.__context__ is None or ei.value.__suppress_context__
+    assert not any(s in "".join(_tb.format_exception(ei.value)) for s in seeds)
+
+    # a non-assertion defect becomes the redacted run error, as in the fit loop
+    def bang(fc, variant_name, seed):
+        raise KeyError(f"s{seed}_C_b000 missing")
+
+    monkeypatch.setattr(RC, "build_v5_batched", bang)
+    with pytest.raises(CF.RedactedRunError) as e2:
+        RC.build_confirmation_folds(store, tmp_path, stems=("V5__primary__batched_max4",), with_v6=False)
+    assert not any(s in str(e2.value) for s in seeds)
+    # ... and with no store (the synthetic path) the original exception is left exactly as it was
+    monkeypatch.setattr(RC, "build_v5_batched", boom)
+    with pytest.raises(AssertionError, match="s1_C_b000"):
+        RC.build_confirmation_folds(None, tmp_path, stems=("V5__primary__batched_max4",), with_v6=False)
+
+
+def test_the_lock_is_spent_at_the_start_and_a_mixed_code_record_set_cannot_score(root, tmp_path, monkeypatch, plan_file,
+                                                                                registry):
+    """E5: the lock was spent only by ``decisions/confirmation.json``, which is written LAST.
+
+    A run that wrote records and died left ``lock_verdict`` reading ``first_run``, so a second invocation -- under
+    changed code, after the addendum 7 item 3 re-registration moved the registry entry -- could have concatenated two
+    record sets written under two code digests into one score, because not one of ``read_seed_predictions``' call sites
+    passed ``code=``.  Both halves are fixed and both are measured here.
+    """
+    from gen19ct.manifest import write_json as _wj
+
+    code = RC.code_digest()["combined"]
+    # (i) the START marker spends the lock, and --resume is the only thing that may continue
+    assert CF.lock_verdict(root, resume=False, code_digest=code, claim_ids=["C1"])["mode"] == "first_run"
+    _wj(CF.started_path(root), {"code_digest": code, "claim_ids": ["C1", "C4"],
+                                "started_utc": "2026-09-24T00:00:00+00:00"})
+    v = CF.lock_verdict(root, resume=False, code_digest=code, claim_ids=["C1"])
+    assert v["ok"] is False and v["mode"] == "already_started" and "already STARTED" in v["reason"]
+    assert CF.lock_verdict(root, resume=True, code_digest=code, claim_ids=["C1"])["mode"] == "resume_unfinished"
+    assert CF.lock_verdict(root, resume=True, code_digest="f" * 64,
+                           claim_ids=["C1"])["mode"] == "resume_refused_code_changed"
+    assert CF.lock_verdict(root, resume=True, code_digest=code,
+                           claim_ids=["C1", "C9"])["mode"] == "resume_refused_claims_grew"
+    # the gate refuses on it too, so a second invocation cannot reach the fit loop
+    with pytest.raises(SystemExit, match="already STARTED"):
+        _gate(root, _write_store(root, root.parent / "lock_store.json"), registry_path=registry)
+
+    # (ii) the exact scenario the addendum 7 item 3 re-registration opens: a record written under the code the registry
+    #      held THEN, re-registered since.  registry.verify_record ACCEPTS it -- that is what the superseded fallback is
+    #      for -- so the only thing that can refuse it at scoring time is the live-code check, and not one call site
+    #      passed one.
+    corpus, fold, attrs = _v6_corpus(tmp_path)
+    monkeypatch.setattr(REG, "registry_path", lambda r=None: registry)
+    old_code = "a1" * 32
+    REG.register_stage(CF.STAGE, below_footer_sha256="a" * 64, code_digest=old_code, git_head=None, addenda_count=5,
+                       note="the code the run started under", path=registry, force=True)
+    store = CF.load_seed_store(_write_store(root, root.parent / "lock_store.json"), root=root, seal=SEAL,
+                               prereg_paths=_prereg_paths(root))
+    out_root = tmp_path / "out"
+    r = RC.run_fold(D.JobSpec(kind="fit", arm="M1", design=CF.V6_DESIGN, variant=CF.V6_VARIANT_NAME,
+                              scheme=CF.V6_SCHEME, seed=store.seed(1), writes=("M1",)), fold, 0, corpus, out_root,
+                    store=store, seed_index=1, runners=RC.runner_module().default_runners(), code=old_code,
+                    state=D.PlanState(guard_mode={}),
+                    prereg={"addenda_sha256": "a" * 64, "n_addenda": 5},   # the `registry` fixture's own count
+                    pair_attrs=attrs)
+    rec = json.loads(Path(r["records"]["M1"]).read_text(encoding="utf-8"))
+    assert rec["code_digest"] == old_code
+    assert RC.read_seed_predictions(out_root, "M1", "V6__prnd_exact", 1, code=old_code) is not None
+    REG.register_stage(CF.STAGE, below_footer_sha256="a" * 64, code_digest=code, git_head=None, addenda_count=5,
+                       note="re-registered after an addendum (item 3)", path=registry, force=True)
+    assert REG.verify_record(rec, CF.STAGE, registry)["matched_entry"] == "superseded"     # the registry is satisfied
+    with pytest.raises(D.StaleRecordError, match="written under code"):
+        RC.read_seed_predictions(out_root, "M1", "V6__prnd_exact", 1)                      # default = the LIVE digest
+    assert RC.read_seed_predictions(out_root, "M1", "V6__prnd_exact", 1, code=None) is not None   # opt out, explicitly
+
+
+def test_s2c_records_the_consequence_of_its_registered_calibration_population():
+    """E6: the S2(c) calibration population is not the scored population, and that is REGISTERED.
+
+    POST-HOC addendum 7 item 1 calibrates on "the comparable pairs" of the inner calibration set; section 2's pair key
+    is (publication group, system, condition key), so ANY two distinct metal states of a condition group count -- Am/Eu
+    exactly as much as Nd/Pr -- while S2(c) SCORES Nd/Pr pairs only, whose |logSF| is small.  The interval is therefore
+    biased WIDE and the [0.70, 0.90] band at 80 % can FAIL on the HIGH side as an artefact.  The code is as registered
+    and is NOT changed; what is asserted is that the consequence is recorded as numbers.
+    """
+    rng = np.random.default_rng(11)
+    n = 60
+    states = (["Nd(III)", "Pr(III)"] * 10) + (["Am(III)", "Eu(III)"] * 20)
+    rows = pd.DataFrame({"row_id": [f"r{i}" for i in range(n)], EM.PUB_GROUP_COL: "g0", EM.SYSTEM_COL: "S",
+                         EM.CONDITION_KEY_COL: [f"ck{i // 2}" for i in range(n)],
+                         EM.METAL_STATE_COL: states, EM.Y_COL: rng.normal(size=n)}).set_index("row_id", drop=False)
+    # the Am/Eu pairs are given far larger residuals, which is the whole mechanism
+    signed = np.where(np.arange(n) < 20, rng.normal(scale=0.05, size=n), rng.normal(scale=1.0, size=n))
+    res = CF.pair_calibration_residuals([{"unit": "c0", "fold": 0, "row_ids": list(rows.index),
+                                          "signed": signed.tolist()}], rows, what="pop")
+    pop = res["population"]
+    assert pop["n_pairs"] == 30 and pop["n_prnd_pairs"] == 10 and abs(pop["prnd_share"] - 10 / 30) < 1e-12
+    assert pop["prnd_state_pair"] == " | ".join(sorted(CF.V6_METALS))
+    assert set(pop["by_state_pair"]) == {" | ".join(sorted(CF.V6_METALS)), "Am(III) | Eu(III)"}
+    # the bias has the direction the reading states: the Pr/Nd residuals are the SMALLER ones
+    assert pop["median_abs_residual_prnd"] < pop["median_abs_residual"]
+    reg = CF.pair_conformal_quantiles(res["abs_residuals"])
+    expl = CF.prnd_only_quantiles(res["prnd_only_abs_residuals"])
+    assert not reg["fallback"] and reg["method"] == CF.S2C_PAIR_CONFORMAL
+    assert expl["quantiles"] == {}                                   # 10 Pr/Nd pairs is below the registered minimum
+    assert "EXPLORATORY" in expl["label"]
+    big = CF.pair_calibration_residuals([{"unit": "c0", "fold": 0, "row_ids": list(rows.index),
+                                          "signed": signed.tolist()},
+                                         {"unit": "c1", "fold": 1, "row_ids": list(rows.index),
+                                          "signed": (signed * 1.01).tolist()},
+                                         {"unit": "c2", "fold": 2, "row_ids": list(rows.index),
+                                          "signed": (signed * 0.99).tolist()}], rows, what="pop3")
+    e2 = CF.prnd_only_quantiles(big["prnd_only_abs_residuals"])
+    r2 = CF.pair_conformal_quantiles(big["abs_residuals"])
+    assert e2["quantiles"] and e2["quantiles"]["80"] < r2["quantiles"]["80"]      # the artefact, as a number
+    # ---- and the verdict block carries it, with the high-side flag, changing no status
+    s = CF.s2c_coverage({"pair_conformal": {"80": 0.958, "95": 0.99}, "quadrature": {"80": 0.55, "95": 0.70}},
+                        population={"prnd_share": 10 / 30, "exploratory_prnd_only_coverage": {1: {"80": 0.80}}})
+    assert s["status"] == "FAIL" and s["high_side_80"] is True
+    assert "biased WIDE" in s["detail"] and "33.3%" in s["detail"]
+    assert s["calibration_population"]["prnd_share"] == 10 / 30
+    assert "not registered" in s["calibration_population"]["reading"]
+    lo = CF.s2c_coverage({"pair_conformal": {"80": 0.40, "95": 0.99}}, population={"prnd_share": 0.5})
+    assert lo["status"] == "FAIL" and lo["high_side_80"] is False     # a LOW-side miss is not from the population
+    ok = CF.s2c_coverage({"pair_conformal": {"80": 0.80, "95": 0.95}}, population={"prnd_share": 0.5})
+    assert ok["status"] == "PASS" and ok["high_side_80"] is None
+
+
+@pytest.mark.slow
+def test_e7_the_v6_run_is_not_at_frozen_configurations_and_c4s_control_is_not_permuted(root, tmp_path, monkeypatch):
+    """E7 -- a SEVENTH defect, found by running the code rather than reading it, and NOT on the verification pass's list.
+
+    Two registered things the fit loop does not do, both measured here:
+
+    * **section 3.4** -- *"It runs once, with the frozen configurations and the withheld seeds"* -- but the fit loop hands
+      a V6 job ``g19_run_discovery.default_runners()['M1'/'M2']``, the TUNING runners. ``ConfJob(tuned=False)`` is set for
+      every V6 job and read nowhere. Measured: one V6 M1 fold fits the whole grid over the inner folds and its
+      ``selected_config`` comes from this run's own inner scores.
+    * **section 11 / CONFIRMATION_PLAN** -- claim C4's control leg is ``B6`` with transform ``ACT_PERMUTED``, "refitted at
+      the WITH run's selected hyperparameters of the same fold". ``job_spec_of`` puts that in ``JobSpec.condition`` and
+      NOTHING reads it: measured with call counters over a complete ``run_fold``, ``h3.transformed_frame``,
+      ``discovery.h3_training_rows`` and ``h3.frozen_runner`` are called ZERO times, so the control leg would be fitted
+      on the recorded log D -- the WITH leg's own training data -- and re-tuned on it.
+
+    Neither is fixed here: both are registered choices (which configuration a V6 fold inherits, since no V6 fold existed
+    in discovery; and wiring section 11's transform plus addendum 5 item 2's guard rule into this loop). What IS asserted
+    is that the runner now REFUSES, naming both, and that the refusal happens before the once-only lock is spent.
+    """
+    from gen19ct.evaluation import h3 as H3
+    from gen19ct.models import neural as NN
+
+    # ---- the refusal: both stages named, and the lock explicitly not spent
+    unimplemented = [n for n, ok, _ in RC.RUN_STAGES if not ok]
+    assert unimplemented == ["v6_frozen_configurations", "c4_act_permuted_training_transform"]
+    text = RC.refusal(unimplemented[0])
+    assert "has NOT been spent" in text and "NOT IMPLEMENTED" in text
+    for n in unimplemented:
+        assert n in text
+    assert "frozen configurations" in text and "ACT_PERMUTED" in text
+    assert "h3.frozen_runner" in text and "addendum 5 item 2" in text
+
+    # ---- C4's two legs differ only in JobSpec.condition, which nothing reads
+    plan = CF.read_plan(CF.plan_path(paths.G19_ROOT))
+    c4 = [j for j in CF.enumerate_jobs(plan) if j.purpose.startswith("claim C4")][:2]
+    assert [j.transform for j in c4] == ["WITH", "ACT_PERMUTED"] and [j.tuned for j in c4] == [True, False]
+    rd = RC.runner_module()
+    runners = rd.default_runners()
+    specs = [RC.job_spec_of(j, 999983) for j in c4]
+    assert [s.condition for s in specs] == ["WITH", "ACT_PERMUTED"]
+    assert rd.runner_for(specs[0], runners) is rd.runner_for(specs[1], runners)      # the SAME tuning runner
+    assert type(runners["B6"]).__name__ == "B6Runner" != type(H3.frozen_runner("B6")).__name__
+    # and the record layout has no place for the transform: both legs resolve to ONE file, and the plan gives C4 the
+    # same arm on both sides, so the delta would be exactly 0.0 on every seed -- a failed claim, on an artefact
+    paths_ = [CF.fold_paths(Path("X"), s_.arm, s_.design_dir, 1, "f")[1] for s_ in specs]
+    assert paths_[0] == paths_[1]
+    c4claim = CF.claim_of(plan, "C4")
+    assert c4claim.candidate == c4claim.comparator == "B6"
+
+    # ---- and no transform or frozen refit is reached in a complete fold: counted, not read
+    monkeypatch.setattr(REG, "registry_path", lambda r=None: root / "manifests" / "digest_registry.json")
+    store = CF.load_seed_store(_write_store(root, root.parent / "e7_store.json"), root=root, seal=SEAL,
+                               prereg_paths=_prereg_paths(root))
+    code = RC.code_digest()["combined"]
+    REG.register_stage(CF.STAGE, below_footer_sha256="a" * 64, code_digest=code, git_head=None, addenda_count=7,
+                       note="e7", path=root / "manifests" / "digest_registry.json")
+    corpus, fold, attrs = _v6_corpus(tmp_path)
+    calls = {"transformed_frame": 0, "h3_training_rows": 0, "frozen_runner": 0, "tune_m1": 0}
+
+    def counted(name, fn):
+        def g(*a, **k):
+            calls[name] += 1
+            return fn(*a, **k)
+        return g
+
+    monkeypatch.setattr(H3, "transformed_frame", counted("transformed_frame", H3.transformed_frame))
+    monkeypatch.setattr(D, "h3_training_rows", counted("h3_training_rows", D.h3_training_rows))
+    monkeypatch.setattr(H3, "frozen_runner", counted("frozen_runner", H3.frozen_runner))
+    monkeypatch.setattr(NN, "tune_m1", counted("tune_m1", NN.tune_m1))
+    r = RC.run_fold(D.JobSpec(kind="fit", arm="M1", design=CF.V6_DESIGN, variant=CF.V6_VARIANT_NAME,
+                              scheme=CF.V6_SCHEME, seed=store.seed(1), writes=("M1",)), fold, 0, corpus,
+                    tmp_path / "out", store=store, seed_index=1, runners=rd.default_runners(), code=code,
+                    state=D.PlanState(guard_mode={}), prereg={"addenda_sha256": "a" * 64, "n_addenda": 7},
+                    pair_attrs=attrs)
+    rec = json.loads(Path(r["records"]["M1"]).read_text(encoding="utf-8"))
+    assert r["status"] == "fitted"
+    assert calls["tune_m1"] == 1                              # section 3.4's "frozen configurations": re-tuned
+    assert len({f.get("config") for f in rec["arm_record"]["fits"]}) > 1     # a whole grid, chosen inside this run
+    assert calls["transformed_frame"] == calls["h3_training_rows"] == calls["frozen_runner"] == 0
+    # the cost basis says so too, so no reader can take the 8.5 h V6 line for the tuned figure
+    assert "132 h" in CF.cost_estimate(CF.enumerate_jobs(plan))["basis"]

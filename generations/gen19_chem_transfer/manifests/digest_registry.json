@@ -709,6 +709,157 @@
       ],
       "logged_utc": "2026-09-23T06:34:39+00:00",
       "reason": "TASK X: the post-run leak scan also covers manifests/run_info/g19_run_confirmation.json, the second manifest gen19ct.manifest.Run writes on exit (date, hardware, package versions). It carries no seed by construction, but the scan is the proof, not the intent."
+    },
+    {
+      "commit": "uncommitted",
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_run_discovery.py",
+          "sha256_lf": "4c05840e3c6c938b9244ee9cf441a6fb10e359437412cfb89b07814c23fa6144"
+        }
+      ],
+      "logged_utc": "2026-09-23T07:04:10+00:00",
+      "reason": "POST-HOC addendum 7 item 2 in code: v5_family now reads ('V5','V5P','V5PAIR','V6') so validation_splits, _calibration_splits and inner_design_record route a V6 job to the addendum-1 simultaneous V5 inner design and inner_design_signature carries the V5 PRIMARY entry for V6; ComparatorIntervalsRunner.point uses interface.InnerCellCalibration for ('V5','V6') instead of the V2 metal-holdout design, deliberately NOT v5_family so the existing V5-P / V5-PAIR comparator-interval reading (the S1(c) yardstick B3x@V5PAIR__primary__batched) is unchanged. No V5 inner-design signature, resume digest or record changes; no discovery, candidates, ladder, H3 or power job is of design V6, so this validates and invalidates no record written earlier (addendum 2 item 5). It DOES change the live discovery code digest, so no discovery job can be refitted under it (discovery is complete)."
+    },
+    {
+      "commit": "uncommitted",
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/models/interface.py",
+          "sha256_lf": "e1359baf7d9dab41e75df9431f5016db0277f5a07ac8dc8f91b47281484133eb"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/discovery.py",
+          "sha256_lf": "7e5921348e3b5545dbdd0dd9f34ff2c648ecb56e3633cc2dca76ebc4a51263f9"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/confirmation.py",
+          "sha256_lf": "95c8868afd00daa0e93d3c704f7c06a77070f165e37d2ad8798c00ab78b34f63"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_run_confirmation.py",
+          "sha256_lf": "4dde75eb8fd3fd5c24f743b3714e4651fc0b9d92713f86f0d70fe19f1b0d96ec"
+        }
+      ],
+      "logged_utc": "2026-09-23T07:04:11+00:00",
+      "reason": "POST-HOC addendum 7 item 1 in code: the S2(c) logSF interval is split conformal fitted on the PAIR residuals of each fold's inner calibration comparable pairs with the section 12 finite-sample quantile, with the quadrature fallback below 20 pairs flagged and counted and both constructions printed. interface.ConformalWrapper and discovery.CrossFitResidualConformal now retain, per inner split, the calibration rows and their SIGNED residuals (interface.calibration_detail_of); abs(signed) IS the row residual already used, so no row interval, quantile or prediction changes. confirmation.pair_calibration_residuals / pair_conformal_quantiles / s2c_coverage and the runner's v6_pair_conformal / attach_pair_conformal / v6_logsf_intervals replace the two undeclared readings ('interval_arithmetic', 'quadrature'), whose primary also read absent lo80/hi80 columns instead of metrics.interval_columns' lower_80/upper_80. The confirmation runner also gains the intervals step it lacked, and RUN_STAGES['v6_arm_fitting'] is True. No record written earlier is validated or invalidated: no confirmation record exists and no earlier stage's records depend on these functions."
+    },
+    {
+      "commit": "uncommitted",
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/registry.py",
+          "sha256_lf": "e7782b040d86066046555bd91633d189ebbc78d8a1c89bed2f66e8168b58e63c"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/tests/test_registry.py",
+          "sha256_lf": "d8069202b545b824aaf3de66cf20b35c7b8cbd3973d381206e6d371df4d6c6c1"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/tests/test_discovery_runner.py",
+          "sha256_lf": "fcd1b502343729272c14e9c8dbdb65b37aa1493c04734c474cdeb26b539e8c12"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/tests/test_confirmation.py",
+          "sha256_lf": "dae1b6e99f2a95f01c49b90ef8c8b0dc211114ab9ccb2e1d2a51d20c66c74c77"
+        }
+      ],
+      "logged_utc": "2026-09-23T07:31:43+00:00",
+      "reason": "POST-HOC addendum 7 item 3 in code: registry.reregister_all_stages (CLI 'reregister-all') states the standing procedure -- after every addendum every stage is re-registered at the new below-footer digest, earlier entries kept as superseded, a record verified against the entry registered when it was written. The gates and the verification tests now read the SEALED TEXT or the registry entry instead of the stale constants D.REGISTERED_ADDENDA_SHA256 / N_ADDENDA_EXPECTED (which remain the no-registry fallback). tests/test_confirmation.py also gains the addendum-7 V6 end-to-end smoke test on a synthetic mini-corpus with a fake seed store. No record is rewritten and none is validated or invalidated: 1,461 discovery and 470 H3 records verify before and after, now against their superseded entries."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_run_discovery.py",
+          "sha256_lf": "92bf655dda7959f8f8d292fdf40e9be35c152ea56295040ae904f10e332e8ba4"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_run_confirmation.py",
+          "sha256_lf": "291c253d2ae0493910d1b6465feeb1303af724fcd572dd71ab20aaa19c4fed0f"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/confirmation.py",
+          "sha256_lf": "25fc99ae143f1c3086d96b7c2ce3ab5f195b52ce65c3edc969ec46cece100b67"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/tests/test_confirmation.py",
+          "sha256_lf": "cca4d8fbfd1a3ef8a150d68011490ced91941b18e22914d342cc1793d5ffd147"
+        }
+      ],
+      "logged_utc": "2026-09-23T09:06:33+00:00",
+      "reason": "Task X: the six defects the verification pass of the confirmation runner found, each reproduced by RUNNING the code and each fixed. (E1, blocking) NeuralRunner.m1_record resolved discovery.fold_paths -> evaluation/discovery/M1/<design>/s<WITHHELD SEED>/<fold>.json, which this run never writes, so EVERY M2 fold raised 'M2 needs M1's per-fold values' -- M2 on V5-primary (claims C1-C3), on V5-PAIR (S1(c)) and on V6 (S2), about 97 of the 110 h plan; and its staleness branch compared a confirmation record's absent 'digest' field. FoldContext gains an optional sibling_record hook (default None = discovery's own path, byte for byte) and the confirmation runner supplies m1_record_locator: evaluation/confirmation/records/M1/<design>/i<k>, the equivalent check on fold_hash + the LIVE code digest + seed index + registry stage + a completed point step + the parquet + registry.verify_record, every message built from the scrubbed label, and CF.confirmation_record_digest recorded as m1_record_digest so M2 names the M1 fit it used. The point step's key in a confirmation record is 'prediction', now the POINT_STEP constant. (E2) --workers was accepted, bounds-checked, logged and ignored: fit_loop had no ProcessPoolExecutor while the plan, the dry run and RUN_STAGES all advertised the 2-worker wall clock. fit_loop now dispatches a job's folds to a pool (_init_conf_worker / _conf_worker_fold / _conf_worker_state), each worker loading and VERIFYING the seed store itself and returning only scrubbed values, with a pre-flight self-check before the first fold; the scripts directory is added to sys.path so a spawned child can import this module. (E3) B0/B3i/B3x were priced 0.0 s, 1702 of 3418 folds, on a zero nothing had measured; UNIT_SECONDS now carries the measured means (B3i 8.6 s, B0 1.4 s, B3x 1.6 s per fold) from prepare_fold + ComparatorIntervalsRunner.point over the first 10 real SELECTION-half folds of each stem, writing no record: 110.24 h serial, 56.25 h at 2 workers. (E4) the fold-build phase was unscrubbed -- a batched fold carries the raw id s<seed>_C_b000 until write_seed_design scrubs it, and every assertion of that phase is built from it; build_confirmation_folds now re-raises scrubbed and 'from None', AssertionError kept as such (addendum 6 item 3(b)). (E5) the once-only lock was spent only by decisions/confirmation.json, written LAST, and read_seed_predictions' code= was never passed by any of its 8 call sites: a start marker (confirmation.started_path) now spends the lock before the first fold file, lock_verdict refuses on either file, and the code check defaults to the LIVE digest. (E6) the S2(c) calibration population is REGISTERED as 'the comparable pairs', i.e. any two distinct metal states of a condition group, while the scored pairs are Pr/Nd only, so the interval is biased wide and a high-side 80 % FAIL may be an artefact: the code is NOT changed, the consequence is recorded (composition by metal-state pair, Pr/Nd share, both medians, an EXPLORATORY Pr/Nd-only quantile and coverage that decide nothing, and the high_side_80 flag). Residual: safeguard_splitter now puts V6 in the V5 family (no safeguard job is enumerated at confirmation and no safeguard record exists for any V6 stem, so this changes no number). Effect on records: NONE. No confirmation record exists; no discovery, candidates, ladder, H3, power or preseal record depends on any of these functions, and no job of those stages is of design V6 or reads a confirmation record (addendum 2 item 5)."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_run_confirmation.py",
+          "sha256_lf": "040bea02af4d57e2f644f0e7e308857306dd11d98ace2f2d44e0cde408e76823"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/confirmation.py",
+          "sha256_lf": "88c147410207017a32d5ae5f1d0bc8f3e56f42882d987c2296a607dae31a56ae"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/tests/test_confirmation.py",
+          "sha256_lf": "0b48c3a54519851c598929c9a0ebbde9d1d704f76d892ec91b88cc3c9e393132"
+        }
+      ],
+      "logged_utc": "2026-09-23T09:38:02+00:00",
+      "reason": "Task X, second edit: a SEVENTH defect, measured with call counters over a complete run_fold rather than read, and NOT on the verification pass's list. (1) Section 3.4 registers the single V6 run 'with the frozen configurations'; confirmation.enumerate_jobs marks every V6 job ConfJob(tuned=False) and marks the C4 ACT_PERMUTED leg the same way, and that flag is READ NOWHERE, so the fit loop hands a V6 job the TUNING runners: measured, one V6 M1 fold called neural.tune_m1 and fitted 9 configurations over 27 inner fits, and its recorded selected_config came from this run's own inner macro MAE. (2) Claim C4's control leg is B6 with transform ACT_PERMUTED, 'refitted at the WITH run's selected hyperparameters of the same fold' (section 11 and CONFIRMATION_PLAN); job_spec_of puts the transform in JobSpec.condition and nothing in either runner reads it: measured, h3.transformed_frame, discovery.h3_training_rows and h3.frozen_runner are each called ZERO times over a complete run_fold, so the control leg would be fitted on the RECORDED log D (the WITH leg's own training data) and re-tuned on it, and C4's delta would measure a conformal-seed difference rather than the actinide permutation. NEITHER IS FIXED: which configuration a V6 fold inherits is a registered choice no addendum makes (no V6 fold existed in discovery, so there is no per-fold retained configuration to carry), and wiring section 11's transform plus the plan's frozen-refit rule plus POST-HOC addendum 5 item 2's value-comparison guard into this loop is registered work. What is done instead is what RUN_STAGES exists for: two stages, 'v6_frozen_configurations' and 'c4_act_permuted_training_transform', are set False, so the runner refuses BEFORE the once-only lock is spent and before any fold file or record exists, naming both and naming h3.frozen_runner as the machinery that already exists. cost_estimate's basis now records that the 8.5 h V6 line assumes the frozen configurations and that the code as it stands would cost about 30 h there (about 132 h for the plan rather than 110 h). Also in this edit: the --max-folds pause in the parallel dispatch loop stops SUBMITTING at the limit and drains, instead of halting on fitted + in-flight and then silently leaving the rest of that job's folds unfitted; the start marker's timestamp uses the script's own datetime call; and the post-run leak scan lists the start marker explicitly (it was already covered by write_outputs' recursive scan of the confirmation root). Effect on records: NONE (no confirmation record exists; addendum 2 item 5)."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_run_confirmation.py",
+          "sha256_lf": "a5e9ce92c72c0d57e66b2479e182ccc8421adbf571eee23bb610c7b5e4ee46a2"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/tests/test_confirmation.py",
+          "sha256_lf": "565e2db394b4d6382bf65f5b5f599376d8dda5844384ac608585659d6932867e"
+        }
+      ],
+      "logged_utc": "2026-09-23T09:42:48+00:00",
+      "reason": "Task X, third edit (text and a test assertion only, no behaviour): the sharpest facet of E7's C4 gap, MEASURED. run_fold writes to confirmation.fold_paths(out_root, ARM, design_dir, seed_index, fold_id) and the arm is the ArmOutput key 'B6', so BOTH C4 legs -- B6:WITH and B6:ACT_PERMUTED on V2__element_exact -- resolve to the IDENTICAL file records/B6/V2__element_exact/i<k>/<fold>.json: the WITH leg writes it, the ACT_PERMUTED leg finds it and returns skipped_done, and CONFIRMATION_PLAN gives C4 candidate 'B6' and comparator 'B6', so claim_paired_units would read ONE frame as both sides and C4's delta would be exactly 0.0 on all five withheld seeds -- reported as a claim that failed R19 item 4, on an artefact of the record path. The stage text of 'c4_act_permuted_training_transform' now records this and names the H3 runner's own layout (<arm>/<transform>/<design>/s<seed>) as the shape a fix needs; the E7 test asserts the collision and the identical arm. Effect on records: NONE."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/confirmation.py",
+          "sha256_lf": "bdcda8df1ddfd11f8748eb3ba1e498f01974e323ecda857abb1ec97460156eed"
+        }
+      ],
+      "logged_utc": "2026-09-23T10:00:33+00:00",
+      "reason": "Task X, fourth edit (one branch, no reachable behaviour change): pair_calibration_residuals' empty-detail early return now carries the same 'population' / 'prnd_only_abs_residuals' / 'population_reading' keys as the populated one, so a direct caller cannot meet a KeyError. v6_pair_conformal returns before that branch on an empty calibration detail, so no path in the run reaches it; verified by construction on an empty attribute frame. Effect on records: NONE."
     }
   ],
   "fallback": "until manifests/digest_registry.json exists every gate reads the constants of evaluation.discovery (N_ADDENDA_EXPECTED, REGISTERED_ADDENDA_SHA256) and the live discovery code digest, exactly as before",
@@ -716,116 +867,122 @@
   "schema": "gen19.digest_registry.v1",
   "stages": {
     "confirmation": {
-      "addenda_count": 6,
-      "below_footer_sha256": "21212a7f6dc508de924ac7e6d36660704693e8e10b008d033662fc786ef84daa",
-      "code_digest": "60cc3d66f06647a4b4f35d310aa10a2b34620b782a7f9989c1edff39da840475",
-      "code_digest_source": "the tree: g19_run_confirmation.code_digest()['combined'] (the confirmation runner, gen19ct/evaluation/confirmation.py and the discovery code its arms are fitted with)",
-      "git_head": "055a453aaacbd920e16ae214e4fcd29ee162a62b",
-      "note": "TASK X final: re-registered after the run_info manifest was brought inside the post-run leak scan. 6 addenda; no confirmation record exists; the once-only lock is unspent.",
-      "registered_utc": "2026-09-23T06:34:40+00:00",
+      "addenda_count": 7,
+      "below_footer_sha256": "f125031177e13ac93b2f80da238dfd1dd0716674eb86abfb8769dfcc63ce3348",
+      "code_digest": "7edcf97bec6f12005e46dc9d69e67125057fe39e90f32b98ff017ccf51cd3e77",
+      "code_digest_source": "the tree (stage_code_digest): this stage's own code changed and it has written no record yet",
+      "git_head": "388f3a0da8a4d8efcf90074404015a6d0ef30b0b",
+      "note": "task X fourth edit: confirmation code digest (POST-HOC addendum 7 item 3)",
+      "registered_utc": "2026-09-23T10:00:35+00:00",
+      "reregistration": "REGISTERED by POST-HOC addendum 7 item 3, as the standing procedure: 'Appending an addendum changes the below-footer digest, so every stage entry must be re-registered for its runner's gate to pass, while records written earlier verify against the entry under which they were written (kept as superseded). Resolved: after every addendum, every stage is re-registered at the new digest and the earlier entries are preserved; a record is always verified against the entry registered when it was written. This is addendum 2 change 5's mechanism, stated as the standing procedure so that the gates and the verification tests read the sealed text rather than a stale constant.' EVERY stage means the discovery stage too, which register_stage_from_tree refuses (its entry is read from its records), so reregister_all_stages calls register_stage directly with the records' own code digest and only the below-footer digest and addenda count moved. A stage keeps its registered CODE digest unless its own code changed and it has written no record yet",
       "source": "current tree (below-footer digest and addenda count)",
       "stage": "confirmation"
     },
     "discovery": {
-      "addenda_count": 1,
-      "below_footer_sha256": "05f36fc0354adb75ae41655977115d827ffce1227b2bdbfeeba28a975f0e8e54",
+      "addenda_count": 7,
+      "below_footer_sha256": "f125031177e13ac93b2f80da238dfd1dd0716674eb86abfb8769dfcc63ce3348",
       "code_digest": "895a6ab9696010c9f8bffb4a6078f55b8f41b0773623a8de77103083157e0504",
-      "git_head": "3343d3f240e96661c7b082c2cfbef8c26980427e",
-      "n_ignored_records": 0,
-      "n_records": 1461,
-      "note": "discovery records written under POST-HOC addendum 1; below-footer digest, addenda count and code digest read from the record fields (addendum 2 item 5), nothing recomputed. git_head = 3343d3f, the last commit touching the discovery import closure (CODE_FILES + the runner + RUNNER_OBJECTS); daa0469 added the re-coloured V5 fold files used mid-run and changed no closure file; the run manifest manifests/g19_run_discovery.json records git_head be793f1 for the final invocation",
-      "registered_utc": "2026-09-22T01:53:20+00:00",
-      "restricted_to_plan": true,
-      "source": "record fields",
+      "code_digest_source": "kept: the digest this stage's records were written under",
+      "git_head": "388f3a0da8a4d8efcf90074404015a6d0ef30b0b",
+      "note": "POST-HOC addendum 7 item 3: every stage re-registered at the 7-addenda below-footer digest; earlier entries kept as superseded, records verified against the entry registered when they were written. The confirmation stage also takes the tree's code digest (addendum 7 items 1-2 changed its code and it has written no record).",
+      "registered_utc": "2026-09-23T07:03:30+00:00",
+      "reregistration": "REGISTERED by POST-HOC addendum 7 item 3, as the standing procedure: 'Appending an addendum changes the below-footer digest, so every stage entry must be re-registered for its runner's gate to pass, while records written earlier verify against the entry under which they were written (kept as superseded). Resolved: after every addendum, every stage is re-registered at the new digest and the earlier entries are preserved; a record is always verified against the entry registered when it was written. This is addendum 2 change 5's mechanism, stated as the standing procedure so that the gates and the verification tests read the sealed text rather than a stale constant.' EVERY stage means the discovery stage too, which register_stage_from_tree refuses (its entry is read from its records), so reregister_all_stages calls register_stage directly with the records' own code digest and only the below-footer digest and addenda count moved. A stage keeps its registered CODE digest unless its own code changed and it has written no record yet",
+      "source": "current tree (below-footer digest and addenda count)",
       "stage": "discovery"
     },
     "discovery_candidates": {
-      "addenda_count": 2,
-      "amended_utc": "2026-09-22T04:10:10+00:00",
-      "amendment": "descriptive fields corrected; the below-footer digest, code digest and addenda count are unchanged, so no record's verification changes",
-      "below_footer_sha256": "1016149ea8fbc74a9051ea4c1dd8fb7a5bd26388086325a3dea6c7084d2fcff6",
+      "addenda_count": 7,
+      "below_footer_sha256": "f125031177e13ac93b2f80da238dfd1dd0716674eb86abfb8769dfcc63ce3348",
       "code_digest": "d4ddf83c747aa9c991e6414869fbd9a054a1293342c4aa7f90f795f17c420e5b",
-      "code_digest_source": "the tree: g19_run_discovery.current_code_digest()",
-      "git_head": "6528835992d4de90fb54107cac9c423f5034b1b0",
-      "note": "registered under POST-HOC addendum 2 before the first post-discovery runner (addendum 2 item 5)",
-      "registered_utc": "2026-09-22T01:58:41+00:00",
+      "code_digest_source": "kept: the digest this stage's records were written under",
+      "git_head": "388f3a0da8a4d8efcf90074404015a6d0ef30b0b",
+      "note": "POST-HOC addendum 7 item 3: every stage re-registered at the 7-addenda below-footer digest; earlier entries kept as superseded, records verified against the entry registered when they were written. The confirmation stage also takes the tree's code digest (addendum 7 items 1-2 changed its code and it has written no record).",
+      "registered_utc": "2026-09-23T07:03:30+00:00",
+      "reregistration": "REGISTERED by POST-HOC addendum 7 item 3, as the standing procedure: 'Appending an addendum changes the below-footer digest, so every stage entry must be re-registered for its runner's gate to pass, while records written earlier verify against the entry under which they were written (kept as superseded). Resolved: after every addendum, every stage is re-registered at the new digest and the earlier entries are preserved; a record is always verified against the entry registered when it was written. This is addendum 2 change 5's mechanism, stated as the standing procedure so that the gates and the verification tests read the sealed text rather than a stale constant.' EVERY stage means the discovery stage too, which register_stage_from_tree refuses (its entry is read from its records), so reregister_all_stages calls register_stage directly with the records' own code digest and only the below-footer digest and addenda count moved. A stage keeps its registered CODE digest unless its own code changed and it has written no record yet",
       "source": "current tree (below-footer digest and addenda count)",
       "stage": "discovery_candidates"
     },
     "figures": {
-      "addenda_count": 5,
-      "below_footer_sha256": "7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f",
+      "addenda_count": 7,
+      "below_footer_sha256": "f125031177e13ac93b2f80da238dfd1dd0716674eb86abfb8769dfcc63ce3348",
       "code_digest": "b1cb4cc2ce365f4f80ac5b630b2928845e2ec74e332fe8c35e1176ef1aaa7511",
-      "code_digest_source": "the tree: g19_make_figures.code_digest()['combined']",
-      "git_head": "6b46c93fb8f6fa73097f4941fe001b2e16375be2",
-      "note": "re-registered under POST-HOC addendum 5 (below-footer digest 7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f, 5 addenda); the h3 code digest also moves with the addendum-5 item-2 guard rule and the item-3 F4 readings. Records written before this entry keep their own (superseded) entry and still verify (addendum 2 item 5).",
-      "registered_utc": "2026-09-23T03:14:13+00:00",
+      "code_digest_source": "kept: the digest this stage's records were written under",
+      "git_head": "388f3a0da8a4d8efcf90074404015a6d0ef30b0b",
+      "note": "POST-HOC addendum 7 item 3: every stage re-registered at the 7-addenda below-footer digest; earlier entries kept as superseded, records verified against the entry registered when they were written. The confirmation stage also takes the tree's code digest (addendum 7 items 1-2 changed its code and it has written no record).",
+      "registered_utc": "2026-09-23T07:03:30+00:00",
+      "reregistration": "REGISTERED by POST-HOC addendum 7 item 3, as the standing procedure: 'Appending an addendum changes the below-footer digest, so every stage entry must be re-registered for its runner's gate to pass, while records written earlier verify against the entry under which they were written (kept as superseded). Resolved: after every addendum, every stage is re-registered at the new digest and the earlier entries are preserved; a record is always verified against the entry registered when it was written. This is addendum 2 change 5's mechanism, stated as the standing procedure so that the gates and the verification tests read the sealed text rather than a stale constant.' EVERY stage means the discovery stage too, which register_stage_from_tree refuses (its entry is read from its records), so reregister_all_stages calls register_stage directly with the records' own code digest and only the below-footer digest and addenda count moved. A stage keeps its registered CODE digest unless its own code changed and it has written no record yet",
       "source": "current tree (below-footer digest and addenda count)",
       "stage": "figures"
     },
     "h3": {
-      "addenda_count": 5,
-      "below_footer_sha256": "7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f",
+      "addenda_count": 7,
+      "below_footer_sha256": "f125031177e13ac93b2f80da238dfd1dd0716674eb86abfb8769dfcc63ce3348",
       "code_digest": "d81f6dd59292edc63e77b022b098121e42ca1d1cfb08ba4773676eb408c2253f",
-      "code_digest_source": "the tree: g19_run_h3.code_digest()['combined']",
-      "git_head": "6b46c93fb8f6fa73097f4941fe001b2e16375be2",
-      "note": "re-registered after the reporting-only F4_INTERVAL_READING correction (addendum 5 item 3 wording). All 471 H3 records were written before this entry and keep their own (superseded) entry; nothing is refitted and the 12 of 12 contrast record sets stay complete.",
-      "registered_utc": "2026-09-23T04:26:53+00:00",
+      "code_digest_source": "kept: the digest this stage's records were written under",
+      "git_head": "388f3a0da8a4d8efcf90074404015a6d0ef30b0b",
+      "note": "POST-HOC addendum 7 item 3: every stage re-registered at the 7-addenda below-footer digest; earlier entries kept as superseded, records verified against the entry registered when they were written. The confirmation stage also takes the tree's code digest (addendum 7 items 1-2 changed its code and it has written no record).",
+      "registered_utc": "2026-09-23T07:03:30+00:00",
+      "reregistration": "REGISTERED by POST-HOC addendum 7 item 3, as the standing procedure: 'Appending an addendum changes the below-footer digest, so every stage entry must be re-registered for its runner's gate to pass, while records written earlier verify against the entry under which they were written (kept as superseded). Resolved: after every addendum, every stage is re-registered at the new digest and the earlier entries are preserved; a record is always verified against the entry registered when it was written. This is addendum 2 change 5's mechanism, stated as the standing procedure so that the gates and the verification tests read the sealed text rather than a stale constant.' EVERY stage means the discovery stage too, which register_stage_from_tree refuses (its entry is read from its records), so reregister_all_stages calls register_stage directly with the records' own code digest and only the below-footer digest and addenda count moved. A stage keeps its registered CODE digest unless its own code changed and it has written no record yet",
       "source": "current tree (below-footer digest and addenda count)",
       "stage": "h3"
     },
     "ladder": {
-      "addenda_count": 5,
-      "below_footer_sha256": "7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f",
+      "addenda_count": 7,
+      "below_footer_sha256": "f125031177e13ac93b2f80da238dfd1dd0716674eb86abfb8769dfcc63ce3348",
       "code_digest": "895a6ab9696010c9f8bffb4a6078f55b8f41b0773623a8de77103083157e0504",
-      "code_digest_source": "the registry's 'discovery' entry (g19_run_ladder.ladder_code_digest()['discovery']): a ladder record carries the discovery digest beside its own 'ladder_code_digest', and the runner compares the live value with this entry, so the two agree by construction",
-      "git_head": "6b46c93fb8f6fa73097f4941fe001b2e16375be2",
-      "note": "re-registered under POST-HOC addendum 5 (below-footer digest 7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f, 5 addenda); the h3 code digest also moves with the addendum-5 item-2 guard rule and the item-3 F4 readings. Records written before this entry keep their own (superseded) entry and still verify (addendum 2 item 5).",
-      "registered_utc": "2026-09-23T03:14:05+00:00",
+      "code_digest_source": "kept: the digest this stage's records were written under",
+      "git_head": "388f3a0da8a4d8efcf90074404015a6d0ef30b0b",
+      "note": "POST-HOC addendum 7 item 3: every stage re-registered at the 7-addenda below-footer digest; earlier entries kept as superseded, records verified against the entry registered when they were written. The confirmation stage also takes the tree's code digest (addendum 7 items 1-2 changed its code and it has written no record).",
+      "registered_utc": "2026-09-23T07:03:30+00:00",
+      "reregistration": "REGISTERED by POST-HOC addendum 7 item 3, as the standing procedure: 'Appending an addendum changes the below-footer digest, so every stage entry must be re-registered for its runner's gate to pass, while records written earlier verify against the entry under which they were written (kept as superseded). Resolved: after every addendum, every stage is re-registered at the new digest and the earlier entries are preserved; a record is always verified against the entry registered when it was written. This is addendum 2 change 5's mechanism, stated as the standing procedure so that the gates and the verification tests read the sealed text rather than a stale constant.' EVERY stage means the discovery stage too, which register_stage_from_tree refuses (its entry is read from its records), so reregister_all_stages calls register_stage directly with the records' own code digest and only the below-footer digest and addenda count moved. A stage keeps its registered CODE digest unless its own code changed and it has written no record yet",
       "source": "current tree (below-footer digest and addenda count)",
       "stage": "ladder"
     },
     "power": {
-      "addenda_count": 5,
-      "below_footer_sha256": "7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f",
+      "addenda_count": 7,
+      "below_footer_sha256": "f125031177e13ac93b2f80da238dfd1dd0716674eb86abfb8769dfcc63ce3348",
       "code_digest": "eca77c0f7647a419c9158fba01711bf2d75d4b3781ba920f6046ae9f7fc77bcd",
-      "code_digest_source": "the tree: g19_run_power.code_digest()['combined']",
-      "git_head": "6b46c93fb8f6fa73097f4941fe001b2e16375be2",
-      "note": "re-registered under POST-HOC addendum 5 (below-footer digest 7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f, 5 addenda); the h3 code digest also moves with the addendum-5 item-2 guard rule and the item-3 F4 readings. Records written before this entry keep their own (superseded) entry and still verify (addendum 2 item 5).",
-      "registered_utc": "2026-09-23T03:14:08+00:00",
+      "code_digest_source": "kept: the digest this stage's records were written under",
+      "git_head": "388f3a0da8a4d8efcf90074404015a6d0ef30b0b",
+      "note": "POST-HOC addendum 7 item 3: every stage re-registered at the 7-addenda below-footer digest; earlier entries kept as superseded, records verified against the entry registered when they were written. The confirmation stage also takes the tree's code digest (addendum 7 items 1-2 changed its code and it has written no record).",
+      "registered_utc": "2026-09-23T07:03:30+00:00",
+      "reregistration": "REGISTERED by POST-HOC addendum 7 item 3, as the standing procedure: 'Appending an addendum changes the below-footer digest, so every stage entry must be re-registered for its runner's gate to pass, while records written earlier verify against the entry under which they were written (kept as superseded). Resolved: after every addendum, every stage is re-registered at the new digest and the earlier entries are preserved; a record is always verified against the entry registered when it was written. This is addendum 2 change 5's mechanism, stated as the standing procedure so that the gates and the verification tests read the sealed text rather than a stale constant.' EVERY stage means the discovery stage too, which register_stage_from_tree refuses (its entry is read from its records), so reregister_all_stages calls register_stage directly with the records' own code digest and only the below-footer digest and addenda count moved. A stage keeps its registered CODE digest unless its own code changed and it has written no record yet",
       "source": "current tree (below-footer digest and addenda count)",
       "stage": "power"
     },
     "process": {
-      "addenda_count": 5,
-      "below_footer_sha256": "7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f",
+      "addenda_count": 7,
+      "below_footer_sha256": "f125031177e13ac93b2f80da238dfd1dd0716674eb86abfb8769dfcc63ce3348",
       "code_digest": "a8416dc8c8ab3ba9d71ffc16e8e6b3c8b97d3330143046174059567e66bef674",
-      "code_digest_source": "the tree: g19_run_process.code_digests()['own']",
-      "git_head": "6b46c93fb8f6fa73097f4941fe001b2e16375be2",
-      "note": "re-registered under POST-HOC addendum 5 (below-footer digest 7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f, 5 addenda); the h3 code digest also moves with the addendum-5 item-2 guard rule and the item-3 F4 readings. Records written before this entry keep their own (superseded) entry and still verify (addendum 2 item 5).",
-      "registered_utc": "2026-09-23T03:14:11+00:00",
+      "code_digest_source": "kept: the digest this stage's records were written under",
+      "git_head": "388f3a0da8a4d8efcf90074404015a6d0ef30b0b",
+      "note": "POST-HOC addendum 7 item 3: every stage re-registered at the 7-addenda below-footer digest; earlier entries kept as superseded, records verified against the entry registered when they were written. The confirmation stage also takes the tree's code digest (addendum 7 items 1-2 changed its code and it has written no record).",
+      "registered_utc": "2026-09-23T07:03:30+00:00",
+      "reregistration": "REGISTERED by POST-HOC addendum 7 item 3, as the standing procedure: 'Appending an addendum changes the below-footer digest, so every stage entry must be re-registered for its runner's gate to pass, while records written earlier verify against the entry under which they were written (kept as superseded). Resolved: after every addendum, every stage is re-registered at the new digest and the earlier entries are preserved; a record is always verified against the entry registered when it was written. This is addendum 2 change 5's mechanism, stated as the standing procedure so that the gates and the verification tests read the sealed text rather than a stale constant.' EVERY stage means the discovery stage too, which register_stage_from_tree refuses (its entry is read from its records), so reregister_all_stages calls register_stage directly with the records' own code digest and only the below-footer digest and addenda count moved. A stage keeps its registered CODE digest unless its own code changed and it has written no record yet",
       "source": "current tree (below-footer digest and addenda count)",
       "stage": "process"
     },
     "report": {
-      "addenda_count": 5,
-      "below_footer_sha256": "7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f",
+      "addenda_count": 7,
+      "below_footer_sha256": "f125031177e13ac93b2f80da238dfd1dd0716674eb86abfb8769dfcc63ce3348",
       "code_digest": "26d414a160279efbf657ea82e33c22988c3cb37eaca7876aab56b9694748d234",
-      "code_digest_source": "the tree: g19_build_report.code_digest()['combined']",
-      "git_head": "6b46c93fb8f6fa73097f4941fe001b2e16375be2",
-      "note": "re-registered under POST-HOC addendum 5 (below-footer digest 7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f, 5 addenda); the h3 code digest also moves with the addendum-5 item-2 guard rule and the item-3 F4 readings. Records written before this entry keep their own (superseded) entry and still verify (addendum 2 item 5).",
-      "registered_utc": "2026-09-23T03:14:14+00:00",
+      "code_digest_source": "kept: the digest this stage's records were written under",
+      "git_head": "388f3a0da8a4d8efcf90074404015a6d0ef30b0b",
+      "note": "POST-HOC addendum 7 item 3: every stage re-registered at the 7-addenda below-footer digest; earlier entries kept as superseded, records verified against the entry registered when they were written. The confirmation stage also takes the tree's code digest (addendum 7 items 1-2 changed its code and it has written no record).",
+      "registered_utc": "2026-09-23T07:03:30+00:00",
+      "reregistration": "REGISTERED by POST-HOC addendum 7 item 3, as the standing procedure: 'Appending an addendum changes the below-footer digest, so every stage entry must be re-registered for its runner's gate to pass, while records written earlier verify against the entry under which they were written (kept as superseded). Resolved: after every addendum, every stage is re-registered at the new digest and the earlier entries are preserved; a record is always verified against the entry registered when it was written. This is addendum 2 change 5's mechanism, stated as the standing procedure so that the gates and the verification tests read the sealed text rather than a stale constant.' EVERY stage means the discovery stage too, which register_stage_from_tree refuses (its entry is read from its records), so reregister_all_stages calls register_stage directly with the records' own code digest and only the below-footer digest and addenda count moved. A stage keeps its registered CODE digest unless its own code changed and it has written no record yet",
       "source": "current tree (below-footer digest and addenda count)",
       "stage": "report"
     },
     "scorer": {
-      "addenda_count": 5,
-      "below_footer_sha256": "7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f",
+      "addenda_count": 7,
+      "below_footer_sha256": "f125031177e13ac93b2f80da238dfd1dd0716674eb86abfb8769dfcc63ce3348",
       "code_digest": "895a6ab9696010c9f8bffb4a6078f55b8f41b0773623a8de77103083157e0504",
-      "code_digest_source": "the registry's 'discovery' entry: the scorer verifies discovery records and writes none of its own, so its entry carries the digest those records were written under, NOT a digest of the scorer's own code (editing the scorer therefore changes no entry, and the seal gate does not compare code digests)",
-      "git_head": "6b46c93fb8f6fa73097f4941fe001b2e16375be2",
-      "note": "re-registered under POST-HOC addendum 5 (below-footer digest 7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f, 5 addenda); the h3 code digest also moves with the addendum-5 item-2 guard rule and the item-3 F4 readings. Records written before this entry keep their own (superseded) entry and still verify (addendum 2 item 5).",
-      "registered_utc": "2026-09-23T03:14:01+00:00",
+      "code_digest_source": "kept: the digest this stage's records were written under",
+      "git_head": "388f3a0da8a4d8efcf90074404015a6d0ef30b0b",
+      "note": "POST-HOC addendum 7 item 3: every stage re-registered at the 7-addenda below-footer digest; earlier entries kept as superseded, records verified against the entry registered when they were written. The confirmation stage also takes the tree's code digest (addendum 7 items 1-2 changed its code and it has written no record).",
+      "registered_utc": "2026-09-23T07:03:30+00:00",
+      "reregistration": "REGISTERED by POST-HOC addendum 7 item 3, as the standing procedure: 'Appending an addendum changes the below-footer digest, so every stage entry must be re-registered for its runner's gate to pass, while records written earlier verify against the entry under which they were written (kept as superseded). Resolved: after every addendum, every stage is re-registered at the new digest and the earlier entries are preserved; a record is always verified against the entry registered when it was written. This is addendum 2 change 5's mechanism, stated as the standing procedure so that the gates and the verification tests read the sealed text rather than a stale constant.' EVERY stage means the discovery stage too, which register_stage_from_tree refuses (its entry is read from its records), so reregister_all_stages calls register_stage directly with the records' own code digest and only the below-footer digest and addenda count moved. A stage keeps its registered CODE digest unless its own code changed and it has written no record yet",
       "source": "current tree (below-footer digest and addenda count)",
       "stage": "scorer"
     }
@@ -1468,6 +1625,210 @@
       "stage": "confirmation",
       "superseded_by_note": "TASK X final: re-registered after the run_info manifest was brought inside the post-run leak scan. 6 addenda; no confirmation record exists; the once-only lock is unspent.",
       "superseded_utc": "2026-09-23T06:34:40+00:00"
+    },
+    {
+      "addenda_count": 1,
+      "below_footer_sha256": "05f36fc0354adb75ae41655977115d827ffce1227b2bdbfeeba28a975f0e8e54",
+      "code_digest": "895a6ab9696010c9f8bffb4a6078f55b8f41b0773623a8de77103083157e0504",
+      "git_head": "3343d3f240e96661c7b082c2cfbef8c26980427e",
+      "n_ignored_records": 0,
+      "n_records": 1461,
+      "note": "discovery records written under POST-HOC addendum 1; below-footer digest, addenda count and code digest read from the record fields (addendum 2 item 5), nothing recomputed. git_head = 3343d3f, the last commit touching the discovery import closure (CODE_FILES + the runner + RUNNER_OBJECTS); daa0469 added the re-coloured V5 fold files used mid-run and changed no closure file; the run manifest manifests/g19_run_discovery.json records git_head be793f1 for the final invocation",
+      "registered_utc": "2026-09-22T01:53:20+00:00",
+      "restricted_to_plan": true,
+      "source": "record fields",
+      "stage": "discovery",
+      "superseded_by_note": "POST-HOC addendum 7 item 3: every stage re-registered at the 7-addenda below-footer digest; earlier entries kept as superseded, records verified against the entry registered when they were written. The confirmation stage also takes the tree's code digest (addendum 7 items 1-2 changed its code and it has written no record).",
+      "superseded_utc": "2026-09-23T07:03:30+00:00"
+    },
+    {
+      "addenda_count": 2,
+      "amended_utc": "2026-09-22T04:10:10+00:00",
+      "amendment": "descriptive fields corrected; the below-footer digest, code digest and addenda count are unchanged, so no record's verification changes",
+      "below_footer_sha256": "1016149ea8fbc74a9051ea4c1dd8fb7a5bd26388086325a3dea6c7084d2fcff6",
+      "code_digest": "d4ddf83c747aa9c991e6414869fbd9a054a1293342c4aa7f90f795f17c420e5b",
+      "code_digest_source": "the tree: g19_run_discovery.current_code_digest()",
+      "git_head": "6528835992d4de90fb54107cac9c423f5034b1b0",
+      "note": "registered under POST-HOC addendum 2 before the first post-discovery runner (addendum 2 item 5)",
+      "registered_utc": "2026-09-22T01:58:41+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "discovery_candidates",
+      "superseded_by_note": "POST-HOC addendum 7 item 3: every stage re-registered at the 7-addenda below-footer digest; earlier entries kept as superseded, records verified against the entry registered when they were written. The confirmation stage also takes the tree's code digest (addendum 7 items 1-2 changed its code and it has written no record).",
+      "superseded_utc": "2026-09-23T07:03:30+00:00"
+    },
+    {
+      "addenda_count": 5,
+      "below_footer_sha256": "7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f",
+      "code_digest": "895a6ab9696010c9f8bffb4a6078f55b8f41b0773623a8de77103083157e0504",
+      "code_digest_source": "the registry's 'discovery' entry: the scorer verifies discovery records and writes none of its own, so its entry carries the digest those records were written under, NOT a digest of the scorer's own code (editing the scorer therefore changes no entry, and the seal gate does not compare code digests)",
+      "git_head": "6b46c93fb8f6fa73097f4941fe001b2e16375be2",
+      "note": "re-registered under POST-HOC addendum 5 (below-footer digest 7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f, 5 addenda); the h3 code digest also moves with the addendum-5 item-2 guard rule and the item-3 F4 readings. Records written before this entry keep their own (superseded) entry and still verify (addendum 2 item 5).",
+      "registered_utc": "2026-09-23T03:14:01+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "scorer",
+      "superseded_by_note": "POST-HOC addendum 7 item 3: every stage re-registered at the 7-addenda below-footer digest; earlier entries kept as superseded, records verified against the entry registered when they were written. The confirmation stage also takes the tree's code digest (addendum 7 items 1-2 changed its code and it has written no record).",
+      "superseded_utc": "2026-09-23T07:03:30+00:00"
+    },
+    {
+      "addenda_count": 5,
+      "below_footer_sha256": "7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f",
+      "code_digest": "895a6ab9696010c9f8bffb4a6078f55b8f41b0773623a8de77103083157e0504",
+      "code_digest_source": "the registry's 'discovery' entry (g19_run_ladder.ladder_code_digest()['discovery']): a ladder record carries the discovery digest beside its own 'ladder_code_digest', and the runner compares the live value with this entry, so the two agree by construction",
+      "git_head": "6b46c93fb8f6fa73097f4941fe001b2e16375be2",
+      "note": "re-registered under POST-HOC addendum 5 (below-footer digest 7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f, 5 addenda); the h3 code digest also moves with the addendum-5 item-2 guard rule and the item-3 F4 readings. Records written before this entry keep their own (superseded) entry and still verify (addendum 2 item 5).",
+      "registered_utc": "2026-09-23T03:14:05+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "ladder",
+      "superseded_by_note": "POST-HOC addendum 7 item 3: every stage re-registered at the 7-addenda below-footer digest; earlier entries kept as superseded, records verified against the entry registered when they were written. The confirmation stage also takes the tree's code digest (addendum 7 items 1-2 changed its code and it has written no record).",
+      "superseded_utc": "2026-09-23T07:03:30+00:00"
+    },
+    {
+      "addenda_count": 5,
+      "below_footer_sha256": "7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f",
+      "code_digest": "d81f6dd59292edc63e77b022b098121e42ca1d1cfb08ba4773676eb408c2253f",
+      "code_digest_source": "the tree: g19_run_h3.code_digest()['combined']",
+      "git_head": "6b46c93fb8f6fa73097f4941fe001b2e16375be2",
+      "note": "re-registered after the reporting-only F4_INTERVAL_READING correction (addendum 5 item 3 wording). All 471 H3 records were written before this entry and keep their own (superseded) entry; nothing is refitted and the 12 of 12 contrast record sets stay complete.",
+      "registered_utc": "2026-09-23T04:26:53+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "h3",
+      "superseded_by_note": "POST-HOC addendum 7 item 3: every stage re-registered at the 7-addenda below-footer digest; earlier entries kept as superseded, records verified against the entry registered when they were written. The confirmation stage also takes the tree's code digest (addendum 7 items 1-2 changed its code and it has written no record).",
+      "superseded_utc": "2026-09-23T07:03:30+00:00"
+    },
+    {
+      "addenda_count": 5,
+      "below_footer_sha256": "7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f",
+      "code_digest": "eca77c0f7647a419c9158fba01711bf2d75d4b3781ba920f6046ae9f7fc77bcd",
+      "code_digest_source": "the tree: g19_run_power.code_digest()['combined']",
+      "git_head": "6b46c93fb8f6fa73097f4941fe001b2e16375be2",
+      "note": "re-registered under POST-HOC addendum 5 (below-footer digest 7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f, 5 addenda); the h3 code digest also moves with the addendum-5 item-2 guard rule and the item-3 F4 readings. Records written before this entry keep their own (superseded) entry and still verify (addendum 2 item 5).",
+      "registered_utc": "2026-09-23T03:14:08+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "power",
+      "superseded_by_note": "POST-HOC addendum 7 item 3: every stage re-registered at the 7-addenda below-footer digest; earlier entries kept as superseded, records verified against the entry registered when they were written. The confirmation stage also takes the tree's code digest (addendum 7 items 1-2 changed its code and it has written no record).",
+      "superseded_utc": "2026-09-23T07:03:30+00:00"
+    },
+    {
+      "addenda_count": 5,
+      "below_footer_sha256": "7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f",
+      "code_digest": "a8416dc8c8ab3ba9d71ffc16e8e6b3c8b97d3330143046174059567e66bef674",
+      "code_digest_source": "the tree: g19_run_process.code_digests()['own']",
+      "git_head": "6b46c93fb8f6fa73097f4941fe001b2e16375be2",
+      "note": "re-registered under POST-HOC addendum 5 (below-footer digest 7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f, 5 addenda); the h3 code digest also moves with the addendum-5 item-2 guard rule and the item-3 F4 readings. Records written before this entry keep their own (superseded) entry and still verify (addendum 2 item 5).",
+      "registered_utc": "2026-09-23T03:14:11+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "process",
+      "superseded_by_note": "POST-HOC addendum 7 item 3: every stage re-registered at the 7-addenda below-footer digest; earlier entries kept as superseded, records verified against the entry registered when they were written. The confirmation stage also takes the tree's code digest (addendum 7 items 1-2 changed its code and it has written no record).",
+      "superseded_utc": "2026-09-23T07:03:30+00:00"
+    },
+    {
+      "addenda_count": 5,
+      "below_footer_sha256": "7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f",
+      "code_digest": "b1cb4cc2ce365f4f80ac5b630b2928845e2ec74e332fe8c35e1176ef1aaa7511",
+      "code_digest_source": "the tree: g19_make_figures.code_digest()['combined']",
+      "git_head": "6b46c93fb8f6fa73097f4941fe001b2e16375be2",
+      "note": "re-registered under POST-HOC addendum 5 (below-footer digest 7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f, 5 addenda); the h3 code digest also moves with the addendum-5 item-2 guard rule and the item-3 F4 readings. Records written before this entry keep their own (superseded) entry and still verify (addendum 2 item 5).",
+      "registered_utc": "2026-09-23T03:14:13+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "figures",
+      "superseded_by_note": "POST-HOC addendum 7 item 3: every stage re-registered at the 7-addenda below-footer digest; earlier entries kept as superseded, records verified against the entry registered when they were written. The confirmation stage also takes the tree's code digest (addendum 7 items 1-2 changed its code and it has written no record).",
+      "superseded_utc": "2026-09-23T07:03:30+00:00"
+    },
+    {
+      "addenda_count": 5,
+      "below_footer_sha256": "7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f",
+      "code_digest": "26d414a160279efbf657ea82e33c22988c3cb37eaca7876aab56b9694748d234",
+      "code_digest_source": "the tree: g19_build_report.code_digest()['combined']",
+      "git_head": "6b46c93fb8f6fa73097f4941fe001b2e16375be2",
+      "note": "re-registered under POST-HOC addendum 5 (below-footer digest 7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f, 5 addenda); the h3 code digest also moves with the addendum-5 item-2 guard rule and the item-3 F4 readings. Records written before this entry keep their own (superseded) entry and still verify (addendum 2 item 5).",
+      "registered_utc": "2026-09-23T03:14:14+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "report",
+      "superseded_by_note": "POST-HOC addendum 7 item 3: every stage re-registered at the 7-addenda below-footer digest; earlier entries kept as superseded, records verified against the entry registered when they were written. The confirmation stage also takes the tree's code digest (addendum 7 items 1-2 changed its code and it has written no record).",
+      "superseded_utc": "2026-09-23T07:03:30+00:00"
+    },
+    {
+      "addenda_count": 6,
+      "below_footer_sha256": "21212a7f6dc508de924ac7e6d36660704693e8e10b008d033662fc786ef84daa",
+      "code_digest": "60cc3d66f06647a4b4f35d310aa10a2b34620b782a7f9989c1edff39da840475",
+      "code_digest_source": "the tree: g19_run_confirmation.code_digest()['combined'] (the confirmation runner, gen19ct/evaluation/confirmation.py and the discovery code its arms are fitted with)",
+      "git_head": "055a453aaacbd920e16ae214e4fcd29ee162a62b",
+      "note": "TASK X final: re-registered after the run_info manifest was brought inside the post-run leak scan. 6 addenda; no confirmation record exists; the once-only lock is unspent.",
+      "registered_utc": "2026-09-23T06:34:40+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "confirmation",
+      "superseded_by_note": "POST-HOC addendum 7 item 3: every stage re-registered at the 7-addenda below-footer digest; earlier entries kept as superseded, records verified against the entry registered when they were written. The confirmation stage also takes the tree's code digest (addendum 7 items 1-2 changed its code and it has written no record).",
+      "superseded_utc": "2026-09-23T07:03:31+00:00"
+    },
+    {
+      "addenda_count": 7,
+      "below_footer_sha256": "f125031177e13ac93b2f80da238dfd1dd0716674eb86abfb8769dfcc63ce3348",
+      "code_digest": "1c222e656b721b1ae89d7a480b097bf8d0772f3e6a7d5dd9e641a4abe062801d",
+      "code_digest_source": "the tree (stage_code_digest): this stage's own code changed and it has written no record yet",
+      "git_head": "388f3a0da8a4d8efcf90074404015a6d0ef30b0b",
+      "note": "POST-HOC addendum 7 item 3: every stage re-registered at the 7-addenda below-footer digest; earlier entries kept as superseded, records verified against the entry registered when they were written. The confirmation stage also takes the tree's code digest (addendum 7 items 1-2 changed its code and it has written no record).",
+      "registered_utc": "2026-09-23T07:03:31+00:00",
+      "reregistration": "REGISTERED by POST-HOC addendum 7 item 3, as the standing procedure: 'Appending an addendum changes the below-footer digest, so every stage entry must be re-registered for its runner's gate to pass, while records written earlier verify against the entry under which they were written (kept as superseded). Resolved: after every addendum, every stage is re-registered at the new digest and the earlier entries are preserved; a record is always verified against the entry registered when it was written. This is addendum 2 change 5's mechanism, stated as the standing procedure so that the gates and the verification tests read the sealed text rather than a stale constant.' EVERY stage means the discovery stage too, which register_stage_from_tree refuses (its entry is read from its records), so reregister_all_stages calls register_stage directly with the records' own code digest and only the below-footer digest and addenda count moved. A stage keeps its registered CODE digest unless its own code changed and it has written no record yet",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "confirmation",
+      "superseded_by_note": "POST-HOC addendum 7: the confirmation stage takes the tree's code digest after the item-1 and item-2 edits to gen19ct/evaluation/confirmation.py and scripts/g19_run_confirmation.py; every stage stays at the 7-addenda below-footer digest.",
+      "superseded_utc": "2026-09-23T07:31:45+00:00"
+    },
+    {
+      "addenda_count": 7,
+      "below_footer_sha256": "f125031177e13ac93b2f80da238dfd1dd0716674eb86abfb8769dfcc63ce3348",
+      "code_digest": "b76bede6b65150e262b50268e1a5911a16d81d0f747e1cc9f830bd6d551f6889",
+      "code_digest_source": "the tree (stage_code_digest): this stage's own code changed and it has written no record yet",
+      "git_head": "388f3a0da8a4d8efcf90074404015a6d0ef30b0b",
+      "note": "POST-HOC addendum 7: the confirmation stage takes the tree's code digest after the item-1 and item-2 edits to gen19ct/evaluation/confirmation.py and scripts/g19_run_confirmation.py; every stage stays at the 7-addenda below-footer digest.",
+      "registered_utc": "2026-09-23T07:31:45+00:00",
+      "reregistration": "REGISTERED by POST-HOC addendum 7 item 3, as the standing procedure: 'Appending an addendum changes the below-footer digest, so every stage entry must be re-registered for its runner's gate to pass, while records written earlier verify against the entry under which they were written (kept as superseded). Resolved: after every addendum, every stage is re-registered at the new digest and the earlier entries are preserved; a record is always verified against the entry registered when it was written. This is addendum 2 change 5's mechanism, stated as the standing procedure so that the gates and the verification tests read the sealed text rather than a stale constant.' EVERY stage means the discovery stage too, which register_stage_from_tree refuses (its entry is read from its records), so reregister_all_stages calls register_stage directly with the records' own code digest and only the below-footer digest and addenda count moved. A stage keeps its registered CODE digest unless its own code changed and it has written no record yet",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "confirmation",
+      "superseded_by_note": "task X: the confirmation stage's own code changed (the six verification findings E1-E6 fixed); every stage re-registered at the current below-footer digest under POST-HOC addendum 7 item 3, earlier entries kept as superseded",
+      "superseded_utc": "2026-09-23T09:06:46+00:00"
+    },
+    {
+      "addenda_count": 7,
+      "below_footer_sha256": "f125031177e13ac93b2f80da238dfd1dd0716674eb86abfb8769dfcc63ce3348",
+      "code_digest": "d8d144553b515e2fe46b78c97247dacbc5c60fe2cf190e2bfadbff4de0492aa2",
+      "code_digest_source": "the tree (stage_code_digest): this stage's own code changed and it has written no record yet",
+      "git_head": "388f3a0da8a4d8efcf90074404015a6d0ef30b0b",
+      "note": "task X: the confirmation stage's own code changed (the six verification findings E1-E6 fixed); every stage re-registered at the current below-footer digest under POST-HOC addendum 7 item 3, earlier entries kept as superseded",
+      "registered_utc": "2026-09-23T09:06:46+00:00",
+      "reregistration": "REGISTERED by POST-HOC addendum 7 item 3, as the standing procedure: 'Appending an addendum changes the below-footer digest, so every stage entry must be re-registered for its runner's gate to pass, while records written earlier verify against the entry under which they were written (kept as superseded). Resolved: after every addendum, every stage is re-registered at the new digest and the earlier entries are preserved; a record is always verified against the entry registered when it was written. This is addendum 2 change 5's mechanism, stated as the standing procedure so that the gates and the verification tests read the sealed text rather than a stale constant.' EVERY stage means the discovery stage too, which register_stage_from_tree refuses (its entry is read from its records), so reregister_all_stages calls register_stage directly with the records' own code digest and only the below-footer digest and addenda count moved. A stage keeps its registered CODE digest unless its own code changed and it has written no record yet",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "confirmation",
+      "superseded_by_note": "task X second edit: the confirmation stage's code digest changed again (RUN_STAGES gains the two unimplemented registered stages E7 names); every stage re-registered at the current below-footer digest under POST-HOC addendum 7 item 3, earlier entries kept as superseded",
+      "superseded_utc": "2026-09-23T09:38:04+00:00"
+    },
+    {
+      "addenda_count": 7,
+      "below_footer_sha256": "f125031177e13ac93b2f80da238dfd1dd0716674eb86abfb8769dfcc63ce3348",
+      "code_digest": "07175a0bbe3cbe086b534edf5c7084b6d79771f27066d1d20013852b346b730d",
+      "code_digest_source": "the tree (stage_code_digest): this stage's own code changed and it has written no record yet",
+      "git_head": "388f3a0da8a4d8efcf90074404015a6d0ef30b0b",
+      "note": "task X second edit: the confirmation stage's code digest changed again (RUN_STAGES gains the two unimplemented registered stages E7 names); every stage re-registered at the current below-footer digest under POST-HOC addendum 7 item 3, earlier entries kept as superseded",
+      "registered_utc": "2026-09-23T09:38:04+00:00",
+      "reregistration": "REGISTERED by POST-HOC addendum 7 item 3, as the standing procedure: 'Appending an addendum changes the below-footer digest, so every stage entry must be re-registered for its runner's gate to pass, while records written earlier verify against the entry under which they were written (kept as superseded). Resolved: after every addendum, every stage is re-registered at the new digest and the earlier entries are preserved; a record is always verified against the entry registered when it was written. This is addendum 2 change 5's mechanism, stated as the standing procedure so that the gates and the verification tests read the sealed text rather than a stale constant.' EVERY stage means the discovery stage too, which register_stage_from_tree refuses (its entry is read from its records), so reregister_all_stages calls register_stage directly with the records' own code digest and only the below-footer digest and addenda count moved. A stage keeps its registered CODE digest unless its own code changed and it has written no record yet",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "confirmation",
+      "superseded_by_note": "task X third edit: the confirmation stage's code digest changed again (E7 stage text); POST-HOC addendum 7 item 3",
+      "superseded_utc": "2026-09-23T09:42:50+00:00"
+    },
+    {
+      "addenda_count": 7,
+      "below_footer_sha256": "f125031177e13ac93b2f80da238dfd1dd0716674eb86abfb8769dfcc63ce3348",
+      "code_digest": "9231ad5dc3c7192d59a18d0df72f8c4ace8e3ab33e95acbb627d98c3c08376e0",
+      "code_digest_source": "the tree (stage_code_digest): this stage's own code changed and it has written no record yet",
+      "git_head": "388f3a0da8a4d8efcf90074404015a6d0ef30b0b",
+      "note": "task X third edit: the confirmation stage's code digest changed again (E7 stage text); POST-HOC addendum 7 item 3",
+      "registered_utc": "2026-09-23T09:42:50+00:00",
+      "reregistration": "REGISTERED by POST-HOC addendum 7 item 3, as the standing procedure: 'Appending an addendum changes the below-footer digest, so every stage entry must be re-registered for its runner's gate to pass, while records written earlier verify against the entry under which they were written (kept as superseded). Resolved: after every addendum, every stage is re-registered at the new digest and the earlier entries are preserved; a record is always verified against the entry registered when it was written. This is addendum 2 change 5's mechanism, stated as the standing procedure so that the gates and the verification tests read the sealed text rather than a stale constant.' EVERY stage means the discovery stage too, which register_stage_from_tree refuses (its entry is read from its records), so reregister_all_stages calls register_stage directly with the records' own code digest and only the below-footer digest and addenda count moved. A stage keeps its registered CODE digest unless its own code changed and it has written no record yet",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "confirmation",
+      "superseded_by_note": "task X fourth edit: confirmation code digest (POST-HOC addendum 7 item 3)",
+      "superseded_utc": "2026-09-23T10:00:35+00:00"
     }
   ]
 }

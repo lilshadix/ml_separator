@@ -89,6 +89,18 @@ READINGS: dict[str, str] = {
                 "record's own timestamp (registry.record_run_utc): 'earlier' means written before that entry was "
                 "superseded, and a record a runner holding stale code wrote AFTER the re-registration does not verify "
                 "(stale_after_supersession); a record carrying no timestamp verifies with ordering_checked false",
+    "reregistration": "REGISTERED by POST-HOC addendum 7 item 3, as the standing procedure: 'Appending an addendum "
+                      "changes the below-footer digest, so every stage entry must be re-registered for its runner's "
+                      "gate to pass, while records written earlier verify against the entry under which they were "
+                      "written (kept as superseded). Resolved: after every addendum, every stage is re-registered at "
+                      "the new digest and the earlier entries are preserved; a record is always verified against the "
+                      "entry registered when it was written. This is addendum 2 change 5's mechanism, stated as the "
+                      "standing procedure so that the gates and the verification tests read the sealed text rather "
+                      "than a stale constant.' EVERY stage means the discovery stage too, which "
+                      "register_stage_from_tree refuses (its entry is read from its records), so "
+                      "reregister_all_stages calls register_stage directly with the records' own code digest and only "
+                      "the below-footer digest and addenda count moved. A stage keeps its registered CODE digest "
+                      "unless its own code changed and it has written no record yet",
     "fallback": "until manifests/digest_registry.json exists every gate reads the constants of evaluation.discovery "
                 "(N_ADDENDA_EXPECTED, REGISTERED_ADDENDA_SHA256) and the live discovery code digest, exactly as before",
     "candidates": "the conditional freezing-candidate jobs of the discovery runner (discovery.STAGES['candidates'], "
@@ -321,6 +333,61 @@ def verify_record(record: Mapping[str, Any], stage: str | None, path: Path | Non
             raise D.StaleRecordError(out.get("reason") or
                                      f"record of stage {stage!r} differs from its registry entry and from every "
                                      f"superseded entry of that stage: {sorted(mism)}")
+    return out
+
+
+def reregister_all_stages(*, note: str, path: Path | None = None, sealed: Path | None = None,
+                          sha_file: Path | None = None, retree: Sequence[str] = ("confirmation",),
+                          dry_run: bool = False) -> dict[str, Any]:
+    """POST-HOC addendum 7 item 3, as the standing procedure: **after every addendum every stage is re-registered at the
+    new below-footer digest**, the earlier entries are kept as ``superseded``, and a record is always verified against
+    the entry registered when it was written (:func:`verify_record`).
+
+    Appending an addendum changes the below-footer digest of the sealed text, so a stage whose entry still carries the
+    previous digest makes its runner's seal gate refuse (:func:`refuse_unless_sealed`) -- which is why the addendum
+    states the re-registration as a rule rather than leaving it to each runner.
+
+    What is re-registered and with which code digest:
+
+    * the below-footer digest and addenda count come from the CURRENT sealed text (:func:`below_footer_digest`), for
+      every stage the registry already holds, ``discovery`` included (which :func:`register_stage_from_tree` refuses,
+      because its entry is read from its records);
+    * a stage named in ``retree`` takes its code digest from the TREE (:func:`stage_code_digest`) -- that is for a stage
+      whose own code has changed and which has NOT yet written a record, so its runner may still be gated on the live
+      code (``refuse_unless_writable``);
+    * every other stage KEEPS the code digest it is registered with, because that is "the code digest under which that
+      stage's records were written": re-registering it with a live digest its records do not carry would describe them
+      wrongly, and it is the earlier entry (now superseded) that those records verify against either way.
+
+    Returns, per stage, what changed; ``dry_run`` computes without writing.
+    """
+    dg = below_footer_digest(sealed, sha_file)
+    body = read_registry(path)
+    if body is None:
+        raise FileNotFoundError(f"no registry at {registry_path() if path is None else Path(path)}: nothing to "
+                                "re-register (the constants govern until a stage is registered)")
+    want, n = str(dg["below_footer_sha256"]), int(dg["n_addenda"])
+    retree = tuple(str(s) for s in retree)
+    out: dict[str, Any] = {"below_footer_sha256": want, "addenda_count": n, "stages": {}, "dry_run": bool(dry_run),
+                           "code_digest_from_tree": list(retree), "rule": READINGS["reregistration"]}
+    for stage in [s for s in STAGES if s in (body.get("stages") or {})]:
+        old = dict((body["stages"])[stage])
+        code = stage_code_digest(stage) if stage in retree else str(old["code_digest"])
+        row = {"below_footer_was": str(old["below_footer_sha256"]), "addenda_was": int(old["addenda_count"]),
+               "code_was": str(old["code_digest"]), "code_now": code,
+               "code_digest_source": ("the tree (stage_code_digest): this stage's own code changed and it has written no "
+                                      "record yet" if stage in retree else
+                                      "kept: the digest this stage's records were written under"),
+               "changed": (str(old["below_footer_sha256"]) != want or int(old["addenda_count"]) != n
+                           or str(old["code_digest"]) != code)}
+        if not dry_run and row["changed"]:
+            register_stage(stage, below_footer_sha256=want, code_digest=code, git_head=_git_head(), addenda_count=n,
+                           note=note, path=path, force=True,
+                           extra={"source": "current tree (below-footer digest and addenda count)",
+                                  "code_digest_source": row["code_digest_source"],
+                                  "reregistration": READINGS["reregistration"]})
+        out["stages"][stage] = row
+    out["n_changed"] = sum(1 for r in out["stages"].values() if r["changed"])
     return out
 
 
@@ -767,6 +834,12 @@ def main(argv: Sequence[str] | None = None) -> int:
                    help="re-register a stage whose digests changed (a new POST-HOC addendum, or an edit to the stage's "
                         "own code before it has run); the earlier entry is kept under 'superseded' and every record "
                         "written under it still verifies")
+    p = cmd("reregister-all", "re-register EVERY stage at the current below-footer digest (POST-HOC addendum 7 item 3)")
+    p.add_argument("--note", required=True)
+    p.add_argument("--code-from-tree", nargs="*", default=["confirmation"],
+                   help="stages whose CODE digest is taken from the tree because their own code changed and they have "
+                        "written no record yet (default: confirmation); every other stage keeps its registered digest")
+    p.add_argument("--dry-run", action="store_true")
     p = cmd("log-change", "log an edit to an existing module (validates / invalidates nothing)")
     p.add_argument("--files", nargs="+", required=True)
     p.add_argument("--commit", default=None)
@@ -783,6 +856,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     elif ns.cmd == "register":
         print(json.dumps(register_stage_from_tree(ns.stage, note=ns.note, path=path, code_digest=ns.code_digest,
                                                   force=bool(ns.force)), indent=2))
+    elif ns.cmd == "reregister-all":
+        print(json.dumps(reregister_all_stages(note=ns.note, path=path, retree=tuple(ns.code_from_tree),
+                                               dry_run=bool(ns.dry_run)), indent=2))
     elif ns.cmd == "log-change":
         print(json.dumps(log_code_change(ns.files, ns.commit, ns.reason, path=path), indent=2))
     elif ns.cmd == "verify":

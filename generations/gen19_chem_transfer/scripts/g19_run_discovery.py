@@ -409,6 +409,15 @@ class FoldContext:
     #: the fold's V5 inner design and its one draw of the splits, shared by tuning and calibration
     #: (:func:`inner_splits_v5`)
     inner_cache: dict = field(default_factory=dict, repr=False)
+    #: how the CALLER locates and validates the sibling record of the same fold that this fold's arm needs -- today only
+    #: M2's M1 record (section 6's "M2 keeps each outer fold's retained M1 hyperparameters").  ``None`` is discovery's
+    #: own rule (:meth:`NeuralRunner.m1_record`: ``discovery.fold_paths`` under ``evaluation/discovery/<arm>/<design
+    #: file>/s<seed>``, verified against :func:`fold_digest`).  The confirmation runner supplies its own because its
+    #: records live under ``evaluation/confirmation/records`` keyed by an OPAQUE seed index and carry no fold digest at
+    #: all -- discovery's locator there resolves a path that names the withheld seed and can never exist, so every M2
+    #: fold of the single run would raise (task X finding, confirmed end to end).  Discovery's behaviour is unchanged:
+    #: the field defaults to ``None`` and no discovery call site sets it.
+    sibling_record: Callable[[D.JobSpec, str], dict] | None = field(default=None, repr=False)
 
     @property
     def model_seed(self) -> int:
@@ -435,6 +444,9 @@ def model_seed_of(fold_number: int) -> int:
 
 
 def inner_variant(job: D.JobSpec) -> str:
+    """The V5 variant a job's inner design is built from: the job's own for V5, the PRIMARY one for V5-P, V5-PAIR and V6
+    (``inner_design.learned_arm_inner_design`` / ``boosted.inner_design_for`` make the same choice), and ``"state"``
+    only for the V2 state-level sensitivity."""
     return job.variant if job.design == "V5" else ("state" if job.variant == "state" else "primary")
 
 
@@ -456,8 +468,18 @@ def exact_scheme(job: D.JobSpec) -> bool:
 
 
 def v5_family(job: D.JobSpec) -> bool:
-    """Whether the job's outer design is scored on V5 cells (V5, V5-P and V5-PAIR all tune on the V5 inner design)."""
-    return job.design in ("V5", "V5P", "V5PAIR")
+    """Whether the job's outer design tunes on the V5 inner design (V5, V5-P, V5-PAIR and **V6**).
+
+    POST-HOC addendum 7 item 2: section 7 registers *"V6: V5-style inner cells"* and addendum 1 item 1 makes the V5
+    inner design the simultaneous-hiding one, so a V6 job takes the V5 inner design of section 7 as amended by
+    addendum 1 item 1 -- the simultaneous-hiding inner cells, their calibration, their guard and their recorded
+    signature.  Before that addendum this predicate read ``("V5", "V5P", "V5PAIR")`` and a V6 job would have been
+    tuned on the registered V1 / V2 path (:func:`validation_splits`, :func:`_calibration_splits`), mislabelled by
+    :func:`inner_design_record` and left without an :func:`inner_design_signature` in its resume digest.  V6 is scored
+    on Pr/Nd ROWS rather than V5 cells; the name is kept because the inner design is what every caller here asks
+    about.  The edit is logged in ``manifests/digest_registry.json`` and validates or invalidates no record written
+    earlier (addendum 2 item 5): no discovery, candidates, ladder, H3 or power job is of design V6."""
+    return job.design in ("V5", "V5P", "V5PAIR", "V6")
 
 
 def simultaneous_inner_design(job: D.JobSpec, corpus: Corpus):
@@ -563,7 +585,9 @@ def inner_design_record(fc: FoldContext) -> dict[str, Any]:
 def validation_splits(fc: FoldContext) -> list[Any]:
     """The fold's inner splits as ``neural.ValidationSplit`` s (label indices): the addendum's simultaneous design on
     V5, converted by ``neural.splits_from_inner_splits`` from the one draw this fold shares between tuning and
-    calibration; the registered boosted inner design on V1 / V2 (``boosted.verify_split`` guards those, as before)."""
+    calibration; the registered boosted inner design on V1 / V2 (``boosted.verify_split`` guards those, as before).
+    :func:`v5_family` routes V6 down the first branch (POST-HOC addendum 7 item 2), so a V6 job is tuned on the
+    simultaneous-hiding V5 inner cells, never on the V1 / V2 path."""
     from gen19ct.models import boosted as BO
     from gen19ct.models import neural as NN
 
@@ -586,7 +610,8 @@ def validation_splits(fc: FoldContext) -> list[Any]:
 
 def _calibration_splits(fc: FoldContext) -> tuple[Any, list[int]]:
     """The arm's inner splitter of this fold (one draw with the run seed) and the inner folds holding a split: the
-    addendum's simultaneous V5 design, or the tuning splits of the registered V1 / V2 inner design."""
+    addendum's simultaneous V5 design (V6 included, POST-HOC addendum 7 item 2: its calibration is the V5 one), or the
+    tuning splits of the registered V1 / V2 inner design."""
     if v5_family(fc.job):
         _, splits = inner_splits_v5(fc)
         return D.FixedInnerSplits(splits, D.INNER_DESIGN_NAME), sorted({int(s.fold) for s in splits})
@@ -766,8 +791,17 @@ class NeuralRunner:
 
     def m1_record(self, fc: FoldContext) -> dict:
         """M1's record of the same fold, refused unless its digest is the one the current code, fold file and plan state
-        give M1 (``discovery.READINGS['record_verification']``)."""
+        give M1 (``discovery.READINGS['record_verification']``).
+
+        ``fc.sibling_record`` overrides the location AND the staleness rule when the caller owns both: the confirmation
+        runner's records are under ``evaluation/confirmation/records/<arm>/<design file>/i<k>`` and carry ``code_digest``
+        / ``fold_hash`` / ``seed_index`` instead of a fold digest, so it supplies its own locator with the equivalent
+        check.  Unset -- every discovery call site -- this is discovery's own path, byte for byte as before.
+        """
         mjob = self.m1_job(fc.job)
+        locate = getattr(fc, "sibling_record", None)     # getattr, not fc.sibling_record: a test stands a namespace in
+        if locate is not None:
+            return locate(mjob, "M1")
         pq, js = D.fold_paths(fc.out_root, mjob, "M1", fc.fold.fold_id)
         rec = D.read_record(js)
         if rec is None or not pq.exists() or "point" not in (rec.get("steps") or {}):
@@ -844,7 +878,15 @@ class NeuralRunner:
 
 
 class ComparatorIntervalsRunner:
-    """B0 / B3 / B3x / B3i with split-conformal intervals drawn with the job's discovery seed (section 15 resolution)."""
+    """B0 / B3 / B3x / B3i with split-conformal intervals drawn with the job's discovery seed (section 15 resolution).
+
+    The splitter is the job's design's registered inner calibration design.  POST-HOC addendum 7 item 2: a **V6** job
+    takes the V5 one, not the V2 metal-holdout one the old ``else`` branch gave it -- section 3.4 defines V6 as the V5
+    state-level rule of section 3.1, so the B3x / B3i yardsticks of the single V6 run are calibrated on V5 inner cells.
+    The branch is ``("V5", "V6")`` and deliberately NOT :func:`v5_family`: V5-P and V5-PAIR comparator-interval jobs
+    exist (``B3x@V5PAIR__primary__batched`` is an S1(c) yardstick of the confirmation plan) and reach the ``else``
+    branch today, and addendum 7 item 2 authorises the V6 correction only -- widening this branch would change the
+    S1(c) yardstick intervals, which no addendum registers.  That V5-PAIR reading is reported, not silently altered."""
 
     has_interval_step = False
 
@@ -856,7 +898,7 @@ class ComparatorIntervalsRunner:
         from gen19ct.models import baselines as B
 
         job = fc.job
-        if job.design == "V5":
+        if job.design in ("V5", "V6"):
             spl = I.InnerCellCalibration(10, 1, 3, 3, 30, component_aware=True)
         elif job.design == "V1":
             spl = I.GroupKFoldCalibration(3)
@@ -1054,7 +1096,12 @@ def inner_design_signature(job: D.JobSpec) -> dict[str, Any] | None:
     variant's thresholds, medium and component rule, the inner folds and the cells-per-fold cap -- the fields of
     ``SimultaneousInnerCells.describe()`` that :func:`simultaneous_inner_design` checks it against.  ``None`` for a
     job without a V5 inner design (V1 / V2 tune on the registered designs, which live in the digested ``boosted.py``;
-    safeguards and markers)."""
+    safeguards and markers).
+
+    The table this returns has one entry per design of :func:`v5_family`: V5 (each variant), V5-P, V5-PAIR and -- POST-HOC
+    addendum 7 item 2 -- **V6**, whose entry is the V5 PRIMARY variant's (``inner_variant`` maps every non-V5 design to
+    ``"primary"``), so a V6 fold's resume digest carries the inner-design signature and ``simultaneous_inner_design``
+    runs its addendum-1 drift check on the V6 path too.  No V5 entry changes, so no existing fold digest moves."""
     if job.kind != "fit" or not v5_family(job):
         return None
     v = CH.VARIANTS[inner_variant(job)]
@@ -1286,9 +1333,15 @@ def verification_code_digest(stage: str = STAGE) -> str:
 def safeguard_splitter(stem: str, corpus: Corpus):
     """The inner design the safeguard probes: for the V5 family the addendum's simultaneous design -- the one every
     learned arm and B6 now tune and calibrate on, whose certificate covers a whole inner fold at once -- and the
-    registered V1 / V2 designs otherwise."""
+    registered V1 / V2 designs otherwise.
+
+    ``V6`` is in the V5 family here for the same reason as everywhere else (POST-HOC addendum 7 item 2: section 3.4
+    defines V6 as the V5 state-level rule of section 3.1), so a V6 stem no longer falls through to the V2 metal-holdout
+    design.  No safeguard job is enumerated at confirmation, so this branch is unreachable in the single run and no
+    safeguard record exists for any V6 stem -- the fix removes a latent trap rather than changing a number, and it is
+    recorded as such."""
     design, variant, scheme = stem.split("__")
-    if design in ("V5", "V5P", "V5PAIR"):
+    if design in ("V5", "V5P", "V5PAIR", "V6"):
         return simultaneous_inner_design(
             D.JobSpec(kind="fit", arm=D.SAFEGUARD_PROBE_ARM, design=design, variant=variant, scheme=scheme,
                       seed=D.PRIMARY_SEED), corpus)

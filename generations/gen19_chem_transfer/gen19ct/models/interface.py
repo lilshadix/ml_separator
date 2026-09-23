@@ -800,6 +800,23 @@ def conformal_quantile(abs_residuals: np.ndarray, level: float) -> float:
     return float("inf") if rank > n else float(r[rank - 1])
 
 
+def calibration_detail_of(sp: "InnerSplit", table: "RowTable", mean: np.ndarray) -> dict[str, Any]:
+    """What one inner split's calibration produced, for a calibration of PAIR residuals: the split's unit and inner
+    fold, its calibration rows' TABLE INDEX LABELS (``labels``, i.e. ``table.index`` -- the frame's index, which is not
+    the ``canonical_measurement_id``: a caller keyed by row id maps them) and positions, and the SIGNED residual
+    ``prediction - observed`` of each row.
+
+    POST-HOC addendum 7 item 1 registers the S2(c) logSF interval as split conformal fitted on the pair residuals of the
+    fold's inner calibration comparable pairs, and a pair residual is exactly ``signed_a - signed_b`` -- so the pair
+    calibration needs the sign and the row, which the pooled absolute residuals of :class:`ConformalWrapper` drop.
+    ``abs(signed)`` is the row residual the registered row calibration already uses, so nothing about the row intervals
+    changes."""
+    pos = np.asarray(sp.cal_positions)
+    return {"unit": sp.unit, "fold": int(sp.fold), "positions": pos.copy(),
+            "labels": list(table.index[pos]),
+            "signed": np.asarray(mean, dtype=float) - table.y[pos]}
+
+
 class ConformalWrapper:
     """Split-conformal intervals for any arm with the table fast path (module docstring).
 
@@ -849,6 +866,16 @@ class ConformalWrapper:
         self.residuals_by_seed: dict[int, np.ndarray] = {}
         self.quantiles_by_seed: dict[int, dict[float, float]] = {}
         self.calibration_units_by_seed: dict[int, list[Any]] = {}
+        #: per inner split, what that split's calibration produced: ``{"unit", "fold", "positions", "signed"}`` with
+        #: ``signed = prediction - observed`` of every calibration row, in ``cal_positions`` order.  The absolute values
+        #: of ``signed`` ARE :attr:`residuals` (asserted by ``tests/test_confirmation.py``), so this adds no quantity to
+        #: the registered row calibration; it exposes the SIGN and the row, which a calibration of PAIR residuals needs
+        #: (POST-HOC addendum 7 item 1: the S2(c) logSF interval is split conformal on the pair residuals of the fold's
+        #: inner calibration comparable pairs, and a pair residual is ``signed_a - signed_b``).  Filled by
+        #: :meth:`_calibrate`; per seed in :attr:`calibration_detail_by_seed` in multi-seed mode.
+        self.calibration_detail: list[dict[str, Any]] = []
+        self.calibration_detail_by_seed: dict[int, list[dict[str, Any]]] = {}
+        self._last_detail: list[dict[str, Any]] = []
 
     @property
     def multi_seed(self) -> bool:
@@ -884,7 +911,7 @@ class ConformalWrapper:
         splits = self.splitter.splits(table, mask, context)
         if not splits:
             raise ValueError("the inner design produced no calibration split")
-        res, units = [], []
+        res, units, detail = [], [], []
         for sp in splits:
             if (sp.train_mask & ~mask).any() or not mask[sp.cal_positions].all() or sp.train_mask[sp.cal_positions].any():
                 raise AssertionError(f"inner split {sp.unit} is not inside the outer training rows")
@@ -898,20 +925,25 @@ class ConformalWrapper:
                 raise AssertionError(f"{self.name}: non-finite calibration prediction in {sp.unit}")
             res.append(np.abs(table.y[sp.cal_positions] - mean))
             units.append(sp.unit)
+            detail.append(calibration_detail_of(sp, table, mean))
+        self._last_detail = detail
         return np.concatenate(res), units
 
     def fit_table(self, table: RowTable, mask: np.ndarray, context: FitContext) -> "ConformalWrapper":
         if self.seeds is None:
             self.fit_seed = context.seed
             self.residuals, self.calibration_units = self._calibrate(table, mask, context)
+            self.calibration_detail = list(self._last_detail)
             self.quantiles = {lv: conformal_quantile(self.residuals, lv) for lv in LEVELS}
         else:
             self.residuals, self.quantiles, self.calibration_units, self.fit_seed = None, {}, [], None
             self.residuals_by_seed, self.quantiles_by_seed, self.calibration_units_by_seed = {}, {}, {}
+            self.calibration_detail, self.calibration_detail_by_seed = [], {}
             for s in self.seeds:
                 res, units = self._calibrate(table, mask, replace(context, seed=int(s)))
                 self.residuals_by_seed[s] = res
                 self.calibration_units_by_seed[s] = units
+                self.calibration_detail_by_seed[s] = list(self._last_detail)
                 self.quantiles_by_seed[s] = {lv: conformal_quantile(res, lv) for lv in LEVELS}
         self.fitted_arm = self.arm.clone().fit_table(table, mask, context)
         return self

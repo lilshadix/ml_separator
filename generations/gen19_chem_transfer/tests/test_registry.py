@@ -38,27 +38,40 @@ def _seal_module():
     return mod
 
 
-def test_the_real_registry_is_absent_before_the_run_ends_and_holds_the_addendum_1_discovery_entry_after():
+def test_the_real_registry_is_absent_before_the_run_ends_and_tracks_the_sealed_text_after():
     """Addendum 2: the registry is created after the discovery run (never by a test or a runner).  Before that the file is
-    absent and the constants govern; once created, its discovery entry holds the addendum-1 digest the records carry."""
+    absent and the constants govern.
+
+    POST-HOC addendum 7 item 3: once created, EVERY stage entry -- the discovery one included -- is re-registered at the
+    CURRENT below-footer digest after every addendum, and the earlier entries are kept as ``superseded``, where the
+    records written under them still verify.  So this reads the SEALED TEXT, never the addendum-1 constant: the
+    discovery entry is at the live digest, and the addendum-1 digest its records carry is among its superseded entries.
+    """
     assert REG.registry_path() == REAL_REGISTRY and REG.REGISTRY_REL == "manifests/digest_registry.json"
     if not REAL_REGISTRY.exists():
         assert REG.read_registry() is None and REG.registered("discovery") is None
         assert REG.gate_expectations("discovery")["source"] == "constants"
         return
+    live = REG.below_footer_digest()
     disc = REG.registered("discovery")
-    assert disc is not None and disc["below_footer_sha256"] == D.REGISTERED_ADDENDA_SHA256 and disc["addenda_count"] == 1
-    assert disc.get("source") == "record fields"
+    assert disc is not None
+    assert disc["below_footer_sha256"] == live["below_footer_sha256"] and disc["addenda_count"] == live["n_addenda"]
+    earlier = REG.superseded_entries("discovery")
+    assert disc.get("source") == "record fields" or any(e.get("source") == "record fields" for e in earlier)
+    if live["n_addenda"] > 1:                    # every addendum after the first leaves the records' own entry behind
+        assert any(e["below_footer_sha256"] == D.REGISTERED_ADDENDA_SHA256 and e["addenda_count"] == 1 for e in earlier)
 
 
 def _real_text_matches(real: dict) -> None:
-    """The real sealed text against the constants (before the registry) or the registry's discovery entry (after)."""
+    """The real sealed text against the constants (before the registry) or, after it, against the registry's discovery
+    entry -- which addendum 7 item 3 keeps at the CURRENT below-footer digest, so the comparison is with the sealed text
+    and not with a constant."""
     disc = REG.registered("discovery")
     if disc is None:
         assert real["below_footer_sha256"] == D.REGISTERED_ADDENDA_SHA256 and real["n_addenda"] == D.N_ADDENDA_EXPECTED == 1
     else:
-        assert disc["below_footer_sha256"] == D.REGISTERED_ADDENDA_SHA256 and disc["addenda_count"] == 1
-        assert real["n_addenda"] >= disc["addenda_count"]
+        assert disc["below_footer_sha256"] == real["below_footer_sha256"] and disc["addenda_count"] == real["n_addenda"]
+        assert real["n_addenda"] >= 1
 
 
 # --------------------------------------------------------------------------------------------- #
