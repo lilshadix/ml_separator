@@ -23,6 +23,7 @@ from gen19ct import paths
 from gen19ct.chemistry import support_graph as SG
 from gen19ct.evaluation import confirmation as CF
 from gen19ct.evaluation import discovery as D
+from gen19ct.evaluation import metrics as EM
 from gen19ct.evaluation import registry as REG
 from gen19ct.evaluation import transfer as ET
 from gen19ct.folds import cell_holdout as CH
@@ -263,17 +264,99 @@ def test_the_colouring_is_seed_dependent_and_reproducible():
 def test_the_fold_plan_is_one_file_per_seed_index_and_names_no_seed(root):
     plans = RC.build_confirmation_folds(None, root, dry_run=True)
     assert {p.seed_index for p in plans} == {1, 2, 3, 4, 5}
-    assert {p.stem for p in plans} == set(RC.BATCHED_STEMS)
+    assert {p.stem for p in plans} == set(RC.BATCHED_STEMS) | {RC.V6_STEM}
     assert not CF.folds_dir(root).exists()      # a dry run builds nothing
     rec = json.dumps([p.record() for p in plans])
     assert "104729" not in rec and not any(str(s) in rec for s in FAKE_SEEDS)
 
 
-def test_building_the_withheld_seed_folds_refuses_while_unimplemented(root):
+# --------------------------------------------------------------------------------------------- #
+# the withheld-seed fold files, built inside the run (POST-HOC addendum 6 item 2)
+# --------------------------------------------------------------------------------------------- #
+
+@pytest.fixture(scope="module")
+def fold_corpus():
+    """The registered builder's corpus, loaded once (it is the real corpus; the builders touch no target value)."""
+    return RC.load_fold_corpus()
+
+
+def test_the_v6_design_hides_exactly_what_section_3_4_says(fold_corpus):
+    """Section 3.4 / addendum 6 item 2: 13 systems; per system Pr(III) x S and Nd(III) x S hidden TOGETHER under the
+    component-aware state-level rule, so the hidden rows are the Pr and Nd rows -- known state and X(?) -- of S and of
+    every component-sharing system, while only the known-state Pr / Nd rows of S itself are SCORED."""
+    from gen19ct.chemistry import support_graph as SGx
+
+    folds, stats = RC.build_v6_folds(fold_corpus)
+    assert len(folds) == CF.S2A_N_SYSTEMS == 13 and stats["n_systems"] == 13
+    fr, v6 = fold_corpus.frame, fold_corpus.v6.to_numpy(dtype=bool)
+    ids = fr[FI.ROW_ID].astype(str).to_numpy(dtype=object)
+    v6_ids = set(ids[v6])
+    for f in folds:
+        cells = [tuple(c) for c in f.meta["cells"]]
+        assert [c[0] for c in cells] == list(CF.V6_METALS) and cells[0][1] == cells[1][1]
+        # the hidden set IS support_graph.hide_cells on the double cell, component-aware
+        kept = SGx.hide_cells(fr, cells, component_aware=True)
+        assert set(f.hidden_row_ids) == set(ids[~fr.index.isin(kept.index)])
+        # every scored row is a V6 target row of THIS system, known state, one of the two metals
+        sc = fr[fr[FI.ROW_ID].astype(str).isin(set(f.scored_row_ids))]
+        assert set(f.scored_row_ids) <= v6_ids
+        assert set(sc[SG.SYSTEM_COL]) == {cells[0][1]}
+        assert set(sc[SG.METAL_COL]) <= set(CF.V6_METALS) and not sc[SG.METAL_COL].isna().any()
+        # an X(?) row of Pr or Nd under this system is HIDDEN and never scored (section 2)
+        unk = fr[fr[SG.METAL_COL].isna() & fr[SG.ELEMENT_COL].isin(["Pr", "Nd"])
+                 & (fr[SG.SYSTEM_COL] == cells[0][1])]
+        unk_ids = set(unk[FI.ROW_ID].astype(str))
+        assert unk_ids <= set(f.hidden_row_ids) and not (unk_ids & set(f.scored_row_ids))
+        assert f.half == "NA" and f.seed is None and f.meta["component_aware"] is True
+    # the fold ids are file-name safe and the design covers each system once
+    assert len({f.fold_id for f in folds}) == 13
+    assert all(f.fold_id == D.safe_fold_name(f.fold_id) for f in folds)
+    # 209 comparable Pr/Nd row pairs (section 3.4) come from 209 Pr + 209 Nd scored rows
+    assert stats["n_scored_rows"] == 2 * 209
+
+
+def test_the_withheld_seed_colourings_are_seed_dependent_and_derive_their_counts(root, fold_corpus):
+    """The per-seed files are built by the registered rule, differ between seeds, and their counts are DERIVED."""
     store_path = _write_store(root, root.parent / "outside_store.json")
     store = CF.load_seed_store(store_path, root=root, seal=SEAL, prereg_paths=_prereg_paths(root))
-    with pytest.raises(SystemExit, match="NOT IMPLEMENTED"):
-        RC.build_confirmation_folds(store, root)
+    plans = RC.build_confirmation_folds(store, root, stems=("V5__primary__batched_max4",), corpus=fold_corpus,
+                                       with_v6=True)
+    by_stem = {}
+    for p in plans:
+        by_stem.setdefault(p.stem, {})[p.seed_index] = p
+    v5 = by_stem["V5__primary__batched_max4"]
+    assert set(v5) == {1, 2, 3, 4, 5}
+    # seed dependent: the design hashes differ between seeds (R19 item 4 would be vacuous otherwise)
+    assert len({p.design_hash for p in v5.values()}) == 5
+    # V6 is seed-INDEPENDENT as a design: the same 13 folds under every seed index
+    assert len({p.design_hash for p in by_stem[RC.V6_STEM].values()}) == 1
+    # counts are derived, and the plan's figure is only compared
+    assert all(p.n_folds > 0 and p.n_scored_units > 0 for p in v5.values())
+    assert all(abs(p.n_folds_confirmation_half - 27) <= 2 for p in v5.values())
+    assert by_stem[RC.V6_STEM][1].n_folds == 13
+    # no file, directory or recorded field names a seed
+    scan = CF.scan_for_seed_leak(store, [CF.folds_dir(root)])
+    assert scan["ok"], scan
+    assert json.dumps([p.record() for p in plans]).count("104729") == 0
+    # every written design reads back with its recorded hashes
+    for p in plans:
+        folds = FI.read_design(Path(p.path))
+        assert FI.design_hash(folds) == p.design_hash and len(folds) == p.n_folds
+    # and the V6 carve-out holds in both directions on the FILES
+    v6_ids = set(fold_corpus.frame.loc[fold_corpus.v6.to_numpy(dtype=bool), FI.ROW_ID].astype(str))
+    for p in plans:
+        for f in FI.read_design(Path(p.path)):
+            inside = set(f.scored_row_ids) & v6_ids
+            assert (inside == set(f.scored_row_ids)) if CF.is_v6(f.design) else (not inside)
+
+
+def test_a_fake_store_is_refused(root):
+    """The gate's (d): a store whose seeds do not hash to the section 15 commitment never reaches a fit."""
+    bad = root.parent / "not_the_committed_store.json"
+    bad.write_text(json.dumps({"schema": "gen19.confirmation_seeds.v1", "n": 5, "salt": "00" * 32,
+                               "seeds": [111111, 222222, 333333, 444444, 555555]}), encoding="utf-8")
+    with pytest.raises(SystemExit, match="does not verify"):
+        CF.load_seed_store(bad, root=root, seal=SEAL, prereg_paths=_prereg_paths(root))
 
 
 # --------------------------------------------------------------------------------------------- #
@@ -483,10 +566,470 @@ def test_dry_run_reads_no_seed_and_writes_nothing(root, plan_file, capsys):
     assert body["not_run"] == {"v6_actinide_deltas": CF.NOT_RUN, "power_check": CF.NOT_RUN}
     assert not CF.decisions_path(root).exists()
     assert not any(str(s) in out for s in FAKE_SEEDS)
-    assert [s["stage"] for s in body["run_stages"] if not s["implemented"]]       # the refusal inventory is printed
+    # the dry run NAMES the stage that is not written, so the plan is never read as a plan that could start
+    assert [s["stage"] for s in body["run_stages"] if not s["implemented"]] == ["v6_arm_fitting"]
+    assert {s["stage"] for s in body["run_stages"]} >= {"withheld_seed_fold_files", "fit_loop", "writers"}
+
+
+def test_the_writers_reveal_the_seeds_only_in_CONFIRMATION_md_and_only_at_the_end(root, tmp_path):
+    """POST-HOC addendum 6 item 4: nothing written before or during the run names a seed; ``decisions/CONFIRMATION.md``
+    is written LAST and is the one artefact that names all five, beside the --verify-seeds verdict."""
+    store_path = _write_store(root, root.parent / "outside_store.json")
+    store = CF.load_seed_store(store_path, root=root, seal=SEAL, prereg_paths=_prereg_paths(root))
+    body = {"claims": [], "not_run": {}, "seed_store": store.public(), "claim_ids": []}
+    # before: the report written without the store names no seed, and the scan is clean
+    pre_md = CF.confirmation_report(body)
+    assert not any(str(s) in pre_md for s in FAKE_SEEDS)
+    written = RC.write_outputs(root, body, store=store, seal=SEAL)
+    rp = CF.report_path(root)
+    assert rp in written and written[-1] == rp                      # LAST
+    text = rp.read_text(encoding="utf-8")
+    assert all(str(store.seed(i)) in text for i in store.indices())  # all five revealed
+    assert "VERIFIED" in text
+    # every other artefact still names none, and the scan says exactly that
+    others = [p for p in written if p != rp]
+    assert CF.scan_for_seed_leak(store, others)["ok"]
+    post = CF.scan_for_seed_leak(store, written, allow=[rp], require=[rp])
+    assert post["ok"] and post["revelation_incomplete"] == []
+    # and a run that never wrote the report fails the revelation check
+    missing = CF.scan_for_seed_leak(store, others, allow=[rp], require=[rp])
+    assert missing["ok"] is False and missing["revelation_incomplete"] == [str(rp)]
+
+
+def test_the_lock_allows_only_resume_and_never_a_second_scoring(root, plan_file, registry):
+    """Section 15's "nothing is re-run" as the lock, with --resume the only second invocation."""
+    CF.write_decisions(root, {"code_digest": "x" * 64, "claim_ids": ["C1", "C4"]})
+    first = CF.lock_verdict(root, resume=False, code_digest="x" * 64, claim_ids=["C1", "C4"])
+    assert first["ok"] is False and first["mode"] == "already_run"
+    ok = CF.lock_verdict(root, resume=True, code_digest="x" * 64, claim_ids=["C1", "C4"])
+    assert ok["ok"] is True and ok["mode"] == "resume" and ok["may_only"] == "complete unfitted folds"
+    grew = CF.lock_verdict(root, resume=True, code_digest="x" * 64, claim_ids=["C1", "C4", "C9"])
+    assert grew["ok"] is False and grew["new_claims"] == ["C9"]
+    newcode = CF.lock_verdict(root, resume=True, code_digest="y" * 64, claim_ids=["C1"])
+    assert newcode["ok"] is False and newcode["mode"] == "resume_refused_code_changed"
+
+
+def test_the_s1c_yardstick_artefact_is_diagnosed_not_refitted():
+    """The pre-existing artefact verifies against the SUPERSEDED two-addenda 'scorer' entry (its own stage); it fails
+    only when a reader routes it through registry.job_stage, which is written for runner fold records."""
+    out = RC.s1c_artefact_diagnosis()
+    assert out["action"] == "diagnosed, NOT refitted"
+    if out["artefacts"]:
+        for r in out["artefacts"]:
+            assert r["registry_stage_named_by_the_record"] == "scorer"
+            assert r["stage_registry_job_stage_would_use"] == "discovery"
+            assert r["verifies_against_its_own_stage"] is True and r["matched_entry"] == "superseded"
+            assert r["verifies_when_routed_through_job_stage"] is False
+            assert r["mismatches_when_routed"] == ["prereg_addenda_sha256", "prereg_n_addenda"]
+        assert out["status"] == "EXPLAINED"
+
+
+def test_the_seed_mean_statistics_on_hand_computed_values():
+    """Addendum 6 item 1 by hand: the statistic is the mean over the 5 seeds of the per-seed macro value."""
+    per_seed = {1: {"A": 0.10, "B": 0.20}, 2: {"A": 0.20, "B": 0.30}, 3: {"A": 0.00, "B": 0.10},
+                4: {"A": 0.30, "B": 0.40}, 5: {"A": 0.40, "B": 0.50}}
+    st = CF.seed_mean_system_bootstrap(per_seed)
+    assert st["per_seed"] == pytest.approx({1: 0.15, 2: 0.25, 3: 0.05, 4: 0.35, 5: 0.45})
+    assert abs(st["point"] - 0.25) < 1e-12                    # mean of the five per-seed macros
+    assert st["n_systems"] == 2 and st["n_seeds"] == 5 and st["n_resamples"] == 10000
+    assert st["bootstrap_seed"] == 19                          # section 8
+    assert CF.item4(st["per_seed"])["status"] == "PASS"
+    # one seed at zero is not > 0, so item 4 is 4 of 5 and FAILS
+    flip = {**per_seed, 3: {"A": -0.10, "B": 0.10}}
+    st2 = CF.seed_mean_system_bootstrap(flip)
+    assert st2["per_seed"][3] == 0.0 and CF.item4(st2["per_seed"])["status"] == "FAIL"
+
+
+def test_s2a_counts_signs_over_the_thirteen_systems():
+    obs = {f"S{i}": (1.0 if i % 2 else -1.0) for i in range(13)}
+    pred = dict(obs)
+    assert CF.s2a_sign_count(obs, pred)["status"] == "PASS"
+    two_wrong = {**pred, "S0": 1.0, "S1": -1.0}
+    r = CF.s2a_sign_count(obs, two_wrong)
+    assert r["n_sign_agree"] == 11 and r["status"] == "PASS"       # exactly 11 of 13 passes
+    three_wrong = {**two_wrong, "S2": 1.0}
+    assert CF.s2a_sign_count(obs, three_wrong)["n_sign_agree"] == 10
+    assert CF.s2a_sign_count(obs, three_wrong)["status"] == "FAIL"
+    # a zero median does NOT agree (the conservative side of a sign count)
+    assert CF.s2a_sign_count(obs, {**pred, "S0": 0.0})["n_sign_agree"] == 12
+    # an observed median that is absent gives NaN on that system, which does not agree either; the system set is the
+    # UNION of the two sides, so a system missing from one side is still counted and still scored as 13
+    part = CF.s2a_sign_count({k: v for k, v in list(obs.items())[:12]}, pred)
+    assert part["n_systems_scored"] == 13 and part["n_sign_agree"] == 12
+    # fewer systems on BOTH sides is not the registered 13 and fails whatever the signs say
+    few = {k: v for k, v in list(obs.items())[:12]}
+    assert CF.s2a_sign_count(few, few)["status"] == "FAIL"
 
 
 def test_registry_holds_the_confirmation_rule():
     """The stage exists in the registry's own STAGES and has a code-digest rule (task 1)."""
     assert CF.STAGE in REG.STAGES and CF.STAGE in REG.CODE_DIGEST_SOURCE
     assert REG.stage_code_digest(CF.STAGE) == RC.code_digest()["combined"]
+
+
+# --------------------------------------------------------------------------------------------- #
+# TASK X: the confirmation-half fold selector, the V6 leg, the item 6 reduced set, S2
+# --------------------------------------------------------------------------------------------- #
+
+def _fold(fold_id: str, half: str, rows: dict[str, str], design: str = "V5", variant: str = "primary",
+          scheme: str = "exact", seed=None):
+    return FI.make_fold(design=design, variant=variant, scheme=scheme, fold_id=fold_id, half=half, seed=seed,
+                        hidden=list(rows), scored=list(rows), unit_type="cell", units=["u"],
+                        row_unit={r: "u" for r in rows}, row_half=dict(rows))
+
+
+def test_the_confirmation_selector_is_the_mirror_of_discoverys():
+    """TASK X E1. ``discovery.fittable_folds`` drops every fold whose ``half`` is the confirmation half and keeps only
+    folds with a SELECTION-half scored row, so on this half it returns either nothing or exactly the folds this run may
+    never fit; the confirmation selector returns the confirmation-half folds and no other."""
+    c = _fold("f_c", "C", {"a": "C", "b": "C"})
+    s = _fold("f_s", "S", {"c": "S"})
+    mixed = _fold("f_m", "C", {"d": "C", "e": "S"})
+    job = D.JobSpec(kind="fit", arm="M2", design="V5", variant="primary", scheme="exact", seed=7)
+    folds = [c, s, mixed]
+    assert [f.fold_id for f, _ in D.fittable_folds(job, folds, [])] == ["f_s"]
+    got = CF.confirmation_fittable_folds(job, folds, [])
+    assert [f.fold_id for f, _ in got] == ["f_c", "f_m"]
+    assert CF.fit_scored_ids(mixed) == ("d",)                       # only the confirmation-half row
+    # a fold whose confirmation-half rows are all acidic co-extractant rows is not fittable (section 2)
+    assert CF.confirmation_fittable_folds(job, [c], ["a", "b"]) == []
+    # the ordinals are discovery's: a property of the design file and the run seed, not of the half
+    ords = D.fold_ordinals(folds, 7)
+    assert {f.fold_id: k for f, k in got} == {"f_c": ords["f_c"], "f_m": ords["f_m"]}
+
+
+def test_a_v6_fold_is_selectable_and_carries_no_half():
+    """TASK X E2. A V6 fold carries ``half='NA'`` and ``row_half`` all ``NA`` (READINGS['v6_half']), so reading the
+    confirmation half would return nothing and the whole V6 leg would be unreachable."""
+    f = FI.make_fold(design="V6", variant="prnd", scheme="exact", fold_id="v6_prnd__x", half="NA", seed=None,
+                     hidden=["a", "b", "c"], scored=["a", "b"], unit_type="system", units=["S"],
+                     row_unit={"a": "c1", "b": "c2", "c": "h"}, row_half={"a": "NA", "b": "NA", "c": "NA"})
+    assert CF.confirmation_scored_ids(f) == ()
+    assert CF.fit_scored_ids(f) == ("a", "b")
+    job = D.JobSpec(kind="fit", arm="M2", design="V6", variant="prnd", scheme="exact", seed=7)
+    assert D.fittable_folds(job, [f], []) == []
+    assert len(CF.confirmation_fittable_folds(job, [f], [])) == 1
+    assert "V6" not in D.HALF_TABLE                                 # so half_by_id['V6'] would be a KeyError
+
+
+def test_the_item6_pass_pins_the_public_seed_on_a_multi_seed_file(tmp_path):
+    """TASK X E3. The registered ``batched_max4`` files hold all five discovery seeds' colourings; the item 6 refit pass
+    reads them and must name the seed, which is derived from the FILE, not assumed."""
+    class _C:
+        def __init__(self, folds):
+            self._f = folds
+        def folds(self, stem):
+            return self._f
+
+    multi = [_fold("s104729_C_b1", "C", {"a": "C"}, scheme="batched_max4", variant="strict", seed=104729),
+             _fold("s130363_C_b1", "C", {"a": "C"}, scheme="batched_max4", variant="strict", seed=130363)]
+    job = CF.ConfJob("R19 item 6 refits", "M2", "V5", "V5__strict__batched_max4", 0, 8)
+    spec = RC.fold_seeded_spec(job, CF.ITEM6_REFIT_SEED, _C(multi))
+    assert spec.fold_seed == CF.ITEM6_REFIT_SEED == 104729
+    assert [f.fold_id for f, _ in CF.confirmation_fittable_folds(spec, multi, [])] == ["s104729_C_b1"]
+    # without it the selector refuses rather than guessing -- which is what the unfixed runner hit
+    bare = RC.job_spec_of(job, CF.ITEM6_REFIT_SEED)
+    with pytest.raises(ValueError, match="give fold_seed"):
+        CF.confirmation_fittable_folds(bare, multi, [])
+    # a seed-free file (a withheld-seed colouring, or a registered exact design) needs no fold_seed
+    free = [_fold("f1", "C", {"a": "C"})]
+    jb = CF.ConfJob("comparators", "B3i", "V5", "V5__primary__exact", 3, 111)
+    assert RC.fold_seeded_spec(jb, 999983, _C(free)).fold_seed is None
+
+
+def test_a_closed_form_comparator_is_a_comparator_intervals_job():
+    """TASK X E1/E3. ``runner_for`` looks a closed-form arm up under ``comparator:<arm>``; a ``fit`` job for B3i raises
+    ``KeyError('no runner for B3i')`` -- uncaught by the fit loop, which catches only guard failures."""
+    rd = RC.runner_module()
+    runners = rd.default_runners()
+    for arm in ("B3i", "B0", "B3x"):
+        spec = RC.job_spec_of(CF.ConfJob("p", arm, "V5", "V5__primary__exact", 1, 111), 999983)
+        assert spec.kind == "comparator_intervals"
+        assert rd.runner_for(spec, runners) is not None
+    for arm in ("M1", "M2", "B6", "B8"):
+        spec = RC.job_spec_of(CF.ConfJob("p", arm, "V5", "V5__primary__exact", 1, 111), 999983)
+        assert spec.kind == "fit"
+        assert rd.runner_for(spec, runners) is not None
+
+
+def test_item6_is_decided_on_the_reduced_set_and_never_fails_on_a_refit_that_was_not_run():
+    """TASK X E4. ``ET.r19``'s own item-6 loop reads every registered name and treats any string other than
+    ``UNTESTABLE`` as a FAILURE, so a sensitivity addendum 1 item 4 does not run would FAIL every claim before any data
+    was seen.  ``score_claim`` rebuilds item 6 with ``discovery.reduced_item6``, exactly as discovery and H3 do."""
+    units = [f"u{i}" for i in range(12)]
+    cand = pd.Series(np.linspace(0.2, 0.4, 12), index=units)
+    comp = pd.Series(cand.to_numpy() + 0.5, index=units)
+    clusters = {u: pd.Series([f"cl{i % 4}" for i in range(12)], index=units)
+                for u in ET.REGISTERED_CLUSTER_UNITS["V5"]}
+    pu = D.PairedUnits(design="V5", candidate="M2", comparator="B3i", cand_mae=cand, comp_mae=comp,
+                       clusters=clusters, n_rows=120)
+    claim = CF.Claim(claim_id="C1", label="M2 vs B3i @ V5", family="primary", candidate="M2", comparator="B3i",
+                     design="V5", margin=0.1057, discovery_point=0.26)
+    boots = D.bootstraps(pu, name="C1")
+    filters = [n for n in D.SCORING_FILTER_SENSITIVITIES if n in ET.REGISTERED_SENSITIVITIES["V5"]]
+    reduced = filters + ["strict_setting", "HNO3_only_cells"]
+    sens = {n: 0.4 for n in reduced}
+    for n in D.LEARNED_REFITS_NOT_RUN["V5"]:
+        sens[n] = ET.UNTESTABLE
+    kw = dict(point=pu.delta, bootstraps=boots, seed_deltas={i: 0.4 for i in range(1, 6)})
+    # without the reduced set the registered loop FAILS on the refits addendum 1 item 4 does not run
+    bad = {**sens, **{n: D.ITEM6_NOT_EVALUATED for n in D.LEARNED_REFITS_NOT_RUN["V5"]}}
+    assert CF.score_claim(claim, sensitivity_deltas=bad, **kw)["r19_verdict"] == "FAIL"
+    ok = CF.score_claim(claim, sensitivity_deltas=sens, reduced_sensitivities=reduced, **kw)
+    assert next(i["status"] for i in ok["items"] if i["item"] == 6) == "PASS"
+    assert ok["r19_verdict"] == "PASS" and ok["sensitivity_set"] == D.ADDENDUM_LABEL
+    # a member of addendum 1 item 4's OWN reduced set that could not be evaluated is NOT_EVALUATED, never PASS
+    part = CF.score_claim(claim, sensitivity_deltas={**sens, "strict_setting": ET.UNTESTABLE},
+                          reduced_sensitivities=[n for n in reduced if n != "strict_setting"],
+                          sensitivities_not_run_extra={"strict_setting": "UNTESTABLE: no seed-104729 record set"}, **kw)
+    assert next(i["status"] for i in part["items"] if i["item"] == 6) == D.ITEM6_NOT_EVALUATED
+    assert part["r19_verdict"] == "UNDECIDED" and not part["confirmed"]
+    # and a genuinely negative sensitivity still FAILS
+    neg = CF.score_claim(claim, sensitivity_deltas={**sens, filters[0]: -0.1}, reduced_sensitivities=reduced, **kw)
+    assert next(i["status"] for i in neg["items"] if i["item"] == 6) == "FAIL" and neg["r19_verdict"] == "FAIL"
+
+
+def test_the_scoring_filter_names_are_apply_scoring_filters_own_vocabulary():
+    """TASK X E5. ``transfer.scoring_filters`` returns filter LABELS (``acid_grid_rows_excluded_scoring``) and omits
+    ``non_DGA_stratum``; ``discovery.apply_scoring_filter`` speaks SENSITIVITY names."""
+    fr = pd.DataFrame({"acid_grid_flag": [True, False], "dga_stratum": ["non_DGA", "diglycolamide"],
+                       "censoring_candidate": [False, True], "wildcard_copy_partner_in_training": [False, False]})
+    for name in D.SCORING_FILTER_SENSITIVITIES:
+        assert len(D.apply_scoring_filter(fr, name)) >= 1
+    for label in ET.scoring_filters("V5"):
+        if label not in D.SCORING_FILTER_SENSITIVITIES:
+            with pytest.raises(ValueError, match="unknown scoring filter"):
+                D.apply_scoring_filter(fr, label)
+    assert "non_DGA_stratum" in ET.REGISTERED_SENSITIVITIES["V5"]
+    assert "non_DGA_stratum" not in ET.scoring_filters("V5")
+    assert "non_DGA_stratum" in D.SCORING_FILTER_SENSITIVITIES
+
+
+def test_the_refit_sensitivity_takes_both_arms_from_the_settings_own_design():
+    """TASK X E4. A setting's Delta needs the candidate AND the comparator on that setting (section 5
+    ``comparator_folds``: the closed form on the setting's EXACT folds), and the inventory must fit both."""
+    assert RC.REFIT_STEMS["V5"] == {"strict_setting": ("V5__strict__batched_max4", "V5__strict__exact"),
+                                    "HNO3_only_cells": ("V5__hno3_only__batched_max4", "V5__hno3_only__exact")}
+    plan = CF.read_plan(SCRIPTS.parent / "decisions" / "CONFIRMATION_PLAN.md")
+    jobs = CF.enumerate_jobs(plan)
+    at0 = {(j.arm, j.stem) for j in jobs if j.seed_index == 0}
+    for _, comp_stem in RC.REFIT_STEMS["V5"].values():
+        assert ("B3i", comp_stem) in at0 and ("B0", comp_stem) in at0 and ("B6", comp_stem) in at0
+    for stem in ("V5__strict__batched_max4", "V5__hno3_only__batched_max4"):
+        assert ("M1", stem) in at0 and ("M2", stem) in at0
+    assert not any(not np.isfinite(j.unit_seconds) for j in jobs)
+
+
+def test_s2a_needs_every_yardstick_in_both_strata():
+    """TASK X E6. S2(a)'s second half is ``min_Y Delta_Y >= 0.05`` over {HEAVIER, B3x-derived, B3i-derived, B8},
+    pooled AND in the HNO3 pairs; a yardstick that was not scored leaves it UNDECIDED, never passed."""
+    good = {y: {i: {f"S{k}": 0.2 for k in range(13)} for i in range(1, 6)} for y in CF.S2A_YARDSTICKS}
+    r = CF.s2a_direction(good)
+    assert r["status"] == "PASS" and r["min_delta"] == pytest.approx(0.2)
+    assert CF.s2a_direction({k: v for k, v in good.items() if k != "B8"})["status"] == CF.UNDECIDED
+    low = {**good, "B3i_derived": {i: {f"S{k}": 0.01 for k in range(13)} for i in range(1, 6)}}
+    r2 = CF.s2a_direction(low)
+    assert r2["status"] == "FAIL" and r2["binding_yardstick"] == "B3i_derived"
+    # one seed negative breaks the 5-of-5 rule even when the seed mean clears the margin
+    one_bad = {**good, "HEAVIER": {i: {f"S{k}": (0.6 if i > 1 else -0.2) for k in range(13)} for i in range(1, 6)}}
+    assert CF.s2a_direction(one_bad)["status"] == "FAIL"
+    assert CF.S2A_STRATA == ("pooled", "HNO3")
+
+
+def test_s2c_reports_both_interval_readings_and_says_when_they_disagree():
+    """TASK X E6. Section 9 S2(c) fixes the bands but not the construction of a predicted-logSF interval; both are
+    computed, the primary decides, and the record says whether the choice mattered."""
+    r = CF.s2c_coverage({"interval_arithmetic": {"80": 0.80, "95": 0.92},
+                         "quadrature": {"80": 0.62, "95": 0.80}})
+    assert r["status"] == "PASS" and r["readings_disagree"]
+    assert r["statuses_by_reading"] == {"interval_arithmetic": "PASS", "quadrature": "FAIL"}
+    assert CF.s2c_coverage({"quadrature": {"80": 0.8, "95": 0.9}})["status"] == CF.NOT_EVALUATED
+    assert CF.S2C_PRIMARY_READING == "interval_arithmetic"
+
+
+def test_a_v6_pair_interval_is_the_interval_of_the_difference():
+    """TASK X E6. ``interval_arithmetic`` is ``[lo_a - hi_b, hi_a - lo_b]``; ``quadrature`` is the root-sum-square of the
+    half-widths about the predicted difference, which is never wider."""
+    frame = pd.DataFrame({"lo80": [0.0, 1.0], "hi80": [2.0, 3.0], EM.PRED_COL: [1.0, 2.0]}, index=["A", "B"])
+    pairs = pd.DataFrame({"idx_a": ["A"], "idx_b": ["B"]})
+    iv = RC.v6_logsf_intervals(frame, pairs, "80")
+    assert iv["interval_arithmetic"]["lo"].iloc[0] == pytest.approx(-3.0)
+    assert iv["interval_arithmetic"]["hi"].iloc[0] == pytest.approx(1.0)
+    assert iv["quadrature"]["lo"].iloc[0] == pytest.approx(-1.0 - np.sqrt(2.0))
+    assert iv["quadrature"]["hi"].iloc[0] == pytest.approx(-1.0 + np.sqrt(2.0))
+    assert not RC.v6_logsf_intervals(frame.drop(columns=["lo80"]), pairs, "80")
+
+
+def test_the_run_names_the_one_stage_it_does_not_implement():
+    """TASK X E2/E6. V6 runs ONCE, so its fitting path cannot be rehearsed; while the arms have no V6 branch the runner
+    refuses BEFORE the lock, naming what is missing, rather than producing a number from code that does not exist."""
+    todo = [n for n, ok, _ in RC.RUN_STAGES if not ok]
+    assert todo == ["v6_arm_fitting"]
+    rd = RC.runner_module()
+    job = D.JobSpec(kind="fit", arm="M2", design="V6", variant="prnd", scheme="exact", seed=7)
+    assert not rd.v5_family(job)                       # the measured cause, not an assumption
+    assert rd.inner_design_signature(job) is None
+    text = RC.refusal("v6_arm_fitting")
+    assert "v5_family" in text and "runs ONCE" in text and "has NOT been spent" in text
+
+
+def test_a_non_guard_error_in_the_fit_loop_is_redacted(root, monkeypatch):
+    """TASK X E2. A guard failure is INCOMPLETE_GUARD_FAILURE; anything else is a defect and stops the run -- re-raised
+    with the message SCRUBBED and ``from None``, because ``job.key`` carries the run seed and a traceback must never
+    print a withheld seed (addendum 6 item 4)."""
+    store_path = _write_store(root, root.parent / "outside_store.json")
+    store = CF.load_seed_store(store_path, root=root, seal=SEAL, prereg_paths=_prereg_paths(root))
+
+    class _C:
+        coext_ids: list = []
+        def __init__(self):
+            self._folds: dict = {}
+            self.guard_cache: dict = {}
+        def folds(self, stem):
+            return [_fold("f_c", "C", {"a": "C"})]
+
+    job = CF.ConfJob("p", "M2", "V5", "V5__primary__batched_max4", 1, 1)
+    seed = store.seed(1)
+
+    def boom(*a, **k):
+        raise ValueError(f"no confirmation-half scored row in fit:M2:V5__primary_batched_max4:s{seed}")
+
+    monkeypatch.setattr(RC, "run_fold", boom)
+    with pytest.raises(CF.RedactedRunError) as exc:
+        RC.fit_loop([job], store, root, corpus=_C(), state=D.PlanState(), runners={}, code="c", prereg={})
+    msg = str(exc.value)
+    assert str(seed) not in msg and "i1" in msg and exc.value.__cause__ is None
+    assert not any(str(s) in msg for s in FAKE_SEEDS)
+
+    def guard(*a, **k):
+        raise AssertionError(f"a scored row is not hidden (s{seed})")
+
+    monkeypatch.setattr(RC, "run_fold", guard)
+    led = RC.fit_loop([job], store, root, corpus=_C(), state=D.PlanState(), runners={}, code="c", prereg={})
+    assert led.errors and led.errors[0]["status"] == CF.INCOMPLETE_GUARD_FAILURE
+    assert str(seed) not in json.dumps(led.record()) + json.dumps(led.errors)
+
+
+def _v6_pred_and_attrs(n_systems: int = 13):
+    """A synthetic V6 prediction set and its attributes: 13 systems, 3 condition groups, Pr(III) and Nd(III)."""
+    rows, preds = [], []
+    rng = np.random.default_rng(3)
+    for s in range(n_systems):
+        system, fold = f"SYS{s}", f"v6_prnd__{s:03d}"
+        acid = "HNO3" if s % 2 == 0 else "HCl"
+        for g in range(3):
+            for metal, off in (("Pr(III)", 0.0), ("Nd(III)", 0.6)):
+                rid, y = f"r_{s}_{g}_{metal[:2]}", 1.0 + off + 0.1 * g
+                rows.append({"row_id": rid, EM.SYSTEM_COL: system, EM.PUB_GROUP_COL: f"P{s}",
+                             EM.CONDITION_KEY_COL: f"ck{g}", EM.METAL_STATE_COL: metal, EM.Y_COL: y,
+                             "acid_stratum": acid})
+                preds.append({"row_id": rid, "fold_id": fold, "mean_logD": y + rng.normal(0, 0.05),
+                              "lo80": y - 0.5, "hi80": y + 0.5, "lo95": y - 0.9, "hi95": y + 0.9})
+    attrs = pd.DataFrame(rows).set_index("row_id", drop=False)
+    return pd.DataFrame(preds), attrs, pd.Series(True, index=attrs.index)
+
+
+def test_the_registered_pair_guard_refuses_every_v6_pair_so_the_v6_run_has_its_own():
+    """TASK X E6. ``transfer.guard_scored_pairs`` ends in ``registered.assert_not_scored``, which refuses ANY
+    V6_TARGET_ROWS member -- correct everywhere else, fatal to the one run section 3.4 registers.  The V6 guard makes
+    every one of its checks and replaces the carve-out check with the STRONGER two-sided one."""
+    pred, attrs, v6 = _v6_pred_and_attrs()
+    cin = RC.v6_pair_inputs(pred, attrs, None, v6=v6, what="test")
+    pairs, folds, mask = cin["pairs"], cin["folds"], cin["v6_mask"]
+    assert len(pairs) == 39 and pairs[EM.SYSTEM_COL].nunique() == 13
+    with pytest.raises(AssertionError, match="V6_TARGET_ROWS row"):
+        ET.guard_scored_pairs(pairs, folds=folds, v6_mask=mask, design=CF.V6_DESIGN, what="the registered guard")
+    assert len(RC.v6_guard_scored_pairs(pairs, folds=folds, v6_mask=mask, what="test")) == 78
+    # two-sided: a member that is NOT a V6 row is refused too
+    off = mask.copy()
+    off.iloc[0] = False
+    with pytest.raises(AssertionError, match="outside V6_TARGET_ROWS"):
+        RC.v6_guard_scored_pairs(pairs, folds=folds, v6_mask=off, what="test")
+    # a member predicted in another fold than the pair's is refused
+    bad = pairs.copy()
+    bad.loc[bad.index[0], "fold"] = "v6_prnd__999"
+    with pytest.raises(AssertionError, match="predicted in another fold"):
+        RC.v6_guard_scored_pairs(bad, folds=folds, v6_mask=mask, what="test")
+
+
+def test_the_confirmation_scoring_frame_sets_the_metric_column():
+    """TASK X. Discovery's ``scoring_frame`` sets ``metrics.PRED_COL``; the confirmation one did not, so
+    ``metrics.design_per_unit_table`` and every pair reader raised ``KeyError('pred')`` -- S1(d), S1(e) and all of S2."""
+    pred, attrs, v6 = _v6_pred_and_attrs()
+    fr = CF.confirmation_scoring_frame(pred, attrs, design=CF.V6_DESIGN, v6_mask=v6, what="test")
+    assert EM.PRED_COL in fr.columns
+    assert np.allclose(fr[EM.PRED_COL].to_numpy(dtype=float), fr["mean_logD"].to_numpy(dtype=float))
+    unit = EM.design_per_unit_table(fr, CF.V6_DESIGN, v6_mask=None)      # the registered V6 escape
+    assert len(unit) == 13 and np.isfinite(unit["mae"]).all()
+
+
+def test_s2_assembles_every_part_of_section_9_s2(monkeypatch):
+    """TASK X E6. The whole S2 layer on a synthetic V6 record set: S2(a)'s sign count AND its paired yardstick deltas in
+    both strata, S2(b)'s lookup and log D terms and the 13-system gain bootstrap, S2(c) under both readings."""
+    from gen19ct.evaluation import pairs as EP
+
+    pred, attrs, v6 = _v6_pred_and_attrs()
+    cin = RC.v6_pair_inputs(pred, attrs, None, v6=v6, what="test")
+    pairs, strata = cin["pairs"], RC.v6_pair_strata(cin["pairs"])
+    assert strata["pooled"].sum() == 39 and strata[RC.HNO3].sum() == 21
+    logd = EM.design_per_unit_table(cin["frame"].assign(**{EM.PRED_COL: cin["logd"].to_numpy()}),
+                                    CF.V6_DESIGN, v6_mask=None)
+    systems = sorted(set(pairs[EM.SYSTEM_COL].astype(str)))
+    block = {
+        "n_rows": len(cin["frame"]), "n_pairs": len(pairs),
+        "n_pairs_by_stratum": {k: int(np.asarray(m).sum()) for k, m in strata.items()},
+        "observed_median_by_system": {str(k): float(v) for k, v in
+                                      pairs.groupby(pairs[EM.SYSTEM_COL].astype(str))["logsf_obs"].median().items()},
+        "predicted_median_by_system": {str(k): float(v) for k, v in
+                                       cin["logsf"].groupby(pairs[EM.SYSTEM_COL].astype(str).to_numpy()).median().items()},
+        "direction_delta_by_system": {st: {y: {s: 0.2 for s in systems} for y in CF.S2A_YARDSTICKS}
+                                      for st in CF.S2A_STRATA},
+        "direction_detail": {},
+        "logsf_mae_by_system": {st: {str(k): float(x) for k, x in
+                                     RC.v6_logsf_mae_by_system(pairs, cin["logsf"], keep=m).items()}
+                                for st, m in strata.items()},
+        "flat_logsf_mae_by_system": {st: {str(k): float(x) for k, x in
+                                          RC.v6_logsf_mae_by_system(pairs, EP.flat_logsf(pairs), keep=m).items()}
+                                     for st, m in strata.items()},
+        "lookup_logsf_mae_by_system": {st: {str(k): float(x) + 0.3 for k, x in
+                                            RC.v6_logsf_mae_by_system(pairs, cin["logsf"], keep=m).items()}
+                                       for st, m in strata.items()},
+        "logd_mae_by_system": {str(k): float(x) for k, x in logd["mae"].items()},
+        "lookup_logd_mae_by_system": {str(k): float(x) + 0.4 for k, x in logd["mae"].items()},
+        "logsf_interval_coverage": {r: {"80": 0.80, "95": 0.95} for r in CF.S2C_INTERVAL_READINGS},
+        "yardsticks_scored": list(CF.S2A_YARDSTICKS), "yardsticks_not_scored": [],
+    }
+
+    class _Store:
+        digest = "0" * 64
+        def indices(self):
+            return (1, 2, 3, 4, 5)
+
+    class _Corpus:
+        def __init__(self):
+            self.v6 = v6
+            self.frame = attrs.assign(**{FI.ROW_ID: attrs.index})
+
+    monkeypatch.setattr(RC, "s2_seed_block", lambda *a, **k: (block, []))
+    out = RC.s2_assembly(None, attrs, _Corpus(), store=_Store())
+    assert out["status"] == "COMPLETE" and out["verdict"] == "PASS"
+    assert out["s2a"]["sign"]["n_sign_agree"] == 13
+    assert set(out["s2a"]["direction"]) == set(CF.S2A_STRATA)
+    assert all(d["status"] == "PASS" for d in out["s2a"]["direction"].values())
+    assert out["s2b"]["gain_over_flat"] > CF.S2B_MARGIN and out["s2b"]["gain_interval_excludes_zero"]
+    assert out["s2b"]["at_most_lookup"] and out["s2b"]["logd_at_most_lookup"]
+    assert out["s2b"]["averaging_unit"] == list(EM.REGISTERED_UNIT_COLS[CF.V6_DESIGN]) == ["extractant_system_key"]
+    assert RC.HNO3 in out["s2b"]["by_stratum"] and "pooled" in out["s2b"]["by_stratum"]
+    assert out["s2c"]["status"] == "PASS" and not out["s2c"]["readings_disagree"]
+    json.dumps(out, default=str)                                   # the decisions writer must be able to serialise it
+    # one missing yardstick: S2 is UNDECIDED, never passed
+    monkeypatch.setattr(RC, "s2_seed_block", lambda *a, **k: (
+        {**block, "direction_delta_by_system": {st: {y: v for y, v in block["direction_delta_by_system"][st].items()
+                                                     if y != "B8"} for st in CF.S2A_STRATA}}, ["B8"]))
+    out2 = RC.s2_assembly(None, attrs, _Corpus(), store=_Store())
+    assert out2["s2a"]["status"] == CF.UNDECIDED and out2["verdict"] == CF.UNDECIDED
+    # a missing seed: the contrast record set is the completeness unit and S2 carries no verdict
+    monkeypatch.setattr(RC, "s2_seed_block", lambda *a, **k: (None, []))
+    out3 = RC.s2_assembly(None, attrs, _Corpus(), store=_Store())
+    assert out3["status"] == "INCOMPLETE" and out3["verdict"] == CF.UNDECIDED
+    assert out3["completeness_unit"] == CF.COMPLETENESS_UNIT

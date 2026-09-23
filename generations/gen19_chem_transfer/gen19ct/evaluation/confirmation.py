@@ -42,7 +42,7 @@ import json
 import math
 import re
 from collections.abc import Iterable, Mapping, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
@@ -51,6 +51,7 @@ import pandas as pd
 
 from gen19ct import paths
 from gen19ct.evaluation import discovery as D
+from gen19ct.evaluation import metrics as EM
 from gen19ct.evaluation import registry as REG
 from gen19ct.evaluation import transfer as ET
 from gen19ct.folds import io as FI
@@ -85,6 +86,16 @@ S2C_MIN_95 = 0.88
 NOT_RUN = "NOT_RUN"
 NOT_EVALUATED = "NOT_EVALUATED"
 UNDECIDED = "UNDECIDED"
+INCOMPLETE_GUARD_FAILURE = "INCOMPLETE_GUARD_FAILURE"
+#: POST-HOC addendum 6 item 3(a): the completeness unit is the CONTRAST RECORD SET, never the design
+COMPLETENESS_UNIT = "contrast_record_set"
+#: the two V6 metal states of section 3.4, hidden TOGETHER per system
+V6_METALS: tuple[str, str] = ("Pr(III)", "Nd(III)")
+#: the V6 design of section 3.4 as a fold stem: ``V6__prnd__exact`` (one fold per system, seed-independent design)
+V6_DESIGN, V6_VARIANT_NAME, V6_SCHEME = "V6", "prnd", "exact"
+V6_STEM = "V6__prnd__exact"
+#: the 7-system sensitivity of section 3.4, scored in the same single run
+V6_SENSITIVITY: tuple[int, int] = (10, 5)
 
 SEED_DISCLOSURE = (
     "decisions/CONFIRMATION.md reveals the withheld seeds ONLY as the verdict of "
@@ -94,9 +105,21 @@ SEED_DISCLOSURE = (
     "opaque seed index 1..5 (confirmation.SeedStore.index_of, the store's own order). Section 15's sentence 'They are "
     "revealed in decisions/CONFIRMATION.md together with the --verify-seeds verdict' is satisfied by the verdict: the "
     "commitment is what makes the seeds checkable, and printing the values would let a later run reproduce a "
-    "confirmation fit -- POST-HOC addendum 5 item 1 keeps this run single. A POST-HOC addendum recording that reading "
-    "of section 15 is REQUESTED (it narrows 'revealed' to 'verified'); until one is written the values stay withheld, "
-    "which is the conservative side of a rule written to stop seed luck")
+    "confirmation fit -- POST-HOC addendum 5 item 1 keeps this run single. SUPERSEDED by POST-HOC addendum 6 item 4, "
+    "which honours section 15 as written: see SEED_REVELATION")
+
+#: POST-HOC addendum 6 item 4, which SUPERSEDES the narrowing SEED_DISCLOSURE requested an addendum for.  Section 15 is
+#: honoured as written -- the seeds ARE revealed in ``decisions/CONFIRMATION.md`` -- and the addendum fixes WHEN: after
+#: the single run has completed, never before or during it.
+SEED_REVELATION = (
+    "POST-HOC addendum 6 item 4: 'The five seeds and the --verify-seeds verdict are written into "
+    "decisions/CONFIRMATION.md AFTER the single run has completed, never before; no artefact written before or during "
+    "the run contains a seed value, and the run logs only the commitment digest and an opaque per-seed index.' So: "
+    "every fold file, record, prediction frame, table and log line of the run carries i1..i5 and the commitment digest "
+    "alone (confirmation.scrub, checked by scan_for_seed_leak over everything the run wrote); decisions/CONFIRMATION.md "
+    "is written LAST, and it is the ONE artefact that names the values, beside the --verify-seeds verdict. The leak "
+    "scan therefore runs twice: before CONFIRMATION.md exists it must find no seed anywhere, and after it is written "
+    "that file must contain all five and every other file still none")
 
 READINGS: dict[str, str] = {
     "seed_entry": "the 5 withheld seeds enter this code ONLY through --seed-store PATH at run time, verified against "
@@ -104,6 +127,25 @@ READINGS: dict[str, str] = {
                   "no default path exists, no environment variable is read and nothing is cached: a second run needs "
                   "the store again",
     "seed_disclosure": SEED_DISCLOSURE,
+    "seed_revelation": SEED_REVELATION,
+    "completeness_unit": "POST-HOC addendum 6 item 3: the completeness unit is the CONTRAST RECORD SET, not the design "
+                         "-- a design may carry a verdict on one complete contrast while another contrast of the same "
+                         "design is incomplete, reported with its own status and carrying no verdict, no per-unit row "
+                         "and no failure-condition input; an incompletion caused by a GUARD failure rather than a "
+                         "compute cap is INCOMPLETE_GUARD_FAILURE, so the cap's vocabulary is never used for it (this "
+                         "run has no compute cap: addendum 5 item 1 fixed its scope instead)",
+    "v6_folds_in_run": "POST-HOC addendum 6 item 2: the V6 folds are built ONCE, INSIDE this run, by the registered "
+                       "section 3.4 rule (the 13 systems; per system the V5 state-level hiding applied to Pr(III) x S "
+                       "and Nd(III) x S TOGETHER, support_graph.hide_cells(component_aware=True), which removes the "
+                       "Pr(III)/Nd(III) rows and the Pr(?)/Nd(?) rows in S and in every system sharing a component with "
+                       "S) under each withheld seed, with their fold and design hashes recorded in the confirmation "
+                       "manifest. Nothing before this run may touch them, which is why the builder lives here and not "
+                       "in scripts/g19_build_folds*.py",
+    "v6_half": "V6 is the single run of section 3.4 over all 13 systems, not a confirmation-HALF design: section 3.1 "
+               "carves V6_TARGET_ROWS out of every design in BOTH halves, so no V6 row contributed to any ladder "
+               "decision, claim or preferred-model choice and the half filter that protects the other designs has "
+               "nothing to protect here. The V6 folds therefore carry half 'NA' and their scored rows are selected by "
+               "assert_v6_scope (every scored row a V6_TARGET_ROW), never by assert_confirmation_rows",
     "half": "every row this run scores is in the CONFIRMATION half of its design (feasibility_halves.csv; "
             "assert_confirmation_rows), the half section 15 says contributed to no ladder decision, claim or "
             "preferred-model choice. Discovery's own prepare_fold refuses a confirmation-half fold, so the runner owns "
@@ -131,6 +173,29 @@ READINGS: dict[str, str] = {
            "0.1) beats every yardstick Y in {HEAVIER, B3x-derived, B3i-derived, B8} by >= 0.05 under the paired rule of "
            "S1(c), pooled AND in the HNO3 pairs. A system whose observed or predicted median is 0 or undefined counts "
            "as NOT agreeing (the conservative side of a sign count)",
+    "s2c_interval_reading": "section 9 S2(c) fixes the BANDS ([0.70, 0.90] at 80 %, >= 0.88 at 95 %) and the population "
+                            "(the V6 pairs) but names no construction for the interval of a PREDICTED logSF, and no "
+                            "other registered text does: the arms' conformal intervals are per ROW, and logSF is a "
+                            "DIFFERENCE of two rows. Two constructions are therefore computed and printed, and the "
+                            "choice is declared rather than hidden: 'interval_arithmetic' (PRIMARY) is the interval of "
+                            "the difference under NO assumption about the dependence of the two rows' errors, "
+                            "[lo_a - hi_b, hi_a - lo_b]; 'quadrature' halves-widths in root-sum-square, which assumes "
+                            "independence. The verdict is the primary reading's, the other is reported beside it and "
+                            "readings_disagree says whether the choice mattered. This reading was fixed before any V6 "
+                            "number existed (V6 runs once, in this run) and is NOT score-informed; the "
+                            "pre-registration needs a one-line resolution naming the construction",
+    "s2_averaging_unit": "section 4 / metrics.REGISTERED_UNIT_COLS: the registered averaging unit of V6 is the SYSTEM, "
+                         "so every V6 macro number -- log D MAE and logSF MAE alike -- is a per-system mean then an "
+                         "equal-weight mean over the 13 systems, never a pooled mean over pairs. A pooled pair mean is "
+                         "printed beside it as a side aggregation (metrics: role 'side') and decides nothing. S2(a)'s "
+                         "paired direction contrasts use the cell-pair unit of S1(c), which for V6 IS the system: the "
+                         "cell pair is (system, Nd(III), Pr(III)) and there is exactly one per system",
+    "s2_strata": "section 3.4: 'Every V6 number is reported pooled and per acid medium. The nitrate process case "
+                 "(section 14) rests on the HNO3 pairs only.' So S2(a)'s margin is required in the pooled pairs AND in "
+                 "the HNO3 pairs (142 of 209), every S2 number is reported per acid medium, the 7-system sensitivity "
+                 "(>= 10 Pr and Nd rows, >= 5 other Ln(III); 168 pairs) is scored in the same single run, and TODGA is "
+                 "reported on its own (83 pairs: HCl 54, HNO3 26, malonic 3). The sensitivity and the per-acid and "
+                 "TODGA breakdowns are REPORTED, not deciding: section 9 S2 names only the pooled and HNO3 tests",
     "v6_deltas_not_run": "POST-HOC addendum 5 item 1: the section 11 V6 actinide deltas are NOT_RUN in this run, with "
                          "their cost and their consequence recorded (V6_ACTINIDE_DELTAS_NOT_RUN)",
     "power_not_run": "POST-HOC addendum 5 items 1 and 4: no section 8 power check runs here; the debt is inventoried, "
@@ -190,6 +255,9 @@ UNIT_SECONDS: dict[str, float] = {
     "M1@V5__hno3_only__batched_max4": 680.2, "M2@V5__hno3_only__batched_max4": 283.6,
     "M1@V5PAIR__primary__batched": 686.4, "M2@V5PAIR__primary__batched": 286.9,
     "B6@V5__primary__exact": 9.6, "B6@V2__element__exact": 9.0, "B6:ACT_PERMUTED@V2__element__exact": 2.6,
+    # the item 6 refits' comparator legs: the same arm on the same exact scheme, so the measured per-fold mean of
+    # B6@V5__primary__exact is the measurement; B3i / B0 / B3x are closed form and keyed by arm below
+    "B6@V5__strict__exact": 9.6, "B6@V5__hno3_only__exact": 9.6,
     "M1@V6__prnd__exact": 0.2785 * 684.8, "M2@V6__prnd__exact": 0.2785 * 303.6, "B8@V6__prnd__exact": 0.2785 * 699.6,
     "B3i": 0.0, "B0": 0.0, "B3x": 0.0, "FLAT": 0.0, "HEAVIER": 0.0,
 }
@@ -206,6 +274,8 @@ FOLD_COUNTS_CONFIRMATION: dict[str, int] = {
     "V5__primary__batched_max4": 27, "V5__strict__batched_max4": 8, "V5__hno3_only__batched_max4": 27,
     "V5PAIR__primary__batched": 38, "V5__primary__exact": 111, "V2__element__exact": 11, "V1__copy__exact": 52,
     "V6__prnd__exact": 13,
+    # the item 6 refits' comparator legs, seed-independent exact files (folds/INDEX.json by_half.C, not divided)
+    "V5__strict__exact": 25, "V5__hno3_only__exact": 111,
 }
 
 
@@ -292,7 +362,10 @@ class SeedStore:
         """What may be written to a file: the commitment, the count, the verdict -- no value."""
         return {"commitment_sha256": self.digest, "n_seeds": len(self.values), "verified_against_commitment":
                 bool(self.verified), "seed_indices": list(self.indices()), "values": "withheld",
-                "disclosure": SEED_DISCLOSURE}
+                # the OPERATIVE rule is addendum 6 item 4's: the seeds ARE revealed, in decisions/CONFIRMATION.md, after
+                # the run.  SEED_DISCLOSURE is the narrowing it superseded and is carried only so the record shows what
+                # was superseded and by what -- a reader of this block must not take it for the rule in force
+                "disclosure": SEED_REVELATION, "superseded_disclosure": SEED_DISCLOSURE}
 
 
 def committed_digest(root: Path | None = None) -> str:
@@ -354,16 +427,24 @@ def scrub(obj: Any, store: SeedStore) -> Any:
     return obj
 
 
-def scan_for_seed_leak(store: SeedStore, targets: Iterable[Path | str], *, extra_text: Iterable[str] = ()
-                       ) -> dict[str, Any]:
+def scan_for_seed_leak(store: SeedStore, targets: Iterable[Path | str], *, extra_text: Iterable[str] = (),
+                       allow: Iterable[Path | str] = (), require: Iterable[Path | str] = ()) -> dict[str, Any]:
     """Re-read every file the run wrote (and any captured log text) and refuse if a seed's decimal form appears.
 
     The check is deliberately crude and total: a withheld seed is a 6-digit integer, so ``str(seed)`` is searched as a
     substring of the raw bytes of every listed file, whatever its format.  Its own report records only the COUNT of
     files scanned and the verdict -- never which seed, never where.
+
+    ``allow`` and ``require`` implement POST-HOC addendum 6 item 4 (:data:`SEED_REVELATION`): the run scans everything it
+    wrote BEFORE ``decisions/CONFIRMATION.md`` exists, and once that file is written it is scanned again with the report
+    in ``allow`` (a seed there is the registered revelation, not a leak) and in ``require`` (it MUST name all five, or
+    section 15's revelation did not happen).  A file in ``allow`` that is not in ``require`` is merely exempt.
     """
     hits: list[str] = []
     needles = [str(s).encode() for s in store.values]
+    allowed = {str(Path(a).resolve()) for a in allow}
+    required = {str(Path(r).resolve()): r for r in require}
+    found_required: dict[str, int] = {}
     n = 0
     for t in targets:
         p = Path(t)
@@ -372,13 +453,25 @@ def scan_for_seed_leak(store: SeedStore, targets: Iterable[Path | str], *, extra
         for f in ([p] if p.is_file() else sorted(q for q in p.rglob("*") if q.is_file())):
             n += 1
             b = f.read_bytes()
-            if any(x in b for x in needles):
+            key = str(f.resolve())
+            n_seeds_named = sum(1 for x in needles if x in b)
+            if key in required:
+                found_required[str(required[key])] = n_seeds_named
+            if n_seeds_named and key not in allowed:
                 hits.append(str(f))
     for txt in extra_text:
         if any(x.decode() in str(txt) for x in needles):
             hits.append("<log text>")
-    return {"files_scanned": n, "ok": not hits, "files_containing_a_withheld_seed": sorted(set(hits)),
-            "rule": "no withheld seed's decimal form may appear in any file this run wrote or in its log"}
+    missing = sorted(k for k, v in found_required.items() if v != len(needles))
+    for r in required.values():
+        if str(r) not in found_required:
+            missing.append(str(r))
+    return {"files_scanned": n, "ok": not hits and not missing,
+            "files_containing_a_withheld_seed": sorted(set(hits)),
+            "revelation_files": sorted(str(Path(a)) for a in allow),
+            "revelation_incomplete": sorted(set(missing)),
+            "rule": "no withheld seed's decimal form may appear in any file this run wrote or in its log, EXCEPT "
+                    "decisions/CONFIRMATION.md written last, which must name all five (addendum 6 item 4)"}
 
 
 # --------------------------------------------------------------------------------------------- #
@@ -548,6 +641,17 @@ def enumerate_jobs(plan: Mapping[str, Any], *, n_seeds: int = N_SEEDS,
                 jobs.append(ConfJob("R19 item 6 refits (discovery seed 104729 only)", arm, "V5", stem, 0,
                                     fc.get(stem, 0), note="addendum 1 item 4 scopes these refits to seed 104729; "
                                                           "addendum 5 item 1 keeps the core run"))
+        # ... and the COMPARATOR leg of each refit, on the setting's own EXACT folds.  A sensitivity is a Delta: without
+        # the comparator refitted on the same setting there is nothing to subtract, R19 item 6 reports the two members of
+        # addendum 1 item 4's own reduced set NOT_EVALUATED, and every V5 claim is UNDECIDED whatever the data says
+        for stem in ("V5__strict__exact", "V5__hno3_only__exact"):
+            for arm in ("B3i", "B0"):
+                jobs.append(ConfJob("R19 item 6 refit comparators (closed form, seed 104729)", arm, "V5", stem, 0,
+                                    fc.get(stem, 0), note="section 5 comparator_folds: a closed-form comparator is "
+                                                          "fitted on the setting's EXACT leave-one-cell-out folds"))
+            if "C3" in ids:
+                jobs.append(ConfJob("R19 item 6 refit comparators (closed form, seed 104729)", "B6", "V5", stem, 0,
+                                    fc.get(stem, 0), note="B6r0 is read from the B6 fit (rank 0) of the same fold"))
     if "C4" in ids:
         for i in seeds:
             jobs.append(ConfJob("claim C4 (H3 control contrast)", "B6", "V2", "V2__element__exact", i,
@@ -565,6 +669,14 @@ def enumerate_jobs(plan: Mapping[str, Any], *, n_seeds: int = N_SEEDS,
         for arm in ("M1", "M2", "B8"):
             jobs.append(ConfJob("the single V6 run (S2)", arm, "V6", "V6__prnd__exact", i, fc.get("V6__prnd__exact", 0),
                                 tuned=False, note="frozen configurations, no re-tuning (section 3.4)"))
+        # S2(a) requires Delta_Y against EVERY yardstick in {HEAVIER, B3x-derived, B3i-derived, B8}, "with B3x, B3i and
+        # B8 fitted on the same V6 folds and withheld seeds as M2" (section 9, resolved 2026-09-15).  B8 is above;
+        # HEAVIER needs no fit; B3x and B3i do, and B3i is also S2(b)'s lookup-derived comparator and the V5 lookup
+        # comparator the hidden Pr/Nd log D MAE is measured against
+        for arm in ("B3x", "B3i"):
+            jobs.append(ConfJob("the single V6 run (S2) -- yardsticks", arm, "V6", "V6__prnd__exact", i,
+                                fc.get("V6__prnd__exact", 0), tuned=False,
+                                note="section 9 S2(a)/(b): the B3x- and B3i-derived yardsticks on M2's V6 folds"))
     return jobs
 
 
@@ -601,6 +713,62 @@ def confirmation_scored_ids(fold: FI.Fold) -> tuple[str, ...]:
     return tuple(r for r in fold.scored_row_ids if str(fold.row_half.get(r, fold.half)) == D.CONFIRMATION)
 
 
+def fit_scored_ids(fold: FI.Fold) -> tuple[str, ...]:
+    """The rows THIS run scores in one fold.
+
+    A design with registered halves contributes its CONFIRMATION-half scored rows
+    (:func:`confirmation_scored_ids`).  A **V6** fold contributes every scored row: V6 is the single run of section 3.4
+    over all 13 systems and is not a confirmation-HALF design (:data:`READINGS` ``v6_half``), so its rows are selected
+    by :func:`assert_v6_scope` -- every scored row a ``V6_TARGET_ROW`` -- and its folds carry half ``NA``.  Reading the
+    half here instead would silently return nothing and make the whole V6 leg unreachable.
+    """
+    if is_v6(fold.design):
+        return tuple(fold.scored_row_ids)
+    return confirmation_scored_ids(fold)
+
+
+def confirmation_job_folds(job: D.JobSpec, folds: Sequence[FI.Fold]) -> list[tuple[FI.Fold, int]]:
+    """``(fold, ordinal)`` of every fold a CONFIRMATION job fits -- the mirror of ``discovery.job_folds``.
+
+    Discovery's selector is unusable here by construction: it drops every fold whose ``half`` is the confirmation half
+    and keeps only folds with a SELECTION-half scored row, so on the confirmation half it returns either nothing or
+    exactly the folds this run may never fit.  This one keeps the job's fold seed (a multi-seed file), refuses a
+    SELECTION-half fold, and requires at least one row this run scores (:func:`fit_scored_ids`).  The ordinals are
+    discovery's (``discovery.fold_ordinals``): the section 15 model fold number is a property of the design file, not of
+    the half.
+    """
+    seeds = {f.seed for f in folds}
+    if job.fold_seed is None and seeds != {None} and len(seeds) != 1:
+        raise ValueError(f"{job.key}: fold file {job.stem} holds seeds {sorted(map(str, seeds))}; give fold_seed")
+    key_seed = job.fold_seed if job.fold_seed is not None else (job.seed if seeds == {None} else next(iter(seeds)))
+    ords = D.fold_ordinals(folds, key_seed)
+    out = []
+    for f in folds:
+        if job.fold_seed is not None and f.seed != job.fold_seed:
+            continue
+        if f.half == D.SELECTION:
+            continue
+        if fit_scored_ids(f):
+            out.append((f, ords[f.fold_id]))
+    return out
+
+
+def confirmation_fittable_folds(job: D.JobSpec, folds: Sequence[FI.Fold],
+                                excluded_ids: Iterable[str]) -> list[tuple[FI.Fold, int]]:
+    """:func:`confirmation_job_folds` minus the folds whose scored rows are all acidic co-extractant rows (section 2)."""
+    ex = {str(r) for r in excluded_ids}
+    return [(f, k) for f, k in confirmation_job_folds(job, folds) if any(str(r) not in ex for r in fit_scored_ids(f))]
+
+
+class RedactedRunError(RuntimeError):
+    """An error of the single run whose message has passed through :func:`scrub`, raised ``from None``.
+
+    A withheld seed must not reach a traceback: every message this run can print is built from the opaque index, and an
+    exception raised deeper (``prepare_fold``'s ``ValueError``, a runner's ``KeyError``) is re-raised as this, with the
+    original chain suppressed, so no ``__context__`` frame can carry the seed either (POST-HOC addendum 6 item 4).
+    """
+
+
 def assert_confirmation_rows(ids: Iterable[str], row_half: Mapping[str, str] | pd.Series, what: str) -> None:
     """Raise unless every row id's registered half is the CONFIRMATION half (this run scores no other row)."""
     ids = list(ids)
@@ -610,6 +778,47 @@ def assert_confirmation_rows(ids: Iterable[str], row_half: Mapping[str, str] | p
         halves = sorted({str(get(r, "NA")) for r in bad})
         raise AssertionError(f"{what}: {len(bad)} scored row(s) outside the confirmation half ({halves}; first "
                              f"{bad[0]!r}); the confirmation run scores the confirmation half only")
+
+
+def is_v6(design: str) -> bool:
+    return str(design).upper().replace("-", "").replace("_", "") == "V6"
+
+
+def v6_cells(systems: Iterable[str]) -> list[tuple[tuple[str, str], tuple[str, str]]]:
+    """The section 3.4 double cells: per system S the pair ``((Pr(III), S), (Nd(III), S))``, hidden TOGETHER."""
+    return [((V6_METALS[0], s), (V6_METALS[1], s)) for s in sorted(set(systems))]
+
+
+def confirmation_scoring_frame(pred: pd.DataFrame, attrs: pd.DataFrame, *, design: str, v6_mask: pd.Series, what: str,
+                               half_col: str | None = None) -> pd.DataFrame:
+    """The mirror of ``discovery.scoring_frame`` for this run: one arm's predictions of one design and ONE withheld-seed
+    index joined to the row attributes, indexed by ``row_id``, with the CONFIRMATION-half guard where the design has
+    halves and :func:`assert_v6_scope` in both directions everywhere.
+
+    Discovery's own refuses a confirmation-half row by construction, so it cannot be reused; every assertion it makes is
+    made here with the half switched, and the V6 design takes :data:`READINGS` ``v6_half`` instead of the half filter.
+    """
+    need = ["row_id", "fold_id", "mean_logD"]
+    missing = [c for c in need if c not in pred.columns]
+    if missing:
+        raise KeyError(f"{what}: prediction columns missing {missing}")
+    if "half" in pred.columns and not is_v6(design) and (pred["half"].astype(str) != D.CONFIRMATION).any():
+        raise AssertionError(f"{what}: prediction frame holds a row outside the confirmation half")
+    fr = pred.join(attrs.drop(columns=[c for c in ("row_id",) if c in attrs.columns]), on="row_id", rsuffix="_attr")
+    fr = fr.set_index("row_id", drop=False)
+    fr.index.name = None
+    if fr.index.has_duplicates:
+        raise AssertionError(f"{what}: a row is scored twice in one design and seed index")
+    if not is_v6(design):
+        hc = half_col or f"registered_half_{design}"
+        if hc not in fr.columns:
+            raise KeyError(f"{what}: attrs lack {hc}")
+        assert_confirmation_rows(fr.index, fr[hc].astype(str), what)
+    assert_v6_scope(fr.index, v6_mask, design, what)
+    # the metric column every reader expects, as discovery's ``scoring_frame`` sets it: without it
+    # ``metrics.design_per_unit_table`` (S1(d), S1(e), the V6 log D macro) and every pair reader raise KeyError('pred')
+    fr[EM.PRED_COL] = pd.to_numeric(fr["mean_logD"], errors="coerce").astype(float)
+    return fr
 
 
 def assert_v6_scope(labels: pd.Index, v6_mask: pd.Series, design: str, what: str) -> None:
@@ -657,15 +866,33 @@ def item4(seed_deltas: Mapping[int, float] | Sequence[float], *, required: int =
 
 def score_claim(claim: Claim, *, point: float, bootstraps: Mapping[str, ET.BootstrapResult],
                 seed_deltas: Mapping[int, float], sensitivity_deltas: Mapping[str, float | str],
-                deterministic: bool = False) -> dict[str, Any]:
+                deterministic: bool = False, reduced_sensitivities: Sequence[str] | None = None,
+                sensitivities_not_run_extra: Mapping[str, str] | None = None) -> dict[str, Any]:
     """R19 (section 8, ``stage='confirmation'``) plus TOST for one frozen claim.
 
     ``ET.r19`` evaluates items 1-6 with the confirmation reading of item 4 (5 of 5); :func:`item4` is computed beside it
     so the record carries the seed count explicitly, and the two must agree.
+
+    ``reduced_sensitivities`` is POST-HOC addendum 1 item 4's REDUCED set (the refits a learned arm runs plus every
+    registered scoring-filter sensitivity).  Item 6 is then rebuilt by ``discovery.reduced_item6`` -- the same builder
+    discovery and H3 use -- and the verdict recomputed by ``discovery.r19_verdict``.  Without it ``ET.r19``'s own item-6
+    loop reads every registered name and treats any string other than ``transfer.UNTESTABLE`` as a FAILURE, so a
+    sensitivity addendum 1 item 4 does not run would FAIL the claim before any data was seen; with it the names that
+    were not run are DECLARED (never silently dropped) and a member of the reduced set that this run could not evaluate
+    makes item 6 ``NOT_EVALUATED``, not PASS (``discovery.ITEM6_NOT_EVALUATED``).
     """
+    sens = dict(sensitivity_deltas)
+    for n in ET.REGISTERED_SENSITIVITIES[claim.design]:
+        sens.setdefault(n, ET.UNTESTABLE)
     res = ET.r19(design=claim.design, stage="confirmation", point=float(point), margin=float(claim.margin),
                  bootstraps=bootstraps, seed_deltas=[seed_deltas[i] for i in sorted(seed_deltas)],
-                 deterministic=bool(deterministic), sensitivity_deltas=sensitivity_deltas, contrast=claim.key)
+                 deterministic=bool(deterministic), sensitivity_deltas=sens, contrast=claim.key)
+    item6_not_run: dict[str, str] = {}
+    if reduced_sensitivities is not None:
+        item6, item6_not_run = D.reduced_item6(claim.design, sens, list(reduced_sensitivities),
+                                               sensitivities_not_run_extra)
+        items = [item6 if it["item"] == 6 else it for it in res.items]
+        res = replace(res, items=tuple(items), verdict=D.r19_verdict(items))
     i4 = item4(seed_deltas)
     r19_i4 = next((it for it in res.items if it["item"] == 4), {})
     if not deterministic and r19_i4.get("status") != i4["status"]:
@@ -680,6 +907,10 @@ def score_claim(claim: Claim, *, point: float, bootstraps: Mapping[str, ET.Boots
             "item4": i4, "tost": t, "confirmed": bool(confirmed),
             "confirmed_rule": "section 15: a claim is confirmed only if it passes R19 with 5 of 5 confirmation seeds",
             "seed_deltas_by_index": {int(k): float(v) for k, v in sorted(seed_deltas.items())},
+            "sensitivity_set": D.ADDENDUM_LABEL if reduced_sensitivities is not None else "registered (full)",
+            "sensitivities_reduced_set": list(reduced_sensitivities or ()),
+            "sensitivities_not_run": dict(sorted(item6_not_run.items())),
+            "sensitivity_deltas": {k: (v if isinstance(v, str) else float(v)) for k, v in sorted(sens.items())},
             "discovery_point_selection_half": claim.discovery_point}
 
 
@@ -784,6 +1015,84 @@ def s2a_sign_count(observed_median: Mapping[str, float], predicted_median: Mappi
             "required": int(required), "systems_agreeing": agree,
             "status": "PASS" if (len(systems) == int(n_systems) and len(agree) >= int(required)) else "FAIL",
             "per_system": rows, "reading": READINGS["s2a"]}
+
+
+#: S2(a) second half (section 9): the paired direction margin and the four registered yardsticks.  B8 is defined only
+#: in systems with TOPO39 columns, so its pair set is smaller -- which is exactly why the rule is PAIRED per yardstick
+#: rather than a max over yardsticks scored on different pairs (the 2026-09-15 resolution).
+S2A_DIRECTION_MARGIN = 0.05
+S2A_YARDSTICKS: tuple[str, ...] = ("HEAVIER", "B3x_derived", "B3i_derived", "B8")
+#: section 9 S2(a): min_Y Delta_Y >= 0.05 "in pooled pairs AND in the HNO3 pairs (142 of 209)"
+S2A_STRATA: tuple[str, ...] = ("pooled", "HNO3")
+V6_N_PAIRS, V6_N_PAIRS_HNO3 = 209, 142
+#: section 3.4's sensitivity: the 7-system setting (>= 10 Pr and Nd rows, >= 5 other Ln(III); 168 pairs)
+V6_SENSITIVITY_N_SYSTEMS, V6_SENSITIVITY_N_PAIRS = 7, 168
+#: section 3.4: "TODGA is reported on its own as well"
+V6_FOCUS_SYSTEM = "TODGA"
+
+
+def s2a_direction(per_yardstick_per_seed_by_system: Mapping[str, Mapping[int, Mapping[str, float]]], *,
+                  margin: float = S2A_DIRECTION_MARGIN, stratum: str = "pooled",
+                  yardsticks: Sequence[str] = S2A_YARDSTICKS) -> dict[str, Any]:
+    """S2(a) second half: pair-level direction accuracy (|observed| >= 0.1) beats EVERY yardstick by >= 0.05.
+
+    Section 9 S2(a) as resolved 2026-09-15: for each ``Y`` in :data:`S2A_YARDSTICKS`, ``Delta_Y`` = accuracy(M2) -
+    accuracy(Y) on the identical V6 test-test pairs where Y is defined, with B3x, B3i and B8 fitted on the same V6 folds
+    and withheld seeds as M2 and **the same seed combination** as S1(c) (:func:`seed_mean_system_bootstrap`); the test is
+    ``min_Y Delta_Y >= 0.05``, applied in the pooled pairs AND in the HNO3 pairs.  A yardstick that is not scored on any
+    seed is UNTESTABLE and S2(a) is then UNDECIDED, never passed: the rule says *every* yardstick.
+    """
+    per: dict[str, Any] = {}
+    missing: list[str] = []
+    for y in yardsticks:
+        block = per_yardstick_per_seed_by_system.get(y)
+        if not block:
+            missing.append(y)
+            continue
+        st = seed_mean_system_bootstrap(block)
+        st["item4"] = item4({i: v for i, v in st["per_seed"].items()}, n_seeds=len(st["per_seed"]) or N_SEEDS)
+        per[y] = st
+    mins = {y: st["point"] for y, st in per.items()}
+    min_y = min(mins.values()) if mins else float("nan")
+    binding = min(mins, key=lambda k: mins[k]) if mins else None
+    ok = bool(mins and not missing and np.isfinite(min_y) and min_y >= float(margin)
+              and all(st["excludes_zero"] for st in per.values())
+              and all(st["item4"]["status"] == "PASS" for st in per.values()))
+    status = "PASS" if ok else (UNDECIDED if missing else "FAIL")
+    return {"stratum": stratum, "per_yardstick": per, "min_delta": min_y, "binding_yardstick": binding,
+            "margin": float(margin), "yardsticks_not_scored": missing, "status": status,
+            "detail": (f"min_Y Delta_Y = {min_y:.6g} over {sorted(mins)} (binding {binding}); margin {margin:g}"
+                       if mins else "no yardstick scored")
+                      + (f"; UNTESTABLE yardstick(s) {missing}: S2(a) is UNDECIDED, never passed" if missing else ""),
+            "reading": READINGS["s2a"]}
+
+
+#: the two constructions of a predicted logSF interval from the two rows' conformal intervals.  Section 9 S2(c) fixes
+#: the BANDS and the pair population but names no construction, and no other registered text does either, so both are
+#: computed and printed; the PRIMARY one assumes nothing about the dependence of the two rows' errors.
+S2C_INTERVAL_READINGS: tuple[str, ...] = ("interval_arithmetic", "quadrature")
+S2C_PRIMARY_READING = "interval_arithmetic"
+
+
+def s2c_coverage(coverage_by_reading: Mapping[str, Mapping[str, float]], *,
+                 primary: str = S2C_PRIMARY_READING) -> dict[str, Any]:
+    """S2(c): pooled logSF interval coverage in [0.70, 0.90] at 80 % and >= 0.88 at 95 % over the V6 pairs.
+
+    ``coverage_by_reading`` maps each construction of :data:`S2C_INTERVAL_READINGS` to {"80": cov, "95": cov}.  The
+    verdict is the ``primary`` reading's; the other is printed, and ``readings_disagree`` says whether the choice
+    mattered -- the honest way to report a band test whose registered text fixes the bands but not the arithmetic.
+    """
+    per = {r: coverage_bands(c, S2C_BANDS, min_95=S2C_MIN_95) for r, c in sorted(coverage_by_reading.items())}
+    if primary not in per:
+        return {"status": NOT_EVALUATED, "per_reading": per, "primary_reading": primary,
+                "detail": f"the primary reading {primary!r} was not computed; S2(c) carries no verdict",
+                "reading": READINGS["s2c_interval_reading"]}
+    statuses = {r: v["status"] for r, v in per.items()}
+    return {"status": per[primary]["status"], "per_reading": per, "primary_reading": primary,
+            "coverage": dict(coverage_by_reading.get(primary) or {}), "statuses_by_reading": statuses,
+            "readings_disagree": len(set(statuses.values())) > 1,
+            "bands": {k: list(v) for k, v in S2C_BANDS.items()}, "min_95": S2C_MIN_95,
+            "detail": per[primary]["detail"], "reading": READINGS["s2c_interval_reading"]}
 
 
 def s2b_magnitude(*, logsf_mae: float, flat_logsf_mae: float, lookup_logsf_mae: float,
@@ -964,9 +1273,18 @@ def confirmation_tables(decisions: Mapping[str, Any]) -> dict[str, pd.DataFrame]
             "confirmation_not_run": pd.DataFrame(nr)}
 
 
-def confirmation_report(decisions: Mapping[str, Any]) -> str:
-    """``decisions/CONFIRMATION.md`` -- the result, the seeds as a VERDICT only, and what was not run."""
+def confirmation_report(decisions: Mapping[str, Any], *, store: SeedStore | None = None,
+                        verify_seeds: Mapping[str, Any] | None = None) -> str:
+    """``decisions/CONFIRMATION.md`` -- the result, the REVEALED seeds with the ``--verify-seeds`` verdict, and what was
+    not run.
+
+    Section 15: *"They are revealed in decisions/CONFIRMATION.md together with the --verify-seeds verdict"*, and POST-HOC
+    addendum 6 item 4 fixes WHEN: only after the single run has completed (:data:`SEED_REVELATION`).  ``store`` is passed
+    ONLY by the runner, at the very end, after every other artefact has been written and scanned; without it the values
+    are withheld and the file says so, which is what the pre-run leak test reads.
+    """
     ss = decisions.get("seed_store") or {}
+    vs = dict(verify_seeds or {})
     lines = ["# CONFIRMATION -- the single registered confirmation run (pre-registration section 15)", "",
              f"*Written {decisions.get('written_utc', _now())} by `scripts/g19_run_confirmation.py`. "
              "POST-HOC addendum 5 item 1 makes this the CORE run: the frozen claims on the confirmation half with the 5 "
@@ -975,10 +1293,19 @@ def confirmation_report(decisions: Mapping[str, Any]) -> str:
              "## The withheld seeds", "",
              f"- commitment (section 15): `{ss.get('commitment_sha256', '?')}`",
              f"- `scripts/g19_seal_prereg.py --verify-seeds`: **"
-             f"{'VERIFIED' if ss.get('verified_against_commitment') else 'NOT VERIFIED'}** "
-             f"({ss.get('n_seeds', '?')} seeds).",
-             f"- the VALUES are not printed here. {ss.get('disclosure', SEED_DISCLOSURE)}", "",
-             "## The frozen claims on the confirmation half", "",
+             f"{'VERIFIED' if (vs.get('ok') if vs else ss.get('verified_against_commitment')) else 'NOT VERIFIED'}** "
+             f"({ss.get('n_seeds', '?')} seeds)"
+             + (f" -- {vs.get('message')}" if vs.get("message") else "") + ".",
+             ""]
+    if store is None:
+        lines += [f"- the VALUES are not printed here (this file was written before the run completed). "
+                  f"{ss.get('seed_revelation', SEED_REVELATION)}", ""]
+    else:
+        lines += ["| opaque index | withheld seed |", "|---|---|"]
+        lines += [f"| i{i} | **{store.seed(i)}** |" for i in store.indices()]
+        lines += ["", "*Revealed here and nowhere else: every fold file, record, table and log line of the run carries "
+                  "the opaque index and the commitment digest alone. " + SEED_REVELATION + "*", ""]
+    lines += ["## The frozen claims on the confirmation half", "",
              "| claim | design | Delta | margin | R19 | item 4 (seeds) | TOST | confirmed |", "|---|---|---|---|---|---|---|---|"]
     for c in decisions.get("claims") or []:
         i4 = c.get("item4") or {}

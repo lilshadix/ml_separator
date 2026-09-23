@@ -596,6 +596,119 @@
       ],
       "logged_utc": "2026-09-23T04:26:52+00:00",
       "reason": "Reporting-only: F4_INTERVAL_READING opened with 'NOT REGISTERED' while the D03 sentence above it now says the reading IS registered by POST-HOC addendum 5 item 3 - the two contradicted each other in the printed report. The string now opens 'REGISTERED by POST-HOC addendum 5 item 3 (NOT REGISTERED before it, ...)' and the duplicated registration clause later in the string is removed; the JSON key f4.interval_reading_not_registered is unchanged, as other files cite it. No number, no verdict and no record changes: this edit touches printed prose only, so under h3.OPERATIVE_DIGEST_READING every record written earlier keeps its own entry and still verifies."
+    },
+    {
+      "commit": "055a453aaacbd920e16ae214e4fcd29ee162a62b",
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_run_confirmation.py",
+          "sha256_lf": "5dbfc74fe2337cca3ecd24e1f59f5b6f40a5beb8cadea1642eb8c89a121014ad"
+        }
+      ],
+      "logged_utc": "2026-09-23T05:31:08+00:00",
+      "reason": "UNLOGGED EDIT, logged now (task item 5). scripts/g19_run_confirmation.py was edited AFTER the registry entry that introduced it recorded its LF sha256 a2f2f693df7e... (the same minute the 'confirmation' stage was registered, 2026-09-23T03:33:14Z) and BEFORE commit 055a453, so the live file's LF sha256 differed from every logged value and the stage's registered code digest c855606120a4... was computed from the earlier content. The earlier content is NOT recoverable: the file has exactly one commit (055a453), no dangling blob in the object store hashes to a2f2f693df7e, and no manifest or dry-run output of the earlier version exists, so the DIFF cannot be stated and is not guessed here. What can be established and is: the file is the confirmation runner, which had written no record of any kind (evaluation/confirmation/ did not exist and the once-only lock was unspent), so under addendum 2 item 5 this edit validated and invalidated nothing - there was no record of stage 'confirmation' to validate. The consequence is handled by re-registering the stage after the code is final, which this pass does."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/confirmation.py",
+          "sha256_lf": "9985ca46d1be9c66916a18f9ed5f4fdea61d044ef77a86b8f0400fca335c7e68"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_run_confirmation.py",
+          "sha256_lf": "5dbfc74fe2337cca3ecd24e1f59f5b6f40a5beb8cadea1642eb8c89a121014ad"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/tests/test_confirmation.py",
+          "sha256_lf": "e30fb234cb1334f7a04656a84798303e6eacff77092dcd6456efdd8b7ae137bf"
+        }
+      ],
+      "logged_utc": "2026-09-23T05:31:35+00:00",
+      "reason": "THE RUN BODY of the single registered confirmation run, written under POST-HOC addendum 6 (6 addenda below the footer) and BEFORE the run starts, so it validates and invalidates no record (there is none of stage 'confirmation'). The five stages that were NOT_IMPLEMENTED are now written and RUN_STAGES has no False entry: (1) withheld_seed_fold_files - build_confirmation_folds now builds, per withheld-seed INDEX, the V5 primary/strict/hno3_only batched_max4 colourings (cell_holdout.v5_batched_folds, cap 4, the registered vertex order), the batched V5-PAIR colouring from the registered unbatched cell_pair design, and the V6__prnd__exact design of section 3.4 by addendum 6 item 2 (13 systems, Pr(III) x S and Nd(III) x S hidden together component-aware, X(?) rows hidden and never scored, guard level V5, half NA); every count is DERIVED and the plan's figure only compared; assert_fold_v6_scope checks the carve-out in both directions on the files. (2) fit_loop - job_spec_of / attach_seed_folds / FitLedger dispatch the inventory per seed index through the existing confirmation-half prepare_fold and run_fold, resumable by digest, a guard failure recorded as INCOMPLETE_GUARD_FAILURE (addendum 6 item 3(b)). (3) s1c_s1d_s1e_assembly - per-seed s1c_half on the withheld-seed V5-PAIR folds with the yardsticks refitted there, combined by transfer.s1c_paired_verdict, with the selection-half counterweight READ from the discovery decisions file; S1(d) coverage as the seed mean of the per-seed cell macro; S1(e) the support-distance Spearman. (4) s2_assembly - S2(a)-(c) from the single V6 run. (5) writers - decisions/confirmation.json (schema gen19.confirmation.v1), tables/confirmation_*.csv|md and decisions/CONFIRMATION.md written LAST. Rule changes in confirmation.py: SEED_DISCLOSURE's narrowing is SUPERSEDED by addendum 6 item 4 and replaced by SEED_REVELATION - CONFIRMATION.md now reveals the five seeds after the run, and scan_for_seed_leak gained allow/require so the scan runs twice (clean before the report, the report the only file naming them after); SEED_POOLING now cites addendum 6 item 1 as REGISTERED rather than requesting an addendum; new COMPLETENESS_UNIT / INCOMPLETE_GUARD_FAILURE (item 3), V6 design constants, v6_cells and confirmation_scoring_frame (discovery's scoring_frame with the half switched and the V6 design exempt from the half filter by READINGS['v6_half'])."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/confirmation.py",
+          "sha256_lf": "251c0e0266f7b9015c99747fd40b1c52ec3de778f662b603c81962eae1f558b8"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_run_confirmation.py",
+          "sha256_lf": "70929c325cb31eb09a08b13f9435284a14f75b7b18edad90e7c6e77d6b2d89ab"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/tests/test_confirmation.py",
+          "sha256_lf": "b515a6c11eb0a23e332e95524a89ee3a1102e7a71053b7e8c60e699b9f3aaee4"
+        }
+      ],
+      "logged_utc": "2026-09-23T06:23:37+00:00",
+      "reason": "TASK X: six blocking defects of the unlaunched confirmation runner, all reproduced by execution first. (E1) the fit loop used discovery's corpus.fittable, whose job_folds skips every confirmation-half fold and requires a selection-half scored row: measured V5__primary__exact -> 105 folds, all half S. Added confirmation.fit_scored_ids / confirmation_job_folds / confirmation_fittable_folds, the mirror of discovery's, and the loop calls them. (E2) the in-run V6 folds carry half NA, so confirmation_scored_ids returned 0 of 12 and D.fittable_folds 0; prepare_fold had no is_v6 branch and would raise an UNCAUGHT ValueError interpolating job.key, i.e. a withheld seed in a traceback, and corpus.half_by_id['V6'] is a KeyError. fit_scored_ids takes every scored row of a V6 fold, prepare_fold and run_fold branch on is_v6 and assert the V6 scope instead of the half, prepare_fold takes a pre-scrubbed 'what', and fit_loop re-raises any non-AssertionError as confirmation.RedactedRunError with a scrubbed message and 'from None'. (E3) the item 6 refit pass read the registered multi-seed batched files with fold_seed unset -> ValueError; fold_seeded_spec derives fold_seed from the FILE's seeds. Also fixed: job_spec_of built kind='fit' for B3i/B0/B3x, which runner_for looks up as 'comparator:<arm>' -> KeyError('no runner for B3i'), uncaught. (E4) claim_sensitivities filled the LEARNED_REFITS_NOT_RUN names with discovery.ITEM6_NOT_EVALUATED, which ET.r19's item-6 loop reads as a FAILURE (reproduced: item 6 FAIL, R19 FAIL with all-positive deltas); score_claim now rebuilds item 6 with discovery.reduced_item6 and discovery.r19_verdict, as discovery and h3 do, and a name that could not be evaluated is transfer.UNTESTABLE and declared. refit_delta took its comparator from the PRIMARY design; it now takes both arms from the setting's own files (REFIT_STEMS carries the comparator stem), and enumerate_jobs fits those comparator legs at seed index 0. (E5) claim_sensitivities iterated transfer.scoring_filters, which returns filter LABELS ('acid_grid_rows_excluded_scoring' -> ValueError: unknown scoring filter) and omits non_DGA_stratum; it now iterates discovery.SCORING_FILTER_SENSITIVITIES. (E6) s2_assembly computed only S2(a)'s sign count, hard-coded S2(b)'s lookup and log D terms NaN and S2(c) NOT_EVALUATED, and averaged logSF MAE over pairs although REGISTERED_UNIT_COLS['V6'] is the system. Rewritten: the paired yardstick deltas against HEAVIER / B3x-derived / B3i-derived / B8 at the V6 threshold |observed| >= 0.1 (transfer.paired_direction_contrast is hard-wired to the 0.3 threshold of V5-PAIR and cannot serve), pooled AND on the HNO3 pairs, with the addendum-6 seed combination; S2(b) on the system macro with the lookup-derived logSF MAE, the 13-system gain bootstrap and the hidden Pr/Nd log D MAE against the B3i comparator; S2(c) implemented under both declared constructions of a predicted-logSF interval; every number per acid medium and for TODGA alone; B3x and B3i added to the V6 inventory. New readings: s2c_interval_reading, s2_averaging_unit, s2_strata. RUN_STAGES gains one NOT-implemented stage, v6_arm_fitting: four sites inside g19_run_discovery.py branch on v5_family, which is ('V5','V5P','V5PAIR') and not V6 (measured: v5_family(V6 job) False, inner_design_signature(V6 job) None), so the arms would tune a V6 fold on the V1/V2 path and ComparatorIntervalsRunner would give B3x/B3i the V2 metal-holdout inner design; V6 runs once and cannot be rehearsed, so the runner refuses before the lock rather than risk spending it. Nothing was fitted, no record was written and the once-only lock is unspent. tests/test_confirmation.py 51 tests (12 new)."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/confirmation.py",
+          "sha256_lf": "76521f7053c4e64e7ea229e123bb2a4525cd75f2d0e5c37e7a76cbb8c41c7ac5"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_run_confirmation.py",
+          "sha256_lf": "c6186990ac053e90cd091d2fe4b3d465755a52120ff26d47a47e49ebb2931ab3"
+        }
+      ],
+      "logged_utc": "2026-09-23T06:24:56+00:00",
+      "reason": "TASK X, the two minor findings worth closing before the run: (1) SeedStore.public() embedded SEED_DISCLOSURE, the narrowing POST-HOC addendum 6 item 4 SUPERSEDED, so every record and the --check-only verdict printed the retired rule as if it were in force; public() now carries SEED_REVELATION as 'disclosure' and keeps the old text under 'superseded_disclosure'. (2) manifests/g19_run_confirmation.json is written when the Run context exits, i.e. AFTER write_outputs' two scans, so it was the one artefact of the run that no leak scan ever read; main() now scans it together with every written output after the context closes, with decisions/CONFIRMATION.md the only file allowed (and required) to name the seeds. Not changed, and reported instead: the lock is per --out-root (by design, section 15 is about this tree), scan_for_seed_leak's extra_text is never passed the run log (the log lines are built from the opaque index and the commitment digest only), and a publication id whose decimal form contains a seed would abort the scan as a false positive - fail-safe, and it cannot pass a leak."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/confirmation.py",
+          "sha256_lf": "167135a0d43c9168b44063767ac70a9e004c778bec5d919cee23a1b0aefa73f6"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_run_confirmation.py",
+          "sha256_lf": "9a391275c49f3ab7f1d5f7300b95f8cf0d7337698c71e99bc26f3fdb839fe953"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/tests/test_confirmation.py",
+          "sha256_lf": "57e8da2f362fb2d55e3c9af4bad35428000a3cb9293a1ba5e5f102592e2e9cfa"
+        }
+      ],
+      "logged_utc": "2026-09-23T06:32:07+00:00",
+      "reason": "TASK X, two further blocking defects found by smoking the rewritten S2 layer end to end on a synthetic V6 record set (no real V6 row was scored and nothing was fitted). (7) confirmation.confirmation_scoring_frame never set metrics.PRED_COL, which discovery's scoring_frame does: every reader that computes a metric raised KeyError('pred') -- metrics.design_per_unit_table in S1(d), S1(e) and the V6 log D macro, and every pair reader in S2. It is now set from mean_logD exactly as discovery sets it. (8) transfer.guard_scored_pairs, the registered section 2 pair gate, ends in metrics.guard_scoring_index(members, v6_mask, design) -> registered.assert_not_scored, which refuses ANY V6_TARGET_ROWS member: correct for every other design and by construction fatal to the one run section 3.4 registers (measured: 'smoke scores 78 V6_TARGET_ROWS row(s)'). metrics.guard_scoring_index carries the registered escape for exactly this case ('v6_mask=None is accepted only for design V6 (the confirmation run scores those rows)') but guard_scored_pairs requires a Series and cannot pass it. Added v6_guard_scored_pairs, which makes every check guard_scored_pairs makes -- leakage.pair_isolation_check, both members in the test role, fold-qualified member labels whose fold equals the pair's -- and replaces the one-sided carve-out check with confirmation.assert_v6_scope, the STRONGER two-sided one: every member must BE a V6_TARGET_ROW, so a non-V6 row cannot enter a V6 pair either. The two metrics.design_per_unit_table calls of the V6 log D macro pass v6_mask=None with the escape named at the call site, and the scope is checked twice over instead (on the frame and on the pair members). Also: the S2 seed-mean helper no longer warns on an acid stratum with no pair in any seed (NaN, explicitly). Tests: three more (54 in tests/test_confirmation.py), including that the REGISTERED pair guard does refuse a V6 pair and that the V6 one is two-sided."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_run_confirmation.py",
+          "sha256_lf": "f64de12d0e0d91d81b306c0d40fda9b5c703363d9135c686a108e8da0fdfe02e"
+        }
+      ],
+      "logged_utc": "2026-09-23T06:34:39+00:00",
+      "reason": "TASK X: the post-run leak scan also covers manifests/run_info/g19_run_confirmation.json, the second manifest gen19ct.manifest.Run writes on exit (date, hardware, package versions). It carries no seed by construction, but the scan is the proof, not the intent."
     }
   ],
   "fallback": "until manifests/digest_registry.json exists every gate reads the constants of evaluation.discovery (N_ADDENDA_EXPECTED, REGISTERED_ADDENDA_SHA256) and the live discovery code digest, exactly as before",
@@ -603,13 +716,13 @@
   "schema": "gen19.digest_registry.v1",
   "stages": {
     "confirmation": {
-      "addenda_count": 5,
-      "below_footer_sha256": "7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f",
-      "code_digest": "c855606120a46744dda88eeb71bbe3dab37094c79dcb91ca77426d4f189436f4",
+      "addenda_count": 6,
+      "below_footer_sha256": "21212a7f6dc508de924ac7e6d36660704693e8e10b008d033662fc786ef84daa",
+      "code_digest": "60cc3d66f06647a4b4f35d310aa10a2b34620b782a7f9989c1edff39da840475",
       "code_digest_source": "the tree: g19_run_confirmation.code_digest()['combined'] (the confirmation runner, gen19ct/evaluation/confirmation.py and the discovery code its arms are fitted with)",
-      "git_head": "6b46c93fb8f6fa73097f4941fe001b2e16375be2",
-      "note": "the single registered confirmation run (section 15) under POST-HOC addendum 5 (5 addenda, below-footer digest 7353387172bb...); registered BEFORE the runner writes any record, as addendum 2 item 5 requires. Its code digest is g19_run_confirmation.code_digest()['combined'] = the discovery code the arms are fitted with plus confirmation.py and the runner.",
-      "registered_utc": "2026-09-23T03:33:14+00:00",
+      "git_head": "055a453aaacbd920e16ae214e4fcd29ee162a62b",
+      "note": "TASK X final: re-registered after the run_info manifest was brought inside the post-run leak scan. 6 addenda; no confirmation record exists; the once-only lock is unspent.",
+      "registered_utc": "2026-09-23T06:34:40+00:00",
       "source": "current tree (below-footer digest and addenda count)",
       "stage": "confirmation"
     },
@@ -1290,6 +1403,71 @@
       "stage": "h3",
       "superseded_by_note": "re-registered after the reporting-only F4_INTERVAL_READING correction (addendum 5 item 3 wording). All 471 H3 records were written before this entry and keep their own (superseded) entry; nothing is refitted and the 12 of 12 contrast record sets stay complete.",
       "superseded_utc": "2026-09-23T04:26:53+00:00"
+    },
+    {
+      "addenda_count": 5,
+      "below_footer_sha256": "7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f",
+      "code_digest": "c855606120a46744dda88eeb71bbe3dab37094c79dcb91ca77426d4f189436f4",
+      "code_digest_source": "the tree: g19_run_confirmation.code_digest()['combined'] (the confirmation runner, gen19ct/evaluation/confirmation.py and the discovery code its arms are fitted with)",
+      "git_head": "6b46c93fb8f6fa73097f4941fe001b2e16375be2",
+      "note": "the single registered confirmation run (section 15) under POST-HOC addendum 5 (5 addenda, below-footer digest 7353387172bb...); registered BEFORE the runner writes any record, as addendum 2 item 5 requires. Its code digest is g19_run_confirmation.code_digest()['combined'] = the discovery code the arms are fitted with plus confirmation.py and the runner.",
+      "registered_utc": "2026-09-23T03:33:14+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "confirmation",
+      "superseded_by_note": "Re-registered under POST-HOC addendum 6 (SIX addenda below the footer) and after the run body was written, as addendum 2 item 5 requires: a stage is registered under the current sealed text and the code its records will be written with, BEFORE it writes anything. Two things moved since the addendum-5 entry (below-footer 7353387172bb..., code c855606120a4...): the below-footer digest, because addendum 6 was appended; and the code digest, because the five NOT_IMPLEMENTED stages of the run body were written and because scripts/g19_run_confirmation.py had one unlogged edit, now logged. No record of this stage exists - evaluation/confirmation/ holds no record, the once-only lock is unspent - so the earlier entry, kept under 'superseded', protects nothing that needs protecting and nothing is invalidated.",
+      "superseded_utc": "2026-09-23T05:31:49+00:00"
+    },
+    {
+      "addenda_count": 6,
+      "below_footer_sha256": "21212a7f6dc508de924ac7e6d36660704693e8e10b008d033662fc786ef84daa",
+      "code_digest": "46e435f066ca61a424403ab8ef70dde334b43b467d3afadfdae34ae915d63f12",
+      "code_digest_source": "the tree: g19_run_confirmation.code_digest()['combined'] (the confirmation runner, gen19ct/evaluation/confirmation.py and the discovery code its arms are fitted with)",
+      "git_head": "055a453aaacbd920e16ae214e4fcd29ee162a62b",
+      "note": "Re-registered under POST-HOC addendum 6 (SIX addenda below the footer) and after the run body was written, as addendum 2 item 5 requires: a stage is registered under the current sealed text and the code its records will be written with, BEFORE it writes anything. Two things moved since the addendum-5 entry (below-footer 7353387172bb..., code c855606120a4...): the below-footer digest, because addendum 6 was appended; and the code digest, because the five NOT_IMPLEMENTED stages of the run body were written and because scripts/g19_run_confirmation.py had one unlogged edit, now logged. No record of this stage exists - evaluation/confirmation/ holds no record, the once-only lock is unspent - so the earlier entry, kept under 'superseded', protects nothing that needs protecting and nothing is invalidated.",
+      "registered_utc": "2026-09-23T05:31:49+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "confirmation",
+      "superseded_by_note": "TASK X: re-registered after the six fixes (log-change 2026-09-23). Code digest 46e435f066ca -> the live one; below-footer unchanged at 6 addenda. No confirmation record exists, so nothing is superseded in fact; the earlier entry is kept.",
+      "superseded_utc": "2026-09-23T06:23:45+00:00"
+    },
+    {
+      "addenda_count": 6,
+      "below_footer_sha256": "21212a7f6dc508de924ac7e6d36660704693e8e10b008d033662fc786ef84daa",
+      "code_digest": "620f69c48e535323ef76fcb8e5cd73bf0ba989037dbff14717c84dab7d164870",
+      "code_digest_source": "the tree: g19_run_confirmation.code_digest()['combined'] (the confirmation runner, gen19ct/evaluation/confirmation.py and the discovery code its arms are fitted with)",
+      "git_head": "055a453aaacbd920e16ae214e4fcd29ee162a62b",
+      "note": "TASK X: re-registered after the six fixes (log-change 2026-09-23). Code digest 46e435f066ca -> the live one; below-footer unchanged at 6 addenda. No confirmation record exists, so nothing is superseded in fact; the earlier entry is kept.",
+      "registered_utc": "2026-09-23T06:23:45+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "confirmation",
+      "superseded_by_note": "TASK X final: re-registered after the two minor fixes (seed-revelation text in SeedStore.public, the run manifest brought inside the leak scan). Below-footer unchanged at 6 addenda; no confirmation record exists.",
+      "superseded_utc": "2026-09-23T06:24:58+00:00"
+    },
+    {
+      "addenda_count": 6,
+      "below_footer_sha256": "21212a7f6dc508de924ac7e6d36660704693e8e10b008d033662fc786ef84daa",
+      "code_digest": "73fcba60ecf1adb48462279cc65b1a58a18d41980ae2e2004f84281c8b7df573",
+      "code_digest_source": "the tree: g19_run_confirmation.code_digest()['combined'] (the confirmation runner, gen19ct/evaluation/confirmation.py and the discovery code its arms are fitted with)",
+      "git_head": "055a453aaacbd920e16ae214e4fcd29ee162a62b",
+      "note": "TASK X final: re-registered after the two minor fixes (seed-revelation text in SeedStore.public, the run manifest brought inside the leak scan). Below-footer unchanged at 6 addenda; no confirmation record exists.",
+      "registered_utc": "2026-09-23T06:24:58+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "confirmation",
+      "superseded_by_note": "TASK X final: re-registered after defects 7 and 8 (metrics.PRED_COL in the confirmation scoring frame, the V6 pair guard). 6 addenda; no confirmation record exists.",
+      "superseded_utc": "2026-09-23T06:32:08+00:00"
+    },
+    {
+      "addenda_count": 6,
+      "below_footer_sha256": "21212a7f6dc508de924ac7e6d36660704693e8e10b008d033662fc786ef84daa",
+      "code_digest": "539ce5547c2a88f82002ce08de3adc47f7b4c4b46e824ac3b0693fa6b1df3433",
+      "code_digest_source": "the tree: g19_run_confirmation.code_digest()['combined'] (the confirmation runner, gen19ct/evaluation/confirmation.py and the discovery code its arms are fitted with)",
+      "git_head": "055a453aaacbd920e16ae214e4fcd29ee162a62b",
+      "note": "TASK X final: re-registered after defects 7 and 8 (metrics.PRED_COL in the confirmation scoring frame, the V6 pair guard). 6 addenda; no confirmation record exists.",
+      "registered_utc": "2026-09-23T06:32:08+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "confirmation",
+      "superseded_by_note": "TASK X final: re-registered after the run_info manifest was brought inside the post-run leak scan. 6 addenda; no confirmation record exists; the once-only lock is unspent.",
+      "superseded_utc": "2026-09-23T06:34:40+00:00"
     }
   ]
 }

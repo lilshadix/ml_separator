@@ -1974,3 +1974,42 @@ V6 run; metrics and averaging units; comparators; margins rho5, gamma5, eta5 and
 F1-F6; R19 items 1-6 and the reduced set; the stop rule; the grids of sections 5 and 6; the core
 confirmation scope of addendum 5 item 1; the deployed configuration of addendum 3 item 2 as qualified by
 addendum 5 item 3.
+
+## POST-HOC addendum 7 (2026-09-24, orchestrator Claude Code; results seen: yes - discovery, the ladder, the power check and H3, none from the confirmation half)
+
+**Results seen.** As addendum 6. `evaluation/confirmation/` still does not exist and the once-only lock
+is unspent; nothing has run on the confirmation half, on V6 or with the withheld seeds.
+
+**1. How the logSF interval of S2(c) is built.** Section 9 S2(c) registers pooled logSF interval coverage
+over the V6 pairs at 80 % and 95 % but not how a logSF interval follows from the two per-row predictive
+intervals of the pair. **Resolved, fixed before any V6 score exists:** the logSF interval is a
+split-conformal interval fitted directly on the **pair** residuals - the absolute deviation of the
+predicted logSF from the observed logSF over the comparable pairs of the fold's inner calibration set,
+with the same finite-sample quantile section 12 registers for rows. A fold whose inner calibration set
+holds fewer than 20 comparable pairs falls back to the convolution of the two row intervals under
+independence (half-widths added in quadrature), and every such fold is flagged and counted in the
+coverage table. Both constructions are printed; the conformal-on-pairs one is the registered value.
+Reason: a difference of two row intervals is not itself a calibrated interval, and section 12 already
+registers split conformal as the calibration method for every arm before M7.
+
+**2. The V6 leg's inner design.** Section 7 registers "V6: V5-style inner cells" and addendum 1 item 1
+makes the V5 inner design the simultaneous-hiding one. The discovery runner's dispatchers recognise only
+V5, V5-P and V5-PAIR as the V5 family, so a V6 job would otherwise be tuned on the V1/V2 path.
+**Resolved, recording the registered reading rather than changing it:** the V6 job uses the V5 inner
+design of section 7 as amended by addendum 1 item 1 - the simultaneous-hiding inner cells, its
+calibration, its guard and its recorded inner-design signature. The four dispatch sites and the
+signature table are corrected in code accordingly; the edit is logged in the digest registry, and no
+record written earlier is validated or invalidated by it (addendum 2 change 5).
+
+**3. Stage re-registration after an addendum.** Appending an addendum changes the below-footer digest, so
+every stage entry must be re-registered for its runner's gate to pass, while records written earlier
+verify against the entry under which they were written (kept as `superseded`). **Resolved:** after every
+addendum, every stage is re-registered at the new digest and the earlier entries are preserved; a record
+is always verified against the entry registered when it was written. This is addendum 2 change 5's
+mechanism, stated as the standing procedure so that the gates and the verification tests read the sealed
+text rather than a stale constant.
+
+**What does not change.** Designs, folds, halves, hiding and guards; the V6 carve-out outside the single
+V6 run; metrics and averaging units; comparators; margins rho5, gamma5, eta5 and epsilon; S1, S2(a),
+S2(b), S2(d) and F1-F6; R19 items 1-6 and the reduced set; the stop rule; the grids of sections 5 and 6;
+the core confirmation scope of addendum 5 item 1; the seed pooling of addendum 6 item 1.
