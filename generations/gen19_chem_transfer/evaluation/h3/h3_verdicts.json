@@ -2,34 +2,7 @@
   "B5": {
     "actinide_rows_enter_deployed_configuration": false,
     "contrast_unit_rule": "POST-HOC addendum 4 item 2, 'no verdict is taken from a partial design', applied per CONTRAST RECORD SET (<arm>:<transform>@<design>): every registered delta of section 11 is WITH - WITHOUT or WITH - PERMUTED, so the record set that a contrast is computed from is the arm x transform x design leg, and completeness is a property of THAT leg. A leg whose record set is complete is scored and carries its verdict; a leg whose record set is incomplete is reported with its status and reason and contributes no contrast row, no R19 item row, no delta, no per-unit row, no F4 entry and no non-inferiority input. A DESIGN is reported NOT_RUN only when no leg of it is complete. This narrowing of the NOT_RUN unit from the design to the record set is a READING of addendum 4 item 2 and a POST-HOC addendum stating it is REQUESTED (TASK F item 1)",
-    "contrasts_not_run": {
-      "B5:ACT_PERMUTED@V1": {
-        "blocking_errors": [
-          {
-            "ended_utc": "2026-09-22T23:33:17+00:00",
-            "note": "error in B5:ACT_PERMUTED@V1: AssertionError: inner split inner_s104729_f1 failed the isolation check",
-            "started_utc": "2026-09-22T17:48:28+00:00",
-            "what": "B5:ACT_PERMUTED@V1"
-          }
-        ],
-        "budget": null,
-        "contributes": "no contrast row, no R19 item row, no delta, no per-unit row, no F4 entry and no V1 / V2 non-inferiority input (None) for THIS leg; the other legs of the same design are unaffected",
-        "design": "V1",
-        "deviation": "POST-HOC addendum 4 item 2 registers the H3 design scope (V5 Ln cells, V2 Ln folds, V1 Ln rows; arms B5 and B6) and says 'That is registered and is run in full'. The 20 h cap is the only registered reason a record set may stay incomplete, and it was NOT reached, so B5:ACT_PERMUTED@V1 being incomplete is a DEVIATION from the addendum, not an application of the cap -- cause: error in B5:ACT_PERMUTED@V1: AssertionError: inner split inner_s104729_f1 failed the isolation check",
-        "key": "B5:ACT_PERMUTED@V1",
-        "model_arm": "B5",
-        "n_folds_done": 25,
-        "n_folds_expected": 39,
-        "reading": "POST-HOC addendum 4 item 2: the H3 job plan is ordered V5 -> V2 -> V1 (DESIGN_PRIORITY) and the cap is checked before each fold; a design the cap does not reach is written NOT_RUN with its reason. POST-HOC addendum 4 item 2, 'no verdict is taken from a partial design', applied per CONTRAST RECORD SET (<arm>:<transform>@<design>): every registered delta of section 11 is WITH - WITHOUT or WITH - PERMUTED, so the record set that a contrast is computed from is the arm x transform x design leg, and completeness is a property of THAT leg. A leg whose record set is complete is scored and carries its verdict; a leg whose record set is incomplete is reported with its status and reason and contributes no contrast row, no R19 item row, no delta, no per-unit row, no F4 entry and no non-inferiority input. A DESIGN is reported NOT_RUN only when no leg of it is complete. This narrowing of the NOT_RUN unit from the design to the record set is a READING of addendum 4 item 2 and a POST-HOC addendum stating it is REQUESTED (TASK F item 1) Mechanically: contrast_status classifies every leg, drop_not_run_contrasts removes every row of an incomplete leg before any output is written, assert_no_partial_design raises if an incomplete record set ever reaches a contrast, designs_scored and designs_not_run are asserted DISJOINT, and h3_verdict names every incomplete leg in inputs_missing so a helps verdict can never be read off the legs that did finish. The cap's NOT_RUN and a guard failure's INCOMPLETE_GUARD_FAILURE are distinct statuses and the entry says which applies (task X finding protocol VH-01 / numbers VH-02; TASK F items 1-2)",
-        "reason": "B5:ACT_PERMUTED@V1 record set is incomplete (25 of 39 folds; missing ['REMAINDER', 'pub_97510df3a0', 'pub_a470dfb784', 'pub_a9266a9412', 'pub_ad5a7268e5'] ...)",
-        "rule": "POST-HOC addendum 4 item 2, 'no verdict is taken from a partial design', applied per CONTRAST RECORD SET (<arm>:<transform>@<design>): every registered delta of section 11 is WITH - WITHOUT or WITH - PERMUTED, so the record set that a contrast is computed from is the arm x transform x design leg, and completeness is a property of THAT leg. A leg whose record set is complete is scored and carries its verdict; a leg whose record set is incomplete is reported with its status and reason and contributes no contrast row, no R19 item row, no delta, no per-unit row, no F4 entry and no non-inferiority input. A DESIGN is reported NOT_RUN only when no leg of it is complete. This narrowing of the NOT_RUN unit from the design to the record set is a READING of addendum 4 item 2 and a POST-HOC addendum stating it is REQUESTED (TASK F item 1)",
-        "status": "INCOMPLETE_GUARD_FAILURE",
-        "stopped_by": "error in B5:ACT_PERMUTED@V1: AssertionError: inner split inner_s104729_f1 failed the isolation check",
-        "transform": "ACT_PERMUTED",
-        "verdict_taken": false,
-        "vocabulary": "POST-HOC addendum 4 item 2's NOT_RUN is the CAP's vocabulary; this leg was not stopped by the cap, so it carries INCOMPLETE_GUARD_FAILURE instead and the cause is named"
-      }
-    },
+    "contrasts_not_run": {},
     "designs_not_run": {},
     "designs_scored": [
       "V1",
@@ -39,9 +12,7 @@
     "equivalent": false,
     "helps": false,
     "hurts": false,
-    "inputs_missing": [
-      "B5:ACT_PERMUTED@V1: INCOMPLETE_GUARD_FAILURE"
-    ],
+    "inputs_missing": [],
     "kappa_min": null,
     "kappa_status": "not computed",
     "label": "discovery, optimistically biased (selection half; seed 104729); R19 item 4 decided at confirmation",
@@ -70,7 +41,7 @@
     "underpowered": false,
     "v1_v2_non_inferior": {
       "V1": {
-        "ACT_PERMUTED": null,
+        "ACT_PERMUTED": true,
         "WITHOUT": false
       },
       "V2": {
@@ -86,34 +57,7 @@
   "B6": {
     "actinide_rows_enter_deployed_configuration": false,
     "contrast_unit_rule": "POST-HOC addendum 4 item 2, 'no verdict is taken from a partial design', applied per CONTRAST RECORD SET (<arm>:<transform>@<design>): every registered delta of section 11 is WITH - WITHOUT or WITH - PERMUTED, so the record set that a contrast is computed from is the arm x transform x design leg, and completeness is a property of THAT leg. A leg whose record set is complete is scored and carries its verdict; a leg whose record set is incomplete is reported with its status and reason and contributes no contrast row, no R19 item row, no delta, no per-unit row, no F4 entry and no non-inferiority input. A DESIGN is reported NOT_RUN only when no leg of it is complete. This narrowing of the NOT_RUN unit from the design to the record set is a READING of addendum 4 item 2 and a POST-HOC addendum stating it is REQUESTED (TASK F item 1)",
-    "contrasts_not_run": {
-      "B6:ACT_PERMUTED@V1": {
-        "blocking_errors": [
-          {
-            "ended_utc": "2026-09-22T23:42:22+00:00",
-            "note": "error in B6:ACT_PERMUTED@V1: AssertionError: inner split ('pub_007f4c9de0', 'pub_07cea54708', 'pub_0af6736cb1', 'pub_0f30549d71', 'pub_10aec04d23', 'pub_13adc25944', 'pub_1739bfaf95', 'pub_1845fd6492', 'pub_1927dff570', 'pub_19783c039b', 'pub_1b7737c507', 'pub_1d18e32c4e', 'pub_23f10a0918', 'pub_2c76a46f18', 'pub_2e9f2dbea9', 'pub_328cdbeabc', 'pub_392f966ef2', 'pub_3f3b6220e0', 'pub_40c355ae86', 'pub_44555064e1', 'pub_4a1871d85d', 'pub_51c0693f9c', 'pub_58e30f4932', 'pub_5df1eef2f5', 'pub_6f71d61137', 'pub_7730cdd232', 'pub_792969545c', 'pub_886ede1e0e', 'pub_890299c726', 'pub_8a081dc888', 'pub_8dafaf94bc', 'pub_9428119866', 'pub_989b35f30b', 'pub_9a3afbee00', 'pub_a470dfb784', 'pub_a49146c8fd', 'pub_a6126dc686', 'pub_a671b3a07d', 'pub_ab5ae597b9', 'pub_ad5a7268e5', 'pub_aed382b25f', 'pub_b048b54fa9', 'pub_b0b3296ec5', 'pub_bef16e560c', 'pub_c07b8473b8', 'pub_c75976ca9f', 'pub_c8195b4ca7', 'pub_cd72e4a7bb', 'pub_cdc2243314', 'pub_d0909358c9', 'pub_dc1c90a4de', 'pub_dfa96a5118', 'pub_e4bbba9576', 'pub_e4dd361427', 'pub_f5d1922154', 'pub_fdc02269b7') failed the isolation check",
-            "started_utc": "2026-09-22T23:40:21+00:00",
-            "what": "B6:ACT_PERMUTED@V1"
-          }
-        ],
-        "budget": null,
-        "contributes": "no contrast row, no R19 item row, no delta, no per-unit row, no F4 entry and no V1 / V2 non-inferiority input (None) for THIS leg; the other legs of the same design are unaffected",
-        "design": "V1",
-        "deviation": "POST-HOC addendum 4 item 2 registers the H3 design scope (V5 Ln cells, V2 Ln folds, V1 Ln rows; arms B5 and B6) and says 'That is registered and is run in full'. The 20 h cap is the only registered reason a record set may stay incomplete, and it was NOT reached, so B6:ACT_PERMUTED@V1 being incomplete is a DEVIATION from the addendum, not an application of the cap -- cause: error in B6:ACT_PERMUTED@V1: AssertionError: inner split ('pub_007f4c9de0', 'pub_07cea54708', 'pub_0af6736cb1', 'pub_0f30549d71', 'pub_10aec04d23', 'pub_13adc25944', 'pub_1739bfaf95', 'pub_1845fd6492', 'pub_1927dff570', 'pub_19783c039b', 'pub_1b7737c507', 'pub_1d18e32c4e', 'pub_23f10a0918', 'pub_2c76a46f18', 'pub_2e9f2dbea9', 'pub_328cdbeabc', 'pub_392f966ef2', 'pub_3f3b6220e0', 'pub_40c355ae86', 'pub_44555064e1', 'pub_4a1871d85d', 'pub_51c0693f9c', 'pub_58e30f4932', 'pub_5df1eef2f5', 'pub_6f71d61137', 'pub_7730cdd232', 'pub_792969545c', 'pub_886ede1e0e', 'pub_890299c726', 'pub_8a081dc888', 'pub_8dafaf94bc', 'pub_9428119866', 'pub_989b35f30b', 'pub_9a3afbee00', 'pub_a470dfb784', 'pub_a49146c8fd', 'pub_a6126dc686', 'pub_a671b3a07d', 'pub_ab5ae597b9', 'pub_ad5a7268e5', 'pub_aed382b25f', 'pub_b048b54fa9', 'pub_b0b3296ec5', 'pub_bef16e560c', 'pub_c07b8473b8', 'pub_c75976ca9f', 'pub_c8195b4ca7', 'pub_cd72e4a7bb', 'pub_cdc2243314', 'pub_d0909358c9', 'pub_dc1c90a4de', 'pub_dfa96a5118', 'pub_e4bbba9576', 'pub_e4dd361427', 'pub_f5d1922154', 'pub_fdc02269b7') failed the isolation check",
-        "key": "B6:ACT_PERMUTED@V1",
-        "model_arm": "B6",
-        "n_folds_done": 25,
-        "n_folds_expected": 39,
-        "reading": "POST-HOC addendum 4 item 2: the H3 job plan is ordered V5 -> V2 -> V1 (DESIGN_PRIORITY) and the cap is checked before each fold; a design the cap does not reach is written NOT_RUN with its reason. POST-HOC addendum 4 item 2, 'no verdict is taken from a partial design', applied per CONTRAST RECORD SET (<arm>:<transform>@<design>): every registered delta of section 11 is WITH - WITHOUT or WITH - PERMUTED, so the record set that a contrast is computed from is the arm x transform x design leg, and completeness is a property of THAT leg. A leg whose record set is complete is scored and carries its verdict; a leg whose record set is incomplete is reported with its status and reason and contributes no contrast row, no R19 item row, no delta, no per-unit row, no F4 entry and no non-inferiority input. A DESIGN is reported NOT_RUN only when no leg of it is complete. This narrowing of the NOT_RUN unit from the design to the record set is a READING of addendum 4 item 2 and a POST-HOC addendum stating it is REQUESTED (TASK F item 1) Mechanically: contrast_status classifies every leg, drop_not_run_contrasts removes every row of an incomplete leg before any output is written, assert_no_partial_design raises if an incomplete record set ever reaches a contrast, designs_scored and designs_not_run are asserted DISJOINT, and h3_verdict names every incomplete leg in inputs_missing so a helps verdict can never be read off the legs that did finish. The cap's NOT_RUN and a guard failure's INCOMPLETE_GUARD_FAILURE are distinct statuses and the entry says which applies (task X finding protocol VH-01 / numbers VH-02; TASK F items 1-2)",
-        "reason": "B6:ACT_PERMUTED@V1 record set is incomplete (25 of 39 folds; missing ['REMAINDER', 'pub_97510df3a0', 'pub_a470dfb784', 'pub_a9266a9412', 'pub_ad5a7268e5'] ...)",
-        "rule": "POST-HOC addendum 4 item 2, 'no verdict is taken from a partial design', applied per CONTRAST RECORD SET (<arm>:<transform>@<design>): every registered delta of section 11 is WITH - WITHOUT or WITH - PERMUTED, so the record set that a contrast is computed from is the arm x transform x design leg, and completeness is a property of THAT leg. A leg whose record set is complete is scored and carries its verdict; a leg whose record set is incomplete is reported with its status and reason and contributes no contrast row, no R19 item row, no delta, no per-unit row, no F4 entry and no non-inferiority input. A DESIGN is reported NOT_RUN only when no leg of it is complete. This narrowing of the NOT_RUN unit from the design to the record set is a READING of addendum 4 item 2 and a POST-HOC addendum stating it is REQUESTED (TASK F item 1)",
-        "status": "INCOMPLETE_GUARD_FAILURE",
-        "stopped_by": "error in B6:ACT_PERMUTED@V1: AssertionError: inner split ('pub_007f4c9de0', 'pub_07cea54708', 'pub_0af6736cb1', 'pub_0f30549d71', 'pub_10aec04d23', 'pub_13adc25944', 'pub_1739bfaf95', 'pub_1845fd6492', 'pub_1927dff570', 'pub_19783c039b', 'pub_1b7737c507', 'pub_1d18e32c4e', 'pub_23f10a0918', 'pub_2c76a46f18', 'pub_2e9f2dbea9', 'pub_328cdbeabc', 'pub_392f966ef2', 'pub_3f3b6220e0', 'pub_40c355ae86', 'pub_44555064e1', 'pub_4a1871d85d', 'pub_51c0693f9c', 'pub_58e30f4932', 'pub_5df1eef2f5', 'pub_6f71d61137', 'pub_7730cdd232', 'pub_792969545c', 'pub_886ede1e0e', 'pub_890299c726', 'pub_8a081dc888', 'pub_8dafaf94bc', 'pub_9428119866', 'pub_989b35f30b', 'pub_9a3afbee00', 'pub_a470dfb784', 'pub_a49146c8fd', 'pub_a6126dc686', 'pub_a671b3a07d', 'pub_ab5ae597b9', 'pub_ad5a7268e5', 'pub_aed382b25f', 'pub_b048b54fa9', 'pub_b0b3296ec5', 'pub_bef16e560c', 'pub_c07b8473b8', 'pub_c75976ca9f', 'pub_c8195b4ca7', 'pub_cd72e4a7bb', 'pub_cdc2243314', 'pub_d0909358c9', 'pub_dc1c90a4de', 'pub_dfa96a5118', 'pub_e4bbba9576', 'pub_e4dd361427', 'pub_f5d1922154', 'pub_fdc02269b7') failed the isolation check",
-        "transform": "ACT_PERMUTED",
-        "verdict_taken": false,
-        "vocabulary": "POST-HOC addendum 4 item 2's NOT_RUN is the CAP's vocabulary; this leg was not stopped by the cap, so it carries INCOMPLETE_GUARD_FAILURE instead and the cause is named"
-      }
-    },
+    "contrasts_not_run": {},
     "designs_not_run": {},
     "designs_scored": [
       "V1",
@@ -123,9 +67,7 @@
     "equivalent": false,
     "helps": false,
     "hurts": false,
-    "inputs_missing": [
-      "B6:ACT_PERMUTED@V1: INCOMPLETE_GUARD_FAILURE"
-    ],
+    "inputs_missing": [],
     "kappa_min": null,
     "kappa_status": "not computed",
     "label": "discovery, optimistically biased (selection half; seed 104729); R19 item 4 decided at confirmation",
@@ -154,7 +96,7 @@
     "underpowered": false,
     "v1_v2_non_inferior": {
       "V1": {
-        "ACT_PERMUTED": null,
+        "ACT_PERMUTED": true,
         "WITHOUT": false
       },
       "V2": {

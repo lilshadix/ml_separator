@@ -1,15 +1,66 @@
 # CONFIRMATION_PLAN — the claims frozen before the confirmation run
 
 *Pre-registration §15 ("at most **5 claims** are frozen in `decisions/CONFIRMATION_PLAN.md`"), under POST-HOC
-addendum 3 item 1 (eligibility), addendum 3 item 2 (the deployed configuration is **M0 = B5**) and addendum 4
-(H3 scope, the 20 h cap, the refits and the power-check wording). First written 2026-09-22; **revised
-2026-09-23 after the H3 run completed and was scored**, from files only. Every number here is the **selection
-half, discovery seed 104729** — a half the pre-registration itself calls optimistically biased. Nothing in this
-file was computed on a withheld seed, on the confirmation half, or on V6: no such number exists anywhere in the
-repository. Paths are relative to `generations/gen19_chem_transfer/`.*
+addendum 3 item 1 (eligibility), addendum 3 item 2 (the deployed configuration is **M0 = B5**), addendum 4
+(H3 scope, the 20 h cap, the refits and the power-check wording) and **addendum 5** (§0 below). First written
+2026-09-22; revised 2026-09-23 after the H3 run completed and was scored; **revised again 2026-09-23 under
+POST-HOC addendum 5**, from files only. Every number here is the **selection half, discovery seed 104729** — a
+half the pre-registration itself calls optimistically biased. Nothing in this file was computed on a withheld
+seed, on the confirmation half, or on V6: no such number exists anywhere in the repository. Paths are relative
+to `generations/gen19_chem_transfer/`.*
 
-**Status: NOT YET AUTHORISED TO RUN.** This file freezes *what* would be scored. The run itself needs the
-orchestrator's go/no-go (§7): ~174 h of serial compute, ~89 h of wall clock at 2 workers.
+**Status: NOT YET AUTHORISED TO RUN.** This file freezes *what* would be scored. The runner exists
+(`scripts/g19_run_confirmation.py` + `gen19ct/evaluation/confirmation.py`, registry stage `confirmation`), and it
+refuses to start without a `--seed-store` that verifies against the §15 commitment. The run itself needs the
+orchestrator's go/no-go (§7).
+
+---
+
+## 0. What POST-HOC addendum 5 changes in this plan
+
+**Addendum 5 item 1 — the confirmation run is the CORE run, not the full one (compute-driven, chosen by the
+user).** The run evaluates: the frozen claims of §2 on the confirmation half with the 5 withheld seeds and R19
+item 4 as registered (5 of 5); the single V6 run of §3.4 with S2(a)–(c); S1(c) under its addendum-2 confirmation
+rule and S1(d). It does **NOT** run the §11 V6 actinide deltas (§3.4 of this plan) nor any §8 power check (§6);
+both are reported `NOT_RUN` with their cost and their consequence. R19 item 6's strict and HNO3-only **refits run
+on seed 104729 only**, as in discovery — so the "open reading" of §2.3 is resolved by taking the reading addendum
+1 item 4 already registers, and **no further addendum is needed**; the four scoring-filter sensitivities are
+re-scorings and stay on all 5 seeds.
+
+| line | §6's full plan | the core run (addendum 5) | source |
+|---|---|---|---|
+| claims C1–C3 core fits | 38.6 h | **37.1 h** | `--dry-run` of the runner, same measured unit costs |
+| R19 item 6 refits | 44.9 h (5 seeds) | **9.1 h** (seed 104729 only) | addendum 1 item 4 / addendum 5 item 1 |
+| C4 | 0.2 h | **0.2 h** | unchanged |
+| S1(c) on V5-PAIR | 51.4 h | **51.4 h** | unchanged; §9 requires it |
+| the single V6 run (S2) | 8.5 h | **8.5 h** | unchanged; §3.4 runs V6 once |
+| §11 V6 actinide deltas | 30.3 h | **NOT_RUN** | addendum 5 item 1 |
+| §8 power check | 50 h (subset) / 436 h (inventory) | **NOT_RUN**, inventoried | addendum 5 items 1 and 4 |
+| **total** | ≈ 174 h serial, ≈ 89 h wall | **≈ 107.7 h serial, ≈ 54.9 h wall at 2 workers** | `scripts/g19_run_confirmation.py --dry-run` |
+
+**Addendum 5 item 2 — the fold-isolation guard of a value-permuted control arm.** The near-duplicate VALUE
+comparison reads the corpus's **recorded** log D for an arm whose training target is permuted by construction, so
+the two `ACT_PERMUTED@V1` legs this plan recorded as `INCOMPLETE_GUARD_FAILURE` are **completed** and scored:
+§1's "10 of 12 contrast record sets" and §4 item 3 are superseded by §0.1 below. Every other level of the guard is
+value-independent and unchanged, the guard gates fitting only and enters no prediction, and no record written
+before the rule is refitted.
+
+**Addendum 5 item 3 — F4 under both registered intervals, with both deployment readings side by side.** The
+interval reading of §4 item 2 is no longer "an undisclosed reading": §8 registers the percentile **and** the BCa
+interval, F4 is read under both, the conservative outcome governs, and **F4 HOLDS** (BCa on V2). Beside it, §11's
+own consequence: on any verdict that is not *helps* the deployed lanthanide configuration is the
+**WITHOUT-actinide** fit, and F4's first clause is then false of what is deployed. Both readings are reported
+together, with the V5 point-estimate cost of the registered choice (+0.0669 log D).
+
+**Addendum 5 item 4 — the power-check debt is inventoried, not discharged.** 20 of 20 H3 contrasts owe a §8
+check, 6,272 injected refits, ≈ 436 h serial; none is run, and every one of those contrasts is **UNDECIDED (no
+registered power check)**, never a null.
+
+**Gate state under addendum 5.** Below-footer addenda **5**, digest
+`7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f`; every stage except `discovery` /
+`discovery_candidates` re-registered at it, and the new stage **`confirmation`** registered before the runner
+writes anything (`manifests/digest_registry.json`). The 1,461 discovery records and the 444 scored + 1
+exploratory H3 records still verify against the entry each was written under.
 
 ---
 
@@ -18,13 +69,13 @@ orchestrator's go/no-go (§7): ~174 h of serial compute, ~89 h of wall clock at 
 | fact | value | source |
 |---|---|---|
 | prereg footer digest | `135842499a86…5641` | `manifests/prereg_sha256.txt` |
-| below-footer addenda | **4**, sha256 `22c61a442912…8579d7` | `manifests/digest_registry.json → stages.h3` |
+| below-footer addenda | **5**, sha256 `7353387172bb…d64a1f` (was 4, `22c61a442912…8579d7`) | `manifests/digest_registry.json → stages.h3` |
 | stop rule | **false** (M2 vs B3i passes items 1,2,3,5; B6 vs B3i fails) | `evaluation/discovery/decisions/stop_rule.json → stop` |
 | ladder | M1 kept **false**, M2 kept **false**, retained **M0**; M3–M7 `not_run` | `evaluation/ladder/decisions/ladder.json → retained_final` |
 | deployed configuration | **M0 (= B5)** | addendum 3 item 2; `evaluation/h3/h3_summary.json → deployed.arm` |
-| H3 (§11) | run and scored on **10 of 12** contrast record sets (the two `ACT_PERMUTED@V1` legs are `INCOMPLETE_GUARD_FAILURE`); **B5 UNDECIDED, B6 UNDECIDED**; **F4 HOLDS** on the conservative reading (either registered interval, any registered design: BCa on V2), and does **not** hold on the percentile-only reading | `evaluation/h3/h3_verdicts.json`, `h3_f4.json → failure` = true, `failure_percentile` = false, `failure_bca` = true; `h3_summary.json → contrasts_not_run` |
-| H3 compute | 5.7842 h of the 20.0 h cap used, `exhausted` false | `evaluation/h3/decisions/wall_clock.json → budget` |
-| H3 records | 444 scored + 1 exploratory verify against **the entry each was written under** (444 `superseded`, 0 `current`); **0 stale** | `h3_summary.json → refits.{stale, matched_entry_counts, operative_reading}` |
+| H3 (§11) | run and scored on **12 of 12** contrast record sets (the two `ACT_PERMUTED@V1` legs completed under addendum 5 item 2: 14 folds fitted per arm, 0 errors, `contrasts_not_run` now empty and `deviations` **0**); **B5 UNDECIDED, B6 UNDECIDED** (unchanged); **F4 HOLDS** under the conservative reading (BCa on V2) and does **not** hold on the percentile-only reading, with addendum 5 item 3's second reading beside it | `evaluation/h3/h3_verdicts.json`, `h3_f4.json → failure` = true, `failure_percentile` = false, `failure_bca` = true, `both_readings`; `h3_summary.json → contrasts_not_run` = {} |
+| H3 compute | **6.5742 h** of the 20.0 h cap used (+0.79 h for the 28 completed folds), `exhausted` false | `evaluation/h3/decisions/wall_clock.json → budget` |
+| H3 records | **470 scored + 1 exploratory** verify against **the entry each was written under** (470 `superseded`); **0 stale** | `h3_summary.json → refits.{stale, matched_entry_counts, operative_reading}` |
 | eligible for freezing (discovery §19) | **3** contrasts | `evaluation/discovery/decisions/decisions.json → freezing_candidates[*].eligible_for_freezing` |
 | eligible for freezing (§19 H3 row) | **1** contrast (§2, C4; no further addendum needed) | `evaluation/h3/h3_contrasts.csv → verdict_freezing_screen` = PASS |
 | withheld-seed commitment | `65e8ae8ceb8e…f82` | `manifests/confirmation_seeds_sha256.txt` (§15) |
@@ -52,8 +103,8 @@ confirmation-half fits, so C2 and C3 cost almost nothing beyond C1.
 Sources: C1–C3 `evaluation/discovery/contrasts_registered.csv` rows 0/4/6 (`point`, `margin`,
 `verdict_freezing_screen`) and `decisions.json → S1_components.{S1a_M2_vs_B3i, S1b_M2_vs_B0, S1b_M2_vs_B6r0}.point`.
 C4 `evaluation/h3/h3_contrasts.csv`, row `B6:WITH vs B6:ACT_PERMUTED` / design V2 / `cluster_unit = metal_state`:
-`point` 0.0815187, `margin` 0.05, percentile 95 % [0.0355933, 0.1364510], BCa 95 % [0.0411923, 0.1475570],
-`p_two_sided` 0.0000, `loco_min` +0.0578919, `mde_80` 0.0727361, `verdict_freezing_screen` PASS,
+`point` 0.0815187, `margin` 0.05, percentile 95 % [0.0355927, 0.1364510], BCa 95 % [0.0411925, 0.1475570],
+`p_two_sided` 0.0000, `loco_min` +0.0578916, `mde_80` 0.0727359, `verdict_freezing_screen` PASS,
 `r19_verdict_full` UNDECIDED; items in `h3_r19_items.csv` (1 PASS, 2 PASS, 3 PASS, 4 NOT_EVALUATED, 5 PASS, 6 PASS).
 
 **C4 needs no new addendum on the margin — the earlier draft of this file was wrong on both halves** (task X finding
@@ -67,7 +118,7 @@ the design's margin δ"* (`:996`). C4's point is **+0.0815187 ≥ 0.05**, and `h
 item 2 requires the interval to exclude **0**, which it does. **C4 is eligible exactly as scored**; no addendum is
 needed on this ground.
 
-One honest caveat stays, and it is about power, not eligibility: `mde_80` = 0.0727361 exceeds the 0.05 margin, so a FAIL
+One honest caveat stays, and it is about power, not eligibility: `mde_80` = 0.0727359 exceeds the 0.05 margin, so a FAIL
 of item 1 here would have been uninformative. That is not a statement that item 1 cannot pass — it did pass. D03's power
 table said the opposite for this contrast and has been corrected (the label is now gated on the contrast's own item-1
 status).
@@ -266,7 +317,7 @@ Stated here so the confirmation run cannot quietly grow:
 1. **Anything about actinide transfer beyond "ambiguous".** H3 is scored and **UNDECIDED for both arms**
    (`h3_verdicts.json`). On the deployed arm B5, WITH beats WITHOUT on the V5 Ln cells by Δ = **+0.066866** with
    percentile [+0.011249, +0.245690], BCa [+0.009038, +0.225950], p = **0.0064**, and beats ACT_PERMUTED by
-   Δ = **+0.078152**, p = **0.0000** — both pass R19 items 2, 3, 5 and 6 and **FAIL item 1**, because δ5 = 0.105689
+   Δ = **+0.078152**, p = **0.0000** — both pass R19 items **2, 3 and 5**, **FAIL item 1** because δ5 = 0.105689
    is above them. `mde_80` is **0.179162** (WITHOUT) and **0.107724** (PERMUTED), i.e. **above the margin**: at δ5
    this design cannot reach item 1 whatever the truth. **This is UNDECIDED (no registered power check)** — no §8
    injection check has been run for any H3 contrast (`h3_verdicts.json → kappa_status` = "not computed"), and
@@ -291,31 +342,28 @@ Stated here so the confirmation run cannot quietly grow:
    undisclosed reading (`h3_f4.json → interval_reading_not_registered`) and an addendum is requested below; the
    conservative value governs until one is written. The consequence for §11 is unchanged — actinide rows enter the
    deployed configuration only on *helps*, and the verdict is UNDECIDED.
-3. **Completeness is per CONTRAST RECORD SET, and the two `ACT_PERMUTED@V1` legs are an `INCOMPLETE_GUARD_FAILURE`
-   DEVIATION.** Every registered §11 delta is WITH − WITHOUT or WITH − PERMUTED, so the unit of completeness is the
-   arm × transform × design leg (`h3_summary.json → contrast_unit_rule`; a reading of addendum 4 item 2 for which an
-   addendum is requested below). **10 of 12** legs are complete and scored, including `B5:WITHOUT@V1` and
-   `B6:WITHOUT@V1` (39 of 39 folds each), which now carry their own verdicts: **B5 WITH vs WITHOUT @V1 Δ +0.005429**
-   (percentile [−0.064600, +0.067639], p 0.8284) and **B6 Δ −0.026489** (percentile [−0.133449, +0.059233], p 0.6048),
-   both **FAIL** on the freezing screen and on the full R19 verdict, and both TOST **UNDECIDED** — so V1
-   non-inferiority is **false**, not merely missing, and no *helps* verdict is available.
-   `B5:ACT_PERMUTED@V1` and `B6:ACT_PERMUTED@V1` are **25 of 39** folds each and carry
-   **`INCOMPLETE_GUARD_FAILURE`**, deliberately **not** addendum 4 item 2's `NOT_RUN` vocabulary, which belongs to the
-   20 h cap: the cap was not reached (`budget.exhausted` = false, 14.2158 h left), so this is a **DEVIATION** from
-   "That is registered and is run in full" (`contrasts_not_run.*.deviation`; `evaluation/h3/decisions/deviations.json`).
-   Those two legs contribute **no contrast, no R19 item row, no delta, no per-unit row, no F4 entry and no
-   non-inferiority input**, and V1's `ACT_PERMUTED` non-inferiority stays `None`.
-   **The cause is measured, and the fold is not forced** (`scripts/g19_h3_guard_diagnosis.py` →
-   `evaluation/h3/decisions/isolation_guard_diagnosis.json`): the §2 inner guard is
-   `fold_isolation_check(level="V1", near_dup_sig=6, near_dup_value_tol=0.005)`, and ACT_PERMUTED rebuilds the corpus
-   over the permuted frame, so the guard's **value** comparison reads permuted `log_D`. On fold `pub_97510df3a0` all
-   three inner splits pass on the registered values and two fail on the permuted ones, each on exactly one
-   near-duplicate key: on `inner_s104729_f1` a U(VI) row whose registered `log_D` 0.174458 was permuted to 0.376759,
-   landing **0.00201** from a calibration row at 0.374748, where the registered values are **0.115576** apart. The key
-   itself cannot move (it is built from system, metal, state, acid, solvent, concentrations and temperature, never from
-   `log_D`), so the guard flags a near-duplicate pair the recorded data never had. Running the guard **value-blind**
-   would be **stricter, not a fix**: it fails all three splits on the registered frame too (2, 27 and 26 shared keys)
-   and would block the WITH and WITHOUT arms that scored.
+3. **Completeness is per CONTRAST RECORD SET, and all 12 legs are now complete (POST-HOC addendum 5 item 2).** Every
+   registered §11 delta is WITH − WITHOUT or WITH − PERMUTED, so the unit of completeness is the arm × transform ×
+   design leg (`h3_summary.json → contrast_unit_rule`; still a READING of addendum 4 item 2, for which an addendum is
+   still REQUESTED). The two `ACT_PERMUTED@V1` legs this file previously recorded as `INCOMPLETE_GUARD_FAILURE` were
+   **completed on 2026-09-23** under addendum 5 item 2 — the guard's near-duplicate VALUE comparison reads the
+   corpus's **recorded** log D for an arm whose training target is permuted by construction — at **14 folds fitted per
+   arm, 25 already complete, 0 errors**, 0.79 h of the 20 h cap. `contrasts_not_run` is now empty,
+   `deviations.json → n_deviations` is **0**, and the fold that diagnosed the problem (`pub_97510df3a0`) is among the
+   14. Every other level of the guard is value-independent and unchanged; the guard gates fitting only and enters no
+   prediction, so the ACT_PERMUTED records written before the rule (V5, V2) are untouched and were not refitted.
+   **The new V1 WITH − PERMUTED contrasts** (publication-group cluster, 25 outer folds):
+   **B5 Δ +0.041166**, percentile [−0.007834, +0.094492], BCa [−0.004804, +0.098007], p = 0.1014,
+   `loco_min` +0.028523, `mde_80` 0.072882 — **FAIL** (item 1: +0.0412 < 0.05; items 2 and 3 fail too), TOST **PASS**;
+   **B6 Δ +0.032715**, percentile [−0.041882, +0.102764], BCa [−0.049947, +0.097212], p = 0.3686,
+   `loco_min` +0.020161, `mde_80` 0.103893 — **FAIL**, TOST **PASS**.
+   **What changed and what did not.** V1 `ACT_PERMUTED` non-inferiority is now **true** for both arms instead of
+   `None`, so the *helps* verdict's V1/V2 inputs are complete for the permuted control; V1 WITHOUT non-inferiority is
+   still **false**, so **no *helps* verdict is available** and the H3 verdicts stay **UNDECIDED** for B5 and B6.
+   **F4 is unchanged**: it still HOLDS on the conservative reading (BCa on V2 only), V1 shows nothing under either
+   interval (Δ −0.005429; percentile [−0.067639, +0.064600], BCa [−0.060208, +0.078543]), and **no other verdict
+   moves**. Nothing about H3 on V1 or V5 is frozen; C4 (V2) is unaffected.
+
 4. **Everything the ladder dropped.** M1 and M2 are **not** the retained configuration — `ladder.json →
    retained_final` is **M0**. M1 vs M0 @V5 (Δ **−0.073667**) and M2 vs M0 @V5 (Δ **−0.154150**) are **FAIL**
    (`contrasts_registered.csv` rows 16/20). **M3–M7 are `not_run`** (addendum 3 item 3), so H5, the M7 deep
@@ -357,7 +405,8 @@ Stated here so the confirmation run cannot quietly grow:
 4. Score C1, C2, C3; comparators B3i, B0 (closed-form, conformal folds drawn with each withheld seed) and B6r0
    (from B6 on `V5__primary__exact`, confirmation half, 5 seeds).
 5. R19 item 6: the strict and HNO3-only refits, then the four scoring-filter re-scorings.
-6. **C4** (only if the addendum of §2 registers the H3 V2 margin): B6 WITH tuned and ACT_PERMUTED frozen on the 11
+6. **C4** (**no addendum is needed**: §2 shows the 0.05 V1 / V2 margin IS registered — POST-HOC addendum 2, §"3. H3"
+   → `margins` — and R19 item 1 reads the point estimate, +0.0815187 ≥ 0.05): B6 WITH tuned and ACT_PERMUTED frozen on the 11
    confirmation `V2__element_exact` folds × 5 withheld seeds; then the two scoring-filter re-scorings.
 7. S1(c) on the V5-PAIR confirmation folds, with the B3x/B3i yardsticks refitted on those same folds.
 8. S1(d), S1(e).

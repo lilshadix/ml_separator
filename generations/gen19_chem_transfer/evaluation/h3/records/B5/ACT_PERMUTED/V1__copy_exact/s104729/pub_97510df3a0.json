@@ -35,12 +35,14 @@
       "model_seed": 10064609
     }
   },
-  "code_digest": "0614ec2eab83e5e37f84642db8dd9d29256ae4079a7dfb381fd1b3954cdcf2e6",
+  "code_digest": "f97600f291c419c094ddf6e1fd9a87fef81a4db3d05931c40029ce31f94ff704",
   "design_hash": "8896284c0f0333b654112dd3680f4ea02fdd923f75a9329a5ae21f302a1ca276",
-  "digest": "42786c2313e032de3155b93bf3124ec62c87bc13d16ceb4507eed26e60f492ba",
+  "digest": "739e3d5103fb12c6b6ffbff0626c057806f1de9439b915ea7c9c94eb6230e0b8",
   "fold_hash": "1be79d8598b00bfe9b4a07e4eae8b437d0e335c256626a81d9390c9ca74ffa6f",
   "fold_id": "pub_97510df3a0",
   "fold_ordinal": 64,
+  "guard_value_source": "recorded_log_D",
+  "guard_value_source_rule": "REGISTERED (POST-HOC addendum 5 item 2): 'for an arm whose training target is permuted by construction, the value comparison reads the corpus's recorded log D; every other level of the guard - publication group, archive duplicate group, and the near-duplicate key at six significant figures - is value-independent and unchanged, and the value-blind mode stays what section 2 registers it as, a sensitivity'. Implementation: the outer guard and the inner isolation check of a value-permuting transform are bound to the RECORDED corpus (g19_run_h3.recorded_value_guards), which differs from the permuted corpus in log_D alone. The guard gates FITTING and changes no prediction: the ACT_PERMUTED records written before the rule (V5, V2) are unaffected and are not refitted, and the 14 V1 folds the permuted-value comparison had blocked are completed under it",
   "inner_guard_mode": "nested_certificate",
   "job": {
     "arm": "B5:ACT_PERMUTED",
@@ -84,20 +86,20 @@
       "publication_basis": "group_cross_publication_copy"
     }
   ],
-  "prereg_addenda_sha256": "22c61a442912f441a7640fad91d6455d85544e3eadec14622d2a0b64c88579d7",
+  "prereg_addenda_sha256": "7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f",
   "prereg_gate": {
-    "addenda_sha256": "22c61a442912f441a7640fad91d6455d85544e3eadec14622d2a0b64c88579d7",
-    "addenda_sha256_registered": "22c61a442912f441a7640fad91d6455d85544e3eadec14622d2a0b64c88579d7",
-    "addendum_implemented": 4,
+    "addenda_sha256": "7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f",
+    "addenda_sha256_registered": "7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f",
+    "addendum_implemented": 5,
     "gate_source": "registry",
-    "n_addenda": 4,
-    "n_addenda_expected": 4,
+    "n_addenda": 5,
+    "n_addenda_expected": 5,
     "prereg_sha256": "135842499a86eb3d478ece01a45718ac5b9673a4134bb4acda550f975bb45641",
     "registry_path": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer\\manifests\\digest_registry.json",
     "seal_check_exit": 0,
     "stage": "h3"
   },
-  "prereg_n_addenda": 4,
+  "prereg_n_addenda": 5,
   "prereg_sha256": "135842499a86eb3d478ece01a45718ac5b9673a4134bb4acda550f975bb45641",
   "readings": "the WITHOUT / ACT_PERMUTED / ACT_METAL_SHUFFLED arms are refitted at the hyperparameters the WITH run SELECTED on the same fold (its record's selected configuration, iteration / epoch count and model seed), not re-tuned; their cross-fitted conformal calibration uses the WITH record's cross-fit selections. Section 11 says 'same architecture, same folds, same seeds' and is silent on re-tuning; re-tuning would multiply the cost by the inner grid (INFERRED; needs a POST-HOC addendum)",
   "registry_stage": "h3",
@@ -106,14 +108,113 @@
   "shared_only": false,
   "stem": "V1__copy__exact",
   "steps": {
+    "intervals": {
+      "calibration_folds": [
+        0,
+        1,
+        2
+      ],
+      "guard": "nested_certificate",
+      "method": "discovery.CrossFitResidualConformal (cross-fitted inner splits at the WITH record's selections)",
+      "n_calibration": 10554,
+      "n_inner_splits": 3,
+      "plan": {
+        "calibration_folds": [
+          0,
+          1,
+          2
+        ],
+        "cross_fit": true,
+        "status": "calibrated",
+        "tuning_folds": [
+          0,
+          1,
+          2
+        ]
+      },
+      "quantiles": {
+        "0.5": 0.9361605690736376,
+        "0.8": 1.7907991811244068,
+        "0.95": 2.7374631635855233
+      },
+      "seconds": 157.851,
+      "seed": 104729,
+      "selections": {
+        "0": {
+          "best_config": "depth8_l23",
+          "best_score": 0.9319112220365218,
+          "candidates_within_tolerance": [
+            "depth8_l23"
+          ],
+          "excluded_inner_folds": [
+            0
+          ],
+          "inner_folds_used": [
+            1,
+            2
+          ],
+          "iterations": 1691,
+          "n_splits": 2,
+          "rule": "within 0.005 of the best inner macro MAE -> lower depth, then larger l2_leaf_reg",
+          "score": "mean over inner folds of the fold's unit-macro MAE (addendum 1 item 2)",
+          "selected": "depth8_l23",
+          "selected_score": 0.9319112220365218,
+          "tolerance": 0.005
+        },
+        "1": {
+          "best_config": "depth8_l23",
+          "best_score": 1.022641509340532,
+          "candidates_within_tolerance": [
+            "depth8_l23"
+          ],
+          "excluded_inner_folds": [
+            1
+          ],
+          "inner_folds_used": [
+            0,
+            2
+          ],
+          "iterations": 1522,
+          "n_splits": 2,
+          "rule": "within 0.005 of the best inner macro MAE -> lower depth, then larger l2_leaf_reg",
+          "score": "mean over inner folds of the fold's unit-macro MAE (addendum 1 item 2)",
+          "selected": "depth8_l23",
+          "selected_score": 1.022641509340532,
+          "tolerance": 0.005
+        },
+        "2": {
+          "best_config": "depth8_l23",
+          "best_score": 0.8988585295822853,
+          "candidates_within_tolerance": [
+            "depth8_l23"
+          ],
+          "excluded_inner_folds": [
+            2
+          ],
+          "inner_folds_used": [
+            0,
+            1
+          ],
+          "iterations": 443,
+          "n_splits": 2,
+          "rule": "within 0.005 of the best inner macro MAE -> lower depth, then larger l2_leaf_reg",
+          "score": "mean over inner folds of the fold's unit-macro MAE (addendum 1 item 2)",
+          "selected": "depth8_l23",
+          "selected_score": 0.8988585295822853,
+          "tolerance": 0.005
+        }
+      },
+      "splitter": "inner_folds(tuning_splits(V1InnerTuning, full), [0, 1, 2])",
+      "status": "calibrated"
+    },
     "point": {
-      "date_utc": "2026-09-22T23:32:10+00:00",
-      "peak_rss_bytes": 1117855744,
-      "seconds": 30.779
+      "date_utc": "2026-09-23T03:17:17+00:00",
+      "peak_rss_bytes": 805744640,
+      "seconds": 30.375
     }
   },
   "transform": "ACT_PERMUTED",
   "with_record_digest": "7250876323543cc46a316529e1205a8aabf599c356eac930da17bb1c5d16e1fb",
   "with_selected_config": "depth8_l23",
-  "written_utc": "2026-09-22T23:32:10+00:00"
+  "written_utc": "2026-09-23T03:17:17+00:00"
 }

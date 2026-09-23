@@ -326,6 +326,33 @@ def transformed_corpus(corpus: Any, frame: pd.DataFrame) -> Any:
                      row_half=corpus.row_half, folds_dir=corpus.folds_dir, index_json=corpus.index_json)
 
 
+def recorded_value_guards(recorded: Any, guard_fn: Callable | None, inner_check: Callable | None
+                          ) -> tuple[Callable, Callable]:
+    """POST-HOC addendum 5 item 2: the section 2 guard of a value-permuting control arm reads the corpus's RECORDED
+    ``log_D``.
+
+    The outer guard and the inner isolation check are bound to the RECORDED corpus instead of the transformed one.  That
+    IS the registered rule and nothing more: for ``ACT_PERMUTED`` the two frames differ in ``log_D`` alone
+    (``h3.transformed_frame`` writes that one column and ``transformed_corpus`` asserts the index is unchanged), so the
+    publication group, the archive duplicate group and the near-duplicate key at 6 significant figures -- which
+    ``leakage.near_duplicate_key`` builds from the system, metal, state, acid, solvent, concentrations and temperature and
+    never from ``log_D`` -- are bit-identical under the substitution, and only the near-duplicate VALUE comparison
+    (``near_dup_value_tol`` = 0.005) changes: it now asks of the recorded values, as the addendum says.  The guard gates
+    FITTING only and enters no prediction, so no record written before this rule changes (``h3.GUARD_VALUE_SOURCE_RULE``).
+    """
+    rd = runner_module()
+    g0 = rd.outer_guard if guard_fn is None else guard_fn
+    i0 = rd.inner_isolation_check if inner_check is None else inner_check
+
+    def guard(job: D.JobSpec, fold: FI.Fold, corpus: Any, universe: pd.Index) -> list[dict]:
+        return g0(job, fold, recorded, universe)
+
+    def inner(job: D.JobSpec, corpus: Any) -> Callable:
+        return i0(job, recorded)
+
+    return guard, inner
+
+
 def fold_context(entry: Mapping[str, Any], fold: FI.Fold, ordinal: int, corpus: Any, out_root: Path,
                  state: D.PlanState, *, code: str, guard_fn: Callable | None = None,
                  inner_check: Callable | None = None) -> tuple[Any, dict[str, Any]]:
@@ -358,13 +385,19 @@ def fold_context(entry: Mapping[str, Any], fold: FI.Fold, ordinal: int, corpus: 
     train_index = corpus.table.index[fc.mask]
     frame = H3.transformed_frame(corpus.frame, train_index, transform, seed=int(job.seed))
     tcorpus = transformed_corpus(corpus, frame)
-    fc2, info2 = rd.prepare_fold(job, fold, ordinal, tcorpus, out_root, state, code=code, **kw)
+    tkw = dict(kw)
+    value_source = H3.guard_value_source(transform)
+    if transform in H3.VALUE_PERMUTING_TRANSFORMS:      # POST-HOC addendum 5 item 2
+        g, i = recorded_value_guards(corpus, guard_fn, inner_check)
+        tkw["guard_fn"], tkw["inner_check"] = g, i
+    fc2, info2 = rd.prepare_fold(job, fold, ordinal, tcorpus, out_root, state, code=code, **tkw)
     if not np.array_equal(fc2.mask, fc.mask):
         raise AssertionError(f"{job.key}/{fold.fold_id}: the transform changed the fold's training mask")
     if list(fc2.sc_ids) != list(fc.sc_ids):
         raise AssertionError(f"{job.key}/{fold.fold_id}: the transform changed the fold's scored rows")
     an = D.actinide_rows(corpus.frame)
-    info = {**dict(info2), "transform": transform,
+    info = {**dict(info2), "transform": transform, "guard_value_source": value_source,
+            "guard_value_source_rule": H3.GUARD_VALUE_SOURCE_RULE if transform in H3.VALUE_PERMUTING_TRANSFORMS else None,
             "n_actinide_training_rows": int((fc.mask & an).sum()),
             "n_training_rows_changed": int((corpus.frame.loc[train_index, I.TARGET_COL].to_numpy(dtype=float)
                                            != frame.loc[train_index, I.TARGET_COL].to_numpy(dtype=float)).sum())

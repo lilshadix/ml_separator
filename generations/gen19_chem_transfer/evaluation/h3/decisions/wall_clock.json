@@ -10,9 +10,9 @@
       "V1"
     ],
     "reading": "POST-HOC addendum 4 item 2: section 11 registers no compute budget, so H3 gets a cap of 20 h of wall clock on 2 workers, recorded in evaluation/h3/decisions/wall_clock.json and CHECKED BEFORE EACH FOLD. The budget number is WALL CLOCK, not worker-seconds: the ledger records every invocation's [started_utc, ended_utc] interval and h3_wall_clock_total sums the UNION of those intervals, so two workers running the same hour consume one hour of the cap; the sum over workers is recorded beside it as worker_seconds and is never the number compared with the cap. More than 2 concurrent workers is refused (H3_WORKERS). --max-hours stays an operator pause, never a NOT_RUN reason",
-    "remaining_hours": 14.2158,
-    "used_hours": 5.7842,
-    "worker_hours": 9.7832,
+    "remaining_hours": 13.4258,
+    "used_hours": 6.5742,
+    "worker_hours": 10.5697,
     "workers_max": 2
   },
   "budget_hours": 20.0,
@@ -65,6 +65,19 @@
       "seconds": 107.351,
       "started_utc": "2026-09-22T23:40:21+00:00",
       "workers": 2
+    },
+    {
+      "designs_done": [
+        "V1",
+        "V2",
+        "V5"
+      ],
+      "ended_utc": "2026-09-23T04:03:54+00:00",
+      "note": null,
+      "process_seconds": 2844.622,
+      "seconds": 2831.294,
+      "started_utc": "2026-09-23T03:16:30+00:00",
+      "workers": 2
     }
   ],
   "note": "opened by TASK A after POST-HOC addendum 4 was appended and the stale records were deleted; no fold has run under the cap yet",
@@ -108,7 +121,7 @@
   "prior_legs_reading": "POST-HOC addendum 4 item 2 grants the cap after the V5 leg of the deployed arm was already fitted and names the priority order 'V5 (done), then V2, then V1', so the cap governs the work from here; what the finished leg cost is measured from its own fold records and REPORTED, never subtracted from the 20 h. If the orchestrator reads the cap as covering H3 end to end, the prior hours below are the number to subtract",
   "reading": "POST-HOC addendum 4 item 2: section 11 registers no compute budget, so H3 gets a cap of 20 h of wall clock on 2 workers, recorded in evaluation/h3/decisions/wall_clock.json and CHECKED BEFORE EACH FOLD. The budget number is WALL CLOCK, not worker-seconds: the ledger records every invocation's [started_utc, ended_utc] interval and h3_wall_clock_total sums the UNION of those intervals, so two workers running the same hour consume one hour of the cap; the sum over workers is recorded beside it as worker_seconds and is never the number compared with the cap. More than 2 concurrent workers is refused (H3_WORKERS). --max-hours stays an operator pause, never a NOT_RUN reason",
   "schema": "gen19.h3.v1",
-  "wall_hours": 5.7842,
-  "worker_hours": 9.7832,
+  "wall_hours": 6.5742,
+  "worker_hours": 10.5697,
   "workers_max": 2
 }

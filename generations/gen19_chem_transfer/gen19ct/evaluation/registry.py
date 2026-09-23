@@ -691,6 +691,11 @@ def stage_code_digest(stage: str) -> str:
         return str(_script(name).code_digest()["combined"])
     if stage == "process":
         return str(_script("g19_run_process").code_digests()["own"])
+    if stage == "confirmation":
+        # the single registered confirmation run (pre-registration section 15): its records carry the combined digest of
+        # the confirmation runner, gen19ct/evaluation/confirmation.py and the discovery code the arms are fitted with,
+        # exactly as the h3 stage does -- scripts/g19_run_confirmation.py.code_digest()["combined"]
+        return str(_script("g19_run_confirmation").code_digest()["combined"])
     raise ValueError(f"no code digest rule for stage {stage!r}")
 
 
@@ -710,7 +715,8 @@ CODE_DIGEST_SOURCE: dict[str, str] = {
     "figures": "the tree: g19_make_figures.code_digest()['combined']",
     "report": "the tree: g19_build_report.code_digest()['combined']",
     "process": "the tree: g19_run_process.code_digests()['own']",
-    "confirmation": "the tree (the confirmation runner's own digest)"}
+    "confirmation": "the tree: g19_run_confirmation.code_digest()['combined'] (the confirmation runner, "
+                    "gen19ct/evaluation/confirmation.py and the discovery code its arms are fitted with)"}
 
 
 def register_stage_from_tree(stage: str, *, note: str, path: Path | None = None, code_digest: str | None = None,

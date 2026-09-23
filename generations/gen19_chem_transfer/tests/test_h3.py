@@ -1576,7 +1576,11 @@ def test_f4_reports_both_interval_readings():
     # either registered interval shows it on any registered design; the two single-interval readings are printed beside
     assert f4["failure"] is True and f4["failure_percentile"] is False
     assert f4["failure_bca"] is True and f4["failure_either_interval"] is True
-    assert f4["interval_read"].startswith("either") and "NOT REGISTERED" in f4["interval_reading_not_registered"]
+    assert f4["interval_read"].startswith("either")
+    # POST-HOC addendum 5 item 3 REGISTERS the reading (and says what it was before): both statements are printed
+    assert "REGISTERED by POST-HOC addendum 5 item 3" in f4["interval_reading_not_registered"]
+    assert f4["interval_reading_registered_by"] == "POST-HOC addendum 5 item 3"
+    assert f4["both_readings"]["against_the_registered_without_deployment"] is False
 
 
 def test_the_negative_transfer_trigger_is_evaluated_and_recorded_on_one_reading():

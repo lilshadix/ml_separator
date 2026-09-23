@@ -142,8 +142,36 @@ GUARD_FAILURE_DIAGNOSIS = (
     "recorded data never had. Running the guard VALUE-BLIND (near_dup_value_tol=None) is NOT the fix and is not what "
     "this diagnosis supports: value-blind counts every shared key whatever the values, and it fails all three inner "
     "splits on the REGISTERED frame too (2, 27 and 26 shared keys), so it would also block the WITH and WITHOUT arms "
-    "that scored. The conservative behaviour taken meanwhile: the two ACT_PERMUTED@V1 legs are left UNFITTED, no fold is "
-    "forced, and they carry " + INCOMPLETE_GUARD_FAILURE + " with no verdict")
+    "that scored. The conservative behaviour taken until 2026-09-23: the two ACT_PERMUTED@V1 legs were left UNFITTED, no "
+    "fold was forced, and they carried " + INCOMPLETE_GUARD_FAILURE + " with no verdict. RESOLVED by POST-HOC addendum 5 "
+    "item 2, which registers the rule below; the legs are completed under it and the incompleteness is history")
+#: POST-HOC addendum 5 item 2 (REGISTERED, quoted): for an arm whose training target is permuted by construction, the
+#: section 2 guard's near-duplicate VALUE comparison reads the corpus's RECORDED log D.  Implemented in
+#: ``scripts/g19_run_h3.py`` (``recorded_value_guards``): the outer guard and the inner isolation check of a
+#: value-permuting transform are bound to the RECORDED corpus, whose frame differs from the permuted one in ``log_D``
+#: ALONE -- so the publication group, the archive duplicate group and the 6-significant-figure near-duplicate key (built
+#: from system, metal, state, acid, solvent, concentrations and temperature, never from ``log_D``) are bit-identical, and
+#: only the value comparison changes.  The guard therefore stays exactly as strict as registered and becomes invariant
+#: under the permutation.  It gates fitting only and changes no prediction, so the ACT_PERMUTED records written before
+#: this rule (V5 and V2, which the permuted-value guard passed anyway) are unaffected and are not refitted.
+GUARD_VALUE_SOURCE_RULE = (
+    "REGISTERED (POST-HOC addendum 5 item 2): 'for an arm whose training target is permuted by construction, the value "
+    "comparison reads the corpus's recorded log D; every other level of the guard - publication group, archive duplicate "
+    "group, and the near-duplicate key at six significant figures - is value-independent and unchanged, and the "
+    "value-blind mode stays what section 2 registers it as, a sensitivity'. Implementation: the outer guard and the "
+    "inner isolation check of a value-permuting transform are bound to the RECORDED corpus (g19_run_h3."
+    "recorded_value_guards), which differs from the permuted corpus in log_D alone. The guard gates FITTING and changes "
+    "no prediction: the ACT_PERMUTED records written before the rule (V5, V2) are unaffected and are not refitted, and "
+    "the 14 V1 folds the permuted-value comparison had blocked are completed under it")
+#: the transforms whose TRAINING TARGET is permuted by construction, i.e. the arms addendum 5 item 2 names
+VALUE_PERMUTING_TRANSFORMS: frozenset[str] = frozenset({"ACT_PERMUTED"})
+
+
+def guard_value_source(transform: str) -> str:
+    """Which ``log_D`` the section 2 guard's near-duplicate VALUE comparison reads for ``transform`` (addendum 5 item 2):
+    the corpus's RECORDED values for a value-permuting control arm, the arm's own frame otherwise (they are the same
+    frame for every transform that does not move ``log_D``)."""
+    return "recorded_log_D" if str(transform) in VALUE_PERMUTING_TRANSFORMS else "arm_frame_log_D"
 #: section 11 transparent references
 REFERENCE_ARMS: tuple[str, ...] = ("B6", "B5")
 #: the fallback "deployed" arm when no learned configuration passes (section 10 F6: the best-passing baseline; the
@@ -176,15 +204,32 @@ F6_FALLBACK_RULE = ("POST-HOC addendum 2 (F6): with no retained ladder step, M2 
 #: :func:`f4_check` keeps the percentile value as the decided one and reports the BCa reading beside it until a POST-HOC
 #: addendum names the interval (task X finding protocol VH-02 / numbers VH-03)
 F4_INTERVAL_READING = (
-    "NOT REGISTERED: section 10 F4 says '95 % interval excluding 0' without naming a construction, while section 8 "
+    "REGISTERED by POST-HOC addendum 5 item 3 (NOT REGISTERED before it, which is why the reading is spelled out here): "
+    "section 10 F4 says '95 % interval excluding 0' without naming a construction, while section 8 "
     "registers the percentile and the BCa 95 % interval for every contrast and R19 item 2 requires BOTH to exclude 0. "
     "F4 is a FAILURE condition, so the CONSERVATIVE reading is the one that triggers more readily -- EITHER registered "
     "interval, on ANY registered design -- and that reading GOVERNS the headline (failure == failure_either_interval). "
     "The percentile-only and BCa-only readings are computed and reported beside it (failure_percentile, failure_bca, "
     "per_design.<design>.bca_beats), and a design where they disagree is named (designs_where_readings_disagree), so "
-    "every F4 statement carries both. A POST-HOC addendum naming the interval F4 reads is REQUESTED and not yet "
-    "written; until it is, the headline stays the conservative one and is never softened to the percentile reading "
-    "(TASK F item 3)")
+    "every F4 statement carries both. Addendum 5 item 3 states this reading in the same "
+    "words ('section 8 registers the percentile and the BCa interval for every contrast, so F4 is read under both, and "
+    "the conservative outcome governs') and records the outcome: on V2 the BCa interval of WITHOUT vs WITH excludes zero "
+    "(+0.0264, [+0.0031, +0.0783]) while the percentile interval does not, V5 and V1 show nothing, so F4 HOLDS. The "
+    "headline is the conservative one and is never softened to the percentile reading (TASK F item 3)")
+#: POST-HOC addendum 5 item 3, second half: the two readings of F4 that must be printed SIDE BY SIDE, because section 11's
+#: own consequence ("actinide rows enter the deployed Ln configuration only on helps") makes the deployed lanthanide
+#: configuration the WITHOUT-actinide fit on any verdict that is not *helps*, and F4's first clause -- "the WITHOUT arm
+#: beats the deployed configuration" -- is then false of the configuration actually deployed
+F4_DEPLOYED_CONFIGURATION_READING = (
+    "REGISTERED (POST-HOC addendum 5 item 3): F4 is reported under BOTH readings, side by side, and no verdict is "
+    "softened. (i) Against a WITH deployment, F4 HOLDS: the reversed V2 contrast WITHOUT vs WITH is +0.0264 with a BCa "
+    "95 % interval excluding zero. (ii) Against the REGISTERED deployment, F4 does not hold: section 11 says actinide "
+    "rows enter the deployed Ln configuration only on a *helps* verdict, the verdict is UNDECIDED, so the deployed "
+    "lanthanide configuration IS the WITHOUT-actinide fit and F4's first clause ('the WITHOUT arm beats the deployed "
+    "configuration') is false of it. Both are printed, together with the V5 point-estimate cost of the registered "
+    "choice: on the primary design V5 the WITH arm is the better one (+0.0669 against WITHOUT and +0.0782 against the "
+    "permuted control, both intervals excluding zero, both below delta5), so the registered WITHOUT deployment gives up "
+    "+0.0669 log D of selection-half V5 macro MAE")
 #: POST-HOC addendum 4 item 3 says the 13 stale records are "refitted under the CURRENT registered h3 digest before any
 #: H3 delta is scored".  Taken literally that is unsatisfiable in a stage whose code digest also covers scoring and
 #: reporting: the refits were written under the entry that was current at 17:51-19:50 on 2026-09-22, and three
@@ -369,6 +414,8 @@ READINGS: dict[str, str] = {
                        "the entry says which applies (task X finding protocol VH-01 / numbers VH-02; TASK F items 1-2)",
     "contrast_unit": CONTRAST_UNIT_RULE,
     "guard_failure": GUARD_FAILURE_DIAGNOSIS,
+    "guard_value_source": GUARD_VALUE_SOURCE_RULE,
+    "f4_deployed_configuration": F4_DEPLOYED_CONFIGURATION_READING,
     "record_digest_basis": "addendum 2 item 5 and POST-HOC addendum 4 item 3: an EXISTING H3 fold record is verified "
                            "with the code digest AND the below-footer digest it was WRITTEN under -- its own fields, "
                            "accepted only when registry.verify_record matches them to an entry of stage 'h3' (current or "
@@ -1203,6 +1250,16 @@ def f4_check(hurts_by_design: Mapping[str, Mapping[str, Any]], *, deployed_arm: 
             "failure_either_interval": bool(trained_with_actinides and (any_beats or any_bca)),
             "designs_where_readings_disagree": disagree,
             "interval_reading_not_registered": F4_INTERVAL_READING,
+            "interval_reading_registered_by": "POST-HOC addendum 5 item 3",
+            "deployed_configuration_reading": F4_DEPLOYED_CONFIGURATION_READING,
+            # addendum 5 item 3: the two readings side by side.  (i) against a WITH deployment, the headline above;
+            # (ii) against the deployment section 11 actually registers -- the WITHOUT-actinide fit on any verdict that is
+            # not *helps* -- F4's first clause is false of the configuration deployed, whatever the intervals say
+            "both_readings": {
+                "against_a_with_deployment": bool(trained_with_actinides and (any_beats or any_bca)),
+                "against_the_registered_without_deployment": False,
+                "why": F4_DEPLOYED_CONFIGURATION_READING,
+                "governs": "against_a_with_deployment (the conservative headline; no verdict is softened)"},
             "rule": "F4 -- negative actinide transfer (section 10)", "reading": READINGS["f4_designs"],
             "status": "computed" if computed else NOT_COMPUTED}
 
@@ -2704,8 +2761,9 @@ def _addendum4_lines(summary: Mapping[str, Any]) -> list[str]:
                 lines.append(f"      - blocking error: `{e.get('note')}` (invocation {e.get('started_utc')} -> "
                              f"{e.get('ended_utc')}; `evaluation/h3/decisions/wall_clock.json -> invocations[*].note`)")
         lines.append(f"  - **why the guard fails, measured.** {GUARD_FAILURE_DIAGNOSIS}")
-        lines.append("  - **proposed addendum sentence** (not written; the conservative behaviour above holds "
-                     "meanwhile): \"For a control arm whose training `log_D` is permuted by construction "
+        lines.append(f"  - **the rule now registered.** {GUARD_VALUE_SOURCE_RULE}")
+        lines.append("  - **the addendum sentence as proposed before it was written** (POST-HOC addendum 5 item 2 "
+                     "registers it): \"For a control arm whose training `log_D` is permuted by construction "
                      "(`ACT_PERMUTED`, section 11 Controls), the near-duplicate VALUE comparison of the section 2 "
                      "fold-isolation guard reads the REGISTERED `log_D` of the corpus, not the permuted values: "
                      "`near_dup_value_tol` = 0.005 asks whether two rows record the same experiment at the same value, "
@@ -3040,7 +3098,14 @@ def d03_markdown(summary: Mapping[str, Any], contrasts: pd.DataFrame | None, del
                           for d, p in sorted((f4.get("per_design") or {}).items())) + ")."
               + (f" The two readings DISAGREE on: {', '.join(f4.get('designs_where_readings_disagree') or [])}."
                  if f4.get("designs_where_readings_disagree") else " The two readings agree on every computed design."),
-              "", f"*Which interval F4 reads is a reading, not registered text.* {f4.get('interval_reading_not_registered', F4_INTERVAL_READING)}",
+              "", f"*Which interval F4 reads is REGISTERED (POST-HOC addendum 5 item 3).* "
+                  f"{f4.get('interval_reading_not_registered', F4_INTERVAL_READING)}",
+              "", "**The two readings of F4, side by side (POST-HOC addendum 5 item 3).** "
+                  f"Against a WITH deployment F4 **{'HOLDS' if (f4.get('both_readings') or {}).get('against_a_with_deployment') else 'does not hold'}**; "
+                  "against the deployment section 11 actually registers -- the WITHOUT-actinide fit, because actinide "
+                  "rows enter the deployed Ln configuration only on a *helps* verdict -- F4 **does not hold**, because "
+                  "its first clause is false of the configuration deployed. "
+                  f"{(f4.get('both_readings') or {}).get('why', F4_DEPLOYED_CONFIGURATION_READING)}",
               ""]
     per_f4 = f4.get("per_design") or {}
     if per_f4:
@@ -3159,22 +3224,23 @@ def d03_markdown(summary: Mapping[str, Any], contrasts: pd.DataFrame | None, del
                "(section 11: only on *helps*)."), "",
               "## Next action", "",
               "- confirmation: the frozen H3 claims (if any) on the withheld seeds and the V6 deltas (section 15);",
-              "- a POST-HOC addendum for every reading in `h3_summary.json -> readings` before a result is quoted as registered, "
-              "and in particular for the five this run records as REQUESTED: the interval F4 reads (`f4.interval_read`), "
-              "the design and contrast section 11's negative-transfer trigger is read on "
+              "- a POST-HOC addendum for every reading in `h3_summary.json -> readings` before a result is quoted as registered. "
+              "TWO of the five this run first recorded as REQUESTED are now REGISTERED by POST-HOC addendum 5: the interval "
+              "F4 reads (item 3, with the side-by-side deployment readings) and the near-duplicate guard of a "
+              "value-permuted control arm (item 2, under which the V1 WITH - PERMUTED legs are completed). THREE remain "
+              "REQUESTED: the design and contrast section 11's negative-transfer trigger is read on "
               "(`negative_transfer_condition.condition`), the operative reading of addendum 4 item 3 "
-              "(`refits.operative_reading`), the narrowing of addendum 4 item 2's NOT_RUN unit from the DESIGN to the "
-              "CONTRAST RECORD SET (`contrast_unit_rule`), and the near-duplicate guard of a value-permuted control arm "
-              "(the blocking error below);",
+              "(`refits.operative_reading`) and the narrowing of addendum 4 item 2's NOT_RUN unit from the DESIGN to the "
+              "CONTRAST RECORD SET (`contrast_unit_rule`);",
               f"- the section 8 power check (`scripts/g19_run_power.py`) for the {debt.get('n_owed_and_not_run', 0)} H3 "
               f"contrast(s) that owe it: {debt.get('n_refits_owed_and_not_run', NOT_COMPUTED)} injected refits, "
               f"{_fmt(debt.get('cost_hours_serial_owed_and_not_run'), '{:.1f}')} h serial (table above);",
-              "- the WITH - PERMUTED legs of V1: registered to run in full and blocked by a deterministic "
-              "isolation-check failure, not by the 20 h cap. The fold is NOT forced: the guard's near-duplicate VALUE "
-              "comparison (`near_dup_value_tol` = 0.005) is evaluated on the PERMUTED training values, so a permuted "
-              "log D that lands within 0.005 of another row's value flags a near-duplicate pair the registered data "
-              "never had. Until an addendum fixes how that guard reads a value-permuted control arm, the legs stay "
-              "unfitted and carry `INCOMPLETE_GUARD_FAILURE`.", ""]
+              "- the WITH - PERMUTED legs of V1: registered to run in full, blocked until 2026-09-23 by a deterministic "
+              "isolation-check failure (not by the 20 h cap) and now UNBLOCKED by POST-HOC addendum 5 item 2, which "
+              "registers that the guard's near-duplicate VALUE comparison reads the corpus's RECORDED log D for an arm "
+              "whose training target is permuted by construction. The folds are completed under that rule and the legs "
+              "are scored; no fold was ever forced and no other level of the guard changed. "
+              + GUARD_VALUE_SOURCE_RULE, ""]
     return "\n".join(lines)
 
 

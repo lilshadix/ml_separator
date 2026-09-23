@@ -1927,3 +1927,50 @@ V6 carve-out and the single V6 run; metrics and averaging units; comparators; ma
 eta5 and epsilon; S1, S2, F1-F3, F5 and F6; R19 items 1-6 and the reduced set of addendum 1 item 4; the
 stop rule; the grids of sections 5 and 6; the deployed configuration rule of addendum 3 item 2 as
 qualified by item 3 above; confirmation on the withheld seeds.
+
+## POST-HOC addendum 6 (2026-09-23, orchestrator Claude Code; results seen: yes - discovery, the ladder, the power check and H3, none from the confirmation half)
+
+**Results seen.** As addendum 5. Nothing has run on the confirmation half, on V6 or with the withheld
+seeds: `evaluation/confirmation/` does not exist and the run's once-only lock is unspent.
+
+**1. How the five withheld seeds combine for R19 items 1, 2, 3 and 5 at confirmation.** Section 15
+registers the single run on the withheld seeds and item 4 as "5 of 5"; section 8 defines items 1, 2, 3
+and 5 for one set of scores and never says how five seeds combine. Addendum 2 already registers the
+answer for S1(c): the statistic is the mean over the seeds of the per-seed value, and its interval is a
+cluster bootstrap of that seed mean with the same resampled clusters applied to every seed.
+**Resolved, by analogy with that registered rule and fixed before any confirmation score exists:** for
+every frozen claim, the confirmation statistic is the **mean over the 5 withheld seeds** of the per-seed
+macro value; delta is the seed mean of the per-seed paired delta; item 1 compares that seed mean with the
+design's margin; items 2 and 3 use the percentile and BCa intervals and the two-sided p of a cluster
+bootstrap (10,000 resamples, seed 19) of the seed mean, with the same resampled clusters applied to every
+seed, under every registered cluster unit; item 5 removes one cluster from all five seeds at once; item 4
+is unchanged (delta > 0 in 5 of 5 seeds); item 6 is the reduced set of addendum 1 item 4 with its refits
+on seed 104729, as in discovery. Per-seed values are printed beside the seed mean so the spread is
+visible.
+
+**2. The V6 fold file.** Section 3.4 defines the V6 hold-out and addendum 1 leaves its folds unbuilt
+because nothing before the confirmation run may touch them. The runner builds them once, inside the run,
+by the registered section 3.4 rule (the 13 systems, Pr and Nd hidden together with their X(?) rows and
+the Pr/Nd rows of every component-sharing system) under each withheld seed, and records their fold and
+design hashes in the confirmation manifest. This is registered work, recorded here only because it
+happens inside the single run rather than in the fold builder.
+
+**3. Implementation readings the H3 phase recorded and this addendum registers.** (a) The completeness
+unit of addendum 4 item 2 is the **contrast record set**, not the design: a design may have one complete
+contrast that is scored and carries a verdict while another is incomplete, reported with its own status
+and carrying no verdict, no per-unit row and no failure-condition input. (b) An incompletion caused by a
+guard failure rather than the compute cap is reported as such (`INCOMPLETE_GUARD_FAILURE`), so the cap's
+vocabulary is never used for a different cause. (c) The section 11 negative-transfer trigger is evaluated
+and recorded with its inputs whatever the outcome, and its tables are labelled exploratory when the
+trigger is not met.
+
+**4. Section 15's seed revelation is honoured as written.** The five seeds and the `--verify-seeds`
+verdict are written into `decisions/CONFIRMATION.md` **after** the single run has completed, never
+before; no artefact written before or during the run contains a seed value, and the run logs only the
+commitment digest and an opaque per-seed index.
+
+**What does not change.** Designs, folds, halves, hiding and guards; the V6 carve-out outside the single
+V6 run; metrics and averaging units; comparators; margins rho5, gamma5, eta5 and epsilon; S1, S2 and
+F1-F6; R19 items 1-6 and the reduced set; the stop rule; the grids of sections 5 and 6; the core
+confirmation scope of addendum 5 item 1; the deployed configuration of addendum 3 item 2 as qualified by
+addendum 5 item 3.

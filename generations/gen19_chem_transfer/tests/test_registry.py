@@ -354,13 +354,16 @@ def test_h3_fold_digest_and_records_read_the_registry_entry_of_stage_h3(tmp_path
 def test_stage_code_digest_rules_and_register_from_tree(tmp_path, monkeypatch):
     fake = {"g19_run_ladder": SimpleNamespace(ladder_code_digest=lambda: {"own": "o", "discovery": "d" * 64, "combined": "c"}),
             "g19_run_h3": SimpleNamespace(code_digest=lambda: {"combined": "h" * 64, "parts": {}}),
-            "g19_run_process": SimpleNamespace(code_digests=lambda: {"own": "p" * 64})}
+            "g19_run_process": SimpleNamespace(code_digests=lambda: {"own": "p" * 64}),
+            # the single confirmation run of section 15: its rule is the runner's combined digest, as h3's is
+            "g19_run_confirmation": SimpleNamespace(code_digest=lambda: {"combined": "f" * 64, "parts": {}})}
     monkeypatch.setattr(REG, "_script", lambda name: fake[name])
     monkeypatch.setattr(REG, "live_discovery_code_digest", lambda: "l" * 64)
     assert REG.stage_code_digest("ladder") == "d" * 64 and REG.stage_code_digest("h3") == "h" * 64
     assert REG.stage_code_digest("process") == "p" * 64 and REG.stage_code_digest("discovery") == "l" * 64
+    assert REG.stage_code_digest("confirmation") == "f" * 64
     with pytest.raises(ValueError):
-        REG.stage_code_digest("confirmation")
+        REG.stage_code_digest("not_a_stage")
     sp = _seal_module()
     sealed, digest = sp.build_sealed_text("# t\n## 15. Seeds\nc\n")
     add = "\n## POST-HOC addendum 1 (2026-09-15, o; results seen: no)\n\nA.\n\n## POST-HOC addendum 2 (2026-09-19, o; results seen: yes)\n\nB.\n"

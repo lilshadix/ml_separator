@@ -10,69 +10,16 @@
       "V1"
     ],
     "reading": "POST-HOC addendum 4 item 2: section 11 registers no compute budget, so H3 gets a cap of 20 h of wall clock on 2 workers, recorded in evaluation/h3/decisions/wall_clock.json and CHECKED BEFORE EACH FOLD. The budget number is WALL CLOCK, not worker-seconds: the ledger records every invocation's [started_utc, ended_utc] interval and h3_wall_clock_total sums the UNION of those intervals, so two workers running the same hour consume one hour of the cap; the sum over workers is recorded beside it as worker_seconds and is never the number compared with the cap. More than 2 concurrent workers is refused (H3_WORKERS). --max-hours stays an operator pause, never a NOT_RUN reason",
-    "remaining_hours": 14.2158,
-    "used_hours": 5.7842,
-    "worker_hours": 9.7832,
+    "remaining_hours": 13.4258,
+    "used_hours": 6.5742,
+    "worker_hours": 10.5697,
     "workers_max": 2
   },
-  "deviations": {
-    "B5:ACT_PERMUTED@V1": {
-      "blocking_errors": [
-        {
-          "ended_utc": "2026-09-22T23:33:17+00:00",
-          "note": "error in B5:ACT_PERMUTED@V1: AssertionError: inner split inner_s104729_f1 failed the isolation check",
-          "started_utc": "2026-09-22T17:48:28+00:00",
-          "what": "B5:ACT_PERMUTED@V1"
-        }
-      ],
-      "budget": null,
-      "contributes": "no contrast row, no R19 item row, no delta, no per-unit row, no F4 entry and no V1 / V2 non-inferiority input (None) for THIS leg; the other legs of the same design are unaffected",
-      "design": "V1",
-      "deviation": "POST-HOC addendum 4 item 2 registers the H3 design scope (V5 Ln cells, V2 Ln folds, V1 Ln rows; arms B5 and B6) and says 'That is registered and is run in full'. The 20 h cap is the only registered reason a record set may stay incomplete, and it was NOT reached, so B5:ACT_PERMUTED@V1 being incomplete is a DEVIATION from the addendum, not an application of the cap -- cause: error in B5:ACT_PERMUTED@V1: AssertionError: inner split inner_s104729_f1 failed the isolation check",
-      "key": "B5:ACT_PERMUTED@V1",
-      "model_arm": "B5",
-      "n_folds_done": 25,
-      "n_folds_expected": 39,
-      "reading": "POST-HOC addendum 4 item 2: the H3 job plan is ordered V5 -> V2 -> V1 (DESIGN_PRIORITY) and the cap is checked before each fold; a design the cap does not reach is written NOT_RUN with its reason. POST-HOC addendum 4 item 2, 'no verdict is taken from a partial design', applied per CONTRAST RECORD SET (<arm>:<transform>@<design>): every registered delta of section 11 is WITH - WITHOUT or WITH - PERMUTED, so the record set that a contrast is computed from is the arm x transform x design leg, and completeness is a property of THAT leg. A leg whose record set is complete is scored and carries its verdict; a leg whose record set is incomplete is reported with its status and reason and contributes no contrast row, no R19 item row, no delta, no per-unit row, no F4 entry and no non-inferiority input. A DESIGN is reported NOT_RUN only when no leg of it is complete. This narrowing of the NOT_RUN unit from the design to the record set is a READING of addendum 4 item 2 and a POST-HOC addendum stating it is REQUESTED (TASK F item 1) Mechanically: contrast_status classifies every leg, drop_not_run_contrasts removes every row of an incomplete leg before any output is written, assert_no_partial_design raises if an incomplete record set ever reaches a contrast, designs_scored and designs_not_run are asserted DISJOINT, and h3_verdict names every incomplete leg in inputs_missing so a helps verdict can never be read off the legs that did finish. The cap's NOT_RUN and a guard failure's INCOMPLETE_GUARD_FAILURE are distinct statuses and the entry says which applies (task X finding protocol VH-01 / numbers VH-02; TASK F items 1-2)",
-      "reason": "B5:ACT_PERMUTED@V1 record set is incomplete (25 of 39 folds; missing ['REMAINDER', 'pub_97510df3a0', 'pub_a470dfb784', 'pub_a9266a9412', 'pub_ad5a7268e5'] ...)",
-      "rule": "POST-HOC addendum 4 item 2, 'no verdict is taken from a partial design', applied per CONTRAST RECORD SET (<arm>:<transform>@<design>): every registered delta of section 11 is WITH - WITHOUT or WITH - PERMUTED, so the record set that a contrast is computed from is the arm x transform x design leg, and completeness is a property of THAT leg. A leg whose record set is complete is scored and carries its verdict; a leg whose record set is incomplete is reported with its status and reason and contributes no contrast row, no R19 item row, no delta, no per-unit row, no F4 entry and no non-inferiority input. A DESIGN is reported NOT_RUN only when no leg of it is complete. This narrowing of the NOT_RUN unit from the design to the record set is a READING of addendum 4 item 2 and a POST-HOC addendum stating it is REQUESTED (TASK F item 1)",
-      "status": "INCOMPLETE_GUARD_FAILURE",
-      "stopped_by": "error in B5:ACT_PERMUTED@V1: AssertionError: inner split inner_s104729_f1 failed the isolation check",
-      "transform": "ACT_PERMUTED",
-      "verdict_taken": false,
-      "vocabulary": "POST-HOC addendum 4 item 2's NOT_RUN is the CAP's vocabulary; this leg was not stopped by the cap, so it carries INCOMPLETE_GUARD_FAILURE instead and the cause is named"
-    },
-    "B6:ACT_PERMUTED@V1": {
-      "blocking_errors": [
-        {
-          "ended_utc": "2026-09-22T23:42:22+00:00",
-          "note": "error in B6:ACT_PERMUTED@V1: AssertionError: inner split ('pub_007f4c9de0', 'pub_07cea54708', 'pub_0af6736cb1', 'pub_0f30549d71', 'pub_10aec04d23', 'pub_13adc25944', 'pub_1739bfaf95', 'pub_1845fd6492', 'pub_1927dff570', 'pub_19783c039b', 'pub_1b7737c507', 'pub_1d18e32c4e', 'pub_23f10a0918', 'pub_2c76a46f18', 'pub_2e9f2dbea9', 'pub_328cdbeabc', 'pub_392f966ef2', 'pub_3f3b6220e0', 'pub_40c355ae86', 'pub_44555064e1', 'pub_4a1871d85d', 'pub_51c0693f9c', 'pub_58e30f4932', 'pub_5df1eef2f5', 'pub_6f71d61137', 'pub_7730cdd232', 'pub_792969545c', 'pub_886ede1e0e', 'pub_890299c726', 'pub_8a081dc888', 'pub_8dafaf94bc', 'pub_9428119866', 'pub_989b35f30b', 'pub_9a3afbee00', 'pub_a470dfb784', 'pub_a49146c8fd', 'pub_a6126dc686', 'pub_a671b3a07d', 'pub_ab5ae597b9', 'pub_ad5a7268e5', 'pub_aed382b25f', 'pub_b048b54fa9', 'pub_b0b3296ec5', 'pub_bef16e560c', 'pub_c07b8473b8', 'pub_c75976ca9f', 'pub_c8195b4ca7', 'pub_cd72e4a7bb', 'pub_cdc2243314', 'pub_d0909358c9', 'pub_dc1c90a4de', 'pub_dfa96a5118', 'pub_e4bbba9576', 'pub_e4dd361427', 'pub_f5d1922154', 'pub_fdc02269b7') failed the isolation check",
-          "started_utc": "2026-09-22T23:40:21+00:00",
-          "what": "B6:ACT_PERMUTED@V1"
-        }
-      ],
-      "budget": null,
-      "contributes": "no contrast row, no R19 item row, no delta, no per-unit row, no F4 entry and no V1 / V2 non-inferiority input (None) for THIS leg; the other legs of the same design are unaffected",
-      "design": "V1",
-      "deviation": "POST-HOC addendum 4 item 2 registers the H3 design scope (V5 Ln cells, V2 Ln folds, V1 Ln rows; arms B5 and B6) and says 'That is registered and is run in full'. The 20 h cap is the only registered reason a record set may stay incomplete, and it was NOT reached, so B6:ACT_PERMUTED@V1 being incomplete is a DEVIATION from the addendum, not an application of the cap -- cause: error in B6:ACT_PERMUTED@V1: AssertionError: inner split ('pub_007f4c9de0', 'pub_07cea54708', 'pub_0af6736cb1', 'pub_0f30549d71', 'pub_10aec04d23', 'pub_13adc25944', 'pub_1739bfaf95', 'pub_1845fd6492', 'pub_1927dff570', 'pub_19783c039b', 'pub_1b7737c507', 'pub_1d18e32c4e', 'pub_23f10a0918', 'pub_2c76a46f18', 'pub_2e9f2dbea9', 'pub_328cdbeabc', 'pub_392f966ef2', 'pub_3f3b6220e0', 'pub_40c355ae86', 'pub_44555064e1', 'pub_4a1871d85d', 'pub_51c0693f9c', 'pub_58e30f4932', 'pub_5df1eef2f5', 'pub_6f71d61137', 'pub_7730cdd232', 'pub_792969545c', 'pub_886ede1e0e', 'pub_890299c726', 'pub_8a081dc888', 'pub_8dafaf94bc', 'pub_9428119866', 'pub_989b35f30b', 'pub_9a3afbee00', 'pub_a470dfb784', 'pub_a49146c8fd', 'pub_a6126dc686', 'pub_a671b3a07d', 'pub_ab5ae597b9', 'pub_ad5a7268e5', 'pub_aed382b25f', 'pub_b048b54fa9', 'pub_b0b3296ec5', 'pub_bef16e560c', 'pub_c07b8473b8', 'pub_c75976ca9f', 'pub_c8195b4ca7', 'pub_cd72e4a7bb', 'pub_cdc2243314', 'pub_d0909358c9', 'pub_dc1c90a4de', 'pub_dfa96a5118', 'pub_e4bbba9576', 'pub_e4dd361427', 'pub_f5d1922154', 'pub_fdc02269b7') failed the isolation check",
-      "key": "B6:ACT_PERMUTED@V1",
-      "model_arm": "B6",
-      "n_folds_done": 25,
-      "n_folds_expected": 39,
-      "reading": "POST-HOC addendum 4 item 2: the H3 job plan is ordered V5 -> V2 -> V1 (DESIGN_PRIORITY) and the cap is checked before each fold; a design the cap does not reach is written NOT_RUN with its reason. POST-HOC addendum 4 item 2, 'no verdict is taken from a partial design', applied per CONTRAST RECORD SET (<arm>:<transform>@<design>): every registered delta of section 11 is WITH - WITHOUT or WITH - PERMUTED, so the record set that a contrast is computed from is the arm x transform x design leg, and completeness is a property of THAT leg. A leg whose record set is complete is scored and carries its verdict; a leg whose record set is incomplete is reported with its status and reason and contributes no contrast row, no R19 item row, no delta, no per-unit row, no F4 entry and no non-inferiority input. A DESIGN is reported NOT_RUN only when no leg of it is complete. This narrowing of the NOT_RUN unit from the design to the record set is a READING of addendum 4 item 2 and a POST-HOC addendum stating it is REQUESTED (TASK F item 1) Mechanically: contrast_status classifies every leg, drop_not_run_contrasts removes every row of an incomplete leg before any output is written, assert_no_partial_design raises if an incomplete record set ever reaches a contrast, designs_scored and designs_not_run are asserted DISJOINT, and h3_verdict names every incomplete leg in inputs_missing so a helps verdict can never be read off the legs that did finish. The cap's NOT_RUN and a guard failure's INCOMPLETE_GUARD_FAILURE are distinct statuses and the entry says which applies (task X finding protocol VH-01 / numbers VH-02; TASK F items 1-2)",
-      "reason": "B6:ACT_PERMUTED@V1 record set is incomplete (25 of 39 folds; missing ['REMAINDER', 'pub_97510df3a0', 'pub_a470dfb784', 'pub_a9266a9412', 'pub_ad5a7268e5'] ...)",
-      "rule": "POST-HOC addendum 4 item 2, 'no verdict is taken from a partial design', applied per CONTRAST RECORD SET (<arm>:<transform>@<design>): every registered delta of section 11 is WITH - WITHOUT or WITH - PERMUTED, so the record set that a contrast is computed from is the arm x transform x design leg, and completeness is a property of THAT leg. A leg whose record set is complete is scored and carries its verdict; a leg whose record set is incomplete is reported with its status and reason and contributes no contrast row, no R19 item row, no delta, no per-unit row, no F4 entry and no non-inferiority input. A DESIGN is reported NOT_RUN only when no leg of it is complete. This narrowing of the NOT_RUN unit from the design to the record set is a READING of addendum 4 item 2 and a POST-HOC addendum stating it is REQUESTED (TASK F item 1)",
-      "status": "INCOMPLETE_GUARD_FAILURE",
-      "stopped_by": "error in B6:ACT_PERMUTED@V1: AssertionError: inner split ('pub_007f4c9de0', 'pub_07cea54708', 'pub_0af6736cb1', 'pub_0f30549d71', 'pub_10aec04d23', 'pub_13adc25944', 'pub_1739bfaf95', 'pub_1845fd6492', 'pub_1927dff570', 'pub_19783c039b', 'pub_1b7737c507', 'pub_1d18e32c4e', 'pub_23f10a0918', 'pub_2c76a46f18', 'pub_2e9f2dbea9', 'pub_328cdbeabc', 'pub_392f966ef2', 'pub_3f3b6220e0', 'pub_40c355ae86', 'pub_44555064e1', 'pub_4a1871d85d', 'pub_51c0693f9c', 'pub_58e30f4932', 'pub_5df1eef2f5', 'pub_6f71d61137', 'pub_7730cdd232', 'pub_792969545c', 'pub_886ede1e0e', 'pub_890299c726', 'pub_8a081dc888', 'pub_8dafaf94bc', 'pub_9428119866', 'pub_989b35f30b', 'pub_9a3afbee00', 'pub_a470dfb784', 'pub_a49146c8fd', 'pub_a6126dc686', 'pub_a671b3a07d', 'pub_ab5ae597b9', 'pub_ad5a7268e5', 'pub_aed382b25f', 'pub_b048b54fa9', 'pub_b0b3296ec5', 'pub_bef16e560c', 'pub_c07b8473b8', 'pub_c75976ca9f', 'pub_c8195b4ca7', 'pub_cd72e4a7bb', 'pub_cdc2243314', 'pub_d0909358c9', 'pub_dc1c90a4de', 'pub_dfa96a5118', 'pub_e4bbba9576', 'pub_e4dd361427', 'pub_f5d1922154', 'pub_fdc02269b7') failed the isolation check",
-      "transform": "ACT_PERMUTED",
-      "verdict_taken": false,
-      "vocabulary": "POST-HOC addendum 4 item 2's NOT_RUN is the CAP's vocabulary; this leg was not stopped by the cap, so it carries INCOMPLETE_GUARD_FAILURE instead and the cause is named"
-    }
-  },
-  "git_head": "65ac90d7d49fcfd5c488cb41efa7074d0b1bcde2",
-  "guard_failure_diagnosis": "MEASURED CAUSE (scripts/g19_h3_guard_diagnosis.py, fold pub_97510df3a0 of B5:ACT_PERMUTED@V1): the section 2 inner guard is fold_isolation_check(level='V1', near_dup_sig=6, near_dup_value_tol=0.005), and ACT_PERMUTED rebuilds the corpus over the PERMUTED frame, so the guard's VALUE comparison reads permuted log_D. Of the fold's three inner splits, all three pass on the registered values and two (inner_s104729_f1, inner_s104729_f2) fail on the permuted ones, each with exactly ONE near-duplicate key flagged. On f1 the flagged key (k_c75093d1f0ee) is a U(VI) row whose registered log_D 0.174458 was permuted to 0.376759, landing 0.00201 from a calibration row at 0.374748; on the registered values the nearest calibration value is 0.115576 away, an order of magnitude outside the 0.005 tolerance. The key itself cannot change: near_duplicate_key is built from the system, metal, state, acid, solvent, concentrations and temperature and never from log_D, and the publication group and archive duplicate group are stored columns, so the permutation can only move VALUES. The guard therefore flags a near-duplicate pair the recorded data never had. Running the guard VALUE-BLIND (near_dup_value_tol=None) is NOT the fix and is not what this diagnosis supports: value-blind counts every shared key whatever the values, and it fails all three inner splits on the REGISTERED frame too (2, 27 and 26 shared keys), so it would also block the WITH and WITHOUT arms that scored. The conservative behaviour taken meanwhile: the two ACT_PERMUTED@V1 legs are left UNFITTED, no fold is forced, and they carry INCOMPLETE_GUARD_FAILURE with no verdict",
+  "deviations": {},
+  "git_head": "6b46c93fb8f6fa73097f4941fe001b2e16375be2",
+  "guard_failure_diagnosis": "MEASURED CAUSE (scripts/g19_h3_guard_diagnosis.py, fold pub_97510df3a0 of B5:ACT_PERMUTED@V1): the section 2 inner guard is fold_isolation_check(level='V1', near_dup_sig=6, near_dup_value_tol=0.005), and ACT_PERMUTED rebuilds the corpus over the PERMUTED frame, so the guard's VALUE comparison reads permuted log_D. Of the fold's three inner splits, all three pass on the registered values and two (inner_s104729_f1, inner_s104729_f2) fail on the permuted ones, each with exactly ONE near-duplicate key flagged. On f1 the flagged key (k_c75093d1f0ee) is a U(VI) row whose registered log_D 0.174458 was permuted to 0.376759, landing 0.00201 from a calibration row at 0.374748; on the registered values the nearest calibration value is 0.115576 away, an order of magnitude outside the 0.005 tolerance. The key itself cannot change: near_duplicate_key is built from the system, metal, state, acid, solvent, concentrations and temperature and never from log_D, and the publication group and archive duplicate group are stored columns, so the permutation can only move VALUES. The guard therefore flags a near-duplicate pair the recorded data never had. Running the guard VALUE-BLIND (near_dup_value_tol=None) is NOT the fix and is not what this diagnosis supports: value-blind counts every shared key whatever the values, and it fails all three inner splits on the REGISTERED frame too (2, 27 and 26 shared keys), so it would also block the WITH and WITHOUT arms that scored. The conservative behaviour taken until 2026-09-23: the two ACT_PERMUTED@V1 legs were left UNFITTED, no fold was forced, and they carried INCOMPLETE_GUARD_FAILURE with no verdict. RESOLVED by POST-HOC addendum 5 item 2, which registers the rule below; the legs are completed under it and the incompleteness is history",
   "guard_failure_evidence": "evaluation/h3/decisions/isolation_guard_diagnosis.json",
-  "n_deviations": 2,
+  "n_deviations": 0,
   "power_debt": {
     "checked_keys": [
       "B6 vs B3i@V5",
@@ -547,6 +494,64 @@
       },
       {
         "check_run": false,
+        "contrast": "B5:WITH vs B5:ACT_PERMUTED",
+        "cost": {
+          "basis": "section 8 re-runs the pipeline on injected targets at kappa in {0.1, 0.25, 0.5, 1.0}, refitting EVERY arm of the contrast at its selected hyperparameters without re-tuning, on the same scored rows. The cost of one H3 contrast's check is therefore 4 kappa x (folds of the WITH leg + folds of the transform leg) refits, priced at the per-fold seconds this design's H3 refits actually took (evaluation/h3/decisions/cost_estimate.json); it is a SERIAL estimate, halved only if the folds split evenly over the 2 registered workers. It is priced PER CONTRAST, so the total over contrasts double-counts a WITH leg two contrasts share (the same injected WITH refits serve WITH vs WITHOUT and WITH vs PERMUTED, and each direction of a pair is one contrast row): the total is an upper bound, and the per-arm figure is 4 kappa x folds x arms of the design",
+          "kappas": [
+            0.1,
+            0.25,
+            0.5,
+            1.0
+          ],
+          "n_folds_transform": 39,
+          "n_folds_with": 39,
+          "n_kappa": 4,
+          "n_refits": 312,
+          "per_fold_seconds": 230.6,
+          "serial_hours": 19.985,
+          "serial_seconds": 71947.2
+        },
+        "cost_hours_serial": 19.985,
+        "design": "V1",
+        "family": "H3",
+        "key": "B5:WITH vs B5:ACT_PERMUTED@V1",
+        "n_refits": 312,
+        "needs_power_check": true,
+        "r19_verdict_full": "FAIL",
+        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'",
+        "status": "NOT_RUN"
+      },
+      {
+        "check_run": false,
+        "contrast": "B5:ACT_PERMUTED vs B5:WITH",
+        "cost": {
+          "basis": "section 8 re-runs the pipeline on injected targets at kappa in {0.1, 0.25, 0.5, 1.0}, refitting EVERY arm of the contrast at its selected hyperparameters without re-tuning, on the same scored rows. The cost of one H3 contrast's check is therefore 4 kappa x (folds of the WITH leg + folds of the transform leg) refits, priced at the per-fold seconds this design's H3 refits actually took (evaluation/h3/decisions/cost_estimate.json); it is a SERIAL estimate, halved only if the folds split evenly over the 2 registered workers. It is priced PER CONTRAST, so the total over contrasts double-counts a WITH leg two contrasts share (the same injected WITH refits serve WITH vs WITHOUT and WITH vs PERMUTED, and each direction of a pair is one contrast row): the total is an upper bound, and the per-arm figure is 4 kappa x folds x arms of the design",
+          "kappas": [
+            0.1,
+            0.25,
+            0.5,
+            1.0
+          ],
+          "n_folds_transform": 39,
+          "n_folds_with": 39,
+          "n_kappa": 4,
+          "n_refits": 312,
+          "per_fold_seconds": 230.6,
+          "serial_hours": 19.985,
+          "serial_seconds": 71947.2
+        },
+        "cost_hours_serial": 19.985,
+        "design": "V1",
+        "family": "H3",
+        "key": "B5:ACT_PERMUTED vs B5:WITH@V1",
+        "n_refits": 312,
+        "needs_power_check": true,
+        "r19_verdict_full": "FAIL",
+        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'",
+        "status": "NOT_RUN"
+      },
+      {
+        "check_run": false,
         "contrast": "B5:WITH vs B5:WITHOUT",
         "cost": {
           "basis": "section 8 re-runs the pipeline on injected targets at kappa in {0.1, 0.25, 0.5, 1.0}, refitting EVERY arm of the contrast at its selected hyperparameters without re-tuning, on the same scored rows. The cost of one H3 contrast's check is therefore 4 kappa x (folds of the WITH leg + folds of the transform leg) refits, priced at the per-fold seconds this design's H3 refits actually took (evaluation/h3/decisions/cost_estimate.json); it is a SERIAL estimate, halved only if the folds split evenly over the 2 registered workers. It is priced PER CONTRAST, so the total over contrasts double-counts a WITH leg two contrasts share (the same injected WITH refits serve WITH vs WITHOUT and WITH vs PERMUTED, and each direction of a pair is one contrast row): the total is an upper bound, and the per-arm figure is 4 kappa x folds x arms of the design",
@@ -597,6 +602,64 @@
         "design": "V1",
         "family": "H3",
         "key": "B5:WITHOUT vs B5:WITH@V1",
+        "n_refits": 312,
+        "needs_power_check": true,
+        "r19_verdict_full": "FAIL",
+        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'",
+        "status": "NOT_RUN"
+      },
+      {
+        "check_run": false,
+        "contrast": "B6:WITH vs B6:ACT_PERMUTED",
+        "cost": {
+          "basis": "section 8 re-runs the pipeline on injected targets at kappa in {0.1, 0.25, 0.5, 1.0}, refitting EVERY arm of the contrast at its selected hyperparameters without re-tuning, on the same scored rows. The cost of one H3 contrast's check is therefore 4 kappa x (folds of the WITH leg + folds of the transform leg) refits, priced at the per-fold seconds this design's H3 refits actually took (evaluation/h3/decisions/cost_estimate.json); it is a SERIAL estimate, halved only if the folds split evenly over the 2 registered workers. It is priced PER CONTRAST, so the total over contrasts double-counts a WITH leg two contrasts share (the same injected WITH refits serve WITH vs WITHOUT and WITH vs PERMUTED, and each direction of a pair is one contrast row): the total is an upper bound, and the per-arm figure is 4 kappa x folds x arms of the design",
+          "kappas": [
+            0.1,
+            0.25,
+            0.5,
+            1.0
+          ],
+          "n_folds_transform": 39,
+          "n_folds_with": 39,
+          "n_kappa": 4,
+          "n_refits": 312,
+          "per_fold_seconds": 9.5,
+          "serial_hours": 0.823,
+          "serial_seconds": 2964.0
+        },
+        "cost_hours_serial": 0.823,
+        "design": "V1",
+        "family": "H3",
+        "key": "B6:WITH vs B6:ACT_PERMUTED@V1",
+        "n_refits": 312,
+        "needs_power_check": true,
+        "r19_verdict_full": "FAIL",
+        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'",
+        "status": "NOT_RUN"
+      },
+      {
+        "check_run": false,
+        "contrast": "B6:ACT_PERMUTED vs B6:WITH",
+        "cost": {
+          "basis": "section 8 re-runs the pipeline on injected targets at kappa in {0.1, 0.25, 0.5, 1.0}, refitting EVERY arm of the contrast at its selected hyperparameters without re-tuning, on the same scored rows. The cost of one H3 contrast's check is therefore 4 kappa x (folds of the WITH leg + folds of the transform leg) refits, priced at the per-fold seconds this design's H3 refits actually took (evaluation/h3/decisions/cost_estimate.json); it is a SERIAL estimate, halved only if the folds split evenly over the 2 registered workers. It is priced PER CONTRAST, so the total over contrasts double-counts a WITH leg two contrasts share (the same injected WITH refits serve WITH vs WITHOUT and WITH vs PERMUTED, and each direction of a pair is one contrast row): the total is an upper bound, and the per-arm figure is 4 kappa x folds x arms of the design",
+          "kappas": [
+            0.1,
+            0.25,
+            0.5,
+            1.0
+          ],
+          "n_folds_transform": 39,
+          "n_folds_with": 39,
+          "n_kappa": 4,
+          "n_refits": 312,
+          "per_fold_seconds": 9.5,
+          "serial_hours": 0.823,
+          "serial_seconds": 2964.0
+        },
+        "cost_hours_serial": 0.823,
+        "design": "V1",
+        "family": "H3",
+        "key": "B6:ACT_PERMUTED vs B6:WITH@V1",
         "n_refits": 312,
         "needs_power_check": true,
         "r19_verdict_full": "FAIL",
@@ -663,24 +726,24 @@
       }
     ],
     "cost_basis": "section 8 re-runs the pipeline on injected targets at kappa in {0.1, 0.25, 0.5, 1.0}, refitting EVERY arm of the contrast at its selected hyperparameters without re-tuning, on the same scored rows. The cost of one H3 contrast's check is therefore 4 kappa x (folds of the WITH leg + folds of the transform leg) refits, priced at the per-fold seconds this design's H3 refits actually took (evaluation/h3/decisions/cost_estimate.json); it is a SERIAL estimate, halved only if the folds split evenly over the 2 registered workers. It is priced PER CONTRAST, so the total over contrasts double-counts a WITH leg two contrasts share (the same injected WITH refits serve WITH vs WITHOUT and WITH vs PERMUTED, and each direction of a pair is one contrast row): the total is an upper bound, and the per-arm figure is 4 kappa x folds x arms of the design",
-    "cost_hours_serial_owed_and_not_run": 435.818,
-    "cost_priced_for": 20,
+    "cost_hours_serial_owed_and_not_run": 477.434,
+    "cost_priced_for": 24,
     "cost_unpriced": 0,
     "family": "H3",
     "label_when_not_run": "UNDECIDED (no registered power check)",
-    "n_contrasts": 20,
-    "n_owed": 20,
-    "n_owed_and_not_run": 20,
+    "n_contrasts": 24,
+    "n_owed": 24,
+    "n_owed_and_not_run": 24,
     "n_owed_and_run": 0,
-    "n_refits_owed_and_not_run": 6272,
+    "n_refits_owed_and_not_run": 7520,
     "rule": "POST-HOC addendum 2 (reading 'needs_power'): a contrast needs the section 8 signal-injection check when its family is primary (H1), H1b, S1(b) or H3 and its full R19 verdict is not PASS. An H3 contrast that owes the check and did not get one is reported 'UNDECIDED (no registered power check)' (POST-HOC addendum 4 item 4, third clause), never a null and never 'no effect'; the debt is listed here so it is a RECORDED debt rather than an absence"
   },
   "readings_requested_not_registered": {
     "addendum4_item2_contrast_unit": "POST-HOC addendum 4 item 2, 'no verdict is taken from a partial design', applied per CONTRAST RECORD SET (<arm>:<transform>@<design>): every registered delta of section 11 is WITH - WITHOUT or WITH - PERMUTED, so the record set that a contrast is computed from is the arm x transform x design leg, and completeness is a property of THAT leg. A leg whose record set is complete is scored and carries its verdict; a leg whose record set is incomplete is reported with its status and reason and contributes no contrast row, no R19 item row, no delta, no per-unit row, no F4 entry and no non-inferiority input. A DESIGN is reported NOT_RUN only when no leg of it is complete. This narrowing of the NOT_RUN unit from the design to the record set is a READING of addendum 4 item 2 and a POST-HOC addendum stating it is REQUESTED (TASK F item 1)",
     "addendum4_item3_operative": "OPERATIVE READING (addendum 2 change 5): a record is valid under the registry entry that was CURRENT WHEN IT WAS WRITTEN, verified through registry.verify_record at the record's own timestamp -- not under whatever entry is current when a delta is scored. POST-HOC addendum 4 item 3's 'refitted under the current registered digest before any H3 delta is scored' is satisfied as 'refitted under the digest that was current at the moment of the refit, and never under the digest that was already superseded when the refit started'. Reading it as 'current at scoring time' would make every reporting-only edit to h3.py re-invalidate all 445 records, which addendum 2 change 5 explicitly forbids ('a later change can neither validate nor invalidate a record written earlier'). A POST-HOC addendum wording this is REQUESTED; splitting the fitting closure from the scoring / reporting closure in the h3 code digest would remove the question",
-    "section10_f4_interval": "NOT REGISTERED: section 10 F4 says '95 % interval excluding 0' without naming a construction, while section 8 registers the percentile and the BCa 95 % interval for every contrast and R19 item 2 requires BOTH to exclude 0. F4 is a FAILURE condition, so the CONSERVATIVE reading is the one that triggers more readily -- EITHER registered interval, on ANY registered design -- and that reading GOVERNS the headline (failure == failure_either_interval). The percentile-only and BCa-only readings are computed and reported beside it (failure_percentile, failure_bca, per_design.<design>.bca_beats), and a design where they disagree is named (designs_where_readings_disagree), so every F4 statement carries both. A POST-HOC addendum naming the interval F4 reads is REQUESTED and not yet written; until it is, the headline stays the conservative one and is never softened to the percentile reading (TASK F item 3)",
+    "section10_f4_interval": "REGISTERED by POST-HOC addendum 5 item 3 (NOT REGISTERED before it, which is why the reading is spelled out here): section 10 F4 says '95 % interval excluding 0' without naming a construction, while section 8 registers the percentile and the BCa 95 % interval for every contrast and R19 item 2 requires BOTH to exclude 0. F4 is a FAILURE condition, so the CONSERVATIVE reading is the one that triggers more readily -- EITHER registered interval, on ANY registered design -- and that reading GOVERNS the headline (failure == failure_either_interval). The percentile-only and BCa-only readings are computed and reported beside it (failure_percentile, failure_bca, per_design.<design>.bca_beats), and a design where they disagree is named (designs_where_readings_disagree), so every F4 statement carries both. Addendum 5 item 3 states this reading in the same words ('section 8 registers the percentile and the BCa interval for every contrast, so F4 is read under both, and the conservative outcome governs') and records the outcome: on V2 the BCa interval of WITHOUT vs WITH excludes zero (+0.0264, [+0.0031, +0.0783]) while the percentile interval does not, V5 and V1 show nothing, so F4 HOLDS. The headline is the conservative one and is never softened to the percentile reading (TASK F item 3)",
     "section11_negative_transfer_trigger": "section 11, negative-transfer investigation: 'run if WITHOUT is better, point estimate or passed' -- read on the DEPLOYED arm's V5 Ln-cell contrast WITHOUT vs WITH, the primary design of section 11's Ln test set and the same contrast the shared-only re-run's condition reads (h3_verdicts.json): hurts == true (WITHOUT passes R19 on the freezing_screen scope against WITH; the 'passed' half) OR v5_without_vs_with_point > 0 (Delta macro MAE = MAE(WITH) - MAE(WITHOUT) under the primary cluster unit; the 'point estimate' half). Section 11 names neither the design nor the contrast, so this is a READING and a POST-HOC addendum fixing it is REQUESTED; the per-cell tables are V5 tables, which is why the V5 contrast is the one read. When the condition is NOT met the tables are still written (they cost nothing, the per-cell deltas already exist) but they are labelled EXPLORATORY, not 'the section 11 negative-transfer investigation', and no reading is taken from them",
-    "section2_guard_of_a_value_permuted_control_arm": "MEASURED CAUSE (scripts/g19_h3_guard_diagnosis.py, fold pub_97510df3a0 of B5:ACT_PERMUTED@V1): the section 2 inner guard is fold_isolation_check(level='V1', near_dup_sig=6, near_dup_value_tol=0.005), and ACT_PERMUTED rebuilds the corpus over the PERMUTED frame, so the guard's VALUE comparison reads permuted log_D. Of the fold's three inner splits, all three pass on the registered values and two (inner_s104729_f1, inner_s104729_f2) fail on the permuted ones, each with exactly ONE near-duplicate key flagged. On f1 the flagged key (k_c75093d1f0ee) is a U(VI) row whose registered log_D 0.174458 was permuted to 0.376759, landing 0.00201 from a calibration row at 0.374748; on the registered values the nearest calibration value is 0.115576 away, an order of magnitude outside the 0.005 tolerance. The key itself cannot change: near_duplicate_key is built from the system, metal, state, acid, solvent, concentrations and temperature and never from log_D, and the publication group and archive duplicate group are stored columns, so the permutation can only move VALUES. The guard therefore flags a near-duplicate pair the recorded data never had. Running the guard VALUE-BLIND (near_dup_value_tol=None) is NOT the fix and is not what this diagnosis supports: value-blind counts every shared key whatever the values, and it fails all three inner splits on the REGISTERED frame too (2, 27 and 26 shared keys), so it would also block the WITH and WITHOUT arms that scored. The conservative behaviour taken meanwhile: the two ACT_PERMUTED@V1 legs are left UNFITTED, no fold is forced, and they carry INCOMPLETE_GUARD_FAILURE with no verdict"
+    "section2_guard_of_a_value_permuted_control_arm": "MEASURED CAUSE (scripts/g19_h3_guard_diagnosis.py, fold pub_97510df3a0 of B5:ACT_PERMUTED@V1): the section 2 inner guard is fold_isolation_check(level='V1', near_dup_sig=6, near_dup_value_tol=0.005), and ACT_PERMUTED rebuilds the corpus over the PERMUTED frame, so the guard's VALUE comparison reads permuted log_D. Of the fold's three inner splits, all three pass on the registered values and two (inner_s104729_f1, inner_s104729_f2) fail on the permuted ones, each with exactly ONE near-duplicate key flagged. On f1 the flagged key (k_c75093d1f0ee) is a U(VI) row whose registered log_D 0.174458 was permuted to 0.376759, landing 0.00201 from a calibration row at 0.374748; on the registered values the nearest calibration value is 0.115576 away, an order of magnitude outside the 0.005 tolerance. The key itself cannot change: near_duplicate_key is built from the system, metal, state, acid, solvent, concentrations and temperature and never from log_D, and the publication group and archive duplicate group are stored columns, so the permutation can only move VALUES. The guard therefore flags a near-duplicate pair the recorded data never had. Running the guard VALUE-BLIND (near_dup_value_tol=None) is NOT the fix and is not what this diagnosis supports: value-blind counts every shared key whatever the values, and it fails all three inner splits on the REGISTERED frame too (2, 27 and 26 shared keys), so it would also block the WITH and WITHOUT arms that scored. The conservative behaviour taken until 2026-09-23: the two ACT_PERMUTED@V1 legs were left UNFITTED, no fold was forced, and they carried INCOMPLETE_GUARD_FAILURE with no verdict. RESOLVED by POST-HOC addendum 5 item 2, which registers the rule below; the legs are completed under it and the incompleteness is history"
   },
   "rule": "POST-HOC addendum 4 item 2 registers the H3 design scope and says 'That is registered and is run in full'; the 20 h cap is the only registered reason a design may stay incomplete. A design incomplete while the cap is unreached is a DEVIATION and is recorded here with its cause.",
   "schema": "gen19.h3.v1"

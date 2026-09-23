@@ -1,0 +1,225 @@
+{
+  "arm": "B6:ACT_PERMUTED",
+  "arm_record": {
+    "fit_info": {
+      "converged": true,
+      "lambda": 10.0,
+      "n_sweeps": 0,
+      "objective_trace": [
+        17236.34877985565
+      ],
+      "rank": 0,
+      "runtime_s": 0.2045203000307083,
+      "seed": 10092861,
+      "sse": 16538.065003098498
+    },
+    "refit": "the WITHOUT / ACT_PERMUTED / ACT_METAL_SHUFFLED arms are refitted at the hyperparameters the WITH run SELECTED on the same fold (its record's selected configuration, iteration / epoch count and model seed), not re-tuned; their cross-fitted conformal calibration uses the WITH record's cross-fit selections. Section 11 says 'same architecture, same folds, same seeds' and is silent on re-tuning; re-tuning would multiply the cost by the inner grid (INFERRED; needs a POST-HOC addendum)",
+    "selected_hyperparameters": {
+      "family": "b6",
+      "init_seed": 10092861,
+      "inner_fold_macro_mae": {
+        "k0_lam0.1": {
+          "0": 1.2875901195194361,
+          "1": 0.9937005859840318,
+          "2": 1.3929412153039469
+        },
+        "k0_lam1": {
+          "0": 1.2685154357387503,
+          "1": 0.9755968973284813,
+          "2": 1.3859806229880465
+        },
+        "k0_lam10": {
+          "0": 1.2208597278215254,
+          "1": 0.9581982596382016,
+          "2": 1.3490102644759434
+        },
+        "k1_lam0.1": {
+          "0": 1.3652665430938167,
+          "1": 1.0518233243892239,
+          "2": 1.3269507945413763
+        },
+        "k1_lam1": {
+          "0": 1.3306233214762218,
+          "1": 1.0312574155752294,
+          "2": 1.274855525374345
+        },
+        "k1_lam10": {
+          "0": 1.3193564507551319,
+          "1": 1.0868833555125892,
+          "2": 1.2074935817538377
+        },
+        "k2_lam0.1": {
+          "0": 1.4681576432690444,
+          "1": 1.1331625372457148,
+          "2": 1.6119088011835545
+        },
+        "k2_lam1": {
+          "0": 1.290661155172253,
+          "1": 1.0260488949132414,
+          "2": 1.5668939182416186
+        },
+        "k2_lam10": {
+          "0": 1.3555460999981372,
+          "1": 1.0172947160918986,
+          "2": 1.3509428462386937
+        },
+        "k3_lam0.1": {
+          "0": 1.3933926998617476,
+          "1": 1.2308017112017178,
+          "2": 1.74624374702609
+        },
+        "k3_lam1": {
+          "0": 1.3157117978756696,
+          "1": 1.058833358606539,
+          "2": 1.4533274642855856
+        },
+        "k3_lam10": {
+          "0": 1.3495549811787706,
+          "1": 1.0653174591394614,
+          "2": 1.2721315253174197
+        }
+      },
+      "label": "k0_lam10",
+      "lambda": 10.0,
+      "model_seed": 10092861,
+      "rank": 0
+    }
+  },
+  "code_digest": "f97600f291c419c094ddf6e1fd9a87fef81a4db3d05931c40029ce31f94ff704",
+  "design_hash": "8896284c0f0333b654112dd3680f4ea02fdd923f75a9329a5ae21f302a1ca276",
+  "digest": "abbbca54ac75789eae94bb4c2500a2f88338f5332b76e2a9fb6919cba89c11b0",
+  "fold_hash": "870f3ca1b40c22da9c75349abd19bcb0e529cbedf5e1085bdb760913662603fc",
+  "fold_id": "pub_d3c970567f",
+  "fold_ordinal": 92,
+  "guard_value_source": "recorded_log_D",
+  "guard_value_source_rule": "REGISTERED (POST-HOC addendum 5 item 2): 'for an arm whose training target is permuted by construction, the value comparison reads the corpus's recorded log D; every other level of the guard - publication group, archive duplicate group, and the near-duplicate key at six significant figures - is value-independent and unchanged, and the value-blind mode stays what section 2 registers it as, a sensitivity'. Implementation: the outer guard and the inner isolation check of a value-permuting transform are bound to the RECORDED corpus (g19_run_h3.recorded_value_guards), which differs from the permuted corpus in log_D alone. The guard gates FITTING and changes no prediction: the ACT_PERMUTED records written before the rule (V5, V2) are unaffected and are not refitted, and the 14 V1 folds the permuted-value comparison had blocked are completed under it",
+  "inner_guard_mode": "nested_certificate",
+  "job": {
+    "arm": "B6:ACT_PERMUTED",
+    "condition": null,
+    "design": "V1",
+    "drop_sr": false,
+    "fold_seed": null,
+    "group": "section 11 actinide ablation",
+    "inner_mode": "full",
+    "key": "fit:B6:ACT_PERMUTED:V1__copy_exact:s104729",
+    "kind": "fit",
+    "message": "",
+    "purpose": "H3 ACT_PERMUTED arm of B6: training transform discovery.h3_training_rows",
+    "registered": true,
+    "scheme": "exact",
+    "seed": 104729,
+    "stage": "11_h3",
+    "stem": "V1__copy__exact",
+    "stem_override": "",
+    "variant": "copy",
+    "variant_label": "copy_exact",
+    "writes": [
+      "B6:ACT_PERMUTED"
+    ]
+  },
+  "model_arm": "B6",
+  "model_seed": 10092861,
+  "n_actinide_training_rows": 5405,
+  "n_excluded_from_scoring": 0,
+  "n_hidden": 31,
+  "n_scored_selection": 15,
+  "n_sr_iii_dropped": 0,
+  "n_train": 12380,
+  "n_training_rows_changed": 5057,
+  "outer_guard": [
+    {
+      "level": null,
+      "n_test": 31,
+      "n_train": 12380,
+      "ok": true,
+      "publication_basis": "group_cross_publication_copy"
+    }
+  ],
+  "prereg_addenda_sha256": "7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f",
+  "prereg_gate": {
+    "addenda_sha256": "7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f",
+    "addenda_sha256_registered": "7353387172bb5e1919249f809b41b886ff0613e286b9b75f830bfad9b7d64a1f",
+    "addendum_implemented": 5,
+    "gate_source": "registry",
+    "n_addenda": 5,
+    "n_addenda_expected": 5,
+    "prereg_sha256": "135842499a86eb3d478ece01a45718ac5b9673a4134bb4acda550f975bb45641",
+    "registry_path": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer\\manifests\\digest_registry.json",
+    "seal_check_exit": 0,
+    "stage": "h3"
+  },
+  "prereg_n_addenda": 5,
+  "prereg_sha256": "135842499a86eb3d478ece01a45718ac5b9673a4134bb4acda550f975bb45641",
+  "readings": "the WITHOUT / ACT_PERMUTED / ACT_METAL_SHUFFLED arms are refitted at the hyperparameters the WITH run SELECTED on the same fold (its record's selected configuration, iteration / epoch count and model seed), not re-tuned; their cross-fitted conformal calibration uses the WITH record's cross-fit selections. Section 11 says 'same architecture, same folds, same seeds' and is silent on re-tuning; re-tuning would multiply the cost by the inner grid (INFERRED; needs a POST-HOC addendum)",
+  "registry_stage": "h3",
+  "schema": "gen19.h3.v1",
+  "selected_config": "k0_lam10",
+  "shared_only": false,
+  "stem": "V1__copy__exact",
+  "steps": {
+    "intervals": {
+      "calibration_folds": [
+        0,
+        1,
+        2
+      ],
+      "guard": "nested_certificate",
+      "method": "discovery.CrossFitResidualConformal (cross-fitted inner splits at the WITH record's selections)",
+      "n_calibration": 10560,
+      "n_inner_splits": 3,
+      "plan": {
+        "calibration_folds": [
+          0,
+          1,
+          2
+        ],
+        "cross_fit": true,
+        "status": "calibrated",
+        "tuning_folds": [
+          0,
+          1,
+          2
+        ]
+      },
+      "quantiles": {
+        "0.5": 1.0350730296508202,
+        "0.8": 1.9636082462470517,
+        "0.95": 3.063452893488712
+      },
+      "seconds": 1.654,
+      "seed": 104729,
+      "selections": {
+        "0": {
+          "config": "k1_lam10",
+          "excluded_inner_folds": [
+            0
+          ]
+        },
+        "1": {
+          "config": "k1_lam10",
+          "excluded_inner_folds": [
+            1
+          ]
+        },
+        "2": {
+          "config": "k0_lam10",
+          "excluded_inner_folds": [
+            2
+          ]
+        }
+      },
+      "splitter": "inner_folds(V1_group_kfold, [0, 1, 2])",
+      "status": "calibrated"
+    },
+    "point": {
+      "date_utc": "2026-09-23T04:03:39+00:00",
+      "peak_rss_bytes": 986779648,
+      "seconds": 0.208
+    }
+  },
+  "transform": "ACT_PERMUTED",
+  "with_record_digest": "011a43b125d26f4a18081ba255dc189a7a7fe776a32eeb6dd4c6254899be6d84",
+  "with_selected_config": "k0_lam10",
+  "written_utc": "2026-09-23T04:03:39+00:00"
+}
