@@ -76,9 +76,17 @@ class YardstickRefit:
         return pd.Series(p["mean_logD"].to_numpy(dtype=float), index=pd.Index(p["label"], name="label"), name=arm)
 
 
-def read_batched_v5pair_design(stem_or_json: str | Path, folds_dir: Path | None = None) -> tuple[list[FI.Fold], str, str]:
+def read_batched_v5pair_design(stem_or_json: str | Path, folds_dir: Path | None = None, *,
+                               seed: int | None = None) -> tuple[list[FI.Fold], str, str]:
     """``(folds, stem, design_hash)`` of a batched V5-PAIR fold file; every fold hash and the design hash are re-derived
-    (``folds.io.read_design``).  Refuses an unbatched file, another design and a file drawn with more than one seed."""
+    (``folds.io.read_design``).  Refuses an unbatched file, another design and a file drawn with more than one seed.
+
+    ``seed`` re-seeds a SEED-FREE file in memory: a withheld-seed colouring written by the confirmation run carries
+    ``seed=None`` on every fold (the seed is the opaque index there, POST-HOC addendum 6 item 4), and the caller -- who
+    holds the withheld seed -- supplies it here.  Neither the fold hashes (row ids only) nor the design hash
+    (``fold_id,fold_hash`` lines) depend on the seed, so nothing about the file's identity changes.  A file that carries
+    a seed must carry ``seed`` when one is given.  Without it a scrubbed file was refused ('drawn with one seed, got
+    [None]') -- the S1(c) assembly of the single confirmation run would have died at its first seed (rehearsal finding)."""
     folds = FI.read_design(stem_or_json, folds_dir=folds_dir, verify=True)
     if not folds:
         raise ValueError(f"{stem_or_json}: no folds")
@@ -91,6 +99,15 @@ def read_batched_v5pair_design(stem_or_json: str | Path, folds_dir: Path | None 
         raise ValueError(f"S1(c) yardsticks are re-fitted on batched V5-PAIR folds only (section 9 'same fitted folds'); "
                          f"{stem} is not one")
     seeds = {f.seed for f in folds}
+    if seed is not None:
+        if seeds == {None}:
+            folds = [FI.make_fold(design=f.design, variant=f.variant, scheme=f.scheme, fold_id=f.fold_id, half=f.half,
+                                  seed=int(seed), hidden=f.hidden_row_ids, scored=f.scored_row_ids,
+                                  unit_type=f.unit_type, units=f.units, batch_id=f.batch_id, row_unit=f.row_unit,
+                                  row_half=f.row_half, meta=f.meta) for f in folds]
+            seeds = {int(seed)}
+        elif seeds != {int(seed)}:
+            raise ValueError(f"{stem}: the file is drawn with seed(s) {sorted(map(str, seeds))}, not the seed given")
     if len(seeds) != 1 or None in seeds:
         raise ValueError(f"{stem}: a batched V5-PAIR file is drawn with one seed, got {sorted(map(str, seeds))}")
     return folds, stem, FI.design_hash(folds)
@@ -126,7 +143,8 @@ def refit_lookup_yardsticks(stem_or_json: str | Path, frame: pd.DataFrame, *, v6
                             guard: Callable[[FI.Fold, pd.Index], Any], folds_dir: Path | None = None,
                             table: I.RowTable | None = None, systems: pd.DataFrame | None = None,
                             components: pd.DataFrame | None = None, exclude_from_scoring: pd.Series | None = None,
-                            halves: Iterable[str] = ("S", "C"), arms: Iterable[str] = REFIT_ARMS) -> YardstickRefit:
+                            halves: Iterable[str] = ("S", "C"), arms: Iterable[str] = REFIT_ARMS,
+                            seed: int | None = None) -> YardstickRefit:
     """Re-fit B3x and B3i on every fold of a batched V5-PAIR fold file (see the module docstring).
 
     ``frame``                 the arm frame (``interface.prepare_frame`` layout) of the MODEL rows the folds partition,
@@ -137,14 +155,15 @@ def refit_lookup_yardsticks(stem_or_json: str | Path, frame: pd.DataFrame, *, v6
                               the registered folds
     ``table``                 a :class:`~gen19ct.models.interface.RowTable` over ``frame`` (built when omitted)
     ``exclude_from_scoring``  rows never scored (e.g. acidic co-extractant rows), boolean over ``frame.index``
-    ``halves``                the fold halves to fit (``S`` / ``C``)"""
+    ``halves``                the fold halves to fit (``S`` / ``C``)
+    ``seed``                  re-seeds a seed-free (scrubbed) fold file in memory (:func:`read_batched_v5pair_design`)"""
     arms = tuple(arms)
     if not arms or not set(arms) <= set(REFIT_ARMS) or len(set(arms)) != len(arms):
         raise ValueError(f"S1(c) re-fits the lookup yardsticks {REFIT_ARMS} only, got {arms}")
     halves = tuple(halves)
     if not halves or not set(halves) <= set(HALF_LABEL):
         raise ValueError(f"halves must be among {tuple(HALF_LABEL)}")
-    folds, stem, dhash = read_batched_v5pair_design(stem_or_json, folds_dir)
+    folds, stem, dhash = read_batched_v5pair_design(stem_or_json, folds_dir, seed=seed)
     if frame.index.has_duplicates or I.ID_COL not in frame.columns:
         raise ValueError(f"frame needs a unique index and a {I.ID_COL} column")
     t = I.RowTable(frame, systems=systems, components=components) if table is None else table

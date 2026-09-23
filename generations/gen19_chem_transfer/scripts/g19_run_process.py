@@ -113,11 +113,21 @@ SCHEMA = "gen19.process.v1"
 NOT_COMPUTED = "not computed"
 TRANSFER_UNSUPPORTED = "transfer-unsupported"
 
-#: this runner's own prediction-affecting files (digested into the manifest)
+#: this runner's own prediction-affecting files (digested into the manifest), including the deployment prediction step
+#: that fills the request (``scripts/g19_predict_process_inputs.py``: the D source of every process number)
 CODE_FILES: tuple[Path, ...] = (paths.G19_ROOT / "gen19ct" / "process" / "gen18_adapter.py",
                                 paths.G19_ROOT / "gen19ct" / "process" / "monte_carlo.py",
                                 paths.G19_ROOT / "gen19ct" / "process" / "robust_optimize.py",
-                                Path(__file__).resolve())
+                                Path(__file__).resolve(),
+                                Path(__file__).resolve().parent / "g19_predict_process_inputs.py")
+
+
+def members_identical(table: GA.PredictionTable, tol: float = 1e-9) -> bool:
+    """True when every ``member_logD_k`` of the table equals ``mean_logD`` (a single-model deployed arm wrote the mean
+    into the member columns: the registered draw then degenerates to mean + conformal residual and must be flagged)."""
+    if not table.has_members or table.members is None:
+        return False
+    return bool(np.all(np.abs(table.members - table.mean[None, ...]) <= tol))
 #: the gen18 files imported read-only (digested to prove which cascade code ran; never edited)
 GEN18_FILES: tuple[Path, ...] = tuple(paths.GEN18_ROOT / "gen18proc" / f for f in (
     "cascade.py", "dmodel.py", "domain.py", "equilibrium.py", "metrics.py", "optimize.py", "systems.py", "types.py"))
@@ -407,8 +417,10 @@ def read_rho(path: Path, *, exploratory: bool) -> dict[str, Any]:
     rho = float(body["rho"])
     if not (-1.0 < rho < 1.0):
         raise SystemExit(f"refused: rho = {rho} in {path} is not a correlation")
+    # the file's own flag and source travel with the value: the producer's Ln-Ln stand-in (0 Pr/Nd pairs among the
+    # calibration rows) was read as a plain 'Pr/Nd residual correlation' with flag None (task X finding V-PROC-02)
     return {"rho": rho, "present": True, "path": str(path), "n_pairs": body.get("n_pairs"), "source": body.get("source"),
-            "flag": None}
+            "n_pairs_prnd": body.get("n_pairs_prnd"), "rho_prnd": body.get("rho_prnd"), "flag": body.get("flag")}
 
 
 def case_design_space(entry: Any, ligand: str, *, max_stages: int | None = None) -> OPT.DesignSpace:
@@ -511,9 +523,13 @@ def write_run_outputs(root: Path, res: MC.MonteCarloResult, setup: MC.CaseSetup,
     pt = res.process_table.copy()
     pt.insert(0, "label", label["label"])
     outs.append(write_csv(pt, root / "process_table.csv", float_format="%.10g"))
-    outs.append(write_csv(res.candidates, root / "candidates.csv", float_format="%.10g"))
-    outs.append(write_csv(res.draws, root / "draws.csv", float_format="%.10g"))
-    outs.append(write_csv(res.usage, root / "usage.csv"))
+    # EVERY table of the run carries the label, not only the two a reader is most likely to open: candidates.csv,
+    # draws.csv and usage.csv were the four unlabelled outputs of the exploratory run (task X finding V-PROC-01)
+    for name, frame, ff in (("candidates.csv", res.candidates, "%.10g"), ("draws.csv", res.draws, "%.10g"),
+                            ("usage.csv", res.usage, "%.6g")):
+        t = frame.copy()
+        t.insert(0, "label", label["label"])
+        outs.append(write_csv(t, root / name, float_format=ff))
     ops = MC.aggregate_operating_points(res.process_table, setup.purity_grid, setup.recovery_grid, res.usage, variables=var)
     ops.insert(0, "label", label["label"])
     outs.append(write_csv(ops, root / "operating_points.csv"))
@@ -614,7 +630,7 @@ def figure_pareto(ops: pd.DataFrame, winners: pd.DataFrame, setup: MC.CaseSetup,
     if len(winners) and "candidate" in winners.columns:
         w = winners.dropna(subset=["candidate"])
         ax.scatter(w["recovery_p50"], w["purity_p50"], s=60, facecolors="none", edgecolors=_INK["orange"], linewidths=1.4,
-                   label="lexicographic winner of a spec cell (support -> P(both & feasible) -> ...)")
+                   label="lexicographic winner of a spec cell (support -> P(both) -> P(feasible) -> consumption -> stages -> throughput)")
         # one label per winning candidate (a candidate often wins several cells): "c12: 3 cells"
         for cand, g in w.groupby("candidate", sort=True):
             r = g.iloc[0]
@@ -740,15 +756,24 @@ def d06_markdown(out_root: Path) -> str:
         inp = summary.get("inputs") or {}
         case = summary.get("case") or {}
         mc = summary.get("monte_carlo") or {}
-        lines += [f"- Gate: seal digest `{str((g.get('prereg_gate') or {}).get('footer', NOT_COMPUTED))[:12]}...`; discovery complete "
+        pg = g.get("prereg_gate") or {}
+        # the registry gate returns 'prereg_sha256' (registry.refuse_unless_sealed); the older seal-check gate returned
+        # 'footer' -- read either, so the line no longer prints 'not computed' beside a passed seal check (task X V-PROC-03)
+        seal_digest = pg.get("prereg_sha256") or pg.get("footer") or NOT_COMPUTED
+        rho_src = inp.get("rho_source")
+        rho_note = "; ".join(x for x in (str(inp.get("rho_flag")) if inp.get("rho_flag") else "",
+                                        f"source {rho_src}" if rho_src else "",
+                                        f"{inp.get('rho_n_pairs')} pairs" if inp.get("rho_n_pairs") is not None else "",
+                                        f"from {inp.get('rho_path')}") if x)
+        lines += [f"- Gate: seal digest `{str(seal_digest)[:12]}...`; discovery complete "
                   f"= {(g.get('discovery_complete') or {}).get('complete', NOT_COMPUTED)}; stop rule = "
                   f"{(g.get('stop_rule') or {}).get('stop', NOT_COMPUTED)}; S1 passed = {conf.get('s1_passed', NOT_COMPUTED)} "
                   f"(deployed predictor `{conf.get('deployed_predictor', NOT_COMPUTED)}`); S2 passed = {conf.get('s2_passed', NOT_COMPUTED)}; "
                   f"V6 run = {conf.get('v6_run', NOT_COMPUTED)}; exploratory = {g.get('exploratory', NOT_COMPUTED)}.",
                   f"- Predictions: `{inp.get('predictions_path', NOT_COMPUTED)}` (arm `{inp.get('arm', NOT_COMPUTED)}`, "
                   f"{inp.get('n_cells', NOT_COMPUTED)} grid cells, statuses {inp.get('table_statuses', NOT_COMPUTED)}; "
-                  f"registered run on the supported box {inp.get('supported_box', NOT_COMPUTED)}); Pr/Nd residual correlation "
-                  f"rho = {_fmt(inp.get('rho'))} ({inp.get('rho_flag') or 'from ' + str(inp.get('rho_path'))}).",
+                  f"registered run on the supported box {inp.get('supported_box', NOT_COMPUTED)}); residual correlation used for "
+                  f"the Pr/Nd draws rho = {_fmt(inp.get('rho'))} ({rho_note}).",
                   f"- Case: {case.get('system_name', NOT_COMPUTED)}; feed {case.get('feed', NOT_COMPUTED)}; target "
                   f"{case.get('target', NOT_COMPUTED)} vs {case.get('impurities', NOT_COMPUTED)}; grid purity {case.get('purity_grid')} x "
                   f"recovery {case.get('recovery_grid')}; design space `{case.get('design_space_file', NOT_COMPUTED)}` "
@@ -756,7 +781,13 @@ def d06_markdown(out_root: Path) -> str:
                   f"- Monte Carlo: {mc.get('n_draws', NOT_COMPUTED)} draws x {mc.get('n_designs', NOT_COMPUTED)} LHS operating "
                   f"points (seed {mc.get('seed', NOT_COMPUTED)}); {mc.get('n_failed', NOT_COMPUTED)} failed and "
                   f"{mc.get('n_invalid_spec', NOT_COMPUTED)} invalid cascades; gen18 cascade code digest "
-                  f"`{str(summary.get('gen18_code_sha256', NOT_COMPUTED))[:12]}...` (read-only import).", ""]
+                  f"`{str(summary.get('gen18_code_sha256', NOT_COMPUTED))[:12]}...` (read-only import); wall clock "
+                  f"{_fmt(mc.get('seconds'), '{:.0f}')} s."
+                  + (f" The LHS design count {mc.get('n_designs')} is BELOW gen18's default {MC.N_DESIGNS_DEFAULT} "
+                     "(section 14 registers the 64 draws, not a design count; reduced for the wall-clock cap, recorded)."
+                     if isinstance(mc.get("n_designs"), (int, float)) and mc.get("n_designs") < MC.N_DESIGNS_DEFAULT else ""),
+                  f"- Draw: mode `{inp.get('draw_mode', NOT_COMPUTED)}`, {inp.get('n_members', NOT_COMPUTED)} member column(s)"
+                  + (f"; FLAG: {inp['draw_flag'].get('flag')}" if isinstance(inp.get("draw_flag"), dict) else "") + ".", ""]
     lines += ["## Metrics", "",
               "| cell (P_min, R_min) | winner | support rank | P(both & feasible) | P(both) | P(feasible) | purity p50 [p5, p95] | "
               "recovery p50 [p5, p95] | stages (ext+scr+str) | O/A | consumption (mol/kg oxide) | S2(d) kept | F5(ii) |", "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
@@ -889,6 +920,17 @@ def run_case(out_root: Path, ns: argparse.Namespace, gate: Mapping[str, Any]) ->
     draw_flag = None if table.has_members else {"draw_mode": MC.DRAW_MODE_FALLBACK,
                                                 "flag": "exploratory: truncated-Gaussian fallback on the record (no M7 "
                                                         "member columns); not the section 14 draw"}
+    if table.has_members and members_identical(table):
+        # a single-model deployed arm (M0 = B5, CatBoost): the deployment step writes the mean into every member column
+        # (scripts/g19_predict_process_inputs.py), so the registered draw degenerates to mean + conformal residual --
+        # the fallback reading of POST-HOC addendum 2 without the truncation; flagged, never silent
+        draw_flag = {"draw_mode": MC.DRAW_MODE_REGISTERED,
+                     "flag": (f"the {table.n_members} member_logD_k columns are identical to mean_logD (single-model arm, "
+                              "no ensemble spread): the draw is mean + conformal-scaled Gaussian residual, i.e. the "
+                              "addendum 2 fallback reading without truncation; not an M7 ensemble draw")}
+        if not gate.get("exploratory"):
+            raise SystemExit(f"refused: the prediction table {pred_path} carries member columns identical to mean_logD "
+                             "(no ensemble); a registered run needs the M7 members (section 14). Pass --exploratory")
     prices = None if ns.no_prices else Prices.load(PRICES_FILE)
     solver_kwargs = {"max_newton": ns.solver_max_newton, "max_sweeps": ns.solver_max_sweeps}
     reg_table = table.supported() if table.has_unsupported else table
@@ -924,11 +966,12 @@ def run_case(out_root: Path, ns: argparse.Namespace, gate: Mapping[str, Any]) ->
                                    figures_dir(out_root) / "F15_probability_of_specification_map.png")]
     tabs = [write_csv(out["ops"], tables_dir(out_root) / "process_operating_points.csv"),
             write_csv(out["winners"], tables_dir(out_root) / "process_winners.csv")]
-    inputs_used = {"predictions_path": str(pred_path), "predictions_digest": paths.digests(pred_path), "arm": table.arm,
+    inputs_used = {"label": label["label"], "predictions_path": str(pred_path), "predictions_digest": paths.digests(pred_path), "arm": table.arm,
                    "system_id": table.system_id, "n_cells": int(np.prod(table.shape)), "table_statuses": table.statuses(),
                    "table_box": table.box(), "supported_box": reg_table.box(), "n_intervals_repaired": table.meta.get("n_intervals_repaired"),
                    "rho": rho["rho"], "rho_path": rho.get("path"), "rho_present": rho.get("present"), "rho_flag": rho.get("flag"),
-                   "rho_n_pairs": rho.get("n_pairs"), "prices": None if ns.no_prices else str(PRICES_FILE),
+                   "rho_n_pairs": rho.get("n_pairs"), "rho_source": rho.get("source"), "rho_n_pairs_prnd": rho.get("n_pairs_prnd"),
+                   "rho_prnd": rho.get("rho_prnd"), "prices": None if ns.no_prices else str(PRICES_FILE),
                    "provenance_convention": GA.PROVENANCE_CONVENTION, "draw_mode": res.attrs.get("draw_mode"),
                    "n_members": table.n_members, "draw_flag": draw_flag}
     write_json(root / "inputs_used.json", {"schema": SCHEMA, **_json(inputs_used)})

@@ -122,6 +122,9 @@ INPUTS: dict[str, str] = {
     "confirmation_dry_run": "manifests/g19_run_confirmation_dry_run.json",
     "commit_seeds": "manifests/g19_commit_seeds.json",
     "process_attempt": "evaluation/process/attempts/g2_exploratory_attempt_2026-09-23.json",
+    # the exploratory RUN's own attempt log (task P; task X finding V-PROC-07): the aborted 700-design attempt, the
+    # completed 300-design run and the design-count note the report must carry beside gen18's default
+    "process_attempt_run": "evaluation/process/attempts/p_exploratory_run_2026-09-24.json",
 }
 CONFIRMATION_FILES: tuple[str, ...] = ("confirmation", "confirmation_contrasts", "v6_systems", "v6_pairs", "f1_check")
 PROCESS_FILES: tuple[str, ...] = ("process_summary", "process_stability", "process_f5", "process_winners")
@@ -1887,7 +1890,9 @@ def section_q9(L: Ledger, ctx: Mapping[str, Any]) -> list[str]:
     lab = ps.get("label") if isinstance(ps.get("label"), Mapping) else {"label": label}
     lines += [f"- label: **{lab.get('label')}** (headline allowed: {lab.get('headline_allowed')}; reasons: {lab.get('reasons')})",
               f"- gate: S1 passed = {_json_str(L, 'process_summary', ps, 'gate.confirmation.s1_passed')}; exploratory = "
-              f"{_json_str(L, 'process_summary', ps, 'gate.exploratory')}",
+              f"{_json_str(L, 'process_summary', ps, 'gate.exploratory')}"]
+    lines += process_design_count_lines(L, ps, MC)
+    lines += [
               f"- S2(d) per specification cell (`{L.rel('process_summary')}` -> `s2d`; threshold {L.constant(0.80, 'section 9 S2(d): >= 0.80', 2)}):"]
     for cell in sorted(s2d):
         lines.append(f"  - {cell}: fraction kept {_json_value(L, 'process_summary', ps, jpath('s2d', cell, 'fraction_kept'), 2)}, passes "
@@ -1918,6 +1923,43 @@ def section_q9(L: Ledger, ctx: Mapping[str, Any]) -> list[str]:
     else:
         lines.append(f"- winners: {L.missing(L.rel('process_winners'))}")
     lines.append("")
+    return lines
+
+
+def process_design_count_lines(L: Ledger, ps: Mapping[str, Any], MC: Any) -> list[str]:
+    """The Monte Carlo size of the process run beside gen18's default, and the run's own attempt log (task X finding
+    V-PROC-07): ``summary.monte_carlo.n_designs`` with the below-default note, and every attempt of
+    ``evaluation/process/attempts/p_exploratory_run_*.json`` (the aborted 700-design attempt, the completed run)."""
+    mc = ps.get("monte_carlo") or {}
+    nd = mc.get("n_designs")
+    lines = []
+    if nd is not None:
+        below = isinstance(nd, (int, float)) and nd < MC.N_DESIGNS_DEFAULT
+        lines.append(f"- Monte Carlo: {_json_value(L, 'process_summary', ps, 'monte_carlo.n_draws', 0)} joint draws x "
+                     f"{_json_value(L, 'process_summary', ps, 'monte_carlo.n_designs', 0)} LHS operating points; "
+                     f"{_json_value(L, 'process_summary', ps, 'monte_carlo.n_failed', 0)} failed cascades; "
+                     f"{_json_value(L, 'process_summary', ps, 'monte_carlo.seconds', 0)} s"
+                     + (f" -- the design count is **BELOW gen18's default "
+                        f"{L.constant(MC.N_DESIGNS_DEFAULT, 'gen18 default LHS design count (monte_carlo.N_DESIGNS_DEFAULT)', 0, source='gen19ct/process/monte_carlo.py')}** "
+                        "(section 14 registers the 64 draws, not a design count; reduced for the wall-clock cap and recorded in "
+                        "the attempt log below and in `decisions/D06_process_integration.md`)" if below else ""))
+    at = L.json("process_attempt_run")
+    rel = L.rel("process_attempt_run")
+    if at is None:
+        lines.append(f"- the run's attempt log: {L.missing(rel)}")
+        return lines
+    atts = at.get("attempts") or []
+    lines.append(f"- the run's attempt log (`{rel}`, git HEAD `{at.get('git_head')}`; "
+                 f"{L.count(len(atts), rel, 'len:attempts')} attempts):")
+    for i, a in enumerate(atts):
+        lines.append(f"  - `attempts[{i}]` `{a.get('command')}`: {_json_value(L, 'process_attempt_run', at, f'attempts[{i}].draws_completed', 0)} "
+                     f"of {_json_value(L, 'process_attempt_run', at, f'attempts[{i}].n_draws', 0) if a.get('n_draws') is not None else '64'} draws completed"
+                     + (f", {_json_value(L, 'process_attempt_run', at, f'attempts[{i}].n_designs', 0)} LHS designs" if a.get("n_designs") is not None else "")
+                     + (f", projected {_json_value(L, 'process_attempt_run', at, f'attempts[{i}].projected_wall_hours_64_draws', 2)} h for 64 draws"
+                        if a.get("projected_wall_hours_64_draws") is not None else "")
+                     + f" -- {a.get('outcome')}")
+    if at.get("design_count_note"):
+        lines.append(f"  - design-count note: {at.get('design_count_note')}")
     return lines
 
 

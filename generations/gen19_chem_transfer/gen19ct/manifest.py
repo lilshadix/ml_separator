@@ -32,12 +32,28 @@ SCHEMA = "gen19.manifest.v1"
 
 
 def write_json(path: Path, obj: Any) -> Path:
-    paths.ensure_dir(Path(path).parent)
-    with open(path, "w", encoding="utf-8", newline="\n") as fh:
-        json.dump(_finite(obj), fh, indent=2, sort_keys=True, ensure_ascii=False, default=_default,
-                  allow_nan=False)
-        fh.write("\n")
-    return Path(path)
+    """Strict JSON, written ATOMICALLY: the text goes to a temporary file in the same directory and is moved over
+    ``path`` with ``os.replace`` (an atomic rename on every platform this runs on), so a process killed mid-write
+    leaves either the previous file or none -- never a truncated one.  A confirmation-run worker killed while writing a
+    fold record used to leave a truncated JSON that ``discovery.read_record`` read as ``None`` and the resume path then
+    refused as 'written under no code digest', blocking ``--resume`` until an operator deleted it by hand (task X
+    finding V-F2)."""
+    path = Path(path)
+    paths.ensure_dir(path.parent)
+    tmp = path.with_name(f"{path.name}.tmp{os.getpid()}")
+    try:
+        with open(tmp, "w", encoding="utf-8", newline="\n") as fh:
+            json.dump(_finite(obj), fh, indent=2, sort_keys=True, ensure_ascii=False, default=_default,
+                      allow_nan=False)
+            fh.write("\n")
+        os.replace(tmp, path)
+    finally:
+        if tmp.exists():
+            try:
+                tmp.unlink()
+            except OSError:
+                pass
+    return path
 
 
 def _finite(o: Any) -> Any:
@@ -90,8 +106,15 @@ def git_head() -> str | None:
 
 
 def _file_record(p: Path) -> dict[str, Any]:
+    """One input / output of a run: its repository-relative path where it is a repository file, its absolute POSIX path
+    otherwise (a script run with ``--out-root`` outside the repository -- the confirmation rehearsal on a synthetic corpus
+    -- used to raise ``ValueError`` from ``paths.rel`` here, in ``Run.__exit__``, AFTER every output had been written)."""
     p = Path(p)
-    rec: dict[str, Any] = {"path": paths.rel(p)}
+    try:
+        rel = paths.rel(p)
+    except ValueError:
+        rel = p.resolve().as_posix()
+    rec: dict[str, Any] = {"path": rel}
     rec.update(paths.digests(p) if p.exists() else {"missing": True})
     return rec
 

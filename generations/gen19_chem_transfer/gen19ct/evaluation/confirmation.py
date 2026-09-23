@@ -103,6 +103,10 @@ INCOMPLETE_STALE_RECORD = "INCOMPLETE_STALE_RECORD"
 #: same M2 fold: an unrecoverable loop, because fixing the code changes the confirmation digest and addendum 8 item 2
 #: then refuses every record already written (task X finding).
 INCOMPLETE_M1_RECORD_MISSING = "INCOMPLETE_M1_RECORD_MISSING"
+#: The same sentence for claim C4's control leg: the ACT_PERMUTED refit takes its (rank, lambda) and initialisation
+#: seed from the WITH record of the SAME fold (CONFIRMATION_PLAN section 2: "refitted at the WITH run's selected
+#: hyperparameters of the same fold").  A missing WITH record makes that ONE control fold INCOMPLETE, never the run.
+INCOMPLETE_WITH_RECORD_MISSING = "INCOMPLETE_WITH_RECORD_MISSING"
 #: POST-HOC addendum 6 item 3(a): the completeness unit is the CONTRAST RECORD SET, never the design
 COMPLETENESS_UNIT = "contrast_record_set"
 #: the two V6 metal states of section 3.4, hidden TOGETHER per system
@@ -244,6 +248,60 @@ READINGS: dict[str, str] = {
                          "their cost and their consequence recorded (V6_ACTINIDE_DELTAS_NOT_RUN)",
     "power_not_run": "POST-HOC addendum 5 items 1 and 4: no section 8 power check runs here; the debt is inventoried, "
                      "not discharged, and every contrast owing one is UNDECIDED, never a null (POWER_CHECK_NOT_RUN)",
+    "v6_frozen_configurations": "section 3.4's 'frozen configurations' of the single V6 run, READ from the sealed "
+                                "text and POST-HOC addenda 7 / 8 (the reading the runner implements, recorded in "
+                                "every V6 record): section 7 registers 'V6: V5-style inner cells' -- an inner "
+                                "(tuning) design for V6 -- and addendum 7 item 2 registers that the V6 job uses the V5 "
+                                "inner design of section 7 as amended by addendum 1 item 1 (simultaneous-hiding "
+                                "inner cells, calibration, guard, signature); addendum 8 item 1 registers that 'at "
+                                "confirmation the outer folds are confirmation-half and V6 folds, and the plan fits M1 "
+                                "on each of them' and that M2 takes M1's retained configuration from the M1 record of "
+                                "the SAME fold, design file and withheld-seed index, never by re-tuning. So on a V6 "
+                                "fold M1 tunes per section 7 with the V5 inner design, M2 takes M1's same-fold record "
+                                "and tunes its rank as section 7 registers, B8 has no tuning and B3x / B3i are closed "
+                                "form. 'Frozen' is the frozen ARMS and PROCEDURE (families, grids -- 'Grids are not "
+                                "widened after results' -- and the section 7 tuning fixed at sealing, the plan frozen "
+                                "before the run), not a per-fold hyperparameter carried from elsewhere: no V6 fold "
+                                "existed in discovery, so no retained V6 configuration exists to carry, and no text "
+                                "names the deployed configuration of addendum 3 item 2 (M0 = B5, not a V6 arm), a "
+                                "per-seed V5-primary selection or the seed-104729 selection as the source -- each of "
+                                "those would need a POST-HOC addendum; this reading needs none. The V6 learned arms "
+                                "are therefore priced at their TUNED cost (UNIT_SECONDS)",
+    "c4_transform": "claim C4's control leg (section 11 ACT_PERMUTED; CONFIRMATION_PLAN section 2 'refitted at the "
+                    "WITH run's selected hyperparameters of the same fold'), as run_fold applies it: (a) the fold's "
+                    "TRAINING rows only go through discovery.h3_training_rows via h3.transformed_frame -- log D "
+                    "permuted among actinide training rows within (system, publication group), seeded with the job's "
+                    "withheld seed as the H3 runner seeds it with the job seed; no hidden or scored row is touched, "
+                    "and the transformed corpus is asserted to keep the training mask and the scored rows; (b) a FROZEN "
+                    "refit (h3.FrozenB6) at the WITH record's (rank, lambda, initialisation seed) of the SAME fold, "
+                    "design file and seed index, located and verified by the sibling-record locator M2 uses for its M1 "
+                    "record, the WITH record's digest stored as with_record_digest; an absent WITH record makes that "
+                    "ONE control fold INCOMPLETE_WITH_RECORD_MISSING, never the run; (c) POST-HOC addendum 5 item 2: "
+                    "the section 2 guard's near-duplicate VALUE comparison of the value-permuted arm reads the corpus's "
+                    "RECORDED log D -- the outer guard and the inner isolation check are bound to the recorded corpus "
+                    "(h3.GUARD_VALUE_SOURCE_RULE); every other level is value-independent and unchanged. The WITH leg "
+                    "is B6 tuned per section 7 on the same V2 folds. The two legs write distinct record directories "
+                    "(<arm>/<transform>/<design>/i<k>; fold_paths) and the inventory refuses a collision before the "
+                    "gates",
+    "c4_ln_test_set": "section 11's Ln test set for C4, 'the Ln(III) folds of V2': the fit loop fits the V2 folds "
+                      "whose unit is an Ln(III) state and claim_paired_units scores Ln(III) rows only (h3.ln_iii_mask), "
+                      "as the H3 scorer did in discovery (h3.ln_rows, cluster_unit metal_state 7 / 7); the actinide V2 "
+                      "folds of the design file (Am(III), Np(V), Pu(III), ...) are neither fitted nor scored by C4",
+    "resume_completeness": "the resume unit of --resume is the FOLD, complete only when EVERY arm its one fit writes "
+                           "(B6 -> B6 and B6r0; the C4 control leg its own arm) holds both its prediction parquet and its "
+                           "record JSON under the live code digest. A record JSON under another code digest is refused "
+                           "(POST-HOC addendum 8 item 2; nothing deleted). An unparseable JSON, an orphan parquet, a JSON "
+                           "without its parquet or one arm of the set without its sibling is MISSING: the fold is "
+                           "re-fitted whole and its partial artefacts removed first (writes are atomic, so a death "
+                           "mid-write leaves a fold MISSING, never truncated). A skipped M2 or ACT_PERMUTED record is "
+                           "audited against the M1 / WITH record of the same fold now on disk (m2_pairing."
+                           "m1_record_digest / with_pairing.with_record_digest), at dispatch and again at assembly; a "
+                           "mismatch is a refusal naming the record to remove, never a silent pairing",
+    "max_folds_pause": "--max-folds N stops the fit loop after N fitted folds and the invocation ends WITHOUT assembling "
+                       "or writing decisions/confirmation.json, so the run stays resumable under POST-HOC addendum 8 "
+                       "item 2 (an operator pause, never a demotion). Before this the paused invocation went on to "
+                       "assemble and wrote confirmation.json with every claim INCOMPLETE -- spending the single run "
+                       "of section 15 on an operator pause (rehearsal finding)",
     "idempotence": "section 15's 'nothing is re-run' as a lock, with POST-HOC addendum 8 item 2's line between a run "
                    "that ended without writing decisions/confirmation.json (NOT consumed: --resume may complete its "
                    "missing folds, under the same code digest and with no new claim) and one that wrote it (SPENT: "
@@ -313,7 +371,11 @@ UNIT_SECONDS: dict[str, float] = {
     # the item 6 refits' comparator legs: the same arm on the same exact scheme, so the measured per-fold mean of
     # B6@V5__primary__exact is the measurement; B3i / B0 / B3x are closed form and keyed by arm below
     "B6@V5__strict__exact": 9.6, "B6@V5__hno3_only__exact": 9.6,
-    "M1@V6__prnd__exact": 0.2785 * 684.8, "M2@V6__prnd__exact": 0.2785 * 303.6, "B8@V6__prnd__exact": 0.2785 * 699.6,
+    # the V6 learned arms at their TUNED cost (READINGS v6_frozen_configurations: M1 tunes per section 7 on the V6 fold,
+    # M2 tunes its rank off M1's same-fold record, B8 has no tuning to skip), i.e. the V5-primary per-fold means: the
+    # 0.2785 frozen-configuration factor (evaluation/h3/decisions/cost_estimate.json -> h3_over_discovery_ratio) is a
+    # tuning saving that no V6 arm makes under the registered reading
+    "M1@V6__prnd__exact": 684.8, "M2@V6__prnd__exact": 303.6, "B8@V6__prnd__exact": 699.6,
     # The closed-form comparators are NOT free.  They were priced 0.0 s here on the strength of
     # ``discovery.READINGS['comparator_intervals']`` -- no comparator-interval job ran in discovery, and
     # ``evaluation/discovery/`` holds no B0 / B3i / B3x record -- so nothing had ever MEASURED that zero, and it silently
@@ -594,6 +656,27 @@ def scrub(obj: Any, store: SeedStore) -> Any:
     return obj
 
 
+def scrub_frame(frame: pd.DataFrame, store: SeedStore) -> pd.DataFrame:
+    """:func:`scrub` over every TEXT column of a frame -- object dtype AND pandas' string dtype.
+
+    Under pandas 3 (``future.infer_string``) a column of strings is dtype ``str``, not ``object``, so a scrub written as
+    ``if frame[col].dtype == object`` never fires: the fold-build phase wrote every seed directory's
+    ``V5PAIR__primary__batched__pairs.parquet`` with RAW seed-shaped fold ids (``s<withheld seed>_C_b000``), which the
+    run's own pre-report leak scan would have refused -- after the whole fit loop -- and which the S1(c) assembly could
+    not match against the scrubbed design file (rehearsal finding).  Numeric and boolean columns are left alone: a seed
+    never lives there (``scrub`` handles ints only where an int field is a seed, and no numeric column of a fold or
+    prediction frame is one).
+    """
+    out = frame.copy()
+    for col in out.columns:
+        s = out[col]
+        if s.dtype == object or pd.api.types.is_string_dtype(s.dtype):
+            # rebuilt with the column's OWN dtype, so an object column stays object and a pandas-3 string column stays
+            # a string column (a missing value stays missing either way)
+            out[col] = pd.Series([scrub(v, store) for v in s.tolist()], index=out.index, dtype=s.dtype)
+    return out
+
+
 def scan_for_seed_leak(store: SeedStore, targets: Iterable[Path | str], *, extra_text: Iterable[str] = (),
                        allow: Iterable[Path | str] = (), require: Iterable[Path | str] = ()) -> dict[str, Any]:
     """Re-read every file the run wrote (and any captured log text) and refuse if a seed's decimal form appears.
@@ -832,10 +915,15 @@ def enumerate_jobs(plan: Mapping[str, Any], *, n_seeds: int = N_SEEDS,
                                 fc.get("V5PAIR__primary__batched", 0)))
         jobs.append(ConfJob("S1(c) yardstick refits (closed form)", "B3x", "V5PAIR", "V5PAIR__primary__batched", i,
                             fc.get("V5PAIR__primary__batched", 0), note="B3x and B3i refitted on exactly M2's folds"))
-    for i in seeds:                              # V6, once, at the frozen configurations
-        for arm in ("M1", "M2", "B8"):
-            jobs.append(ConfJob("the single V6 run (S2)", arm, "V6", "V6__prnd__exact", i, fc.get("V6__prnd__exact", 0),
-                                tuned=False, note="frozen configurations, no re-tuning (section 3.4)"))
+    for i in seeds:                              # V6, once, at the frozen configurations (READINGS v6_frozen_configurations)
+        jobs.append(ConfJob("the single V6 run (S2)", "M1", "V6", "V6__prnd__exact", i, fc.get("V6__prnd__exact", 0),
+                            tuned=True, note="section 7 tuning on the V6 fold with the V5 inner design (addendum 7 "
+                                             "item 2); the frozen ARMS and procedure, not a carried configuration"))
+        jobs.append(ConfJob("the single V6 run (S2)", "M2", "V6", "V6__prnd__exact", i, fc.get("V6__prnd__exact", 0),
+                            tuned=True, note="configuration from M1's record of the SAME V6 fold and seed index "
+                                             "(addendum 8 item 1); the rank tuned as section 7 registers"))
+        jobs.append(ConfJob("the single V6 run (S2)", "B8", "V6", "V6__prnd__exact", i, fc.get("V6__prnd__exact", 0),
+                            tuned=False, note="B8 has no tuning (section 5)"))
         # S2(a) requires Delta_Y against EVERY yardstick in {HEAVIER, B3x-derived, B3i-derived, B8}, "with B3x, B3i and
         # B8 fitted on the same V6 folds and withheld seeds as M2" (section 9, resolved 2026-09-15).  B8 is above;
         # HEAVIER needs no fit; B3x and B3i do, and B3i is also S2(b)'s lookup-derived comparator and the V5 lookup
@@ -871,10 +959,11 @@ def cost_estimate(jobs: Sequence[ConfJob]) -> dict[str, Any]:
                      "(UNIT_SECONDS). The parallel efficiency 1.96x at 2 workers is measured (discovery: 149.91 h serial "
                      "in 76.5955 h wall) and the confirmation fit loop now actually uses a 2-process pool, so the wall "
                      "figure is reachable. Treat +-30 % as the honest band: discovery itself overran its 60 h budget by "
-                     "28 %. The V6 learned-arm lines assume the section 3.4 FROZEN configurations (the 0.2785 factor is "
-                     "a tuning saving): the tree as it stands re-tunes them, which is why the runner refuses at stage "
-                     "'v6_frozen_configurations' -- implemented as registered, the V6 block is the 8.5 h costed here; "
-                     "run as the code stands it would be about 30 h, and the plan about 132 h rather than 110 h",
+                     "28 %. The V6 learned-arm lines are priced at the TUNED per-fold cost under the registered reading "
+                     "of section 3.4's 'frozen configurations' (READINGS v6_frozen_configurations: M1 tunes per "
+                     "section 7 on the V6 fold with the V5 inner design, M2 takes M1's same-fold record, B8 has no "
+                     "tuning), so the V6 block is about 30 h serial and the plan about 132 h serial / 67 h wall at 2 "
+                     "workers -- not the 8.5 h / 110 h the 0.2785 frozen-configuration factor had assumed",
             "not_in_this_estimate": {"v6_actinide_deltas": V6_ACTINIDE_DELTAS_NOT_RUN["cost_hours_serial"],
                                      "power_check": POWER_CHECK_NOT_RUN["inventory"]}}
 
@@ -945,7 +1034,8 @@ class RedactedRunError(RuntimeError):
 
 
 class MissingSiblingRecordError(RuntimeError):
-    """The M1 record this M2 fold needs does not exist (:data:`INCOMPLETE_M1_RECORD_MISSING`).
+    """The sibling record this fold needs does not exist: M2's M1 record (:data:`INCOMPLETE_M1_RECORD_MISSING`) or the
+    ACT_PERMUTED control leg's WITH record (:data:`INCOMPLETE_WITH_RECORD_MISSING`); ``status`` names which.
 
     A ``RuntimeError`` subclass, so the message and the type every caller of the locator already sees are unchanged;
     what changes is that the fit loop can now tell this apart from a defect and mark the FOLD incomplete instead of
@@ -953,6 +1043,10 @@ class MissingSiblingRecordError(RuntimeError):
     INCOMPLETE and reported as such").  Its sibling cause -- a record that exists and does not verify -- is
     ``discovery.StaleRecordError`` and :data:`INCOMPLETE_STALE_RECORD`.
     """
+
+    def __init__(self, message: str, *, status: str = INCOMPLETE_M1_RECORD_MISSING) -> None:
+        super().__init__(message)
+        self.status = str(status)
 
 
 def assert_confirmation_rows(ids: Iterable[str], row_half: Mapping[str, str] | pd.Series, what: str) -> None:

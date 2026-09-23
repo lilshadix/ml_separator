@@ -25,6 +25,7 @@ from gen19ct import paths
 from gen19ct.chemistry import support_graph as SG
 from gen19ct.evaluation import confirmation as CF
 from gen19ct.evaluation import discovery as D
+from gen19ct.evaluation import h3 as H3
 from gen19ct.evaluation import metrics as EM
 from gen19ct.evaluation import pairs as EP
 from gen19ct.evaluation import registry as REG
@@ -299,47 +300,133 @@ def fold_corpus():
     return RC.load_fold_corpus()
 
 
-def test_the_v6_design_hides_exactly_what_section_3_4_says(fold_corpus):
-    """Section 3.4 / addendum 6 item 2: 13 systems; per system Pr(III) x S and Nd(III) x S hidden TOGETHER under the
-    component-aware state-level rule, so the hidden rows are the Pr and Nd rows -- known state and X(?) -- of S and of
-    every component-sharing system, while only the known-state Pr / Nd rows of S itself are SCORED."""
-    from gen19ct.chemistry import support_graph as SGx
+def _v6_analogue():
+    """A synthetic analogue of section 3.4 for the REAL ``RC.build_v6_folds``: 13 V6 systems C0..C12, each with a
+    component-sharing system ``Ck|Q`` (shares component Ck), two unrelated systems, five states, X(?) Pr / Nd / La rows.
+    Built here so that nothing before the confirmation run touches the real V6 folds, even in memory (POST-HOC addendum 6
+    item 2, task X finding V-F6); the real-corpus facts the old test asserted (13 systems, 2 x 209 scored rows) are in
+    section 3.4 and are re-derived by the run itself (``fold_files[*].n_scored_rows``)."""
+    from types import SimpleNamespace
 
-    folds, stats = RC.build_v6_folds(fold_corpus)
-    assert len(folds) == CF.S2A_N_SYSTEMS == 13 and stats["n_systems"] == 13
-    fr, v6 = fold_corpus.frame, fold_corpus.v6.to_numpy(dtype=bool)
-    ids = fr[FI.ROW_ID].astype(str).to_numpy(dtype=object)
-    v6_ids = set(ids[v6])
-    for f in folds:
+    from gen19ct.models import interface as I
+
+    v6_sys = [f"C{k}" for k in range(13)]
+    share = {s: f"{s}|Q" for s in v6_sys}
+    other = ["U", "Z"]
+    states = ["Pr(III)", "Nd(III)", "La(III)", "Sm(III)", "Am(III)"]
+    recs, rid = [], [0]
+    rng = np.random.default_rng(7)
+
+    def add(sy, st, el, grp, n):
+        for k in range(n):
+            recs.append({FI.ROW_ID: f"R:{rid[0]}", SG.METAL_COL: st, SG.ELEMENT_COL: el, SG.SYSTEM_COL: sy,
+                         SG.PUB_COL: f"pub_{grp}", FI.GROUP_COL: grp, I.PUB_GROUP_COL: grp, "acid_primary": "HNO3",
+                         SG.LOG_ACID_COL: float(k) / 6.0, SG.LOG_EXT_COL: -1.0 + 0.01 * len(sy), SG.TEMP_COL: 25.0,
+                         "condition_key": f"ck{k}", "duplicate_group_id": f"dg_{rid[0]}", "g19_ox": (3 if st else np.nan),
+                         "solvent_key": "kerosene", "acid_concentration_M": 1.0 + k, "extractant_primary_concentration_M": 0.1,
+                         "components": None, "acid_signature": "HNO3", "acid_anion": "nitrate",
+                         "acid_concentration_organic_M": np.nan, "nitrate_concentration_M": 1.0 + k, "n_organic_extractants": 1,
+                         "metal_concentration_M": 1e-3, "phase_ratio_org_aq": 1.0, "solvent_primary": "kerosene",
+                         "solvent_components": None, "modifier_name": None, "modifier_concentration_M": np.nan,
+                         "contact_time_min": 30.0, "shaking_time_min": 30.0, I.TARGET_COL: float(rng.normal())})
+            rid[0] += 1
+
+    for s in v6_sys:
+        for st in states:
+            add(s, st, SG.metal_properties(st)["symbol"], f"g_{s}", 6)
+        add(s, None, "Pr", f"g_{s}", 2)               # X(?) Pr rows of S: hidden, never scored (section 2)
+        add(s, None, "Nd", f"g_{s}", 2)
+        add(s, None, "La", f"g_{s}", 1)               # X(?) La row of S: must stay in training
+        for st in ("Pr(III)", "Nd(III)", "La(III)"):
+            add(share[s], st, SG.metal_properties(st)["symbol"], f"g_{share[s]}", 4)
+        add(share[s], None, "Nd", f"g_{share[s]}", 1)  # X(?) Nd of the sharing system: hidden unscored
+    for o in other:
+        for st in ("Pr(III)", "Nd(III)", "La(III)"):
+            add(o, st, SG.metal_properties(st)["symbol"], f"g_{o}", 5)
+    df = pd.DataFrame(recs)
+    df.index = pd.Index([f"L{i}" for i in range(len(df))])
+    df[SG.METAL_COL] = df[SG.METAL_COL].astype(object)
+    v6 = pd.Series(df[SG.SYSTEM_COL].isin(v6_sys).to_numpy() & df[SG.METAL_COL].isin(list(CF.V6_METALS)).to_numpy(),
+                   index=df.index)
+    fc = SimpleNamespace(frame=df, v6=v6, v6_systems=tuple(v6_sys), universe=set(df[FI.ROW_ID].astype(str)))
+    return fc, share, other
+
+
+def test_the_v6_design_hides_exactly_what_section_3_4_says():
+    """Section 3.4 / addendum 6 item 2, on the synthetic 13-system analogue with the REAL builder: per system Pr(III) x S
+    and Nd(III) x S hidden TOGETHER under the component-aware state-level rule -- the hidden rows are the Pr and Nd rows,
+    known state and X(?), of S and of its component-sharing system; only the known-state Pr / Nd rows of S itself are
+    SCORED; every other row (other states of S, X(?) La of S, La(III) of the sharing system, unrelated and other V6
+    systems) stays in training.  The design is seed-independent and refuses a corpus of 12 systems."""
+    from types import SimpleNamespace
+
+    fc, share, other = _v6_analogue()
+    df, v6 = fc.frame, fc.v6
+    folds, stats = RC.build_v6_folds(fc)
+    assert len(folds) == CF.S2A_N_SYSTEMS == 13 and stats["n_systems"] == 13 and stats["guard_all_ok"]
+    ids = df[FI.ROW_ID].astype(str)
+    prnd = df[SG.METAL_COL].isin(list(CF.V6_METALS)) | (df[SG.METAL_COL].isna() & df[SG.ELEMENT_COL].isin(["Pr", "Nd"]))
+    for f, ps in zip(folds, stats["per_system"]):
+        s = f.meta["system"]
         cells = [tuple(c) for c in f.meta["cells"]]
-        assert [c[0] for c in cells] == list(CF.V6_METALS) and cells[0][1] == cells[1][1]
-        # the hidden set IS support_graph.hide_cells on the double cell, component-aware
-        kept = SGx.hide_cells(fr, cells, component_aware=True)
-        assert set(f.hidden_row_ids) == set(ids[~fr.index.isin(kept.index)])
-        # every scored row is a V6 target row of THIS system, known state, one of the two metals
-        sc = fr[fr[FI.ROW_ID].astype(str).isin(set(f.scored_row_ids))]
-        assert set(f.scored_row_ids) <= v6_ids
-        assert set(sc[SG.SYSTEM_COL]) == {cells[0][1]}
-        assert set(sc[SG.METAL_COL]) <= set(CF.V6_METALS) and not sc[SG.METAL_COL].isna().any()
-        # an X(?) row of Pr or Nd under this system is HIDDEN and never scored (section 2)
-        unk = fr[fr[SG.METAL_COL].isna() & fr[SG.ELEMENT_COL].isin(["Pr", "Nd"])
-                 & (fr[SG.SYSTEM_COL] == cells[0][1])]
-        unk_ids = set(unk[FI.ROW_ID].astype(str))
-        assert unk_ids <= set(f.hidden_row_ids) and not (unk_ids & set(f.scored_row_ids))
+        assert [c[0] for c in cells] == list(CF.V6_METALS) and cells[0][1] == cells[1][1] == s
+        hid, sc = set(f.hidden_row_ids), set(f.scored_row_ids)
+        scope = (df[SG.SYSTEM_COL] == s) | (df[SG.SYSTEM_COL] == share[s])
+        assert hid == set(ids[df[scope & prnd].index])                                   # exactly Pr/Nd of S + sharer
+        assert sc == set(ids[df[(df[SG.SYSTEM_COL] == s) & df[SG.METAL_COL].isin(list(CF.V6_METALS))].index])
+        train = set(ids) - hid
+        for cond in ((df[SG.SYSTEM_COL] == s) & df[SG.METAL_COL].isna() & (df[SG.ELEMENT_COL] == "La"),
+                     df[SG.SYSTEM_COL].isin(other),
+                     (df[SG.SYSTEM_COL] == s) & df[SG.METAL_COL].isin(["La(III)", "Sm(III)", "Am(III)"]),
+                     (df[SG.SYSTEM_COL] == share[s]) & (df[SG.METAL_COL] == "La(III)"),
+                     df[SG.SYSTEM_COL].isin([x for x in fc.v6_systems if x != s])):
+            assert set(ids[df[cond].index]) <= train
         assert f.half == "NA" and f.seed is None and f.meta["component_aware"] is True
-    # the fold ids are file-name safe and the design covers each system once
-    assert len({f.fold_id for f in folds}) == 13
-    assert all(f.fold_id == D.safe_fold_name(f.fold_id) for f in folds)
-    # 209 comparable Pr/Nd row pairs (section 3.4) come from 209 Pr + 209 Nd scored rows
-    assert stats["n_scored_rows"] == 2 * 209
+        assert f.meta["n_scored_pr"] == f.meta["n_scored_nd"] == 6
+        assert all(not f.row_unit[r].startswith("hidden_unscored") for r in sc)
+        assert all(f.row_unit[r].startswith("hidden_unscored") for r in hid - sc)
+        assert ps["n_own_known_state_rows"] == 12 and ps["n_own_hidden_not_v6"] == 0    # the V-F7 stats, recorded
+    assert len({f.fold_id for f in folds}) == 13 and all(f.fold_id == D.safe_fold_name(f.fold_id) for f in folds)
+    assert stats["n_scored_rows"] == 13 * 12 and set(stats) >= {"rule", "sensitivity_7_systems"}
+    scope = RC.assert_fold_v6_scope([], {(CF.V6_STEM, 1): folds}, set(ids[v6.to_numpy()]))
+    assert scope["carve_out_holds_for_every_non_v6_design"] and scope["v6_rows_scored_only_in_the_v6_job"]
+    # seed-INDEPENDENT as a design: the same folds whatever the seed index, so one hash under every index
+    assert FI.design_hash(RC.build_v6_folds(fc)[0]) == FI.design_hash(folds)
+    with pytest.raises(AssertionError, match="registers 13 V6 systems"):
+        RC.build_v6_folds(SimpleNamespace(frame=df, v6=v6, v6_systems=tuple(fc.v6_systems[:12]), universe=fc.universe))
+
+
+def test_the_v6_builder_refuses_a_mask_that_would_hide_a_known_state_prnd_row_unscored():
+    """Task X finding V-F7: the builder asserted 'a scored row is not a V6_TARGET_ROW' but not the converse, so a
+    known-state Pr / Nd row of a V6 system ABSENT from the V6 mask was hidden and silently left unscored (measured: a mask
+    missing one Pr row was NOT refused).  Now it is, per system, with the count; the real corpus mask has 0 such rows in
+    all 13 systems (checked without building a fold), so the assertion cannot fire on the real run."""
+    from types import SimpleNamespace
+
+    fc, _share, _other = _v6_analogue()
+    df = fc.frame
+    folds, _ = RC.build_v6_folds(fc)
+    bad = fc.v6.copy()
+    first_scored = df.index[df[FI.ROW_ID].astype(str) == folds[0].scored_row_ids[0]][0]
+    bad.loc[first_scored] = False
+    with pytest.raises(AssertionError, match="1 known-state Pr/Nd row.s. of the system are hidden but not V6_TARGET_ROWS"):
+        RC.build_v6_folds(SimpleNamespace(frame=df, v6=bad, v6_systems=fc.v6_systems, universe=fc.universe))
+    # ... and the existing direction still holds: a mask row that is not a known-state Pr/Nd row of the system is never scored
+    wide = fc.v6.copy()
+    la = df.index[(df[SG.SYSTEM_COL] == "C0") & (df[SG.METAL_COL] == "La(III)")][0]
+    wide.loc[la] = True
+    folds2, _ = RC.build_v6_folds(SimpleNamespace(frame=df, v6=wide, v6_systems=fc.v6_systems, universe=fc.universe))
+    assert str(df.loc[la, FI.ROW_ID]) not in set(folds2[0].scored_row_ids)
 
 
 def test_the_withheld_seed_colourings_are_seed_dependent_and_derive_their_counts(root, fold_corpus):
     """The per-seed files are built by the registered rule, differ between seeds, and their counts are DERIVED."""
     store_path = _write_store(root, root.parent / "outside_store.json")
     store = CF.load_seed_store(store_path, root=root, seal=SEAL, prereg_paths=_prereg_paths(root))
+    # with_v6=False: nothing before the confirmation run builds the real V6 folds, even in memory (addendum 6 item 2,
+    # task X finding V-F6); the V6 design is exercised on the synthetic analogue above with the real builder
     plans = RC.build_confirmation_folds(store, root, stems=("V5__primary__batched_max4",), corpus=fold_corpus,
-                                       with_v6=True)
+                                       with_v6=False)
     by_stem = {}
     for p in plans:
         by_stem.setdefault(p.stem, {})[p.seed_index] = p
@@ -347,12 +434,10 @@ def test_the_withheld_seed_colourings_are_seed_dependent_and_derive_their_counts
     assert set(v5) == {1, 2, 3, 4, 5}
     # seed dependent: the design hashes differ between seeds (R19 item 4 would be vacuous otherwise)
     assert len({p.design_hash for p in v5.values()}) == 5
-    # V6 is seed-INDEPENDENT as a design: the same 13 folds under every seed index
-    assert len({p.design_hash for p in by_stem[RC.V6_STEM].values()}) == 1
+    assert RC.V6_STEM not in by_stem                     # the real V6 design is built by the run alone (V-F6)
     # counts are derived, and the plan's figure is only compared
     assert all(p.n_folds > 0 and p.n_scored_units > 0 for p in v5.values())
     assert all(abs(p.n_folds_confirmation_half - 27) <= 2 for p in v5.values())
-    assert by_stem[RC.V6_STEM][1].n_folds == 13
     # no file, directory or recorded field names a seed
     scan = CF.scan_for_seed_leak(store, [CF.folds_dir(root)])
     assert scan["ok"], scan
@@ -361,12 +446,11 @@ def test_the_withheld_seed_colourings_are_seed_dependent_and_derive_their_counts
     for p in plans:
         folds = FI.read_design(Path(p.path))
         assert FI.design_hash(folds) == p.design_hash and len(folds) == p.n_folds
-    # and the V6 carve-out holds in both directions on the FILES
+    # and the V6 carve-out holds on the FILES: no V5 colouring scores a V6_TARGET_ROW
     v6_ids = set(fold_corpus.frame.loc[fold_corpus.v6.to_numpy(dtype=bool), FI.ROW_ID].astype(str))
     for p in plans:
         for f in FI.read_design(Path(p.path)):
-            inside = set(f.scored_row_ids) & v6_ids
-            assert (inside == set(f.scored_row_ids)) if CF.is_v6(f.design) else (not inside)
+            assert not CF.is_v6(f.design) and not (set(f.scored_row_ids) & v6_ids)
 
 
 def test_a_fake_store_is_refused(root):
@@ -585,10 +669,10 @@ def test_dry_run_reads_no_seed_and_writes_nothing(root, plan_file, capsys):
     assert body["not_run"] == {"v6_actinide_deltas": CF.NOT_RUN, "power_check": CF.NOT_RUN}
     assert not CF.decisions_path(root).exists()
     assert not any(str(s) in out for s in FAKE_SEEDS)
-    # POST-HOC addendum 7 items 1-2 are written; task X found two further registered stages that are NOT, so the dry run
-    # names them and the runner refuses on them before the once-only lock is spent
-    assert [s["stage"] for s in body["run_stages"] if not s["implemented"]] == ["v6_frozen_configurations",
-                                                                               "c4_act_permuted_training_transform"]
+    # every stage of the single run is implemented (the two task X left open -- the V6 configuration reading and C4's
+    # ACT_PERMUTED transform -- are now written, tested and rehearsed end to end in tests/test_confirmation_rehearsal.py)
+    assert [s["stage"] for s in body["run_stages"] if not s["implemented"]] == []
+    assert {s["stage"] for s in body["run_stages"]} >= {"v6_frozen_configurations", "c4_act_permuted_training_transform"}
     assert {s["stage"] for s in body["run_stages"]} >= {"withheld_seed_fold_files", "fit_loop", "writers",
                                                         "v6_arm_fitting", "s2c_pair_conformal"}
 
@@ -925,8 +1009,7 @@ def test_the_v6_dispatch_is_the_v5_inner_design_and_the_refusal_machinery_still_
 
     from gen19ct.models import inner_design as ID
 
-    assert [n for n, ok, _ in RC.RUN_STAGES if not ok] == ["v6_frozen_configurations",
-                                                           "c4_act_permuted_training_transform"]
+    assert [n for n, ok, _ in RC.RUN_STAGES if not ok] == []          # every stage of the single run is implemented
     rd = RC.runner_module()
     job = D.JobSpec(kind="fit", arm="M2", design="V6", variant="prnd", scheme="exact", seed=7)
     assert rd.v5_family(job) and rd.inner_variant(job) == "primary"
@@ -1343,7 +1426,7 @@ def test_m2_reads_m1s_confirmation_record_and_refuses_a_missing_or_stale_one(roo
     with pytest.raises(RuntimeError) as ei:
         RC.run_fold(spec("M2"), fold, 0, corpus, out_root, **kw)
     msg = str(ei.value)
-    assert "M2 needs M1's per-fold values" in msg and "records/M1/" in msg and CF.seed_token(i) in msg
+    assert "needs M1's per-fold values" in msg and "records/M1/" in msg and CF.seed_token(i) in msg
     assert not any(str(s) in msg for s in FAKE_SEEDS + [seed])
     assert "evaluation/discovery" not in msg.replace("\\", "/")
 
@@ -1417,9 +1500,10 @@ def test_fit_loop_dispatches_to_a_pool_and_the_worker_returns_only_scrubbed_valu
 
     monkeypatch.setattr(RC, "ProcessPoolExecutor", InlinePool)
     monkeypatch.setattr(RC, "attach_seed_folds", lambda *a, **k: {})
-    monkeypatch.setattr(RC, "_conf_worker_state",
-                        lambda: {"pid": 1, "n_rows": int(corpus.table.n), "n_runners": 1, "store_verified": True,
-                                 "seed_commitment_sha256": store.digest, "n_seed_indices": CF.N_SEEDS})
+    pids = iter(range(1, 1000))
+    monkeypatch.setattr(RC, "_conf_worker_state",                      # one distinct pid per probe (every worker served)
+                        lambda *a: {"pid": next(pids), "n_rows": int(corpus.table.n), "n_runners": 1, "store_verified": True,
+                                    "seed_commitment_sha256": store.digest, "n_seed_indices": CF.N_SEEDS})
     job = CF.ConfJob("pool", "M1", "V6", CF.V6_STEM, 1, 1, tuned=False)
     kw = dict(corpus=corpus, state=D.PlanState(guard_mode={}), runners=rd.default_runners(), code=code,
               prereg={"addenda_sha256": "a" * 64, "n_addenda": 7}, workers=2, seed_store_path=str(store_path),
@@ -1660,64 +1744,63 @@ def test_s2c_records_the_consequence_of_its_registered_calibration_population():
 
 
 @pytest.mark.slow
-def test_e7_the_v6_run_is_not_at_frozen_configurations_and_c4s_control_is_not_permuted(root, tmp_path, monkeypatch):
-    """E7 -- a SEVENTH defect, found by running the code rather than reading it, and NOT on the verification pass's list.
+def test_e7_the_v6_configuration_reading_and_c4s_control_transform_are_implemented(root, tmp_path, monkeypatch):
+    """E7, CLOSED.  The seventh defect of the verification pass was two registered stages the fit loop did not do:
 
-    Two registered things the fit loop does not do, both measured here:
-
-    * **section 3.4** -- *"It runs once, with the frozen configurations and the withheld seeds"* -- but the fit loop hands
-      a V6 job ``g19_run_discovery.default_runners()['M1'/'M2']``, the TUNING runners. ``ConfJob(tuned=False)`` is set for
-      every V6 job and read nowhere. Measured: one V6 M1 fold fits the whole grid over the inner folds and its
-      ``selected_config`` comes from this run's own inner scores.
-    * **section 11 / CONFIRMATION_PLAN** -- claim C4's control leg is ``B6`` with transform ``ACT_PERMUTED``, "refitted at
-      the WITH run's selected hyperparameters of the same fold". ``job_spec_of`` puts that in ``JobSpec.condition`` and
-      NOTHING reads it: measured with call counters over a complete ``run_fold``, ``h3.transformed_frame``,
-      ``discovery.h3_training_rows`` and ``h3.frozen_runner`` are called ZERO times, so the control leg would be fitted
-      on the recorded log D -- the WITH leg's own training data -- and re-tuned on it.
-
-    Neither is fixed here: both are registered choices (which configuration a V6 fold inherits, since no V6 fold existed
-    in discovery; and wiring section 11's transform plus addendum 5 item 2's guard rule into this loop). What IS asserted
-    is that the runner now REFUSES, naming both, and that the refusal happens before the once-only lock is spent.
+    * **section 3.4** -- *"It runs once, with the frozen configurations and the withheld seeds"*.  The reading the runner
+      implements (``CF.READINGS['v6_frozen_configurations']``, ``RC.V6_FROZEN_CONFIGURATIONS``) is the sealed text's own:
+      section 7 registers an inner design for V6, addendum 7 item 2 registers that a V6 job tunes on the V5 inner design,
+      addendum 8 item 1 registers that the plan fits M1 on each V6 fold and that M2 takes M1's same-fold record.  So a
+      V6 M1 fold IS tuned (measured here: ``tune_m1`` once, a grid of configurations over the inner folds), and its record
+      carries the reading.  The V6 learned arms are priced at their tuned cost.
+    * **section 11 / CONFIRMATION_PLAN** -- claim C4's control leg.  ``run_fold`` now applies ``h3.transformed_frame``,
+      refits ``h3.FrozenB6`` off the WITH record of the same fold and binds the guard to the recorded corpus; the two
+      legs have distinct record paths.  Exercised on a synthetic V2 fold in ``tests/test_confirmation_rehearsal.py``.
     """
-    from gen19ct.evaluation import h3 as H3
     from gen19ct.models import neural as NN
 
-    # ---- the refusal: both stages named, and the lock explicitly not spent
-    unimplemented = [n for n, ok, _ in RC.RUN_STAGES if not ok]
-    assert unimplemented == ["v6_frozen_configurations", "c4_act_permuted_training_transform"]
-    text = RC.refusal(unimplemented[0])
-    assert "has NOT been spent" in text and "NOT IMPLEMENTED" in text
-    for n in unimplemented:
-        assert n in text
-    assert "frozen configurations" in text and "ACT_PERMUTED" in text
-    assert "h3.frozen_runner" in text and "addendum 5 item 2" in text
+    # ---- no stage of the single run is unimplemented, and the two readings are recorded where every reader looks
+    assert [n for n, ok, _ in RC.RUN_STAGES if not ok] == []
+    stages = {n: why for n, ok, why in RC.RUN_STAGES}
+    assert stages["v6_frozen_configurations"] is RC.V6_FROZEN_CONFIGURATIONS
+    assert stages["c4_act_permuted_training_transform"] is RC.C4_TRANSFORM
+    for key in ("v6_frozen_configurations", "c4_transform", "c4_ln_test_set", "max_folds_pause"):
+        assert key in CF.READINGS
+    assert "addendum 7 item 2" in RC.V6_FROZEN_CONFIGURATIONS and "addendum 8 item 1" in RC.V6_FROZEN_CONFIGURATIONS
+    assert "h3.FrozenB6" in RC.C4_TRANSFORM and "addendum 5 item 2" in RC.C4_TRANSFORM
+    # the refusal machinery still works when asked, and says nothing is left to write
+    assert "has NOT been spent" in RC.refusal("gates") and "Still to write: ." in RC.refusal("gates")
 
-    # ---- C4's two legs differ only in JobSpec.condition, which nothing reads
+    # ---- C4's two legs: distinct paths; the control leg's job carries the transform the frozen branch reads
     plan = CF.read_plan(CF.plan_path(paths.G19_ROOT))
     c4 = [j for j in CF.enumerate_jobs(plan) if j.purpose.startswith("claim C4")][:2]
     assert [j.transform for j in c4] == ["WITH", "ACT_PERMUTED"] and [j.tuned for j in c4] == [True, False]
-    rd = RC.runner_module()
-    runners = rd.default_runners()
     specs = [RC.job_spec_of(j, 999983) for j in c4]
-    assert [s.condition for s in specs] == ["WITH", "ACT_PERMUTED"]
-    assert rd.runner_for(specs[0], runners) is rd.runner_for(specs[1], runners)      # the SAME tuning runner
-    assert type(runners["B6"]).__name__ == "B6Runner" != type(H3.frozen_runner("B6")).__name__
-    # and the record layout has no place for the transform: both legs resolve to ONE file, and the plan gives C4 the
-    # same arm on both sides, so the delta would be exactly 0.0 on every seed -- a failed claim, on an artefact
-    paths_ = [CF.fold_paths(Path("X"), s_.arm, s_.design_dir, 1, "f")[1] for s_ in specs]
-    assert paths_[0] == paths_[1]
+    assert [s_.condition for s_ in specs] == ["WITH", "ACT_PERMUTED"]
+    assert specs[1].condition in H3.VALUE_PERMUTING_TRANSFORMS       # the branch run_fold takes for the control leg
+    paths_ = [CF.fold_paths(Path("X"), s_.arm, s_.design_dir, 1, "f", s_.condition or "")[1] for s_ in specs]
+    assert paths_[0] != paths_[1]
     c4claim = CF.claim_of(plan, "C4")
     assert c4claim.candidate == c4claim.comparator == "B6"
+    assert (c4claim.transform, c4claim.comparator_transform) == ("WITH", "ACT_PERMUTED")
+    # the V6 jobs: M1 and M2 tuned per the reading, B8 / B3x / B3i without tuning
+    v6 = {j.arm: j.tuned for j in CF.enumerate_jobs(plan) if j.design == "V6" and j.seed_index == 1}
+    assert v6 == {"M1": True, "M2": True, "B8": False, "B3x": False, "B3i": False}
+    # ... and the cost basis prices them at the tuned cost and says so
+    cost = CF.cost_estimate(CF.enumerate_jobs(plan))
+    assert "132 h" in cost["basis"] and "TUNED" in cost["basis"]
+    assert CF.UNIT_SECONDS["M1@V6__prnd__exact"] == CF.UNIT_SECONDS["M1@V5__primary__batched_max4"]
+    assert 125 < cost["serial_hours"] < 140
 
-    # ---- and no transform or frozen refit is reached in a complete fold: counted, not read
+    # ---- a V6 M1 fold on the synthetic corpus: tuned per section 7 (the reading), the record says which reading
     monkeypatch.setattr(REG, "registry_path", lambda r=None: root / "manifests" / "digest_registry.json")
     store = CF.load_seed_store(_write_store(root, root.parent / "e7_store.json"), root=root, seal=SEAL,
                                prereg_paths=_prereg_paths(root))
     code = RC.code_digest()["combined"]
-    REG.register_stage(CF.STAGE, below_footer_sha256="a" * 64, code_digest=code, git_head=None, addenda_count=7,
+    REG.register_stage(CF.STAGE, below_footer_sha256="a" * 64, code_digest=code, git_head=None, addenda_count=8,
                        note="e7", path=root / "manifests" / "digest_registry.json")
     corpus, fold, attrs = _v6_corpus(tmp_path)
-    calls = {"transformed_frame": 0, "h3_training_rows": 0, "frozen_runner": 0, "tune_m1": 0}
+    calls = {"tune_m1": 0, "frozen_runner": 0}
 
     def counted(name, fn):
         def g(*a, **k):
@@ -1725,22 +1808,21 @@ def test_e7_the_v6_run_is_not_at_frozen_configurations_and_c4s_control_is_not_pe
             return fn(*a, **k)
         return g
 
-    monkeypatch.setattr(H3, "transformed_frame", counted("transformed_frame", H3.transformed_frame))
-    monkeypatch.setattr(D, "h3_training_rows", counted("h3_training_rows", D.h3_training_rows))
-    monkeypatch.setattr(H3, "frozen_runner", counted("frozen_runner", H3.frozen_runner))
     monkeypatch.setattr(NN, "tune_m1", counted("tune_m1", NN.tune_m1))
+    monkeypatch.setattr(H3, "frozen_runner", counted("frozen_runner", H3.frozen_runner))
+    rd = RC.runner_module()
     r = RC.run_fold(D.JobSpec(kind="fit", arm="M1", design=CF.V6_DESIGN, variant=CF.V6_VARIANT_NAME,
                               scheme=CF.V6_SCHEME, seed=store.seed(1), writes=("M1",)), fold, 0, corpus,
                     tmp_path / "out", store=store, seed_index=1, runners=rd.default_runners(), code=code,
-                    state=D.PlanState(guard_mode={}), prereg={"addenda_sha256": "a" * 64, "n_addenda": 7},
+                    state=D.PlanState(guard_mode={}), prereg={"addenda_sha256": "a" * 64, "n_addenda": 8},
                     pair_attrs=attrs)
     rec = json.loads(Path(r["records"]["M1"]).read_text(encoding="utf-8"))
     assert r["status"] == "fitted"
-    assert calls["tune_m1"] == 1                              # section 3.4's "frozen configurations": re-tuned
-    assert len({f.get("config") for f in rec["arm_record"]["fits"]}) > 1     # a whole grid, chosen inside this run
-    assert calls["transformed_frame"] == calls["h3_training_rows"] == calls["frozen_runner"] == 0
-    # the cost basis says so too, so no reader can take the 8.5 h V6 line for the tuned figure
-    assert "132 h" in CF.cost_estimate(CF.enumerate_jobs(plan))["basis"]
+    assert calls["tune_m1"] == 1 and calls["frozen_runner"] == 0     # section 7 tuning on the V6 fold, no frozen refit
+    assert len({f.get("config") for f in rec["arm_record"]["fits"]}) > 1
+    assert rec["v6_configuration_reading"] == CF.READINGS["v6_frozen_configurations"]
+    assert rec["arm_record"]["inner_design"]["design"] == D.INNER_DESIGN_NAME       # the V5 inner design (addendum 7)
+    assert rec["design_hash"] == corpus.design_hash(CF.V6_STEM)                    # the design hash is now recorded
 
 
 # --------------------------------------------------------------------------------------------- #
@@ -1818,7 +1900,7 @@ def test_m2_reads_m1s_record_on_a_v5_confirmation_half_fold_too(root, tmp_path, 
     with pytest.raises(RuntimeError) as ei:
         RC.run_fold(spec("M2"), fold, 0, corpus, out_root, **kw)
     msg = str(ei.value)
-    assert "M2 needs M1's per-fold values" in msg and "records/M1/" in msg and CF.seed_token(i) in msg
+    assert "needs M1's per-fold values" in msg and "records/M1/" in msg and CF.seed_token(i) in msg
     assert "evaluation/discovery" not in msg.replace("\\", "/")
     assert not any(str(s) in msg for s in FAKE_SEEDS)
 
@@ -1850,7 +1932,7 @@ def test_m2_reads_m1s_record_on_a_v5_confirmation_half_fold_too(root, tmp_path, 
     assert not any(str(s) in json.dumps(m2rec, default=str) for s in FAKE_SEEDS)
 
     # ---- addendum 8 item 1: ANOTHER seed index is not a source.  The i2 M1 record exists; an i3 M2 fold refuses
-    with pytest.raises(RuntimeError, match="M2 needs M1's per-fold values"):
+    with pytest.raises(RuntimeError, match="needs M1's per-fold values"):
         RC.run_fold(spec("M2"), fold, 0, corpus, out_root, **{**kw, "seed_index": 3})
     # ---- and a DISCOVERY record of the same fold is not a source either: the locator reads records/M1 only
     dpq, djs = D.fold_paths(out_root, spec("M1"), "M1", fold.fold_id)
@@ -1859,7 +1941,7 @@ def test_m2_reads_m1s_record_on_a_v5_confirmation_half_fold_too(root, tmp_path, 
     dpq.write_bytes(Path(r1["records"]["M1"]).with_suffix(".parquet").read_bytes())
     CF.fold_paths(out_root, "M2", spec("M2").design_dir, i, CF.scrub(fold.fold_id, store))[1].unlink()
     CF.fold_paths(out_root, "M1", spec("M1").design_dir, i, CF.scrub(fold.fold_id, store))[1].unlink()
-    with pytest.raises(RuntimeError, match="M2 needs M1's per-fold values"):
+    with pytest.raises(RuntimeError, match="needs M1's per-fold values"):
         RC.run_fold(spec("M2"), fold, 0, corpus, out_root, **kw)
 
 
@@ -2555,8 +2637,9 @@ def test_a_record_set_the_loop_left_incomplete_is_never_scored_on_the_folds_it_d
     # ... and once the loop's own incompletions are named, the same read returns None and the claim carries no verdict
     marked = RC.mark_incomplete_record_sets(led, [m1])
     assert marked and marked[0]["arm"] == "M1" and marked[0]["design_dir"] == dd and marked[0]["seed_index"] == i
-    assert ("M1", dd, i) in RC.INCOMPLETE_RECORD_SETS
+    assert marked[0]["transform"] == ""                     # the set is keyed by the transform too (C4's two legs)
+    assert ("M1", dd, i, "") in RC.INCOMPLETE_RECORD_SETS
     assert RC.read_seed_predictions(out_root, "M1", dd, i, code=code) is None
     # a DIFFERENT seed index of the same arm and design is untouched: the unit is the record set, not the design
-    assert ("M1", dd, i + 1) not in RC.INCOMPLETE_RECORD_SETS
+    assert ("M1", dd, i + 1, "") not in RC.INCOMPLETE_RECORD_SETS
     assert not any(str(s) in json.dumps(marked) for s in FAKE_SEEDS)

@@ -1,0 +1,368 @@
+{
+  "archive_master_sha256": "7b32979383c5246f22d36ade6246231a347ea22490f4589a76e189af07b09b01",
+  "arguments": {
+    "bootstrap_seed": 19,
+    "check_only": false,
+    "decision_only": false,
+    "draws": 64,
+    "expect_addenda": 8,
+    "exploratory": true,
+    "max_stages": null,
+    "n_bootstrap": 20,
+    "n_lhs": 300,
+    "no_manifest": false,
+    "no_prices": false,
+    "out_root": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer",
+    "predictions": null,
+    "rho_file": null,
+    "seed": 18,
+    "skip_f5_allowed": false,
+    "solver_max_newton": 40,
+    "solver_max_sweeps": 10
+  },
+  "code_sha256": {
+    "own": "e622314fd4adde98fd82181b735139adf71d3f345598ab510b193913eb2d9667",
+    "own_parts": {
+      "generations/gen19_chem_transfer/gen19ct/process/gen18_adapter.py": "a9c85e07d1e58a597e0a7b1b4ef243789f0e710f477f0cf259290f6bb9681acc",
+      "generations/gen19_chem_transfer/gen19ct/process/monte_carlo.py": "7ceedfa45340990257f0a1b233cae64a5798332d50de13e1462fd2c149b0b08b",
+      "generations/gen19_chem_transfer/gen19ct/process/robust_optimize.py": "5319e1f3bffc23288eb3d361ac8db67514c7945e55d484bd662d81c1e5a15778",
+      "generations/gen19_chem_transfer/scripts/g19_predict_process_inputs.py": "1d4811b03337fc76e050918e7cdc10ac6848e000857a6576e819da3f39473fbf",
+      "generations/gen19_chem_transfer/scripts/g19_run_process.py": "c950ce812abe31da1da6b15fab0c82a957d1236cdec0828591608aaf83f9242e"
+    }
+  },
+  "confirmation_half_read": false,
+  "gate": {
+    "confirmation": {
+      "deployed_predictor": null,
+      "keys": {
+        "S1.deployed_predictor": "str: the arm deployed (M2, M1, or the best-passing baseline under F6)",
+        "S1.passed": "bool: section 9 S1 passed on the confirmation half with 5 of 5 withheld seeds for the deployed predictor",
+        "S2.passed": "bool or null: section 9 S2 (V6, single confirmation run); null when V6 has not run",
+        "V6.run": "bool: V6 has been run once (section 3.4)",
+        "seeds.verified": "bool: the --verify-seeds verdict of section 15"
+      },
+      "md_present": false,
+      "path": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer\\evaluation\\confirmation\\decisions\\confirmation.json",
+      "present": false,
+      "s1_passed": null,
+      "s2_passed": null,
+      "schema": null,
+      "seeds_verified": null,
+      "v6_run": null
+    },
+    "discovery_complete": {
+      "cheap": {
+        "complete": true,
+        "reasons": [],
+        "stages_done": [
+          "00_safeguard",
+          "01_B6",
+          "02_comparator_intervals",
+          "03_B5_FLAT_CAT_B8",
+          "04_M1",
+          "05_M2",
+          "06_stop_rule",
+          "07_s1c_v5pair",
+          "08_refit_sensitivities",
+          "09_candidates",
+          "10_not_implemented"
+        ]
+      },
+      "complete": true,
+      "reasons": [],
+      "record_check": {
+        "complete": true,
+        "definition": "Whether the discovery run is COMPLETE, defined as all of:\n\n1. ``evaluation/discovery/decisions/wall_clock.json`` records an invocation whose ``stages_done`` reached the last\n   stage of the plan (``discovery.STAGES['not_implemented']``, the ``M3+`` marker ``run_plan`` stops at) and every\n   stage of the current plan is in the union of the recorded ``stages_done``;\n2. every ``fit`` job of ``discovery.enumerate_plan(state)`` (the plan under the final plan state, freezing-candidate\n   runs included) has, for every arm it writes, a COMPLETE verified record set\n   (``g19_run_discovery.verified_predictions``: digest, fold hash and fold set exactly what the code the record set's\n   stage is registered under -- ``registry.record_dir_code``: the ``discovery`` or ``discovery_candidates`` entry,\n   else ``code`` -- the fold files and the plan state produce; a stale record raises).",
+        "final_stage": "10_not_implemented",
+        "incomplete_record_sets": [],
+        "missing_stages": [],
+        "n_complete": 41,
+        "n_fit_record_sets": 41,
+        "n_incomplete": 0,
+        "reached_final_stage": true,
+        "stages_done": [
+          "00_safeguard",
+          "01_B6",
+          "02_comparator_intervals",
+          "03_B5_FLAT_CAT_B8",
+          "04_M1",
+          "05_M2",
+          "06_stop_rule",
+          "07_s1c_v5pair",
+          "08_refit_sensitivities",
+          "09_candidates",
+          "10_not_implemented"
+        ],
+        "wall_clock_json_present": true
+      },
+      "rule": "progress ledger reached the final stage without job errors; records_index.csv written; wall_clock.json reached the final stage; every fit job of the current plan has a COMPLETE verified record set (h3.discovery_complete)"
+    },
+    "exploratory": true,
+    "label": {
+      "headline_allowed": false,
+      "label": "transfer-unsupported",
+      "reasons": [
+        "--exploratory run",
+        "S1 not passed / not decided",
+        "S2 not passed / not decided",
+        "V6 has not run"
+      ]
+    },
+    "prereg_gate": {
+      "addenda_sha256": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
+      "addenda_sha256_registered": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
+      "addendum_implemented": 8,
+      "gate_source": "registry",
+      "n_addenda": 8,
+      "n_addenda_expected": 8,
+      "prereg_sha256": "135842499a86eb3d478ece01a45718ac5b9673a4134bb4acda550f975bb45641",
+      "registry_path": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer\\manifests\\digest_registry.json",
+      "seal_check_exit": 0,
+      "stage": "process"
+    },
+    "stop_rule": {
+      "path": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer\\evaluation\\discovery\\decisions\\stop_rule.json",
+      "stop": false
+    }
+  },
+  "gen18_code_sha256": {
+    "combined": "a60240deb5b1b9080fde2f8e4dd2357241e2798160597c669315ad59ceae091d",
+    "parts": {
+      "generations/gen18_process/gen18proc/cascade.py": "f1a42b7bab2a51684febddd6e7452dd673f642473ea80a9455190a370e5f801b",
+      "generations/gen18_process/gen18proc/dmodel.py": "3182e5f131d5907f6ca61133f1254186e805ea0f9d334aaaa4e78386ab8274c6",
+      "generations/gen18_process/gen18proc/domain.py": "1db74b5dfd7470a84438c45ef3b4c387ae385c30bee4004fd28d88a61484010b",
+      "generations/gen18_process/gen18proc/equilibrium.py": "ed58289710effa4ad026bc401953edbc7b3467b5b3f833f4db060efaec4eedb7",
+      "generations/gen18_process/gen18proc/metrics.py": "2ccd356deca11afb4f0a1175267980816d7901d5d89f4e8336797399c298fb70",
+      "generations/gen18_process/gen18proc/optimize.py": "aff0a84ad268b03524b803b01d7d013ad5c60f50c2c72d000849313160d42b0d",
+      "generations/gen18_process/gen18proc/systems.py": "e281401a61cb292fb6072976c3eca583f0b37caf1b40edd5c2f6350e4d93caf0",
+      "generations/gen18_process/gen18proc/types.py": "9421e6f140452f29596f34a3f10d8c250e5a9eb8c339a32512cc1b77f649c72a"
+    }
+  },
+  "git_head": "c20331c41c928b706ca0ae81d794a3bed379d0ed",
+  "inputs": [
+    {
+      "bytes": 2230,
+      "path": "generations/gen18_process/cases/prnd_spec.json",
+      "sha256": "f6080b9b48fc105817cd0f25d02a4440a331d96e42591ed5b81fe2708b7ae637",
+      "sha256_lf": "f6080b9b48fc105817cd0f25d02a4440a331d96e42591ed5b81fe2708b7ae637"
+    },
+    {
+      "bytes": 5259,
+      "path": "generations/gen18_process/cases/todga_prnd_feed.json",
+      "sha256": "30d4def56d2421d6b7409791f0281e27595a4ba4e8f737f3830adbf37085307e",
+      "sha256_lf": "30d4def56d2421d6b7409791f0281e27595a4ba4e8f737f3830adbf37085307e"
+    },
+    {
+      "bytes": 2905,
+      "path": "generations/gen18_process/config/design_spaces.json",
+      "sha256": "5c7f9471d39013dad13b770ce09aa763767f6b16f3e0b0bd47ead814bac6a029",
+      "sha256_lf": "5c7f9471d39013dad13b770ce09aa763767f6b16f3e0b0bd47ead814bac6a029"
+    },
+    {
+      "bytes": 85890,
+      "path": "generations/gen18_process/gen18proc/cascade.py",
+      "sha256": "f1a42b7bab2a51684febddd6e7452dd673f642473ea80a9455190a370e5f801b",
+      "sha256_lf": "f1a42b7bab2a51684febddd6e7452dd673f642473ea80a9455190a370e5f801b"
+    },
+    {
+      "bytes": 64726,
+      "path": "generations/gen18_process/gen18proc/dmodel.py",
+      "sha256": "3182e5f131d5907f6ca61133f1254186e805ea0f9d334aaaa4e78386ab8274c6",
+      "sha256_lf": "3182e5f131d5907f6ca61133f1254186e805ea0f9d334aaaa4e78386ab8274c6"
+    },
+    {
+      "bytes": 23274,
+      "path": "generations/gen18_process/gen18proc/domain.py",
+      "sha256": "1db74b5dfd7470a84438c45ef3b4c387ae385c30bee4004fd28d88a61484010b",
+      "sha256_lf": "1db74b5dfd7470a84438c45ef3b4c387ae385c30bee4004fd28d88a61484010b"
+    },
+    {
+      "bytes": 40420,
+      "path": "generations/gen18_process/gen18proc/equilibrium.py",
+      "sha256": "ed58289710effa4ad026bc401953edbc7b3467b5b3f833f4db060efaec4eedb7",
+      "sha256_lf": "ed58289710effa4ad026bc401953edbc7b3467b5b3f833f4db060efaec4eedb7"
+    },
+    {
+      "bytes": 19289,
+      "path": "generations/gen18_process/gen18proc/metrics.py",
+      "sha256": "2ccd356deca11afb4f0a1175267980816d7901d5d89f4e8336797399c298fb70",
+      "sha256_lf": "2ccd356deca11afb4f0a1175267980816d7901d5d89f4e8336797399c298fb70"
+    },
+    {
+      "bytes": 43767,
+      "path": "generations/gen18_process/gen18proc/optimize.py",
+      "sha256": "aff0a84ad268b03524b803b01d7d013ad5c60f50c2c72d000849313160d42b0d",
+      "sha256_lf": "aff0a84ad268b03524b803b01d7d013ad5c60f50c2c72d000849313160d42b0d"
+    },
+    {
+      "bytes": 39650,
+      "path": "generations/gen18_process/gen18proc/systems.py",
+      "sha256": "e281401a61cb292fb6072976c3eca583f0b37caf1b40edd5c2f6350e4d93caf0",
+      "sha256_lf": "e281401a61cb292fb6072976c3eca583f0b37caf1b40edd5c2f6350e4d93caf0"
+    },
+    {
+      "bytes": 32288,
+      "path": "generations/gen18_process/gen18proc/types.py",
+      "sha256": "9421e6f140452f29596f34a3f10d8c250e5a9eb8c339a32512cc1b77f649c72a",
+      "sha256_lf": "9421e6f140452f29596f34a3f10d8c250e5a9eb8c339a32512cc1b77f649c72a"
+    },
+    {
+      "bytes": 852,
+      "path": "generations/gen19_chem_transfer/evaluation/process/inputs/prnd_residual_correlation.json",
+      "sha256": "eb33deac486051ec08dfa9ab22d754b0de711f121b99aed64f35f5abbc207c0d",
+      "sha256_lf": "eb33deac486051ec08dfa9ab22d754b0de711f121b99aed64f35f5abbc207c0d"
+    },
+    {
+      "bytes": 328899,
+      "path": "generations/gen19_chem_transfer/evaluation/process/inputs/todga_prnd_predictions.csv",
+      "sha256": "1f2ce01822211a582f5dbd200da9e734386292e34100fc7e3841d33339bb06d7",
+      "sha256_lf": "1f2ce01822211a582f5dbd200da9e734386292e34100fc7e3841d33339bb06d7"
+    }
+  ],
+  "label": {
+    "headline_allowed": false,
+    "label": "transfer-unsupported",
+    "reasons": [
+      "--exploratory run",
+      "S1 not passed / not decided",
+      "S2 not passed / not decided",
+      "V6 has not run"
+    ]
+  },
+  "learned_arm_fitted": false,
+  "outputs": [
+    {
+      "bytes": 5529,
+      "path": "generations/gen19_chem_transfer/decisions/D06_process_integration.md",
+      "sha256": "c4e42ed2d9b4ae37becb4a6ad84cb40f533a5edc9e307e4b89782a1871444082",
+      "sha256_lf": "c4e42ed2d9b4ae37becb4a6ad84cb40f533a5edc9e307e4b89782a1871444082"
+    },
+    {
+      "bytes": 40018,
+      "path": "generations/gen19_chem_transfer/evaluation/process/candidates.csv",
+      "sha256": "d04538088f34334c65c8042b863817defab4e7901e7df8660b72949d52244581",
+      "sha256_lf": "d04538088f34334c65c8042b863817defab4e7901e7df8660b72949d52244581"
+    },
+    {
+      "bytes": 6811,
+      "path": "generations/gen19_chem_transfer/evaluation/process/draws.csv",
+      "sha256": "d3c0e326af2fa99bf8e5721875ceb86c5dce7551cf383d53909badb15236ff32",
+      "sha256_lf": "d3c0e326af2fa99bf8e5721875ceb86c5dce7551cf383d53909badb15236ff32"
+    },
+    {
+      "bytes": 5992,
+      "path": "generations/gen19_chem_transfer/evaluation/process/f5.json",
+      "sha256": "f14da39c2a1df7fc25227b72041f5da77f4626350d3ec11723ce153a09407d37",
+      "sha256_lf": "f14da39c2a1df7fc25227b72041f5da77f4626350d3ec11723ce153a09407d37"
+    },
+    {
+      "bytes": 2331,
+      "path": "generations/gen19_chem_transfer/evaluation/process/inputs_used.json",
+      "sha256": "959886479f5b49c9b3346027bf473097d23ad92183b2afe3ec921e29c30de6a6",
+      "sha256_lf": "959886479f5b49c9b3346027bf473097d23ad92183b2afe3ec921e29c30de6a6"
+    },
+    {
+      "bytes": 87275,
+      "path": "generations/gen19_chem_transfer/evaluation/process/operating_points.csv",
+      "sha256": "b9b7eb31e2777711bf7a42e5a55dba390deaf7121e02f82d73969dadd388f935",
+      "sha256_lf": "b9b7eb31e2777711bf7a42e5a55dba390deaf7121e02f82d73969dadd388f935"
+    },
+    {
+      "bytes": 7801752,
+      "path": "generations/gen19_chem_transfer/evaluation/process/process_table.csv",
+      "sha256": "a039487a6a52a871d13e835cc8dfc81bd30733f947954b43975a9857359a2e8e",
+      "sha256_lf": "a039487a6a52a871d13e835cc8dfc81bd30733f947954b43975a9857359a2e8e"
+    },
+    {
+      "bytes": 416953,
+      "path": "generations/gen19_chem_transfer/evaluation/process/rankings.csv",
+      "sha256": "6c771ecded4d60aea5add313d777f1380851948d036c6df4b50c4698b0c1ffd3",
+      "sha256_lf": "6c771ecded4d60aea5add313d777f1380851948d036c6df4b50c4698b0c1ffd3"
+    },
+    {
+      "bytes": 41827,
+      "path": "generations/gen19_chem_transfer/evaluation/process/stability.json",
+      "sha256": "ef5ea3187e3b037cc9155dfc7630babb6c1b407b01665ed6d9af57236cd32214",
+      "sha256_lf": "ef5ea3187e3b037cc9155dfc7630babb6c1b407b01665ed6d9af57236cd32214"
+    },
+    {
+      "bytes": 37347,
+      "path": "generations/gen19_chem_transfer/evaluation/process/summary.json",
+      "sha256": "60b8f24d4c5c22a7c85857de7be192a60bc72d0d6a2dce7949c8eb9bfde4a4d0",
+      "sha256_lf": "60b8f24d4c5c22a7c85857de7be192a60bc72d0d6a2dce7949c8eb9bfde4a4d0"
+    },
+    {
+      "bytes": 16885,
+      "path": "generations/gen19_chem_transfer/evaluation/process/usage.csv",
+      "sha256": "7bfd5d50b531385a906312634b7276e3684de6de1a2136b0daaeba63f08b73f1",
+      "sha256_lf": "7bfd5d50b531385a906312634b7276e3684de6de1a2136b0daaeba63f08b73f1"
+    },
+    {
+      "bytes": 2595,
+      "path": "generations/gen19_chem_transfer/evaluation/process/winners.csv",
+      "sha256": "00b93c5af0da864ab61a32b8028f1dc6e9bda931f58e1bb4a08d149692d79afb",
+      "sha256_lf": "00b93c5af0da864ab61a32b8028f1dc6e9bda931f58e1bb4a08d149692d79afb"
+    },
+    {
+      "bytes": 74206,
+      "path": "generations/gen19_chem_transfer/figures/F14_process_pareto_uncertainty.png",
+      "sha256": "2a8fa223026048577875a38fc29ee9f775ef1ce298cf76717d07d539c75de1e9",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 76701,
+      "path": "generations/gen19_chem_transfer/figures/F15_probability_of_specification_map.png",
+      "sha256": "8b48757875abad227d3087a8f2ead5f179c3b10c277b4eb3e58161acb2030a92",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 87275,
+      "path": "generations/gen19_chem_transfer/tables/process_operating_points.csv",
+      "sha256": "b9b7eb31e2777711bf7a42e5a55dba390deaf7121e02f82d73969dadd388f935",
+      "sha256_lf": "b9b7eb31e2777711bf7a42e5a55dba390deaf7121e02f82d73969dadd388f935"
+    },
+    {
+      "bytes": 2595,
+      "path": "generations/gen19_chem_transfer/tables/process_winners.csv",
+      "sha256": "00b93c5af0da864ab61a32b8028f1dc6e9bda931f58e1bb4a08d149692d79afb",
+      "sha256_lf": "00b93c5af0da864ab61a32b8028f1dc6e9bda931f58e1bb4a08d149692d79afb"
+    }
+  ],
+  "prereg_gate": {
+    "addenda_sha256": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
+    "addenda_sha256_registered": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
+    "addendum_implemented": 8,
+    "gate_source": "registry",
+    "n_addenda": 8,
+    "n_addenda_expected": 8,
+    "prereg_sha256": "135842499a86eb3d478ece01a45718ac5b9673a4134bb4acda550f975bb45641",
+    "registry_path": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer\\manifests\\digest_registry.json",
+    "seal_check_exit": 0,
+    "stage": "process"
+  },
+  "readings": {
+    "case_fixed_variables": "saponification 0 (family bound [0, 0]), no complexant (none in the entry), no salting anion, no dilution, no bleed: the TODGA-only reading of gen18's 13.5 exploration",
+    "constraint_flags": "P(phase and loading constraints satisfied) uses gen18's THIRD_PHASE_RISK, LOADING_CAP_HIT and HIGH_LOADING; PHASE_BEHAVIOUR_UNKNOWN is reported separately as unknown -- a reading",
+    "design_count": "section 14 registers 64 draws but no LHS design count; the default 1000 is gen18's g18_case_prnd.py default (--n-lhs) -- a reading",
+    "design_space_intersection": "the scrub / strip acid and ligand axes of the design space are intersected with the prediction table's supported box (no recipe evaluates a condition that has no supported prediction) -- a reading",
+    "draw_distribution": "section 14: one draw = one M7 ensemble member (member_logD_k of the prediction record, one member per draw shared by Pr and Nd) plus a residual at the calibrated conformal scale (Gaussian with scale std_logD * conformal_q95 / 1.96, one per metal and draw, common over the grid, Pr / Nd correlated with rho through a Gaussian copula) -- monte_carlo.REGISTRATION_READINGS; a table without member columns is refused in registered mode and drawn as a truncated Gaussian on the record only with --exploratory (flagged) (task X finding V-07)",
+    "f5_ii_per_cell": "F5(ii) is evaluated per spec cell of the registered 3 x 3 grid; the case is reported as failing F5(ii) when any cell does (reading; the registered text names 'the TODGA Pr/Nd case' without a cell)",
+    "monte_carlo.draw_residual": "section 14 says 'a residual drawn from the calibrated conformal scale' without naming the residual distribution; the residual is Gaussian with scale std_logD * conformal_q95 / 1.96, i.e. the Gaussian whose central 95 % interval equals the calibrated normalised-conformal 95 % interval (mean +- q95 std_logD) of the M7 record; the conformal distribution itself is not Gaussian and its 50 / 80 % quantiles are not used (INFERRED; needs a POST-HOC addendum)",
+    "monte_carlo.fallback": "a table without member_logD_k / conformal_q95 can only be drawn as a truncated Gaussian on the record (the pre-fix reading); a registered run refuses it and --exploratory flags it (task X finding V-07)",
+    "monte_carlo.member_choice": "one M7 member per draw, uniform over the members from a second seeded stream (default_rng(seed * 1000003 + 1)), shared by every metal of the draw because a member is one model predicting both metals; the residual stream is default_rng(seed) as before (INFERRED)",
+    "objective_key_1": "keys 1-2 rank by the sealed section 14 order: P(both targets) then P(feasible); brief section 18's joint P(purity >= P_min and recovery >= R_min and feasible) is computed and printed beside (obj_p_both_feasible) but does not rank (task X finding V-06: the sealed text governs; a POST-HOC addendum would be needed to rank by the joint key)",
+    "outside_table": "a stage evaluating the table outside its grid has no prediction: recorded as OUTSIDE_TABLE and treated as UNSUPPORTED (ineligible) -- a reading"
+  },
+  "schema": "gen19.manifest.v1",
+  "script": "g19_run_process",
+  "seed": 18,
+  "seeds": {
+    "bootstrap": 19,
+    "lhs_and_draws": 18
+  },
+  "v6_target_rows_scored": 0,
+  "verdict_files": {
+    "d06": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer\\decisions\\D06_process_integration.md",
+    "summary": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer\\evaluation\\process\\summary.json"
+  }
+}

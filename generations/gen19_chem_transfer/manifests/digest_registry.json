@@ -1030,6 +1030,165 @@
       ],
       "logged_utc": "2026-09-23T16:02:29+00:00",
       "reason": "Task X (report findings) 2026-09-24, follow-up to the entry of 15:58:36Z (reporting only; validates or invalidates no record): report.parse_addendum_items joins a POST-HOC addendum item title that wraps onto the next line up to its closing ** (addendum 5 item 2 was missing from the deviations list); the synthetic sealed text of tests/test_report.py gains a wrapped item title. 19 tests pass."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_predict_process_inputs.py",
+          "sha256_lf": "15135aa5179b8ec6eade0d613a62c621061f25ebef03f008a8e0030d3603f33b"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/tests/test_predict_process_inputs.py",
+          "sha256_lf": "dd8f9d2952ecc7b50840b979912802ad3c4790f7335946e979cf59dc4a167a4c"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_run_process.py",
+          "sha256_lf": "671043857c7fd07df81f25e7b913ac91dc0bb0e4e77e4cf106ad97a348291cb0"
+        }
+      ],
+      "logged_utc": "2026-09-23T18:15:04+00:00",
+      "reason": "TASK P (process case), 2026-09-24. NEW scripts/g19_predict_process_inputs.py: the deployment prediction step of section 14 -- fits the deployed configuration M0 (= B5, alias B5 in every record; addendum 3 item 2) at the MODE of selected_config over the 28 V5-primary selection-half M0 records at seed 104729 (depth8_l23: 23 of 28; depth8_l210: 5) and their MEDIAN outer iteration count (2992), no tuning, section 15 model seed at fold 0, on the WITHOUT-actinide training rows (every MODEL row minus every actinide-element row, X(?) actinide rows included in the removal; addendum 5 item 3) and, disclosed beside it, on the WITH rows; section 12 split-conformal intervals from the addendum-1 V5 inner design (SimultaneousInnerCells, 3 inner folds, seed 104729) with the frozen configuration refitted per inner fold (CrossFitResidualConformal, frozen branch); section 13 support_score / domain_status / nearest_support of every query row through the discovery runner's fold_support_frame logic; the section 14 Pr/Nd residual correlation from comparable pairs of the inner calibration residuals (Ln-Ln pairs stand in when Pr/Nd pairs are fewer than 20, flagged); the 450 request rows become corpus-shaped rows from a template TODGA / nitrate / dodecane / additive-free / O/A 1 / 25 C row at a tracer metal concentration (1e-4 M). The five member_logD_k columns are the mean (single-model arm) with conformal_q95 = 1.96 and std_logD = q95 / 1.96, so the registered draw degenerates to mean + conformal residual (addendum 2 fallback reading, untruncated) -- flagged in the table (members_note) and by the runner. Everything labelled transfer-unsupported / exploratory deployment fit. NEW tests/test_predict_process_inputs.py (5 tests on a synthetic mini-corpus with a stub feature set; nothing reads the corpus, a fold file, a record or a seed). EDIT scripts/g19_run_process.py: members_identical() flags a table whose member columns equal mean_logD (draw_flag; refused in registered mode, allowed with --exploratory), CODE_FILES gains the deployment step (the D source of every process number), D06 prints the draw mode / flag, the Monte Carlo wall clock and whether the LHS design count is below gen18's default 1000 (reduced for the 2 h wall-clock cap; section 14 registers the 64 draws, not a design count). No record of any stage is written, validated or invalidated (addendum 2 item 5): the process stage has no record yet; discovery, candidates, ladder, H3 and power records are untouched."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_run_confirmation.py",
+          "sha256_lf": "621698c920d3e8b85a8000c438d1d4d62543fcdf640e169e2dab42a9a2a60690"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/confirmation.py",
+          "sha256_lf": "f9d6837a2cc28199b53b7fad03d8a7e37c6ef1a5bfdbc418beebebb668428ff1"
+        }
+      ],
+      "logged_utc": "2026-09-23T20:52:05+00:00",
+      "reason": "TASK R (2026-09-24/25): the confirmation runner finished and rehearsed WHOLE (main(), --workers 2, real spawned workers) on a synthetic corpus with a fake seed store (tests/test_confirmation_rehearsal.py). Blockers 1-4 of D07: (1) a missing sibling record is ONE incomplete fold on both dispatch paths (MissingSiblingRecordError.status: INCOMPLETE_M1_RECORD_MISSING / new INCOMPLETE_WITH_RECORD_MISSING); (2) the spent-run refusal kept (addendum 8 item 2); (3) claim C4's control leg IMPLEMENTED -- h3.transformed_frame on the fold's training rows seeded with the withheld seed, h3.FrozenB6 refit off the WITH record of the SAME fold through the sibling locator (which now carries the transform in the record path and checks arm_record.selection), guards bound to the recorded corpus (addendum 5 item 2), the Ln(III) folds/rows of V2 (section 11), record directories distinct per transform (READINGS c4_transform, c4_ln_test_set); (4) RUN_STAGES v6_frozen_configurations IMPLEMENTED as the reading of section 3.4 + addendum 7 item 2 + addendum 8 item 1 (M1 tuned per section 7 on the V6 fold with the V5 inner design, M2 from M1's same-fold record, B8 untuned; READINGS v6_frozen_configurations; V6 arms priced at their tuned cost: 132.2 h serial / 67.5 h wall). Found by the rehearsal, all fixed: (5) --max-folds spent the single run (assembly ran after the pause) -> now a PAUSE, nothing assembled (READINGS max_folds_pause); (6) the S1(c) yardsticks refused the scrubbed seed-free per-seed V5-PAIR file -> re-seeded in memory; records now carry design_hash; (7) R19 item 6's wildcard-copy scoring filter read a column only the discovery scorer adds -> attach_wildcard_flags via folds.io.copy_crossings on the designs this run scored; (8) SEED LEAK: pandas-3 string columns were not scrubbed (dtype str, not object) -> CF.scrub_frame at both sites; (9) S1(d) read lo50/hi50, not the registered lower_50/upper_50 -> EM.interval_columns; (10) attach_seed_folds now resets the cached designs for stems without a file (the index-0 refit pass could inherit another index's colouring in one process). INCOMPLETE_RECORD_SETS keyed by transform. h3.py and s1c_yardsticks.py join the confirmation code closure."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/models/s1c_yardsticks.py",
+          "sha256_lf": "65e94298ae2e3891aa48876fc1ff73b5b75e1679a0a47d28b1ac65787b6c0c33"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/manifest.py",
+          "sha256_lf": "db66204928ddac7236b3ce45810e0df0b289bf7aa636d184a24b35a08c7c263a"
+        }
+      ],
+      "logged_utc": "2026-09-23T20:52:07+00:00",
+      "reason": "TASK R: s1c_yardsticks.read_batched_v5pair_design / refit_lookup_yardsticks take seed= to re-seed a SEED-FREE (scrubbed) batched V5-PAIR file in memory: the confirmation run's per-seed files carry seed=None (addendum 6 item 4) and were refused ('drawn with one seed, got [None]'), so the S1(c) assembly would have died after the fit loop (rehearsal finding; not in any registered closure before, now in the confirmation closure). manifest._file_record falls back to the absolute path for an output outside the repository (a rehearsal --out-root; the real run's outputs are repository files, so nothing changes for it; manifest.py is in no code closure). Validates or invalidates no record."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/tests/test_confirmation.py",
+          "sha256_lf": "405c05aef029dc87aa7188f4d63826126b5c1c710669a08c50d07ab116ddba85"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/tests/test_confirmation_rehearsal.py",
+          "sha256_lf": "672171097fa8989df1185651e826fe388090eebf3311548a474bb7eb05d9123d"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/tests/confirmation_rehearsal_support.py",
+          "sha256_lf": "37f1c737b27b6f0ef90614c5a15e5c4736b336c8e5d41c66bf2bae39c1d4a4ac"
+        }
+      ],
+      "logged_utc": "2026-09-23T20:52:09+00:00",
+      "reason": "TASK R: tests -- test_confirmation.py updated for the two implemented stages (E7 rewritten as the positive test; incomplete sets keyed by transform); NEW tests/test_confirmation_rehearsal.py (one regression test per blocker 1-10 + main() rehearsed WHOLE at --workers 2 with real spawned workers: fold building, every arm of the plan, assembly, writers, seed revelation; then the spent-run refusal, resume of a truncated run fitting only the missing folds, mixed-code refusal, missing M1 -> one INCOMPLETE M2 fold with C4 still COMPLETE, and the --max-folds pause) and its support module (synthetic 6 systems x 6 states corpus incl. Am(III), fake seed store, stub colourings, worker initializer). Tests only: validates or invalidates no record."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_run_confirmation.py",
+          "sha256_lf": "12d6e938f4909dee3d9bee8850e628b2762e0206c086c8d5f8c32d2deda133b6"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/confirmation.py",
+          "sha256_lf": "3ff1b415633ce11f1c7c9241a3605c3a5540f908fb0c01e2630d47f6b3244732"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/manifest.py",
+          "sha256_lf": "7afb314574d7af644110fd0d8d99d1921d4e7ded33d5d874041597f1e2198e84"
+        }
+      ],
+      "logged_utc": "2026-09-23T22:15:13+00:00",
+      "reason": "TASK X fix round (findings V-F1..V-F4, V-F7): run_fold's resume unit is the FOLD's whole write set (fold_writes / fold_resume_status: B6 -> B6+B6r0; parquet AND json under the live code; an unparseable JSON, an orphan parquet or one arm without its sibling is MISSING and re-fitted with its partial files removed first; foreign-code records still refused, nothing deleted); manifest.write_json and the record parquet are written atomically (temp file + os.replace); the pool pre-flight holds each probe so EVERY worker serves one (PREFLIGHT_HOLDS) and refuses otherwise; pairing_audit recomputes m2_pairing.m1_record_digest / with_pairing.with_record_digest against the sibling record on disk at dispatch (skipped fold) and at assembly (read_seed_predictions) and refuses a mismatch; build_v6_folds asserts the converse (a hidden known-state Pr/Nd row of S must be a V6_TARGET_ROW; 0 such rows on the real corpus mask, checked without building a fold) and records n_own_known_state_rows / n_own_hidden_not_v6; new READINGS['resume_completeness']. The confirmation stage has written no record; re-registered from the tree."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_run_process.py",
+          "sha256_lf": "c950ce812abe31da1da6b15fab0c82a957d1236cdec0828591608aaf83f9242e"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_predict_process_inputs.py",
+          "sha256_lf": "1d4811b03337fc76e050918e7cdc10ac6848e000857a6576e819da3f39473fbf"
+        }
+      ],
+      "logged_utc": "2026-09-23T22:15:15+00:00",
+      "reason": "TASK X fix round (findings V-PROC-01..06): candidates.csv, draws.csv, usage.csv and inputs_used.json carry the transfer label; read_rho carries the producer file's flag / source / n_pairs_prnd and D06 prints them (the 0.669 is the Ln-Ln stand-in, 0 Pr/Nd pairs); D06's gate line reads prereg_sha256 (or footer); the F14 legend names the ranking as rank_recipes ranks (support -> P(both) -> P(feasible) -> consumption -> stages -> throughput); the producer's Run context opens before the fits so runtime_s is the measured wall clock (wall_clock_seconds recorded too); TRACER_METAL_M documented as a rounded tracer value (corpus median 8e-5 M). Exploratory stage; the producer and the process case were RE-RUN with this code (seeded, byte-comparable) and the stage re-registered from the tree."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/report.py",
+          "sha256_lf": "6d6eecb455e929616da944ee7f5da32a9101e0acec1cc6077991f20d3ec59c96"
+        }
+      ],
+      "logged_utc": "2026-09-23T22:15:18+00:00",
+      "reason": "TASK X fix round (finding V-PROC-07): INPUTS['process_attempt_run'] = evaluation/process/attempts/p_exploratory_run_2026-09-24.json; Q9 prints summary.monte_carlo.n_designs beside gen18's default (below-default note) and the run's attempt log (the aborted 700-design attempt, the completed run, the design-count note) via process_design_count_lines. Report stage re-registered from the tree and GEN19_REPORT.md / SUMMARY.md rebuilt."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/tests/test_confirmation.py",
+          "sha256_lf": "00c63f8eb6d7a187aea46b17f2b7ef13eb1c0ad56ad00bcb6ddfb1d28cd40ead"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/tests/test_confirmation_rehearsal.py",
+          "sha256_lf": "8bfb492112196d3153b9a14e8383efb4fd79553139df4d4abe2fde223bf474f5"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/tests/test_manifest.py",
+          "sha256_lf": "e98e9b3f67244ed1d3419c75300a798ab784c0c8ea0df4768f6b8abd4d326dcd"
+        }
+      ],
+      "logged_utc": "2026-09-23T22:15:20+00:00",
+      "reason": "TASK X fix round tests: the V6 builder test runs the REAL build_v6_folds on a synthetic 13-system analogue (nothing before the run builds the real V6 folds, even in memory -- finding V-F6; the colourings test no longer passes with_v6=True); V-F7 converse test; resume-completeness test (lost sibling record / lost parquet / orphan parquet / truncated JSON re-fitted, foreign code refused); pairing-audit test (WITH rewritten consistently -> refused at dispatch and at assembly; synthetic M1/M2); pre-flight refusal test (one pid for every probe); atomic write_json test; the pre-flight lambdas return distinct pids. Tests only: validates or invalidates no record."
     }
   ],
   "fallback": "until manifests/digest_registry.json exists every gate reads the constants of evaluation.discovery (N_ADDENDA_EXPECTED, REGISTERED_ADDENDA_SHA256) and the live discovery code digest, exactly as before",
@@ -1039,11 +1198,11 @@
     "confirmation": {
       "addenda_count": 8,
       "below_footer_sha256": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
-      "code_digest": "dddaa0d342694ea3943c903db050addc54ccfb4a577f8b64287014090167b530",
+      "code_digest": "6329bc4da416d2cffaae09e94e06c3d25d029326d09a028c3ef9463d38ea96df",
       "code_digest_source": "the tree: g19_run_confirmation.code_digest()['combined'] (the confirmation runner, gen19ct/evaluation/confirmation.py and the discovery code its arms are fitted with)",
-      "git_head": "5f8ccd8812d4138f9753a7e8e7edc1a78c3bdfdc",
-      "note": "TASK X round 4, second re-registration: the confirmation code digest after the seventh fix (the partial-record-set refusal). The stage has written no record, so this validates or invalidates nothing (addendum 2 item 5); the earlier entries are kept superseded.",
-      "registered_utc": "2026-09-23T13:03:08+00:00",
+      "git_head": "c20331c41c928b706ca0ae81d794a3bed379d0ed",
+      "note": "TASK X fix round 2026-09-24: re-registered from the tree after the logged code changes (see code_changes of the same date); the confirmation stage's code digest is its runner's current combined digest",
+      "registered_utc": "2026-09-23T22:15:23+00:00",
       "source": "current tree (below-footer digest and addenda count)",
       "stage": "confirmation"
     },
@@ -1121,23 +1280,22 @@
     "process": {
       "addenda_count": 8,
       "below_footer_sha256": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
-      "code_digest": "a8416dc8c8ab3ba9d71ffc16e8e6b3c8b97d3330143046174059567e66bef674",
-      "code_digest_source": "kept: the digest this stage's records were written under",
-      "git_head": "5f8ccd8812d4138f9753a7e8e7edc1a78c3bdfdc",
-      "note": "POST-HOC addendum 8 appended by commit 5f8ccd8 without the addendum 7 item 3 re-registration: every stage is re-registered at the below-footer digest of the 8-addendum sealed text; earlier entries kept as superseded so every record written before verifies against the entry it was written under",
-      "registered_utc": "2026-09-23T10:27:06+00:00",
-      "reregistration": "REGISTERED by POST-HOC addendum 7 item 3, as the standing procedure: 'Appending an addendum changes the below-footer digest, so every stage entry must be re-registered for its runner's gate to pass, while records written earlier verify against the entry under which they were written (kept as superseded). Resolved: after every addendum, every stage is re-registered at the new digest and the earlier entries are preserved; a record is always verified against the entry registered when it was written. This is addendum 2 change 5's mechanism, stated as the standing procedure so that the gates and the verification tests read the sealed text rather than a stale constant.' EVERY stage means the discovery stage too, which register_stage_from_tree refuses (its entry is read from its records), so reregister_all_stages calls register_stage directly with the records' own code digest and only the below-footer digest and addenda count moved. A stage keeps its registered CODE digest unless its own code changed and it has written no record yet",
+      "code_digest": "e622314fd4adde98fd82181b735139adf71d3f345598ab510b193913eb2d9667",
+      "code_digest_source": "the tree: g19_run_process.code_digests()['own']",
+      "git_head": "c20331c41c928b706ca0ae81d794a3bed379d0ed",
+      "note": "TASK X fix round 2026-09-24: re-registered from the tree after the logged code changes (see code_changes of the same date); the process stage's code digest is its runner's current combined digest",
+      "registered_utc": "2026-09-23T22:15:27+00:00",
       "source": "current tree (below-footer digest and addenda count)",
       "stage": "process"
     },
     "report": {
       "addenda_count": 8,
       "below_footer_sha256": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
-      "code_digest": "5780666a41c2d27e4d5375291684c14ebb57e32ba1e89342d66fcc6b74fbcfa3",
+      "code_digest": "7a92d73ac6f2f160abb6dae2fc3e278a585c9fd334a4c340b18007f33b9baf5e",
       "code_digest_source": "the tree: g19_build_report.code_digest()['combined']",
-      "git_head": "bdc62e2aa3c9c9088c731605d292afa75d602a3b",
-      "note": "Task X (report findings), 2026-09-24: report stage re-registered from the tree after the follow-up edit to gen19ct/evaluation/report.py (parse_addendum_items, wrapped titles) logged the same minute; the 15:58:38Z entry is kept as superseded. Validates or invalidates no record.",
-      "registered_utc": "2026-09-23T16:02:31+00:00",
+      "git_head": "c20331c41c928b706ca0ae81d794a3bed379d0ed",
+      "note": "TASK X fix round 2026-09-24: re-registered from the tree after the logged code changes (see code_changes of the same date); the report stage's code digest is its runner's current combined digest",
+      "registered_utc": "2026-09-23T22:15:29+00:00",
       "source": "current tree (below-footer digest and addenda count)",
       "stage": "report"
     },
@@ -2243,6 +2401,72 @@
       "stage": "report",
       "superseded_by_note": "Task X (report findings), 2026-09-24: report stage re-registered from the tree after the follow-up edit to gen19ct/evaluation/report.py (parse_addendum_items, wrapped titles) logged the same minute; the 15:58:38Z entry is kept as superseded. Validates or invalidates no record.",
       "superseded_utc": "2026-09-23T16:02:31+00:00"
+    },
+    {
+      "addenda_count": 8,
+      "below_footer_sha256": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
+      "code_digest": "a8416dc8c8ab3ba9d71ffc16e8e6b3c8b97d3330143046174059567e66bef674",
+      "code_digest_source": "kept: the digest this stage's records were written under",
+      "git_head": "5f8ccd8812d4138f9753a7e8e7edc1a78c3bdfdc",
+      "note": "POST-HOC addendum 8 appended by commit 5f8ccd8 without the addendum 7 item 3 re-registration: every stage is re-registered at the below-footer digest of the 8-addendum sealed text; earlier entries kept as superseded so every record written before verifies against the entry it was written under",
+      "registered_utc": "2026-09-23T10:27:06+00:00",
+      "reregistration": "REGISTERED by POST-HOC addendum 7 item 3, as the standing procedure: 'Appending an addendum changes the below-footer digest, so every stage entry must be re-registered for its runner's gate to pass, while records written earlier verify against the entry under which they were written (kept as superseded). Resolved: after every addendum, every stage is re-registered at the new digest and the earlier entries are preserved; a record is always verified against the entry registered when it was written. This is addendum 2 change 5's mechanism, stated as the standing procedure so that the gates and the verification tests read the sealed text rather than a stale constant.' EVERY stage means the discovery stage too, which register_stage_from_tree refuses (its entry is read from its records), so reregister_all_stages calls register_stage directly with the records' own code digest and only the below-footer digest and addenda count moved. A stage keeps its registered CODE digest unless its own code changed and it has written no record yet",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "process",
+      "superseded_by_note": "TASK P 2026-09-24: the process stage's code closure changed (g19_run_process.py: members_identical flag, D06 lines, CODE_FILES now includes the NEW deployment step scripts/g19_predict_process_inputs.py) before the stage has written any record; re-registered from the tree under the 8-addendum text; the earlier entry is kept as superseded (no record was written under it)",
+      "superseded_utc": "2026-09-23T18:15:07+00:00"
+    },
+    {
+      "addenda_count": 8,
+      "below_footer_sha256": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
+      "code_digest": "dddaa0d342694ea3943c903db050addc54ccfb4a577f8b64287014090167b530",
+      "code_digest_source": "the tree: g19_run_confirmation.code_digest()['combined'] (the confirmation runner, gen19ct/evaluation/confirmation.py and the discovery code its arms are fitted with)",
+      "git_head": "5f8ccd8812d4138f9753a7e8e7edc1a78c3bdfdc",
+      "note": "TASK X round 4, second re-registration: the confirmation code digest after the seventh fix (the partial-record-set refusal). The stage has written no record, so this validates or invalidates nothing (addendum 2 item 5); the earlier entries are kept superseded.",
+      "registered_utc": "2026-09-23T13:03:08+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "confirmation",
+      "superseded_by_note": "TASK R: the confirmation code digest after the runner was finished (V6 configuration reading, C4 transform, pause, S1(c) re-seeding, wildcard flags, string-dtype scrub, S1(d) interval columns, fold-cache reset, design_hash; closure += h3.py + s1c_yardsticks.py) and rehearsed whole on a synthetic corpus. The stage has written no record, so this validates or invalidates nothing (addendum 2 item 5); earlier entries are kept superseded.",
+      "superseded_utc": "2026-09-23T20:52:10+00:00"
+    },
+    {
+      "addenda_count": 8,
+      "below_footer_sha256": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
+      "code_digest": "1392176c77d72ce43a1cf324dfd66aa6eec47cd015bfdf24d733eb66f74be8c3",
+      "code_digest_source": "the tree: g19_run_confirmation.code_digest()['combined'] (the confirmation runner, gen19ct/evaluation/confirmation.py and the discovery code its arms are fitted with)",
+      "git_head": "c20331c41c928b706ca0ae81d794a3bed379d0ed",
+      "note": "TASK R: the confirmation code digest after the runner was finished (V6 configuration reading, C4 transform, pause, S1(c) re-seeding, wildcard flags, string-dtype scrub, S1(d) interval columns, fold-cache reset, design_hash; closure += h3.py + s1c_yardsticks.py) and rehearsed whole on a synthetic corpus. The stage has written no record, so this validates or invalidates nothing (addendum 2 item 5); earlier entries are kept superseded.",
+      "registered_utc": "2026-09-23T20:52:10+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "confirmation",
+      "superseded_by_note": "TASK X fix round 2026-09-24: re-registered from the tree after the logged code changes (see code_changes of the same date); the confirmation stage's code digest is its runner's current combined digest",
+      "superseded_utc": "2026-09-23T22:15:23+00:00"
+    },
+    {
+      "addenda_count": 8,
+      "below_footer_sha256": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
+      "code_digest": "ab86554401b3a0d6fdc8f27ab9887717b8e80f996af07dd069c5097381225943",
+      "code_digest_source": "the tree: g19_run_process.code_digests()['own']",
+      "git_head": "c20331c41c928b706ca0ae81d794a3bed379d0ed",
+      "note": "TASK P 2026-09-24: the process stage's code closure changed (g19_run_process.py: members_identical flag, D06 lines, CODE_FILES now includes the NEW deployment step scripts/g19_predict_process_inputs.py) before the stage has written any record; re-registered from the tree under the 8-addendum text; the earlier entry is kept as superseded (no record was written under it)",
+      "registered_utc": "2026-09-23T18:15:07+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "process",
+      "superseded_by_note": "TASK X fix round 2026-09-24: re-registered from the tree after the logged code changes (see code_changes of the same date); the process stage's code digest is its runner's current combined digest",
+      "superseded_utc": "2026-09-23T22:15:27+00:00"
+    },
+    {
+      "addenda_count": 8,
+      "below_footer_sha256": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
+      "code_digest": "5780666a41c2d27e4d5375291684c14ebb57e32ba1e89342d66fcc6b74fbcfa3",
+      "code_digest_source": "the tree: g19_build_report.code_digest()['combined']",
+      "git_head": "bdc62e2aa3c9c9088c731605d292afa75d602a3b",
+      "note": "Task X (report findings), 2026-09-24: report stage re-registered from the tree after the follow-up edit to gen19ct/evaluation/report.py (parse_addendum_items, wrapped titles) logged the same minute; the 15:58:38Z entry is kept as superseded. Validates or invalidates no record.",
+      "registered_utc": "2026-09-23T16:02:31+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "report",
+      "superseded_by_note": "TASK X fix round 2026-09-24: re-registered from the tree after the logged code changes (see code_changes of the same date); the report stage's code digest is its runner's current combined digest",
+      "superseded_utc": "2026-09-23T22:15:29+00:00"
     }
   ]
 }

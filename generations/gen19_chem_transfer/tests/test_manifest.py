@@ -187,3 +187,22 @@ def test_write_json_is_strict_json(tmp_path: Path) -> None:
 def test_written_json_outputs_are_strict() -> None:
     for p in sorted(paths.DATA_AUDIT_DIR.glob("*.json")) + sorted(paths.MANIFESTS_DIR.glob("*.json")):
         json.loads(p.read_text(encoding="utf-8"), parse_constant=lambda tok, p=p: pytest.fail(f"{p.name}: {tok}"))
+
+
+def test_write_json_is_atomic_and_leaves_no_temporary_file(tmp_path: Path) -> None:
+    """Task X finding V-F2: a process killed mid-write left a truncated record JSON.  The writer now writes a temporary
+    file in the same directory and ``os.replace``s it: a failed write leaves the previous file intact and no temporary
+    file behind; a successful one leaves exactly the target."""
+    p = write_json(tmp_path / "rec.json", {"a": 1})
+    assert json.loads(p.read_text(encoding="utf-8")) == {"a": 1} and sorted(q.name for q in tmp_path.iterdir()) == ["rec.json"]
+
+    class Boom:
+        def __str__(self):
+            raise RuntimeError("cannot serialise")
+
+    with pytest.raises(RuntimeError, match="cannot serialise"):
+        write_json(tmp_path / "rec.json", {"a": Boom()})
+    assert json.loads(p.read_text(encoding="utf-8")) == {"a": 1}                    # the previous file survives intact
+    assert sorted(q.name for q in tmp_path.iterdir()) == ["rec.json"]                # no .tmp left behind
+    write_json(tmp_path / "rec.json", {"a": 2})
+    assert json.loads(p.read_text(encoding="utf-8")) == {"a": 2}

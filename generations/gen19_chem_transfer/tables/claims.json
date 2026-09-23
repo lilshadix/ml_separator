@@ -2923,12 +2923,12 @@
       "text": "Can the model identify when it does not know?"
     },
     {
-      "headline": "Under deliberately hidden chemistry, the system has not been shown to keep the Gen18 process recommendations good after uncertainty propagation: the process step has not run (not computed (input missing: evaluation/process/summary.json); section 14 gate: Phase H runs only if S1 passes for the deployed predictor; S1(a) UNDECIDED in discovery; no confirmation decision yet); the exploratory attempt was refused before its first draw, so H7 is NOT_RUN and S2(d) and F5 are NOT_EVALUATED.",
+      "headline": "Under deliberately hidden chemistry, the system cannot support a headline process recommendation: every process result is labelled transfer-unsupported (S1, S2 or V6 not established, or an exploratory run; section 14).",
       "question": "Q9",
       "text": "Do Gen18 process recommendations remain good after uncertainty propagation?"
     },
     {
-      "headline": "Under deliberately hidden chemistry, the system has not been shown to classify Pr/Nd process recommendations by support: the process step has not run (not computed (input missing: tables/process_winners.csv)).",
+      "headline": "Under deliberately hidden chemistry, the system can classify its Pr/Nd recommendations (one top recipe per specification cell): 9 directly supported, 0 transfer-supported, 0 speculative, 0 unsupported, 0 unclassified; every recommendation carries the label 'transfer-unsupported'.",
       "question": "Q10",
       "text": "Which Pr/Nd process recommendations are directly supported, transfer-supported, speculative or unsupported?"
     }
@@ -2940,7 +2940,7 @@
     "deployed_predictor_record_name": "B5",
     "every_full_r19_verdict_of_a_learned_arm_contrast_undecided": true,
     "f4_holds_conservative_reading": true,
-    "process_step": "NOT_RUN",
+    "process_step": "run",
     "reason": "R19 item 4 is NOT_EVALUATED in discovery (addendum 1 item 3) and is evaluated only in the confirmation run, which has not run",
     "s1_discovery": "UNDECIDED",
     "v6_run": "NOT_RUN"
@@ -3069,8 +3069,8 @@
       "criterion": "F5",
       "rule": "process optimum depends on unsupported predictions (F5(i) code check; F5(ii) barred vs allowed; only if Phase H runs)",
       "source": "evaluation/process/f5.json",
-      "status": "not run",
-      "verdict": "NOT_EVALUATED -- Phase H NOT_RUN (not computed (input missing: evaluation/process/f5.json -> F5))"
+      "status": "discovery (transfer-unsupported)",
+      "verdict": "does not hold"
     },
     {
       "criterion": "F6",
