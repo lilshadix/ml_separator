@@ -59,6 +59,8 @@ reaches it; a later invocation resumes; never a registered demotion); ``--steps 
 from __future__ import annotations
 
 import argparse
+import contextlib
+import contextvars
 import datetime as _dt
 import importlib.util
 import json
@@ -1121,11 +1123,61 @@ def fold_digest(job: D.JobSpec, fold: FI.Fold, code: str, state: D.PlanState, ru
     extra = {"guard_mode": guard_mode_for(job, state), "batching_label": batching_label(job, state),
              "model_fold_number": int(ordinal), "model_seed": model_seed_of(ordinal) if job.kind == "fit" else None,
              "design_hash": str(design_hash), "prereg_sha256": D.REGISTERED_PREREG_SHA256,
-             "prereg_addenda_sha256": REG.below_footer_sha256(REG.job_stage(job)),
+             "prereg_addenda_sha256": _VERIFICATION_ADDENDA.get() or REG.below_footer_sha256(REG.job_stage(job)),
              "inner_design": inner_design_signature(job)}
     if hasattr(runner, "digest_extra"):
         extra.update(runner.digest_extra(job, fold, code, state, out_root, ordinal=ordinal, design_hash=design_hash))
     return D.fold_digest(job, fold, code, extra)
+
+
+#: the below-footer digest a RECORD SET being verified was written under (``verification_basis``); unset, ``fold_digest``
+#: takes the stage's current registry entry, which is what a record written NOW carries
+_VERIFICATION_ADDENDA: contextvars.ContextVar[str | None] = contextvars.ContextVar("g19_verification_addenda", default=None)
+
+
+@contextlib.contextmanager
+def verification_basis(addenda_sha256: str | None):
+    """Within the block, :func:`fold_digest` (and every nested call, e.g. M2's ``m1_expected_digest``) uses
+    ``addenda_sha256`` as the ``prereg_addenda_sha256`` of the digest instead of the stage's CURRENT below-footer digest.
+
+    POST-HOC addendum 7 item 3 / addendum 2 item 5: after every addendum every stage is re-registered at the new
+    below-footer digest and the earlier entries are kept as ``superseded``, and *a record is always verified against the
+    entry registered when it was written*.  The fold digest embeds the below-footer digest, so a record set written under
+    an earlier entry can only be recomputed with THAT entry's digest; :func:`record_set_basis` resolves it through
+    ``registry.verify_record`` (ordered superseded fallback) and :func:`verified_predictions` reads the set under it.
+    ``None`` leaves the current entry in force."""
+    token = _VERIFICATION_ADDENDA.set(None if addenda_sha256 is None else str(addenda_sha256))
+    try:
+        yield
+    finally:
+        _VERIFICATION_ADDENDA.reset(token)
+
+
+def record_set_basis(stage: str, bodies: Sequence[Mapping[str, Any]], code: str, *,
+                     registry_path: Path | None = None) -> dict[str, Any]:
+    """The registry entry a record set of ``stage`` was WRITTEN under, and hence the below-footer digest its fold digests
+    embed: every record must carry one and the same ``prereg_addenda_sha256`` and ``code_digest`` (a mixed set is
+    refused), and the set's first record must verify against an entry of its stage -- current, or superseded with the
+    record's own timestamp predating the supersession (``registry.verify_record``) -- whose code digest is ``code``.  A
+    set that verifies against no entry keeps the CURRENT entry's digest (``matched_entry`` None), so the digest comparison
+    that follows fails exactly as before and names the record."""
+    addenda = {str(b.get("prereg_addenda_sha256")) for b in bodies}
+    codes = {str(b.get("code_digest")) for b in bodies}
+    if len(addenda) != 1 or len(codes) != 1:
+        raise D.StaleRecordError(f"a record set of stage {stage!r} carries {len(addenda)} addenda digest(s) and {len(codes)} "
+                                 "code digest(s); every record of one set must be written under one registry entry")
+    current = REG.below_footer_sha256(stage, registry_path)
+    v = REG.verify_record(dict(bodies[0]), stage, registry_path) if bodies else {"ok": None}
+    entry = (v.get("superseded_match") or v.get("registry_entry") or {}) if v.get("ok") else {}
+    matched = v.get("matched_entry") if v.get("ok") else None
+    if matched is not None and str(entry.get("code_digest")) != str(code):
+        matched, entry = None, {}
+    basis = str(entry.get("below_footer_sha256")) if matched is not None else current
+    return {"stage": stage, "below_footer_sha256": basis, "matched_entry": matched,
+            "record_addenda_sha256": next(iter(addenda)), "record_code_digest": next(iter(codes)),
+            "current_below_footer_sha256": current, "ordering_checked": v.get("ordering_checked"),
+            "rule": "addendum 7 item 3: a record is verified against the registry entry registered when it was written; "
+                    "the fold digest embeds that entry's below-footer digest (g19_run_discovery.verification_basis)"}
 
 
 def batching_label(job: D.JobSpec, state: D.PlanState) -> str:
@@ -1308,9 +1360,14 @@ def verified_predictions(out_root: Path, arm: str, design_dir: str, seed: int, *
     cache = fold_cache if fold_cache is not None else {}
     if job.stem not in cache:
         cache[job.stem] = FI.read_design(job.stem, folds_dir or paths.FOLDS_DIR)
-    expected = expected_fold_records(job, cache[job.stem], code=code, state=state, out_root=out_root,
-                                     excluded_ids=excluded_ids, runners=runners)
-    return D.read_discovery_record_set(out_root, arm, design_dir, seed, expected=expected, steps=steps)
+    # the entry the set was WRITTEN under (addendum 7 item 3): its below-footer digest is what the records' fold digests
+    # embed, so the expected digests are recomputed under it, never under a later re-registration of the stage
+    basis = record_set_basis(REG.job_stage(job), bodies, code)
+    with verification_basis(basis["below_footer_sha256"]):
+        expected = expected_fold_records(job, cache[job.stem], code=code, state=state, out_root=out_root,
+                                         excluded_ids=excluded_ids, runners=runners)
+    pred, st = D.read_discovery_record_set(out_root, arm, design_dir, seed, expected=expected, steps=steps)
+    return pred, {**st, "verification_basis": basis}
 
 
 def current_code_digest() -> str:

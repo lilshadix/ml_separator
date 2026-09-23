@@ -1,0 +1,810 @@
+{
+  "archive_master_sha256": "7b32979383c5246f22d36ade6246231a347ea22490f4589a76e189af07b09b01",
+  "arguments": {
+    "check_only": false,
+    "embedding_arms": "M2,M1",
+    "expect_addenda": null,
+    "n_resamples": 10000,
+    "no_embedding_refits": true,
+    "no_manifest": false,
+    "only": null,
+    "out_root": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer"
+  },
+  "bootstrap_seed": 19,
+  "code_parts": {
+    "generations/gen19_chem_transfer/gen19ct/evaluation/figures.py": "be846b6ede2dbaf136aaffa5e3a912ac9a165ffb2e0ef8f9001c7f4c6216e3e1",
+    "generations/gen19_chem_transfer/scripts/g19_make_figures.py": "54e4d35b652899eeccc2534fe3f62c4f2c0a9eaf41d2ad884972a9d8ddebb9c0"
+  },
+  "code_sha256": "f6488cc69d8cdb74dc7f3c4ec8a05f1346fde91d8db001734b8174aedbb5b812",
+  "confirmation_half_read": false,
+  "confirmation_run": {
+    "decided": false,
+    "started": false,
+    "status": "confirmation run not run"
+  },
+  "discovery_seeds": [
+    104729,
+    130363,
+    155921,
+    196613,
+    262147
+  ],
+  "embedding_refits": null,
+  "figures": [
+    {
+      "data_path": "generations/gen19_chem_transfer/figures/data/F07_pred_vs_measured.csv",
+      "figure": "F07",
+      "inputs": [
+        "evaluation/discovery/B5/V1__copy_exact/s104729/",
+        "evaluation/discovery/B5/V2__element_exact/s104729/",
+        "evaluation/discovery/B5/V5__primary_batched_max4/s104729/",
+        "evaluation/discovery/decisions/decisions.json",
+        "evaluation/preseal/predictions/V1__copy.parquet",
+        "evaluation/preseal/predictions/V2__element.parquet",
+        "evaluation/preseal/predictions/V5__primary.parquet"
+      ],
+      "path": "generations/gen19_chem_transfer/figures/F07_pred_vs_measured.png",
+      "reason": "",
+      "stats": {
+        "panels": [
+          {
+            "arm": "B5",
+            "averaging_unit": [
+              "g19_metal_state",
+              "extractant_system_key"
+            ],
+            "design": "V5",
+            "macro_mae": 0.349888756564342,
+            "n_rows": 4101,
+            "n_units": 105
+          },
+          {
+            "arm": "B5",
+            "averaging_unit": [
+              "v1_outer_fold_unit"
+            ],
+            "design": "V1",
+            "macro_mae": 0.9718304908015634,
+            "n_rows": 5246,
+            "n_units": 65
+          },
+          {
+            "arm": "B5",
+            "averaging_unit": [
+              "g19_metal_state"
+            ],
+            "design": "V2",
+            "macro_mae": 0.5379370913113988,
+            "n_rows": 4543,
+            "n_units": 12
+          },
+          {
+            "arm": "B3i",
+            "averaging_unit": [
+              "g19_metal_state",
+              "extractant_system_key"
+            ],
+            "design": "V5",
+            "macro_mae": 0.7670149232065543,
+            "n_rows": 4101,
+            "n_units": 105
+          },
+          {
+            "arm": "B3i",
+            "averaging_unit": [
+              "v1_outer_fold_unit"
+            ],
+            "design": "V1",
+            "macro_mae": 1.097990364365573,
+            "n_rows": 5246,
+            "n_units": 65
+          },
+          {
+            "arm": "B3i",
+            "averaging_unit": [
+              "g19_metal_state"
+            ],
+            "design": "V2",
+            "macro_mae": 0.6432659016559915,
+            "n_rows": 4543,
+            "n_units": 12
+          }
+        ]
+      },
+      "status": "written"
+    },
+    {
+      "data_path": "generations/gen19_chem_transfer/figures/data/F09_uncertainty_calibration.csv",
+      "figure": "F09",
+      "inputs": [
+        "evaluation/discovery/B5/V1__copy_exact/s104729/",
+        "evaluation/discovery/B5/V2__element_exact/s104729/",
+        "evaluation/discovery/B5/V5__primary_batched_max4/s104729/",
+        "evaluation/discovery/_support/V5__primary_batched_max4/s104729/",
+        "evaluation/discovery/decisions/decisions.json",
+        "evaluation/preseal/predictions/V1__copy.parquet",
+        "evaluation/preseal/predictions/V2__element.parquet",
+        "evaluation/preseal/predictions/V5__primary.parquet"
+      ],
+      "path": "generations/gen19_chem_transfer/figures/F09_uncertainty_calibration.png",
+      "reason": "",
+      "stats": {
+        "coverage": [
+          {
+            "arm": "B5",
+            "category": "all",
+            "coverage_unit_macro": 0.660898879824544,
+            "design": "V5",
+            "level": 0.5,
+            "n_rows": 4101,
+            "n_units": 105
+          },
+          {
+            "arm": "B5",
+            "category": "all",
+            "coverage_unit_macro": 0.8954261513521985,
+            "design": "V5",
+            "level": 0.8,
+            "n_rows": 4101,
+            "n_units": 105
+          },
+          {
+            "arm": "B5",
+            "category": "all",
+            "coverage_unit_macro": 0.9827254741039643,
+            "design": "V5",
+            "level": 0.95,
+            "n_rows": 4101,
+            "n_units": 105
+          },
+          {
+            "arm": "B5",
+            "category": "all",
+            "coverage_unit_macro": 0.5232463408089022,
+            "design": "V1",
+            "level": 0.5,
+            "n_rows": 5246,
+            "n_units": 65
+          },
+          {
+            "arm": "B5",
+            "category": "all",
+            "coverage_unit_macro": 0.827626717453504,
+            "design": "V1",
+            "level": 0.8,
+            "n_rows": 5246,
+            "n_units": 65
+          },
+          {
+            "arm": "B5",
+            "category": "all",
+            "coverage_unit_macro": 0.9495371930828888,
+            "design": "V1",
+            "level": 0.95,
+            "n_rows": 5246,
+            "n_units": 65
+          },
+          {
+            "arm": "B5",
+            "category": "all",
+            "coverage_unit_macro": 0.4468426752325416,
+            "design": "V2",
+            "level": 0.5,
+            "n_rows": 4543,
+            "n_units": 12
+          },
+          {
+            "arm": "B5",
+            "category": "all",
+            "coverage_unit_macro": 0.7191166201948849,
+            "design": "V2",
+            "level": 0.8,
+            "n_rows": 4543,
+            "n_units": 12
+          },
+          {
+            "arm": "B5",
+            "category": "all",
+            "coverage_unit_macro": 0.895534193013349,
+            "design": "V2",
+            "level": 0.95,
+            "n_rows": 4543,
+            "n_units": 12
+          },
+          {
+            "arm": "B5",
+            "category": "CROSS_METAL_LIGAND_TRANSFER",
+            "coverage_unit_macro": 0.6611776898235732,
+            "design": "V5",
+            "level": 0.5,
+            "n_rows": 4084,
+            "n_units": 105
+          },
+          {
+            "arm": "B5",
+            "category": "UNSUPPORTED",
+            "coverage_unit_macro": 0.05555555555555555,
+            "design": "V5",
+            "level": 0.5,
+            "n_rows": 17,
+            "n_units": 4
+          },
+          {
+            "arm": "B5",
+            "category": "CROSS_METAL_LIGAND_TRANSFER",
+            "coverage_unit_macro": 0.8950058259575985,
+            "design": "V5",
+            "level": 0.8,
+            "n_rows": 4084,
+            "n_units": 105
+          },
+          {
+            "arm": "B5",
+            "category": "UNSUPPORTED",
+            "coverage_unit_macro": 0.5555555555555556,
+            "design": "V5",
+            "level": 0.8,
+            "n_rows": 17,
+            "n_units": 4
+          },
+          {
+            "arm": "B5",
+            "category": "CROSS_METAL_LIGAND_TRANSFER",
+            "coverage_unit_macro": 0.9826944969499306,
+            "design": "V5",
+            "level": 0.95,
+            "n_rows": 4084,
+            "n_units": 105
+          },
+          {
+            "arm": "B5",
+            "category": "UNSUPPORTED",
+            "coverage_unit_macro": 0.625,
+            "design": "V5",
+            "level": 0.95,
+            "n_rows": 17,
+            "n_units": 4
+          }
+        ]
+      },
+      "status": "written"
+    },
+    {
+      "data_path": "generations/gen19_chem_transfer/figures/data/F08_error_vs_support.csv",
+      "figure": "F08",
+      "inputs": [
+        "evaluation/discovery/B5/V1__copy_exact/s104729/",
+        "evaluation/discovery/B5/V2__element_exact/s104729/",
+        "evaluation/discovery/B5/V5__primary_batched_max4/s104729/",
+        "evaluation/discovery/_support/V5__primary_batched_max4/s104729/",
+        "evaluation/discovery/decisions/decisions.json",
+        "evaluation/preseal/predictions/V1__copy.parquet",
+        "evaluation/preseal/predictions/V2__element.parquet",
+        "evaluation/preseal/predictions/V5__primary.parquet"
+      ],
+      "path": "generations/gen19_chem_transfer/figures/F08_error_vs_support.png",
+      "reason": "",
+      "stats": {
+        "per_arm": {
+          "B3i": {
+            "bootstrap_seed": 19,
+            "n_cells": 105,
+            "n_clusters": 18,
+            "n_dropped_nan": 0,
+            "n_resamples": 10000,
+            "percentile_high": -0.1938067130943085,
+            "percentile_low": -0.6711618044559594,
+            "rho": -0.5007516225754504,
+            "status": "computed",
+            "x": "support_score"
+          },
+          "B5": {
+            "bootstrap_seed": 19,
+            "n_cells": 105,
+            "n_clusters": 18,
+            "n_dropped_nan": 0,
+            "n_resamples": 10000,
+            "percentile_high": -0.05393761007649864,
+            "percentile_low": -0.5651765272654812,
+            "rho": -0.34593812858625334,
+            "status": "computed",
+            "x": "support_score"
+          }
+        }
+      },
+      "status": "written"
+    },
+    {
+      "data_path": "generations/gen19_chem_transfer/figures/data/F13_direction_confusion.csv",
+      "figure": "F13",
+      "inputs": [
+        "evaluation/discovery/M2/V5PAIR__primary_batched/s104729/",
+        "evaluation/discovery/decisions/decisions.json",
+        "folds/V5PAIR__primary__batched__pairs.parquet"
+      ],
+      "path": "generations/gen19_chem_transfer/figures/F13_direction_confusion.png",
+      "reason": "V6 panel skipped: confirmation run not run (input missing: evaluation/confirmation/v6_rows.csv, evaluation/confirmation/v6_pairs.csv; the single V6 run of section 3.4 happens only inside the confirmation run, whose once-only lock is unspent)",
+      "stats": {
+        "designs_drawn": [
+          "V5-PAIR"
+        ],
+        "per_design": [
+          {
+            "arm": "M2",
+            "design": "V5-PAIR",
+            "direction_accuracy": 0.9567300494085941,
+            "n_excluded_below_threshold_or_nan": 3123,
+            "n_pairs": 6679,
+            "obs_neg_pred_neg": 4556,
+            "obs_neg_pred_pos": 146,
+            "obs_neg_pred_zero": 0,
+            "obs_pos_pred_neg": 143,
+            "obs_pos_pred_pos": 1834,
+            "obs_pos_pred_zero": 0,
+            "reading": "section 4 primary (every design)",
+            "registered_primary": true,
+            "threshold": 0.3
+          }
+        ],
+        "skipped_note": "V6 panel skipped: confirmation run not run (input missing: evaluation/confirmation/v6_rows.csv, evaluation/confirmation/v6_pairs.csv; the single V6 run of section 3.4 happens only inside the confirmation run, whose once-only lock is unspent)"
+      },
+      "status": "written"
+    },
+    {
+      "data_path": "generations/gen19_chem_transfer/figures/data/F10_metal_embedding.csv",
+      "figure": "F10",
+      "inputs": [
+        "evaluation/figures/embeddings/M2/metal_embeddings.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b001.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b002.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b003.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b004.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b005.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b006.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b007.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b008.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b009.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b010.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b011.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b012.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b013.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b014.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b015.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b016.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b017.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b018.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b019.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b020.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b021.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b022.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b023.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b024.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b025.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b026.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b027.csv",
+        "evaluation/figures/embeddings/M2/stability.json",
+        "evaluation/figures/embeddings/M2/system_embeddings.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b001.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b002.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b003.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b004.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b005.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b006.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b007.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b008.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b009.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b010.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b011.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b012.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b013.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b014.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b015.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b016.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b017.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b018.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b019.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b020.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b021.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b022.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b023.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b024.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b025.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b026.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b027.csv",
+        "evaluation/figures/embeddings/M2/verification.json",
+        "evaluation/power/reliability.json"
+      ],
+      "path": "generations/gen19_chem_transfer/figures/F10_metal_embedding.png",
+      "reason": "",
+      "stats": {
+        "explained_variance_ratio": [
+          0.3454185766568688,
+          0.24817779265903783
+        ],
+        "n_replicates": 18,
+        "n_states": 43,
+        "replicate_label": "fold-replicate",
+        "source": "reproduced from the verified M2 discovery records (evaluation/figures/embeddings/M2)",
+        "stability": {
+          "floor": 0.3,
+          "gate": "RELIABLE",
+          "method": "procrustes_aligned_bootstrap",
+          "n_dimensions": 8,
+          "n_replicates": 18,
+          "n_units": 43,
+          "note": "the Procrustes statistic is upward-biased: compare it with null_stability (unit labels permuted) before reading it as agreement",
+          "null_seed": 19,
+          "null_stability": 0.2761144681588164,
+          "per_unit_stability": {
+            "Am(III)": 0.5320181433806086,
+            "Am(VI)": 0.6549451498407229,
+            "Ba(II)": 0.8777313231150978,
+            "Bi(III)": 0.8194629234738532,
+            "Ca(II)": 0.7205175029213952,
+            "Cd(II)": 0.882575608612426,
+            "Ce(III)": 0.7130286044956978,
+            "Cf(III)": 0.6151797869759581,
+            "Cm(III)": 0.6044758774080338,
+            "Dy(III)": 0.918027691770527,
+            "Er(III)": 0.920375602533259,
+            "Eu(III)": 0.7305992445816889,
+            "Gd(III)": 0.8840290871170061,
+            "Hf(IV)": 0.7655342067257126,
+            "Ho(III)": 0.9213924632710923,
+            "In(III)": 0.8085857835958126,
+            "La(III)": 0.7428876102862516,
+            "Lu(III)": 0.8867900643857467,
+            "Nd(III)": 0.7938393772824387,
+            "Np(IV)": 0.5488587832978822,
+            "Np(V)": 0.7409646843903047,
+            "Np(VI)": 0.7251150904563373,
+            "Pa(V)": 0.688609683668918,
+            "Pb(II)": 0.8954370802217129,
+            "Pd(II)": 0.8734787749100736,
+            "Pd(IV)": 0.7887194924428956,
+            "Pm(III)": 0.793763812968332,
+            "Pr(III)": 0.7821882601520956,
+            "Pu(III)": 0.6221803261887889,
+            "Pu(IV)": 0.5962951913292908,
+            "Pu(VI)": 0.7254589636843711,
+            "Sm(III)": 0.8654986258300491,
+            "Sr(II)": 0.8456803182381072,
+            "Sr(III)": 0.7323884746207137,
+            "Tb(III)": 0.9037338766478812,
+            "Tc(VII)": 0.8364953623883522,
+            "Th(IV)": 0.4698882082927758,
+            "Tm(III)": 0.9172947556264709,
+            "U(IV)": 0.6413480198093453,
+            "U(VI)": 0.6540762020311047,
+            "Y(III)": 0.3430912559433197,
+            "Yb(III)": 0.887729026527242,
+            "Zr(IV)": 0.7895178007868614
+          },
+          "reading": "Procrustes-aligned bootstrap stability of an embedding: every bootstrap replicate's matrix is aligned to the full-sample one by the orthogonal Procrustes solution (centred, not scaled), and the stability of a unit is the mean cosine similarity of its aligned replicate vectors with its full-sample vector; the table's stability is the mean over units and is gated by the 0.3 floor like a reliability. The alignment maximises agreement, so the statistic is upward-biased and its no-correspondence value is NOT 0 (measured on random matrices: 0.42 at 12 units x 4 dimensions, 0.23 at 30 x 4, 0.27 at 60 x 8, 0.23 at 200 x 16) -- at gen19's embedding sizes that sits at the registered 0.3 floor, so a unit-label-permuted null (null_stability) is computed and printed beside every value and a raw value inside the null band is flagged within_null_band. The gate stays on the raw value: using the null in a decision needs a POST-HOC addendum",
+          "registered_reliability": "NOT_RUN (evaluation/power/reliability.json, quantity embeddings): this record is descriptive and enters no registered rule",
+          "replicate_label": "fold-replicate",
+          "stability": 0.7548792586564315,
+          "stability_above_null": 0.47876479049761506,
+          "status": "computed",
+          "within_null_band": false
+        }
+      },
+      "status": "written"
+    },
+    {
+      "data_path": "generations/gen19_chem_transfer/figures/data/F11_extractant_embedding.csv",
+      "figure": "F11",
+      "inputs": [
+        "evaluation/figures/embeddings/M2/metal_embeddings.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b001.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b002.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b003.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b004.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b005.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b006.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b007.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b008.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b009.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b010.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b011.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b012.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b013.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b014.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b015.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b016.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b017.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b018.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b019.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b020.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b021.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b022.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b023.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b024.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b025.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b026.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b027.csv",
+        "evaluation/figures/embeddings/M2/stability.json",
+        "evaluation/figures/embeddings/M2/system_embeddings.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b001.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b002.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b003.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b004.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b005.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b006.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b007.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b008.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b009.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b010.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b011.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b012.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b013.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b014.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b015.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b016.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b017.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b018.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b019.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b020.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b021.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b022.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b023.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b024.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b025.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b026.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b027.csv",
+        "evaluation/figures/embeddings/M2/verification.json",
+        "evaluation/power/reliability.json"
+      ],
+      "path": "generations/gen19_chem_transfer/figures/F11_extractant_embedding.png",
+      "reason": "",
+      "stats": {
+        "explained_variance_ratio": [
+          0.29878763161659416,
+          0.20211879112723374
+        ],
+        "n_families": 26,
+        "n_systems": 259,
+        "source": "reproduced from the verified M2 discovery records (evaluation/figures/embeddings/M2)"
+      },
+      "status": "written"
+    },
+    {
+      "data_path": null,
+      "figure": "F12",
+      "inputs": [
+        "evaluation/confirmation/v6_pairs.csv",
+        "evaluation/confirmation/v6_rows.csv"
+      ],
+      "path": null,
+      "reason": "confirmation run not run (input missing: evaluation/confirmation/v6_rows.csv, evaluation/confirmation/v6_pairs.csv; the single V6 run of section 3.4 happens only inside the confirmation run, whose once-only lock is unspent)",
+      "stats": {},
+      "status": "skipped"
+    }
+  ],
+  "gate": {
+    "discovery_code_sha256": "895a6ab9696010c9f8bffb4a6078f55b8f41b0773623a8de77103083157e0504",
+    "discovery_complete": {
+      "complete": true,
+      "definition": "Whether the discovery run is COMPLETE, defined as all of:\n\n1. ``evaluation/discovery/decisions/wall_clock.json`` records an invocation whose ``stages_done`` reached the last\n   stage of the plan (``discovery.STAGES['not_implemented']``, the ``M3+`` marker ``run_plan`` stops at) and every\n   stage of the current plan is in the union of the recorded ``stages_done``;\n2. every ``fit`` job of ``discovery.enumerate_plan(state)`` (the plan under the final plan state, freezing-candidate\n   runs included) has, for every arm it writes, a COMPLETE verified record set\n   (``g19_run_discovery.verified_predictions``: digest, fold hash and fold set exactly what the code the record set's\n   stage is registered under -- ``registry.record_dir_code``: the ``discovery`` or ``discovery_candidates`` entry,\n   else ``code`` -- the fold files and the plan state produce; a stale record raises).",
+      "final_stage": "10_not_implemented",
+      "incomplete_record_sets": [],
+      "missing_stages": [],
+      "n_complete": 41,
+      "n_fit_record_sets": 41,
+      "n_incomplete": 0,
+      "reached_final_stage": true,
+      "stages_done": [
+        "00_safeguard",
+        "01_B6",
+        "02_comparator_intervals",
+        "03_B5_FLAT_CAT_B8",
+        "04_M1",
+        "05_M2",
+        "06_stop_rule",
+        "07_s1c_v5pair",
+        "08_refit_sensitivities",
+        "09_candidates",
+        "10_not_implemented"
+      ],
+      "wall_clock_json_present": true
+    },
+    "ladder_complete": {
+      "complete": true,
+      "definition": "ladder.json exists and every step M3-M7 has a status in demoted, exploratory_not_run, judged, kept, not_run, removed",
+      "not_done": [],
+      "present": true,
+      "steps": {
+        "M3": "not_run",
+        "M4": "not_run",
+        "M5": "not_run",
+        "M6": "not_run",
+        "M7": "not_run"
+      },
+      "stop_rule": false
+    },
+    "plan_state": {
+      "freezing_candidates": [
+        {
+          "arms": [
+            "M2",
+            "B0"
+          ],
+          "batching_label": "batched",
+          "contrast": "M2 vs B0@V5",
+          "design": "V5",
+          "eligibility": {
+            "eligible": true,
+            "evaluated_items": {
+              "1": "PASS",
+              "2": "PASS",
+              "3": "PASS",
+              "5": "PASS",
+              "6": "PASS"
+            },
+            "failed_items": [],
+            "items": {
+              "1": "PASS",
+              "2": "PASS",
+              "3": "PASS",
+              "4": "NOT_EVALUATED",
+              "5": "PASS",
+              "6": "PASS"
+            },
+            "items_not_evaluated_in_discovery": {
+              "4": "NOT_EVALUATED"
+            },
+            "r19_verdict_full": "UNDECIDED",
+            "reason": "items [1, 2, 3, 5, 6] PASS; not evaluated in discovery: item 4 NOT_EVALUATED; no item FAIL",
+            "rule": "POST-HOC addendum 3 item 1 (section 15): a contrast is ELIGIBLE FOR FREEZING when every R19 item that R19 EVALUATES in discovery is PASS and no item is FAIL. An item R19 does not evaluate in discovery -- item 4, NOT_EVALUATED by addendum 1 item 3 (one discovery seed), and any UNTESTABLE / NOT_RUN item -- does not disqualify it; item 4 is evaluated at confirmation exactly as registered (5 of 5 withheld seeds). Any FAIL, on any item, makes the contrast ineligible. This is the reading addendum 2 already gives F6 for deployment, and it would have been required whatever the scores were. Everything else about section 15 is unchanged: at most five claims, named in decisions/CONFIRMATION_PLAN.md before the run, one run on the withheld seeds and the confirmation half, V6 once."
+          },
+          "eligible_for_freezing": true,
+          "family": "S1(b)",
+          "s1_forced_undecided": false,
+          "section_3_1_v5p_trigger": false,
+          "section_3_1_v5p_trigger_rule": "section 3.1: the heavy-arm V5-P run of a freezing candidate is triggered by R19 items 1-5 on V5-primary. Item 4 is NOT_EVALUATED in discovery (addendum 1 item 3), so the trigger cannot fire; addendum 1 item 4 does not run the heavy-arm V5-P runs either way. Addendum 3 item 1 changes what 'passed R19 in discovery' means for FREEZING (section 15), not this trigger, so the two are reported separately."
+        },
+        {
+          "arms": [
+            "M2",
+            "B3i"
+          ],
+          "batching_label": "batched",
+          "contrast": "M2 vs B3i@V5",
+          "design": "V5",
+          "eligibility": {
+            "eligible": true,
+            "evaluated_items": {
+              "1": "PASS",
+              "2": "PASS",
+              "3": "PASS",
+              "5": "PASS",
+              "6": "PASS"
+            },
+            "failed_items": [],
+            "items": {
+              "1": "PASS",
+              "2": "PASS",
+              "3": "PASS",
+              "4": "NOT_EVALUATED",
+              "5": "PASS",
+              "6": "PASS"
+            },
+            "items_not_evaluated_in_discovery": {
+              "4": "NOT_EVALUATED"
+            },
+            "r19_verdict_full": "UNDECIDED",
+            "reason": "items [1, 2, 3, 5, 6] PASS; not evaluated in discovery: item 4 NOT_EVALUATED; no item FAIL",
+            "rule": "POST-HOC addendum 3 item 1 (section 15): a contrast is ELIGIBLE FOR FREEZING when every R19 item that R19 EVALUATES in discovery is PASS and no item is FAIL. An item R19 does not evaluate in discovery -- item 4, NOT_EVALUATED by addendum 1 item 3 (one discovery seed), and any UNTESTABLE / NOT_RUN item -- does not disqualify it; item 4 is evaluated at confirmation exactly as registered (5 of 5 withheld seeds). Any FAIL, on any item, makes the contrast ineligible. This is the reading addendum 2 already gives F6 for deployment, and it would have been required whatever the scores were. Everything else about section 15 is unchanged: at most five claims, named in decisions/CONFIRMATION_PLAN.md before the run, one run on the withheld seeds and the confirmation half, V6 once."
+          },
+          "eligible_for_freezing": true,
+          "family": "primary",
+          "s1_forced_undecided": false,
+          "section_3_1_v5p_trigger": false,
+          "section_3_1_v5p_trigger_rule": "section 3.1: the heavy-arm V5-P run of a freezing candidate is triggered by R19 items 1-5 on V5-primary. Item 4 is NOT_EVALUATED in discovery (addendum 1 item 3), so the trigger cannot fire; addendum 1 item 4 does not run the heavy-arm V5-P runs either way. Addendum 3 item 1 changes what 'passed R19 in discovery' means for FREEZING (section 15), not this trigger, so the two are reported separately."
+        },
+        {
+          "arms": [
+            "M2",
+            "B6r0"
+          ],
+          "batching_label": "batched",
+          "contrast": "M2 vs B6r0@V5",
+          "design": "V5",
+          "eligibility": {
+            "eligible": true,
+            "evaluated_items": {
+              "1": "PASS",
+              "2": "PASS",
+              "3": "PASS",
+              "5": "PASS",
+              "6": "PASS"
+            },
+            "failed_items": [],
+            "items": {
+              "1": "PASS",
+              "2": "PASS",
+              "3": "PASS",
+              "4": "NOT_EVALUATED",
+              "5": "PASS",
+              "6": "PASS"
+            },
+            "items_not_evaluated_in_discovery": {
+              "4": "NOT_EVALUATED"
+            },
+            "r19_verdict_full": "UNDECIDED",
+            "reason": "items [1, 2, 3, 5, 6] PASS; not evaluated in discovery: item 4 NOT_EVALUATED; no item FAIL",
+            "rule": "POST-HOC addendum 3 item 1 (section 15): a contrast is ELIGIBLE FOR FREEZING when every R19 item that R19 EVALUATES in discovery is PASS and no item is FAIL. An item R19 does not evaluate in discovery -- item 4, NOT_EVALUATED by addendum 1 item 3 (one discovery seed), and any UNTESTABLE / NOT_RUN item -- does not disqualify it; item 4 is evaluated at confirmation exactly as registered (5 of 5 withheld seeds). Any FAIL, on any item, makes the contrast ineligible. This is the reading addendum 2 already gives F6 for deployment, and it would have been required whatever the scores were. Everything else about section 15 is unchanged: at most five claims, named in decisions/CONFIRMATION_PLAN.md before the run, one run on the withheld seeds and the confirmation half, V6 once."
+          },
+          "eligible_for_freezing": true,
+          "family": "S1(b)",
+          "s1_forced_undecided": false,
+          "section_3_1_v5p_trigger": false,
+          "section_3_1_v5p_trigger_rule": "section 3.1: the heavy-arm V5-P run of a freezing candidate is triggered by R19 items 1-5 on V5-primary. Item 4 is NOT_EVALUATED in discovery (addendum 1 item 3), so the trigger cannot fire; addendum 1 item 4 does not run the heavy-arm V5-P runs either way. Addendum 3 item 1 changes what 'passed R19 in discovery' means for FREEZING (section 15), not this trigger, so the two are reported separately."
+        }
+      ],
+      "guard_mode": {
+        "V1__copy__grouped10": "nested_certificate",
+        "V2__element__exact": "nested_certificate",
+        "V5PAIR__primary__batched": "nested_certificate",
+        "V5PAIR__primary__cell_pair": "nested_certificate",
+        "V5P__base__batched": "nested_certificate",
+        "V5P__base__cell_x_group": "nested_certificate",
+        "V5__cell_only__batched": "nested_certificate",
+        "V5__parent_structure__batched": "nested_certificate",
+        "V5__primary__batched": "nested_certificate",
+        "V5__primary__exact": "nested_certificate"
+      },
+      "heavy_v1_scheme": "exact",
+      "heavy_v5_label": "batched",
+      "heavy_v5_scheme": "batched_max4",
+      "notes": {},
+      "schema": "gen19.discovery.v1",
+      "v1_tenfold_check": "failed",
+      "v5_batched_check": "passed_after_recolour"
+    },
+    "scorer_decisions": {
+      "all_present": true,
+      "decisions_newer_than_every_record": true,
+      "ok": true,
+      "present": {
+        "contrasts_registered.csv": true,
+        "decisions/decisions.json": true,
+        "decisions/stop_rule.json": true,
+        "r19_items.csv": true
+      }
+    }
+  },
+  "git_head": "bdc62e2aa3c9c9088c731605d292afa75d602a3b",
+  "inputs": [],
+  "n_resamples": 10000,
+  "outputs": [
+    {
+      "bytes": 32645,
+      "path": "generations/gen19_chem_transfer/evaluation/figures/figures_index.json",
+      "sha256": "eba59574e9ec5f155fda67dc894682f7962cd24476f14458bfaf1a1d031ee312",
+      "sha256_lf": "eba59574e9ec5f155fda67dc894682f7962cd24476f14458bfaf1a1d031ee312"
+    },
+    {
+      "bytes": 322,
+      "path": "generations/gen19_chem_transfer/tables/s1e_error_vs_support.csv",
+      "sha256": "a1d401f5d8636548406836916f594c5cd94a7773e727dd5935846887981e5d67",
+      "sha256_lf": "a1d401f5d8636548406836916f594c5cd94a7773e727dd5935846887981e5d67"
+    }
+  ],
+  "prereg_gate": {
+    "addenda_sha256": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
+    "addenda_sha256_registered": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
+    "addendum_implemented": 8,
+    "gate_source": "registry",
+    "n_addenda": 8,
+    "n_addenda_expected": 8,
+    "prereg_sha256": "135842499a86eb3d478ece01a45718ac5b9673a4134bb4acda550f975bb45641",
+    "registry_path": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer\\manifests\\digest_registry.json",
+    "seal_check_exit": 0,
+    "stage": "figures"
+  },
+  "schema": "gen19.manifest.v1",
+  "script": "g19_make_figures",
+  "seed": 104729,
+  "v6_target_rows_scored": 0
+}

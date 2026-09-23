@@ -107,7 +107,7 @@ BP, extractant-macro MAE of pairwise `log SF`:
 |---|---|
 | the current verdict and every standing claim | [generations/gen16_leads/DECISION_REPORT.md](generations/gen16_leads/DECISION_REPORT.md) |
 | the validity contract every result must pass | [generations/gen16_leads/START_HERE.md](generations/gen16_leads/START_HERE.md) §1 |
-| an index of gen12–gen17 | [generations/README.md](generations/README.md) |
+| an index of gen12–gen19 | [generations/README.md](generations/README.md) |
 | the documentation index and the gen2–gen11 map | [docs/README.md](docs/README.md) |
 | gen2–gen11 in one self-contained briefing | [docs/HANDOFF_FOR_CHATGPT.md](docs/HANDOFF_FOR_CHATGPT.md) (written before gen11's matched stage; see `runs/gen11_transfer/GEN11_DECISION_REPORT.md`) |
 | what may and may not be claimed from a number | [docs/figures/METRIC_AUDIT.md](docs/figures/METRIC_AUDIT.md) |
@@ -141,6 +141,7 @@ depends on it.
 | 16 (anchor) | Anchor regression with the publication as anchor | Every arm is worse than gen14 under BP. *Unreviewed.* | `generations/gen16_anchor/` |
 | 16 (protocol) | Few-cluster inference audit, conditional designs, learning curve | The percentile bootstrap rejects 7–8 % at nominal 5 %; some runs are incomplete; no report. *Unreviewed.* | `generations/gen16_protocol/` |
 | 17 | Within-publication pairwise difference learning | Every arm is worse than predicting zero difference; leave-one-publication-out, not BP. *Unreviewed.* | `generations/gen17_pairdiff/` |
+| 19 | Chemistry transfer across metals, extractants and publications, with uncertainty into the process layer | Discovery only (selection half, seed 104729, optimistically biased): the factorised M2 beats the within-system lookup on hidden cells (+0.263 ≥ δ5 0.106; R19 items 1, 2, 3, 5 PASS, full verdict UNDECIDED) but the descriptor CatBoost M0 is better still (M2 − M0 = −0.154) and is deployed; F4 (negative actinide transfer) HOLDS under the conservative reading, a §10 failure condition met. **The confirmation run and the single Pr/Nd test were not run, so every full R19 verdict of a learned-arm contrast, and therefore S1 and S2, is UNDECIDED.** | `generations/gen19_chem_transfer/` (`SUMMARY.md`, `GEN19_REPORT.md`) |
 
 ## Setup and tests
 
@@ -166,6 +167,7 @@ PYTHONPATH=src .venv/bin/python -m pytest tests -q          # gen2–gen11; add 
 .venv/bin/python -m pytest generations/gen12_2_eu_pred/tests -q
 .venv/bin/python -m pytest generations/gen13_separation/tests -q
 .venv/bin/python -m pytest generations/gen16_leads/tests -q
+.venv/bin/python -m pytest generations/gen19_chem_transfer/tests -q -p no:cacheprovider
 .venv/bin/python -m pytest generations/tests -q             # relocation checks for the 2026-09 move
 ```
 

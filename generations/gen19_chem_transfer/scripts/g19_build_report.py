@@ -4,8 +4,8 @@ pre-registration sections 9, 10, 15, 16, 17, 19).
 
 Gate (refuses to start unless BOTH hold; ``--check-only`` prints the verdict):
 
-1. ``scripts/g19_seal_prereg.py --check`` exits 0 AND the sealed text is the registered digest with POST-HOC addendum 1
-   (``g19_run_discovery.refuse_unless_sealed``);
+1. ``scripts/g19_seal_prereg.py --check`` exits 0 AND the below-footer text digests to the ``report`` stage's registry entry
+   (``registry.refuse_unless_sealed``; addendum 2 item 5, re-registered after every addendum by addendum 7 item 3);
 2. the discovery run is **COMPLETE** (``gen19ct.evaluation.h3.discovery_complete``): ``evaluation/discovery/decisions/
    wall_clock.json`` records an invocation whose ``stages_done`` reached the final plan stage ``10_not_implemented``, every
    stage of the current plan is done, and every ``fit`` job of ``discovery.enumerate_plan(plan_state)`` has a verified
@@ -175,11 +175,17 @@ def main(argv=None, *, check: Callable[[], int] | None = None, digests: Callable
             run.inputs(*[Path(out_root) / p for p, ok in res["ledger"].inputs.items() if ok])
             run.outputs(*res["outputs"])
             run.extra.update({"verification": res["verification"], "missing_inputs": sorted(res["ledger"].missing_inputs),
+                              "missing_keys": sorted(res["ledger"].missing_keys),
+                              "n_not_computed_in_report": int(res["report"].count(R.NOT_COMPUTED.split("{")[0])),
+                              "n_not_computed_in_summary": int(res["summary"].count(R.NOT_COMPUTED.split("{")[0])),
+                              "state": res["claims"].get("state"),
                               "deployed_predictor": res["context"]["deployed"], "confirmation_half_read": False,
                               "v6_target_rows_scored": 0})
     v = res["verification"]
     log(f"report written: {v['n_numbers']} numbers, {v['n_ok']} re-resolved from their sources; missing inputs: "
-        f"{len(res['ledger'].missing_inputs)}")
+        f"{len(res['ledger'].missing_inputs)}; missing keys of existing files: {len(res['ledger'].missing_keys)}; "
+        f"'not computed' sentences: {res['report'].count(R.NOT_COMPUTED.split('{')[0])} in the report, "
+        f"{res['summary'].count(R.NOT_COMPUTED.split('{')[0])} in the summary")
     if not v["all_ok"]:
         log(f"ERROR: {v['n_numbers'] - v['n_ok']} number(s) do not re-resolve: {v['failed'][:5]}")
         return 3

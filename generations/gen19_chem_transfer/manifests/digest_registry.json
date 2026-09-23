@@ -909,6 +909,127 @@
       ],
       "logged_utc": "2026-09-23T13:03:05+00:00",
       "reason": "TASK X round 4, seventh fix -- the CONSEQUENCE of the first one, closed at the reader. While a missing M1 record ended the run, no partial record set could reach the assembly. With the fold-level incompletion of POST-HOC addendum 8 item 1 the run continues past it, and read_seed_predictions would have read the directory, found the folds that WERE written, and claim_paired_units would have intersected the two arms and scored the claim on FEWER UNITS -- the verdict from part of a design that addendum 6 item 3(a) forbids; measured on a two-fold synthetic design whose second fold fails its guard, where the unguarded read returned a frame. A fold count cannot serve as the check, because the number of folds of a batched colouring depends on the seed. So the fit loop now NAMES every (arm, design_dir, seed index) it failed to write a fold for (mark_incomplete_record_sets, from the ledger errors via the job inventory, called between the loop and the assembly), and read_seed_predictions returns None for such a set -- the one choke point every reader goes through: score_claims, the S1(c), S1(d)/(e) and S2 assemblies. The contrast is then reported INCOMPLETE with its own status and no verdict, no per-unit row and no failure-condition input. Confirmation stage only; no record was written, validated or invalidated (addendum 2 item 5); the once-only lock is unspent and evaluation/confirmation/ does not exist."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_run_discovery.py",
+          "sha256_lf": "2933bb8a4f41b41e1d1e8ba9fd5db7ac06462818716c968309a8f56377817dba"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/tests/test_registry.py",
+          "sha256_lf": "d6722f6e5a1f8bbee1dca3381d750fc359fb46a9df7759412251ac485b28a3fe"
+        }
+      ],
+      "logged_utc": "2026-09-23T14:23:07+00:00",
+      "reason": "Figures / D07 task, 2026-09-24: the verified readers refused the COMPLETE, untouched discovery run as stale. g19_run_discovery.fold_digest embeds registry.below_footer_sha256(stage) -- the stage's CURRENT below-footer digest -- and the addendum-8 re-registration of every stage (2026-09-23T10:27Z) moved the discovery entry from the addendum-1 digest 05f36fc0... (kept as superseded) to da38be25..., so expected_fold_records recomputed every discovery record's digest under a text the record was never written with: g19_make_figures.py --check-only raised StaleRecordError on B6/V5__primary_exact/s104729/Am(III)__1bf1228273 (recorded d107751e18..., recomputed a3432712a2...), and the same path is the scorer's Store, h3.discovery_complete and the report gate. Diagnosed by recomputing the digest with the record's own prereg_addenda_sha256: it matches for B6, M1, M2 and B5 records. FIX, at the level addendum 7 item 3 states it ('a record is always verified against the entry registered when it was written'): verification_basis() -- a context variable fold_digest reads for prereg_addenda_sha256 when set; record_set_basis(stage, bodies, code) -- the entry a record set was written under, resolved through registry.verify_record (ordered superseded fallback) and required to carry the set's code digest, with a mixed set refused; verified_predictions computes expected_fold_records inside verification_basis(basis) and returns the basis in its status. A record written NOW (outside the block) still carries the current entry, so the runner's own resume digests are unchanged. Effect on records: none -- discovery, candidates, ladder, H3 and power records are read exactly as before this regression; the discovery stage keeps its kept code digest 895a6ab9.... The LIVE discovery code digest and the confirmation stage's tree digest move (this file is in both closures); the confirmation stage must be re-registered from the tree before any launch (D07 next action 2). tests/test_registry.py::test_a_record_set_is_verified_under_the_entry_it_was_written_under covers the synthetic case and, on the real registry, every discovery record directory's first record."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_make_figures.py",
+          "sha256_lf": "54e4d35b652899eeccc2534fe3f62c4f2c0a9eaf41d2ad884972a9d8ddebb9c0"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/figures.py",
+          "sha256_lf": "ee5f3144de17f1c9650d781fc4290ef7d93ecf98c360c428be81a1977ca32732"
+        }
+      ],
+      "logged_utc": "2026-09-23T14:23:07+00:00",
+      "reason": "Figures / D07 task, 2026-09-24, brief section 25 items 7-13 from the completed discovery, the ladder, the power check and H3; the confirmation run has NOT run. (1) F12 and the V6 panel of F13 are skipped with the reason 'confirmation run not run' (confirmation_inputs reads confirmation.decisions_path / started_path; fig13_direction_confusion takes a skipped_note printed in the title and recorded in reason / stats). (2) F10 / F11: the registered source evaluation/power/embeddings (g19_run_power.py --include-learned) is NOT_IMPLEMENTED and the discovery records hold only model_state_digest, so refit_embeddings_from_records reproduces the M2 and M1 V5-primary fits (seed 104729) from their verified records -- the fold's training rows from discovery's own prepare_fold, the retained configuration, stopping count and model seed from arm_record -- and accepts a refit only when its model_state_digest and feature_state_digest equal the record's; the tables go to evaluation/figures/embeddings/<arm>/ with the other verified folds as Procrustes replicates, labelled fold-replicate (leave-cells-out perturbations, NOT a bootstrap; fig10_metal_embedding gained replicate_label) and a stability.json that names the registered section 8 reliability NOT_RUN. No test row is predicted, no confirmation-half row scored, no V6 row read. (3) cell_table (F08): the per-cell majority domain status used groupby on a categorical unit, whose unused categories gave an empty group and 'argmax of an empty sequence' on the first real run; grouped on the string array with observed=True, a cell without a status is labelled UNKNOWN. (4) --no-embedding-refits / --embedding-arms; the figures index and manifest record the confirmation run status and the refit verification. (5) cell_table joins the closed-form comparator B3i (scored on the pre-seal EXACT folds) to the deployed arm's batched _support labels by row_id when the (fold_id, row_id) key matches nothing (first run: B3i panel of F08 empty, 0 cells); the join used is recorded. (6) verification.json is written after the arm summary is final (status, reference fold, stability), and the F10 title says the fold-replicate stability is descriptive because the registered section 8 embedding reliability is NOT_RUN. (7) every figure title is wrapped to the figure width (_suptitle) and a one-panel F13 is at least 9.6 in wide, so no question is clipped. Effect on records: none (the figures stage has written no record; its tree digest moves and the stage entry can be re-registered from the tree)."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/report.py",
+          "sha256_lf": "c0008523eb4f4c32aa14f01c88dbe80fbcabcd8a4b0a8b7cfdca45a36e455f7b"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_build_report.py",
+          "sha256_lf": "89ae45530aaee31e4b3112bbf28c8c55efaeef1ae027dfb313d40afed53d5829"
+        }
+      ],
+      "logged_utc": "2026-09-23T15:09:37+00:00",
+      "reason": "Task G3 (GEN19_REPORT.md / SUMMARY.md / claims.json), 2026-09-24, reporting code only -- fits, scores and validates nothing; validates or invalidates no record (addendum 2 item 5). (1) The first screen of both documents (report.state_block) states from files that the confirmation run and the single V6 Pr/Nd run were NOT RUN (evaluation/confirmation/decisions/confirmation.json absent) and that every registered verdict is therefore UNDECIDED; the state is also written to tables/claims.json -> state. (2) New inputs: manifests/g19_run_confirmation_dry_run.json (the once-only runner's captured --dry-run: cost 110.24 h serial / 56.25 h wall, 85 jobs, 3418 folds, the two RUN_STAGES with implemented=false, the --check-only refusal), manifests/g19_commit_seeds.json (n = 5) and evaluation/process/attempts/g2_exploratory_attempt_2026-09-23.json (the refused exploratory process run); confirmation_status_lines / power_debt_lines / process_attempt_lines print them under Q3, Q4, Q9 and 'What was not run and why' (power debt 20 contrasts / 6272 refits / 435.8 h and the H3 runner's 24 / 7520 / 477.4 h inventory; the ladder not_run reason; the budget demotion). (3) Deployed-arm lookups by the RECORD name (M0 -> B5, task X finding V-P02) extended to Q6 (S1(e) statistic), Q7 (coverage rows and category table), _q7_checks, _s1e_verdict and _f2_verdict, which had looked up 'M0' and printed 'not computed' for existing rows; the reliability gate accepts the table's RELIABLE token (it tested only PASS), so S1(e) is now read: UNDECIDED (unreliable) because support_s7 is below the 0.3 floor although rho and interval meet the rule. (4) Verdict vocabulary: S2 rows print NOT_RUN, F1 / F2 / F5 NOT_EVALUATED with their reason, S1 (confirmation) UNDECIDED -- confirmation run NOT_RUN, an S1 (overall, discovery) row (section 9 All-of rule) and an S1(d) row for the deployed predictor beside the scorer's S1(d) block; F6 is UNDECIDED, not HOLDS, while S1(a) is UNDECIDED (its first clause 'M2 fails S1(a)' is not met); the Q5 headline no longer reads as a null and treats not_run ladder steps as decided rather than pending; the Q4 headline carries the registered H3 label (UNDECIDED (no registered power check) / (underpowered) by the power record) and F4 is stated under BOTH registered readings with every per-design number (_f4_both_readings, addendum 5 item 3). (5) Ledger: an absent key of an existing file is recorded in missing_keys, not as a missing input; the ladder wall-clock invocation count uses the resolvable rule len:invocations (the old rule 'invocations' failed re-resolution); the discovery overrun and the ladder's process wall clock are cited from evaluation/ladder/decisions/wall_clock.json instead of being arithmetic in the text. (6) g19_build_report.py: the manifest records missing_keys, the 'not computed' sentence counts and the state block; its docstring names the registry gate. tests/test_report.py: 17 passed."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/report.py",
+          "sha256_lf": "253a0f655e6beaeb35b499f15cc34b4827e97d69481d5fabca86446da5cea4e5"
+        }
+      ],
+      "logged_utc": "2026-09-23T15:13:48+00:00",
+      "reason": "Task G3, 2026-09-24, follow-up (reporting only; validates or invalidates no record): (1) report._DEVIATION_RE accepts a section 17 item whose bold title wraps onto the next line (item 2), so the deviations list and its count:deviations rule now yield the 15 numbered items rather than 14; (2) the 'needs a POST-HOC addendum' list in the deviations section is headed as reading strings recorded at the time, resolved where a later addendum (2-8) registers them; (3) decisions/D02_factorization.md's decision block states the confirmation run's status (NOT_RUN while evaluation/confirmation/decisions/confirmation.json is absent, every full R19 verdict UNDECIDED, no null). tests/test_report.py: 17 passed."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/figures.py",
+          "sha256_lf": "be846b6ede2dbaf136aaffa5e3a912ac9a165ffb2e0ef8f9001c7f4c6216e3e1"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/tests/test_report.py",
+          "sha256_lf": "e712304e8e8b20b022bd1573ef4a7357274e1a2b9f95bbd00fb23573c52686c3"
+        }
+      ],
+      "logged_utc": "2026-09-23T15:58:03+00:00",
+      "reason": "Task X (report findings) 2026-09-24, finding V-TR-09: figures.direction_confusion applied the section 4 gate as |observed logSF| >= 0.3 without the registered float tolerance, so F13 reported 6,667 pairs / 0.956952 where the scorer's S1(c) block (decisions.json -> S1_components.S1c_selection.direction_gate: '>= threshold - 1e-9', 12 pairs admitted by the tolerance) counts 6,679. The gate now reads np.abs(obs) >= threshold - metrics.FLOAT_TOL, the same test as evaluation.pairs; F13 redrawn: 6,679 pairs, direction accuracy 0.95673 (figures/data/F13_direction_confusion.csv, evaluation/figures/figures_index.json). tests/test_report.py::test_figures_write_png_and_data_and_report_inputs gains the boundary case 0.7 - 0.4 = 0.29999999999999993. Figures F07-F13 redrawn with --no-embedding-refits (F10 / F11 from the verified embedding tables of the 2026-09-24 morning invocation); figures stage re-registered from the tree. Validates or invalidates no record."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/report.py",
+          "sha256_lf": "a2af82b4356cd65bb6a2609649ec43cfcec0238465599d06fb1bd6018085efcb"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/tests/test_report.py",
+          "sha256_lf": "e712304e8e8b20b022bd1573ef4a7357274e1a2b9f95bbd00fb23573c52686c3"
+        }
+      ],
+      "logged_utc": "2026-09-23T15:58:36+00:00",
+      "reason": "Task X (report findings) 2026-09-24, reporting only (validates or invalidates no record): (V-TR-01 / VH-01) the Q7 headline names failure condition F3's verb from f3['failure'] ('failure condition F3 does not hold' / 'F3 HOLDS') and the coverage bands as 'met', never 'F3 hold'; (V-TR-03 / VH-05) the first screen, confirmation_status_lines and claims.json state scope what item 4 leaves UNDECIDED: every full R19 verdict of a learned-arm contrast, hence S1 and S2 -- S1(d), F3, F4 stand as printed (state key renamed every_full_r19_verdict_of_a_learned_arm_contrast_undecided); (V-TR-04) Q4 prints Delta logSF MAE NOT_DEFINED from h3_summary.json -> readings.logsf_delta; (V-TR-05) the section 14 constants 64 / 20 / 0.80 go through the ledger from gen19ct.process.monte_carlo.K_DRAWS_REGISTERED and robust_optimize.N_BOOTSTRAP_RERANKINGS / STABILITY_THRESHOLD; (V-TR-06) the 1,535.7 CPU-hours and 60 h are ledger constants cited to preregistration.md; (V-TR-08) power-check tokens print under power.REPORTED_LABEL (_power_label); (VH-02) D02 prints a FAIL whose both 95 % intervals lie below 0 as 'FAIL for <candidate> -- <comparator> beats <candidate> ... not a null', reserving the power-check wording for a FAIL whose interval includes 0; (VH-03 / VH-07) the Q5 headline carries the M2 vs M0 numbers on V5 and V2, factorised vs flat with margin and interval, the not-run rule plus the M3+ not-implemented and budget-demotion disclosures; (VH-04) the first screen and Q4 state F4's section 10 consequence (a registered failure condition met) beside the WITHOUT reading; (VH-06) the TOST column is headed one-sided non-inferiority with the cited 90 % envelope and an 'inferior' mark, the H3 table prints non_inferior / equivalent and a footnote; (VH-07) the scorer's S1(d) row is labelled with its arm; (VH-08) the two section 7 item 5 ledgers are named; (VH-09) section 17 titles are joined across wrapped lines, each addendum lists its item titles, and the section 15 omission is a deviation line; (VH-13) S1(e) prints the reliability table's gate word UNDECIDED_UNRELIABLE with the scorer's NOT_EVALUATED and its reason. tests/test_report.py: two tests added (19 pass)."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/report.py",
+          "sha256_lf": "5526baf49922175f11da3bbdb35ebb8b3f4f9b3cde56420a1c6bba24d47beeb3"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/tests/test_report.py",
+          "sha256_lf": "6d2f012b9f4443ee9f27e8a07ef1d57c802f1386fb728225bad3f1191cf26245"
+        }
+      ],
+      "logged_utc": "2026-09-23T16:02:29+00:00",
+      "reason": "Task X (report findings) 2026-09-24, follow-up to the entry of 15:58:36Z (reporting only; validates or invalidates no record): report.parse_addendum_items joins a POST-HOC addendum item title that wraps onto the next line up to its closing ** (addendum 5 item 2 was missing from the deviations list); the synthetic sealed text of tests/test_report.py gains a wrapped item title. 19 tests pass."
     }
   ],
   "fallback": "until manifests/digest_registry.json exists every gate reads the constants of evaluation.discovery (N_ADDENDA_EXPECTED, REGISTERED_ADDENDA_SHA256) and the live discovery code digest, exactly as before",
@@ -953,12 +1074,11 @@
     "figures": {
       "addenda_count": 8,
       "below_footer_sha256": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
-      "code_digest": "b1cb4cc2ce365f4f80ac5b630b2928845e2ec74e332fe8c35e1176ef1aaa7511",
-      "code_digest_source": "kept: the digest this stage's records were written under",
-      "git_head": "5f8ccd8812d4138f9753a7e8e7edc1a78c3bdfdc",
-      "note": "POST-HOC addendum 8 appended by commit 5f8ccd8 without the addendum 7 item 3 re-registration: every stage is re-registered at the below-footer digest of the 8-addendum sealed text; earlier entries kept as superseded so every record written before verifies against the entry it was written under",
-      "registered_utc": "2026-09-23T10:27:06+00:00",
-      "reregistration": "REGISTERED by POST-HOC addendum 7 item 3, as the standing procedure: 'Appending an addendum changes the below-footer digest, so every stage entry must be re-registered for its runner's gate to pass, while records written earlier verify against the entry under which they were written (kept as superseded). Resolved: after every addendum, every stage is re-registered at the new digest and the earlier entries are preserved; a record is always verified against the entry registered when it was written. This is addendum 2 change 5's mechanism, stated as the standing procedure so that the gates and the verification tests read the sealed text rather than a stale constant.' EVERY stage means the discovery stage too, which register_stage_from_tree refuses (its entry is read from its records), so reregister_all_stages calls register_stage directly with the records' own code digest and only the below-footer digest and addenda count moved. A stage keeps its registered CODE digest unless its own code changed and it has written no record yet",
+      "code_digest": "f6488cc69d8cdb74dc7f3c4ec8a05f1346fde91d8db001734b8174aedbb5b812",
+      "code_digest_source": "the tree: g19_make_figures.code_digest()['combined']",
+      "git_head": "bdc62e2aa3c9c9088c731605d292afa75d602a3b",
+      "note": "Task X (report findings), 2026-09-24: figures stage re-registered from the tree after gen19ct/evaluation/figures.py direction_confusion adopted the registered '>= threshold - 1e-9' gate of evaluation.pairs (finding V-TR-09: F13 counted 6,667 pairs / 0.956952 against the scorer's 6,679 / 0.95673) and figures F07-F13 were redrawn with --no-embedding-refits; the earlier entry (b1cb4cc2..., registered 2026-09-23T10:27:06Z) is kept as superseded; the 2026-09-24 morning run of the figures script (manifest code digest 8830da5a...) was itself unregistered against b1cb4cc2 (finding VH-12). Validates or invalidates no record.",
+      "registered_utc": "2026-09-23T15:56:56+00:00",
       "source": "current tree (below-footer digest and addenda count)",
       "stage": "figures"
     },
@@ -1013,12 +1133,11 @@
     "report": {
       "addenda_count": 8,
       "below_footer_sha256": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
-      "code_digest": "26d414a160279efbf657ea82e33c22988c3cb37eaca7876aab56b9694748d234",
-      "code_digest_source": "kept: the digest this stage's records were written under",
-      "git_head": "5f8ccd8812d4138f9753a7e8e7edc1a78c3bdfdc",
-      "note": "POST-HOC addendum 8 appended by commit 5f8ccd8 without the addendum 7 item 3 re-registration: every stage is re-registered at the below-footer digest of the 8-addendum sealed text; earlier entries kept as superseded so every record written before verifies against the entry it was written under",
-      "registered_utc": "2026-09-23T10:27:06+00:00",
-      "reregistration": "REGISTERED by POST-HOC addendum 7 item 3, as the standing procedure: 'Appending an addendum changes the below-footer digest, so every stage entry must be re-registered for its runner's gate to pass, while records written earlier verify against the entry under which they were written (kept as superseded). Resolved: after every addendum, every stage is re-registered at the new digest and the earlier entries are preserved; a record is always verified against the entry registered when it was written. This is addendum 2 change 5's mechanism, stated as the standing procedure so that the gates and the verification tests read the sealed text rather than a stale constant.' EVERY stage means the discovery stage too, which register_stage_from_tree refuses (its entry is read from its records), so reregister_all_stages calls register_stage directly with the records' own code digest and only the below-footer digest and addenda count moved. A stage keeps its registered CODE digest unless its own code changed and it has written no record yet",
+      "code_digest": "5780666a41c2d27e4d5375291684c14ebb57e32ba1e89342d66fcc6b74fbcfa3",
+      "code_digest_source": "the tree: g19_build_report.code_digest()['combined']",
+      "git_head": "bdc62e2aa3c9c9088c731605d292afa75d602a3b",
+      "note": "Task X (report findings), 2026-09-24: report stage re-registered from the tree after the follow-up edit to gen19ct/evaluation/report.py (parse_addendum_items, wrapped titles) logged the same minute; the 15:58:38Z entry is kept as superseded. Validates or invalidates no record.",
+      "registered_utc": "2026-09-23T16:02:31+00:00",
       "source": "current tree (below-footer digest and addenda count)",
       "stage": "report"
     },
@@ -2057,6 +2176,73 @@
       "stage": "confirmation",
       "superseded_by_note": "TASK X round 4, second re-registration: the confirmation code digest after the seventh fix (the partial-record-set refusal). The stage has written no record, so this validates or invalidates nothing (addendum 2 item 5); the earlier entries are kept superseded.",
       "superseded_utc": "2026-09-23T13:03:09+00:00"
+    },
+    {
+      "addenda_count": 8,
+      "below_footer_sha256": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
+      "code_digest": "26d414a160279efbf657ea82e33c22988c3cb37eaca7876aab56b9694748d234",
+      "code_digest_source": "kept: the digest this stage's records were written under",
+      "git_head": "5f8ccd8812d4138f9753a7e8e7edc1a78c3bdfdc",
+      "note": "POST-HOC addendum 8 appended by commit 5f8ccd8 without the addendum 7 item 3 re-registration: every stage is re-registered at the below-footer digest of the 8-addendum sealed text; earlier entries kept as superseded so every record written before verifies against the entry it was written under",
+      "registered_utc": "2026-09-23T10:27:06+00:00",
+      "reregistration": "REGISTERED by POST-HOC addendum 7 item 3, as the standing procedure: 'Appending an addendum changes the below-footer digest, so every stage entry must be re-registered for its runner's gate to pass, while records written earlier verify against the entry under which they were written (kept as superseded). Resolved: after every addendum, every stage is re-registered at the new digest and the earlier entries are preserved; a record is always verified against the entry registered when it was written. This is addendum 2 change 5's mechanism, stated as the standing procedure so that the gates and the verification tests read the sealed text rather than a stale constant.' EVERY stage means the discovery stage too, which register_stage_from_tree refuses (its entry is read from its records), so reregister_all_stages calls register_stage directly with the records' own code digest and only the below-footer digest and addenda count moved. A stage keeps its registered CODE digest unless its own code changed and it has written no record yet",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "report",
+      "superseded_by_note": "Task G3, 2026-09-24: report stage re-registered from the tree after the reporting-only changes to gen19ct/evaluation/report.py and scripts/g19_build_report.py (code_changes entry of the same time); the below-footer digest is unchanged (8 addenda); the report stage has written no record, and no record of any stage is validated or invalidated (addendum 2 item 5, addendum 7 item 3)",
+      "superseded_utc": "2026-09-23T15:09:39+00:00"
+    },
+    {
+      "addenda_count": 8,
+      "below_footer_sha256": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
+      "code_digest": "b4a2597c2fcdc84b767572037c0e6c4c7ab0394de1cc66a1108876657fc8678f",
+      "code_digest_source": "the tree: g19_build_report.code_digest()['combined']",
+      "git_head": "bdc62e2aa3c9c9088c731605d292afa75d602a3b",
+      "note": "Task G3, 2026-09-24: report stage re-registered from the tree after the reporting-only changes to gen19ct/evaluation/report.py and scripts/g19_build_report.py (code_changes entry of the same time); the below-footer digest is unchanged (8 addenda); the report stage has written no record, and no record of any stage is validated or invalidated (addendum 2 item 5, addendum 7 item 3)",
+      "registered_utc": "2026-09-23T15:09:38+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "report",
+      "superseded_by_note": "Task G3, 2026-09-24, second re-registration of the report stage from the tree after the follow-up reporting fix (code_changes entry of the same time; deviations regex, addenda-list heading, D02 state line); below-footer digest unchanged (8 addenda); no record validated or invalidated",
+      "superseded_utc": "2026-09-23T15:13:49+00:00"
+    },
+    {
+      "addenda_count": 8,
+      "below_footer_sha256": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
+      "code_digest": "b1cb4cc2ce365f4f80ac5b630b2928845e2ec74e332fe8c35e1176ef1aaa7511",
+      "code_digest_source": "kept: the digest this stage's records were written under",
+      "git_head": "5f8ccd8812d4138f9753a7e8e7edc1a78c3bdfdc",
+      "note": "POST-HOC addendum 8 appended by commit 5f8ccd8 without the addendum 7 item 3 re-registration: every stage is re-registered at the below-footer digest of the 8-addendum sealed text; earlier entries kept as superseded so every record written before verifies against the entry it was written under",
+      "registered_utc": "2026-09-23T10:27:06+00:00",
+      "reregistration": "REGISTERED by POST-HOC addendum 7 item 3, as the standing procedure: 'Appending an addendum changes the below-footer digest, so every stage entry must be re-registered for its runner's gate to pass, while records written earlier verify against the entry under which they were written (kept as superseded). Resolved: after every addendum, every stage is re-registered at the new digest and the earlier entries are preserved; a record is always verified against the entry registered when it was written. This is addendum 2 change 5's mechanism, stated as the standing procedure so that the gates and the verification tests read the sealed text rather than a stale constant.' EVERY stage means the discovery stage too, which register_stage_from_tree refuses (its entry is read from its records), so reregister_all_stages calls register_stage directly with the records' own code digest and only the below-footer digest and addenda count moved. A stage keeps its registered CODE digest unless its own code changed and it has written no record yet",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "figures",
+      "superseded_by_note": "Task X (report findings), 2026-09-24: figures stage re-registered from the tree after gen19ct/evaluation/figures.py direction_confusion adopted the registered '>= threshold - 1e-9' gate of evaluation.pairs (finding V-TR-09: F13 counted 6,667 pairs / 0.956952 against the scorer's 6,679 / 0.95673) and figures F07-F13 were redrawn with --no-embedding-refits; the earlier entry (b1cb4cc2..., registered 2026-09-23T10:27:06Z) is kept as superseded; the 2026-09-24 morning run of the figures script (manifest code digest 8830da5a...) was itself unregistered against b1cb4cc2 (finding VH-12). Validates or invalidates no record.",
+      "superseded_utc": "2026-09-23T15:56:56+00:00"
+    },
+    {
+      "addenda_count": 8,
+      "below_footer_sha256": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
+      "code_digest": "52b4874da100dece4aa7d2843054b2aa44b2d76b268d1f199e213d69c5685378",
+      "code_digest_source": "the tree: g19_build_report.code_digest()['combined']",
+      "git_head": "bdc62e2aa3c9c9088c731605d292afa75d602a3b",
+      "note": "Task G3, 2026-09-24, second re-registration of the report stage from the tree after the follow-up reporting fix (code_changes entry of the same time; deviations regex, addenda-list heading, D02 state line); below-footer digest unchanged (8 addenda); no record validated or invalidated",
+      "registered_utc": "2026-09-23T15:13:49+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "report",
+      "superseded_by_note": "Task X (report findings), 2026-09-24: report stage re-registered from the tree after the reporting-only edits to gen19ct/evaluation/report.py logged the same minute (code_changes); the earlier entry (52b4874d..., registered 2026-09-23T15:13:49Z) is kept as superseded. Validates or invalidates no record.",
+      "superseded_utc": "2026-09-23T15:58:38+00:00"
+    },
+    {
+      "addenda_count": 8,
+      "below_footer_sha256": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
+      "code_digest": "a44acc64790afc41c8063311682f043ff8b8c74f03eb12130bc36622764730bd",
+      "code_digest_source": "the tree: g19_build_report.code_digest()['combined']",
+      "git_head": "bdc62e2aa3c9c9088c731605d292afa75d602a3b",
+      "note": "Task X (report findings), 2026-09-24: report stage re-registered from the tree after the reporting-only edits to gen19ct/evaluation/report.py logged the same minute (code_changes); the earlier entry (52b4874d..., registered 2026-09-23T15:13:49Z) is kept as superseded. Validates or invalidates no record.",
+      "registered_utc": "2026-09-23T15:58:38+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "report",
+      "superseded_by_note": "Task X (report findings), 2026-09-24: report stage re-registered from the tree after the follow-up edit to gen19ct/evaluation/report.py (parse_addendum_items, wrapped titles) logged the same minute; the 15:58:38Z entry is kept as superseded. Validates or invalidates no record.",
+      "superseded_utc": "2026-09-23T16:02:31+00:00"
     }
   ]
 }

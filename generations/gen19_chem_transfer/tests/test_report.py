@@ -94,10 +94,15 @@ Spearman rho <= −0.10; coverage 50 / 80 / 95 in [0.40, 0.60], [0.70, 0.90], [0
 
 F3: 80 % coverage outside [0.60, 0.95], or 95 % coverage < 0.85.
 
+## 14. Process layer
+
+64 joint draws per operating point, seeded; 20 bootstrap re-rankings; S2(d) >= 0.80. Budget 60 h (section 7).
+
 ## 17. Deviations from the brief forced by the data
 
 1. **PC88A/P507, Cyanex 272, D2EHPA/P204 absent.** None is present.
-2. **No pH column.** Not identifiable.
+2. **No pH, saponification or
+   "D reported vs reconstructed" column** (`metadata_availability.csv`). Not identifiable.
 3. **Mechanism experts (section 5).** Not testable.
 
 ## 18. What is not claimed
@@ -109,6 +114,10 @@ Sealed SHA-256 of everything above this line: `abc`
 ## POST-HOC addendum 1 (2026-09-15, orchestrator; results seen: no)
 
 The compute-driven reduction: 1,535.7 CPU-hours against 60 h.
+
+1. **Seeds in discovery.** Learned arms run discovery seed 104729 only.
+**2. Budget and
+demotion.** Unchanged.
 """
 
 
@@ -572,6 +581,12 @@ def test_figures_write_png_and_data_and_report_inputs(tmp_path: Path) -> None:
     cm = FG.direction_confusion(pd.DataFrame({"observed_logsf": [0.5, -0.5, 0.2, 0.8, -0.4], "predicted_logsf": [0.1, -0.2, 0.3, 0.0, 0.3]}), 0.3)
     assert cm["n_pairs"] == 4 and cm["counts"]["obs_pos_pred_pos"] == 1 and cm["counts"]["obs_pos_pred_zero"] == 1
     assert cm["counts"]["obs_neg_pred_neg"] == 1 and cm["counts"]["obs_neg_pred_pos"] == 1 and cm["direction_accuracy"] == pytest.approx(2.5 / 4)
+    # task X finding V-TR-09: the gate is the registered '>= threshold - 1e-9' of evaluation.pairs, so a stored difference
+    # of exactly 0.3 represented as 0.29999999999999993 (= 0.7 - 0.4) qualifies, as it does in the scorer's S1(c) block
+    boundary = 0.7 - 0.4
+    assert boundary < 0.3
+    cm_b = FG.direction_confusion(pd.DataFrame({"observed_logsf": [boundary, -boundary, 0.29], "predicted_logsf": [0.4, -0.1, 0.2]}), 0.3)
+    assert cm_b["n_pairs"] == 2 and cm_b["n_excluded_below_threshold_or_nan"] == 1 and cm_b["direction_accuracy"] == 1.0
     r13 = FG.fig13_direction_confusion({"V5-PAIR": pairs, "V6": pairs}, figs, inputs=["p.parquet"])
     # task X finding V-08: the registered 0.3 reading on EVERY design plus the additional 0.1 reading on V6 only
     per = r13.stats["per_design"]
@@ -830,6 +845,64 @@ def test_the_deployed_predictors_tables_and_verdicts_are_looked_up_by_the_record
     q4 = rep.split("## Q4.")[1].split("## Q5.")[0]
     assert "use actinide rows: WITH beats WITHOUT and ACT_PERMUTED" in q4       # the *helps* branch, not UNDECIDED
     assert "| B5 (deployed = M0) |" in q4
+
+
+def test_task_x_honesty_and_traceability_wording(full_root: Path) -> None:
+    """Task X findings V-TR-01 / VH-01 (the F3 clause of the Q7 headline names the failure condition's verb), V-TR-03 /
+    VH-05 (the first screen scopes what item 4 leaves UNDECIDED), V-TR-08 (the power-check token prints under its
+    registered wording), VH-06 (the TOST column is headed as one-sided non-inferiority), VH-09 (a wrapped section 17
+    title is joined; each addendum lists its item titles; the section 15 omission is named) and V-TR-05 (the section 14
+    constants go through the ledger)."""
+    res = R.build_report(full_root, extra={"git_head": "x"})
+    rep, summ = res["report"], res["summary"]
+    assert "F3 hold" not in rep and "F3 hold" not in summ
+    q7 = rep.split("## Q7.")[1].split("## Q8.")[0]
+    if "failure condition F3" in q7.splitlines()[2]:
+        assert "failure condition F3 does not hold" in q7 or "failure condition F3 HOLDS" in q7
+    assert R.TOST_COLUMN in rep and R.TOST_NOTE in rep and "TOST eps 0.05 |" not in rep
+    assert "UNDECIDED_UNDERPOWERED" not in rep.split("## Reproducibility")[0].replace("checks[1].verdict UNDECIDED_UNDERPOWERED", "")
+    assert "UNDECIDED (underpowered)" in rep
+    devs = rep.split("## Deviations from the brief")[1]
+    assert '2. No pH, saponification or "D reported vs reconstructed" column' in devs
+    assert "addendum 1 (2026-09-15, orchestrator; results seen: no): 1 Seeds in discovery; 2 Budget and demotion" in devs
+    numbers = res["numbers"]
+    consts = set(numbers.loc[numbers["kind"] == "constant", "source_key"])
+    assert {"section 14: 64 joint draws per operating point", "section 14: 20 bootstrap re-rankings", "section 9 S2(d): >= 0.80",
+            "POST-HOC addendum 1: the sealed section 7 compute plan priced at 1,535.7 CPU-hours"} <= consts
+    R.write_outputs(full_root, res)                       # Q10's support table is written before the numbers are verified
+    assert R.verify_numbers(full_root, numbers)["ok"].all()
+    # without the confirmation file: the first screen scopes the UNDECIDED verdicts and the deviations name the omission
+    write_inputs(full_root, with_confirmation=False)
+    (full_root / "evaluation" / "confirmation" / "decisions" / "confirmation.json").unlink()
+    res2 = R.build_report(full_root, extra={"git_head": "x"})
+    assert "every registered verdict is UNDECIDED" not in res2["report"] and "every registered verdict is UNDECIDED" not in res2["summary"]
+    assert "every full R19 verdict of a learned-arm contrast, and therefore S1 and S2, is UNDECIDED" in res2["summary"]
+    assert "section 15 confirmation run (the frozen claims on the withheld seeds) and the single V6 run: NOT RUN" in res2["report"]
+    assert res2["claims"]["state"]["every_full_r19_verdict_of_a_learned_arm_contrast_undecided"] is True
+
+
+def test_a_decided_reversal_prints_as_a_fail_for_the_candidate_not_as_undecided(full_root: Path) -> None:
+    """Task X finding VH-02: a FAIL whose two registered 95 % intervals both lie below 0 is a decided difference in the
+    comparator's favour; D02 prints it as FAIL for the candidate, never as 'UNDECIDED (no registered power check)'."""
+    ev = full_root / "evaluation"
+    con = pd.read_csv(ev / "discovery" / "contrasts_registered.csv")
+    con = con[con["key"] != "M2 vs M0@V5"]
+    rev = pd.DataFrame(_contrast_rows("M2 vs M0@V5", "H4", "M2", "M0", "V5", -0.154, -0.297, -0.080, 0.0, "FAIL", ("system", "publication_group")))
+    write_csv(pd.concat([con, rev], ignore_index=True), ev / "discovery" / "contrasts_registered.csv")
+    res = R.build_report(full_root, extra={"git_head": "x"})
+    d02 = res["d02"]
+    block = d02.split("## null / supported / ambiguous")[1].split("## decision")[0]
+    line = next(ln for ln in block.splitlines() if ln.startswith("- H4 factorised vs descriptor"))
+    assert "**FAIL for M2**" in line and "M0 beats M2" in line and "not a null" in line and "brief section 31" in line
+    assert "UNDECIDED (no registered power check)" not in line
+    # the Q5 headline carries the same numbers, and the TOST cell marks the envelope entirely below -eps as inferior
+    q5 = res["report"].split("## Q5.")[1].split("## Q6.")[0]
+    assert "the descriptor model M0 beats the factorised M2 on V5: Delta (M0 - M2) = -0.154" in q5.splitlines()[2]
+    assert "inferior (envelope high < -eps)" in q5
+    assert_traceable(full_root, res["report"], res["numbers"])
+    assert_traceable(full_root, d02, res["numbers"])
+    R.write_outputs(full_root, res)
+    assert R.verify_numbers(full_root, res["numbers"])["ok"].all()
 
 
 def test_a_powered_not_a_null_record_never_prints_as_undecided_underpowered(full_root: Path) -> None:

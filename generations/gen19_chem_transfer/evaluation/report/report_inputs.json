@@ -1,0 +1,269 @@
+{
+  "deployed_predictor": {
+    "arm": "M0",
+    "arm_alias": "B5",
+    "arm_alias_note": "the arm name records, prediction frames and tables/discovery_summary.csv use for the deployed configuration; 'arm' is the name it is REPORTED under (addendum 3 item 2 names M0, whose records are written under B5)",
+    "basis": "the ladder retains its base step M0 (= B5, the registered descriptor arm of section 5), M1 and M2 are not kept, and no step M3-M7 is kept: the retained ladder configuration is M0 (addendum 3 item 2; ladder.M0.kept)",
+    "f6_no_evaluated_fail": {
+      "B6_vs_B3i": false,
+      "M2_vs_B3i": true
+    },
+    "f6_rule": "POST-HOC addendum 2 (F6): with no retained ladder step, M2 (and B6 for H1b) 'is deployed by the fallback only when its contrast passes the stop-rule scope (items 1, 2, 3, 5) AND item 6 over the reduced sensitivity set - no evaluated item may FAIL'. decisions.json -> stop_rule evaluates items 1, 2, 3 and 5 only, so the second half is read from decisions.json -> freezing_candidates, whose screen is that scope plus item 6 with no evaluated item FAILing (discovery.freezing_candidates / freezing_eligibility). A contrast the scorer did not list did not pass that screen; a decisions.json with no freezing_candidates block leaves item 6 unchecked and the basis says so.",
+    "keys": {
+      "f6_no_evaluated_fail": {
+        "B6_vs_B3i": "freezing_candidates[contrast=B6 vs B3i@V5].eligible_for_freezing",
+        "M2_vs_B3i": "freezing_candidates[contrast=M2 vs B3i@V5].eligible_for_freezing"
+      },
+      "ladder": {
+        "M0": "ladder.M0.kept",
+        "M1": "ladder.M1.kept",
+        "M2": "ladder.M2.kept"
+      },
+      "ladder_runner": {
+        "M3": "evaluation/ladder/decisions/ladder.json -> steps.M3.kept",
+        "M4": "evaluation/ladder/decisions/ladder.json -> steps.M4.kept",
+        "M5": "evaluation/ladder/decisions/ladder.json -> steps.M5.kept",
+        "M6": "evaluation/ladder/decisions/ladder.json -> steps.M6.kept",
+        "M7": "evaluation/ladder/decisions/ladder.json -> steps.M7.kept"
+      },
+      "stop_rule": {
+        "B6_vs_B3i": "stop_rule.B6_vs_B3i.verdict",
+        "M2_vs_B3i": "stop_rule.M2_vs_B3i.verdict"
+      }
+    },
+    "ladder_complete": {
+      "complete": true,
+      "definition": "ladder.json exists and every step M3-M7 has a status in demoted, exploratory_not_run, judged, kept, not_run, removed",
+      "not_done": [],
+      "present": true,
+      "steps": {
+        "M3": "not_run",
+        "M4": "not_run",
+        "M5": "not_run",
+        "M6": "not_run",
+        "M7": "not_run"
+      },
+      "stop_rule": false
+    },
+    "ladder_kept": {
+      "M0": true,
+      "M1": false,
+      "M2": false,
+      "M3": null,
+      "M4": null,
+      "M5": null,
+      "M6": null,
+      "M7": null
+    },
+    "retained_ladder_step": "M0",
+    "rule": "POST-HOC addendum 3 item 2: the configuration deployed for lanthanide prediction ('the retained ladder configuration', section 11) is the ladder's RETAINED configuration -- the highest kept ladder step: evaluation/ladder/decisions/ladder.json -> steps.<step>.kept == true for M7 > M6 > M5 > M4 > M3 (only from a registered ladder run, i.e. ladder.json -> stop_rule == false: under the stop rule M3-M6 are exploratory_not_run and M7 runs for H6 only, so no ladder step deploys), then the scorer's decisions.json -> ladder.<step>.kept == true (M2 before M1), then the ladder's BASE step M0 (= B5, the registered descriptor arm of section 5 and the M0 row of the section 6 ladder) when decisions.json -> ladder.M0.kept == true and neither M1 nor M2 is kept. Addendum 2's remaining order applies ONLY when the ladder has no retained step at all (no ladder block / M0 not kept): M2 when stop_rule.M2_vs_B3i.verdict == PASS; else B6 when stop_rule.B6_vs_B3i.verdict == PASS; else the registered V5 lookup comparator B3i (section 10 F6: the best-passing baseline; the process chain's D source stays gen18 B1). The rule is undecidable (the runners refuse) while ladder.json is absent or any step M3-M7 is not in a done / skipped status, or while a discovery ladder decision is pending (kept == null) (task X finding V-01)",
+    "status": "decided",
+    "stop_rule_pass": {
+      "B6_vs_B3i": false,
+      "M2_vs_B3i": true
+    }
+  },
+  "inputs": {
+    "b6_checks": {
+      "exists": true,
+      "path": "evaluation/discovery/decisions/b6_checks.json"
+    },
+    "commit_seeds": {
+      "exists": true,
+      "path": "manifests/g19_commit_seeds.json"
+    },
+    "confirmation": {
+      "exists": false,
+      "path": "evaluation/confirmation/decisions/confirmation.json"
+    },
+    "confirmation_contrasts": {
+      "exists": false,
+      "path": "evaluation/confirmation/contrasts_confirmation.csv"
+    },
+    "confirmation_dry_run": {
+      "exists": true,
+      "path": "manifests/g19_run_confirmation_dry_run.json"
+    },
+    "dataset_hashes": {
+      "exists": true,
+      "path": "data_audit/dataset_hashes.csv"
+    },
+    "decisions": {
+      "exists": true,
+      "path": "evaluation/discovery/decisions/decisions.json"
+    },
+    "difficulty": {
+      "exists": true,
+      "path": "evaluation/preseal/difficulty.json"
+    },
+    "digest_registry": {
+      "exists": true,
+      "path": "manifests/digest_registry.json"
+    },
+    "discovery_contrasts": {
+      "exists": true,
+      "path": "evaluation/discovery/contrasts_registered.csv"
+    },
+    "discovery_contrasts_exploratory": {
+      "exists": true,
+      "path": "evaluation/discovery/contrasts_exploratory.csv"
+    },
+    "discovery_coverage": {
+      "exists": true,
+      "path": "tables/discovery_coverage_by_domain_status.csv"
+    },
+    "discovery_pair_summary": {
+      "exists": true,
+      "path": "tables/discovery_pair_summary.csv"
+    },
+    "discovery_r19": {
+      "exists": true,
+      "path": "evaluation/discovery/r19_items.csv"
+    },
+    "discovery_summary": {
+      "exists": true,
+      "path": "tables/discovery_summary.csv"
+    },
+    "f1_check": {
+      "exists": false,
+      "path": "evaluation/confirmation/f1_check.json"
+    },
+    "figures_index": {
+      "exists": true,
+      "path": "evaluation/figures/figures_index.json"
+    },
+    "h3_contrasts": {
+      "exists": true,
+      "path": "evaluation/h3/h3_contrasts.csv"
+    },
+    "h3_f4": {
+      "exists": true,
+      "path": "evaluation/h3/h3_f4.json"
+    },
+    "h3_summary": {
+      "exists": true,
+      "path": "evaluation/h3/h3_summary.json"
+    },
+    "h3_verdicts": {
+      "exists": true,
+      "path": "evaluation/h3/h3_verdicts.json"
+    },
+    "ladder": {
+      "exists": true,
+      "path": "evaluation/ladder/decisions/ladder.json"
+    },
+    "ladder_wall_clock": {
+      "exists": true,
+      "path": "evaluation/ladder/decisions/wall_clock.json"
+    },
+    "m7_metrics": {
+      "exists": false,
+      "path": "evaluation/ladder/M7/metrics.json"
+    },
+    "plan_state": {
+      "exists": true,
+      "path": "evaluation/discovery/decisions/plan_state.json"
+    },
+    "power_checks": {
+      "exists": true,
+      "path": "evaluation/power/power_checks.json"
+    },
+    "power_kappa": {
+      "exists": true,
+      "path": "tables/power_kappa.csv"
+    },
+    "prereg": {
+      "exists": true,
+      "path": "preregistration.md"
+    },
+    "prereg_sha": {
+      "exists": true,
+      "path": "manifests/prereg_sha256.txt"
+    },
+    "preseal_coverage": {
+      "exists": true,
+      "path": "tables/preseal_coverage_by_domain_status.csv"
+    },
+    "preseal_pair_summary": {
+      "exists": true,
+      "path": "tables/preseal_pair_summary.csv"
+    },
+    "preseal_summary": {
+      "exists": true,
+      "path": "tables/preseal_summary.csv"
+    },
+    "process_attempt": {
+      "exists": true,
+      "path": "evaluation/process/attempts/g2_exploratory_attempt_2026-09-23.json"
+    },
+    "process_f5": {
+      "exists": false,
+      "path": "evaluation/process/f5.json"
+    },
+    "process_stability": {
+      "exists": false,
+      "path": "evaluation/process/stability.json"
+    },
+    "process_summary": {
+      "exists": false,
+      "path": "evaluation/process/summary.json"
+    },
+    "process_support": {
+      "exists": false,
+      "path": "tables/process_support_status.csv"
+    },
+    "process_winners": {
+      "exists": false,
+      "path": "tables/process_winners.csv"
+    },
+    "reliability": {
+      "exists": true,
+      "path": "tables/reliability_before_correlation.csv"
+    },
+    "s1e": {
+      "exists": true,
+      "path": "tables/s1e_error_vs_support.csv"
+    },
+    "seed_commitment": {
+      "exists": true,
+      "path": "manifests/confirmation_seeds_sha256.txt"
+    },
+    "stop_rule": {
+      "exists": true,
+      "path": "evaluation/discovery/decisions/stop_rule.json"
+    },
+    "v6_pairs": {
+      "exists": false,
+      "path": "evaluation/confirmation/v6_pairs.csv"
+    },
+    "v6_systems": {
+      "exists": false,
+      "path": "evaluation/confirmation/v6_systems.csv"
+    },
+    "wall_clock": {
+      "exists": true,
+      "path": "evaluation/discovery/decisions/wall_clock.json"
+    }
+  },
+  "missing_inputs": [
+    "evaluation/confirmation/decisions/confirmation.json",
+    "evaluation/confirmation/f1_check.json",
+    "evaluation/confirmation/v6_pairs.csv",
+    "evaluation/confirmation/v6_systems.csv",
+    "evaluation/ladder/M7/metrics.json",
+    "evaluation/process/f5.json",
+    "evaluation/process/stability.json",
+    "evaluation/process/summary.json",
+    "tables/process_winners.csv"
+  ],
+  "missing_keys": [
+    "evaluation/discovery/contrasts_exploratory.csv -> key=B5 vs B1|B2@V5|V1|V2",
+    "evaluation/discovery/contrasts_registered.csv -> key=M3 vs M2@V5",
+    "evaluation/ladder/decisions/ladder.json -> steps.H5",
+    "evaluation/power/power_checks.json -> checks[].contrast=B6 vs B6r0@V5",
+    "evaluation/power/power_checks.json -> checks[].contrast=M2 vs FLAT_CAT@V5"
+  ],
+  "n_numbers": 694,
+  "root": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer",
+  "schema": "gen19.report.v1"
+}

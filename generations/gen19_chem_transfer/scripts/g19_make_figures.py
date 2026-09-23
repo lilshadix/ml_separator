@@ -19,16 +19,27 @@ Frames (assembled here, drawn by ``figures.py``; every figure reports the files 
 * F08: per-cell MAE of the deployed predictor (and B3i) on V5-primary joined to the runner's ``_support`` files (domain
   status, registered ``support_score``), with the S1(e) statistic (Spearman, system-cluster bootstrap, 10,000 resamples,
   seed 19) written to ``tables/s1e_error_vs_support.csv`` for the report;
-* F10 / F11: ``evaluation/power/embeddings/metal_embeddings.csv`` / ``system_embeddings.csv`` (+ ``metal_embeddings_
-  replicate_*.csv``; written by ``g19_run_power.py --include-learned`` once implemented) -- skipped with the reason until
-  they exist;
+* F10 / F11: the learned ``e_m`` / ``e_l`` tables.  The registered source is ``evaluation/power/embeddings/`` (written by
+  ``g19_run_power.py --include-learned``, which is NOT_IMPLEMENTED: ``evaluation/power/reliability.json`` reports the
+  embeddings' section 8 reliability NOT_RUN).  Until it exists the tables are REPRODUCED from the verified M1 / M2
+  discovery records (``refit_embeddings_from_records``): every V5-primary fold record of the arm (seed 104729) is
+  refitted on that fold's training rows at its retained configuration, stopping count and model seed, accepted only when
+  the refit's ``model_state_digest`` and ``feature_state_digest`` equal the record's (``arm_record.fit_record``), and
+  its ``FactorisedArm.metal_embeddings()`` / ``system_embeddings()`` are written under
+  ``evaluation/figures/embeddings/<arm>/``.  The reference table is the lowest-ordinal verified fold; the other verified
+  folds are the Procrustes replicates (``power.embedding_stability``) -- **fold replicates (leave-cells-out perturbations),
+  not a bootstrap**, labelled so on the figure and in ``stability.json``.  No test row is predicted, no confirmation-half
+  row is scored and no V6 row is read by the refits: they reproduce fits discovery already made.  ``--no-embedding-refits``
+  reads the tables already on disk instead;
 * F12: the confirmation run's ``evaluation/confirmation/v6_rows.csv`` and ``v6_pairs.csv`` only (V6 is touched once);
+  while the confirmation run has not run the figure is SKIPPED with the reason ``confirmation run not run``;
 * F13: V5-PAIR pair-level direction from the verified M2 V5-PAIR record and ``folds/V5PAIR__primary__batched__pairs.parquet``;
-  V6 pairs from the confirmation files.
+  the V6 panel comes from the confirmation files and is skipped with the same reason while the run has not run.
 
 Outputs (new directories only): ``figures/F07..F13_*.png``, ``figures/data/F*.csv``, ``tables/s1e_error_vs_support.csv``,
-``evaluation/figures/figures_index.json``; manifest ``manifests/g19_make_figures.json`` (git HEAD, prereg + addendum digests,
-the code digest of this script and ``figures.py``, seeds, runtime).  Nothing reads the confirmation half of any design
+``evaluation/figures/embeddings/<arm>/*``, ``evaluation/figures/figures_index.json``; manifest
+``manifests/g19_make_figures.json`` (git HEAD, prereg + addendum digests, the code digest of this script and ``figures.py``,
+seeds, runtime, the embedding refit verification).  Nothing reads the confirmation half of any design as a test set
 except the confirmation files themselves, and nothing touches V6 outside them.
 
     PYTHONIOENCODING=utf-8 PYTHONPATH=generations/gen19_chem_transfer \\
@@ -66,7 +77,15 @@ NAME = "g19_make_figures"
 STAGE = "figures"
 CODE_FILES: tuple[Path, ...] = (paths.G19_ROOT / "gen19ct" / "evaluation" / "figures.py", Path(__file__).resolve())
 EMBEDDINGS_DIR = "evaluation/power/embeddings"
+#: the reproduced tables (module docstring): ``<EMBEDDINGS_REFIT_DIR>/<arm>/{metal,system}_embeddings.csv``,
+#: ``*_replicate_<fold>.csv``, ``stability.json``, ``verification.json``
+EMBEDDINGS_REFIT_DIR = "evaluation/figures/embeddings"
+#: the arms whose records hold a learned ``e_m`` / ``e_l`` (``models.neural.FactorisedArm``); M2 is the H1 candidate and is
+#: the arm F10 / F11 draw, M1 is written as data beside it.  The deployed M0 (= B5, CatBoost) has no embedding.
+EMBEDDING_ARMS: tuple[str, ...] = ("M2", "M1")
+EMBEDDING_REPLICATE_LABEL = "fold-replicate"
 CONFIRMATION_DIR = "evaluation/confirmation"
+CONFIRMATION_NOT_RUN = "confirmation run not run"
 PAIRS_PARQUET = "folds/V5PAIR__primary__batched__pairs.parquet"
 ALL_FIGURES: tuple[str, ...] = ("F07", "F08", "F09", "F10", "F11", "F12", "F13")
 
@@ -201,22 +220,37 @@ def support_labels(store, out_root: Path, arm: str) -> tuple[pd.DataFrame | None
 
 
 def cell_table(fr: pd.DataFrame, sup: pd.DataFrame, attrs: pd.DataFrame) -> pd.DataFrame:
-    """Per hidden cell: MAE, the cell's support_score (mean over its rows), its domain status (majority), metal class."""
+    """Per hidden cell: MAE, the cell's support_score (mean over its rows), its domain status (majority), metal class.
+
+    The labels are joined on (fold_id, row_id); when that key matches nothing -- the closed-form comparator B3i is scored
+    on the pre-seal EXACT folds while the ``_support`` files are the deployed arm's batched folds (``support_labels``:
+    "the deployed arm's support files apply") -- they are joined on row_id alone, which is unique in a V5 design (every
+    row is hidden in exactly one fold), and ``support_join`` records which key was used."""
     key = sup.set_index(["fold_id", "row_id"])
     idx = pd.MultiIndex.from_arrays([fr["fold_id"].astype(str), fr["row_id"].astype(str)])
     lab = key.reindex(idx)
+    join = "fold_id, row_id"
+    if not pd.to_numeric(lab["support_score"], errors="coerce").notna().any():
+        by_row = sup.assign(row_id=sup["row_id"].astype(str)).drop_duplicates("row_id").set_index("row_id")
+        lab = by_row.reindex(fr["row_id"].astype(str))
+        join = "row_id (the deployed arm's support files, closed-form comparator on other folds)"
     f = fr.assign(domain_status=lab["domain_status"].to_numpy(), support_score=pd.to_numeric(lab["support_score"], errors="coerce").to_numpy(),
                   ambiguous=lab["domain_status_ambiguous"].astype("boolean").fillna(False).to_numpy())
     f = f[~f["ambiguous"].astype(bool)]
     f["err"] = (f["mean_logD"].astype(float) - f["log_D"].astype(float)).abs()
     sysk = attrs[EM.SYSTEM_COL].reindex(f["row_id"].to_numpy()).astype(str).to_numpy()
     f["system"] = sysk
-    g = f.groupby(f["unit"].astype(str))
+    # observed=True: ``unit`` may be categorical, and an unused category would otherwise give an EMPTY group whose
+    # majority status has no argmax (the first real run failed here); a unit without a status is labelled, not dropped
+    g = f.groupby(f["unit"].astype(str).to_numpy(), observed=True)
     out = g.agg(mae=("err", "mean"), support_score=("support_score", "mean"), n_rows=("err", "size"),
                 system=("system", "first"), metal_class=("metal_class", "first"))
-    out["domain_status"] = g["domain_status"].agg(lambda s: s.astype(str).value_counts().idxmax())
+    out["domain_status"] = g["domain_status"].agg(
+        lambda s: s.dropna().astype(str).value_counts().idxmax() if s.notna().any() else "UNKNOWN")
     out.index.name = "unit"
-    return out.reset_index()
+    out = out.reset_index()
+    out.attrs["support_join"] = join
+    return out
 
 
 def v5pair_pairs(store, attrs: pd.DataFrame, out_root: Path) -> tuple[pd.DataFrame | None, list[str]]:
@@ -246,8 +280,15 @@ def _read_csv(p: Path, **kw) -> pd.DataFrame | None:
     return pd.read_csv(p, **kw) if p.exists() else None
 
 
-def embedding_inputs(out_root: Path) -> dict[str, Any]:
+def embedding_inputs(out_root: Path, arm: str | None = None) -> dict[str, Any]:
+    """The ``e_m`` / ``e_l`` tables F10 / F11 draw: the registered ``evaluation/power/embeddings/`` when it exists, else the
+    tables reproduced from ``arm``'s verified discovery records under ``evaluation/figures/embeddings/<arm>/``
+    (:func:`refit_embeddings_from_records`), with their replicates and stability record.  ``source`` names which."""
     d = Path(out_root) / EMBEDDINGS_DIR
+    source = "registered (evaluation/power/embeddings)"
+    if not (d / "metal_embeddings.csv").exists() and arm is not None:
+        d = Path(out_root) / EMBEDDINGS_REFIT_DIR / arm
+        source = f"reproduced from the verified {arm} discovery records ({EMBEDDINGS_REFIT_DIR}/{arm})"
     metal = _read_csv(d / "metal_embeddings.csv", index_col=0)
     system = _read_csv(d / "system_embeddings.csv", index_col=0)
     reps = [pd.read_csv(p, index_col=0) for p in sorted(d.glob("metal_embeddings_replicate_*.csv"))]
@@ -257,17 +298,166 @@ def embedding_inputs(out_root: Path) -> dict[str, Any]:
         for r in rel.get("records") or []:
             if r.get("quantity") == "embeddings" and r.get("status") == "computed":
                 stability = r
-    used = [f"{EMBEDDINGS_DIR}/{p.name}" for p in sorted(d.glob("*.csv"))] if d.exists() else []
+    local = D.read_record(d / "stability.json")
+    if stability is None and local and (local.get("metal") or {}).get("status") == "computed":
+        stability = dict(local["metal"])
+    try:
+        rel_dir = d.relative_to(Path(out_root)).as_posix()
+    except ValueError:
+        rel_dir = str(d)
+    used = [f"{rel_dir}/{p.name}" for p in sorted(d.glob("*.csv")) + sorted(d.glob("*.json"))] if d.exists() else []
     if rel:
         used.append("evaluation/power/reliability.json")
-    return {"metal": metal, "system": system, "replicates": reps, "stability": stability, "inputs": used}
+    return {"metal": metal, "system": system, "replicates": reps, "stability": stability, "inputs": used, "source": source,
+            "dir": d}
+
+
+def _embedding_columns(table: pd.DataFrame, prefix: str) -> list[str]:
+    return [c for c in table.columns if str(c).startswith(prefix)]
+
+
+def refit_embeddings_from_records(out_root: Path, store, state: D.PlanState, *, arms: Sequence[str] = EMBEDDING_ARMS,
+                                  code: str | None = None, corpus=None) -> dict[str, Any]:
+    """Reproduce the learned embeddings of ``arms`` from their verified V5-primary discovery records (module docstring).
+
+    Per arm: the record set must verify (``Store.verified``; a stale record raises, an incomplete set is skipped); every
+    fittable fold's record gives the retained configuration (``arm_record.selected``), stopping count (``n_epochs``) and
+    ``model_seed``; the fold's outer training rows come from discovery's own ``prepare_fold`` (section 2 guards, the
+    hidden cells removed); the refit is accepted only when its ``model_state_digest`` and ``feature_state_digest`` equal
+    the record's.  Writes ``metal_embeddings.csv`` / ``system_embeddings.csv`` (the lowest-ordinal verified fold),
+    ``*_replicate_<fold>.csv`` for the other verified folds, ``stability.json`` (``power.embedding_stability`` of the
+    ``e_m_*`` and ``e_l_*`` columns; fold replicates, not a bootstrap) and ``verification.json``.  Nothing is predicted."""
+    from gen19ct.evaluation import power as PW
+    from gen19ct.models import neural as NN
+
+    rd = runner_module()
+    code = code or REG.discovery_code_digest()
+    if corpus is None:
+        log("corpus for the embedding refits (discovery's load_corpus)")
+        corpus = rd.load_corpus(rd.coextractant_ids(), with_cv=True)
+    fam = None
+    if corpus.systems is not None and "system_family" in corpus.systems.columns:
+        fam = corpus.systems["system_family"].astype(str)
+    out: dict[str, Any] = {"schema": "gen19.figures.embedding_refits.v1", "arms": {}, "outputs": [],
+                           "rows_predicted": 0, "confirmation_half_scored": False, "v6_target_rows_scored": 0,
+                           "replicates": f"{EMBEDDING_REPLICATE_LABEL}: the other verified V5-primary outer-fold refits of "
+                                         "the same arm and seed (leave-cells-out perturbations of the training set), NOT a "
+                                         "bootstrap; the registered section 8 embedding reliability "
+                                         "(g19_run_power.py --include-learned) is NOT_RUN",
+                           "acceptance": "a refit enters the tables only when its model_state_digest and "
+                                         "feature_state_digest equal the record's arm_record.fit_record"}
+    for arm in arms:
+        dd = store.design_dir(arm, "V5", "primary")
+        rec_dir = D.discovery_root(out_root) / arm / str(dd) / f"s{D.PRIMARY_SEED}" if dd else None
+        summary: dict[str, Any] = {"arm": arm, "design_dir": dd, "seed": D.PRIMARY_SEED, "folds": []}
+        out["arms"][arm] = summary
+        if dd is None or not rec_dir.exists():
+            summary["status"] = f"skipped: no {arm} V5-primary record directory"
+            continue
+        if store.verified(arm, dd, D.PRIMARY_SEED) is None:
+            summary["status"] = "skipped: record set incomplete"
+            continue
+        recs = {}
+        for js in sorted(rec_dir.glob("*.json")):
+            rec = D.read_record(js)
+            if rec and "fold_id" in rec:
+                recs[str(rec["fold_id"])] = rec
+        job = D.job_from_record(next(iter(recs.values())))
+        summary["job"] = job.key
+        tables: list[tuple[int, str, pd.DataFrame, pd.DataFrame]] = []
+        t_arm = time.perf_counter()
+        for fold, k in corpus.fittable(job):
+            rec = recs.get(fold.fold_id)
+            row: dict[str, Any] = {"fold_id": fold.fold_id, "ordinal": int(k)}
+            if rec is None:
+                row["status"] = "record missing"
+                summary["folds"].append(row)
+                continue
+            fc, info = rd.prepare_fold(job, fold, k, corpus, out_root, state, code=code)
+            rows = corpus.frame.loc[corpus.table.index[fc.mask]]
+            ar = rec["arm_record"]
+            sel = ar["selected"]
+            cfg = NN.NeuralConfig(int(sel["emb_dim"]), float(sel["weight_decay"]), int(sel["rank"]))
+            t0 = time.perf_counter()
+            a = NN.FactorisedArm(cfg, n_epochs=int(ar["n_epochs"]), model_seed=int(rec["model_seed"]), rows=corpus.frame,
+                                 condition_vectors=corpus.cv).fit(rows)
+            got, want = a.fit_record(), ar["fit_record"]
+            ok = (got["model_state_digest"] == want["model_state_digest"]
+                  and got["feature_state_digest"] == want["feature_state_digest"])
+            row.update({"status": "verified" if ok else "digest mismatch (not used)", "n_train": int(info["n_train"]),
+                        "n_train_record": rec.get("n_train"), "config": cfg.label(), "n_epochs": int(ar["n_epochs"]),
+                        "model_seed": int(rec["model_seed"]), "model_state_digest": got["model_state_digest"],
+                        "model_state_digest_record": want["model_state_digest"],
+                        "feature_state_digest_matches": got["feature_state_digest"] == want["feature_state_digest"],
+                        "refit_seconds": round(time.perf_counter() - t0, 2), "record_digest": rec.get("digest")})
+            summary["folds"].append(row)
+            log(f"{arm} {fold.fold_id}: {row['status']} ({row['refit_seconds']} s)")
+            if ok:
+                tables.append((int(k), fold.fold_id, a.metal_embeddings(), a.system_embeddings()))
+        summary["seconds"] = round(time.perf_counter() - t_arm, 1)
+        summary["n_folds"] = len(summary["folds"])
+        summary["n_verified"] = len(tables)
+        if not tables:
+            summary["status"] = "skipped: no fold refit reproduced its record digest"
+            continue
+        tables.sort(key=lambda t: t[0])
+        odir = Path(out_root) / EMBEDDINGS_REFIT_DIR / arm
+        k0, f0, m0, s0 = tables[0]
+        if fam is not None:
+            s0 = s0.join(fam.rename("family"), how="left")
+        m0 = m0.assign(fold_id=f0, fold_ordinal=k0)
+        s0 = s0.assign(fold_id=f0, fold_ordinal=k0)
+        # write_csv drops the index, so the state / system key becomes the first column (embedding_inputs reads index_col=0)
+        outs = [write_csv(m0.reset_index(), odir / "metal_embeddings.csv"),
+                write_csv(s0.reset_index(), odir / "system_embeddings.csv")]
+        mreps, sreps = [], []
+        for k, fid, mt, st in tables[1:]:
+            name = D.safe_fold_name(fid)
+            outs.append(write_csv(mt.assign(fold_id=fid, fold_ordinal=k).reset_index(),
+                                  odir / f"metal_embeddings_replicate_{name}.csv"))
+            outs.append(write_csv(st.assign(fold_id=fid, fold_ordinal=k).reset_index(),
+                                  odir / f"system_embeddings_replicate_{name}.csv"))
+            mreps.append(mt[_embedding_columns(mt, "e_m_")])
+            sreps.append(st[_embedding_columns(st, "e_l_")])
+        stab = {"metal": PW.embedding_stability(m0[_embedding_columns(m0, "e_m_")], mreps),
+                "system": PW.embedding_stability(s0[_embedding_columns(s0, "e_l_")], sreps),
+                "replicate_label": EMBEDDING_REPLICATE_LABEL, "replicates": out["replicates"], "arm": arm,
+                "reference_fold": f0, "reference_fold_ordinal": k0, "n_replicates": len(mreps),
+                "registered_reliability": "NOT_RUN (evaluation/power/reliability.json, quantity embeddings): this record is "
+                                          "descriptive and enters no registered rule"}
+        for k in ("metal", "system"):
+            stab[k]["registered_reliability"] = stab["registered_reliability"]
+            stab[k]["replicate_label"] = EMBEDDING_REPLICATE_LABEL
+        outs.append(write_json(odir / "stability.json", H3.json_safe(stab)))
+        summary.update({"status": "written", "reference_fold": f0, "n_replicates": len(mreps),
+                        "n_replicates_aligned_metal": stab["metal"].get("n_replicates"),
+                        "metal_stability": stab["metal"].get("stability"),
+                        "metal_null_stability": stab["metal"].get("null_stability"), "metal_gate": stab["metal"].get("gate"),
+                        "system_stability": stab["system"].get("stability"),
+                        "system_null_stability": stab["system"].get("null_stability"),
+                        "system_gate": stab["system"].get("gate"), "dir": f"{EMBEDDINGS_REFIT_DIR}/{arm}"})
+        outs.append(write_json(odir / "verification.json", H3.json_safe({**summary, "acceptance": out["acceptance"]})))
+        out["outputs"] += [str(o) for o in outs]
+    return out
 
 
 def confirmation_inputs(out_root: Path) -> dict[str, Any]:
+    """The confirmation run's V6 files, and whether the single run has run at all (``confirmation.decisions_path`` /
+    ``started_path``): while it has not, F12 and the V6 panel of F13 are skipped with ``CONFIRMATION_NOT_RUN``."""
+    from gen19ct.evaluation import confirmation as CF
+
     d = Path(out_root) / CONFIRMATION_DIR
     rows, pairs = _read_csv(d / "v6_rows.csv"), _read_csv(d / "v6_pairs.csv")
     used = [f"{CONFIRMATION_DIR}/{n}" for n, x in (("v6_rows.csv", rows), ("v6_pairs.csv", pairs)) if x is not None]
-    return {"rows": rows, "pairs": pairs, "inputs": used}
+    decided, started = CF.decisions_path(out_root).exists(), CF.started_path(out_root).exists()
+    missing = [f"{CONFIRMATION_DIR}/{n}" for n, x in (("v6_rows.csv", rows), ("v6_pairs.csv", pairs)) if x is None]
+    if not decided and not started:
+        reason = (f"{CONFIRMATION_NOT_RUN} (input missing: {', '.join(missing)}; the single V6 run of section 3.4 happens "
+                  "only inside the confirmation run, whose once-only lock is unspent)") if missing else ""
+    else:
+        reason = f"input missing: {', '.join(missing)}" if missing else ""
+    return {"rows": rows, "pairs": pairs, "inputs": used, "run_decided": decided, "run_started": started,
+            "skip_reason": reason}
 
 
 # ============================================================================================= #
@@ -281,24 +471,32 @@ def parse_args(argv=None) -> argparse.Namespace:
     ap.add_argument("--check-only", action="store_true", help="run the gate and exit")
     ap.add_argument("--expect-addenda", type=int, default=None)
     ap.add_argument("--n-resamples", type=int, default=ET.N_RESAMPLES, help="S1(e) bootstrap resamples (registered 10,000)")
+    ap.add_argument("--no-embedding-refits", action="store_true",
+                    help="F10 / F11 read the embedding tables already on disk instead of reproducing them from the records")
+    ap.add_argument("--embedding-arms", default=",".join(EMBEDDING_ARMS), help="arms whose embeddings are reproduced")
     ap.add_argument("--no-manifest", action="store_true")
     return ap.parse_args(argv)
 
 
-def make_all(out_root: Path, *, only: Sequence[str] | None = None, n_resamples: int = ET.N_RESAMPLES
-             ) -> tuple[list[FG.FigureResult], list[Path]]:
+def make_all(out_root: Path, *, only: Sequence[str] | None = None, n_resamples: int = ET.N_RESAMPLES,
+             refit_embeddings: bool = True, embedding_arms: Sequence[str] = EMBEDDING_ARMS
+             ) -> tuple[list[FG.FigureResult], list[Path], dict[str, Any]]:
+    """Every figure of ``only`` (default all); returns the results, the files written and the side records (the
+    embedding refit verification)."""
     rd, SD = runner_module(), scorer_module()
     want = set(only or ALL_FIGURES)
     figures_dir = Path(out_root) / "figures"
     tables = Path(out_root) / "tables"
     dep = deployed_arm(out_root)
+    side: dict[str, Any] = {}
     # the records, prediction frames and _support files of the deployed configuration are written under the name
     # discovery.ARM_ALIASES gives it (M0 -> B5), so every LOOKUP below takes arm_alias; dep["arm"] stays the name a
     # figure caption and the skip reasons print (task X finding V-P02)
     arm, shown_arm = dep.get("arm_alias") or dep.get("arm"), dep.get("arm")
     results: list[FG.FigureResult] = []
     outs: list[Path] = []
-    need_store = bool(want & {"F07", "F08", "F09", "F13"}) and arm is not None
+    need_store = (bool(want & {"F07", "F08", "F09", "F13"}) and arm is not None) or \
+        (bool(want & {"F10", "F11"}) and refit_embeddings)
     store = attrs = None
     if need_store:
         log("row attributes and the verified prediction store")
@@ -362,28 +560,58 @@ def make_all(out_root: Path, *, only: Sequence[str] | None = None, n_resamples: 
                 pairs_by_design["V5-PAIR"] = pairs
                 f13_inputs += used
             conf = confirmation_inputs(out_root)
+            note = ""
             if conf["pairs"] is not None and {"observed_logsf", "predicted_logsf"} <= set(conf["pairs"].columns):
                 pairs_by_design["V6"] = conf["pairs"]
                 f13_inputs += conf["inputs"]
-            results.append(FG.fig13_direction_confusion(pairs_by_design, figures_dir, inputs=f13_inputs, arm="M2"))
+            else:
+                note = "V6 panel skipped: " + (conf["skip_reason"] or f"input missing: {CONFIRMATION_DIR}/v6_pairs.csv")
+            if pairs_by_design:
+                results.append(FG.fig13_direction_confusion(pairs_by_design, figures_dir, inputs=f13_inputs, arm="M2",
+                                                            skipped_note=note))
+            else:
+                results.append(FG.skipped("F13", "no V5-PAIR pair-level predictions (verified M2 V5-PAIR record and "
+                                                 f"{PAIRS_PARQUET}); " + note, f13_inputs))
     if want & {"F10", "F11"}:
-        emb = embedding_inputs(out_root)
+        emb_arm = embedding_arms[0] if embedding_arms else EMBEDDING_ARMS[0]
+        if refit_embeddings and store is not None:
+            state = D.PlanState.read(rd.plan_state_path(out_root))
+            side["embedding_refits"] = refit_embeddings_from_records(out_root, store, state, arms=embedding_arms)
+            outs += [Path(p) for p in side["embedding_refits"]["outputs"]]
+        emb = embedding_inputs(out_root, emb_arm)
+        label = EMBEDDING_REPLICATE_LABEL if "reproduced" in emb["source"] else "bootstrap"
         if "F10" in want:
-            results.append(FG.fig10_metal_embedding(emb["metal"], figures_dir, inputs=emb["inputs"], arm=arm or "M2",
-                                                    replicates=emb["replicates"], stability=emb["stability"]))
+            r10 = FG.fig10_metal_embedding(emb["metal"], figures_dir, inputs=emb["inputs"], arm=emb_arm,
+                                           replicates=emb["replicates"], stability=emb["stability"], replicate_label=label)
+            r10.stats["source"] = emb["source"]
+            if r10.status == "skipped":
+                r10.reason += (f"; not computed (input missing: {EMBEDDINGS_DIR}/metal_embeddings.csv and "
+                               f"{EMBEDDINGS_REFIT_DIR}/{emb_arm}/metal_embeddings.csv)")
+            results.append(r10)
         if "F11" in want:
-            results.append(FG.fig11_extractant_embedding(emb["system"], figures_dir, inputs=emb["inputs"], arm=arm or "M2"))
+            r11 = FG.fig11_extractant_embedding(emb["system"], figures_dir, inputs=emb["inputs"], arm=emb_arm)
+            r11.stats["source"] = emb["source"]
+            if r11.status == "skipped":
+                r11.reason += (f"; not computed (input missing: {EMBEDDINGS_DIR}/system_embeddings.csv and "
+                               f"{EMBEDDINGS_REFIT_DIR}/{emb_arm}/system_embeddings.csv)")
+            results.append(r11)
     if "F12" in want:
         conf = confirmation_inputs(out_root)
-        results.append(FG.fig12_prnd_reconstruction(conf["rows"], conf["pairs"], figures_dir, inputs=conf["inputs"],
-                                                    arm=arm or "deployed"))
+        if conf["rows"] is None and conf["pairs"] is None:
+            results.append(FG.skipped("F12", conf["skip_reason"] or f"input missing: {CONFIRMATION_DIR}/v6_rows.csv, "
+                                                                     f"{CONFIRMATION_DIR}/v6_pairs.csv",
+                                      [f"{CONFIRMATION_DIR}/v6_rows.csv", f"{CONFIRMATION_DIR}/v6_pairs.csv"]))
+        else:
+            results.append(FG.fig12_prnd_reconstruction(conf["rows"], conf["pairs"], figures_dir, inputs=conf["inputs"],
+                                                        arm=arm or "deployed"))
     for r in results:
         if r.status == "written":
             outs.append(Path(out_root) / r.path if not Path(r.path).is_absolute() else Path(r.path))
             if r.data_path:
                 outs.append(Path(out_root) / r.data_path if not Path(r.data_path).is_absolute() else Path(r.data_path))
-        log(f"{r.figure}: {r.status}" + (f" ({r.reason})" if r.reason else f" -> {r.path}"))
-    return results, outs
+        log(f"{r.figure}: {r.status}" + (f" -> {r.path}" if r.status == "written" else "")
+            + (f" ({r.reason})" if r.reason else ""))
+    return results, outs, side
 
 
 def main(argv=None, *, check: Callable[[], int] | None = None, digests: Callable[[], Mapping[str, Any]] | None = None
@@ -410,15 +638,32 @@ def main(argv=None, *, check: Callable[[], int] | None = None, digests: Callable
                      "discovery_seeds": list(D.DISCOVERY_SEEDS), "seed": D.PRIMARY_SEED})
           if not ns.no_manifest else _Null()) as run:
         t0 = time.perf_counter()
-        results, outs = make_all(out_root, only=only, n_resamples=ns.n_resamples)
+        arms = [a.strip() for a in str(ns.embedding_arms).split(",") if a.strip()]
+        results, outs, side = make_all(out_root, only=only, n_resamples=ns.n_resamples,
+                                       refit_embeddings=not ns.no_embedding_refits, embedding_arms=arms)
+        conf = confirmation_inputs(out_root)
+        ran = bool(conf["run_decided"] or conf["run_started"])
+        refits = (side.get("embedding_refits") or {}).get("arms", {})
+        if not refits and ns.no_embedding_refits:
+            # the tables on disk were written by an earlier invocation: its verification record is what the index cites
+            for a in arms:
+                v = D.read_record(Path(out_root) / EMBEDDINGS_REFIT_DIR / a / "verification.json")
+                if v:
+                    refits[a] = {**v, "source": f"{EMBEDDINGS_REFIT_DIR}/{a}/verification.json (written by an earlier "
+                                                "invocation; --no-embedding-refits)"}
         index = FG.figures_index(results, {"git_head": git_head(), "code_sha256": code["combined"],
                                            "deployed": deployed_arm(out_root), "runtime_s": round(time.perf_counter() - t0, 1),
-                                           "confirmation_half_read": False, "v6_read_outside_confirmation_files": False})
+                                           "confirmation_half_read": False, "v6_read_outside_confirmation_files": False,
+                                           "confirmation_run": {"decided": conf["run_decided"], "started": conf["run_started"],
+                                                                "status": "run" if ran else CONFIRMATION_NOT_RUN},
+                                           "embedding_refits": {a: {k: v for k, v in s_.items() if k != "folds"}
+                                                                for a, s_ in refits.items()}})
         outs.append(write_json(Path(out_root) / "evaluation" / "figures" / "figures_index.json", H3.json_safe(index)))
         if run is not None:
             run.outputs(*[p for p in outs if Path(p).exists()])
             run.extra.update({"figures": [r.record() for r in results], "confirmation_half_read": False,
-                              "v6_target_rows_scored": 0})
+                              "v6_target_rows_scored": 0, "embedding_refits": H3.json_safe(side.get("embedding_refits")),
+                              "confirmation_run": index["confirmation_run"]})
     log(f"figures: {sum(r.status == 'written' for r in results)} written, {sum(r.status == 'skipped' for r in results)} skipped")
     return 0
 

@@ -1,0 +1,319 @@
+{
+ "attempts": [
+  {
+   "command": "scripts/g19_run_process.py --check-only",
+   "exit_code": 1,
+   "outcome": "gen19ct.evaluation.discovery.StaleRecordError raised inside refuse_unless_ready -> discovery_complete -> h3.discovery_complete -> g19_run_discovery.verified_predictions -> discovery.read_discovery_record_set; the gate verdict was never printed",
+   "wall_clock_seconds": 6.684
+  },
+  {
+   "command": "scripts/g19_run_process.py --exploratory",
+   "end_utc": "2026-09-23T13:38:40Z",
+   "exception": "gen19ct.evaluation.discovery.StaleRecordError: evaluation/discovery/B6/V5__primary_exact/s104729/Am(III)__1bf1228273.parquet: record digest d107751e18eb... differs from the current a3432712a289... (code, fold file or plan state changed; rerun the job)",
+   "exit_code": 1,
+   "outcome": "identical StaleRecordError at the same gate item 2(d); nothing under evaluation/process/ (other than the pre-existing inputs/todga_prnd_prediction_request.csv), tables/process_*, figures/F14, figures/F15 or manifests/g19_run_process.json was written; 0 Monte Carlo draws executed",
+   "start_utc": "2026-09-23T13:38:33Z",
+   "wall_clock_seconds": 6.812
+  },
+  {
+   "command": "scripts/g19_run_process.py --check-only (against the concurrently modified, uncommitted working copy of scripts/g19_run_discovery.py)",
+   "start_utc": "2026-09-23T13:47:59Z",
+   "end_utc": "2026-09-23T13:48:23Z",
+   "wall_clock_seconds": 24.028,
+   "exit_code": 1,
+   "outcome": "gate items 1-3 and 2(d) PASSED under the modified verification (discovery complete); refused at gate item 4 as designed in registered mode: confirmation.json is missing / S1.passed undecided",
+   "message": "refused: evaluation/confirmation/decisions/confirmation.json is missing or S1.passed is undecided (keys: ['S1.deployed_predictor', 'S1.passed', 'S2.passed', 'V6.run', 'seeds.verified']); Phase H runs only if S1 passes (section 14). Pass --exploratory for a labelled transfer-unsupported run"
+  },
+  {
+   "command": "scripts/g19_run_process.py --exploratory (against the concurrently modified, uncommitted working copy of scripts/g19_run_discovery.py)",
+   "start_utc": "2026-09-23T13:48:44Z",
+   "end_utc": "2026-09-23T13:49:09Z",
+   "wall_clock_seconds": 24.324,
+   "exit_code": 1,
+   "outcome": "gate passed in exploratory mode (label transfer-unsupported); refused at blocker 2: the prediction table is missing; the runner rewrote inputs/todga_prnd_prediction_request.csv (prediction_request_rewritten); 0 Monte Carlo draws; no process output, table, figure or manifest written",
+   "message": "refused: the Gen19 prediction table evaluation/process/inputs/todga_prnd_predictions.csv is missing. The conditions to predict were written to evaluation/process/inputs/todga_prnd_prediction_request.csv (fill it with the deployed predictor's records and save it as evaluation/process/inputs/todga_prnd_predictions.csv)"
+  }
+ ],
+ "blocker_1_gate": {
+  "first_stale_record": {
+   "code_digest_equal": true,
+   "digest_equal_under_current_registry": false,
+   "digest_equal_with_record_addenda_sha256": true,
+   "expected_digest_under_current_registry": "a3432712a28927f3dc6655e780fc8d13a925c4601820c68978074dc5cb324eda",
+   "expected_digest_with_record_addenda_sha256": "d107751e18eb4b7f23f48ff8e479fe713674dcb826d58b083d0bdc69b3c1e01b",
+   "expected_fold_hash": "68fe143910671684e3804c487cafe59437b786e30a4aa9f4acd96b7cd3837301",
+   "fold_hash_equal": true,
+   "job_key": "fit:B6:V5__primary_exact:s104729",
+   "job_stage": "01_B6",
+   "record_code_digest": "895a6ab9696010c9f8bffb4a6078f55b8f41b0773623a8de77103083157e0504",
+   "record_digest": "d107751e18eb4b7f23f48ff8e479fe713674dcb826d58b083d0bdc69b3c1e01b",
+   "record_fold_hash": "68fe143910671684e3804c487cafe59437b786e30a4aa9f4acd96b7cd3837301",
+   "record_json": "evaluation/discovery/B6/V5__primary_exact/s104729/Am(III)__1bf1228273.json",
+   "record_parquet": "evaluation/discovery/B6/V5__primary_exact/s104729/Am(III)__1bf1228273.parquet",
+   "record_prereg_addenda_sha256": "05f36fc0354adb75ae41655977115d827ffce1227b2bdbfeeba28a975f0e8e54",
+   "record_prereg_n_addenda": 1,
+   "registry_discovery_below_footer_sha256_current": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
+   "registry_stage_of_job": "discovery",
+   "reproduction": "scripts/g19_run_discovery.py expected_fold_records -> fold_digest folds REG.below_footer_sha256(REG.job_stage(job)) -- the CURRENT discovery entry (8 addenda) -- into the expected digest; the record was written under the addendum-1 entry. Substituting the record's own prereg_addenda_sha256 reproduces the stored digest exactly; the code digest and the fold hash already agree."
+  },
+  "item": "gate item 2(d): h3.discovery_complete (every fit job of the plan has a COMPLETE verified record set)",
+  "note": "registry.verify_record (gen19ct/evaluation/registry.py:272) implements the superseded-entry fallback the registry note describes; the discovery-completeness path (fold_digest, scripts/g19_run_discovery.py:1113) does not use it and reads the CURRENT entry's below-footer digest. No code was changed by task G2; a fix is an orchestrator decision and must be logged in manifests/digest_registry.json",
+  "registry_stage_entries": {
+   "discovery": {
+    "addenda_count": 8,
+    "below_footer_sha256": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
+    "code_digest": "895a6ab9696010c9f8bffb4a6078f55b8f41b0773623a8de77103083157e0504",
+    "git_head": "5f8ccd8812d4138f9753a7e8e7edc1a78c3bdfdc",
+    "registered_utc": "2026-09-23T10:27:05+00:00"
+   },
+   "discovery_candidates": {
+    "addenda_count": 8,
+    "below_footer_sha256": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
+    "code_digest": "d4ddf83c747aa9c991e6414869fbd9a054a1293342c4aa7f90f795f17c420e5b",
+    "git_head": "5f8ccd8812d4138f9753a7e8e7edc1a78c3bdfdc",
+    "registered_utc": "2026-09-23T10:27:05+00:00"
+   },
+   "h3": {
+    "addenda_count": 8,
+    "below_footer_sha256": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
+    "code_digest": "d81f6dd59292edc63e77b022b098121e42ca1d1cfb08ba4773676eb408c2253f",
+    "git_head": "5f8ccd8812d4138f9753a7e8e7edc1a78c3bdfdc",
+    "registered_utc": "2026-09-23T10:27:05+00:00"
+   },
+   "process": {
+    "addenda_count": 8,
+    "below_footer_sha256": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
+    "code_digest": "a8416dc8c8ab3ba9d71ffc16e8e6b3c8b97d3330143046174059567e66bef674",
+    "git_head": "5f8ccd8812d4138f9753a7e8e7edc1a78c3bdfdc",
+    "registered_utc": "2026-09-23T10:27:06+00:00"
+   }
+  },
+  "sampled_record_sets": [
+   {
+    "arm": "B5",
+    "design_dir": "V5__primary_batched_max4",
+    "message": "y\\B5\\V5__primary_batched_max4\\s104729\\s104729_S_b000.parquet: record digest 8491b1c4a2bc... differs from the current 4149ae5d59a7... (code, fold file or plan state changed; rerun the job)",
+    "seconds": 1.0,
+    "seed": 104729,
+    "status": "StaleRecordError"
+   },
+   {
+    "arm": "M2",
+    "design_dir": "V5__primary_batched_max4",
+    "message": "y\\M2\\V5__primary_batched_max4\\s104729\\s104729_S_b000.parquet: record digest aaf2364e5e19... differs from the current 77f530e05722... (code, fold file or plan state changed; rerun the job)",
+    "seconds": 0.2,
+    "seed": 104729,
+    "status": "StaleRecordError"
+   },
+   {
+    "arm": "FLAT_CAT",
+    "design_dir": "V5__primary_batched_max4",
+    "message": "_CAT\\V5__primary_batched_max4\\s104729\\s104729_S_b000.parquet: record digest 5c44b960a3fb... differs from the current 026531cc8aad... (code, fold file or plan state changed; rerun the job)",
+    "seconds": 0.1,
+    "seed": 104729,
+    "status": "StaleRecordError"
+   },
+   {
+    "arm": "B5",
+    "design_dir": "V1__copy_exact",
+    "message": "n\\discovery\\B5\\V1__copy_exact\\s104729\\pub_0884e38fbe.parquet: record digest b8c960c295ed... differs from the current eefea66e4cc6... (code, fold file or plan state changed; rerun the job)",
+    "seconds": 0.3,
+    "seed": 104729,
+    "status": "StaleRecordError"
+   },
+   {
+    "arm": "B6",
+    "design_dir": "V1__copy_exact",
+    "message": "n\\discovery\\B6\\V1__copy_exact\\s104729\\pub_0884e38fbe.parquet: record digest f058361509e2... differs from the current 610f0431d428... (code, fold file or plan state changed; rerun the job)",
+    "seconds": 0.1,
+    "seed": 104729,
+    "status": "StaleRecordError"
+   },
+   {
+    "arm": "B6",
+    "design_dir": "V5__primary_exact",
+    "message": "ery\\B6\\V5__primary_exact\\s104729\\Am(III)__1bf1228273.parquet: record digest d107751e18eb... differs from the current a3432712a289... (code, fold file or plan state changed; rerun the job)",
+    "seconds": 0.5,
+    "seed": 104729,
+    "status": "StaleRecordError"
+   }
+  ],
+  "shared_by": [
+   "scripts/g19_run_h3.py:158",
+   "scripts/g19_make_figures.py:117",
+   "scripts/g19_build_report.py:93",
+   "scripts/g19_run_process.py:280"
+  ],
+  "superseded_discovery_entries": [
+   {
+    "addenda_count": 1,
+    "below_footer_sha256": "05f36fc0354adb75ae41655977115d827ffce1227b2bdbfeeba28a975f0e8e54",
+    "code_digest": "895a6ab9696010c9f8bffb4a6078f55b8f41b0773623a8de77103083157e0504",
+    "git_head": "3343d3f240e96661c7b082c2cfbef8c26980427e",
+    "registered_utc": "2026-09-22T01:53:20+00:00",
+    "stage": "discovery",
+    "superseded_utc": "2026-09-23T07:03:30+00:00"
+   },
+   {
+    "addenda_count": 7,
+    "below_footer_sha256": "f125031177e13ac93b2f80da238dfd1dd0716674eb86abfb8769dfcc63ce3348",
+    "code_digest": "895a6ab9696010c9f8bffb4a6078f55b8f41b0773623a8de77103083157e0504",
+    "git_head": "388f3a0da8a4d8efcf90074404015a6d0ef30b0b",
+    "registered_utc": "2026-09-23T07:03:30+00:00",
+    "stage": "discovery",
+    "superseded_utc": "2026-09-23T10:27:05+00:00"
+   }
+  ],
+  "status_after_concurrent_modification": "passes under the uncommitted working copy of scripts/g19_run_discovery.py (attempts[2], attempts[3]); still raises at HEAD bdc62e2 (attempts[0], attempts[1])"
+ },
+ "blocker_2_inputs": {
+  "confirmation_decision": {
+   "exists": false,
+   "path": "evaluation/confirmation/decisions/confirmation.json"
+  },
+  "deployment_prediction_step": {
+   "exists": false,
+   "models_dir_entries": [],
+   "searched": "grep over generations/gen19_chem_transfer for todga_prnd_predictions / write_prediction_request / full-corpus / deploy fit: the only writers are scripts/g19_run_process.py (writes the REQUEST) and gen19ct/process/gen18_adapter.py (the schema); no script fills the request"
+  },
+  "prediction_request": {
+   "acid": [
+    "HNO3"
+   ],
+   "acid_M_max": 5.0,
+   "acid_M_min": 0.00933254,
+   "anion": [
+    "nitrate"
+   ],
+   "ligand_M_max": 0.3,
+   "ligand_M_min": 0.00023126,
+   "member_columns_present": [],
+   "metals": [
+    "Nd",
+    "Pr"
+   ],
+   "n_arm_filled": 0,
+   "n_log_acid": 25,
+   "n_log_ligand": 9,
+   "n_mean_logD_filled": 0,
+   "n_rows": 450,
+   "path": "evaluation/process/inputs/todga_prnd_prediction_request.csv",
+   "system_id": [
+    "sys_5cb78e5000d40860"
+   ]
+  },
+  "prediction_table": {
+   "exists": false,
+   "path": "evaluation/process/inputs/todga_prnd_predictions.csv"
+  },
+  "rho_file": {
+   "exists": false,
+   "exploratory_consequence": "read_rho: rho = 0, independent Pr / Nd draws, flagged (section 14: independent draws inflate logSF uncertainty)",
+   "path": "evaluation/process/inputs/prnd_residual_correlation.json"
+  }
+ },
+ "confirmation_half_read": false,
+ "deployed_predictor_fits": {
+  "WITHOUT_h3_records": {
+   "evaluation/h3/records/B5/WITHOUT/V1__copy_exact": 39,
+   "evaluation/h3/records/B5/WITHOUT/V2__element_exact": 12,
+   "evaluation/h3/records/B5/WITHOUT/V5__primary_batched_max4": 28
+  },
+  "WITH_discovery_records": {
+   "evaluation/discovery/B5/V1__copy_exact": 39,
+   "evaluation/discovery/B5/V2__element_exact": 12,
+   "evaluation/discovery/B5/V5__hno3_only_batched_max4": 27,
+   "evaluation/discovery/B5/V5__primary_batched_max4": 28,
+   "evaluation/discovery/B5/V5__strict_batched_max4": 18
+  },
+  "example_without_record": {
+   "arm": "B5:WITHOUT",
+   "model_arm": "B5",
+   "n_actinide_training_rows_dropped": 4634,
+   "n_hidden": 821,
+   "n_train": 6956,
+   "parquet_columns": [
+    "row_id",
+    "fold_id",
+    "arm",
+    "design",
+    "variant",
+    "scheme",
+    "variant_label",
+    "seed",
+    "fold_seed",
+    "half",
+    "unit",
+    "mean_logD",
+    "std_logD",
+    "lower_50",
+    "upper_50",
+    "lower_80",
+    "upper_80",
+    "lower_95",
+    "upper_95",
+    "conformal_q50",
+    "conformal_q80",
+    "conformal_q95",
+    "conformal_n_calibration",
+    "fallback_level",
+    "fallback_reason",
+    "selected_config",
+    "fold_ordinal",
+    "model_seed",
+    "fit_seconds",
+    "intervals_status",
+    "batching_label"
+   ],
+   "parquet_rows": 557,
+   "path": "evaluation/h3/records/B5/WITHOUT/V5__primary_batched_max4/s104729/s104729_S_b000.json",
+   "selected_config": "depth8_l23",
+   "transform": "WITHOUT"
+  },
+  "what_a_record_holds": "per-fold predictions of the fold's hidden CORPUS rows (row_id, mean_logD, intervals, conformal_q*); no fitted model object, no prediction at a requested (acid, ligand) condition; no full-corpus fit of M0 exists, WITH or WITHOUT"
+ },
+ "git_head": "bdc62e2aa3c9c9088c731605d292afa75d602a3b",
+ "no_code_changed": true,
+ "no_learned_arm_fitted": true,
+ "schema": "gen19.process.attempt.v1",
+ "task": "G2 -- exploratory process case (section 14) with the deployed predictor M0 (alias B5)",
+ "v6_target_rows_read": 0,
+ "withheld_seeds_read": false,
+ "concurrent_tree_modification": {
+  "path": "scripts/g19_run_discovery.py",
+  "made_by_task_g2": false,
+  "head_sha256": "92bf655dda7959f8f8d292fdf40e9be35c152ea56295040ae904f10e332e8ba4",
+  "working_copy_sha256": "2933bb8a4f41b41e1d1e8ba9fd5db7ac06462818716c968309a8f56377817dba",
+  "working_copy_mtime_utc": "2026-09-23T13:45:04Z (after attempts[0] and attempts[1])",
+  "git_diff_numstat": {
+   "insertions": 61,
+   "deletions": 4
+  },
+  "what_it_does": "adds a verification_basis context manager / _VERIFICATION_ADDENDA context variable so that fold_digest uses the below-footer digest a record set was written under (registry.verify_record's ordered superseded-entry fallback) instead of the stage's CURRENT entry -- it addresses blocker 1",
+  "observed_effect": "gate item 2(d) passes in about 24 s (attempts[2], attempts[3]); at HEAD bdc62e2 it raises (attempts[0], attempts[1])",
+  "registered_in_digest_registry": "not by task G2: whoever made the edit must log it in manifests/digest_registry.json -> code_changes (addendum 2 item 5)"
+ },
+ "prediction_request_rewritten": {
+  "path": "evaluation/process/inputs/todga_prnd_prediction_request.csv",
+  "written_by": "scripts/g19_run_process.py run_case -> write_prediction_request (attempts[3])",
+  "sha256_before": "a973cdd4aaaeffb76cdeac3df968981fbcb526108a3c7b3c5d1b88e57effe870",
+  "sha256_after": "d10345703f8bb00264ebe7d192adee3d7af8fbbddaa16fc55e36d8a3428125ce",
+  "written_utc": "2026-09-23T13:49:08Z",
+  "n_rows_before": 450,
+  "n_rows_after": 450,
+  "n_columns_before": 17,
+  "n_columns_after": 23,
+  "columns_added": [
+   "member_logD_0",
+   "member_logD_1",
+   "member_logD_2",
+   "member_logD_3",
+   "member_logD_4",
+   "conformal_q95"
+  ],
+  "columns_removed": [],
+  "values_identical_on_shared_columns": true,
+  "all_fill_columns_empty": true,
+  "note": "the committed request of 2026-09-19 predates the member columns the adapter added (gen18_adapter.MEMBER_COLUMNS, CONFORMAL_Q95_COLUMN); the rewrite adds them empty and changes no condition. Left in place as the runner's own current-schema output; not git-added"
+ }
+}

@@ -700,3 +700,61 @@ def test_every_real_h3_record_verifies_against_the_entry_it_was_written_under(tm
         basis = H3.record_digest_basis(rec, "live-code-that-is-not-the-registered-one")
         assert basis["code"] == rec["code_digest"] and basis["addenda"] == rec["prereg_addenda_sha256"]
         assert basis["resolved"] in ("current", "superseded")
+
+
+def test_a_record_set_is_verified_under_the_entry_it_was_written_under(tmp_path, monkeypatch):
+    """POST-HOC addendum 7 item 3 at the FOLD-DIGEST level.  The fold digest embeds the stage's below-footer digest, so
+    after the discovery stage is re-registered under a later addendum (addendum 8 did this for EVERY stage) the expected
+    digests recomputed with the CURRENT entry differ from every record's, and every verified reader -- the scorer's
+    Store, h3.discovery_complete, the figures and report gates -- refused a complete, untouched run as stale.
+    ``g19_run_discovery.record_set_basis`` resolves the entry a record set was written under through
+    ``registry.verify_record`` (ordered superseded fallback) and ``verified_predictions`` recomputes under it."""
+    RD = _test_module("test_h3").RD
+    p = tmp_path / "reg.json"
+    monkeypatch.setattr(REG, "registry_path", lambda root=None: p)
+    REG.register_stage("discovery", below_footer_sha256=A1, code_digest=CODE, git_head=None, addenda_count=1, note="d")
+    job = D.JobSpec(kind="fit", arm="B5", design="V5", variant="primary", scheme="exact", seed=D.PRIMARY_SEED,
+                    stage=D.STAGES["p_b5"], writes=("B5",))
+    fold = SimpleNamespace(fold_id="f0", fold_hash="h" * 64)
+    runner = SimpleNamespace()
+    with RD.verification_basis(None):
+        under_a1 = RD.fold_digest(job, fold, CODE, D.PlanState(), runner, tmp_path, ordinal=0, design_hash="d" * 64)
+    rec = {"prereg_addenda_sha256": A1, "code_digest": CODE, "prereg_n_addenda": 1, "digest": under_a1,
+           "job": job.record(), "steps": {"point": {"date_utc": "2026-09-20T00:00:00+00:00"}}}
+    # the stage is re-registered under a later addendum; the record's fold digest cannot be recomputed with the new entry
+    REG.register_stage("discovery", below_footer_sha256=A2, code_digest=CODE, git_head=None, addenda_count=2, note="a2",
+                       force=True)
+    now = RD.fold_digest(job, fold, CODE, D.PlanState(), runner, tmp_path, ordinal=0, design_hash="d" * 64)
+    assert now != under_a1
+    basis = RD.record_set_basis("discovery", [rec], CODE)
+    assert basis["matched_entry"] == "superseded" and basis["below_footer_sha256"] == A1
+    assert basis["current_below_footer_sha256"] == A2 and basis["ordering_checked"] is True
+    with RD.verification_basis(basis["below_footer_sha256"]):
+        assert RD.fold_digest(job, fold, CODE, D.PlanState(), runner, tmp_path, ordinal=0, design_hash="d" * 64) == under_a1
+    # outside the block the current entry is in force again (a record written NOW carries it)
+    assert RD.fold_digest(job, fold, CODE, D.PlanState(), runner, tmp_path, ordinal=0, design_hash="d" * 64) == now
+    # a set that matches no entry keeps the current digest, so the comparison that follows still refuses it
+    foreign = RD.record_set_basis("discovery", [{**rec, "code_digest": "f" * 64}], CODE)
+    assert foreign["matched_entry"] is None and foreign["below_footer_sha256"] == A2
+    # a record that verifies against an entry of ANOTHER code digest is not accepted for this set's code
+    other_code = RD.record_set_basis("discovery", [rec], "e" * 64)
+    assert other_code["matched_entry"] is None
+    # a mixed set is refused outright
+    with pytest.raises(D.StaleRecordError, match="one registry entry"):
+        RD.record_set_basis("discovery", [rec, {**rec, "prereg_addenda_sha256": A2}], CODE)
+    # the real registry: every discovery record set's first record resolves to an entry of its own stage
+    monkeypatch.undo()
+    if REAL_REGISTRY.exists():
+        root = paths.G19_ROOT / "evaluation" / "discovery"
+        seen = 0
+        for arm_dir in sorted(x for x in root.iterdir() if x.is_dir() and not x.name.startswith("_") and x.name != "decisions"):
+            for js in sorted(arm_dir.rglob("*.json"))[:1]:
+                body = json.loads(js.read_text(encoding="utf-8"))
+                if "job" not in body:
+                    continue
+                stage = REG.job_stage(body)
+                b = RD.record_set_basis(stage, [body], REG.code_digest_for(stage))
+                assert b["matched_entry"] in ("current", "superseded"), (js, b)
+                assert b["below_footer_sha256"] == body["prereg_addenda_sha256"]
+                seen += 1
+        assert seen > 0

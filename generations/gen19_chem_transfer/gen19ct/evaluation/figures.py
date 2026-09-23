@@ -23,6 +23,7 @@ Figures 14-15 (the process Pareto front and the probability-of-specification map
 from __future__ import annotations
 
 import math
+import textwrap
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -92,6 +93,13 @@ def _rel(p: Path) -> str:
         return str(p)
 
 
+def _suptitle(fig: plt.Figure, text: str, *, fontsize: float = 10, width: int | None = None) -> None:
+    """``fig.suptitle`` with every line wrapped to the figure width (about 14 characters per inch at fontsize 10), so a
+    one-panel figure never clips its question."""
+    w = width or max(60, int(fig.get_figwidth() * 14))
+    fig.suptitle("\n".join(textwrap.fill(line, w) for line in str(text).split("\n")), fontsize=fontsize)
+
+
 def _save(fig: plt.Figure, out: Path) -> str:
     paths.ensure_dir(Path(out).parent)
     fig.savefig(out, dpi=DPI)
@@ -155,7 +163,7 @@ def fig07_pred_vs_measured(frames: Mapping[str, Mapping[str, pd.DataFrame]], fig
             ax.set_xlabel("measured log D")
             ax.legend(fontsize=7, loc="upper left", frameon=False)
         axes[i][0].set_ylabel(f"predicted log D ({arm})")
-    fig.suptitle(f"Does the deployed predictor ({deployed}) reconstruct hidden chemistry better than the within-system lookup "
+    _suptitle(fig, f"Does the deployed predictor ({deployed}) reconstruct hidden chemistry better than the within-system lookup "
                  f"({comparator}) under the strict hold-outs V5 (hidden cell), V1 (hidden publication) and V2 (hidden metal)?\n"
                  "selection half, seed 104729 (learned arm); discovery, optimistically biased", fontsize=10)
     fig.tight_layout(rect=(0, 0, 1, 0.93))
@@ -221,7 +229,7 @@ def fig08_error_vs_support(cells_by_arm: Mapping[str, pd.DataFrame], figures_dir
             rows.append({"arm": arm, **{k: r[k] for k in ("system", "domain_status", "metal_class", "mae", "support_score")
                                         if k in c.columns}})
     axes[0][0].set_ylabel("cell MAE (log D)")
-    fig.suptitle("Is the deployed predictor wrong by more on hidden cells that sit farther from their training support, and "
+    _suptitle(fig, "Is the deployed predictor wrong by more on hidden cells that sit farther from their training support, and "
                  "does this hold inside every domain-status category?\nV5-primary, selection half; S1(e) needs rho <= -0.10 with "
                  "the system-cluster interval excluding 0 and reliable support components", fontsize=10)
     fig.tight_layout(rect=(0, 0, 1, 0.9))
@@ -307,7 +315,7 @@ def fig09_calibration(rows_by_design: Mapping[str, pd.DataFrame], figures_dir: P
         ax2.grid(axis="y", **GRID)
     else:
         ax2.set_title("coverage by domain status: not computed (no V5 rows with a domain status)", fontsize=9)
-    fig.suptitle(f"Are the split-conformal intervals of {arm} calibrated -- by design, and inside every domain-status category?\n"
+    _suptitle(fig, f"Are the split-conformal intervals of {arm} calibrated -- by design, and inside every domain-status category?\n"
                  "selection half, seed 104729; discovery, optimistically biased", fontsize=10)
     fig.tight_layout(rect=(0, 0, 1, 0.9))
     out = Path(figures_dir) / FIGURE_FILES["F09"]
@@ -359,9 +367,11 @@ def _ellipse(ax, pts: np.ndarray, color: str) -> None:
 
 def fig10_metal_embedding(emb: pd.DataFrame | None, figures_dir: Path, *, inputs: Iterable[str], arm: str = "M2",
                           replicates: Sequence[pd.DataFrame] | None = None,
-                          stability: Mapping[str, Any] | None = None) -> FigureResult:
+                          stability: Mapping[str, Any] | None = None, replicate_label: str = "bootstrap") -> FigureResult:
     """``emb``: index = metal state (``Nd(III)``), numeric columns ``e_m_*``.  2-D PCA; the Ln(III) series joined in Z
-    order, An states, others; Procrustes-aligned bootstrap ellipses (2 SD) when ``replicates`` are given."""
+    order, An states, others; Procrustes-aligned replicate ellipses (2 SD) when ``replicates`` are given.
+    ``replicate_label`` names what the replicates ARE in the title -- ``"bootstrap"`` resamples, or ``"fold-replicate"``
+    for the other outer-fold refits of the same design (leave-cells-out perturbations, which are not a bootstrap)."""
     if emb is None or not len(emb):
         return skipped("F10", "no metal-embedding table (evaluation/power/embeddings/metal_embeddings.csv; written by "
                               "g19_run_power.py --include-learned once implemented)", inputs)
@@ -408,14 +418,18 @@ def fig10_metal_embedding(emb: pd.DataFrame | None, figures_dir: Path, *, inputs
                 cls = "lanthanide" if el in LN else ("actinide" if el in AN else "other")
                 _ellipse(ax, pts, CLASS_COLORS[cls])
     stab = (stability or {}).get("stability")
-    stab_txt = (f"; Procrustes bootstrap stability {stab:.2f} (null {(stability or {}).get('null_stability', float('nan')):.2f}, "
-                f"gate {(stability or {}).get('gate')})" if stab is not None and np.isfinite(stab) else
-                "; stability: not computed" if not replicates else f"; {n_rep} aligned replicates (2-SD ellipses)")
+    stab_txt = (f"; Procrustes {replicate_label} stability {stab:.2f} over {n_rep} aligned replicates (null "
+                f"{(stability or {}).get('null_stability', float('nan')):.2f}, gate {(stability or {}).get('gate')})"
+                if stab is not None and np.isfinite(stab) else
+                "; stability: not computed" if not replicates else f"; {n_rep} aligned {replicate_label} replicates (2-SD ellipses)")
+    if (stability or {}).get("registered_reliability"):
+        # the record is descriptive: the registered section 8 reliability of the embeddings has not run
+        stab_txt += " -- descriptive: the registered section 8 embedding reliability is NOT_RUN"
     ax.set_xlabel(f"PC1 ({ratio[0]:.0%} of variance)")
     ax.set_ylabel(f"PC2 ({ratio[1]:.0%} of variance)")
     ax.grid(**GRID)
     ax.legend(fontsize=7.5, frameon=False, loc="best")
-    fig.suptitle(f"Does the learned metal embedding e_m of {arm} recover the lanthanide series and separate the actinides?\n"
+    _suptitle(fig, f"Does the learned metal embedding e_m of {arm} recover the lanthanide series and separate the actinides?\n"
                  f"2-D PCA of {len(states)} metal states{stab_txt}; a reliability below 0.3 makes any reading UNDECIDED", fontsize=10)
     fig.tight_layout(rect=(0, 0, 1, 0.92))
     out = Path(figures_dir) / FIGURE_FILES["F10"]
@@ -424,7 +438,7 @@ def fig10_metal_embedding(emb: pd.DataFrame | None, figures_dir: Path, *, inputs
     return FigureResult(figure="F10", status="written", path=path, data_path=data_path,
                         inputs=sorted(set(str(i) for i in inputs)),
                         stats={"explained_variance_ratio": [float(r) for r in ratio], "n_states": len(states), "n_replicates": n_rep,
-                               "stability": dict(stability or {})})
+                               "replicate_label": replicate_label, "stability": dict(stability or {})})
 
 
 def fig11_extractant_embedding(emb: pd.DataFrame | None, figures_dir: Path, *, inputs: Iterable[str], arm: str = "M2",
@@ -450,7 +464,7 @@ def fig11_extractant_embedding(emb: pd.DataFrame | None, figures_dir: Path, *, i
     ax.set_ylabel(f"PC2 ({ratio[1]:.0%} of variance)")
     ax.grid(**GRID)
     ax.legend(fontsize=6.5, frameon=False, loc="best", ncol=2)
-    fig.suptitle(f"Does the learned extractant embedding e_l of {arm} group systems by structural family?\n"
+    _suptitle(fig, f"Does the learned extractant embedding e_l of {arm} group systems by structural family?\n"
                  f"2-D PCA of {len(emb)} training systems, coloured by the Gen19 family classification", fontsize=10)
     fig.tight_layout(rect=(0, 0, 1, 0.92))
     out = Path(figures_dir) / FIGURE_FILES["F11"]
@@ -519,7 +533,7 @@ def fig12_prnd_reconstruction(rows: pd.DataFrame | None, pairs: pd.DataFrame | N
         ax2.grid(**GRID)
     else:
         ax2.set_title("per-system logSF: not computed (input missing)", fontsize=9)
-    fig.suptitle("Are the hidden Pr and Nd cells of the 13 V6 systems reconstructed -- log D per row and the Pr/Nd selectivity per system?\n"
+    _suptitle(fig, "Are the hidden Pr and Nd cells of the 13 V6 systems reconstructed -- log D per row and the Pr/Nd selectivity per system?\n"
                  "V6 double-cell hold-out, the single confirmation run (withheld seeds)", fontsize=10)
     fig.tight_layout(rect=(0, 0, 1, 0.9))
     out = Path(figures_dir) / FIGURE_FILES["F12"]
@@ -535,10 +549,13 @@ def fig12_prnd_reconstruction(rows: pd.DataFrame | None, pairs: pd.DataFrame | N
 
 def direction_confusion(pairs: pd.DataFrame, threshold: float) -> dict[str, Any]:
     """Counts on pairs with |observed logSF| >= threshold: observed sign (rows) x predicted sign (columns; a predicted
-    zero is its own column and counts 1/2 in the accuracy, section 4)."""
+    zero is its own column and counts 1/2 in the accuracy, section 4).  The gate is the registered one of
+    ``evaluation.pairs`` -- ``>= threshold - metrics.FLOAT_TOL`` -- so a difference of two stored log D values that is
+    exactly 0.3 but represented as 0.29999999999999993 qualifies here as it does in the scorer's S1(c) block
+    (``decisions.json -> S1_components.S1c_selection.direction_gate``; task X finding V-TR-09)."""
     obs = pd.to_numeric(pairs["observed_logsf"], errors="coerce").to_numpy(dtype=float)
     pred = pd.to_numeric(pairs["predicted_logsf"], errors="coerce").to_numpy(dtype=float)
-    ok = np.isfinite(obs) & np.isfinite(pred) & (np.abs(obs) >= threshold)
+    ok = np.isfinite(obs) & np.isfinite(pred) & (np.abs(obs) >= threshold - EM.FLOAT_TOL)
     obs, pred = obs[ok], pred[ok]
     so, sp = np.sign(obs), np.sign(pred)
     counts = {f"obs_{a}_pred_{b}": int(((so == sa) & (sp == sb)).sum())
@@ -550,15 +567,17 @@ def direction_confusion(pairs: pd.DataFrame, threshold: float) -> dict[str, Any]
 
 
 def fig13_direction_confusion(pairs_by_design: Mapping[str, pd.DataFrame], figures_dir: Path, *, inputs: Iterable[str],
-                              arm: str = "M2", thresholds: Mapping[str, Sequence[float]] = DIRECTION_THRESHOLDS
-                              ) -> FigureResult:
+                              arm: str = "M2", thresholds: Mapping[str, Sequence[float]] = DIRECTION_THRESHOLDS,
+                              skipped_note: str = "") -> FigureResult:
     """One confusion panel per (design, registered threshold): |logSF| >= 0.3 on every design (primary) and the
-    additional >= 0.1 reading on V6 (section 4); the data CSV flags the primary reading per row."""
+    additional >= 0.1 reading on V6 (section 4); the data CSV flags the primary reading per row.  ``skipped_note`` is
+    printed in the title and recorded in ``reason`` / ``stats`` for a panel the caller could not supply (e.g. the V6
+    pairs before the confirmation run)."""
     designs = [d for d, p in pairs_by_design.items() if p is not None and len(p)]
     if not designs:
         return skipped("F13", "no pair-level predictions (V5-PAIR from the M2 records; V6 from the confirmation files)", inputs)
     panels = [(d, float(t)) for d in designs for t in (thresholds.get(d) or (PRIMARY_DIRECTION_THRESHOLD,))]
-    fig, axes = plt.subplots(1, len(panels), figsize=(5.4 * len(panels), 4.6), squeeze=False)
+    fig, axes = plt.subplots(1, len(panels), figsize=(max(9.6, 5.4 * len(panels)), 4.6), squeeze=False)
     data = []
     for ax, (d, thr) in zip(axes[0], panels):
         cm = direction_confusion(pairs_by_design[d], thr)
@@ -581,14 +600,16 @@ def fig13_direction_confusion(pairs_by_design: Mapping[str, pd.DataFrame], figur
         data.append({"design": d, "arm": arm, "registered_primary": primary,
                      "reading": "section 4 primary (every design)" if primary else "section 4 additional (V6 only)",
                      **{k: v for k, v in cm.items() if k != "counts"}, **c})
-    fig.suptitle(f"Does {arm} get the selectivity direction right on hidden cell pairs (V5-PAIR) and on the V6 Pr/Nd pairs?\n"
-                 "rows: observed sign; columns: predicted sign; a predicted zero counts 1/2 (section 4)", fontsize=10)
+    _suptitle(fig, f"Does {arm} get the selectivity direction right on hidden cell pairs (V5-PAIR) and on the V6 Pr/Nd pairs?\n"
+                 "rows: observed sign; columns: predicted sign; a predicted zero counts 1/2 (section 4)"
+                 + (f"\n{skipped_note}" if skipped_note else ""), fontsize=10)
     fig.tight_layout(rect=(0, 0, 1, 0.88))
     out = Path(figures_dir) / FIGURE_FILES["F13"]
     path = _save(fig, out)
     data_path = _data_csv(pd.DataFrame(data), Path(figures_dir), "F13_direction_confusion")
     return FigureResult(figure="F13", status="written", path=path, data_path=data_path,
-                        inputs=sorted(set(str(i) for i in inputs)), stats={"per_design": data})
+                        inputs=sorted(set(str(i) for i in inputs)), reason=skipped_note,
+                        stats={"per_design": data, "designs_drawn": designs, "skipped_note": skipped_note})
 
 
 # --------------------------------------------------------------------------------------------- #

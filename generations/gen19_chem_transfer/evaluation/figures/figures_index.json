@@ -1,0 +1,676 @@
+{
+  "code_sha256": "f6488cc69d8cdb74dc7f3c4ec8a05f1346fde91d8db001734b8174aedbb5b812",
+  "confirmation_half_read": false,
+  "confirmation_run": {
+    "decided": false,
+    "started": false,
+    "status": "confirmation run not run"
+  },
+  "deployed": {
+    "arm": "M0",
+    "arm_alias": "B5",
+    "arm_alias_note": "the arm name records, prediction frames and tables/discovery_summary.csv use for the deployed configuration; 'arm' is the name it is REPORTED under (addendum 3 item 2 names M0, whose records are written under B5)",
+    "basis": "the ladder retains its base step M0 (= B5, the registered descriptor arm of section 5), M1 and M2 are not kept, and no step M3-M7 is kept: the retained ladder configuration is M0 (addendum 3 item 2; ladder.M0.kept)",
+    "f6_no_evaluated_fail": {
+      "B6_vs_B3i": false,
+      "M2_vs_B3i": true
+    },
+    "f6_rule": "POST-HOC addendum 2 (F6): with no retained ladder step, M2 (and B6 for H1b) 'is deployed by the fallback only when its contrast passes the stop-rule scope (items 1, 2, 3, 5) AND item 6 over the reduced sensitivity set - no evaluated item may FAIL'. decisions.json -> stop_rule evaluates items 1, 2, 3 and 5 only, so the second half is read from decisions.json -> freezing_candidates, whose screen is that scope plus item 6 with no evaluated item FAILing (discovery.freezing_candidates / freezing_eligibility). A contrast the scorer did not list did not pass that screen; a decisions.json with no freezing_candidates block leaves item 6 unchecked and the basis says so.",
+    "keys": {
+      "f6_no_evaluated_fail": {
+        "B6_vs_B3i": "freezing_candidates[contrast=B6 vs B3i@V5].eligible_for_freezing",
+        "M2_vs_B3i": "freezing_candidates[contrast=M2 vs B3i@V5].eligible_for_freezing"
+      },
+      "ladder": {
+        "M0": "ladder.M0.kept",
+        "M1": "ladder.M1.kept",
+        "M2": "ladder.M2.kept"
+      },
+      "ladder_runner": {
+        "M3": "evaluation/ladder/decisions/ladder.json -> steps.M3.kept",
+        "M4": "evaluation/ladder/decisions/ladder.json -> steps.M4.kept",
+        "M5": "evaluation/ladder/decisions/ladder.json -> steps.M5.kept",
+        "M6": "evaluation/ladder/decisions/ladder.json -> steps.M6.kept",
+        "M7": "evaluation/ladder/decisions/ladder.json -> steps.M7.kept"
+      },
+      "stop_rule": {
+        "B6_vs_B3i": "stop_rule.B6_vs_B3i.verdict",
+        "M2_vs_B3i": "stop_rule.M2_vs_B3i.verdict"
+      }
+    },
+    "ladder_complete": {
+      "complete": true,
+      "definition": "ladder.json exists and every step M3-M7 has a status in demoted, exploratory_not_run, judged, kept, not_run, removed",
+      "not_done": [],
+      "present": true,
+      "steps": {
+        "M3": "not_run",
+        "M4": "not_run",
+        "M5": "not_run",
+        "M6": "not_run",
+        "M7": "not_run"
+      },
+      "stop_rule": false
+    },
+    "ladder_kept": {
+      "M0": true,
+      "M1": false,
+      "M2": false,
+      "M3": null,
+      "M4": null,
+      "M5": null,
+      "M6": null,
+      "M7": null
+    },
+    "retained_ladder_step": "M0",
+    "rule": "POST-HOC addendum 3 item 2: the configuration deployed for lanthanide prediction ('the retained ladder configuration', section 11) is the ladder's RETAINED configuration -- the highest kept ladder step: evaluation/ladder/decisions/ladder.json -> steps.<step>.kept == true for M7 > M6 > M5 > M4 > M3 (only from a registered ladder run, i.e. ladder.json -> stop_rule == false: under the stop rule M3-M6 are exploratory_not_run and M7 runs for H6 only, so no ladder step deploys), then the scorer's decisions.json -> ladder.<step>.kept == true (M2 before M1), then the ladder's BASE step M0 (= B5, the registered descriptor arm of section 5 and the M0 row of the section 6 ladder) when decisions.json -> ladder.M0.kept == true and neither M1 nor M2 is kept. Addendum 2's remaining order applies ONLY when the ladder has no retained step at all (no ladder block / M0 not kept): M2 when stop_rule.M2_vs_B3i.verdict == PASS; else B6 when stop_rule.B6_vs_B3i.verdict == PASS; else the registered V5 lookup comparator B3i (section 10 F6: the best-passing baseline; the process chain's D source stays gen18 B1). The rule is undecidable (the runners refuse) while ladder.json is absent or any step M3-M7 is not in a done / skipped status, or while a discovery ladder decision is pending (kept == null) (task X finding V-01)",
+    "status": "decided",
+    "stop_rule_pass": {
+      "B6_vs_B3i": false,
+      "M2_vs_B3i": true
+    }
+  },
+  "embedding_refits": {
+    "M1": {
+      "acceptance": "a refit enters the tables only when its model_state_digest and feature_state_digest equal the record's arm_record.fit_record",
+      "arm": "M1",
+      "design_dir": "V5__primary_batched_max4",
+      "dir": "evaluation/figures/embeddings/M1",
+      "job": "fit:M1:V5__primary_batched_max4:s104729",
+      "metal_gate": "RELIABLE",
+      "metal_null_stability": 0.29129695987721654,
+      "metal_stability": 0.7704827579910939,
+      "n_folds": 28,
+      "n_replicates": 27,
+      "n_replicates_aligned_metal": 18,
+      "n_verified": 28,
+      "reference_fold": "s104729_S_b000",
+      "seconds": 613.5,
+      "seed": 104729,
+      "source": "evaluation/figures/embeddings/M1/verification.json (written by an earlier invocation; --no-embedding-refits)",
+      "status": "written",
+      "system_gate": "RELIABLE",
+      "system_null_stability": 0.10256992003994124,
+      "system_stability": 0.640424583064971
+    },
+    "M2": {
+      "acceptance": "a refit enters the tables only when its model_state_digest and feature_state_digest equal the record's arm_record.fit_record",
+      "arm": "M2",
+      "design_dir": "V5__primary_batched_max4",
+      "dir": "evaluation/figures/embeddings/M2",
+      "job": "fit:M2:V5__primary_batched_max4:s104729",
+      "metal_gate": "RELIABLE",
+      "metal_null_stability": 0.2761144681588164,
+      "metal_stability": 0.7548792586564315,
+      "n_folds": 28,
+      "n_replicates": 27,
+      "n_replicates_aligned_metal": 18,
+      "n_verified": 28,
+      "reference_fold": "s104729_S_b000",
+      "seconds": 573.4,
+      "seed": 104729,
+      "source": "evaluation/figures/embeddings/M2/verification.json (written by an earlier invocation; --no-embedding-refits)",
+      "status": "written",
+      "system_gate": "RELIABLE",
+      "system_null_stability": 0.10285778719319354,
+      "system_stability": 0.6303775807469687
+    }
+  },
+  "figures": [
+    {
+      "data_path": "generations/gen19_chem_transfer/figures/data/F07_pred_vs_measured.csv",
+      "figure": "F07",
+      "inputs": [
+        "evaluation/discovery/B5/V1__copy_exact/s104729/",
+        "evaluation/discovery/B5/V2__element_exact/s104729/",
+        "evaluation/discovery/B5/V5__primary_batched_max4/s104729/",
+        "evaluation/discovery/decisions/decisions.json",
+        "evaluation/preseal/predictions/V1__copy.parquet",
+        "evaluation/preseal/predictions/V2__element.parquet",
+        "evaluation/preseal/predictions/V5__primary.parquet"
+      ],
+      "path": "generations/gen19_chem_transfer/figures/F07_pred_vs_measured.png",
+      "reason": "",
+      "stats": {
+        "panels": [
+          {
+            "arm": "B5",
+            "averaging_unit": [
+              "g19_metal_state",
+              "extractant_system_key"
+            ],
+            "design": "V5",
+            "macro_mae": 0.349888756564342,
+            "n_rows": 4101,
+            "n_units": 105
+          },
+          {
+            "arm": "B5",
+            "averaging_unit": [
+              "v1_outer_fold_unit"
+            ],
+            "design": "V1",
+            "macro_mae": 0.9718304908015634,
+            "n_rows": 5246,
+            "n_units": 65
+          },
+          {
+            "arm": "B5",
+            "averaging_unit": [
+              "g19_metal_state"
+            ],
+            "design": "V2",
+            "macro_mae": 0.5379370913113988,
+            "n_rows": 4543,
+            "n_units": 12
+          },
+          {
+            "arm": "B3i",
+            "averaging_unit": [
+              "g19_metal_state",
+              "extractant_system_key"
+            ],
+            "design": "V5",
+            "macro_mae": 0.7670149232065543,
+            "n_rows": 4101,
+            "n_units": 105
+          },
+          {
+            "arm": "B3i",
+            "averaging_unit": [
+              "v1_outer_fold_unit"
+            ],
+            "design": "V1",
+            "macro_mae": 1.097990364365573,
+            "n_rows": 5246,
+            "n_units": 65
+          },
+          {
+            "arm": "B3i",
+            "averaging_unit": [
+              "g19_metal_state"
+            ],
+            "design": "V2",
+            "macro_mae": 0.6432659016559915,
+            "n_rows": 4543,
+            "n_units": 12
+          }
+        ]
+      },
+      "status": "written"
+    },
+    {
+      "data_path": "generations/gen19_chem_transfer/figures/data/F09_uncertainty_calibration.csv",
+      "figure": "F09",
+      "inputs": [
+        "evaluation/discovery/B5/V1__copy_exact/s104729/",
+        "evaluation/discovery/B5/V2__element_exact/s104729/",
+        "evaluation/discovery/B5/V5__primary_batched_max4/s104729/",
+        "evaluation/discovery/_support/V5__primary_batched_max4/s104729/",
+        "evaluation/discovery/decisions/decisions.json",
+        "evaluation/preseal/predictions/V1__copy.parquet",
+        "evaluation/preseal/predictions/V2__element.parquet",
+        "evaluation/preseal/predictions/V5__primary.parquet"
+      ],
+      "path": "generations/gen19_chem_transfer/figures/F09_uncertainty_calibration.png",
+      "reason": "",
+      "stats": {
+        "coverage": [
+          {
+            "arm": "B5",
+            "category": "all",
+            "coverage_unit_macro": 0.660898879824544,
+            "design": "V5",
+            "level": 0.5,
+            "n_rows": 4101,
+            "n_units": 105
+          },
+          {
+            "arm": "B5",
+            "category": "all",
+            "coverage_unit_macro": 0.8954261513521985,
+            "design": "V5",
+            "level": 0.8,
+            "n_rows": 4101,
+            "n_units": 105
+          },
+          {
+            "arm": "B5",
+            "category": "all",
+            "coverage_unit_macro": 0.9827254741039643,
+            "design": "V5",
+            "level": 0.95,
+            "n_rows": 4101,
+            "n_units": 105
+          },
+          {
+            "arm": "B5",
+            "category": "all",
+            "coverage_unit_macro": 0.5232463408089022,
+            "design": "V1",
+            "level": 0.5,
+            "n_rows": 5246,
+            "n_units": 65
+          },
+          {
+            "arm": "B5",
+            "category": "all",
+            "coverage_unit_macro": 0.827626717453504,
+            "design": "V1",
+            "level": 0.8,
+            "n_rows": 5246,
+            "n_units": 65
+          },
+          {
+            "arm": "B5",
+            "category": "all",
+            "coverage_unit_macro": 0.9495371930828888,
+            "design": "V1",
+            "level": 0.95,
+            "n_rows": 5246,
+            "n_units": 65
+          },
+          {
+            "arm": "B5",
+            "category": "all",
+            "coverage_unit_macro": 0.4468426752325416,
+            "design": "V2",
+            "level": 0.5,
+            "n_rows": 4543,
+            "n_units": 12
+          },
+          {
+            "arm": "B5",
+            "category": "all",
+            "coverage_unit_macro": 0.7191166201948849,
+            "design": "V2",
+            "level": 0.8,
+            "n_rows": 4543,
+            "n_units": 12
+          },
+          {
+            "arm": "B5",
+            "category": "all",
+            "coverage_unit_macro": 0.895534193013349,
+            "design": "V2",
+            "level": 0.95,
+            "n_rows": 4543,
+            "n_units": 12
+          },
+          {
+            "arm": "B5",
+            "category": "CROSS_METAL_LIGAND_TRANSFER",
+            "coverage_unit_macro": 0.6611776898235732,
+            "design": "V5",
+            "level": 0.5,
+            "n_rows": 4084,
+            "n_units": 105
+          },
+          {
+            "arm": "B5",
+            "category": "UNSUPPORTED",
+            "coverage_unit_macro": 0.05555555555555555,
+            "design": "V5",
+            "level": 0.5,
+            "n_rows": 17,
+            "n_units": 4
+          },
+          {
+            "arm": "B5",
+            "category": "CROSS_METAL_LIGAND_TRANSFER",
+            "coverage_unit_macro": 0.8950058259575985,
+            "design": "V5",
+            "level": 0.8,
+            "n_rows": 4084,
+            "n_units": 105
+          },
+          {
+            "arm": "B5",
+            "category": "UNSUPPORTED",
+            "coverage_unit_macro": 0.5555555555555556,
+            "design": "V5",
+            "level": 0.8,
+            "n_rows": 17,
+            "n_units": 4
+          },
+          {
+            "arm": "B5",
+            "category": "CROSS_METAL_LIGAND_TRANSFER",
+            "coverage_unit_macro": 0.9826944969499306,
+            "design": "V5",
+            "level": 0.95,
+            "n_rows": 4084,
+            "n_units": 105
+          },
+          {
+            "arm": "B5",
+            "category": "UNSUPPORTED",
+            "coverage_unit_macro": 0.625,
+            "design": "V5",
+            "level": 0.95,
+            "n_rows": 17,
+            "n_units": 4
+          }
+        ]
+      },
+      "status": "written"
+    },
+    {
+      "data_path": "generations/gen19_chem_transfer/figures/data/F08_error_vs_support.csv",
+      "figure": "F08",
+      "inputs": [
+        "evaluation/discovery/B5/V1__copy_exact/s104729/",
+        "evaluation/discovery/B5/V2__element_exact/s104729/",
+        "evaluation/discovery/B5/V5__primary_batched_max4/s104729/",
+        "evaluation/discovery/_support/V5__primary_batched_max4/s104729/",
+        "evaluation/discovery/decisions/decisions.json",
+        "evaluation/preseal/predictions/V1__copy.parquet",
+        "evaluation/preseal/predictions/V2__element.parquet",
+        "evaluation/preseal/predictions/V5__primary.parquet"
+      ],
+      "path": "generations/gen19_chem_transfer/figures/F08_error_vs_support.png",
+      "reason": "",
+      "stats": {
+        "per_arm": {
+          "B3i": {
+            "bootstrap_seed": 19,
+            "n_cells": 105,
+            "n_clusters": 18,
+            "n_dropped_nan": 0,
+            "n_resamples": 10000,
+            "percentile_high": -0.1938067130943085,
+            "percentile_low": -0.6711618044559594,
+            "rho": -0.5007516225754504,
+            "status": "computed",
+            "x": "support_score"
+          },
+          "B5": {
+            "bootstrap_seed": 19,
+            "n_cells": 105,
+            "n_clusters": 18,
+            "n_dropped_nan": 0,
+            "n_resamples": 10000,
+            "percentile_high": -0.05393761007649864,
+            "percentile_low": -0.5651765272654812,
+            "rho": -0.34593812858625334,
+            "status": "computed",
+            "x": "support_score"
+          }
+        }
+      },
+      "status": "written"
+    },
+    {
+      "data_path": "generations/gen19_chem_transfer/figures/data/F13_direction_confusion.csv",
+      "figure": "F13",
+      "inputs": [
+        "evaluation/discovery/M2/V5PAIR__primary_batched/s104729/",
+        "evaluation/discovery/decisions/decisions.json",
+        "folds/V5PAIR__primary__batched__pairs.parquet"
+      ],
+      "path": "generations/gen19_chem_transfer/figures/F13_direction_confusion.png",
+      "reason": "V6 panel skipped: confirmation run not run (input missing: evaluation/confirmation/v6_rows.csv, evaluation/confirmation/v6_pairs.csv; the single V6 run of section 3.4 happens only inside the confirmation run, whose once-only lock is unspent)",
+      "stats": {
+        "designs_drawn": [
+          "V5-PAIR"
+        ],
+        "per_design": [
+          {
+            "arm": "M2",
+            "design": "V5-PAIR",
+            "direction_accuracy": 0.9567300494085941,
+            "n_excluded_below_threshold_or_nan": 3123,
+            "n_pairs": 6679,
+            "obs_neg_pred_neg": 4556,
+            "obs_neg_pred_pos": 146,
+            "obs_neg_pred_zero": 0,
+            "obs_pos_pred_neg": 143,
+            "obs_pos_pred_pos": 1834,
+            "obs_pos_pred_zero": 0,
+            "reading": "section 4 primary (every design)",
+            "registered_primary": true,
+            "threshold": 0.3
+          }
+        ],
+        "skipped_note": "V6 panel skipped: confirmation run not run (input missing: evaluation/confirmation/v6_rows.csv, evaluation/confirmation/v6_pairs.csv; the single V6 run of section 3.4 happens only inside the confirmation run, whose once-only lock is unspent)"
+      },
+      "status": "written"
+    },
+    {
+      "data_path": "generations/gen19_chem_transfer/figures/data/F10_metal_embedding.csv",
+      "figure": "F10",
+      "inputs": [
+        "evaluation/figures/embeddings/M2/metal_embeddings.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b001.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b002.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b003.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b004.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b005.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b006.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b007.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b008.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b009.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b010.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b011.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b012.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b013.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b014.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b015.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b016.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b017.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b018.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b019.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b020.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b021.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b022.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b023.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b024.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b025.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b026.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b027.csv",
+        "evaluation/figures/embeddings/M2/stability.json",
+        "evaluation/figures/embeddings/M2/system_embeddings.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b001.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b002.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b003.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b004.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b005.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b006.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b007.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b008.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b009.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b010.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b011.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b012.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b013.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b014.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b015.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b016.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b017.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b018.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b019.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b020.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b021.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b022.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b023.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b024.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b025.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b026.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b027.csv",
+        "evaluation/figures/embeddings/M2/verification.json",
+        "evaluation/power/reliability.json"
+      ],
+      "path": "generations/gen19_chem_transfer/figures/F10_metal_embedding.png",
+      "reason": "",
+      "stats": {
+        "explained_variance_ratio": [
+          0.3454185766568688,
+          0.24817779265903783
+        ],
+        "n_replicates": 18,
+        "n_states": 43,
+        "replicate_label": "fold-replicate",
+        "source": "reproduced from the verified M2 discovery records (evaluation/figures/embeddings/M2)",
+        "stability": {
+          "floor": 0.3,
+          "gate": "RELIABLE",
+          "method": "procrustes_aligned_bootstrap",
+          "n_dimensions": 8,
+          "n_replicates": 18,
+          "n_units": 43,
+          "note": "the Procrustes statistic is upward-biased: compare it with null_stability (unit labels permuted) before reading it as agreement",
+          "null_seed": 19,
+          "null_stability": 0.2761144681588164,
+          "per_unit_stability": {
+            "Am(III)": 0.5320181433806086,
+            "Am(VI)": 0.6549451498407229,
+            "Ba(II)": 0.8777313231150978,
+            "Bi(III)": 0.8194629234738532,
+            "Ca(II)": 0.7205175029213952,
+            "Cd(II)": 0.882575608612426,
+            "Ce(III)": 0.7130286044956978,
+            "Cf(III)": 0.6151797869759581,
+            "Cm(III)": 0.6044758774080338,
+            "Dy(III)": 0.918027691770527,
+            "Er(III)": 0.920375602533259,
+            "Eu(III)": 0.7305992445816889,
+            "Gd(III)": 0.8840290871170061,
+            "Hf(IV)": 0.7655342067257126,
+            "Ho(III)": 0.9213924632710923,
+            "In(III)": 0.8085857835958126,
+            "La(III)": 0.7428876102862516,
+            "Lu(III)": 0.8867900643857467,
+            "Nd(III)": 0.7938393772824387,
+            "Np(IV)": 0.5488587832978822,
+            "Np(V)": 0.7409646843903047,
+            "Np(VI)": 0.7251150904563373,
+            "Pa(V)": 0.688609683668918,
+            "Pb(II)": 0.8954370802217129,
+            "Pd(II)": 0.8734787749100736,
+            "Pd(IV)": 0.7887194924428956,
+            "Pm(III)": 0.793763812968332,
+            "Pr(III)": 0.7821882601520956,
+            "Pu(III)": 0.6221803261887889,
+            "Pu(IV)": 0.5962951913292908,
+            "Pu(VI)": 0.7254589636843711,
+            "Sm(III)": 0.8654986258300491,
+            "Sr(II)": 0.8456803182381072,
+            "Sr(III)": 0.7323884746207137,
+            "Tb(III)": 0.9037338766478812,
+            "Tc(VII)": 0.8364953623883522,
+            "Th(IV)": 0.4698882082927758,
+            "Tm(III)": 0.9172947556264709,
+            "U(IV)": 0.6413480198093453,
+            "U(VI)": 0.6540762020311047,
+            "Y(III)": 0.3430912559433197,
+            "Yb(III)": 0.887729026527242,
+            "Zr(IV)": 0.7895178007868614
+          },
+          "reading": "Procrustes-aligned bootstrap stability of an embedding: every bootstrap replicate's matrix is aligned to the full-sample one by the orthogonal Procrustes solution (centred, not scaled), and the stability of a unit is the mean cosine similarity of its aligned replicate vectors with its full-sample vector; the table's stability is the mean over units and is gated by the 0.3 floor like a reliability. The alignment maximises agreement, so the statistic is upward-biased and its no-correspondence value is NOT 0 (measured on random matrices: 0.42 at 12 units x 4 dimensions, 0.23 at 30 x 4, 0.27 at 60 x 8, 0.23 at 200 x 16) -- at gen19's embedding sizes that sits at the registered 0.3 floor, so a unit-label-permuted null (null_stability) is computed and printed beside every value and a raw value inside the null band is flagged within_null_band. The gate stays on the raw value: using the null in a decision needs a POST-HOC addendum",
+          "registered_reliability": "NOT_RUN (evaluation/power/reliability.json, quantity embeddings): this record is descriptive and enters no registered rule",
+          "replicate_label": "fold-replicate",
+          "stability": 0.7548792586564315,
+          "stability_above_null": 0.47876479049761506,
+          "status": "computed",
+          "within_null_band": false
+        }
+      },
+      "status": "written"
+    },
+    {
+      "data_path": "generations/gen19_chem_transfer/figures/data/F11_extractant_embedding.csv",
+      "figure": "F11",
+      "inputs": [
+        "evaluation/figures/embeddings/M2/metal_embeddings.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b001.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b002.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b003.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b004.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b005.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b006.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b007.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b008.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b009.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b010.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b011.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b012.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b013.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b014.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b015.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b016.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b017.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b018.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b019.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b020.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b021.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b022.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b023.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b024.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b025.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b026.csv",
+        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b027.csv",
+        "evaluation/figures/embeddings/M2/stability.json",
+        "evaluation/figures/embeddings/M2/system_embeddings.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b001.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b002.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b003.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b004.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b005.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b006.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b007.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b008.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b009.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b010.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b011.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b012.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b013.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b014.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b015.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b016.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b017.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b018.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b019.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b020.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b021.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b022.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b023.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b024.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b025.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b026.csv",
+        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b027.csv",
+        "evaluation/figures/embeddings/M2/verification.json",
+        "evaluation/power/reliability.json"
+      ],
+      "path": "generations/gen19_chem_transfer/figures/F11_extractant_embedding.png",
+      "reason": "",
+      "stats": {
+        "explained_variance_ratio": [
+          0.29878763161659416,
+          0.20211879112723374
+        ],
+        "n_families": 26,
+        "n_systems": 259,
+        "source": "reproduced from the verified M2 discovery records (evaluation/figures/embeddings/M2)"
+      },
+      "status": "written"
+    },
+    {
+      "data_path": null,
+      "figure": "F12",
+      "inputs": [
+        "evaluation/confirmation/v6_pairs.csv",
+        "evaluation/confirmation/v6_rows.csv"
+      ],
+      "path": null,
+      "reason": "confirmation run not run (input missing: evaluation/confirmation/v6_rows.csv, evaluation/confirmation/v6_pairs.csv; the single V6 run of section 3.4 happens only inside the confirmation run, whose once-only lock is unspent)",
+      "stats": {},
+      "status": "skipped"
+    }
+  ],
+  "git_head": "bdc62e2aa3c9c9088c731605d292afa75d602a3b",
+  "n_skipped": 1,
+  "n_written": 6,
+  "runtime_s": 28.2,
+  "schema": "gen19.figures.v1",
+  "v6_read_outside_confirmation_files": false
+}

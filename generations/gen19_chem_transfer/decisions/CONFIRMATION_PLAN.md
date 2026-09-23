@@ -9,7 +9,9 @@ half the pre-registration itself calls optimistically biased. Nothing in this fi
 seed, on the confirmation half, or on V6: no such number exists anywhere in the repository. Paths are relative
 to `generations/gen19_chem_transfer/`.*
 
-**Status: NOT YET AUTHORISED TO RUN.** This file freezes *what* would be scored. The runner exists
+**Status (2026-09-24): NOT RUN.** The orchestrator stopped the track on 2026-09-24 to deliver the report: four verification rounds of the once-only runner each found blocking defects (the last: a missing M1 record would abort the run rather than one fold, a spent run was resumable, C4's two legs shared one record path), and two stages of `scripts/g19_run_confirmation.py → RUN_STAGES` remain NOT IMPLEMENTED (`v6_frozen_configurations`, `c4_act_permuted_training_transform`), so the runner refuses before the lock is spent. Nothing below was executed: `evaluation/confirmation/` does not exist, the withheld seeds were never read (commitment `manifests/confirmation_seeds_sha256.txt`), every registered verdict stays UNDECIDED (R19 item 4 NOT_EVALUATED), S2 and brief §34 Q3 are NOT ANSWERED. The record of this decision and what a future session must do is `decisions/D07_confirmation_not_run.md`; the dry-run and gate captures are `manifests/g19_run_confirmation_dry_run.json`.
+
+**Status as written before the stop: NOT YET AUTHORISED TO RUN.** This file freezes *what* would be scored. The runner exists
 (`scripts/g19_run_confirmation.py` + `gen19ct/evaluation/confirmation.py`, registry stage `confirmation`), and it
 refuses to start without a `--seed-store` that verifies against the §15 commitment. The run itself needs the
 orchestrator's go/no-go (§7).
@@ -36,7 +38,7 @@ re-scorings and stay on all 5 seeds.
 | the single V6 run (S2) | 8.5 h | **8.5 h** | unchanged; §3.4 runs V6 once |
 | §11 V6 actinide deltas | 30.3 h | **NOT_RUN** | addendum 5 item 1 |
 | §8 power check | 50 h (subset) / 436 h (inventory) | **NOT_RUN**, inventoried | addendum 5 items 1 and 4 |
-| **total** | ≈ 174 h serial, ≈ 89 h wall | **≈ 107.7 h serial, ≈ 54.9 h wall at 2 workers** | `scripts/g19_run_confirmation.py --dry-run` |
+| **total** | ≈ 174 h serial, ≈ 89 h wall | **110.24 h serial, 56.25 h wall at 2 workers** (85 jobs, 3,418 folds; of the serial total, the closed-form comparator and yardstick lines are 2.55 h and C3's B6r0 line 1.48 h — `dry_run.by_purpose_serial_hours` — and the remaining six priced lines total 106.21 h; the total this row carried before the manifest existed came from a bare `--dry-run` with no manifest behind it and is superseded) | `manifests/g19_run_confirmation_dry_run.json → dry_run.serial_hours = 110.2423, dry_run.wall_hours_2_workers = 56.2461` (the captured stdout of `scripts/g19_run_confirmation.py --dry-run`, 2026-09-24) |
 
 **Addendum 5 item 2 — the fold-isolation guard of a value-permuted control arm.** The near-duplicate VALUE
 comparison reads the corpus's **recorded** log D for an arm whose training target is permuted by construction, so
