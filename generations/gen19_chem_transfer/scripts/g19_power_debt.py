@@ -40,8 +40,14 @@ def inventory(out_root: Path) -> dict[str, Any]:
     """The inventory, from the H3 contrast table and the checks ``power_checks.json`` already holds."""
     path = H3.h3_root(out_root) / "h3_contrasts.csv"
     contrasts = pd.read_csv(path) if path.exists() else None
-    inv = H3.needs_power_inventory(contrasts, checked=H3.power_checked_keys(out_root))
+    # the fold counts and per-fold seconds that PRICE each unrun check, so the debt is a number of refits and hours and
+    # not only a list of names (TASK F item 6); both come from files the H3 run already wrote
+    summary = H3.h3_root(out_root) / "h3_summary.json"
+    sets = (json.loads(summary.read_text(encoding="utf-8")).get("record_sets") if summary.exists() else None) or {}
+    inv = H3.needs_power_inventory(contrasts, checked=H3.power_checked_keys(out_root), record_sets=sets,
+                                   per_fold_seconds=H3.h3_per_fold_seconds(out_root))
     inv.update({"source_contrasts": paths.rel(path) if path.exists() else None,
+                "source_record_sets": paths.rel(summary) if summary.exists() else None,
                 "written_by": NAME, "git_head": git_head(),
                 "date_utc": _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")})
     return inv

@@ -22,7 +22,7 @@ orchestrator's go/no-go (§7): ~174 h of serial compute, ~89 h of wall clock at 
 | stop rule | **false** (M2 vs B3i passes items 1,2,3,5; B6 vs B3i fails) | `evaluation/discovery/decisions/stop_rule.json → stop` |
 | ladder | M1 kept **false**, M2 kept **false**, retained **M0**; M3–M7 `not_run` | `evaluation/ladder/decisions/ladder.json → retained_final` |
 | deployed configuration | **M0 (= B5)** | addendum 3 item 2; `evaluation/h3/h3_summary.json → deployed.arm` |
-| H3 (§11) | run and scored; **B5 UNDECIDED, B6 UNDECIDED**; **F4 does not hold on the percentile reading, HOLDS on the BCa reading (V2)** | `evaluation/h3/h3_verdicts.json`, `h3_f4.json → failure` = false, `failure_bca` = true |
+| H3 (§11) | run and scored on **10 of 12** contrast record sets (the two `ACT_PERMUTED@V1` legs are `INCOMPLETE_GUARD_FAILURE`); **B5 UNDECIDED, B6 UNDECIDED**; **F4 HOLDS** on the conservative reading (either registered interval, any registered design: BCa on V2), and does **not** hold on the percentile-only reading | `evaluation/h3/h3_verdicts.json`, `h3_f4.json → failure` = true, `failure_percentile` = false, `failure_bca` = true; `h3_summary.json → contrasts_not_run` |
 | H3 compute | 5.7842 h of the 20.0 h cap used, `exhausted` false | `evaluation/h3/decisions/wall_clock.json → budget` |
 | H3 records | 444 scored + 1 exploratory verify against **the entry each was written under** (444 `superseded`, 0 `current`); **0 stale** | `h3_summary.json → refits.{stale, matched_entry_counts, operative_reading}` |
 | eligible for freezing (discovery §19) | **3** contrasts | `evaluation/discovery/decisions/decisions.json → freezing_candidates[*].eligible_for_freezing` |
@@ -278,25 +278,44 @@ Stated here so the confirmation run cannot quietly grow:
    WITHOUT); the two cells whose eligibility depends on actinide partners carry mean Δ **+0.942409**, and dropping
    them leaves 57 cells at mean **+0.036145**, median **−0.011837** (`negative_transfer/strata.csv`, stratum
    `actinide_dependent_eligibility`).
-2. **F4 is not claimed either way, and the two registered interval constructions disagree on V2** (task X finding
-   protocol VH-02 / numbers VH-03). `h3_f4.json → failure` = **false** on the **percentile** reading, which is the one
-   the scorer decides on; on the **BCa** reading `failure_bca` = **true**, because the reversed V2 contrast is
-   +0.026416 with percentile [−0.001399, +0.064213] (includes 0) but BCa [+0.003149, +0.078275] (excludes 0). §10 F4
-   says "95 % interval excluding 0" and names no construction, while §8 registers both and R19 item 2 requires both, so
-   **which interval a failure condition reads is an undisclosed reading** — recorded in
-   `h3_f4.json → interval_reading_not_registered` and requested as an addendum below. The reversed V5 contrast is
-   −0.066866 (WITHOUT is worse). Negative transfer is **not** demonstrated on the percentile reading; neither is its
-   absence; and no F4 statement may be quoted without both readings.
-3. **The V1 leg of H3 contributes nothing, and its non-completion is a DEVIATION.** `V1` is **NOT_RUN**
-   (`h3_summary.json → designs_not_run.V1`): the ACT_PERMUTED record set is **25 of 39** folds on both arms (24 fitted
-   plus `pub_97510df3a0`, whose `intervals` step never ran and which therefore no longer counts as a found fold),
-   stopped by a deterministic isolation-check failure, **not by the cap** (`budget.exhausted` = false, 14.2158 h left).
-   POST-HOC addendum 4 item 2 registers the design scope and says it "is run in full", so this is a deviation and is
-   labelled one (`designs_not_run.V1.deviation`; `evaluation/h3/decisions/deviations.json`). Since the unit of NOT_RUN
-   is the **design**, V1 now contributes **no contrast, no R19 item row, no delta, no per-unit row, no F4 entry and no
-   non-inferiority input** — the earlier draft quoted a V1 Δ of +0.005429 from the complete WITHOUT leg while calling
-   the design NOT_RUN, which is exactly what the addendum forbids (task X finding protocol VH-01). The two complete
-   `WITHOUT@V1` legs stay on disk, named in the entry, and are scored only if the design completes.
+2. **F4 (negative actinide transfer) HOLDS on the conservative reading — gen19 is unsuccessful on F4.** F4 is a
+   **registered failure condition**, so the conservative reading is the one that triggers more readily: §10 F4 says
+   "95 % interval excluding 0" and names no construction, §8 registers the **percentile AND the BCa** 95 % interval for
+   every contrast, and addendum 2 reads F4 as holding when **ANY** registered design shows it. Under either registered
+   interval on any registered design, F4 **holds**: the reversed V2 contrast (WITHOUT vs WITH, metal-state cluster) is
+   **+0.026416** with BCa **[+0.003149, +0.078275]**, which excludes 0, while its percentile interval
+   **[−0.001399, +0.064213]** does not. So `h3_f4.json → failure` = **true** (the conservative headline),
+   `failure_bca` = **true**, `failure_percentile` = **false**, and the two readings **disagree on V2**; V1
+   (−0.005429) and V5 (−0.066866) show no negative transfer under either interval. This is not softened: the headline
+   is that F4 holds, and every quotation carries both readings. Which interval a failure condition reads remains an
+   undisclosed reading (`h3_f4.json → interval_reading_not_registered`) and an addendum is requested below; the
+   conservative value governs until one is written. The consequence for §11 is unchanged — actinide rows enter the
+   deployed configuration only on *helps*, and the verdict is UNDECIDED.
+3. **Completeness is per CONTRAST RECORD SET, and the two `ACT_PERMUTED@V1` legs are an `INCOMPLETE_GUARD_FAILURE`
+   DEVIATION.** Every registered §11 delta is WITH − WITHOUT or WITH − PERMUTED, so the unit of completeness is the
+   arm × transform × design leg (`h3_summary.json → contrast_unit_rule`; a reading of addendum 4 item 2 for which an
+   addendum is requested below). **10 of 12** legs are complete and scored, including `B5:WITHOUT@V1` and
+   `B6:WITHOUT@V1` (39 of 39 folds each), which now carry their own verdicts: **B5 WITH vs WITHOUT @V1 Δ +0.005429**
+   (percentile [−0.064600, +0.067639], p 0.8284) and **B6 Δ −0.026489** (percentile [−0.133449, +0.059233], p 0.6048),
+   both **FAIL** on the freezing screen and on the full R19 verdict, and both TOST **UNDECIDED** — so V1
+   non-inferiority is **false**, not merely missing, and no *helps* verdict is available.
+   `B5:ACT_PERMUTED@V1` and `B6:ACT_PERMUTED@V1` are **25 of 39** folds each and carry
+   **`INCOMPLETE_GUARD_FAILURE`**, deliberately **not** addendum 4 item 2's `NOT_RUN` vocabulary, which belongs to the
+   20 h cap: the cap was not reached (`budget.exhausted` = false, 14.2158 h left), so this is a **DEVIATION** from
+   "That is registered and is run in full" (`contrasts_not_run.*.deviation`; `evaluation/h3/decisions/deviations.json`).
+   Those two legs contribute **no contrast, no R19 item row, no delta, no per-unit row, no F4 entry and no
+   non-inferiority input**, and V1's `ACT_PERMUTED` non-inferiority stays `None`.
+   **The cause is measured, and the fold is not forced** (`scripts/g19_h3_guard_diagnosis.py` →
+   `evaluation/h3/decisions/isolation_guard_diagnosis.json`): the §2 inner guard is
+   `fold_isolation_check(level="V1", near_dup_sig=6, near_dup_value_tol=0.005)`, and ACT_PERMUTED rebuilds the corpus
+   over the permuted frame, so the guard's **value** comparison reads permuted `log_D`. On fold `pub_97510df3a0` all
+   three inner splits pass on the registered values and two fail on the permuted ones, each on exactly one
+   near-duplicate key: on `inner_s104729_f1` a U(VI) row whose registered `log_D` 0.174458 was permuted to 0.376759,
+   landing **0.00201** from a calibration row at 0.374748, where the registered values are **0.115576** apart. The key
+   itself cannot move (it is built from system, metal, state, acid, solvent, concentrations and temperature, never from
+   `log_D`), so the guard flags a near-duplicate pair the recorded data never had. Running the guard **value-blind**
+   would be **stricter, not a fix**: it fails all three splits on the registered frame too (2, 27 and 26 shared keys)
+   and would block the WITH and WITHOUT arms that scored.
 4. **Everything the ladder dropped.** M1 and M2 are **not** the retained configuration — `ladder.json →
    retained_final` is **M0**. M1 vs M0 @V5 (Δ **−0.073667**) and M2 vs M0 @V5 (Δ **−0.154150**) are **FAIL**
    (`contrasts_registered.csv` rows 16/20). **M3–M7 are `not_run`** (addendum 3 item 3), so H5, the M7 deep
@@ -386,8 +405,12 @@ S1(c) + V6, which §9 and §15 require whether or not any claim confirms.
 **Not in the table, and not planned here: an H3 power check.** §8's injection check refits every endpoint of a
 contrast at 4 values of κ. For the deployed arm's two V5 contrasts that is 3 arms (WITH, WITHOUT, ACT_PERMUTED) ×
 4 κ × 28 folds = **336 refits** at the measured ≈ 535 s ≈ **50 h serial (25 h wall)** — more than C1's whole
-confirmation core. Addendum 4 item 4 licenses reporting those contrasts as **UNDECIDED (no registered power
-check)** without it, which is what D03 does. **Running it is a separate authorisation.**
+confirmation core. **Every H3 contrast owes the check and none has one**, and the debt is now inventoried with its
+cost per contrast (`h3_summary.json → power_debt`, D03's table): **20 of 20** contrasts owed, 0 run. The inventory's
+totals are an upper bound because they price each contrast separately and so count a shared WITH leg twice
+(`h3.POWER_COST_BASIS`); the 336-refit figure above is the de-duplicated one for the V5 pair. Addendum 4 item 4
+licenses reporting those contrasts as **UNDECIDED (no registered power check)** without the check, which is what D03
+does. **Running it is a separate authorisation.**
 
 **The estimate is INFERRED** from measured unit costs on this machine (12 threads, 8 GB, ≤ 2 workers), and discovery
 itself overran its 60 h budget by 28 %. **There is no registered budget for the confirmation run** — §7 item 5's
@@ -411,8 +434,10 @@ factorised model beats the lookup on unseen cells", not "the model we would depl
 
 Decisions needed before launch, all flagged above:
 1. **§2 / §5 step 6 — C4.** Freeze the fourth claim? It costs 0.2 h and is the cleanest form of brief §30's
-   question, but its item-1 margin on V2 is a **scorer reading, not registered text**, and needs a POST-HOC
-   addendum. Without that addendum, drop C4 and run three claims.
+   question. Its item-1 margin on V2 needs **no** addendum: POST-HOC addendum 2 registers it ("δ5 on V5 Ln cells,
+   0.05 on V1 / V2", and the discovery reading "0.05 for S1(b) and for V1 / V2"), and R19 item 1 compares the **point
+   estimate** with that margin, which C4 meets (+0.081519 ≥ 0.050) — `h3.READINGS['margins']`, task X finding
+   numbers VH-01. C4's item 6 remains materially weaker than C1–C3's (§2.3).
 2. **§2.3** — do the strict/HNO3 item-6 refits run on all 5 withheld seeds (costed: 44.9 h serial) or on one
    (≈ 9 h, needs an addendum)?
 3. **§3.1** — accept that S1(c)'s binding yardstick is B3i, whose selection-half Δ (+0.030013) is already below
@@ -422,9 +447,21 @@ Decisions needed before launch, all flagged above:
    UNDECIDED with `mde_80` above δ5. Run them, or record them NOT_RUN with the reason?
 5. **§6** — authorise the ≈ 50 h serial H3 power check, or accept **UNDECIDED (no registered power check)** as the
    final H3 wording (addendum 4 item 4 permits it)?
-6. **§4 item 3** — fix the V1 ACT_PERMUTED fold error and complete the H3 V1 leg inside the remaining 14.2158 h of
-   the cap, or leave V1 NOT_RUN? Completing it would need ≈ 28 folds × 219 s ≈ 1.7 h serial **plus** whatever the
-   `pub_97510df3a0` isolation-check failure turns out to be.
+6. **§4 item 3** — the `pub_97510df3a0` isolation-check failure is now diagnosed, not unknown
+   (`evaluation/h3/decisions/isolation_guard_diagnosis.json`): the §2 near-duplicate **value** comparison
+   (`near_dup_value_tol` = 0.005) reads the ACT_PERMUTED arm's permuted `log_D` and flags a pair the recorded data never
+   had. Register the guard's reading for a value-permuted control arm — **proposed sentence:** *"For a control arm whose
+   training `log_D` is permuted by construction (`ACT_PERMUTED`, §11 Controls), the near-duplicate VALUE comparison of
+   the §2 fold-isolation guard reads the REGISTERED `log_D` of the corpus, not the permuted values: `near_dup_value_tol`
+   = 0.005 asks whether two rows record the same experiment at the same value, which is a property of the recorded data
+   and not of an arm's training target, and a permuted value that happens to land within 0.005 of another row's value is
+   a coincidence the data never had. Every other level of the guard — the publication group, the archive duplicate group
+   and the near-duplicate key at 6 significant figures — is value-independent and is unchanged, so the guard stays
+   exactly as strict as registered and becomes invariant under the permutation."* — and then complete the two
+   `ACT_PERMUTED@V1` legs (14 folds × 2 arms; ≈ 0.9 h serial for B5 at the measured 230.6 s/fold, minutes for B6)
+   inside the remaining 14.2158 h of the cap; or leave them `INCOMPLETE_GUARD_FAILURE`, which is what this run does.
+   **Do not run the guard value-blind** (`near_dup_value_tol = None`): it is stricter, not looser, and fails all three
+   inner splits of that fold on the registered values too.
 
 *Nothing in this plan has been executed. No withheld seed has been read, no confirmation-half row scored, no V6 row
 touched. `preregistration.md` is untouched.*

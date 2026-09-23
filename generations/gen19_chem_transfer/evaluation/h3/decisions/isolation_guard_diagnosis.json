@@ -1,0 +1,201 @@
+{
+  "action_taken": "the fold is NOT forced: both ACT_PERMUTED@V1 legs stay unfitted and carry INCOMPLETE_GUARD_FAILURE with no verdict until a POST-HOC addendum states how the guard reads a value-permuted control arm",
+  "arm": "B5",
+  "conclusion": "MEASURED CAUSE (scripts/g19_h3_guard_diagnosis.py, fold pub_97510df3a0 of B5:ACT_PERMUTED@V1): the section 2 inner guard is fold_isolation_check(level='V1', near_dup_sig=6, near_dup_value_tol=0.005), and ACT_PERMUTED rebuilds the corpus over the PERMUTED frame, so the guard's VALUE comparison reads permuted log_D. Of the fold's three inner splits, all three pass on the registered values and two (inner_s104729_f1, inner_s104729_f2) fail on the permuted ones, each with exactly ONE near-duplicate key flagged. On f1 the flagged key (k_c75093d1f0ee) is a U(VI) row whose registered log_D 0.174458 was permuted to 0.376759, landing 0.00201 from a calibration row at 0.374748; on the registered values the nearest calibration value is 0.115576 away, an order of magnitude outside the 0.005 tolerance. The key itself cannot change: near_duplicate_key is built from the system, metal, state, acid, solvent, concentrations and temperature and never from log_D, and the publication group and archive duplicate group are stored columns, so the permutation can only move VALUES. The guard therefore flags a near-duplicate pair the recorded data never had. Running the guard VALUE-BLIND (near_dup_value_tol=None) is NOT the fix and is not what this diagnosis supports: value-blind counts every shared key whatever the values, and it fails all three inner splits on the REGISTERED frame too (2, 27 and 26 shared keys), so it would also block the WITH and WITHOUT arms that scored. The conservative behaviour taken meanwhile: the two ACT_PERMUTED@V1 legs are left UNFITTED, no fold is forced, and they carry INCOMPLETE_GUARD_FAILURE with no verdict",
+  "date_utc": "2026-09-23T02:22:39+00:00",
+  "design": "V1",
+  "flagged_keys_of_the_first_failing_split": [
+    {
+      "key_id": "k_c75093d1f0ee",
+      "min_abs_delta_permuted": 0.0020110493947759767,
+      "min_abs_delta_registered": 0.11557617459162173,
+      "n_calibration_rows": 15,
+      "n_train_rows": 1,
+      "permuted_train_logD": [
+        0.37675939540487985
+      ],
+      "registered_train_logD": [
+        0.17445843677089629
+      ],
+      "train_logD_changed_by_the_permutation": true,
+      "train_metal_state": [
+        "U(VI)"
+      ]
+    }
+  ],
+  "fold_context": {
+    "inner_guard_mode": "nested_certificate",
+    "n_actinide_training_rows": 5399,
+    "n_excluded_from_scoring": 0,
+    "n_hidden": 21,
+    "n_scored_selection": 21,
+    "n_sr_iii_dropped": 0,
+    "n_train": 12390,
+    "n_training_rows_changed": 5065,
+    "transform": "ACT_PERMUTED"
+  },
+  "fold_id": "pub_97510df3a0",
+  "git_head": "65ac90d7d49fcfd5c488cb41efa7074d0b1bcde2",
+  "guard": {
+    "level": "V1",
+    "near_dup_sig": 6,
+    "near_dup_value_tol_registered": 0.005,
+    "value_independent_levels": [
+      "publication group (a stored column)",
+      "archive duplicate_group_id (a stored column)",
+      "near_duplicate_key at 6 significant figures (never reads log_D)"
+    ]
+  },
+  "inner_splits": [
+    {
+      "inner_split": "inner_s104729_f0",
+      "n_calibration": 3468,
+      "n_train": 8382,
+      "permuted/near_dup_value_tol_0.005": {
+        "examples": {},
+        "ok": true,
+        "violations": {}
+      },
+      "permuted/value_blind": {
+        "examples": {
+          "near_duplicate_key_sig6_shared": [
+            "k_f592e9fcb8c0",
+            "k_8a57987d07c3"
+          ]
+        },
+        "ok": false,
+        "violations": {
+          "near_duplicate_key_sig6_shared": 2
+        }
+      },
+      "registered/near_dup_value_tol_0.005": {
+        "examples": {},
+        "ok": true,
+        "violations": {}
+      },
+      "registered/value_blind": {
+        "examples": {
+          "near_duplicate_key_sig6_shared": [
+            "k_f592e9fcb8c0",
+            "k_8a57987d07c3"
+          ]
+        },
+        "ok": false,
+        "violations": {
+          "near_duplicate_key_sig6_shared": 2
+        }
+      }
+    },
+    {
+      "inner_split": "inner_s104729_f1",
+      "n_calibration": 3340,
+      "n_train": 8441,
+      "permuted/near_dup_value_tol_0.005": {
+        "examples": {
+          "near_duplicate_key_sig6_shared_within_0.005": [
+            "k_c75093d1f0ee"
+          ]
+        },
+        "ok": false,
+        "violations": {
+          "near_duplicate_key_sig6_shared_within_0.005": 1
+        }
+      },
+      "permuted/value_blind": {
+        "examples": {
+          "near_duplicate_key_sig6_shared": [
+            "k_9aa5c783d9c2",
+            "k_5dd49e8ba7f9",
+            "k_1b004e3d0f85",
+            "k_a096bf5691cd",
+            "k_ffdfc6c11460"
+          ]
+        },
+        "ok": false,
+        "violations": {
+          "near_duplicate_key_sig6_shared": 27
+        }
+      },
+      "registered/near_dup_value_tol_0.005": {
+        "examples": {},
+        "ok": true,
+        "violations": {}
+      },
+      "registered/value_blind": {
+        "examples": {
+          "near_duplicate_key_sig6_shared": [
+            "k_9aa5c783d9c2",
+            "k_5dd49e8ba7f9",
+            "k_1b004e3d0f85",
+            "k_a096bf5691cd",
+            "k_ffdfc6c11460"
+          ]
+        },
+        "ok": false,
+        "violations": {
+          "near_duplicate_key_sig6_shared": 27
+        }
+      }
+    },
+    {
+      "inner_split": "inner_s104729_f2",
+      "n_calibration": 3746,
+      "n_train": 7957,
+      "permuted/near_dup_value_tol_0.005": {
+        "examples": {
+          "near_duplicate_key_sig6_shared_within_0.005": [
+            "k_c75093d1f0ee"
+          ]
+        },
+        "ok": false,
+        "violations": {
+          "near_duplicate_key_sig6_shared_within_0.005": 1
+        }
+      },
+      "permuted/value_blind": {
+        "examples": {
+          "near_duplicate_key_sig6_shared": [
+            "k_9aa5c783d9c2",
+            "k_5dd49e8ba7f9",
+            "k_1b004e3d0f85",
+            "k_a096bf5691cd",
+            "k_ffdfc6c11460"
+          ]
+        },
+        "ok": false,
+        "violations": {
+          "near_duplicate_key_sig6_shared": 26
+        }
+      },
+      "registered/near_dup_value_tol_0.005": {
+        "examples": {},
+        "ok": true,
+        "violations": {}
+      },
+      "registered/value_blind": {
+        "examples": {
+          "near_duplicate_key_sig6_shared": [
+            "k_9aa5c783d9c2",
+            "k_5dd49e8ba7f9",
+            "k_1b004e3d0f85",
+            "k_a096bf5691cd",
+            "k_ffdfc6c11460"
+          ]
+        },
+        "ok": false,
+        "violations": {
+          "near_duplicate_key_sig6_shared": 26
+        }
+      }
+    }
+  ],
+  "job": "fit:B5:ACT_PERMUTED:V1__copy_exact:s104729",
+  "n_failing_permuted_tol": 2,
+  "n_failing_permuted_value_blind": 3,
+  "n_failing_registered_tol": 0,
+  "n_failing_registered_value_blind": 3,
+  "n_inner_splits": 3,
+  "schema": "gen19.h3.v1",
+  "script": "g19_h3_guard_diagnosis",
+  "transform": "ACT_PERMUTED"
+}

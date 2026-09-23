@@ -112,6 +112,38 @@ DESIGN_PRIORITY: tuple[str, ...] = ("V5", "V2", "V1")
 H3_BUDGET_HOURS = 20.0
 H3_WORKERS = 2
 NOT_RUN = "NOT_RUN"
+#: POST-HOC addendum 4 item 2's ``NOT_RUN`` vocabulary belongs to the COMPUTE CAP ("If the cap is reached ... any design
+#: not reached is reported NOT_RUN with its reason").  A record set the cap did not stop -- one a deterministic guard
+#: failure left incomplete -- carries its OWN status, so the cause is never read as the cap (TASK F items 1 and 2)
+INCOMPLETE_GUARD_FAILURE = "INCOMPLETE_GUARD_FAILURE"
+#: the unit of completeness: one CONTRAST record set, ``<arm>:<transform>@<design>``
+CONTRAST_UNIT_RULE = (
+    "POST-HOC addendum 4 item 2, 'no verdict is taken from a partial design', applied per CONTRAST RECORD SET "
+    "(<arm>:<transform>@<design>): every registered delta of section 11 is WITH - WITHOUT or WITH - PERMUTED, so the "
+    "record set that a contrast is computed from is the arm x transform x design leg, and completeness is a property of "
+    "THAT leg. A leg whose record set is complete is scored and carries its verdict; a leg whose record set is "
+    "incomplete is reported with its status and reason and contributes no contrast row, no R19 item row, no delta, no "
+    "per-unit row, no F4 entry and no non-inferiority input. A DESIGN is reported NOT_RUN only when no leg of it is "
+    "complete. This narrowing of the NOT_RUN unit from the design to the record set is a READING of addendum 4 item 2 "
+    "and a POST-HOC addendum stating it is REQUESTED (TASK F item 1)")
+#: WHY the ACT_PERMUTED@V1 legs are incomplete, measured on fold ``pub_97510df3a0``
+#: (``scripts/g19_h3_guard_diagnosis.py`` -> ``evaluation/h3/decisions/isolation_guard_diagnosis.json``).  TASK F item 2.
+GUARD_FAILURE_DIAGNOSIS = (
+    "MEASURED CAUSE (scripts/g19_h3_guard_diagnosis.py, fold pub_97510df3a0 of B5:ACT_PERMUTED@V1): the section 2 inner "
+    "guard is fold_isolation_check(level='V1', near_dup_sig=6, near_dup_value_tol=0.005), and ACT_PERMUTED rebuilds the "
+    "corpus over the PERMUTED frame, so the guard's VALUE comparison reads permuted log_D. Of the fold's three inner "
+    "splits, all three pass on the registered values and two (inner_s104729_f1, inner_s104729_f2) fail on the permuted "
+    "ones, each with exactly ONE near-duplicate key flagged. On f1 the flagged key (k_c75093d1f0ee) is a U(VI) row whose "
+    "registered log_D 0.174458 was permuted to 0.376759, landing 0.00201 from a calibration row at 0.374748; on the "
+    "registered values the nearest calibration value is 0.115576 away, an order of magnitude outside the 0.005 "
+    "tolerance. The key itself cannot change: near_duplicate_key is built from the system, metal, state, acid, solvent, "
+    "concentrations and temperature and never from log_D, and the publication group and archive duplicate group are "
+    "stored columns, so the permutation can only move VALUES. The guard therefore flags a near-duplicate pair the "
+    "recorded data never had. Running the guard VALUE-BLIND (near_dup_value_tol=None) is NOT the fix and is not what "
+    "this diagnosis supports: value-blind counts every shared key whatever the values, and it fails all three inner "
+    "splits on the REGISTERED frame too (2, 27 and 26 shared keys), so it would also block the WITH and WITHOUT arms "
+    "that scored. The conservative behaviour taken meanwhile: the two ACT_PERMUTED@V1 legs are left UNFITTED, no fold is "
+    "forced, and they carry " + INCOMPLETE_GUARD_FAILURE + " with no verdict")
 #: section 11 transparent references
 REFERENCE_ARMS: tuple[str, ...] = ("B6", "B5")
 #: the fallback "deployed" arm when no learned configuration passes (section 10 F6: the best-passing baseline; the
@@ -146,12 +178,13 @@ F6_FALLBACK_RULE = ("POST-HOC addendum 2 (F6): with no retained ladder step, M2 
 F4_INTERVAL_READING = (
     "NOT REGISTERED: section 10 F4 says '95 % interval excluding 0' without naming a construction, while section 8 "
     "registers the percentile and the BCa 95 % interval for every contrast and R19 item 2 requires BOTH to exclude 0. "
-    "f4_check decides on the PERCENTILE interval (failure / failure_percentile) and reports the BCa reading beside it "
-    "(failure_bca, failure_either_interval, per_design.<design>.bca_beats). For a FAILURE condition the conservative "
-    "choice is the reading that triggers more readily -- EITHER interval -- not the one that requires both, so "
-    "failure_either_interval is the conservative value and the difference is printed wherever F4 is quoted. A POST-HOC "
-    "addendum naming the interval F4 reads is REQUESTED and not yet written; until then no F4 statement may be quoted "
-    "without both readings")
+    "F4 is a FAILURE condition, so the CONSERVATIVE reading is the one that triggers more readily -- EITHER registered "
+    "interval, on ANY registered design -- and that reading GOVERNS the headline (failure == failure_either_interval). "
+    "The percentile-only and BCa-only readings are computed and reported beside it (failure_percentile, failure_bca, "
+    "per_design.<design>.bca_beats), and a design where they disagree is named (designs_where_readings_disagree), so "
+    "every F4 statement carries both. A POST-HOC addendum naming the interval F4 reads is REQUESTED and not yet "
+    "written; until it is, the headline stays the conservative one and is never softened to the percentile reading "
+    "(TASK F item 3)")
 #: POST-HOC addendum 4 item 3 says the 13 stale records are "refitted under the CURRENT registered h3 digest before any
 #: H3 delta is scored".  Taken literally that is unsatisfiable in a stage whose code digest also covers scoring and
 #: reporting: the refits were written under the entry that was current at 17:51-19:50 on 2026-09-22, and three
@@ -280,8 +313,12 @@ READINGS: dict[str, str] = {
                "with that margin ('the point estimate Delta >= the design's margin delta'), not an interval bound, so a "
                "V1 / V2 contrast needs no further addendum to be read against 0.05 (task X finding numbers VH-01)",
     "f4_designs": "F4 'the WITHOUT arm beats it on the Ln test set (95 % interval excluding 0)' is evaluated per design "
-                  "(V5 Ln cells, V1 Ln rows, V2 Ln states) with the primary-cluster percentile interval of the reversed "
-                  "contrast (WITHOUT candidate), and F4 holds when ANY design shows it (the conservative reading)",
+                  "(V5 Ln cells, V1 Ln rows, V2 Ln states) on the reversed contrast (WITHOUT candidate) under the "
+                  "primary cluster unit, and F4 HOLDS when ANY registered design shows it under EITHER registered 95 % "
+                  "interval (percentile or BCa) -- the conservative reading on both axes, since F4 is a FAILURE "
+                  "condition and the conservative choice is the one that triggers more readily. The percentile-only and "
+                  "BCa-only readings are reported beside it (failure_percentile, failure_bca) and never replace the "
+                  "headline (TASK F item 3)",
     "actinide_dependent": "a cell's eligibility 'depends on actinide partners' when the eligible_cells rule of the "
                           "fold builder (folds.cell_holdout.EligibilitySpace.check) passes on all rows and fails once "
                           "every actinide row is removed",
@@ -323,17 +360,15 @@ READINGS: dict[str, str] = {
                  "refused (H3_WORKERS). --max-hours stays an operator pause, never a NOT_RUN reason",
     "design_priority": "POST-HOC addendum 4 item 2: the H3 job plan is ordered V5 -> V2 -> V1 (DESIGN_PRIORITY) and the "
                        "cap is checked before each fold; a design the cap does not reach is written NOT_RUN with its "
-                       "reason. The UNIT of NOT_RUN is the DESIGN, not one record set: a design is NOT_RUN as soon as ANY "
-                       "arm x transform record set it needs is missing or incomplete, EVEN IF another leg of the same "
-                       "design is complete, because 'no verdict is taken from a partial design'. A NOT_RUN design "
-                       "contributes no contrast, no R19 item row, no delta, no per-unit row, no F4 entry (NOT_COMPUTED) "
-                       "and no non-inferiority input (None): drop_not_run_designs removes every row of it before any "
-                       "output is written, designs_scored and designs_not_run are asserted DISJOINT, "
-                       "assert_no_partial_design raises if an incomplete record set ever reaches a contrast, and "
-                       "h3_verdict reports designs_not_run in inputs_missing so a helps verdict cannot be read off V5 "
-                       "alone. The complete legs of a NOT_RUN design are named in the entry (complete_legs): they exist "
-                       "on disk and are scored as soon as the design completes, but nothing is read from them while the "
-                       "design is NOT_RUN (task X finding protocol VH-01 / numbers VH-02)",
+                       "reason. " + CONTRAST_UNIT_RULE + " Mechanically: contrast_status classifies every leg, "
+                       "drop_not_run_contrasts removes every row of an incomplete leg before any output is written, "
+                       "assert_no_partial_design raises if an incomplete record set ever reaches a contrast, "
+                       "designs_scored and designs_not_run are asserted DISJOINT, and h3_verdict names every incomplete "
+                       "leg in inputs_missing so a helps verdict can never be read off the legs that did finish. The "
+                       "cap's NOT_RUN and a guard failure's " + INCOMPLETE_GUARD_FAILURE + " are distinct statuses and "
+                       "the entry says which applies (task X finding protocol VH-01 / numbers VH-02; TASK F items 1-2)",
+    "contrast_unit": CONTRAST_UNIT_RULE,
+    "guard_failure": GUARD_FAILURE_DIAGNOSIS,
     "record_digest_basis": "addendum 2 item 5 and POST-HOC addendum 4 item 3: an EXISTING H3 fold record is verified "
                            "with the code digest AND the below-footer digest it was WRITTEN under -- its own fields, "
                            "accepted only when registry.verify_record matches them to an entry of stage 'h3' (current or "
@@ -1066,7 +1101,8 @@ def _ni(res: Mapping[str, Any] | None) -> bool | None:
 
 def h3_verdict(*, helps: Mapping[str, Mapping[str, Mapping[str, Any]]], hurts: Mapping[str, Mapping[str, Any]],
                kappa_min: float | None = None, kappa_status: str = NOT_COMPUTED,
-               designs_not_run: Mapping[str, Any] | None = None) -> dict[str, Any]:
+               designs_not_run: Mapping[str, Any] | None = None,
+               contrasts_not_run: Mapping[str, Any] | None = None) -> dict[str, Any]:
     """Section 11 verdicts of one model arm.
 
     ``helps[design][transform]`` are the WITH-candidate contrasts (:func:`h3_contrast`), ``hurts[transform]`` the V5
@@ -1096,6 +1132,11 @@ def h3_verdict(*, helps: Mapping[str, Mapping[str, Mapping[str, Any]]], hurts: M
     # which a NOT_RUN design leaves None)
     nrun = {str(d): dict(v) if isinstance(v, Mapping) else v for d, v in dict(designs_not_run or {}).items()}
     inputs_missing += [f"{d}: {NOT_RUN}" for d in sorted(nrun)]
+    # ... and every incomplete CONTRAST record set, by its own status (CONTRAST_UNIT_RULE): a leg that could not be
+    # scored is named here even when another leg of the same design was, so no verdict can be read as complete
+    crun = {str(k): dict(v) if isinstance(v, Mapping) else v for k, v in dict(contrasts_not_run or {}).items()}
+    inputs_missing += [f"{k}: {(v or {}).get('status', INCOMPLETE_GUARD_FAILURE) if isinstance(v, Mapping) else v}"
+                       for k, v in sorted(crun.items())]
     rev = hurts.get("WITHOUT")
     rev_point = None if rev is None or rev.get("point") is None else float(rev["point"])
     return {"verdict": verdict, "helps": helps_ok, "hurts": bool(hurts_wo), "equivalent": equivalent,
@@ -1109,7 +1150,8 @@ def h3_verdict(*, helps: Mapping[str, Mapping[str, Mapping[str, Any]]], hurts: M
             "underpowered": (verdict == "UNDECIDED" and kappa_min is not None and kappa_min > ET.KAPPA_MIN_INFORMATIVE),
             "actinide_rows_enter_deployed_configuration": verdict == "helps",
             "inputs_missing": inputs_missing, "scope": VERDICT_SCOPE,
-            "designs_not_run": nrun, "designs_scored": sorted(d for d in helps if d not in nrun),
+            "designs_not_run": nrun, "contrasts_not_run": crun, "contrast_unit_rule": CONTRAST_UNIT_RULE,
+            "designs_scored": sorted(d for d in helps if d not in nrun),
             "transforms_scored": list(TRANSFORMS),
             "transforms_exploratory_not_scored": {t: EXPLORATORY_NOT_SCORED for t in EXPLORATORY_TRANSFORMS},
             "label": "discovery, optimistically biased (selection half; seed 104729); R19 item 4 decided at confirmation",
@@ -1123,19 +1165,20 @@ def f4_check(hurts_by_design: Mapping[str, Mapping[str, Any]], *, deployed_arm: 
     test set with the 95 % interval excluding 0 -- per design the reversed contrast's point > 0 and the primary-cluster
     lower bound > 0; F4 holds when any design shows it (:data:`READINGS` ``f4_designs``).
 
-    **Which interval is a READING, and BOTH are reported** (task X finding protocol VH-02 / numbers VH-03): section 10 F4
-    says "95 % interval" in the singular and names no construction, while section 8 registers the percentile AND the BCa
-    interval for every contrast and R19 item 2 requires both to exclude 0.  The decided value (``failure``) stays the
-    PERCENTILE reading it has always been, and the BCa reading is computed and reported beside it
-    (``failure_bca``, ``failure_either_interval``, per design ``bca_beats``), so a design where the two disagree is
-    visible instead of silently decided.  No POST-HOC addendum names the interval an F4 reads: until one does, every
-    quotation of F4 must carry both readings."""
+    **Which interval is a READING, both are reported, and the CONSERVATIVE one governs** (task X finding protocol VH-02 /
+    numbers VH-03; TASK F item 3): section 10 F4 says "95 % interval" in the singular and names no construction, while
+    section 8 registers the percentile AND the BCa interval for every contrast and R19 item 2 requires both to exclude 0.
+    F4 is a FAILURE condition, so the conservative reading is the one that triggers more readily -- EITHER interval, on
+    ANY registered design -- and that is what ``failure`` holds.  The percentile-only and BCa-only readings are computed
+    and reported beside it (``failure_percentile``, ``failure_bca``, per design ``bca_beats``), and a design where they
+    disagree is named, so no F4 statement is quoted without both."""
     per = {}
     for design, res in sorted(hurts_by_design.items()):
         if res is None:
             per[design] = {"status": NOT_COMPUTED,
-                           "reason": "no reversed WITHOUT-vs-WITH contrast of this design was scored (the design is "
-                                     f"{NOT_RUN}, or its record set is absent): POST-HOC addendum 4 item 2"}
+                           "reason": "no reversed WITHOUT-vs-WITH contrast of this design was scored (its WITH or "
+                                     f"WITHOUT record set is absent or incomplete, or the design is {NOT_RUN}): "
+                                     "POST-HOC addendum 4 item 2 as read by CONTRAST_UNIT_RULE"}
             continue
         br = res["bootstraps"][res["primary_cluster_unit"]]
         plo, phi = br.percentile_interval()
@@ -1151,10 +1194,10 @@ def f4_check(hurts_by_design: Mapping[str, Mapping[str, Any]], *, deployed_arm: 
     any_bca = any(p.get("bca_beats") for p in per.values())
     computed = [d for d, p in per.items() if p["status"] == "computed"]
     disagree = sorted(d for d, p in per.items() if p.get("readings_disagree"))
-    return {"failure": bool(trained_with_actinides and any_beats), "deployed_arm": deployed_arm,
+    return {"failure": bool(trained_with_actinides and (any_beats or any_bca)), "deployed_arm": deployed_arm,
             "deployed_trained_with_actinide_rows": bool(trained_with_actinides), "per_design": per,
             "designs_computed": computed, "designs_not_computed": [d for d in per if d not in computed],
-            "interval_read": "percentile",
+            "interval_read": "either (percentile OR BCa) -- the conservative reading of a failure condition",
             "failure_percentile": bool(trained_with_actinides and any_beats),
             "failure_bca": bool(trained_with_actinides and any_bca),
             "failure_either_interval": bool(trained_with_actinides and (any_beats or any_bca)),
@@ -1516,6 +1559,10 @@ def attach_not_run_context(not_run: Mapping[str, Any], *, scored_triples: Iterab
                            blocking: Mapping[str, list[dict[str, Any]]] | None = None) -> dict[str, Any]:
     """Fill in, per ``NOT_RUN`` design, the legs that ARE complete and WHAT stopped it.
 
+    The per-DESIGN view, which the 20 h cap's ledger uses (``run_plan``: the cap stops whole designs in the
+    :data:`DESIGN_PRIORITY` order).  The scorer's unit is the contrast record set, so it uses
+    :func:`attach_contrast_not_run_context` and :func:`drop_not_run_contrasts` instead (:data:`CONTRAST_UNIT_RULE`).
+
     Two things must not be lost when a design is suppressed: the record sets that are complete (real compute, kept on disk
     and scored as soon as the design completes) and the true cause, which addendum 4 item 2's vocabulary otherwise makes
     look like the 20 h cap.  When the cap is not exhausted the entry carries the blocking error from the wall-clock ledger
@@ -1550,6 +1597,10 @@ def drop_not_run_designs(not_run: Mapping[str, Any], *, frames: Mapping[str, pd.
     """POST-HOC addendum 4 item 2, "no verdict is taken from a partial design": remove every row, frame row and nested
     ``[arm][design]`` entry of a ``NOT_RUN`` design, in place for the nested mappings and by returning filtered copies for
     the tabular ones.
+
+    The per-DESIGN drop, for a design the 20 h cap never reached (no leg of it exists).  The scorer drops per CONTRAST
+    RECORD SET (:func:`drop_not_run_contrasts`, :data:`CONTRAST_UNIT_RULE`), which removes a wholly-unreached design as a
+    special case -- every leg of it is then incomplete -- while leaving a complete leg of a partly-run design scorable.
 
     The unit of NOT_RUN is the DESIGN (:data:`READINGS` ``design_priority``): a design one of whose arm x transform record
     sets is incomplete is NOT_RUN even when another leg is complete, so the complete leg's rows must not reach a table
@@ -1595,6 +1646,142 @@ def design_status(record_sets: Mapping[str, Any], design: str, transform: str, m
                                   f"({st.get('n_found')} of {st.get('n_expected')} folds; "
                                   f"missing {list(st.get('missing_folds') or [])[:5]})",
                           n_folds_expected=st.get("n_expected"), n_folds_done=st.get("n_found"))
+
+
+#: what an incomplete CONTRAST record set contributes -- printed in its entry so the claim can be checked against the
+#: files
+CONTRAST_NOT_RUN_CONTRIBUTES = ("no contrast row, no R19 item row, no delta, no per-unit row, no F4 entry and no "
+                                "V1 / V2 non-inferiority input (None) for THIS leg; the other legs of the same design "
+                                "are unaffected")
+
+
+def contrast_key(model_arm: str, transform: str, design: str) -> str:
+    """The identity of one contrast record set: ``<arm>:<transform>@<design>``."""
+    return f"{model_arm}:{transform}@{design}"
+
+
+def not_run_contrast(model_arm: str, transform: str, design: str, reason: str, *,
+                     status: str = INCOMPLETE_GUARD_FAILURE, budget: Mapping[str, Any] | None = None,
+                     n_folds_expected: int | None = None, n_folds_done: int | None = None,
+                     blocked_by: str | None = None) -> dict[str, Any]:
+    """The record of ONE contrast record set that may not be scored (:data:`CONTRAST_UNIT_RULE`).
+
+    ``status`` is :data:`NOT_RUN` only when the 20 h cap stopped it -- addendum 4 item 2's NOT_RUN vocabulary is the
+    cap's.  Anything else (a deterministic guard failure, an absent record set) carries
+    :data:`INCOMPLETE_GUARD_FAILURE` or the caller's own status, and the entry says so (TASK F items 1 and 2)."""
+    cap = budget is not None and bool(dict(budget).get("exhausted"))
+    st = NOT_RUN if cap else str(status)
+    return {"key": contrast_key(model_arm, transform, design), "model_arm": str(model_arm),
+            "transform": str(transform), "design": str(design), "status": st, "reason": str(reason),
+            "n_folds_expected": None if n_folds_expected is None else int(n_folds_expected),
+            "n_folds_done": None if n_folds_done is None else int(n_folds_done),
+            "budget": None if budget is None else dict(budget), "verdict_taken": False,
+            "contributes": CONTRAST_NOT_RUN_CONTRIBUTES,
+            "stopped_by": "the 20 h wall-clock cap" if cap else (blocked_by or "not the cap"),
+            "vocabulary": ("POST-HOC addendum 4 item 2's NOT_RUN is the CAP's vocabulary; this leg was not stopped by "
+                           f"the cap, so it carries {INCOMPLETE_GUARD_FAILURE} instead and the cause is named"
+                           if not cap else "POST-HOC addendum 4 item 2: the 20 h cap was reached"),
+            "deviation": None if cap else (
+                "POST-HOC addendum 4 item 2 registers the H3 design scope and says 'That is registered and is run in "
+                "full'; this record set is incomplete and the 20 h cap was NOT reached, so its non-completion is a "
+                "DEVIATION from the addendum, not an application of the cap"
+                + (f" -- blocked by: {blocked_by}" if blocked_by else "")),
+            "rule": CONTRAST_UNIT_RULE, "reading": READINGS["design_priority"]}
+
+
+def contrast_status(record_sets: Mapping[str, Any], design: str, transform: str, model_arm: str) -> dict[str, Any]:
+    """``complete`` / incomplete status of ONE contrast record set (:data:`CONTRAST_UNIT_RULE`)."""
+    hit = [(k, v) for k, v in dict(record_sets).items()
+           if isinstance(v, Mapping) and str(v.get("what") or "") == contrast_key(model_arm, transform, design)]
+    if not hit:
+        return not_run_contrast(model_arm, transform, design,
+                                f"no record set of {contrast_key(model_arm, transform, design)} was read")
+    key, st = hit[0]
+    if str(st.get("status")) == "complete":
+        return {"key": contrast_key(model_arm, transform, design), "model_arm": str(model_arm),
+                "transform": str(transform), "design": str(design), "status": "complete", "record_set": key,
+                "n_folds": st.get("n_found"), "verdict_taken": True}
+    missing = list(st.get("missing_folds") or [])
+    return not_run_contrast(model_arm, transform, design,
+                            f"{contrast_key(model_arm, transform, design)} record set is {st.get('status')} "
+                            f"({st.get('n_found')} of {st.get('n_expected')} folds; missing {missing[:5]}"
+                            f"{' ...' if len(missing) > 5 else ''})",
+                            n_folds_expected=st.get("n_expected"), n_folds_done=st.get("n_found"))
+
+
+def attach_contrast_not_run_context(not_run: Mapping[str, Any], *,
+                                    blocking: Mapping[str, list[dict[str, Any]]] | None = None) -> dict[str, Any]:
+    """Fill in, per incomplete contrast record set, WHAT stopped it, from the wall-clock ledger's fold errors.
+
+    ``blocking`` is :func:`blocking_errors` keyed by design; an entry is matched to the errors of its own
+    ``<arm>:<transform>@<design>`` job key when there is one, and to the design's otherwise."""
+    out = {k: dict(v) for k, v in dict(not_run or {}).items()}
+    flat = [e for errs in (blocking or {}).values() for e in errs]
+    for key, st in out.items():
+        cap = bool((st.get("budget") or {}).get("exhausted"))
+        mine = [e for e in flat if str(e.get("what")) == key] or \
+            [e for e in (blocking or {}).get(str(st.get("design")), [])]
+        if mine:
+            st["blocking_errors"] = mine
+        if not cap:
+            st["stopped_by"] = "; ".join(str(e.get("note")) for e in mine) if mine else \
+                "not the cap (cause not recorded)"
+            st["deviation"] = (
+                "POST-HOC addendum 4 item 2 registers the H3 design scope (V5 Ln cells, V2 Ln folds, V1 Ln rows; arms "
+                "B5 and B6) and says 'That is registered and is run in full'. The 20 h cap is the only registered "
+                f"reason a record set may stay incomplete, and it was NOT reached, so {key} being incomplete is a "
+                "DEVIATION from the addendum, not an application of the cap"
+                + (f" -- cause: {st['stopped_by']}" if mine else ""))
+    return out
+
+
+def drop_not_run_contrasts(not_run: Mapping[str, Any], *, frames: Mapping[str, pd.DataFrame | None] = (),
+                           rows: Mapping[str, list[dict[str, Any]]] = (),
+                           nested: Iterable[Mapping[str, Any]] = ()) -> dict[str, Any]:
+    """:data:`CONTRAST_UNIT_RULE`: remove every row, frame row and nested ``[arm][design][transform]`` entry of an
+    incomplete CONTRAST record set, leaving the complete legs of the same design untouched.
+
+    The unit is the (model arm, transform, design) triple, which is what ``h3_contrast`` is computed from and what both
+    directions (helps and hurts) of a leg share, so a single triple removes both rows of the pair."""
+    bad = {(str(v.get("model_arm")), str(v.get("transform")), str(v.get("design")))
+           for v in dict(not_run or {}).values() if isinstance(v, Mapping)}
+
+    def is_bad(arm: Any, transform: Any, design: Any) -> bool:
+        return (str(arm), str(transform), str(design)) in bad
+
+    dropped: dict[str, Any] = {"contrast_record_sets": sorted(dict(not_run or {})), "n_rows_dropped": {},
+                               "n_frame_rows_dropped": {}, "unit": "contrast record set (<arm>:<transform>@<design>)"}
+    out_rows = {k: [r for r in v if not is_bad(r.get("model_arm"), r.get("transform"), r.get("design"))]
+                for k, v in dict(rows or {}).items()}
+    for k, v in dict(rows or {}).items():
+        dropped["n_rows_dropped"][k] = len(v) - len(out_rows[k])
+    out_frames: dict[str, pd.DataFrame | None] = {}
+    for k, fr in dict(frames or {}).items():
+        cols = set(getattr(fr, "columns", ()))
+        if fr is None or getattr(fr, "empty", True) or not {"design", "model_arm", "transform"} <= cols:
+            out_frames[k] = fr
+            dropped["n_frame_rows_dropped"][k] = 0
+            continue
+        keep = ~pd.Series([is_bad(a, t, d) for a, t, d in
+                           zip(fr["model_arm"], fr["transform"], fr["design"])], index=fr.index)
+        out_frames[k] = fr[keep].reset_index(drop=True)
+        dropped["n_frame_rows_dropped"][k] = int((~keep).sum())
+    for holder in nested:
+        for arm in list(holder):
+            per = holder[arm]
+            if not isinstance(per, dict):
+                continue
+            for d in list(per):
+                inner = per[d]
+                if not isinstance(inner, dict):
+                    continue
+                for t in list(inner):
+                    if is_bad(arm, t, d):
+                        inner.pop(t)
+                if not inner:
+                    per.pop(d)
+    dropped["rows"], dropped["frames"] = out_rows, out_frames
+    return dropped
 
 
 def assert_no_partial_design(record_sets: Mapping[str, Any], scored: Iterable[tuple[str, str, str]]) -> dict[str, Any]:
@@ -1759,9 +1946,21 @@ def stale_records(out_root: Path, *, stage: str = "h3", path: Path | None = None
     for r in (*ok, *stale, *stale_expl):
         by_entry[str(r.get("matched_entry"))] = by_entry.get(str(r.get("matched_entry")), 0) + 1
         src[str(r.get("written_utc_source"))] = src.get(str(r.get("written_utc_source")), 0) + 1
+    n_current = by_entry.get("current", 0)
     return {"stage": stage, "n_records": len(stale) + len(stale_expl) + len(ok) + len(other), "stale": stale,
             "stale_exploratory": stale_expl, "verifying": ok, "not_verifying_other": other,
             "matched_entry_counts": by_entry, "written_utc_source_counts": src,
+            "n_verifying_against_the_current_entry": n_current,
+            "why_no_record_is_current": (
+                None if n_current else
+                f"NO record of stage '{stage}' verifies against the CURRENT registry entry, and none is refitted for "
+                "that reason. Every record was written under the entry that was current at the moment of its fit; the "
+                "entry was then re-registered by reporting-only edits to the scoring code (the per_unit_delta_table "
+                "TypeError fix, the D03 reporting fixes and the fixes of this task), which addendum 2 change 5 says "
+                "'can neither validate nor invalidate a record written earlier'. Refitting 444 folds because the REPORT "
+                "changed would burn the H3 budget on a quantity nothing reads and would change no delta, so the records "
+                "are kept and this is recorded instead (task X findings numbers VH-04; TASK F item 7). See "
+                "operative_reading."),
             "rule": "POST-HOC addendum 4 item 3: a record written after its stage's entry was superseded, still carrying "
                     "the superseded digests, is DELETED and refitted under the current registered digest before any H3 "
                     "delta is scored; records written before the supersession keep their entry and verify as registered",
@@ -2486,7 +2685,37 @@ def _addendum4_lines(summary: Mapping[str, Any]) -> list[str]:
                 lines.append(f"  - blocking error: `{e.get('note')}` (invocation {e.get('started_utc')} -> "
                              f"{e.get('ended_utc')}; `evaluation/h3/decisions/wall_clock.json -> invocations[*].note`)")
     else:
-        lines.append(f"- every design in {', '.join(DESIGN_PRIORITY)} was reached (no {NOT_RUN} design).")
+        lines.append(f"- every design in {', '.join(DESIGN_PRIORITY)} has at least one scored leg (no {NOT_RUN} design).")
+    crun = summary.get("contrasts_not_run") or {}
+    lines.append("")
+    lines.append(f"- **the unit of completeness (TASK F item 1).** {summary.get('contrast_unit_rule', CONTRAST_UNIT_RULE)}")
+    scored_sets = summary.get("contrast_record_sets_scored") or []
+    lines.append(f"  - contrast record sets SCORED ({len(scored_sets)}): {', '.join(scored_sets) or 'none'}.")
+    if crun:
+        lines.append(f"  - contrast record sets NOT scored ({len(crun)}):")
+        for k, rec in sorted(crun.items()):
+            r = rec if isinstance(rec, Mapping) else {}
+            lines.append(f"    - **{k}: {r.get('status', INCOMPLETE_GUARD_FAILURE)}** -- {r.get('reason', NOT_COMPUTED)}. "
+                         f"It contributes {r.get('contributes', CONTRAST_NOT_RUN_CONTRIBUTES)}. "
+                         f"{r.get('vocabulary', '')}")
+            if r.get("deviation"):
+                lines.append(f"      - **DEVIATION (not the cap):** {r['deviation']}")
+            for e in r.get("blocking_errors") or []:
+                lines.append(f"      - blocking error: `{e.get('note')}` (invocation {e.get('started_utc')} -> "
+                             f"{e.get('ended_utc')}; `evaluation/h3/decisions/wall_clock.json -> invocations[*].note`)")
+        lines.append(f"  - **why the guard fails, measured.** {GUARD_FAILURE_DIAGNOSIS}")
+        lines.append("  - **proposed addendum sentence** (not written; the conservative behaviour above holds "
+                     "meanwhile): \"For a control arm whose training `log_D` is permuted by construction "
+                     "(`ACT_PERMUTED`, section 11 Controls), the near-duplicate VALUE comparison of the section 2 "
+                     "fold-isolation guard reads the REGISTERED `log_D` of the corpus, not the permuted values: "
+                     "`near_dup_value_tol` = 0.005 asks whether two rows record the same experiment at the same value, "
+                     "which is a property of the recorded data and not of an arm's training target, and a permuted value "
+                     "that happens to land within 0.005 of another row's value is a coincidence the data never had. "
+                     "Every other level of the guard -- the publication group, the archive duplicate group and the "
+                     "near-duplicate key at 6 significant figures -- is value-independent and is unchanged, so the "
+                     "guard stays exactly as strict as registered and becomes invariant under the permutation.\"")
+    else:
+        lines.append("  - every planned contrast record set is complete and scored.")
     ref = summary.get("refits") or {}
     if ref:
         counts = ref.get("matched_entry_counts") or {}
@@ -2498,6 +2727,9 @@ def _addendum4_lines(summary: Mapping[str, Any]) -> list[str]:
                      f"delta is scored, and must be 0 here); {len(ref.get('stale_exploratory') or [])} exploratory "
                      f"record(s) are `{EXPLORATORY_NOT_SCORED}` and are neither refitted nor deleted.")
         lines.append(f"  - **what \"verifies\" means here.** {ref.get('operative_reading', OPERATIVE_DIGEST_READING)}")
+        if ref.get("why_no_record_is_current"):
+            lines.append(f"  - **none verifies as `current`, and none is refitted for that reason.** "
+                         f"{ref['why_no_record_is_current']}")
         src = ref.get("written_utc_source_counts") or {}
         if src:
             lines.append("  - timestamp the ordering check used, per record: "
@@ -2519,6 +2751,25 @@ NEEDS_POWER_RULE = ("POST-HOC addendum 2 (reading 'needs_power'): a contrast nee
                     "here so it is a RECORDED debt rather than an absence")
 
 
+def h3_per_fold_seconds(out_root: Path) -> dict[str, float]:
+    """Per-fold seconds for pricing a refit, from ``evaluation/h3/decisions/cost_estimate.json``: the MEASURED H3 mean
+    per transform, and the discovery per-fold seconds per ``<arm>@<design_dir>`` as the fallback upper bound."""
+    body = D.read_record(h3_decisions_dir(out_root) / "cost_estimate.json") or {}
+    out: dict[str, float] = {}
+    for t, m in (body.get("measured_per_fold_seconds") or {}).items():
+        if isinstance(m, Mapping) and m.get("mean") is not None:
+            out[str(t)] = float(m["mean"])
+    for k, v in (body.get("discovery_per_fold_seconds") or {}).items():
+        arm, _, ddir = str(k).partition("@")
+        for design, (d, _v) in DESIGNS.items():
+            if str(ddir).startswith(d):
+                out.setdefault(f"{arm}@{design}", float(v))
+    for r in body.get("rows") or []:
+        if isinstance(r, Mapping) and r.get("key") and r.get("per_fold_seconds") is not None:
+            out[str(r["key"])] = float(r["per_fold_seconds"])
+    return out
+
+
 def power_root_checks_path(out_root: Path) -> Path:
     """``evaluation/power/power_checks.json`` (named here because ``power`` imports this module, not the other way)."""
     return Path(out_root) / "evaluation" / "power" / "power_checks.json"
@@ -2536,8 +2787,53 @@ def power_checked_keys(out_root: Path) -> list[str]:
     return sorted(out)
 
 
+#: section 8's injection grid: "y' = y + kappa.s, kappa in {0.1, 0.25, 0.5, 1.0} log D"
+POWER_KAPPA_GRID: tuple[float, ...] = (0.1, 0.25, 0.5, 1.0)
+POWER_COST_BASIS = (
+    "section 8 re-runs the pipeline on injected targets at kappa in {0.1, 0.25, 0.5, 1.0}, refitting EVERY arm of the "
+    "contrast at its selected hyperparameters without re-tuning, on the same scored rows. The cost of one H3 contrast's "
+    "check is therefore 4 kappa x (folds of the WITH leg + folds of the transform leg) refits, priced at the per-fold "
+    "seconds this design's H3 refits actually took (evaluation/h3/decisions/cost_estimate.json); it is a SERIAL "
+    "estimate, halved only if the folds split evenly over the 2 registered workers. It is priced PER CONTRAST, so the "
+    "total over contrasts double-counts a WITH leg two contrasts share (the same injected WITH refits serve WITH vs "
+    "WITHOUT and WITH vs PERMUTED, and each direction of a pair is one contrast row): the total is an upper bound, and "
+    "the per-arm figure is 4 kappa x folds x arms of the design")
+
+
+def power_check_cost(model_arm: str, transform: str, design: str, *, record_sets: Mapping[str, Any] | None = None,
+                     per_fold_seconds: Mapping[str, float] | None = None,
+                     kappas: Sequence[float] = POWER_KAPPA_GRID) -> dict[str, Any]:
+    """What the section 8 injection check of ONE H3 contrast would cost (:data:`POWER_COST_BASIS`)."""
+    def n_folds(t: str) -> int | None:
+        for v in dict(record_sets or {}).values():
+            if isinstance(v, Mapping) and str(v.get("what") or "") == contrast_key(model_arm, t, design):
+                return None if v.get("n_expected") is None else int(v["n_expected"])
+        # the WITH legs are keyed without a ``what`` (they come from the discovery reader): <t>/<arm>/<design_dir>/s<seed>,
+        # and the design_dir begins with the design token
+        for k, v in dict(record_sets or {}).items():
+            parts = str(k).split("/")
+            if (isinstance(v, Mapping) and len(parts) >= 3 and parts[0] == str(t) and parts[1] == str(model_arm)
+                    and parts[2].startswith(f"{design}__") and v.get("n_expected") is not None):
+                return int(v["n_expected"])
+        return None
+    nw, nt = n_folds("WITH"), n_folds(transform)
+    secs = None
+    for key in (f"{model_arm}:{transform}@{design}", f"{model_arm}@{design}", str(transform), str(model_arm)):
+        if per_fold_seconds and key in per_fold_seconds:
+            secs = float(per_fold_seconds[key])
+            break
+    n_fits = None if nw is None or nt is None else int(len(list(kappas)) * (nw + nt))
+    total = None if n_fits is None or secs is None else float(n_fits) * secs
+    return {"n_kappa": len(list(kappas)), "kappas": list(kappas), "n_folds_with": nw, "n_folds_transform": nt,
+            "n_refits": n_fits, "per_fold_seconds": secs,
+            "serial_seconds": None if total is None else round(total, 1),
+            "serial_hours": None if total is None else round(total / 3600.0, 3),
+            "basis": POWER_COST_BASIS}
+
+
 def needs_power_inventory(contrasts: pd.DataFrame | None, *, checked: Iterable[str] = (),
-                         family: str = FAMILY) -> dict[str, Any]:
+                          family: str = FAMILY, record_sets: Mapping[str, Any] | None = None,
+                          per_fold_seconds: Mapping[str, float] | None = None) -> dict[str, Any]:
     """Which H3 contrasts owe the section 8 power check, and which of them have one (:data:`NEEDS_POWER_RULE`).
 
     ``checked`` are the contrast keys a power run actually checked (``power_checks.json -> checks[*].contrast`` / ``key``).
@@ -2555,17 +2851,28 @@ def needs_power_inventory(contrasts: pd.DataFrame | None, *, checked: Iterable[s
             full = str(r.get("r19_verdict_full") or NOT_COMPUTED)
             key = str(r.get("key") or r.get("contrast") or "")
             run = key in done or str(r.get("contrast") or "") in done
+            cost = power_check_cost(str(r.get("model_arm") or ""), str(r.get("transform") or ""),
+                                    str(r.get("design") or ""), record_sets=record_sets,
+                                    per_fold_seconds=per_fold_seconds)
             rows.append({"key": key, "contrast": r.get("contrast"), "design": r.get("design"),
                          "family": r.get("family"), "r19_verdict_full": full,
                          "needs_power_check": full != "PASS", "check_run": bool(run),
+                         "status": "CHECKED" if run else (NOT_RUN if full != "PASS" else "not owed"),
+                         "cost": cost, "cost_hours_serial": cost.get("serial_hours"), "n_refits": cost.get("n_refits"),
                          "reason": ("checked" if run else
                                     "full R19 verdict is PASS, so no check is owed" if full == "PASS" else
                                     "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict "
                                     f"is reported '{NO_POWER_CHECK_LABEL}'")})
     owed = [r for r in rows if r["needs_power_check"]]
+    unpaid = [r for r in owed if not r["check_run"]]
+    hrs = [r["cost_hours_serial"] for r in unpaid if r.get("cost_hours_serial") is not None]
     return {"rule": NEEDS_POWER_RULE, "family": str(family), "n_contrasts": len(rows), "n_owed": len(owed),
             "n_owed_and_run": sum(1 for r in owed if r["check_run"]),
-            "n_owed_and_not_run": sum(1 for r in owed if not r["check_run"]),
+            "n_owed_and_not_run": len(unpaid),
+            "cost_basis": POWER_COST_BASIS,
+            "n_refits_owed_and_not_run": sum(r["n_refits"] for r in unpaid if r.get("n_refits") is not None) or None,
+            "cost_hours_serial_owed_and_not_run": round(sum(hrs), 3) if hrs else None,
+            "cost_priced_for": len(hrs), "cost_unpriced": len(unpaid) - len(hrs),
             "label_when_not_run": NO_POWER_CHECK_LABEL, "checked_keys": sorted(done), "contrasts": rows}
 
 
@@ -2658,19 +2965,24 @@ def d03_markdown(summary: Mapping[str, Any], contrasts: pd.DataFrame | None, del
         # The two V5 refits addendum 1 item 4 runs for H1 / H1b / H4 / freezing candidates but not for an H3 transform
         # arm (strict_setting, HNO3_only_cells) are declared here by name (task X finding protocol VH-03).
         if "sensitivities_not_run" in prim.columns:
+            it6 = item_status_map(r19_items, 6)
             lines += ["", "R19 item 6 accounting -- which registered sensitivities of the design DECIDED item 6 and "
                           "which were not run (an H3 contrast pairs WITH against a section 11 transform refit, and no "
                           "strict-setting or HNO3-only refit of a transform arm is registered or fitted anywhere, so "
-                          "those two V5 sensitivities are UNTESTABLE for every H3 contrast):", "",
-                      "| contrast | design | sensitivity set | not run (declared) |", "|---|---|---|---|"]
+                          "those two V5 sensitivities are UNTESTABLE for every H3 contrast). `strict_setting` and "
+                          "`HNO3_only_cells` are members of POST-HOC addendum 1 item 4's OWN reduced set, so an H3 V5 "
+                          "contrast decides item 6 on a set SMALLER than the registered reduced set and its item 6 is "
+                          "reported **NOT_EVALUATED**, never PASS (TASK F item 4):", "",
+                      "| contrast | design | item 6 | sensitivity set | not run (declared) |", "|---|---|---|---|---|"]
             seen: set[str] = set()
             for _, r in prim.sort_values(["model_arm", "design", "contrast"]).iterrows():
                 k = f"{r['contrast']}@{r['design']}"
                 if k in seen:
                     continue
                 seen.add(k)
-                lines.append(f"| {r['contrast']} | {r['design']} | {r.get('sensitivity_set', NOT_COMPUTED)} | "
-                             f"{r.get('sensitivities_not_run') or 'none'} |")
+                lines.append(f"| {r['contrast']} | {r['design']} | "
+                             f"{it6.get(str(r.get('key') or ''), it6.get(k, NOT_COMPUTED))} | "
+                             f"{r.get('sensitivity_set', NOT_COMPUTED)} | {r.get('sensitivities_not_run') or 'none'} |")
             lines.append("")
     else:
         lines.append(f"Contrasts: {NOT_COMPUTED}.")
@@ -2712,17 +3024,22 @@ def d03_markdown(summary: Mapping[str, Any], contrasts: pd.DataFrame | None, del
                       + f"): **{mapping.get(dv, NOT_COMPUTED)}**."]
     else:
         lines.append(f"Verdicts: {NOT_COMPUTED}.")
-    lines += ["", f"**F4 (negative actinide transfer), percentile reading: {'HOLDS -- gen19 is unsuccessful on F4' if f4.get('failure') else ('does not hold' if f4.get('status') == 'computed' else NOT_COMPUTED)}.** "
-              f"Deployed arm {f4.get('deployed_arm', NOT_COMPUTED)}; per design: "
-              + ", ".join(f"{d}: {'beats' if p.get('without_beats_with_interval_excludes_0') else ('no' if p.get('status') == 'computed' else NOT_COMPUTED)}"
+    head = ("HOLDS -- gen19 is UNSUCCESSFUL on F4" if f4.get("failure") else
+            ("does not hold" if f4.get("status") == "computed" else NOT_COMPUTED))
+    lines += ["", f"**F4 (negative actinide transfer): {head}.** This is the headline and it is the CONSERVATIVE "
+                  "reading -- F4 holds when ANY registered design shows the WITHOUT arm beating the deployed one under "
+                  "EITHER registered 95 % interval (percentile or BCa). Deployed arm "
+                  f"{f4.get('deployed_arm', NOT_COMPUTED)}; per design (either interval): "
+              + ", ".join(f"{d}: {'beats' if (p.get('without_beats_with_interval_excludes_0') or p.get('bca_beats')) else ('no' if p.get('status') == 'computed' else NOT_COMPUTED)}"
                           for d, p in sorted((f4.get("per_design") or {}).items())) + ".",
-              "", f"**F4, BCa reading: {'HOLDS' if f4.get('failure_bca') else 'does not hold'}** "
-                  "(section 8 registers the percentile AND the BCa 95 % interval for every contrast; per design: "
+              "", f"- percentile-only reading: **{'HOLDS' if f4.get('failure_percentile') else 'does not hold'}** ("
+              + ", ".join(f"{d}: {'beats' if p.get('without_beats_with_interval_excludes_0') else ('no' if p.get('status') == 'computed' else NOT_COMPUTED)}"
+                          for d, p in sorted((f4.get("per_design") or {}).items())) + ").",
+              f"- BCa-only reading: **{'HOLDS' if f4.get('failure_bca') else 'does not hold'}** ("
               + ", ".join(f"{d}: {'beats' if p.get('bca_beats') else ('no' if p.get('status') == 'computed' else NOT_COMPUTED)}"
-                          for d, p in sorted((f4.get("per_design") or {}).items()))
-              + f"). Conservative reading (EITHER interval): **{'HOLDS' if f4.get('failure_either_interval') else 'does not hold'}**."
-                + (f" The two readings DISAGREE on: {', '.join(f4.get('designs_where_readings_disagree') or [])}."
-                   if f4.get("designs_where_readings_disagree") else " The two readings agree on every computed design."),
+                          for d, p in sorted((f4.get("per_design") or {}).items())) + ")."
+              + (f" The two readings DISAGREE on: {', '.join(f4.get('designs_where_readings_disagree') or [])}."
+                 if f4.get("designs_where_readings_disagree") else " The two readings agree on every computed design."),
               "", f"*Which interval F4 reads is a reading, not registered text.* {f4.get('interval_reading_not_registered', F4_INTERVAL_READING)}",
               ""]
     per_f4 = f4.get("per_design") or {}
@@ -2825,11 +3142,17 @@ def d03_markdown(summary: Mapping[str, Any], contrasts: pd.DataFrame | None, del
                   f"**{debt.get('n_owed')}**; checked: **{debt.get('n_owed_and_run')}**; "
                   f"**owed and NOT run: {debt.get('n_owed_and_not_run')}**.",
                   f"- every H3 verdict quoted anywhere therefore carries `{debt.get('label_when_not_run', NO_POWER_CHECK_LABEL)}` "
-                  "(POST-HOC addendum 4 item 4).", "",
-                  "| contrast | design | full R19 | owes the check | check run | reason |", "|---|---|---|---|---|---|"]
+                  "(POST-HOC addendum 4 item 4).",
+                  f"- what the unpaid debt COSTS: **{debt.get('n_refits_owed_and_not_run', NOT_COMPUTED)}** injected "
+                  f"refits, **{_fmt(debt.get('cost_hours_serial_owed_and_not_run'), '{:.1f}')} h** of serial compute "
+                  f"({debt.get('cost_priced_for', 0)} of {debt.get('n_owed_and_not_run', 0)} contrasts priced; "
+                  f"{debt.get('cost_unpriced', 0)} unpriced). {debt.get('cost_basis', POWER_COST_BASIS)}", "",
+                  "| contrast | design | full R19 | power check | refits | serial h | reason |",
+                  "|---|---|---|---|---|---|---|"]
         for r in debt.get("contrasts") or []:
             lines.append(f"| {r.get('contrast')} | {r.get('design')} | {r.get('r19_verdict_full')} | "
-                         f"{r.get('needs_power_check')} | {r.get('check_run')} | {r.get('reason')} |")
+                         f"**{r.get('status', NOT_RUN)}** | {r.get('n_refits', NOT_COMPUTED)} | "
+                         f"{_fmt(r.get('cost_hours_serial'), '{:.2f}')} | {r.get('reason')} |")
         lines.append("")
     lines += ["## Decision", "",
               (f"Actinide rows enter the deployed Ln configuration: **{'yes' if ver.get(dep_key, {}).get('verdict') == 'helps' else 'no'}** "
@@ -2837,15 +3160,21 @@ def d03_markdown(summary: Mapping[str, Any], contrasts: pd.DataFrame | None, del
               "## Next action", "",
               "- confirmation: the frozen H3 claims (if any) on the withheld seeds and the V6 deltas (section 15);",
               "- a POST-HOC addendum for every reading in `h3_summary.json -> readings` before a result is quoted as registered, "
-              "and in particular for the four this run records as REQUESTED: the interval F4 reads (`f4.interval_read`), "
+              "and in particular for the five this run records as REQUESTED: the interval F4 reads (`f4.interval_read`), "
               "the design and contrast section 11's negative-transfer trigger is read on "
               "(`negative_transfer_condition.condition`), the operative reading of addendum 4 item 3 "
-              "(`refits.operative_reading`) and, if the V1 WITHOUT leg is to be scored while ACT_PERMUTED@V1 is "
-              "incomplete, a narrowing of addendum 4 item 2's NOT_RUN unit from the design to the record set;",
+              "(`refits.operative_reading`), the narrowing of addendum 4 item 2's NOT_RUN unit from the DESIGN to the "
+              "CONTRAST RECORD SET (`contrast_unit_rule`), and the near-duplicate guard of a value-permuted control arm "
+              "(the blocking error below);",
               f"- the section 8 power check (`scripts/g19_run_power.py`) for the {debt.get('n_owed_and_not_run', 0)} H3 "
-              "contrast(s) that owe it (table above);",
-              "- the V1 deviation: the design is registered to run in full and is blocked by a deterministic isolation-check "
-              "failure, not by the 20 h cap (see POST-HOC addendum 4 item 2 above).", ""]
+              f"contrast(s) that owe it: {debt.get('n_refits_owed_and_not_run', NOT_COMPUTED)} injected refits, "
+              f"{_fmt(debt.get('cost_hours_serial_owed_and_not_run'), '{:.1f}')} h serial (table above);",
+              "- the WITH - PERMUTED legs of V1: registered to run in full and blocked by a deterministic "
+              "isolation-check failure, not by the 20 h cap. The fold is NOT forced: the guard's near-duplicate VALUE "
+              "comparison (`near_dup_value_tol` = 0.005) is evaluated on the PERMUTED training values, so a permuted "
+              "log D that lands within 0.005 of another row's value flags a near-duplicate pair the registered data "
+              "never had. Until an addendum fixes how that guard reads a value-permuted control arm, the legs stay "
+              "unfitted and carry `INCOMPLETE_GUARD_FAILURE`.", ""]
     return "\n".join(lines)
 
 

@@ -204,6 +204,15 @@ LEARNED_REFITS_NOT_RUN: dict[str, dict[str, str]] = {
                                      "no fold file or inner design exists under that grouping)"},
     "V2": {"state_level_hiding": "addendum 1 item 4: the state-level V2 refit is not run for a learned arm",
            "sr_iii_dropped_training": "addendum 1 item 4: the V2 refit sensitivities are not run for a learned arm"}}
+#: TASK F item 4: R19 item 6 when a family could not evaluate a member of addendum 1 item 4's OWN reduced set (the V5
+#: strict / HNO3-only refits).  An inconclusive status, never a PASS: the sensitivity is registered and was not tested.
+ITEM6_NOT_EVALUATED = "NOT_EVALUATED"
+ITEM6_NOT_EVALUATED_DETAIL = (
+    "these are members of POST-HOC addendum 1 item 4's OWN reduced set (the V5 strict and HNO3-only refits, the only "
+    "refits a learned arm runs), so the decided set here is SMALLER than the registered reduced set. They were NOT "
+    "evaluated for this family and R19 item 6 is reported NOT_EVALUATED rather than PASS; evaluating them would mean "
+    "fitting a strict-setting and an HNO3-only refit of the arm the contrast is computed from, which no registered plan "
+    "runs for it (TASK F item 4)")
 #: addendum 1 item 3: R19 item 4 in discovery
 ITEM4_NOT_EVALUATED = "NOT_EVALUATED"
 ITEM4_NOT_EVALUATED_DETAIL = ("addendum 1 item 3: learned arms run discovery seed 104729 only, so seed consistency is "
@@ -1916,9 +1925,18 @@ def reduced_item6(design: str, sensitivities: Mapping[str, Any], reduced: Sequen
     not_run = {n: why for n, why in LEARNED_REFITS_NOT_RUN.get(design, {}).items() if n in registered}
     extra = {n: why for n, why in dict(not_run_extra or {}).items()
              if n in registered and n not in reduced and n not in not_run}
+    # the members of addendum 1 item 4's OWN reduced set (the V5 strict and HNO3-only refits, the only refits a learned
+    # arm runs) that this caller could not evaluate.  Addendum 1 item 4 registers item 6 as decided over "the refits
+    # that were run plus every registered scoring-filter sensitivity"; when a family did not run those refits either,
+    # its decided set is SMALLER than the registered reduced set, and a PASS over what is left would report a registered
+    # sensitivity as satisfied when it was never evaluated (TASK F item 4)
+    reduced_set_names = {V5_SETTING_SENSITIVITY[v] for v in LEARNED_REFIT_VARIANTS if v in V5_SETTING_SENSITIVITY}
+    not_evaluated = sorted((set(extra) | {n for n in not_run if n in reduced_set_names}) & reduced_set_names
+                           & registered - set(reduced))
     body = "; ".join(fail + [f"{n}: UNTESTABLE" for n in untestable]) or \
         f"positive in every sensitivity of the reduced set {list(reduced)}"
-    status = "FAIL" if fail else ("UNTESTABLE" if untestable else "PASS")
+    status = "FAIL" if fail else ("UNTESTABLE" if untestable else
+                                  (ITEM6_NOT_EVALUATED if not_evaluated else "PASS"))
     # every registered sensitivity of the design is either DECIDED (in ``reduced``) or DECLARED not run: a name in
     # neither list would be an undisclosed omission behind a PASS (task X finding protocol VH-03)
     undeclared = sorted(registered - set(reduced) - set(not_run) - set(extra))
@@ -1926,12 +1944,16 @@ def reduced_item6(design: str, sensitivities: Mapping[str, Any], reduced: Sequen
     if extra:
         detail += (f"; not run for this family, declared by the caller: {sorted(extra)}")
     detail += f"; decided on {len(list(reduced))} of {len(registered)} registered sensitivities"
+    if not_evaluated:
+        detail += (f"; {ITEM6_NOT_EVALUATED}: {not_evaluated} -- {ITEM6_NOT_EVALUATED_DETAIL}")
     if undeclared:
         detail += f"; UNDECLARED (a defect): {undeclared}"
     not_run.update(extra)
     return ({"item": 6, "name": "positive_in_every_registered_sensitivity", "status": status, "detail": detail,
              "n_registered_sensitivities": len(registered), "n_sensitivities_decided": len(list(reduced)),
              "n_sensitivities_not_run": len(not_run), "sensitivities_undeclared": ", ".join(undeclared),
+             "sensitivities_not_evaluated": ", ".join(not_evaluated),
+             "n_sensitivities_not_evaluated": len(not_evaluated),
              "sensitivity_set": ADDENDUM_LABEL, "sensitivities_not_run": ", ".join(sorted(not_run))}, not_run)
 
 

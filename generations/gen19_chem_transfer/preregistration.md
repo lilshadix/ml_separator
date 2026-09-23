@@ -1870,3 +1870,60 @@ made explicit, not a change to it.
 run; metrics and averaging units; comparators; margins rho5, gamma5, eta5 and epsilon; S1, S2 and
 F1-F6; R19 items 1-6 and the reduced set of addendum 1 item 4; the stop rule; the grids of sections 5
 and 6; confirmation on the withheld seeds; the deployed configuration of addendum 3 item 2.
+
+## POST-HOC addendum 5 (2026-09-23, orchestrator Claude Code with the user's approval; results seen: yes - discovery, the ladder, the power check and H3)
+
+**Results seen.** Everything addenda 3 and 4 list, plus the scored H3 ablation on the deployed M0 (V5, V2
+and the WITHOUT leg of V1), the power-check and reliability outputs, and the confirmation plan's costing.
+V6, the confirmation half and the 5 withheld seeds are untouched.
+
+**1. The confirmation run is the core run, not the full one - compute-driven, chosen by the user.** The
+plan's full registered version costs about 174 h of serial compute, 89 h of wall clock at 2 workers, of
+which the section 11 V6 actinide deltas (about 30 h) and a section 8 power check over the H3 contrasts
+(about 436 h of injected refits for the full inventory, about 50 h for the subset the plan costed) are
+the dominant lines and carry no frozen claim. **Resolved:** the single confirmation run evaluates
+- the frozen claims of `decisions/CONFIRMATION_PLAN.md` (at most five) on the confirmation half with the
+  5 withheld seeds, R19 item 4 exactly as registered (5 of 5 seeds);
+- the single V6 run of section 3.4 with S2(a), S2(b) and S2(c);
+- S1(c) under its addendum-2 confirmation rule and S1(d) calibration.
+It does NOT run the section 11 V6 actinide deltas nor any section 8 power check; both are reported
+NOT_RUN with their cost and their consequence (a contrast with no power check is UNDECIDED, never a
+null - addendum 4 item 4). R19 item 6 refits at confirmation run on seed 104729 only, as in discovery
+(addendum 1 item 4); every other registered rule of sections 8, 9, 14 and 15 is unchanged.
+
+**2. The value comparison of the fold-isolation guard reads the recorded log D, not an arm's permuted
+target.** ACT_PERMUTED (section 11 Controls) permutes training log D within (system, publication group);
+the section 2 guard's near-duplicate VALUE comparison (`near_dup_value_tol` = 0.005) then reads permuted
+values and fails folds the recorded data never had - diagnosed on `pub_97510df3a0`, where a permuted
+value lands 0.00201 from another row's value while the recorded nearest is 0.115576
+(`evaluation/h3/decisions/isolation_guard_diagnosis.json`). **Resolved:** for an arm whose training
+target is permuted by construction, the value comparison reads the corpus's recorded log D; every other
+level of the guard - publication group, archive duplicate group, and the near-duplicate key at six
+significant figures - is value-independent and unchanged, and the value-blind mode stays what section 2
+registers it as, a sensitivity. The 14 unfitted V1 ACT_PERMUTED folds are completed under this rule, so
+no registered contrast is left INCOMPLETE.
+
+**3. F4 is evaluated under both registered intervals, and it holds on V2.** Section 8 registers the
+percentile and the BCa interval for every contrast, so F4 - "the WITHOUT arm beats the deployed
+configuration on the Ln test set, 95 % interval excluding 0" - is read under both, and the conservative
+outcome governs. On V2 the BCa interval of WITHOUT vs WITH excludes zero (delta +0.0264,
+[+0.0031, +0.0783]) while the percentile interval does not; V5 and V1 show nothing. **F4 therefore
+HOLDS**, and the report says so plainly, together with the fact that on the primary design V5 the WITH
+arm is the better one (+0.0669 and +0.0782 against the permuted control, both intervals excluding zero,
+both under delta5). Section 11's own consequence is recorded with it: on a verdict that is not *helps*,
+"actinide rows enter the deployed Ln configuration only on helps", so the deployed lanthanide
+configuration is the WITHOUT-actinide fit of M0, under which F4's first clause is false. Both readings -
+F4 holding against a WITH deployment, and F4 not holding against the registered WITHOUT deployment - are
+reported side by side, with the V5 point-estimate cost of the registered choice stated. No verdict is
+softened and no interval is chosen by its outcome.
+
+**4. The power-check debt is inventoried, not discharged.** 20 contrasts owe a section 8 check
+(6,272 injected refits, about 436 h of serial compute at the measured per-fold cost); none is run. Every
+one of them is reported UNDECIDED with the words addendum 4 item 4 fixes, never as a null, and the
+inventory with its cost is part of the report so the omission is visible rather than implicit.
+
+**What does not change.** Designs, folds, halves, hiding and the guard's value-independent levels; the
+V6 carve-out and the single V6 run; metrics and averaging units; comparators; margins rho5, gamma5,
+eta5 and epsilon; S1, S2, F1-F3, F5 and F6; R19 items 1-6 and the reduced set of addendum 1 item 4; the
+stop rule; the grids of sections 5 and 6; the deployed configuration rule of addendum 3 item 2 as
+qualified by item 3 above; confirmation on the withheld seeds.

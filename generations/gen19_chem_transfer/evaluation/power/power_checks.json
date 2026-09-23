@@ -750,174 +750,600 @@
       {
         "check_run": false,
         "contrast": "B5:WITH vs B5:ACT_PERMUTED",
+        "cost": {
+          "basis": "section 8 re-runs the pipeline on injected targets at kappa in {0.1, 0.25, 0.5, 1.0}, refitting EVERY arm of the contrast at its selected hyperparameters without re-tuning, on the same scored rows. The cost of one H3 contrast's check is therefore 4 kappa x (folds of the WITH leg + folds of the transform leg) refits, priced at the per-fold seconds this design's H3 refits actually took (evaluation/h3/decisions/cost_estimate.json); it is a SERIAL estimate, halved only if the folds split evenly over the 2 registered workers. It is priced PER CONTRAST, so the total over contrasts double-counts a WITH leg two contrasts share (the same injected WITH refits serve WITH vs WITHOUT and WITH vs PERMUTED, and each direction of a pair is one contrast row): the total is an upper bound, and the per-arm figure is 4 kappa x folds x arms of the design",
+          "kappas": [
+            0.1,
+            0.25,
+            0.5,
+            1.0
+          ],
+          "n_folds_transform": 28,
+          "n_folds_with": 28,
+          "n_kappa": 4,
+          "n_refits": 224,
+          "per_fold_seconds": 574.3,
+          "serial_hours": 35.734,
+          "serial_seconds": 128643.2
+        },
+        "cost_hours_serial": 35.734,
         "design": "V5",
         "family": "H3",
         "key": "B5:WITH vs B5:ACT_PERMUTED@V5",
+        "n_refits": 224,
         "needs_power_check": true,
         "r19_verdict_full": "FAIL",
-        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'"
+        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'",
+        "status": "NOT_RUN"
       },
       {
         "check_run": false,
         "contrast": "B5:ACT_PERMUTED vs B5:WITH",
+        "cost": {
+          "basis": "section 8 re-runs the pipeline on injected targets at kappa in {0.1, 0.25, 0.5, 1.0}, refitting EVERY arm of the contrast at its selected hyperparameters without re-tuning, on the same scored rows. The cost of one H3 contrast's check is therefore 4 kappa x (folds of the WITH leg + folds of the transform leg) refits, priced at the per-fold seconds this design's H3 refits actually took (evaluation/h3/decisions/cost_estimate.json); it is a SERIAL estimate, halved only if the folds split evenly over the 2 registered workers. It is priced PER CONTRAST, so the total over contrasts double-counts a WITH leg two contrasts share (the same injected WITH refits serve WITH vs WITHOUT and WITH vs PERMUTED, and each direction of a pair is one contrast row): the total is an upper bound, and the per-arm figure is 4 kappa x folds x arms of the design",
+          "kappas": [
+            0.1,
+            0.25,
+            0.5,
+            1.0
+          ],
+          "n_folds_transform": 28,
+          "n_folds_with": 28,
+          "n_kappa": 4,
+          "n_refits": 224,
+          "per_fold_seconds": 574.3,
+          "serial_hours": 35.734,
+          "serial_seconds": 128643.2
+        },
+        "cost_hours_serial": 35.734,
         "design": "V5",
         "family": "H3",
         "key": "B5:ACT_PERMUTED vs B5:WITH@V5",
+        "n_refits": 224,
         "needs_power_check": true,
         "r19_verdict_full": "FAIL",
-        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'"
+        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'",
+        "status": "NOT_RUN"
       },
       {
         "check_run": false,
         "contrast": "B5:WITH vs B5:WITHOUT",
+        "cost": {
+          "basis": "section 8 re-runs the pipeline on injected targets at kappa in {0.1, 0.25, 0.5, 1.0}, refitting EVERY arm of the contrast at its selected hyperparameters without re-tuning, on the same scored rows. The cost of one H3 contrast's check is therefore 4 kappa x (folds of the WITH leg + folds of the transform leg) refits, priced at the per-fold seconds this design's H3 refits actually took (evaluation/h3/decisions/cost_estimate.json); it is a SERIAL estimate, halved only if the folds split evenly over the 2 registered workers. It is priced PER CONTRAST, so the total over contrasts double-counts a WITH leg two contrasts share (the same injected WITH refits serve WITH vs WITHOUT and WITH vs PERMUTED, and each direction of a pair is one contrast row): the total is an upper bound, and the per-arm figure is 4 kappa x folds x arms of the design",
+          "kappas": [
+            0.1,
+            0.25,
+            0.5,
+            1.0
+          ],
+          "n_folds_transform": 28,
+          "n_folds_with": 28,
+          "n_kappa": 4,
+          "n_refits": 224,
+          "per_fold_seconds": 2062.3,
+          "serial_hours": 128.321,
+          "serial_seconds": 461955.2
+        },
+        "cost_hours_serial": 128.321,
         "design": "V5",
         "family": "H3",
         "key": "B5:WITH vs B5:WITHOUT@V5",
+        "n_refits": 224,
         "needs_power_check": true,
         "r19_verdict_full": "FAIL",
-        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'"
+        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'",
+        "status": "NOT_RUN"
       },
       {
         "check_run": false,
         "contrast": "B5:WITHOUT vs B5:WITH",
+        "cost": {
+          "basis": "section 8 re-runs the pipeline on injected targets at kappa in {0.1, 0.25, 0.5, 1.0}, refitting EVERY arm of the contrast at its selected hyperparameters without re-tuning, on the same scored rows. The cost of one H3 contrast's check is therefore 4 kappa x (folds of the WITH leg + folds of the transform leg) refits, priced at the per-fold seconds this design's H3 refits actually took (evaluation/h3/decisions/cost_estimate.json); it is a SERIAL estimate, halved only if the folds split evenly over the 2 registered workers. It is priced PER CONTRAST, so the total over contrasts double-counts a WITH leg two contrasts share (the same injected WITH refits serve WITH vs WITHOUT and WITH vs PERMUTED, and each direction of a pair is one contrast row): the total is an upper bound, and the per-arm figure is 4 kappa x folds x arms of the design",
+          "kappas": [
+            0.1,
+            0.25,
+            0.5,
+            1.0
+          ],
+          "n_folds_transform": 28,
+          "n_folds_with": 28,
+          "n_kappa": 4,
+          "n_refits": 224,
+          "per_fold_seconds": 2062.3,
+          "serial_hours": 128.321,
+          "serial_seconds": 461955.2
+        },
+        "cost_hours_serial": 128.321,
         "design": "V5",
         "family": "H3",
         "key": "B5:WITHOUT vs B5:WITH@V5",
+        "n_refits": 224,
         "needs_power_check": true,
         "r19_verdict_full": "FAIL",
-        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'"
+        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'",
+        "status": "NOT_RUN"
       },
       {
         "check_run": false,
         "contrast": "B6:WITH vs B6:ACT_PERMUTED",
+        "cost": {
+          "basis": "section 8 re-runs the pipeline on injected targets at kappa in {0.1, 0.25, 0.5, 1.0}, refitting EVERY arm of the contrast at its selected hyperparameters without re-tuning, on the same scored rows. The cost of one H3 contrast's check is therefore 4 kappa x (folds of the WITH leg + folds of the transform leg) refits, priced at the per-fold seconds this design's H3 refits actually took (evaluation/h3/decisions/cost_estimate.json); it is a SERIAL estimate, halved only if the folds split evenly over the 2 registered workers. It is priced PER CONTRAST, so the total over contrasts double-counts a WITH leg two contrasts share (the same injected WITH refits serve WITH vs WITHOUT and WITH vs PERMUTED, and each direction of a pair is one contrast row): the total is an upper bound, and the per-arm figure is 4 kappa x folds x arms of the design",
+          "kappas": [
+            0.1,
+            0.25,
+            0.5,
+            1.0
+          ],
+          "n_folds_transform": 105,
+          "n_folds_with": 105,
+          "n_kappa": 4,
+          "n_refits": 840,
+          "per_fold_seconds": 9.6,
+          "serial_hours": 2.24,
+          "serial_seconds": 8064.0
+        },
+        "cost_hours_serial": 2.24,
         "design": "V5",
         "family": "H3",
         "key": "B6:WITH vs B6:ACT_PERMUTED@V5",
+        "n_refits": 840,
         "needs_power_check": true,
         "r19_verdict_full": "FAIL",
-        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'"
+        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'",
+        "status": "NOT_RUN"
       },
       {
         "check_run": false,
         "contrast": "B6:ACT_PERMUTED vs B6:WITH",
+        "cost": {
+          "basis": "section 8 re-runs the pipeline on injected targets at kappa in {0.1, 0.25, 0.5, 1.0}, refitting EVERY arm of the contrast at its selected hyperparameters without re-tuning, on the same scored rows. The cost of one H3 contrast's check is therefore 4 kappa x (folds of the WITH leg + folds of the transform leg) refits, priced at the per-fold seconds this design's H3 refits actually took (evaluation/h3/decisions/cost_estimate.json); it is a SERIAL estimate, halved only if the folds split evenly over the 2 registered workers. It is priced PER CONTRAST, so the total over contrasts double-counts a WITH leg two contrasts share (the same injected WITH refits serve WITH vs WITHOUT and WITH vs PERMUTED, and each direction of a pair is one contrast row): the total is an upper bound, and the per-arm figure is 4 kappa x folds x arms of the design",
+          "kappas": [
+            0.1,
+            0.25,
+            0.5,
+            1.0
+          ],
+          "n_folds_transform": 105,
+          "n_folds_with": 105,
+          "n_kappa": 4,
+          "n_refits": 840,
+          "per_fold_seconds": 9.6,
+          "serial_hours": 2.24,
+          "serial_seconds": 8064.0
+        },
+        "cost_hours_serial": 2.24,
         "design": "V5",
         "family": "H3",
         "key": "B6:ACT_PERMUTED vs B6:WITH@V5",
+        "n_refits": 840,
         "needs_power_check": true,
         "r19_verdict_full": "FAIL",
-        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'"
+        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'",
+        "status": "NOT_RUN"
       },
       {
         "check_run": false,
         "contrast": "B6:WITH vs B6:WITHOUT",
+        "cost": {
+          "basis": "section 8 re-runs the pipeline on injected targets at kappa in {0.1, 0.25, 0.5, 1.0}, refitting EVERY arm of the contrast at its selected hyperparameters without re-tuning, on the same scored rows. The cost of one H3 contrast's check is therefore 4 kappa x (folds of the WITH leg + folds of the transform leg) refits, priced at the per-fold seconds this design's H3 refits actually took (evaluation/h3/decisions/cost_estimate.json); it is a SERIAL estimate, halved only if the folds split evenly over the 2 registered workers. It is priced PER CONTRAST, so the total over contrasts double-counts a WITH leg two contrasts share (the same injected WITH refits serve WITH vs WITHOUT and WITH vs PERMUTED, and each direction of a pair is one contrast row): the total is an upper bound, and the per-arm figure is 4 kappa x folds x arms of the design",
+          "kappas": [
+            0.1,
+            0.25,
+            0.5,
+            1.0
+          ],
+          "n_folds_transform": 105,
+          "n_folds_with": 105,
+          "n_kappa": 4,
+          "n_refits": 840,
+          "per_fold_seconds": 9.6,
+          "serial_hours": 2.24,
+          "serial_seconds": 8064.0
+        },
+        "cost_hours_serial": 2.24,
         "design": "V5",
         "family": "H3",
         "key": "B6:WITH vs B6:WITHOUT@V5",
+        "n_refits": 840,
         "needs_power_check": true,
         "r19_verdict_full": "FAIL",
-        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'"
+        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'",
+        "status": "NOT_RUN"
       },
       {
         "check_run": false,
         "contrast": "B6:WITHOUT vs B6:WITH",
+        "cost": {
+          "basis": "section 8 re-runs the pipeline on injected targets at kappa in {0.1, 0.25, 0.5, 1.0}, refitting EVERY arm of the contrast at its selected hyperparameters without re-tuning, on the same scored rows. The cost of one H3 contrast's check is therefore 4 kappa x (folds of the WITH leg + folds of the transform leg) refits, priced at the per-fold seconds this design's H3 refits actually took (evaluation/h3/decisions/cost_estimate.json); it is a SERIAL estimate, halved only if the folds split evenly over the 2 registered workers. It is priced PER CONTRAST, so the total over contrasts double-counts a WITH leg two contrasts share (the same injected WITH refits serve WITH vs WITHOUT and WITH vs PERMUTED, and each direction of a pair is one contrast row): the total is an upper bound, and the per-arm figure is 4 kappa x folds x arms of the design",
+          "kappas": [
+            0.1,
+            0.25,
+            0.5,
+            1.0
+          ],
+          "n_folds_transform": 105,
+          "n_folds_with": 105,
+          "n_kappa": 4,
+          "n_refits": 840,
+          "per_fold_seconds": 9.6,
+          "serial_hours": 2.24,
+          "serial_seconds": 8064.0
+        },
+        "cost_hours_serial": 2.24,
         "design": "V5",
         "family": "H3",
         "key": "B6:WITHOUT vs B6:WITH@V5",
+        "n_refits": 840,
         "needs_power_check": true,
         "r19_verdict_full": "FAIL",
-        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'"
+        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'",
+        "status": "NOT_RUN"
       },
       {
         "check_run": false,
         "contrast": "B5:WITH vs B5:ACT_PERMUTED",
+        "cost": {
+          "basis": "section 8 re-runs the pipeline on injected targets at kappa in {0.1, 0.25, 0.5, 1.0}, refitting EVERY arm of the contrast at its selected hyperparameters without re-tuning, on the same scored rows. The cost of one H3 contrast's check is therefore 4 kappa x (folds of the WITH leg + folds of the transform leg) refits, priced at the per-fold seconds this design's H3 refits actually took (evaluation/h3/decisions/cost_estimate.json); it is a SERIAL estimate, halved only if the folds split evenly over the 2 registered workers. It is priced PER CONTRAST, so the total over contrasts double-counts a WITH leg two contrasts share (the same injected WITH refits serve WITH vs WITHOUT and WITH vs PERMUTED, and each direction of a pair is one contrast row): the total is an upper bound, and the per-arm figure is 4 kappa x folds x arms of the design",
+          "kappas": [
+            0.1,
+            0.25,
+            0.5,
+            1.0
+          ],
+          "n_folds_transform": 12,
+          "n_folds_with": 12,
+          "n_kappa": 4,
+          "n_refits": 96,
+          "per_fold_seconds": 526.6,
+          "serial_hours": 14.043,
+          "serial_seconds": 50553.6
+        },
+        "cost_hours_serial": 14.043,
         "design": "V2",
         "family": "H3",
         "key": "B5:WITH vs B5:ACT_PERMUTED@V2",
+        "n_refits": 96,
         "needs_power_check": true,
         "r19_verdict_full": "FAIL",
-        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'"
+        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'",
+        "status": "NOT_RUN"
       },
       {
         "check_run": false,
         "contrast": "B5:ACT_PERMUTED vs B5:WITH",
+        "cost": {
+          "basis": "section 8 re-runs the pipeline on injected targets at kappa in {0.1, 0.25, 0.5, 1.0}, refitting EVERY arm of the contrast at its selected hyperparameters without re-tuning, on the same scored rows. The cost of one H3 contrast's check is therefore 4 kappa x (folds of the WITH leg + folds of the transform leg) refits, priced at the per-fold seconds this design's H3 refits actually took (evaluation/h3/decisions/cost_estimate.json); it is a SERIAL estimate, halved only if the folds split evenly over the 2 registered workers. It is priced PER CONTRAST, so the total over contrasts double-counts a WITH leg two contrasts share (the same injected WITH refits serve WITH vs WITHOUT and WITH vs PERMUTED, and each direction of a pair is one contrast row): the total is an upper bound, and the per-arm figure is 4 kappa x folds x arms of the design",
+          "kappas": [
+            0.1,
+            0.25,
+            0.5,
+            1.0
+          ],
+          "n_folds_transform": 12,
+          "n_folds_with": 12,
+          "n_kappa": 4,
+          "n_refits": 96,
+          "per_fold_seconds": 526.6,
+          "serial_hours": 14.043,
+          "serial_seconds": 50553.6
+        },
+        "cost_hours_serial": 14.043,
         "design": "V2",
         "family": "H3",
         "key": "B5:ACT_PERMUTED vs B5:WITH@V2",
+        "n_refits": 96,
         "needs_power_check": true,
         "r19_verdict_full": "FAIL",
-        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'"
+        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'",
+        "status": "NOT_RUN"
       },
       {
         "check_run": false,
         "contrast": "B5:WITH vs B5:WITHOUT",
+        "cost": {
+          "basis": "section 8 re-runs the pipeline on injected targets at kappa in {0.1, 0.25, 0.5, 1.0}, refitting EVERY arm of the contrast at its selected hyperparameters without re-tuning, on the same scored rows. The cost of one H3 contrast's check is therefore 4 kappa x (folds of the WITH leg + folds of the transform leg) refits, priced at the per-fold seconds this design's H3 refits actually took (evaluation/h3/decisions/cost_estimate.json); it is a SERIAL estimate, halved only if the folds split evenly over the 2 registered workers. It is priced PER CONTRAST, so the total over contrasts double-counts a WITH leg two contrasts share (the same injected WITH refits serve WITH vs WITHOUT and WITH vs PERMUTED, and each direction of a pair is one contrast row): the total is an upper bound, and the per-arm figure is 4 kappa x folds x arms of the design",
+          "kappas": [
+            0.1,
+            0.25,
+            0.5,
+            1.0
+          ],
+          "n_folds_transform": 12,
+          "n_folds_with": 12,
+          "n_kappa": 4,
+          "n_refits": 96,
+          "per_fold_seconds": 526.6,
+          "serial_hours": 14.043,
+          "serial_seconds": 50553.6
+        },
+        "cost_hours_serial": 14.043,
         "design": "V2",
         "family": "H3",
         "key": "B5:WITH vs B5:WITHOUT@V2",
+        "n_refits": 96,
         "needs_power_check": true,
         "r19_verdict_full": "FAIL",
-        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'"
+        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'",
+        "status": "NOT_RUN"
       },
       {
         "check_run": false,
         "contrast": "B5:WITHOUT vs B5:WITH",
+        "cost": {
+          "basis": "section 8 re-runs the pipeline on injected targets at kappa in {0.1, 0.25, 0.5, 1.0}, refitting EVERY arm of the contrast at its selected hyperparameters without re-tuning, on the same scored rows. The cost of one H3 contrast's check is therefore 4 kappa x (folds of the WITH leg + folds of the transform leg) refits, priced at the per-fold seconds this design's H3 refits actually took (evaluation/h3/decisions/cost_estimate.json); it is a SERIAL estimate, halved only if the folds split evenly over the 2 registered workers. It is priced PER CONTRAST, so the total over contrasts double-counts a WITH leg two contrasts share (the same injected WITH refits serve WITH vs WITHOUT and WITH vs PERMUTED, and each direction of a pair is one contrast row): the total is an upper bound, and the per-arm figure is 4 kappa x folds x arms of the design",
+          "kappas": [
+            0.1,
+            0.25,
+            0.5,
+            1.0
+          ],
+          "n_folds_transform": 12,
+          "n_folds_with": 12,
+          "n_kappa": 4,
+          "n_refits": 96,
+          "per_fold_seconds": 526.6,
+          "serial_hours": 14.043,
+          "serial_seconds": 50553.6
+        },
+        "cost_hours_serial": 14.043,
         "design": "V2",
         "family": "H3",
         "key": "B5:WITHOUT vs B5:WITH@V2",
+        "n_refits": 96,
         "needs_power_check": true,
         "r19_verdict_full": "FAIL",
-        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'"
+        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'",
+        "status": "NOT_RUN"
       },
       {
         "check_run": false,
         "contrast": "B6:WITH vs B6:ACT_PERMUTED",
+        "cost": {
+          "basis": "section 8 re-runs the pipeline on injected targets at kappa in {0.1, 0.25, 0.5, 1.0}, refitting EVERY arm of the contrast at its selected hyperparameters without re-tuning, on the same scored rows. The cost of one H3 contrast's check is therefore 4 kappa x (folds of the WITH leg + folds of the transform leg) refits, priced at the per-fold seconds this design's H3 refits actually took (evaluation/h3/decisions/cost_estimate.json); it is a SERIAL estimate, halved only if the folds split evenly over the 2 registered workers. It is priced PER CONTRAST, so the total over contrasts double-counts a WITH leg two contrasts share (the same injected WITH refits serve WITH vs WITHOUT and WITH vs PERMUTED, and each direction of a pair is one contrast row): the total is an upper bound, and the per-arm figure is 4 kappa x folds x arms of the design",
+          "kappas": [
+            0.1,
+            0.25,
+            0.5,
+            1.0
+          ],
+          "n_folds_transform": 12,
+          "n_folds_with": 12,
+          "n_kappa": 4,
+          "n_refits": 96,
+          "per_fold_seconds": 9.0,
+          "serial_hours": 0.24,
+          "serial_seconds": 864.0
+        },
+        "cost_hours_serial": 0.24,
         "design": "V2",
         "family": "H3",
         "key": "B6:WITH vs B6:ACT_PERMUTED@V2",
+        "n_refits": 96,
         "needs_power_check": true,
         "r19_verdict_full": "UNDECIDED",
-        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'"
+        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'",
+        "status": "NOT_RUN"
       },
       {
         "check_run": false,
         "contrast": "B6:ACT_PERMUTED vs B6:WITH",
+        "cost": {
+          "basis": "section 8 re-runs the pipeline on injected targets at kappa in {0.1, 0.25, 0.5, 1.0}, refitting EVERY arm of the contrast at its selected hyperparameters without re-tuning, on the same scored rows. The cost of one H3 contrast's check is therefore 4 kappa x (folds of the WITH leg + folds of the transform leg) refits, priced at the per-fold seconds this design's H3 refits actually took (evaluation/h3/decisions/cost_estimate.json); it is a SERIAL estimate, halved only if the folds split evenly over the 2 registered workers. It is priced PER CONTRAST, so the total over contrasts double-counts a WITH leg two contrasts share (the same injected WITH refits serve WITH vs WITHOUT and WITH vs PERMUTED, and each direction of a pair is one contrast row): the total is an upper bound, and the per-arm figure is 4 kappa x folds x arms of the design",
+          "kappas": [
+            0.1,
+            0.25,
+            0.5,
+            1.0
+          ],
+          "n_folds_transform": 12,
+          "n_folds_with": 12,
+          "n_kappa": 4,
+          "n_refits": 96,
+          "per_fold_seconds": 9.0,
+          "serial_hours": 0.24,
+          "serial_seconds": 864.0
+        },
+        "cost_hours_serial": 0.24,
         "design": "V2",
         "family": "H3",
         "key": "B6:ACT_PERMUTED vs B6:WITH@V2",
+        "n_refits": 96,
         "needs_power_check": true,
         "r19_verdict_full": "FAIL",
-        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'"
+        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'",
+        "status": "NOT_RUN"
       },
       {
         "check_run": false,
         "contrast": "B6:WITH vs B6:WITHOUT",
+        "cost": {
+          "basis": "section 8 re-runs the pipeline on injected targets at kappa in {0.1, 0.25, 0.5, 1.0}, refitting EVERY arm of the contrast at its selected hyperparameters without re-tuning, on the same scored rows. The cost of one H3 contrast's check is therefore 4 kappa x (folds of the WITH leg + folds of the transform leg) refits, priced at the per-fold seconds this design's H3 refits actually took (evaluation/h3/decisions/cost_estimate.json); it is a SERIAL estimate, halved only if the folds split evenly over the 2 registered workers. It is priced PER CONTRAST, so the total over contrasts double-counts a WITH leg two contrasts share (the same injected WITH refits serve WITH vs WITHOUT and WITH vs PERMUTED, and each direction of a pair is one contrast row): the total is an upper bound, and the per-arm figure is 4 kappa x folds x arms of the design",
+          "kappas": [
+            0.1,
+            0.25,
+            0.5,
+            1.0
+          ],
+          "n_folds_transform": 12,
+          "n_folds_with": 12,
+          "n_kappa": 4,
+          "n_refits": 96,
+          "per_fold_seconds": 9.0,
+          "serial_hours": 0.24,
+          "serial_seconds": 864.0
+        },
+        "cost_hours_serial": 0.24,
         "design": "V2",
         "family": "H3",
         "key": "B6:WITH vs B6:WITHOUT@V2",
+        "n_refits": 96,
         "needs_power_check": true,
         "r19_verdict_full": "FAIL",
-        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'"
+        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'",
+        "status": "NOT_RUN"
       },
       {
         "check_run": false,
         "contrast": "B6:WITHOUT vs B6:WITH",
+        "cost": {
+          "basis": "section 8 re-runs the pipeline on injected targets at kappa in {0.1, 0.25, 0.5, 1.0}, refitting EVERY arm of the contrast at its selected hyperparameters without re-tuning, on the same scored rows. The cost of one H3 contrast's check is therefore 4 kappa x (folds of the WITH leg + folds of the transform leg) refits, priced at the per-fold seconds this design's H3 refits actually took (evaluation/h3/decisions/cost_estimate.json); it is a SERIAL estimate, halved only if the folds split evenly over the 2 registered workers. It is priced PER CONTRAST, so the total over contrasts double-counts a WITH leg two contrasts share (the same injected WITH refits serve WITH vs WITHOUT and WITH vs PERMUTED, and each direction of a pair is one contrast row): the total is an upper bound, and the per-arm figure is 4 kappa x folds x arms of the design",
+          "kappas": [
+            0.1,
+            0.25,
+            0.5,
+            1.0
+          ],
+          "n_folds_transform": 12,
+          "n_folds_with": 12,
+          "n_kappa": 4,
+          "n_refits": 96,
+          "per_fold_seconds": 9.0,
+          "serial_hours": 0.24,
+          "serial_seconds": 864.0
+        },
+        "cost_hours_serial": 0.24,
         "design": "V2",
         "family": "H3",
         "key": "B6:WITHOUT vs B6:WITH@V2",
+        "n_refits": 96,
         "needs_power_check": true,
         "r19_verdict_full": "FAIL",
-        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'"
+        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'",
+        "status": "NOT_RUN"
+      },
+      {
+        "check_run": false,
+        "contrast": "B5:WITH vs B5:WITHOUT",
+        "cost": {
+          "basis": "section 8 re-runs the pipeline on injected targets at kappa in {0.1, 0.25, 0.5, 1.0}, refitting EVERY arm of the contrast at its selected hyperparameters without re-tuning, on the same scored rows. The cost of one H3 contrast's check is therefore 4 kappa x (folds of the WITH leg + folds of the transform leg) refits, priced at the per-fold seconds this design's H3 refits actually took (evaluation/h3/decisions/cost_estimate.json); it is a SERIAL estimate, halved only if the folds split evenly over the 2 registered workers. It is priced PER CONTRAST, so the total over contrasts double-counts a WITH leg two contrasts share (the same injected WITH refits serve WITH vs WITHOUT and WITH vs PERMUTED, and each direction of a pair is one contrast row): the total is an upper bound, and the per-arm figure is 4 kappa x folds x arms of the design",
+          "kappas": [
+            0.1,
+            0.25,
+            0.5,
+            1.0
+          ],
+          "n_folds_transform": 39,
+          "n_folds_with": 39,
+          "n_kappa": 4,
+          "n_refits": 312,
+          "per_fold_seconds": 230.6,
+          "serial_hours": 19.985,
+          "serial_seconds": 71947.2
+        },
+        "cost_hours_serial": 19.985,
+        "design": "V1",
+        "family": "H3",
+        "key": "B5:WITH vs B5:WITHOUT@V1",
+        "n_refits": 312,
+        "needs_power_check": true,
+        "r19_verdict_full": "FAIL",
+        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'",
+        "status": "NOT_RUN"
+      },
+      {
+        "check_run": false,
+        "contrast": "B5:WITHOUT vs B5:WITH",
+        "cost": {
+          "basis": "section 8 re-runs the pipeline on injected targets at kappa in {0.1, 0.25, 0.5, 1.0}, refitting EVERY arm of the contrast at its selected hyperparameters without re-tuning, on the same scored rows. The cost of one H3 contrast's check is therefore 4 kappa x (folds of the WITH leg + folds of the transform leg) refits, priced at the per-fold seconds this design's H3 refits actually took (evaluation/h3/decisions/cost_estimate.json); it is a SERIAL estimate, halved only if the folds split evenly over the 2 registered workers. It is priced PER CONTRAST, so the total over contrasts double-counts a WITH leg two contrasts share (the same injected WITH refits serve WITH vs WITHOUT and WITH vs PERMUTED, and each direction of a pair is one contrast row): the total is an upper bound, and the per-arm figure is 4 kappa x folds x arms of the design",
+          "kappas": [
+            0.1,
+            0.25,
+            0.5,
+            1.0
+          ],
+          "n_folds_transform": 39,
+          "n_folds_with": 39,
+          "n_kappa": 4,
+          "n_refits": 312,
+          "per_fold_seconds": 230.6,
+          "serial_hours": 19.985,
+          "serial_seconds": 71947.2
+        },
+        "cost_hours_serial": 19.985,
+        "design": "V1",
+        "family": "H3",
+        "key": "B5:WITHOUT vs B5:WITH@V1",
+        "n_refits": 312,
+        "needs_power_check": true,
+        "r19_verdict_full": "FAIL",
+        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'",
+        "status": "NOT_RUN"
+      },
+      {
+        "check_run": false,
+        "contrast": "B6:WITH vs B6:WITHOUT",
+        "cost": {
+          "basis": "section 8 re-runs the pipeline on injected targets at kappa in {0.1, 0.25, 0.5, 1.0}, refitting EVERY arm of the contrast at its selected hyperparameters without re-tuning, on the same scored rows. The cost of one H3 contrast's check is therefore 4 kappa x (folds of the WITH leg + folds of the transform leg) refits, priced at the per-fold seconds this design's H3 refits actually took (evaluation/h3/decisions/cost_estimate.json); it is a SERIAL estimate, halved only if the folds split evenly over the 2 registered workers. It is priced PER CONTRAST, so the total over contrasts double-counts a WITH leg two contrasts share (the same injected WITH refits serve WITH vs WITHOUT and WITH vs PERMUTED, and each direction of a pair is one contrast row): the total is an upper bound, and the per-arm figure is 4 kappa x folds x arms of the design",
+          "kappas": [
+            0.1,
+            0.25,
+            0.5,
+            1.0
+          ],
+          "n_folds_transform": 39,
+          "n_folds_with": 39,
+          "n_kappa": 4,
+          "n_refits": 312,
+          "per_fold_seconds": 9.5,
+          "serial_hours": 0.823,
+          "serial_seconds": 2964.0
+        },
+        "cost_hours_serial": 0.823,
+        "design": "V1",
+        "family": "H3",
+        "key": "B6:WITH vs B6:WITHOUT@V1",
+        "n_refits": 312,
+        "needs_power_check": true,
+        "r19_verdict_full": "FAIL",
+        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'",
+        "status": "NOT_RUN"
+      },
+      {
+        "check_run": false,
+        "contrast": "B6:WITHOUT vs B6:WITH",
+        "cost": {
+          "basis": "section 8 re-runs the pipeline on injected targets at kappa in {0.1, 0.25, 0.5, 1.0}, refitting EVERY arm of the contrast at its selected hyperparameters without re-tuning, on the same scored rows. The cost of one H3 contrast's check is therefore 4 kappa x (folds of the WITH leg + folds of the transform leg) refits, priced at the per-fold seconds this design's H3 refits actually took (evaluation/h3/decisions/cost_estimate.json); it is a SERIAL estimate, halved only if the folds split evenly over the 2 registered workers. It is priced PER CONTRAST, so the total over contrasts double-counts a WITH leg two contrasts share (the same injected WITH refits serve WITH vs WITHOUT and WITH vs PERMUTED, and each direction of a pair is one contrast row): the total is an upper bound, and the per-arm figure is 4 kappa x folds x arms of the design",
+          "kappas": [
+            0.1,
+            0.25,
+            0.5,
+            1.0
+          ],
+          "n_folds_transform": 39,
+          "n_folds_with": 39,
+          "n_kappa": 4,
+          "n_refits": 312,
+          "per_fold_seconds": 9.5,
+          "serial_hours": 0.823,
+          "serial_seconds": 2964.0
+        },
+        "cost_hours_serial": 0.823,
+        "design": "V1",
+        "family": "H3",
+        "key": "B6:WITHOUT vs B6:WITH@V1",
+        "n_refits": 312,
+        "needs_power_check": true,
+        "r19_verdict_full": "FAIL",
+        "reason": "OWED AND NOT RUN: no section 8 injection check of this contrast exists; the verdict is reported 'UNDECIDED (no registered power check)'",
+        "status": "NOT_RUN"
       }
     ],
-    "date_utc": "2026-09-23T01:29:24+00:00",
+    "cost_basis": "section 8 re-runs the pipeline on injected targets at kappa in {0.1, 0.25, 0.5, 1.0}, refitting EVERY arm of the contrast at its selected hyperparameters without re-tuning, on the same scored rows. The cost of one H3 contrast's check is therefore 4 kappa x (folds of the WITH leg + folds of the transform leg) refits, priced at the per-fold seconds this design's H3 refits actually took (evaluation/h3/decisions/cost_estimate.json); it is a SERIAL estimate, halved only if the folds split evenly over the 2 registered workers. It is priced PER CONTRAST, so the total over contrasts double-counts a WITH leg two contrasts share (the same injected WITH refits serve WITH vs WITHOUT and WITH vs PERMUTED, and each direction of a pair is one contrast row): the total is an upper bound, and the per-arm figure is 4 kappa x folds x arms of the design",
+    "cost_hours_serial_owed_and_not_run": 435.818,
+    "cost_priced_for": 20,
+    "cost_unpriced": 0,
+    "date_utc": "2026-09-23T02:32:50+00:00",
     "family": "H3",
-    "git_head": "593bc09bb52a3862895de79bc60bb5fd95f06353",
+    "git_head": "65ac90d7d49fcfd5c488cb41efa7074d0b1bcde2",
     "label_when_not_run": "UNDECIDED (no registered power check)",
-    "n_contrasts": 16,
-    "n_owed": 16,
-    "n_owed_and_not_run": 16,
+    "n_contrasts": 20,
+    "n_owed": 20,
+    "n_owed_and_not_run": 20,
     "n_owed_and_run": 0,
+    "n_refits_owed_and_not_run": 6272,
     "rule": "POST-HOC addendum 2 (reading 'needs_power'): a contrast needs the section 8 signal-injection check when its family is primary (H1), H1b, S1(b) or H3 and its full R19 verdict is not PASS. An H3 contrast that owes the check and did not get one is reported 'UNDECIDED (no registered power check)' (POST-HOC addendum 4 item 4, third clause), never a null and never 'no effect'; the debt is listed here so it is a RECORDED debt rather than an absence",
     "source_contrasts": "generations/gen19_chem_transfer/evaluation/h3/h3_contrasts.csv",
+    "source_record_sets": "generations/gen19_chem_transfer/evaluation/h3/h3_summary.json",
     "written_by": "g19_power_debt"
   },
   "per_unit_metrics_path": "evaluation/power/per_unit_mae.csv",

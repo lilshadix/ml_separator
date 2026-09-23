@@ -72,6 +72,10 @@ def run(out_root: Path, *, delete: bool = False, registry: Path | None = None) -
             # ordering rests on must be auditable from this file (task X findings numbers VH-04 / VH-05)
             "ordering": {
                 "matched_entry_counts": after.get("matched_entry_counts"),
+                "n_verifying_against_the_current_entry": after.get("n_verifying_against_the_current_entry"),
+                # ... and WHY that count is 0, so the absence of a `current` record is a recorded decision and not a
+                # silent gap (TASK F item 7)
+                "why_no_record_is_current": after.get("why_no_record_is_current"),
                 "written_utc_source_counts": after.get("written_utc_source_counts"),
                 "operative_reading": after.get("operative_reading"),
                 "per_record": sorted(({"path": r.get("path"), "written_utc": r.get("written_utc"),

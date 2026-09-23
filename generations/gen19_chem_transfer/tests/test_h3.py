@@ -1015,9 +1015,10 @@ def test_d03_markdown_says_not_computed_where_a_quantity_is_absent():
     full = {**summary, "verdicts": verd, "f4": H3.f4_check({"V5": _res(-0.3)}, deployed_arm="M2")}
     md2 = H3.d03_markdown(full, con, deltas, None)
     assert "M2 vs" in md2 or "M2:WITH vs" in md2
-    # task X finding protocol VH-02: BOTH interval readings of F4 are printed and the decided one is named
-    assert "F4 (negative actinide transfer), percentile reading: does not hold" in md2
-    assert "F4, BCa reading:" in md2 and "Conservative reading (EITHER interval)" in md2
+    # task X finding protocol VH-02 / TASK F item 3: the CONSERVATIVE reading is the headline and both are printed
+    assert "F4 (negative actinide transfer): does not hold" in md2
+    assert "percentile-only reading:" in md2 and "BCa-only reading:" in md2
+    assert "CONSERVATIVE" in md2
     assert "rank_accuracy" in md2 and H3.VERDICT_SCOPE in md2
 
 
@@ -1518,40 +1519,41 @@ def test_shared_only_condition_keeps_the_known_inputs_for_an_inapplicable_arm():
     assert so["point_estimate_favours_without"] is False
 
 
-def test_a_not_run_design_contributes_nothing_even_when_one_leg_is_complete():
-    """Task X finding protocol VH-01 / numbers VH-02 (critical): the unit of POST-HOC addendum 4 item 2's NOT_RUN is the
-    DESIGN.  V1 was reported NOT_RUN because ``B5:ACT_PERMUTED@V1`` is 26 of 39 folds, while its complete WITHOUT leg
-    supplied 4 contrasts with FAIL verdicts, 12 deltas, 50 per-unit rows, an F4 entry and a non-inferiority input -- so
-    ``designs_scored`` and ``designs_not_run`` both named V1.  Now every row of a NOT_RUN design is dropped, and the legs
-    that ARE complete are named in the entry instead of read."""
-    not_run = {"V1": H3.not_run_design("V1", "B5:ACT_PERMUTED@V1 record set is incomplete (26 of 39 folds)",
-                                       n_folds_expected=39, n_folds_done=26)}
-    not_run = H3.attach_not_run_context(not_run, scored_triples=[("B5", "WITHOUT", "V1"), ("B5", "WITHOUT", "V5")],
-                                        blocking={"V1": [{"what": "B5:ACT_PERMUTED@V1",
-                                                          "note": "error in B5:ACT_PERMUTED@V1: AssertionError: inner "
-                                                                  "split inner_s104729_f1 failed the isolation check"}]})
-    assert not_run["V1"]["complete_legs"] == ["B5:WITHOUT@V1"]
-    assert "DEVIATION" in not_run["V1"]["deviation"] and "isolation check" in not_run["V1"]["stopped_by"]
-    rows = {"contrasts": [{"design": "V1", "point": 0.005429}, {"design": "V5", "point": 0.066866}],
-            "deltas": [{"design": "V1"}, {"design": "V1"}, {"design": "V2"}]}
-    frames = {"r19_items": pd.DataFrame([{"design": "V1", "item": 1}, {"design": "V5", "item": 1}]),
-              "per_unit": pd.DataFrame([{"design": "V1"}] * 50 + [{"design": "V5"}] * 59)}
-    helps = {"B5": {"V1": {"WITHOUT": {"x": 1}}, "V5": {"WITHOUT": {"x": 1}}}}
-    hurts = {"B5": {"V1": {"WITHOUT": {"x": 1}}, "V5": {"WITHOUT": {"x": 1}}}}
-    out = H3.drop_not_run_designs(not_run, rows=rows, frames=frames, nested=(helps, hurts))
-    assert [r["design"] for r in out["rows"]["contrasts"]] == ["V5"]
-    assert out["rows"]["deltas"] == [{"design": "V2"}]
-    assert out["frames"]["per_unit"]["design"].tolist() == ["V5"] * 59
-    assert out["n_frame_rows_dropped"] == {"r19_items": 1, "per_unit": 50}
-    assert set(helps["B5"]) == {"V5"} and set(hurts["B5"]) == {"V5"}
-    # ... and nothing is read from it: the verdict's non-inferiority input is None and F4 is NOT_COMPUTED
-    v = H3.h3_verdict(helps={d: {} for d in helps["B5"]}, hurts={}, designs_not_run=not_run)
-    assert v["v1_v2_non_inferior"]["V1"] == {"WITHOUT": None, "ACT_PERMUTED": None}
-    assert v["designs_scored"] == ["V5"] and "V1: NOT_RUN" in v["inputs_missing"]
-    assert v["helps"] is False
-    f4 = H3.f4_check({"V1": None, "V5": None}, deployed_arm="B5")
-    assert f4["designs_computed"] == [] and set(f4["designs_not_computed"]) == {"V1", "V5"}
-    assert "NOT_RUN" in f4["per_design"]["V1"]["reason"]
+def test_the_unit_of_completeness_is_the_contrast_record_set():
+    """TASK F item 1: V1 was reported NOT_RUN as a DESIGN because ``B5:ACT_PERMUTED@V1`` is incomplete, which also
+    suppressed its COMPLETE ``B5:WITHOUT@V1`` leg.  Completeness is a property of the contrast record set
+    (``<arm>:<transform>@<design>``): the WITHOUT leg is scored and carries its verdict, the PERMUTED leg carries
+    ``INCOMPLETE_GUARD_FAILURE`` -- not the cap's NOT_RUN vocabulary -- and contributes nothing."""
+    ok = {"k1": {"what": "B5:WITHOUT@V1", "status": "complete", "n_found": 39, "n_expected": 39}}
+    bad = {"k2": {"what": "B5:ACT_PERMUTED@V1", "status": "incomplete", "n_found": 25, "n_expected": 39,
+                  "missing_folds": ["REMAINDER", "pub_97510df3a0"]}}
+    assert H3.contrast_status(ok, "V1", "WITHOUT", "B5")["status"] == "complete"
+    st = H3.contrast_status(bad, "V1", "ACT_PERMUTED", "B5")
+    assert st["status"] == H3.INCOMPLETE_GUARD_FAILURE and st["status"] != H3.NOT_RUN
+    assert st["key"] == "B5:ACT_PERMUTED@V1" and "25 of 39" in st["reason"]
+    not_run = H3.attach_contrast_not_run_context(
+        {st["key"]: st},
+        blocking={"V1": [{"what": "B5:ACT_PERMUTED@V1",
+                          "note": "error in B5:ACT_PERMUTED@V1: AssertionError: inner split inner_s104729_f1 failed "
+                                  "the isolation check"}]})
+    assert "DEVIATION" in not_run[st["key"]]["deviation"] and "isolation check" in not_run[st["key"]]["stopped_by"]
+    rows = {"contrasts": [{"design": "V1", "model_arm": "B5", "transform": "WITHOUT"},
+                          {"design": "V1", "model_arm": "B5", "transform": "ACT_PERMUTED"},
+                          {"design": "V5", "model_arm": "B5", "transform": "WITHOUT"}],
+            "deltas": [{"design": "V1", "model_arm": "B5", "transform": "ACT_PERMUTED"},
+                       {"design": "V1", "model_arm": "B5", "transform": "WITHOUT"}]}
+    frames = {"per_unit": pd.DataFrame([{"design": "V1", "model_arm": "B5", "transform": "ACT_PERMUTED"}] * 25
+                                       + [{"design": "V1", "model_arm": "B5", "transform": "WITHOUT"}] * 25)}
+    helps = {"B5": {"V1": {"WITHOUT": {"x": 1}, "ACT_PERMUTED": {"x": 1}}, "V5": {"WITHOUT": {"x": 1}}}}
+    out = H3.drop_not_run_contrasts(not_run, rows=rows, frames=frames, nested=(helps,))
+    assert [(r["design"], r["transform"]) for r in out["rows"]["contrasts"]] == [("V1", "WITHOUT"), ("V5", "WITHOUT")]
+    assert out["n_rows_dropped"] == {"contrasts": 1, "deltas": 1}
+    assert out["n_frame_rows_dropped"]["per_unit"] == 25
+    assert set(helps["B5"]["V1"]) == {"WITHOUT"} and set(helps["B5"]) == {"V1", "V5"}
+    # the incomplete LEG is named in inputs_missing, so "helps" can never be read as complete
+    v = H3.h3_verdict(helps={d: {} for d in helps["B5"]}, hurts={}, contrasts_not_run=not_run)
+    assert f"B5:ACT_PERMUTED@V1: {H3.INCOMPLETE_GUARD_FAILURE}" in v["inputs_missing"]
+    assert v["helps"] is False and v["contrasts_not_run"]
 
 
 def test_f4_reports_both_interval_readings():
@@ -1570,9 +1572,11 @@ def test_f4_reports_both_interval_readings():
     per = f4["per_design"]["V2"]
     assert per["without_beats_with_interval_excludes_0"] is False and per["bca_beats"] is True
     assert per["readings_disagree"] is True and f4["designs_where_readings_disagree"] == ["V2"]
-    assert f4["failure"] is False and f4["failure_percentile"] is False
+    # TASK F item 3: the CONSERVATIVE reading governs the headline -- F4 is a failure condition, so it HOLDS as soon as
+    # either registered interval shows it on any registered design; the two single-interval readings are printed beside
+    assert f4["failure"] is True and f4["failure_percentile"] is False
     assert f4["failure_bca"] is True and f4["failure_either_interval"] is True
-    assert f4["interval_read"] == "percentile" and "NOT REGISTERED" in f4["interval_reading_not_registered"]
+    assert f4["interval_read"].startswith("either") and "NOT REGISTERED" in f4["interval_reading_not_registered"]
 
 
 def test_the_negative_transfer_trigger_is_evaluated_and_recorded_on_one_reading():
@@ -1657,7 +1661,10 @@ def test_item_6_declares_every_registered_sensitivity_it_does_not_decide():
     item, not_run = D.reduced_item6("V5", sens, reduced)
     assert "strict_setting" not in not_run and item["sensitivities_undeclared"]        # the defect, unfixed
     item, not_run = D.reduced_item6("V5", sens, reduced, H3.H3_REFITS_NOT_RUN)
-    assert item["status"] == "PASS" and item["sensitivities_undeclared"] == ""
+    # TASK F item 4: strict_setting / HNO3_only_cells are members of addendum 1 item 4's OWN reduced set, so an H3 V5
+    # contrast decides item 6 on a SMALLER set than the registered one; item 6 is NOT_EVALUATED, never a silent PASS
+    assert item["status"] == D.ITEM6_NOT_EVALUATED and item["sensitivities_undeclared"] == ""
+    assert item["sensitivities_not_evaluated"] == "HNO3_only_cells, strict_setting"
     assert "strict_setting" in not_run and "HNO3_only_cells" in not_run
     assert item["n_registered_sensitivities"] == 11 and item["n_sensitivities_not_run"] == 7
     assert "POST-HOC addendum 1 item 4" in not_run["strict_setting"] and "H3" in not_run["strict_setting"]

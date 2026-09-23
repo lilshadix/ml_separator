@@ -707,14 +707,15 @@ def score(out_root: Path, attrs: pd.DataFrame, corpus: Any, *, deployed: Mapping
         w = fr.with_frame(entry)
         o = fr.h3_frame(entry)
         if w is None or o is None:
-            # POST-HOC addendum 4 item 2: an absent or INCOMPLETE record set makes the design NOT_RUN, never partial --
-            # on the H3 side (the refits the cap pays for) and on the WITH side (its discovery / ladder records)
-            st = (H3.design_status(fr.record_sets, design, transform, arm) if o is None else
-                  H3.not_run_design(design, f"the WITH record set of {arm}@{design} is not complete "
-                                            f"({fr.record_sets.get(f'WITH/{arm}/{entry['with_job'].design_dir}/s{entry['with_job'].seed}')})"))
+            # POST-HOC addendum 4 item 2 read per CONTRAST RECORD SET (h3.CONTRAST_UNIT_RULE): an absent or INCOMPLETE
+            # record set makes THIS leg unscorable, never partial -- on the H3 side (the refits the cap pays for) and on
+            # the WITH side (its discovery / ladder records).  The other legs of the same design are untouched.
+            st = (H3.contrast_status(fr.record_sets, design, transform, arm) if o is None else
+                  H3.not_run_contrast(arm, transform, design,
+                                      f"the WITH record set of {arm}@{design} is not complete "
+                                      f"({fr.record_sets.get(f'WITH/{arm}/{entry['with_job'].design_dir}/s{entry['with_job'].seed}')})"))
             if design != H3.PAIR_DESIGN and st["status"] != "complete":
-                prev = not_run.get(design)
-                not_run[design] = st if prev is None else {**prev, "also": [*(prev.get("also") or []), st["reason"]]}
+                not_run[st["key"]] = st
             continue
         scored_triples.append((arm, transform, design))
         kw = fr.kw(arm, design)
@@ -747,25 +748,32 @@ def score(out_root: Path, attrs: pd.DataFrame, corpus: Any, *, deployed: Mapping
     # POST-HOC addendum 4 item 2: "no verdict is taken from a partial design" -- every design a contrast was scored on
     # must have a COMPLETE record set, or nothing below is a verdict
     design_statuses = H3.assert_no_partial_design(fr.record_sets, scored_triples)
-    # ... and the UNIT of NOT_RUN is the DESIGN, not one record set: a design one of whose arm x transform legs is
-    # incomplete contributes NOTHING, even from a leg that is complete, or designs_scored and designs_not_run would name
-    # the same design and D03 would print both NOT_RUN and a FAIL verdict for it (task X finding protocol VH-01)
-    not_run = H3.attach_not_run_context(not_run, scored_triples=scored_triples,
-                                        blocking=H3.blocking_errors(out_root))
+    # ... and the UNIT is the CONTRAST RECORD SET (h3.CONTRAST_UNIT_RULE): an incomplete leg contributes NOTHING, while
+    # the complete legs of the same design are scored and carry their verdicts.  A DESIGN is NOT_RUN only when no leg of
+    # it is complete (TASK F item 1)
+    not_run = H3.attach_contrast_not_run_context(not_run, blocking=H3.blocking_errors(out_root))
     item_frame = pd.concat(item_rows, ignore_index=True) if item_rows else pd.DataFrame()
     per_unit_frame = pd.concat(per_unit, ignore_index=True) if per_unit else pd.DataFrame()
-    dropped = H3.drop_not_run_designs(not_run, rows={"contrasts": contrast_rows, "deltas": delta_rows},
-                                      frames={"r19_items": item_frame, "per_unit": per_unit_frame},
-                                      nested=(results, hurts))
+    dropped = H3.drop_not_run_contrasts(not_run, rows={"contrasts": contrast_rows, "deltas": delta_rows},
+                                        frames={"r19_items": item_frame, "per_unit": per_unit_frame},
+                                        nested=(results, hurts))
     contrast_rows, delta_rows = dropped["rows"]["contrasts"], dropped["rows"]["deltas"]
     item_frame, per_unit_frame = dropped["frames"]["r19_items"], dropped["frames"]["per_unit"]
-    scored_triples = [t for t in scored_triples if t[2] not in set(not_run)]
+    bad_triples = {(v["model_arm"], v["transform"], v["design"]) for v in not_run.values()}
+    scored_triples = [t for t in scored_triples if t not in bad_triples]
     designs_scored = sorted({d for _, _, d in scored_triples})
-    assert not (set(designs_scored) & set(not_run)), \
-        (f"POST-HOC addendum 4 item 2: designs_scored {designs_scored} and designs_not_run {sorted(not_run)} name the "
-         "same design; no verdict may be taken from a partial design")
+    # a design with no scored leg at all is NOT_RUN as a design, in addendum 4 item 2's own vocabulary
+    designs_not_run = {d: H3.not_run_design(d, "; ".join(v["reason"] for v in not_run.values()
+                                                         if v["design"] == d) or f"no leg of {d} was scored",
+                                            budget=next((v.get("budget") for v in not_run.values()
+                                                         if v["design"] == d), None))
+                       for d in sorted({v["design"] for v in not_run.values()} - set(designs_scored))}
+    assert not (set(designs_scored) & set(designs_not_run)), \
+        (f"designs_scored {designs_scored} and designs_not_run {sorted(designs_not_run)} name the same design")
     verdicts = {arm: H3.h3_verdict(helps=results.get(arm) or {}, hurts=(hurts.get(arm) or {}).get("V5", {}),
-                                   designs_not_run=not_run)
+                                   designs_not_run=designs_not_run,
+                                   contrasts_not_run={k: v for k, v in not_run.items()
+                                                      if str(v.get("model_arm")) == str(arm)})
                 for arm in arms}
     dep = D.ARM_ALIASES.get(deployed["arm"] or "", "")
     shared = score_shared_only(fr, dep, state, delta5=delta5, designs=designs, n_resamples=n_resamples, seed=seed,
@@ -803,13 +811,20 @@ def score(out_root: Path, attrs: pd.DataFrame, corpus: Any, *, deployed: Mapping
                "exploratory": H3.exploratory_records(out_root),
                "designs": list(designs) + ([H3.PAIR_DESIGN] if with_pairs else []),
                "design_priority": list(H3.DESIGN_PRIORITY), "design_statuses": design_statuses,
-               "designs_not_run": not_run, "designs_scored": designs_scored,
+               "designs_not_run": designs_not_run, "designs_scored": designs_scored,
+               # the UNIT of completeness (TASK F item 1): one contrast record set, <arm>:<transform>@<design>
+               "contrasts_not_run": not_run, "contrast_unit_rule": H3.CONTRAST_UNIT_RULE,
+               "contrast_record_sets_scored": sorted(H3.contrast_key(a, t, d) for a, t, d in scored_triples),
                # the counts only: the filtered rows and frames are the outputs themselves
                "designs_suppressed": {k: v for k, v in dropped.items() if k not in ("rows", "frames")},
                "negative_transfer_condition": neg_cond, "actinide_dependent_stratum": stratum,
                # the section 8 checks these contrasts owe, and which of them have one: a RECORDED debt, not an absence
                # (task X finding protocol VH-09)
-               "power_debt": H3.needs_power_inventory(contrasts, checked=H3.power_checked_keys(out_root)),
+               # ... each priced from the per-fold seconds the H3 refits actually took, so the debt is a NUMBER of
+               # unrun refits and hours, not only a list of names (TASK F item 6)
+               "power_debt": H3.needs_power_inventory(contrasts, checked=H3.power_checked_keys(out_root),
+                                                      record_sets=fr.record_sets,
+                                                      per_fold_seconds=H3.h3_per_fold_seconds(out_root)),
                "wall_clock": wc,
                "budget": H3.h3_budget_status(wc["wall_seconds"], worker_seconds=wc["worker_seconds"]),
                "refits": H3.stale_records(out_root),
@@ -821,7 +836,9 @@ def score(out_root: Path, attrs: pd.DataFrame, corpus: Any, *, deployed: Mapping
                "readings": H3.READINGS, "shared_only": {k: v for k, v in shared.items() if k != "frame"},
                "not_computed": {
                    "act_metal_shuffled": H3.ACT_METAL_SHUFFLED_NOT_RUN,
-                   "designs_not_run": {d: v.get("reason") for d, v in sorted(not_run.items())} or None,
+                   "designs_not_run": {d: v.get("reason") for d, v in sorted(designs_not_run.items())} or None,
+                   "contrasts_not_run": {k: f"{v.get('status')}: {v.get('reason')}"
+                                         for k, v in sorted(not_run.items())} or None,
                    "crps": D.UNCERTAINTY_NOT_RUN["gaussian_crps"],
                    # section 11 registers Delta logSF MAE on V5-PAIR Ln pairs; neither H3 arm has a V5-PAIR record
                    # (addendum 1 item 5), so the quantity is not defined here -- named, never silently absent
@@ -1062,6 +1079,9 @@ def write_outputs(out_root: Path, res: Mapping[str, Any], *, ledger: Mapping[str
         "addendum4_item2_design_statuses": summary.get("design_statuses"),
         "addendum4_item2_designs_not_run": summary.get("designs_not_run"),
         "addendum4_item2_designs_scored": summary.get("designs_scored"),
+        "addendum4_item2_contrast_unit_rule": summary.get("contrast_unit_rule"),
+        "addendum4_item2_contrasts_not_run": summary.get("contrasts_not_run"),
+        "addendum4_item2_contrast_record_sets_scored": summary.get("contrast_record_sets_scored"),
         "addendum4_item2_suppressed_rows": summary.get("designs_suppressed"),
         "addendum4_item3_records": summary.get("refits"),
         "addendum4_item3_operative_reading": (summary.get("refits") or {}).get("operative_reading"),
@@ -1076,9 +1096,9 @@ def write_outputs(out_root: Path, res: Mapping[str, Any], *, ledger: Mapping[str
                                                  "record_digest_basis")}})))
     if not res["contrasts"].empty:
         outs.append(write_csv(res["contrasts"], tables / "h3_contrasts.csv"))
-    # the deviations file addendum 4 item 2's own vocabulary cannot hold: a design left incomplete by anything other than
-    # the 20 h cap, with the blocking error named (task X finding protocol VH-07)
-    nrun = summary.get("designs_not_run") or {}
+    # the deviations file addendum 4 item 2's own vocabulary cannot hold: a design or CONTRAST RECORD SET left incomplete
+    # by anything other than the 20 h cap, with the blocking error named (task X finding protocol VH-07; TASK F item 1)
+    nrun = {**(summary.get("designs_not_run") or {}), **(summary.get("contrasts_not_run") or {})}
     dev = {d: v for d, v in nrun.items() if isinstance(v, dict) and v.get("deviation")}
     outs.append(write_json(H3.h3_decisions_dir(out_root) / "deviations.json", H3.json_safe({
         "schema": H3.SCHEMA, "git_head": summary.get("git_head"), "n_deviations": len(dev),
@@ -1087,10 +1107,14 @@ def write_outputs(out_root: Path, res: Mapping[str, Any], *, ledger: Mapping[str
                 "while the cap is unreached is a DEVIATION and is recorded here with its cause.",
         "budget": summary.get("budget"), "deviations": dev,
         "power_debt": summary.get("power_debt"),
+        "guard_failure_diagnosis": H3.GUARD_FAILURE_DIAGNOSIS,
+        "guard_failure_evidence": "evaluation/h3/decisions/isolation_guard_diagnosis.json",
         "readings_requested_not_registered": {
             "section10_f4_interval": (res["f4"] or {}).get("interval_reading_not_registered"),
             "section11_negative_transfer_trigger": (summary.get("negative_transfer_condition") or {}).get("condition"),
-            "addendum4_item3_operative": (summary.get("refits") or {}).get("operative_reading")}})))
+            "addendum4_item3_operative": (summary.get("refits") or {}).get("operative_reading"),
+            "addendum4_item2_contrast_unit": summary.get("contrast_unit_rule"),
+            "section2_guard_of_a_value_permuted_control_arm": H3.GUARD_FAILURE_DIAGNOSIS}})))
     outs.append(write_text(Path(out_root) / "decisions" / "D03_actinide_transfer.md",
                            H3.d03_markdown(summary, res["contrasts"], res["deltas"], res.get("negative_transfer"),
                                            res.get("r19_items"))))

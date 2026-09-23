@@ -2,25 +2,37 @@
   "deployed_arm": "B5",
   "deployed_trained_with_actinide_rows": true,
   "designs_computed": [
+    "V1",
     "V2",
     "V5"
   ],
-  "designs_not_computed": [
-    "V1"
-  ],
+  "designs_not_computed": [],
   "designs_where_readings_disagree": [
     "V2"
   ],
-  "failure": false,
+  "failure": true,
   "failure_bca": true,
   "failure_either_interval": true,
   "failure_percentile": false,
-  "interval_read": "percentile",
-  "interval_reading_not_registered": "NOT REGISTERED: section 10 F4 says '95 % interval excluding 0' without naming a construction, while section 8 registers the percentile and the BCa 95 % interval for every contrast and R19 item 2 requires BOTH to exclude 0. f4_check decides on the PERCENTILE interval (failure / failure_percentile) and reports the BCa reading beside it (failure_bca, failure_either_interval, per_design.<design>.bca_beats). For a FAILURE condition the conservative choice is the reading that triggers more readily -- EITHER interval -- not the one that requires both, so failure_either_interval is the conservative value and the difference is printed wherever F4 is quoted. A POST-HOC addendum naming the interval F4 reads is REQUESTED and not yet written; until then no F4 statement may be quoted without both readings",
+  "interval_read": "either (percentile OR BCa) -- the conservative reading of a failure condition",
+  "interval_reading_not_registered": "NOT REGISTERED: section 10 F4 says '95 % interval excluding 0' without naming a construction, while section 8 registers the percentile and the BCa 95 % interval for every contrast and R19 item 2 requires BOTH to exclude 0. F4 is a FAILURE condition, so the CONSERVATIVE reading is the one that triggers more readily -- EITHER registered interval, on ANY registered design -- and that reading GOVERNS the headline (failure == failure_either_interval). The percentile-only and BCa-only readings are computed and reported beside it (failure_percentile, failure_bca, per_design.<design>.bca_beats), and a design where they disagree is named (designs_where_readings_disagree), so every F4 statement carries both. A POST-HOC addendum naming the interval F4 reads is REQUESTED and not yet written; until it is, the headline stays the conservative one and is never softened to the percentile reading (TASK F item 3)",
   "per_design": {
     "V1": {
-      "reason": "no reversed WITHOUT-vs-WITH contrast of this design was scored (the design is NOT_RUN, or its record set is absent): POST-HOC addendum 4 item 2",
-      "status": "not computed"
+      "bca_95": [
+        -0.060207865370030755,
+        0.07854335058079777
+      ],
+      "bca_also_excludes_0": false,
+      "bca_beats": false,
+      "cluster_unit": "publication_group",
+      "percentile_95": [
+        -0.06763930522148139,
+        0.06460011366131684
+      ],
+      "point": -0.005429446963383988,
+      "readings_disagree": false,
+      "status": "computed",
+      "without_beats_with_interval_excludes_0": false
     },
     "V2": {
       "bca_95": [
@@ -57,7 +69,7 @@
       "without_beats_with_interval_excludes_0": false
     }
   },
-  "reading": "F4 'the WITHOUT arm beats it on the Ln test set (95 % interval excluding 0)' is evaluated per design (V5 Ln cells, V1 Ln rows, V2 Ln states) with the primary-cluster percentile interval of the reversed contrast (WITHOUT candidate), and F4 holds when ANY design shows it (the conservative reading)",
+  "reading": "F4 'the WITHOUT arm beats it on the Ln test set (95 % interval excluding 0)' is evaluated per design (V5 Ln cells, V1 Ln rows, V2 Ln states) on the reversed contrast (WITHOUT candidate) under the primary cluster unit, and F4 HOLDS when ANY registered design shows it under EITHER registered 95 % interval (percentile or BCa) -- the conservative reading on both axes, since F4 is a FAILURE condition and the conservative choice is the one that triggers more readily. The percentile-only and BCa-only readings are reported beside it (failure_percentile, failure_bca) and never replace the headline (TASK F item 3)",
   "rule": "F4 -- negative actinide transfer (section 10)",
   "status": "computed"
 }

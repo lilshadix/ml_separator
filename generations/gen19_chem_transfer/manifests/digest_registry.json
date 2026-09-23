@@ -473,6 +473,57 @@
       ],
       "logged_utc": "2026-09-23T01:47:44+00:00",
       "reason": "task X findings numbers VH-04 / VH-05: refits.json gains an ordering block (matched entry, written_utc and its source, ordering_checked per record, the operative reading) and keeps the earlier deletion outcome under previous. numbers VH-01: CONFIRMATION_PLAN drops the false prereg-change claim about the V1/V2 margin and item 1; protocol VH-01/VH-02/VH-07: the V1 leg, the F4 BCa reading and the V1 deviation are restated. g19_h3_refit_stale.py is in no stage code digest; no stage re-registered for it, no record invalidated."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/h3.py",
+          "sha256_lf": "71f90e5b1dd0314df35063c318393928d39282249eb66df268939a4847fc8459"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/gen19ct/evaluation/discovery.py",
+          "sha256_lf": "0220cdde1d79b2f55785a0f92857001e67fb8a7504f25c6a3cefa6d63c103caf"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_run_h3.py",
+          "sha256_lf": "03380a380aa919e9b5e94268300326f90536d7c50033a2053cc295be8bf695ff"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_h3_guard_diagnosis.py",
+          "sha256_lf": "b50037f4c0a31aa6d2281d1efbdd9ffbe3f1465bb365d4882e1c0f192779a5fe"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_power_debt.py",
+          "sha256_lf": "a5f72f3d8617c3ec7db139f5b4559d42122d4cb9233283952eff8a080c216cef"
+        },
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/tests/test_h3.py",
+          "sha256_lf": "3c625532b3ec14f5f5e4b8a640ccf563abdaaee45edbbb022572c60da9351cc4"
+        }
+      ],
+      "logged_utc": "2026-09-23T02:33:11+00:00",
+      "reason": "TASK F, verification findings fixed at the source. (1) Item 1 / protocol VH-01: the unit of POST-HOC addendum 4 item 2's completeness rule is the CONTRAST RECORD SET, not the design (h3.CONTRAST_UNIT_RULE, contrast_status, not_run_contrast, attach_contrast_not_run_context, drop_not_run_contrasts; g19_run_h3.score keys not_run by <arm>:<transform>@<design> and reports designs_not_run only for a design with no scored leg). B5/B6:WITHOUT@V1 (39/39) are therefore scored and carry verdicts; B5/B6:ACT_PERMUTED@V1 (25/39) carry the new status INCOMPLETE_GUARD_FAILURE, distinct from the cap's NOT_RUN vocabulary, with no verdict, no row, no delta and no F4 input. (2) Item 2: new read-only scripts/g19_h3_guard_diagnosis.py measures WHY the ACT_PERMUTED@V1 guard fails on fold pub_97510df3a0 (the section 2 near-duplicate VALUE comparison at near_dup_value_tol=0.005 reads the permuted log_D; 2 of 3 inner splits fail on the permuted values and 0 of 3 on the registered ones; value-blind fails 3 of 3 on the registered values and is NOT the fix) and writes evaluation/h3/decisions/isolation_guard_diagnosis.json; h3.GUARD_FAILURE_DIAGNOSIS carries the conclusion into D03 and deviations.json. The fold is not forced. (3) Item 3 / protocol VH-02: f4_check's headline is now the CONSERVATIVE reading (either registered interval on any registered design), so failure == failure_either_interval; the percentile-only and BCa-only readings are printed beside it. F4 HOLDS. (4) Item 4 / protocol VH-03: discovery.reduced_item6 reports ITEM6_NOT_EVALUATED when a member of addendum 1 item 4's own reduced set (the V5 strict / HNO3-only refits) was not evaluated, so an H3 V5 contrast no longer reports item 6 PASS over a smaller set. (5) Item 6 / protocol VH-09: h3.power_check_cost prices every owed section 8 check (4 kappa x the two legs' folds x the measured per-fold seconds) and needs_power_inventory carries the cost; g19_power_debt.py passes the record sets and per-fold seconds. (6) Item 7: stale_records records n_verifying_against_the_current_entry and why_no_record_is_current; D03 prints it. No record is refitted, deleted or rewritten; no fold was fitted; only the scoring and reporting path changed."
+    },
+    {
+      "commit": null,
+      "effect_on_records": "none: validates or invalidates no record written earlier (addendum 2 item 5)",
+      "files": [
+        {
+          "exists": true,
+          "path": "generations/gen19_chem_transfer/scripts/g19_h3_refit_stale.py",
+          "sha256_lf": "f2588da048bb7ea65936eaa03ee409128fcf56d8b28a66a2d6f0b71754f20fe2"
+        }
+      ],
+      "logged_utc": "2026-09-23T02:37:14+00:00",
+      "reason": "TASK F item 7, follow-up: refits.json's ordering block now records n_verifying_against_the_current_entry and why_no_record_is_current (h3.stale_records), so 'no h3 record verifies as current, and none is refitted for that reason' is a recorded decision in the file itself rather than an inference from matched_entry_counts. Listing run only: n_stale_before = n_stale_after = 0, dry_run true, nothing deleted, and the earlier deletion outcome is kept under 'previous'."
     }
   ],
   "fallback": "until manifests/digest_registry.json exists every gate reads the constants of evaluation.discovery (N_ADDENDA_EXPECTED, REGISTERED_ADDENDA_SHA256) and the live discovery code digest, exactly as before",
@@ -519,11 +570,11 @@
     "h3": {
       "addenda_count": 4,
       "below_footer_sha256": "22c61a442912f441a7640fad91d6455d85544e3eadec14622d2a0b64c88579d7",
-      "code_digest": "474aa8e8e5fc1153495a5a83ff942ac6db61e1c7789bd0010cbd88161a9d6b8c",
+      "code_digest": "deeb3e573cfabc91b9c74ad695dbbd261e172caa1e44d8c1839a6a2ae5a6aebb",
       "code_digest_source": "the tree: g19_run_h3.code_digest()['combined']",
-      "git_head": "593bc09bb52a3862895de79bc60bb5fd95f06353",
-      "note": "task X findings protocol VH-01..VH-09 and numbers VH-01..VH-06, second pass: the margins reading now cites POST-HOC addendum 2 instead of calling itself a scorer reading, the V1 deviation names its blocking error, and item 6 keeps its addendum 1 item 4 clause while declaring the H3-specific not-run sensitivities beside it. Reporting and scoring only -- no fitted quantity changes; every existing H3 record predates this supersession and keeps its entry (addendum 2 item 5).",
-      "registered_utc": "2026-09-23T01:42:02+00:00",
+      "git_head": "65ac90d7d49fcfd5c488cb41efa7074d0b1bcde2",
+      "note": "re-registered after the TASK F scoring / reporting fixes (contrast-record-set completeness, the conservative F4 headline, item 6 NOT_EVALUATED, the priced power debt, the guard diagnosis). Nothing was fitted: every one of the 445 H3 records keeps the entry it was written under and verifies against it (registry.verify_record at the record's own timestamp; addendum 2 change 5), so this re-registration validates and invalidates nothing. It exists so that a LATER H3 fit writes records under a registered digest; see h3.OPERATIVE_DIGEST_READING and refits.why_no_record_is_current.",
+      "registered_utc": "2026-09-23T02:33:22+00:00",
       "source": "current tree (below-footer digest and addenda count)",
       "stage": "h3"
     },
@@ -1039,6 +1090,19 @@
       "stage": "power",
       "superseded_by_note": "task X findings protocol VH-01..VH-09 and numbers VH-01..VH-06, second pass: the margins reading now cites POST-HOC addendum 2 instead of calling itself a scorer reading, the V1 deviation names its blocking error, and item 6 keeps its addendum 1 item 4 clause while declaring the H3-specific not-run sensitivities beside it. Reporting and scoring only -- no fitted quantity changes; every existing H3 record predates this supersession and keeps its entry (addendum 2 item 5).",
       "superseded_utc": "2026-09-23T01:42:02+00:00"
+    },
+    {
+      "addenda_count": 4,
+      "below_footer_sha256": "22c61a442912f441a7640fad91d6455d85544e3eadec14622d2a0b64c88579d7",
+      "code_digest": "474aa8e8e5fc1153495a5a83ff942ac6db61e1c7789bd0010cbd88161a9d6b8c",
+      "code_digest_source": "the tree: g19_run_h3.code_digest()['combined']",
+      "git_head": "593bc09bb52a3862895de79bc60bb5fd95f06353",
+      "note": "task X findings protocol VH-01..VH-09 and numbers VH-01..VH-06, second pass: the margins reading now cites POST-HOC addendum 2 instead of calling itself a scorer reading, the V1 deviation names its blocking error, and item 6 keeps its addendum 1 item 4 clause while declaring the H3-specific not-run sensitivities beside it. Reporting and scoring only -- no fitted quantity changes; every existing H3 record predates this supersession and keeps its entry (addendum 2 item 5).",
+      "registered_utc": "2026-09-23T01:42:02+00:00",
+      "source": "current tree (below-footer digest and addenda count)",
+      "stage": "h3",
+      "superseded_by_note": "re-registered after the TASK F scoring / reporting fixes (contrast-record-set completeness, the conservative F4 headline, item 6 NOT_EVALUATED, the priced power debt, the guard diagnosis). Nothing was fitted: every one of the 445 H3 records keeps the entry it was written under and verifies against it (registry.verify_record at the record's own timestamp; addendum 2 change 5), so this re-registration validates and invalidates nothing. It exists so that a LATER H3 fit writes records under a registered digest; see h3.OPERATIVE_DIGEST_READING and refits.why_no_record_is_current.",
+      "superseded_utc": "2026-09-23T02:33:22+00:00"
     }
   ]
 }
