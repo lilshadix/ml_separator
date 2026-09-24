@@ -606,12 +606,60 @@ def make_all(out_root: Path, *, only: Sequence[str] | None = None, n_resamples: 
                                                         arm=arm or "deployed"))
     for r in results:
         if r.status == "written":
-            outs.append(Path(out_root) / r.path if not Path(r.path).is_absolute() else Path(r.path))
+            outs.append(resolve_figure_output(out_root, r.path))
             if r.data_path:
-                outs.append(Path(out_root) / r.data_path if not Path(r.data_path).is_absolute() else Path(r.data_path))
+                outs.append(resolve_figure_output(out_root, r.data_path))
         log(f"{r.figure}: {r.status}" + (f" -> {r.path}" if r.status == "written" else "")
             + (f" ({r.reason})" if r.reason else ""))
     return results, outs, side
+
+
+def resolve_figure_output(out_root: Path, p: str | Path) -> Path:
+    """The absolute path of a figure output.
+
+    A ``FigureResult.path`` / ``data_path`` is REPOSITORY-relative (``figures._rel`` -> ``paths.rel``), with an absolute
+    path only where the file lies outside the repository.  Joining it to ``out_root`` gave
+    ``<out_root>/generations/gen19_chem_transfer/figures/F07_*.png``, which exists nowhere, and ``Run.outputs``' own
+    ``exists()`` filter then dropped it silently: the figures manifest listed 2 outputs (``figures_index.json`` and
+    ``tables/s1e_error_vs_support.csv``, both joined correctly elsewhere) instead of every PNG and data CSV, so no figure
+    carried a registered digest and ``verify_manifests`` could not check one.  The repository-relative path is joined to
+    ``paths.REPO_ROOT``, which is the root ``paths.rel`` measured it against.
+    """
+    q = Path(p)
+    if q.is_absolute():
+        return q
+    cand = paths.REPO_ROOT / q
+    return cand if cand.exists() else Path(out_root) / q
+
+
+def index_path(out_root: Path) -> Path:
+    return Path(out_root) / "evaluation" / "figures" / "figures_index.json"
+
+
+def carry_over_unselected(out_root: Path, index: Mapping[str, Any], *, only: Sequence[str] | None) -> dict[str, Any]:
+    """With ``--only``, the entries of the figures this invocation did NOT make are carried over from the index on disk.
+
+    ``figures_index`` is built from ``results``, which under ``--only`` holds just the selected figures, so writing it
+    unchanged replaced a seven-figure index with a one-figure one: a ``--only F12`` run to add the confirmation figure
+    silently deleted F07-F11 and F13 from the index the report reads.  A carried entry keeps its own record and is marked
+    with the invocation that produced it (its ``git_head`` / ``code_sha256``), because this invocation's header describes
+    only the figures it made; ``n_written`` / ``n_skipped`` are recomputed over the merged list.
+    """
+    if not only:
+        return dict(index)
+    made = {str(f.get("figure")) for f in index.get("figures", [])}
+    prev = D.read_record(index_path(out_root)) or {}
+    src_ = {k: prev.get(k) for k in ("git_head", "code_sha256") if prev.get(k)}
+    kept = [{**f, "carried_over_from_earlier_invocation": src_ or True}
+            for f in prev.get("figures", []) if str(f.get("figure")) not in made]
+    figs = sorted([*index.get("figures", []), *kept], key=lambda f: str(f.get("figure")))
+    return {**dict(index), "figures": figs,
+            "n_written": sum(f.get("status") == "written" for f in figs),
+            "n_skipped": sum(f.get("status") == "skipped" for f in figs),
+            "only": list(only), "n_carried_over": len(kept),
+            "carried_over": ("this invocation made only %s; every other entry is the one an earlier invocation wrote "
+                             "(carried_over_from_earlier_invocation), and the header fields git_head / code_sha256 "
+                             "describe THIS invocation" % ", ".join(sorted(only))) if kept else "none"}
 
 
 def main(argv=None, *, check: Callable[[], int] | None = None, digests: Callable[[], Mapping[str, Any]] | None = None
@@ -658,7 +706,8 @@ def main(argv=None, *, check: Callable[[], int] | None = None, digests: Callable
                                                                 "status": "run" if ran else CONFIRMATION_NOT_RUN},
                                            "embedding_refits": {a: {k: v for k, v in s_.items() if k != "folds"}
                                                                 for a, s_ in refits.items()}})
-        outs.append(write_json(Path(out_root) / "evaluation" / "figures" / "figures_index.json", H3.json_safe(index)))
+        index = carry_over_unselected(out_root, index, only=only)
+        outs.append(write_json(index_path(out_root), H3.json_safe(index)))
         if run is not None:
             run.outputs(*[p for p in outs if Path(p).exists()])
             run.extra.update({"figures": [r.record() for r in results], "confirmation_half_read": False,

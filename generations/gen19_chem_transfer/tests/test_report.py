@@ -924,3 +924,84 @@ def test_a_powered_not_a_null_record_never_prints_as_undecided_underpowered(full
     # the labels come from the power module, so the report and the check cannot drift apart
     assert R.PW.REPORTED_LABEL["POWERED_NOT_A_NULL"] == "POWERED_NOT_A_NULL"
     assert R.PW.NO_POWER_CHECK_LABEL in d02 or "no registered power check" in block
+
+
+# --------------------------------------------------------------------------------------------- #
+# the figure index / manifest defects of task X (both in scripts/g19_make_figures.py)
+# --------------------------------------------------------------------------------------------- #
+def test_a_figure_output_resolves_against_the_repository_root_not_out_root(tmp_path: Path) -> None:
+    """A ``FigureResult`` path is REPOSITORY-relative (``figures._rel``), so joining it to ``out_root`` produced
+    ``<out_root>/generations/gen19_chem_transfer/figures/F*.png``, a path that exists nowhere; ``Run.outputs``' own
+    ``exists()`` filter dropped it and the figures manifest listed 2 outputs instead of every PNG and data CSV, so no
+    figure carried a registered digest.  ``resolve_figure_output`` joins it to the root ``paths.rel`` measured it
+    against, leaves an absolute path untouched, and still resolves a path relative to ``out_root``."""
+    mf = _load("g19_make_figures")
+    fig = tmp_path / "figures" / "F07_pred_vs_measured.png"
+    fig.parent.mkdir(parents=True)
+    fig.write_bytes(b"png")
+    out_root = tmp_path / "gen19"
+    (out_root / "figures").mkdir(parents=True)
+    (out_root / "figures" / "only_here.png").write_bytes(b"png")
+
+    rel = "figures/F07_pred_vs_measured.png"
+    assert mf.resolve_figure_output(out_root, rel) == out_root / rel        # out_root's own copy when there is one
+    monkey = mf.paths.REPO_ROOT
+    try:
+        mf.paths.REPO_ROOT = tmp_path                                       # the repository root rel was measured against
+        got = mf.resolve_figure_output(out_root, rel)
+        assert got == fig and got.exists()
+        assert mf.resolve_figure_output(out_root, fig) == fig               # absolute: untouched
+        assert mf.resolve_figure_output(out_root, "figures/only_here.png") == out_root / "figures" / "only_here.png"
+    finally:
+        mf.paths.REPO_ROOT = monkey
+
+
+def test_only_keeps_the_index_entries_of_the_figures_it_did_not_make(tmp_path: Path) -> None:
+    """``figures_index`` is built from ``results``, which under ``--only`` holds just the selected figures: writing it
+    unchanged turned a seven-figure index into a one-figure one, so a ``--only F12`` run to add the confirmation figure
+    deleted F07-F11 and F13 from the index the report reads.  The unselected entries are carried over from the index on
+    disk, marked with the invocation that produced them, and the counts are recomputed over the merged list."""
+    mf = _load("g19_make_figures")
+    prev = {"schema": "gen19.figures_index.v1", "git_head": "old", "code_sha256": "oldcode",
+            "figures": [{"figure": "F07", "status": "written", "path": "figures/F07.png"},
+                        {"figure": "F08", "status": "skipped", "reason": "no support labels"},
+                        {"figure": "F12", "status": "skipped", "reason": "V6 not run"}],
+            "n_written": 1, "n_skipped": 2}
+    write_json(mf.index_path(tmp_path), prev)
+    fresh = {"schema": "gen19.figures_index.v1", "git_head": "new", "code_sha256": "newcode",
+             "figures": [{"figure": "F12", "status": "written", "path": "figures/F12.png"}],
+             "n_written": 1, "n_skipped": 0}
+
+    merged = mf.carry_over_unselected(tmp_path, fresh, only=["F12"])
+    assert [f["figure"] for f in merged["figures"]] == ["F07", "F08", "F12"]
+    f12 = next(f for f in merged["figures"] if f["figure"] == "F12")
+    assert f12["status"] == "written" and "carried_over_from_earlier_invocation" not in f12   # this invocation's own
+    carried = [f for f in merged["figures"] if f.get("carried_over_from_earlier_invocation")]
+    assert [f["figure"] for f in carried] == ["F07", "F08"]
+    assert carried[0]["carried_over_from_earlier_invocation"] == {"git_head": "old", "code_sha256": "oldcode"}
+    assert merged["n_written"] == 2 and merged["n_skipped"] == 1 and merged["n_carried_over"] == 2
+    assert merged["git_head"] == "new" and "F12" in merged["carried_over"]
+    assert mf.carry_over_unselected(tmp_path, fresh, only=None) == fresh     # a full run replaces the index outright
+
+
+def test_the_d06_gate_line_never_prints_a_bare_none_for_the_confirmation_fields(tmp_path: Path) -> None:
+    """The confirmation-gate dict carries ``None`` for every field it could not read, so D06's gate line printed
+    ``S1 passed = None (deployed predictor `None`)`` -- which reads as a value, on exactly the field a reader checks to
+    see whether the confirmation run has happened.  An absent ``confirmation.json`` prints as the report's
+    'not computed (input missing: <file> -> <registered key>)'; a present file's registered null (S2 is 'bool or null:
+    null when V6 has not run') prints as that null WITH its condition; a real value prints as itself."""
+    pr = _load("g19_run_process")
+    keys = {"S2.passed": "bool or null: section 9 S2 (V6, single confirmation run); null when V6 has not run"}
+    absent = {"present": False, "path": str(paths.G19_ROOT / "evaluation/confirmation/decisions/confirmation.json"),
+              "s1_passed": None, "deployed_predictor": None, "s2_passed": None, "v6_run": None, "keys": keys}
+    line = pr.confirmation_field(absent, "s1_passed", "S1.passed")
+    assert line.startswith(pr.NOT_COMPUTED) and "confirmation.json -> S1.passed" in line
+    assert "\\" not in line                                                   # repository-relative POSIX, not a backslash
+    assert pr.confirmation_field(absent, "deployed_predictor", "S1.deployed_predictor").startswith(pr.NOT_COMPUTED)
+
+    present = {**absent, "present": True}
+    assert pr.confirmation_field(present, "s2_passed", "S2.passed") == "null (V6 has not run)"
+    assert pr.confirmation_field(present, "v6_run", "V6.run") == "null"       # no condition registered for V6.run
+    assert pr.confirmation_field({**present, "s1_passed": False}, "s1_passed", "S1.passed") == "False"
+    assert pr.confirmation_field({**present, "deployed_predictor": "M0"}, "deployed_predictor",
+                                 "S1.deployed_predictor") == "M0"

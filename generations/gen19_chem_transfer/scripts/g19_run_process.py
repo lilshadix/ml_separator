@@ -77,6 +77,7 @@ import argparse
 import importlib.util
 import json
 import math
+import re
 import sys
 import time
 from collections.abc import Callable, Mapping, Sequence
@@ -715,6 +716,31 @@ def figure_probability_map(ops: pd.DataFrame, winners: pd.DataFrame, setup: MC.C
 
 # ---- D06 (brief section 29) ------------------------------------------------------------------- #
 
+def confirmation_field(conf: Mapping[str, Any], key: str, registered: str) -> str:
+    """One confirmation-gate value for the D06 gate line, in the registered vocabulary.
+
+    The gate dict carries ``None`` for every field it could not read, so the line used to print ``S1 passed = None
+    (deployed predictor `None`)``: a bare ``None`` reads as a VALUE rather than as an absent input, and it is exactly the
+    field a reader checks to see whether the confirmation run has happened.  When ``confirmation.json`` is absent the
+    field is printed as the report's phrase naming the file and the registered key it would come from; when the file is
+    present and the field is genuinely null -- S2 is registered 'bool or null: null when V6 has not run' -- that null is
+    printed with the condition the pre-registration attaches to it.
+    """
+    v = conf.get(key)
+    if v is not None:
+        return str(v)
+    if not conf.get("present"):
+        raw = str(conf.get("path") or "")
+        try:
+            where = paths.rel(Path(raw))
+        except (ValueError, OSError):
+            where = raw or "evaluation/confirmation/decisions/confirmation.json"
+        return f"{NOT_COMPUTED} (input missing: {where} -> {registered})"
+    doc = str((conf.get("keys") or {}).get(registered) or "")
+    m = re.search(r"null when ([^;.]+)", doc)
+    return "null" + (f" ({m.group(1).strip()})" if m else "")
+
+
 def _fmt(v: Any, fmt: str = "{:.3f}") -> str:
     if v is None:
         return NOT_COMPUTED
@@ -767,9 +793,11 @@ def d06_markdown(out_root: Path) -> str:
                                         f"from {inp.get('rho_path')}") if x)
         lines += [f"- Gate: seal digest `{str(seal_digest)[:12]}...`; discovery complete "
                   f"= {(g.get('discovery_complete') or {}).get('complete', NOT_COMPUTED)}; stop rule = "
-                  f"{(g.get('stop_rule') or {}).get('stop', NOT_COMPUTED)}; S1 passed = {conf.get('s1_passed', NOT_COMPUTED)} "
-                  f"(deployed predictor `{conf.get('deployed_predictor', NOT_COMPUTED)}`); S2 passed = {conf.get('s2_passed', NOT_COMPUTED)}; "
-                  f"V6 run = {conf.get('v6_run', NOT_COMPUTED)}; exploratory = {g.get('exploratory', NOT_COMPUTED)}.",
+                  f"{(g.get('stop_rule') or {}).get('stop', NOT_COMPUTED)}; S1 passed = "
+                  f"{confirmation_field(conf, 's1_passed', 'S1.passed')} (deployed predictor "
+                  f"`{confirmation_field(conf, 'deployed_predictor', 'S1.deployed_predictor')}`); S2 passed = "
+                  f"{confirmation_field(conf, 's2_passed', 'S2.passed')}; "
+                  f"V6 run = {confirmation_field(conf, 'v6_run', 'V6.run')}; exploratory = {g.get('exploratory', NOT_COMPUTED)}.",
                   f"- Predictions: `{inp.get('predictions_path', NOT_COMPUTED)}` (arm `{inp.get('arm', NOT_COMPUTED)}`, "
                   f"{inp.get('n_cells', NOT_COMPUTED)} grid cells, statuses {inp.get('table_statuses', NOT_COMPUTED)}; "
                   f"registered run on the supported box {inp.get('supported_box', NOT_COMPUTED)}); residual correlation used for "
