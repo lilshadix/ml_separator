@@ -38,3 +38,27 @@ evaluation/preseal/predictions/V0__rows.parquet
 #   .venv/Scripts/python.exe generations/gen19_chem_transfer/scripts/g19_manifest_discovery.py --check
 evaluation/discovery/*/*/s*/
 evaluation/discovery/logs/
+
+# --- the once-only confirmation run's raw fold records (RUN IN PROGRESS) -----------------------
+# Same convention as the discovery block above: the raw per-fold output is excluded by design and
+# its SHA-256 is recorded in evaluation/confirmation/MANIFEST.sha256, written by
+#   .venv/Scripts/python.exe generations/gen19_chem_transfer/scripts/g19_manifest_discovery.py --root confirmation
+# (verify with --check --root confirmation).
+#
+# Every fitted fold writes one record pair
+#   evaluation/confirmation/records/<arm>[/<leg>]/<design>/i<seed index>/<fold>.{parquet,json}
+# -- per-row predictions plus the record's provenance block (fold digest, resume digest, below-footer
+# prereg digest, addenda digest, code digest, registry stage).  The seed INDEX i1..i5 appears in the
+# path, never a seed VALUE: the five withheld seeds enter only through --seed-store and are revealed
+# in decisions/CONFIRMATION.md after the run (pre-registration section 15, POST-HOC addendum 6 item 4).
+#
+# What stays in version control (NOT matched by the pattern below): the withheld-seed fold DESIGNS
+# under evaluation/confirmation/folds/ (4.7 MB -- the evidence of which folds each seed index
+# produced, and no seed is recoverable from one), the run's stdout logs under
+# evaluation/confirmation/logs/ (26 KB), the once-only lock decisions/run_started.json,
+# RUN_STATUS.md, and -- once the run finishes -- decisions/confirmation.json, decisions/CONFIRMATION.md
+# and every table the report cites.
+#
+# Resume after ANY interruption (it re-fits no completed fold and re-scores no claim): run
+# scripts/g19_run_confirmation.py with --resume and --seed-store, per RUN_STATUS.md.
+evaluation/confirmation/records/

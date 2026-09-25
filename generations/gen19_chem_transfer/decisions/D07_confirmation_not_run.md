@@ -96,3 +96,27 @@ By the orchestrator's own rule no further round was run before the report: the t
 4. **Launch, once** (section 15) -- THE ONLY STEP LEFT: `PYTHONIOENCODING=utf-8 PYTHONPATH=generations/gen19_chem_transfer .venv/Scripts/python.exe generations/gen19_chem_transfer/scripts/g19_run_confirmation.py --seed-store <PATH> --workers 2 --expect-addenda 8`, from the repository root, where `<PATH>` is the seed store **outside the repository, known to the user** -- the only way the 5 withheld seeds enter the code; the runner verifies it against `manifests/confirmation_seeds_sha256.txt`, scrubs every seed from every artefact and reveals them only in `decisions/CONFIRMATION.md` after the run (addendum 6 item 4). Expect 132.2 h serial / 67.5 h wall at 2 workers, +-30 % (47-88 h). `--workers` is capped at 2 (the measured limit of the machine). The lock is spent at the START (`run_started.json`), so the launch itself is the once-only act.
 5. **Resume only to complete unfitted folds** (`--resume`; addendum 8 item 2): the recorded code digest must be the live one and the claim list may not grow; once `evaluation/confirmation/decisions/confirmation.json` exists the run is spent and the runner refuses.
 6. **After the run**: rerun `scripts/g19_make_figures.py` (figure 12 and the V6 panel of figure 13 read `evaluation/confirmation/v6_rows.csv`, `v6_pairs.csv`) and `scripts/g19_build_report.py`; Phase H (section 14) as a registered run only if S1 passes, otherwise exploratory and labelled transfer-unsupported.
+## Update 2026-09-25 — step 4 was taken: the run is executing
+
+This file's title and every verdict in it remain correct as written, because **no claim has been scored**:
+`evaluation/confirmation/decisions/confirmation.json` does not exist, R19 item 4 is still NOT_EVALUATED, S1 is still
+UNDECIDED and S2 with brief §34 Q3 are still NOT ANSWERED. What changed is only step 4 of 'Next action': the launch
+happened.
+
+* **Launched** 2026-09-24, `started_utc` 2026-09-23T23:37:09Z; the once-only lock is **SPENT**
+  (`evaluation/confirmation/decisions/run_started.json`), at plan `1a6e1844ad37…`, code digest `6329bc4da416…`,
+  seed commitment `65e8ae8ceb8e…` verified at every start. The five withheld seed values have never been read,
+  printed or written by any agent; the logs and record paths carry only the seed index `i1`–`i5`.
+* **Progress** seed indices i0 (586 records), i1 (674) and i2 (674) complete; i3 fitting since 14:54; i4 and i5 pending.
+  A complete index is 674 records over 17 arm × design groups.
+* **Cost** i2 took 7.55 h wall at 2 workers × ≈2.2 cores, against a priced 67.5 h wall for the whole run (band
+  47–88 h); ≈32 h of fitting is done and i3–i5 need ≈23 h.
+* **Three interruptions, no fitted work lost.** Each was the same cause: a background process started by Claude Code
+  dies when that process exits. `--resume` re-fits nothing already recorded and refuses any record written under a
+  different code digest, so on the current launch the completed indices were skipped in seconds — i0 in 7 s (10 jobs),
+  i1 in 11 s (15 jobs). The run now executes from the user's own shell, outside Claude Code.
+* **Step 5 stands unchanged**: a resume may only complete unfitted folds, and once `confirmation.json` exists the
+  runner refuses with or without `--resume` (addendum 8 item 2).
+
+The full status record, including what is and is not in version control, is `evaluation/confirmation/RUN_STATUS.md`.
+Step 6 ('After the run') is still outstanding and is what a session must do when `confirmation.json` appears.
