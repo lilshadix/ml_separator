@@ -145,12 +145,24 @@ PREDICTION_GRID_SHAPE = (25, 9)          # (n_acid, n_ligand) of the prediction 
 
 #: the confirmation decision file this runner reads (contract for the confirmation runner)
 CONFIRMATION_SCHEMA = "gen19.confirmation.v1"
+#: the file's own ``schema`` (``confirmation.DECISION_SCHEMA``); ``confirmation_schema`` inside it names CONFIRMATION_SCHEMA
+CONFIRMATION_DECISION_SCHEMA = "gen19.confirmation_decisions.v1"
+#: the keys of the decision file AS THE ONCE-ONLY RUNNER WRITES THEM (``g19_run_confirmation.decisions_body``).  This
+#: runner used to expect ``S1.passed`` / ``S1.deployed_predictor`` / ``S2.passed`` / ``V6.run`` / ``seeds.verified`` and to
+#: refuse any file whose ``schema`` was not gen19.confirmation.v1 -- a shape the runner never wrote, so the real decision
+#: file would have been REFUSED here after the run ("has schema 'gen19.confirmation_decisions.v1'") and, had it been read,
+#: S1 would have looked undecided (task X finding, 2026-09-26).  The legacy keys are still accepted for a file that has them.
 CONFIRMATION_KEYS: dict[str, str] = {
-    "S1.passed": "bool: section 9 S1 passed on the confirmation half with 5 of 5 withheld seeds for the deployed predictor",
-    "S1.deployed_predictor": "str: the arm deployed (M2, M1, or the best-passing baseline under F6)",
-    "S2.passed": "bool or null: section 9 S2 (V6, single confirmation run); null when V6 has not run",
-    "V6.run": "bool: V6 has been run once (section 3.4)",
-    "seeds.verified": "bool: the --verify-seeds verdict of section 15",
+    "s1.verdict": "PASS | FAIL | UNDECIDED: section 9 S1 on the confirmation half, 5 of 5 withheld seeds, for the S1 "
+                  "candidate of the frozen plan (legacy: S1.passed, bool)",
+    "claims[primary].candidate": "str: the S1 candidate -- the candidate arm of the claim whose family is 'primary ...' "
+                                 "(legacy: S1.deployed_predictor)",
+    "s2.verdict": "PASS | FAIL | UNDECIDED: section 9 S2 (V6, the single confirmation run); decided only when s2.status is "
+                  "COMPLETE (legacy: S2.passed, bool or null)",
+    "s2.status": "COMPLETE | INCOMPLETE: whether the single V6 run's record set was complete -- the runner writes no "
+                 "separate V6 flag (legacy: V6.run, bool)",
+    "seed_store.verified_against_commitment": "bool: the seed store verified against manifests/confirmation_seeds_sha256.txt "
+                                              "(legacy: seeds.verified)",
 }
 
 REGISTRATION_READINGS: dict[str, str] = {
@@ -314,11 +326,39 @@ def read_confirmation(out_root: Path) -> dict[str, Any] | None:
     return D.read_record(confirmation_path(out_root))
 
 
+def verdict_bool(v: Any) -> bool | None:
+    """PASS -> True, FAIL -> False, anything else (UNDECIDED, NOT_EVALUATED, None) -> None; a bool passes through."""
+    if isinstance(v, bool):
+        return v
+    s = str(v).upper() if v is not None else ""
+    return True if s == "PASS" else (False if s == "FAIL" else None)
+
+
+def s1_candidate(conf: Mapping[str, Any]) -> str | None:
+    """The candidate arm of the S1(a) claim (family 'primary ...') of the runner's ``claims`` list."""
+    for c in conf.get("claims") or []:
+        if str(c.get("family", "")).startswith("primary"):
+            return None if c.get("candidate") is None else str(c.get("candidate"))
+    return None
+
+
 def s1_decision(conf: Mapping[str, Any] | None) -> dict[str, Any]:
-    """The keys of :data:`CONFIRMATION_KEYS` read from the confirmation decision file (``None`` where absent)."""
+    """The keys of :data:`CONFIRMATION_KEYS` read from the confirmation decision file (``None`` where absent): the
+    runner's schema when the file has ``s1`` / ``s2`` blocks, the legacy ``S1`` / ``S2`` / ``V6`` / ``seeds`` shape otherwise."""
     if conf is None:
         return {"present": False, "s1_passed": None, "deployed_predictor": None, "s2_passed": None, "v6_run": None,
                 "seeds_verified": None, "schema": None}
+    if "s1" in conf or "s2" in conf:
+        s1, s2, store = (conf.get(k) or {} for k in ("s1", "s2", "seed_store"))
+        complete = str(s2.get("status")) == "COMPLETE" if s2.get("status") is not None else None
+        return {"present": True, "schema": conf.get("schema"), "confirmation_schema": conf.get("confirmation_schema"),
+                "s1_passed": verdict_bool(s1.get("verdict")), "deployed_predictor": s1_candidate(conf),
+                "s2_passed": verdict_bool(s2.get("verdict")) if complete else None, "v6_run": complete,
+                "seeds_verified": (None if store.get("verified_against_commitment") is None
+                                   else bool(store.get("verified_against_commitment"))),
+                "schema_reading": "the once-only runner's decision file (s1.verdict, s2.verdict / s2.status, "
+                                  "seed_store.verified_against_commitment); deployed_predictor here is the S1 candidate of "
+                                  "the frozen plan, not the ladder's deployed arm"}
     s1, s2, v6, seeds = (conf.get(k) or {} for k in ("S1", "S2", "V6", "seeds"))
     def b(x: Any) -> bool | None:
         return None if x is None else bool(x)
@@ -368,14 +408,15 @@ def refuse_unless_ready(out_root: Path, *, exploratory: bool = False, check: Cal
                          "--exploratory for a labelled transfer-unsupported run")
     conf = read_confirmation(out_root)
     s1 = s1_decision(conf)
-    if s1["present"] and s1.get("schema") not in (None, CONFIRMATION_SCHEMA):
-        raise SystemExit(f"refused: {confirmation_path(out_root)} has schema {s1['schema']!r}, expected {CONFIRMATION_SCHEMA!r}")
+    if s1["present"] and s1.get("schema") not in (None, CONFIRMATION_SCHEMA, CONFIRMATION_DECISION_SCHEMA):
+        raise SystemExit(f"refused: {confirmation_path(out_root)} has schema {s1['schema']!r}, expected "
+                         f"{CONFIRMATION_DECISION_SCHEMA!r} (the once-only runner's) or {CONFIRMATION_SCHEMA!r}")
     if s1["s1_passed"] is False:
         raise SystemExit("refused: the confirmation run decided S1 FAILED for the deployed predictor "
                          f"({s1['deployed_predictor']!r}); section 14: no Gen19 process evaluation is run and gen18's "
                          "chain keeps its B1 lookup default (this holds with --exploratory too)")
     if s1["s1_passed"] is None and not exploratory:
-        raise SystemExit(f"refused: {confirmation_path(out_root)} is missing or S1.passed is undecided (keys: "
+        raise SystemExit(f"refused: {confirmation_path(out_root)} is missing or S1 is undecided (s1.verdict; keys: "
                          f"{sorted(CONFIRMATION_KEYS)}); Phase H runs only if S1 passes (section 14). Pass --exploratory "
                          "for a labelled transfer-unsupported run")
     label = transfer_label(s1, exploratory=exploratory)

@@ -103,7 +103,7 @@ INPUTS: dict[str, str] = {
     "s1e": "tables/s1e_error_vs_support.csv",
     "figures_index": "evaluation/figures/figures_index.json",
     "confirmation": "evaluation/confirmation/decisions/confirmation.json",
-    "confirmation_contrasts": "evaluation/confirmation/contrasts_confirmation.csv",
+    "confirmation_contrasts": "tables/confirmation_claims.csv",
     "v6_systems": "evaluation/confirmation/v6_systems.csv",
     "v6_pairs": "evaluation/confirmation/v6_pairs.csv",
     "f1_check": "evaluation/confirmation/f1_check.json",
@@ -543,6 +543,68 @@ def _json_str(L: Ledger, name: str, body: Mapping[str, Any] | None, key: str) ->
 
 
 # --------------------------------------------------------------------------------------------- #
+# the confirmation decision file AS THE ONCE-ONLY RUNNER WRITES IT
+# --------------------------------------------------------------------------------------------- #
+#: ``g19_run_confirmation.decisions_body`` / ``confirmation.write_decisions``: top-level ``s1`` (``verdict`` PASS / FAIL /
+#: UNDECIDED, ``components``), ``s2`` (``status`` COMPLETE / INCOMPLETE, ``verdict``, blocks ``s2a`` .. ``s2d`` each with a
+#: ``status``), ``seed_store.verified_against_commitment``, ``claims[]`` (``claim`` 'M2 vs B3i @ V5@V5', ``design``,
+#: ``candidate``, ``comparator``, ``r19_verdict``, ``confirmed``, ``point``, ``item4``).  Every reader below cites those
+#: keys and no other, so ``verify_numbers`` re-resolves each printed value from the file itself.  The report used to read
+#: ``S1.passed`` / ``S2.a.pass`` / ``V6.run`` / ``seeds.verified`` -- a schema the runner never wrote, which the report's own
+#: tests had faked -- so with the real file every confirmation verdict would have printed as 'not computed' and no
+#: confirmation claim would have matched its discovery key (task X finding, 2026-09-26).
+CONFIRMATION_DECISION_SCHEMA = "gen19.confirmation_decisions.v1"
+S2_BLOCKS: dict[str, str] = {"a": "s2a", "b": "s2b", "c": "s2c", "d": "s2d"}
+
+
+def conf_s1(conf: Mapping[str, Any] | None) -> Mapping[str, Any]:
+    return (conf or {}).get("s1") or {}
+
+
+def conf_s2(conf: Mapping[str, Any] | None) -> Mapping[str, Any]:
+    return (conf or {}).get("s2") or {}
+
+
+def verdict_bool(v: Any) -> bool | None:
+    """PASS -> True, FAIL -> False, anything else (UNDECIDED, NOT_EVALUATED, None) -> None; a bool passes through."""
+    if isinstance(v, bool):
+        return v
+    s = str(v).upper() if v is not None else ""
+    return True if s == "PASS" else (False if s == "FAIL" else None)
+
+
+def verdict_tri(v: Any) -> str:
+    b = verdict_bool(v)
+    return "PASS" if b is True else ("FAIL" if b is False else "UNDECIDED")
+
+
+def v6_ran(conf: Mapping[str, Any] | None) -> bool | None:
+    """Whether the single V6 run's record set was complete: ``s2.status`` COMPLETE -> True, INCOMPLETE -> False,
+    absent -> None (the runner writes no separate V6 flag; S2 is scored from the V6 records alone)."""
+    st = conf_s2(conf).get("status")
+    return None if st is None else (str(st) == "COMPLETE")
+
+
+def s1_candidate_index(conf: Mapping[str, Any] | None) -> int | None:
+    """Index into ``claims`` of the S1(a) claim (family 'primary ...'), whose ``candidate`` is the arm S1 is decided for."""
+    for i, c in enumerate((conf or {}).get("claims") or []):
+        if str(c.get("family", "")).startswith("primary"):
+            return i
+    return None
+
+
+def confirmation_claim_key(c: Mapping[str, Any]) -> str:
+    """The report's contrast key of a confirmation claim: the runner writes ``claim`` as
+    '<candidate> vs <comparator> @ <design>@<design>' and the report keys contrasts as '<candidate> vs <comparator>@<design>';
+    a legacy ``contrast_key`` / ``contrast`` is taken as is."""
+    if c.get("contrast_key") or c.get("contrast"):
+        return str(c.get("contrast_key") or c.get("contrast"))
+    head = str(c.get("claim", "")).split(" @ ")[0].strip()
+    design = str(c.get("design", "")).strip()
+    return f"{head}@{design}" if head and design else head
+
+
+# --------------------------------------------------------------------------------------------- #
 # the deployed predictor, the claim table
 # --------------------------------------------------------------------------------------------- #
 
@@ -567,7 +629,9 @@ def parameter_status(arm: str) -> str:
 def claim_status(key: str, contrasts: pd.DataFrame | None, confirmation: Mapping[str, Any] | None) -> str:
     if confirmation is not None:
         for c in confirmation.get("claims") or []:
-            if str(c.get("contrast_key") or c.get("contrast")) == key:
+            # only a claim the single run COMPLETED is a confirmation result; an INCOMPLETE one carries no verdict
+            # (addendum 6 item 3(a)) and the row keeps its discovery numbers, with the incomplete block attached
+            if confirmation_claim_key(c) == key and str(c.get("status", "COMPLETE")) == "COMPLETE":
                 return STATUS_CONFIRMATION
     if contrasts is not None and "key" in contrasts.columns and (contrasts["key"].astype(str) == key).any():
         return STATUS_DISCOVERY
@@ -630,9 +694,15 @@ def build_claims(L: Ledger) -> list[dict[str, Any]]:
                                                   (L.rel("confirmation"), conf is not None)) if ok]}
         if conf is not None:
             for c in conf.get("claims") or []:
-                if str(c.get("contrast_key") or c.get("contrast")) == key:
-                    claim["confirmation"] = {k: c.get(k) for k in ("confirmed", "r19_verdict", "point", "percentile_low",
-                                                                    "percentile_high", "seeds_positive", "n_seeds")}
+                if confirmation_claim_key(c) == key:
+                    it4 = c.get("item4") or {}
+                    claim["confirmation"] = {"claim_id": c.get("claim_id"), "confirmed": c.get("confirmed"),
+                                             "r19_verdict": c.get("r19_verdict"), "status": c.get("status"),
+                                             "point": c.get("point"), "margin": c.get("margin"),
+                                             "seeds_positive": it4.get("n_positive", c.get("seeds_positive")),
+                                             "n_seeds": it4.get("n_seeds_scored", c.get("n_seeds")),
+                                             "tost_verdict": (c.get("tost") or {}).get("verdict"),
+                                             "items": [(i.get("item"), i.get("status")) for i in (c.get("items") or [])]}
         claims.append(claim)
     return claims
 
@@ -768,8 +838,8 @@ def confirmation_status_lines(L: Ledger) -> list[str]:
     confirmation half is ever read here)."""
     conf = L.json("confirmation")
     if conf is not None:
-        return [f"- confirmation decision file present: `{L.rel('confirmation')}` (S1 passed = {_json_str(L, 'confirmation', conf, 'S1.passed')}; "
-                f"S2 passed = {_json_str(L, 'confirmation', conf, 'S2.passed')}; V6 run = {_json_str(L, 'confirmation', conf, 'V6.run')})"]
+        return [f"- confirmation decision file present: `{L.rel('confirmation')}` (S1 verdict = {_json_str(L, 'confirmation', conf, 's1.verdict')}; "
+                f"S2 verdict = {_json_str(L, 'confirmation', conf, 's2.verdict')}; V6 record set = {_json_str(L, 'confirmation', conf, 's2.status')})"]
     lines = [f"- **the confirmation run (the frozen claims of `decisions/CONFIRMATION_PLAN.md` on the withheld seeds and the "
              f"confirmation half) and the single V6 Pr/Nd run: NOT_RUN** -- {L.missing(L.rel('confirmation'))}; nothing under "
              "`evaluation/confirmation/` exists, so no claim is confirmed, S2(a)-(c) are NOT_RUN, R19 item 4 stays NOT_EVALUATED "
@@ -923,9 +993,9 @@ def state_block(L: Ledger, ctx: Mapping[str, Any]) -> list[str]:
                      "Nothing has ever run on V6 or on the confirmation half of any design; the withheld seeds stay committed and unused "
                      "(`" + L.rel("seed_commitment") + "`). The cost and the blockers are under Q3 and 'What was not run and why'.")
     else:
-        lines.append(f"- Confirmation decision file present (`{L.rel('confirmation')}`): S1 passed = {_json_str(L, 'confirmation', conf, 'S1.passed')}; "
-                     f"S2 passed = {_json_str(L, 'confirmation', conf, 'S2.passed')}; V6 run = {_json_str(L, 'confirmation', conf, 'V6.run')}; "
-                     f"seeds verified = {_json_str(L, 'confirmation', conf, 'seeds.verified')}.")
+        lines.append(f"- Confirmation decision file present (`{L.rel('confirmation')}`): S1 verdict = {_json_str(L, 'confirmation', conf, 's1.verdict')}; "
+                     f"S2 verdict = {_json_str(L, 'confirmation', conf, 's2.verdict')}; V6 record set = {_json_str(L, 'confirmation', conf, 's2.status')}; "
+                     f"seeds verified against the commitment = {_json_str(L, 'confirmation', conf, 'seed_store.verified_against_commitment')}.")
     dec, stop = ctx.get("decisions"), ctx.get("stop_rule")
     if dec is None:
         lines.append(f"- Discovery scorer: {L.missing(L.rel('decisions'))}.")
@@ -1172,15 +1242,16 @@ def section_q2(L: Ledger, ctx: Mapping[str, Any]) -> list[str]:
 def section_q3(L: Ledger, ctx: Mapping[str, Any]) -> list[str]:
     dec, conf = ctx["decisions"], ctx["confirmation"]
     diff = ctx["difficulty"]
-    s2 = (conf or {}).get("S2") or {}
+    s2 = conf_s2(conf)
     if conf is None:
         head = (f"{HEAD_UNSHOWN} reconstruct Pr/Nd selectivity with the pair hidden: V6 is run once, at confirmation, and the "
                 f"confirmation run is NOT_RUN ({L.missing(L.rel('confirmation'))}) -- brief section 34 Q3 is not answered; S2(a)-(c) "
                 "are NOT_RUN and the selection-half S1(c) counterweight below is discovery only.")
     else:
-        passes = [s2.get(k, {}).get("pass") if isinstance(s2.get(k), Mapping) else None for k in ("a", "b", "c")]
-        overall = s2.get("passed")
-        if ((conf.get("V6") or {}).get("run")) is False:
+        passes = [verdict_bool((s2.get(S2_BLOCKS[k]) or {}).get("status")) if isinstance(s2.get(S2_BLOCKS[k]), Mapping)
+                  else None for k in ("a", "b", "c")]
+        overall = verdict_bool(s2.get("verdict")) if s2.get("status") == "COMPLETE" else None
+        if v6_ran(conf) is False:
             head = f"{HEAD_UNSHOWN} reconstruct Pr/Nd selectivity: the confirmation decision file says V6 has not run."
         elif all(p is True for p in passes) or (overall is True and all(p is None for p in passes)):
             head = f"{HEAD_CAN} reconstruct Pr/Nd selectivity in the 13 V6 systems: S2 passes in the single confirmation run."
@@ -1233,29 +1304,54 @@ def section_q3(L: Ledger, ctx: Mapping[str, Any]) -> list[str]:
     else:
         lines.append(f"- M2 V5-PAIR metrics: {L.missing(L.rel('discovery_pair_summary'))}")
     lines += ["", "**S2, V6** (confirmation only; sections 9 S2(a)-(d), 3.4; the confirmation decision file "
-              f"`{L.rel('confirmation')}`, schema gen19.confirmation.v1: `S1.passed`, `S1.deployed_predictor`, `S2.passed`, `V6.run`, "
-              "`seeds.verified`; the per-component blocks `S2.a`-`S2.d` and the `claims` list are read when the confirmation "
-              "orchestrator writes them):", ""]
+              f"`{L.rel('confirmation')}`, schema gen19.confirmation_decisions.v1 as the once-only runner writes it: `s1.verdict` / "
+              "`s1.components`, `s2.status` / `s2.verdict` and the blocks `s2.s2a`-`s2.s2d`, `seed_store.verified_against_commitment`, "
+              "the `claims` list keyed '<candidate> vs <comparator> @ <design>@<design>'; the per-system line reads "
+              "`evaluation/confirmation/v6_systems.csv`, written from that file by `scripts/g19_export_confirmation_views.py`):", ""]
     if conf is None:
         lines += [f"- S2(a), S2(b), S2(c): NOT_RUN -- {L.missing(L.rel('confirmation'))}", f"- {L.missing(L.rel('v6_systems'))}",
                   f"- {L.missing(L.rel('v6_pairs'))}", ""]
         lines += confirmation_status_lines(L)
     else:
-        lines += [f"- S1 passed at confirmation (deployed predictor {_json_str(L, 'confirmation', conf, 'S1.deployed_predictor')}): "
-                  f"**{_json_str(L, 'confirmation', conf, 'S1.passed')}**; S2 passed: **{_json_str(L, 'confirmation', conf, 'S2.passed')}**; "
-                  f"V6 run: {_json_str(L, 'confirmation', conf, 'V6.run')}; withheld seeds verified: "
-                  f"{_json_str(L, 'confirmation', conf, 'seeds.verified')}"]
+        ci = s1_candidate_index(conf)
+        cand = (_json_str(L, 'confirmation', conf, f'claims[{ci}].candidate') if ci is not None
+                else L.missing(L.rel('confirmation'), 'claims[primary].candidate'))
+        lines += [f"- S1 at confirmation (S1 candidate of the frozen plan: {cand}): "
+                  f"**{_json_str(L, 'confirmation', conf, 's1.verdict')}** (components {_json_str(L, 'confirmation', conf, 's1.components')}); "
+                  f"S2: **{_json_str(L, 'confirmation', conf, 's2.verdict')}** (V6 record set {_json_str(L, 'confirmation', conf, 's2.status')}, "
+                  f"{_json_value(L, 'confirmation', conf, 's2.n_systems_scored', 0)} systems scored); withheld seeds verified against the commitment: "
+                  f"{_json_str(L, 'confirmation', conf, 'seed_store.verified_against_commitment')}"]
         for k, text in (("a", "sign of logSF in >= 11 of 13 systems and paired direction +0.05 over every yardstick"),
                         ("b", "logSF MAE <= FLAT - 0.02 and <= lookup-derived; hidden Pr/Nd log D MAE <= L5"),
                         ("c", "pooled logSF interval coverage: 80 % in [0.70, 0.90], 95 % >= 0.88"),
                         ("d", "top recipe identity kept in >= 0.80 of the D-draw re-rankings (only if Phase H ran)")):
-            blk = s2.get(k)
-            if blk is None:
-                lines.append(f"- S2({k}) {text}: {L.missing(L.rel('confirmation'), f'S2.{k}')}")
+            b = S2_BLOCKS[k]
+            blk = s2.get(b)
+            if not isinstance(blk, Mapping):
+                lines.append(f"- S2({k}) {text}: {L.missing(L.rel('confirmation'), f's2.{b}')}")
+                continue
+            # the scalars of the block, each cited by its own key so it re-resolves from the file
+            if k == "a":
+                detail = [f"sign agrees in {_json_value(L, 'confirmation', conf, f's2.{b}.sign.n_sign_agree', 0)} of "
+                          f"{_json_value(L, 'confirmation', conf, f's2.{b}.sign.n_systems_scored', 0)} systems (required "
+                          f"{_json_value(L, 'confirmation', conf, f's2.{b}.sign.required', 0)})"]
+                for st in ("pooled", "HNO3"):
+                    if isinstance((blk.get("direction") or {}).get(st), Mapping):
+                        detail.append(f"min_Y Delta_Y {st} = {_json_value(L, 'confirmation', conf, f's2.{b}.direction.{st}.min_delta')} "
+                                      f"({_json_str(L, 'confirmation', conf, f's2.{b}.direction.{st}.status')}, binding "
+                                      f"{_json_str(L, 'confirmation', conf, f's2.{b}.direction.{st}.binding_yardstick')})")
+            elif k == "c":
+                detail = [f"coverage {lvl} % = {_json_value(L, 'confirmation', conf, f's2.{b}.coverage.{lvl}')}"
+                          for lvl in ("80", "95") if lvl in (blk.get("coverage") or {})]
+                detail.append(f"primary reading {_json_str(L, 'confirmation', conf, f's2.{b}.primary_reading')}")
             else:
-                lines.append(f"- S2({k}) {text}: **{_json_str(L, 'confirmation', conf, f'S2.{k}.pass')}** -- "
-                             + "; ".join(f"{kk} = {_json_value(L, 'confirmation', conf, f'S2.{k}.{kk}') if isinstance(vv, (int, float)) and not isinstance(vv, bool) else _json_str(L, 'confirmation', conf, f'S2.{k}.{kk}')}"
-                                         for kk, vv in blk.items() if kk != "pass"))
+                detail = [f"{kk} = {_json_value(L, 'confirmation', conf, f's2.{b}.{kk}')}" for kk, vv in blk.items()
+                          if isinstance(vv, (int, float)) and not isinstance(vv, bool)]
+                detail += [f"{kk} = {_json_str(L, 'confirmation', conf, f's2.{b}.{kk}')}" for kk, vv in blk.items()
+                           if isinstance(vv, bool)]
+                if k == "d" and blk.get("why"):
+                    detail.append(str(blk.get("why")))
+            lines.append(f"- S2({k}) {text}: **{_json_str(L, 'confirmation', conf, f's2.{b}.status')}** -- " + "; ".join(detail))
         v6 = L.csv("v6_systems")
         if v6 is not None:
             n_ok = int((v6["sign_agrees"].astype(str).str.lower() == "true").sum()) if "sign_agrees" in v6.columns else None
@@ -1966,7 +2062,7 @@ def process_design_count_lines(L: Ledger, ps: Mapping[str, Any], MC: Any) -> lis
 def _s1_pass(ctx: Mapping[str, Any]) -> str | None:
     conf = ctx.get("confirmation")
     if conf is not None:
-        return f"S1 at confirmation: passed = {((conf.get('S1') or {}).get('passed'))}"
+        return f"S1 at confirmation: verdict = {conf_s1(conf).get('verdict')}"
     s1 = ((ctx["decisions"] or {}).get("S1_components") or {})
     a = (s1.get("S1a_M2_vs_B3i") or {}).get("reported_verdict")
     return None if a is None else f"S1(a) {a} in discovery; no confirmation decision yet"
@@ -2065,20 +2161,21 @@ def verdict_table(L: Ledger, ctx: Mapping[str, Any]) -> tuple[list[str], list[di
     s1_all = s1_overall(dec)
     add("S1 (overall, discovery)", "section 9: All of (a)-(e); decided on the confirmation half with the withheld seeds",
         s1_all if s1_all else L.missing(L.rel("decisions"), "S1_components"), st_s1 if s1_all else STATUS_NOT_RUN, L.rel("decisions"))
-    def tri(v: Any) -> str:
-        return "PASS" if v is True else ("FAIL" if v is False else "UNDECIDED")
-    s1c_conf = ((conf or {}).get("S1") or {}).get("passed") if conf else None
-    add("S1 (confirmation)", "S1 passed for the deployed predictor on the confirmation half, 5 of 5 withheld seeds",
-        tri(s1c_conf) if conf else f"UNDECIDED -- confirmation run NOT_RUN ({L.missing(L.rel('confirmation'), 'S1.passed')})",
+    tri = verdict_tri
+    s1c_conf = conf_s1(conf).get("verdict") if conf else None
+    add("S1 (confirmation)", "S1 for the frozen plan's S1 candidate on the confirmation half, 5 of 5 withheld seeds",
+        tri(s1c_conf) if conf else f"UNDECIDED -- confirmation run NOT_RUN ({L.missing(L.rel('confirmation'), 's1.verdict')})",
         STATUS_CONFIRMATION if conf else STATUS_NOT_RUN, L.rel("confirmation"))
-    s2 = (conf or {}).get("S2") or {}
+    s2 = conf_s2(conf)
     add("S2 (overall)", "S2 passed in the single V6 confirmation run",
-        tri(s2.get("passed")) if conf else f"NOT_RUN ({L.missing(L.rel('confirmation'), 'S2.passed')})",
+        (tri(s2.get("verdict")) if s2.get("status") == "COMPLETE" else f"UNDECIDED (V6 record set {s2.get('status')})") if conf
+        else f"NOT_RUN ({L.missing(L.rel('confirmation'), 's2.verdict')})",
         STATUS_CONFIRMATION if conf else STATUS_NOT_RUN, L.rel("confirmation"))
     for k, rule in (("a", "sign in >= 11 of 13 systems; paired direction +0.05"), ("b", "logSF MAE <= FLAT - 0.02 and <= lookup; log D MAE <= L5"),
                     ("c", "pooled coverage 80 % in [0.70, 0.90], 95 % >= 0.88"), ("d", "top recipe stable in >= 0.80 of re-rankings (only if Phase H runs)")):
-        blk = s2.get(k) if isinstance(s2.get(k), Mapping) else None
-        v = tri(blk.get("pass")) if blk else f"NOT_RUN ({L.missing(L.rel('confirmation'), f'S2.{k}')})"
+        blk = s2.get(S2_BLOCKS[k]) if isinstance(s2.get(S2_BLOCKS[k]), Mapping) else None
+        v = ((tri(blk.get("status")) if verdict_bool(blk.get("status")) is not None else str(blk.get("status")))
+             if blk else f"NOT_RUN ({L.missing(L.rel('confirmation'), f's2.{S2_BLOCKS[k]}')})")
         add(f"S2({k})", rule, v, STATUS_CONFIRMATION if blk else STATUS_NOT_RUN, L.rel("confirmation"))
     f1 = L.json("f1_check")
     add("F1", "gains only on random split (V0 beats B3, S1(a) fails, V1 interval includes 0)",
@@ -2596,7 +2693,7 @@ def build_report(root: Path, *, extra: Mapping[str, Any] | None = None) -> dict[
               "deployed_predictor": ctx["deployed"]}
     conf = ctx["confirmation"]
     run_state = {"confirmation_run": ("decided" if conf is not None else "NOT_RUN"),
-                 "v6_run": (str(((conf or {}).get("V6") or {}).get("run")) if conf is not None else "NOT_RUN"),
+                 "v6_run": (str(v6_ran(conf)) if conf is not None else "NOT_RUN"),
                  # scope (task X finding V-TR-03): item 4 leaves every FULL R19 verdict of a learned-arm contrast -- hence S1
                  # and S2 -- UNDECIDED; the non-R19 verdicts (S1(d), F3, F4) are decided in the verdict table
                  "every_full_r19_verdict_of_a_learned_arm_contrast_undecided": conf is None,
@@ -2728,7 +2825,7 @@ def d02_text(L: Ledger, ctx: Mapping[str, Any], extra: Mapping[str, Any]) -> str
               (f"- confirmation run (section 15): NOT_RUN -- {L.missing(L.rel('confirmation'))}; every full R19 verdict above stays UNDECIDED "
                "(R19 item 4 NOT_EVALUATED in discovery) and no H1 / H1b / H4 contrast is a null (section 8; no INFORMATIVE_NULL power record exists)"
                if conf is None else
-               f"- confirmation run (section 15): decided -- `{L.rel('confirmation')}`, S1 passed = {_json_str(L, 'confirmation', conf, 'S1.passed')}"),
+               f"- confirmation run (section 15): decided -- `{L.rel('confirmation')}`, S1 verdict = {_json_str(L, 'confirmation', conf, 's1.verdict')}"),
               "",
               "## next action", "",
               "- confirmation of the frozen claims (<= 5, `decisions/CONFIRMATION_PLAN.md`) on the withheld seeds and the confirmation "

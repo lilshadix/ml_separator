@@ -275,15 +275,31 @@ def write_inputs(root: Path, *, with_confirmation: bool = False) -> None:
                             {"path": "dataset_all_metals/README.md", "sha256": "ab" * 32, "is_headline_dataset_hash": False}]),
               root / "data_audit" / "dataset_hashes.csv")
     if with_confirmation:
-        # the confirmation decision file of the process runner's schema (gen19.confirmation.v1) plus the per-component
-        # blocks and the claim list the confirmation orchestrator will add
+        # the confirmation decision file AS THE ONCE-ONLY RUNNER WRITES IT (schema gen19.confirmation_decisions.v1;
+        # g19_run_confirmation.decisions_body): s1.verdict, s2.status / s2.verdict / s2a..s2d blocks with a status,
+        # seed_store.verified_against_commitment, claims[] keyed 'M2 vs B0 @ V5@V5'.  The report used to be tested against a
+        # shape (S1.passed, S2.a.pass, V6.run, seeds.verified) the runner never wrote (task X finding, 2026-09-26).
         write_json(ev / "confirmation" / "decisions" / "confirmation.json",
-                   {"schema": "gen19.confirmation.v1", "S1": {"passed": False, "deployed_predictor": "B3i"},
-                    "V6": {"run": True}, "seeds": {"verified": True},
-                    "claims": [{"contrast_key": "M2 vs B0@V5", "confirmed": True, "r19_verdict": "PASS", "point": 0.8,
-                                "percentile_low": 0.6, "percentile_high": 1.0, "seeds_positive": 5, "n_seeds": 5}],
-                    "S2": {"passed": False, "a": {"pass": True, "n_sign_agree": 12, "n_systems": 13},
-                           "b": {"pass": False, "logsf_mae": 0.7, "flat": 0.72}, "c": {"pass": True, "coverage_80": 0.81, "coverage_95": 0.93}}})
+                   {"schema": "gen19.confirmation_decisions.v1", "confirmation_schema": "gen19.confirmation.v1",
+                    "s1": {"verdict": "FAIL", "components": {"S1a": "PASS", "S1b": "FAIL", "S1c": "FAIL", "S1d": "FAIL",
+                                                             "S1e": "NOT_COMPUTED"}},
+                    "seed_store": {"verified_against_commitment": True, "n_seeds": 5, "values": "withheld"},
+                    "claims": [{"claim_id": "C2", "claim": "M2 vs B0 @ V5@V5", "family": "S1(b)", "design": "V5",
+                                "candidate": "M2", "comparator": "B0", "status": "COMPLETE", "confirmed": True,
+                                "r19_verdict": "PASS", "point": 0.8, "margin": 0.1,
+                                "item4": {"n_positive": 5, "n_seeds_scored": 5, "status": "PASS"},
+                                "items": [{"item": i, "status": "PASS"} for i in range(1, 7)], "tost": {"verdict": "non_inferior"}},
+                               {"claim_id": "C1", "claim": "M2 vs B3i @ V5@V5", "family": "primary (H1, S1(a))", "design": "V5",
+                                "candidate": "M2", "comparator": "B3i", "status": "INCOMPLETE", "confirmed": False,
+                                "r19_verdict": "UNDECIDED", "point": None, "items": [], "item4": {}}],
+                    "s2": {"status": "COMPLETE", "verdict": "FAIL", "n_systems_scored": 13,
+                           "s2a": {"status": "PASS", "sign": {"n_sign_agree": 12, "n_systems_scored": 13, "required": 11},
+                                   "direction": {"pooled": {"min_delta": 0.07, "status": "PASS", "binding_yardstick": "B8"},
+                                                 "HNO3": {"min_delta": 0.06, "status": "PASS", "binding_yardstick": "HEAVIER"}}},
+                           "s2b": {"status": "FAIL", "logsf_mae": 0.7, "flat_logsf_mae": 0.72, "gain_over_flat": 0.02,
+                                   "beats_flat_by_margin": False},
+                           "s2c": {"status": "PASS", "coverage": {"80": 0.81, "95": 0.93}, "primary_reading": "pair_conformal"},
+                           "s2d": {"status": "NOT_RUN", "why": "conditional on Phase H"}}})
         write_csv(pd.DataFrame([{"system": f"S{i}", "sign_agrees": i != 3, "n_pairs": 10 + i} for i in range(13)]),
                   ev / "confirmation" / "v6_systems.csv")
         # the process runner's outputs (an --exploratory run: everything labelled transfer-unsupported)

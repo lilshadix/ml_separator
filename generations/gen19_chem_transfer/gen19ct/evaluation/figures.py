@@ -481,11 +481,18 @@ def fig11_extractant_embedding(emb: pd.DataFrame | None, figures_dir: Path, *, i
 # --------------------------------------------------------------------------------------------- #
 
 def fig12_prnd_reconstruction(rows: pd.DataFrame | None, pairs: pd.DataFrame | None, figures_dir: Path, *,
-                              inputs: Iterable[str], arm: str = "deployed") -> FigureResult:
+                              inputs: Iterable[str], arm: str = "deployed",
+                              systems: pd.DataFrame | None = None) -> FigureResult:
     """``rows``: the confirmation run's hidden Pr / Nd rows (``system``, ``metal_state``, ``log_D``, ``mean_logD``,
     ``lower_80``, ``upper_80``); ``pairs``: per system observed and predicted logSF (``system``, ``observed_logsf``,
-    ``predicted_logsf``).  Only the confirmation files feed this figure (V6 is touched once, section 3.4)."""
-    if (rows is None or not len(rows)) and (pairs is None or not len(pairs)):
+    ``predicted_logsf``); ``systems``: the run's OWN per-system medians and sign verdicts (``v6_systems.csv``: ``system``,
+    ``observed_median_logsf``, ``predicted_median_logsf``, ``sign_agrees``) -- when given, the right panel draws THOSE,
+    so the figure shows exactly the numbers S2(a)'s sign count was decided on (the seed mean of the per-seed medians,
+    addendum 6 item 1) rather than a median recomputed over the pooled pairs.  Only the confirmation files feed this
+    figure (V6 is touched once, section 3.4)."""
+    if systems is not None and not len(systems):
+        systems = None
+    if (rows is None or not len(rows)) and (pairs is None or not len(pairs)) and systems is None:
         return skipped("F12", "no confirmation V6 files (evaluation/confirmation/v6_rows.csv, v6_pairs.csv): V6 is run once, "
                               "at confirmation", inputs)
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12.4, 5.2))
@@ -514,12 +521,27 @@ def fig12_prnd_reconstruction(rows: pd.DataFrame | None, pairs: pd.DataFrame | N
         data.append({"panel": "rows", "system_macro_mae": mae, "n_systems": n, "n_rows": int(len(rows))})
     else:
         ax1.set_title("hidden Pr / Nd rows: not computed (input missing)", fontsize=9)
-    if pairs is not None and len(pairs):
-        med = pairs.groupby(pairs["system"].astype(str)).agg(observed=("observed_logsf", "median"),
-                                                             predicted=("predicted_logsf", "median"), n=("observed_logsf", "size"))
+    if systems is not None or (pairs is not None and len(pairs)):
+        if systems is not None:
+            med = pd.DataFrame({"observed": pd.to_numeric(systems["observed_median_logsf"], errors="coerce").to_numpy(),
+                                "predicted": pd.to_numeric(systems["predicted_median_logsf"], errors="coerce").to_numpy()},
+                               index=systems["system"].astype(str).to_numpy())
+            if pairs is not None and len(pairs):
+                med["n"] = pairs.groupby(pairs["system"].astype(str)).size().reindex(med.index).fillna(0).astype(int)
+            else:
+                med["n"] = 0
+            src_note = "the run's own per-system medians (seed mean of per-seed medians, v6_systems.csv)"
+        else:
+            med = pairs.groupby(pairs["system"].astype(str)).agg(observed=("observed_logsf", "median"),
+                                                                 predicted=("predicted_logsf", "median"), n=("observed_logsf", "size"))
+            src_note = "medians recomputed over the pooled pairs (v6_pairs.csv)"
         ax2.axhline(0, color="#8a8a8a", lw=0.8)
         ax2.axvline(0, color="#8a8a8a", lw=0.8)
-        agree = np.sign(med["observed"]) == np.sign(med["predicted"])
+        if systems is not None and "sign_agrees" in systems.columns:
+            agree = pd.Series(systems["sign_agrees"].astype(str).str.lower().eq("true").to_numpy(),
+                              index=systems["system"].astype(str).to_numpy()).reindex(med.index).fillna(False)
+        else:
+            agree = np.sign(med["observed"]) == np.sign(med["predicted"])
         ax2.scatter(med["observed"], med["predicted"], s=40, c=np.where(agree, "#1b7f3b", "#c2185b"), edgecolors="white")
         for sysk, r in med.iterrows():
             ax2.annotate(f"{str(sysk)[:12]} (n={int(r['n'])})", (r["observed"], r["predicted"]), fontsize=6, xytext=(3, 3),
@@ -527,7 +549,8 @@ def fig12_prnd_reconstruction(rows: pd.DataFrame | None, pairs: pd.DataFrame | N
             data.append({"panel": "pairs", "system": sysk, "observed_median_logsf": r["observed"],
                          "predicted_median_logsf": r["predicted"], "n_pairs": int(r["n"]), "sign_agrees": bool(agree.loc[sysk])})
         ax2.set_title(f"per-system median logSF(Nd/Pr): sign agrees in {int(agree.sum())} of {len(med)} systems "
-                      f"(S2(a) needs >= 11 of 13)", fontsize=9)
+                      f"(S2(a) needs >= 11 of 13)\n{src_note}", fontsize=8.5)
+        data.append({"panel": "pairs_source", "source": src_note})
         ax2.set_xlabel("observed median logSF")
         ax2.set_ylabel("predicted median logSF")
         ax2.grid(**GRID)

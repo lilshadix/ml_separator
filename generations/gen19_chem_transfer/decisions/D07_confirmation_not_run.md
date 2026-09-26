@@ -119,4 +119,8 @@ happened.
   runner refuses with or without `--resume` (addendum 8 item 2).
 
 The full status record, including what is and is not in version control, is `evaluation/confirmation/RUN_STATUS.md`.
-Step 6 ('After the run') is still outstanding and is what a session must do when `confirmation.json` appears.
+Step 6 ('After the run') is still outstanding and is what a session must do when `confirmation.json` appears -- in the
+order RUN_STATUS.md 'After the run completes' gives, because on 2026-09-26 a rehearsal of that step against a synthetic
+finished run found that the report and the process gate read a decision-file schema the runner never writes and that
+F12 read files no stage produced (both fixed outside the frozen code: `report.py` / `g19_run_process.py` readers,
+`scripts/g19_export_confirmation_views.py`).

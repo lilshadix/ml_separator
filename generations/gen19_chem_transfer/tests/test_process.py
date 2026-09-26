@@ -558,9 +558,16 @@ def _stop(out: Path, stop):
 
 
 def _conf(out: Path, s1, deployed="M2", s2=None, v6=False):
+    """The decision file in the once-only runner's schema: a bool maps to the verdict word, ``v6`` to ``s2.status``."""
     RP = _runner()
-    write_json(RP.confirmation_path(out), {"schema": RP.CONFIRMATION_SCHEMA, "S1": {"passed": s1, "deployed_predictor": deployed},
-                                           "S2": {"passed": s2}, "V6": {"run": v6}, "seeds": {"verified": True}})
+    word = {True: "PASS", False: "FAIL", None: "UNDECIDED"}
+    write_json(RP.confirmation_path(out), {
+        "schema": RP.CONFIRMATION_DECISION_SCHEMA, "confirmation_schema": RP.CONFIRMATION_SCHEMA,
+        "s1": {"verdict": word[s1]},
+        "claims": [{"claim_id": "C1", "claim": f"{deployed} vs B3i @ V5@V5", "family": "primary (H1, S1(a))", "design": "V5",
+                    "candidate": deployed, "comparator": "B3i"}],
+        "s2": {"status": "COMPLETE" if v6 else "INCOMPLETE", "verdict": word[s2]},
+        "seed_store": {"verified_against_commitment": True}})
 
 
 def test_runner_refuses_without_the_decision_files(tmp_path):
@@ -601,7 +608,7 @@ def test_runner_refuses_without_the_decision_files(tmp_path):
         RP.refuse_unless_ready(out, **kw)
     _stop(out, False)
     # (d) confirmation decision missing -> refused unless --exploratory (then labelled transfer-unsupported)
-    with pytest.raises(SystemExit, match="S1.passed is undecided"):
+    with pytest.raises(SystemExit, match="S1 is undecided"):
         RP.refuse_unless_ready(out, **kw)
     gate = RP.refuse_unless_ready(out, exploratory=True, **kw)
     assert gate["label"]["label"] == RP.TRANSFER_UNSUPPORTED and gate["label"]["headline_allowed"] is False
@@ -622,11 +629,14 @@ def test_runner_refuses_without_the_decision_files(tmp_path):
     # the stop rule fired but --exploratory: runs, labelled
     _stop(out, True)
     assert RP.refuse_unless_ready(out, exploratory=True, **kw)["label"]["label"] == RP.TRANSFER_UNSUPPORTED
-    # a foreign schema is refused
+    # a foreign schema is refused; the legacy shape is still read
     _stop(out, False)
     write_json(RP.confirmation_path(out), {"schema": "other", "S1": {"passed": True}})
     with pytest.raises(SystemExit, match="schema"):
         RP.refuse_unless_ready(out, **kw)
+    write_json(RP.confirmation_path(out), {"schema": RP.CONFIRMATION_SCHEMA, "S1": {"passed": True, "deployed_predictor": "M2"},
+                                           "S2": {"passed": True}, "V6": {"run": True}, "seeds": {"verified": True}})
+    assert RP.refuse_unless_ready(out, **kw)["label"]["label"] == "registered"
 
 
 def test_runner_case_helpers_and_outputs_on_a_synthetic_case(tmp_path):

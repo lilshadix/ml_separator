@@ -448,7 +448,10 @@ def confirmation_inputs(out_root: Path) -> dict[str, Any]:
 
     d = Path(out_root) / CONFIRMATION_DIR
     rows, pairs = _read_csv(d / "v6_rows.csv"), _read_csv(d / "v6_pairs.csv")
-    used = [f"{CONFIRMATION_DIR}/{n}" for n, x in (("v6_rows.csv", rows), ("v6_pairs.csv", pairs)) if x is not None]
+    # the run's own per-system medians and sign verdicts (scripts/g19_export_confirmation_views.py): F12's right panel
+    systems = _read_csv(d / "v6_systems.csv")
+    used = [f"{CONFIRMATION_DIR}/{n}" for n, x in (("v6_rows.csv", rows), ("v6_pairs.csv", pairs), ("v6_systems.csv", systems))
+            if x is not None]
     decided, started = CF.decisions_path(out_root).exists(), CF.started_path(out_root).exists()
     missing = [f"{CONFIRMATION_DIR}/{n}" for n, x in (("v6_rows.csv", rows), ("v6_pairs.csv", pairs)) if x is None]
     if not decided and not started:
@@ -456,8 +459,8 @@ def confirmation_inputs(out_root: Path) -> dict[str, Any]:
                   "only inside the confirmation run, whose once-only lock is unspent)") if missing else ""
     else:
         reason = f"input missing: {', '.join(missing)}" if missing else ""
-    return {"rows": rows, "pairs": pairs, "inputs": used, "run_decided": decided, "run_started": started,
-            "skip_reason": reason}
+    return {"rows": rows, "pairs": pairs, "systems": systems, "inputs": used, "run_decided": decided,
+            "run_started": started, "skip_reason": reason}
 
 
 # ============================================================================================= #
@@ -597,13 +600,13 @@ def make_all(out_root: Path, *, only: Sequence[str] | None = None, n_resamples: 
             results.append(r11)
     if "F12" in want:
         conf = confirmation_inputs(out_root)
-        if conf["rows"] is None and conf["pairs"] is None:
+        if conf["rows"] is None and conf["pairs"] is None and conf.get("systems") is None:
             results.append(FG.skipped("F12", conf["skip_reason"] or f"input missing: {CONFIRMATION_DIR}/v6_rows.csv, "
                                                                      f"{CONFIRMATION_DIR}/v6_pairs.csv",
                                       [f"{CONFIRMATION_DIR}/v6_rows.csv", f"{CONFIRMATION_DIR}/v6_pairs.csv"]))
         else:
             results.append(FG.fig12_prnd_reconstruction(conf["rows"], conf["pairs"], figures_dir, inputs=conf["inputs"],
-                                                        arm=arm or "deployed"))
+                                                        arm=arm or "deployed", systems=conf.get("systems")))
     for r in results:
         if r.status == "written":
             outs.append(resolve_figure_output(out_root, r.path))
