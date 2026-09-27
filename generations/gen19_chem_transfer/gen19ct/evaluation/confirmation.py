@@ -148,6 +148,15 @@ READINGS: dict[str, str] = {
                   "the store again",
     "seed_disclosure": SEED_DISCLOSURE,
     "seed_revelation": SEED_REVELATION,
+    "seed_leak_scan_token": "POST-HOC addendum 9 item 1: a withheld seed APPEARS in a file when its decimal form occurs "
+                            "as a whole number token -- not preceded by a digit or a decimal point, not followed by a "
+                            "digit (seed_pattern). The single run's writer stage refused on 2026-09-27 under the "
+                            "earlier any-substring reading: 24 of 3,965 record JSONs held a seed's six digits INSIDE "
+                            "the 14-16-digit mantissa of a float (split_unit_errors[].sum_abs_error, "
+                            "fits[].valid_macro_mae, selection.inner_fold_macro_mae), diagnosed value-blind (key "
+                            "path and type only; no leaf equal to a seed, no string field naming one). The scan "
+                            "stays total over every byte of every file the run wrote; the scrub is unchanged; no "
+                            "record, table or verdict was modified",
     "completeness_unit": "POST-HOC addendum 6 item 3: the completeness unit is the CONTRAST RECORD SET, not the design "
                          "-- a design may carry a verdict on one complete contrast while another contrast of the same "
                          "design is incomplete, reported with its own status and carrying no verdict, no per-unit row "
@@ -677,13 +686,26 @@ def scrub_frame(frame: pd.DataFrame, store: SeedStore) -> pd.DataFrame:
     return out
 
 
+def seed_pattern(seed: int) -> "re.Pattern[bytes]":
+    """The decimal form of ``seed`` as a WHOLE NUMBER TOKEN in raw bytes: not preceded by a digit or a decimal point and
+    not followed by a digit (POST-HOC addendum 9 item 1; :data:`READINGS` ``seed_leak_scan_token``).
+
+    ``"seed": 123457``, ``s123457_C_b000`` and ``123457.0`` match; ``0.123457789`` (a mantissa), ``12123457.5`` and
+    ``1123457`` do not.  Under the earlier any-substring reading the finished run refused on 24 record JSONs whose float
+    mantissas happened to contain a seed's six digits -- an event that is expected, not rare, over ~4,000 records with
+    hundreds of 15-digit floats each and five needles.
+    """
+    return re.compile(rb"(?<![0-9.])" + re.escape(str(int(seed)).encode()) + rb"(?![0-9])")
+
+
 def scan_for_seed_leak(store: SeedStore, targets: Iterable[Path | str], *, extra_text: Iterable[str] = (),
                        allow: Iterable[Path | str] = (), require: Iterable[Path | str] = ()) -> dict[str, Any]:
     """Re-read every file the run wrote (and any captured log text) and refuse if a seed's decimal form appears.
 
-    The check is deliberately crude and total: a withheld seed is a 6-digit integer, so ``str(seed)`` is searched as a
-    substring of the raw bytes of every listed file, whatever its format.  Its own report records only the COUNT of
-    files scanned and the verdict -- never which seed, never where.
+    The check is total: every byte of every listed file, whatever its format, is searched for each withheld seed as a
+    whole number token (:func:`seed_pattern`; addendum 9 item 1 -- a seed's digits inside the mantissa of an unrelated
+    float are not an appearance).  Its own report records only the COUNT of files scanned and the verdict -- never
+    which seed, never where.
 
     ``allow`` and ``require`` implement POST-HOC addendum 6 item 4 (:data:`SEED_REVELATION`): the run scans everything it
     wrote BEFORE ``decisions/CONFIRMATION.md`` exists, and once that file is written it is scanned again with the report
@@ -691,7 +713,7 @@ def scan_for_seed_leak(store: SeedStore, targets: Iterable[Path | str], *, extra
     section 15's revelation did not happen).  A file in ``allow`` that is not in ``require`` is merely exempt.
     """
     hits: list[str] = []
-    needles = [str(s).encode() for s in store.values]
+    needles = [seed_pattern(s) for s in store.values]
     allowed = {str(Path(a).resolve()) for a in allow}
     required = {str(Path(r).resolve()): r for r in require}
     found_required: dict[str, int] = {}
@@ -704,13 +726,13 @@ def scan_for_seed_leak(store: SeedStore, targets: Iterable[Path | str], *, extra
             n += 1
             b = f.read_bytes()
             key = str(f.resolve())
-            n_seeds_named = sum(1 for x in needles if x in b)
+            n_seeds_named = sum(1 for x in needles if x.search(b))
             if key in required:
                 found_required[str(required[key])] = n_seeds_named
             if n_seeds_named and key not in allowed:
                 hits.append(str(f))
     for txt in extra_text:
-        if any(x.decode() in str(txt) for x in needles):
+        if any(x.search(str(txt).encode("utf-8", "replace")) for x in needles):
             hits.append("<log text>")
     missing = sorted(k for k, v in found_required.items() if v != len(needles))
     for r in required.values():
@@ -720,8 +742,10 @@ def scan_for_seed_leak(store: SeedStore, targets: Iterable[Path | str], *, extra
             "files_containing_a_withheld_seed": sorted(set(hits)),
             "revelation_files": sorted(str(Path(a)) for a in allow),
             "revelation_incomplete": sorted(set(missing)),
-            "rule": "no withheld seed's decimal form may appear in any file this run wrote or in its log, EXCEPT "
-                    "decisions/CONFIRMATION.md written last, which must name all five (addendum 6 item 4)"}
+            "rule": "no withheld seed's decimal form may appear, as a whole number token (seed_pattern; addendum 9 "
+                    "item 1), in any file this run wrote or in its log, EXCEPT decisions/CONFIRMATION.md written last, "
+                    "which must name all five (addendum 6 item 4)",
+            "reading": READINGS["seed_leak_scan_token"]}
 
 
 # --------------------------------------------------------------------------------------------- #

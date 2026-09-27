@@ -352,6 +352,7 @@ def s1_decision(conf: Mapping[str, Any] | None) -> dict[str, Any]:
         s1, s2, store = (conf.get(k) or {} for k in ("s1", "s2", "seed_store"))
         complete = str(s2.get("status")) == "COMPLETE" if s2.get("status") is not None else None
         return {"present": True, "schema": conf.get("schema"), "confirmation_schema": conf.get("confirmation_schema"),
+                "s1_verdict": s1.get("verdict"), "s2_verdict": s2.get("verdict"), "s2_status": s2.get("status"),
                 "s1_passed": verdict_bool(s1.get("verdict")), "deployed_predictor": s1_candidate(conf),
                 "s2_passed": verdict_bool(s2.get("verdict")) if complete else None, "v6_run": complete,
                 "seeds_verified": (None if store.get("verified_against_commitment") is None
@@ -798,6 +799,14 @@ def d06_markdown(out_root: Path) -> str:
     where a file is absent): question, evidence, metrics, verdict, decision, next action."""
     root = process_root(out_root)
     summary = D.read_record(root / "summary.json")
+    # the confirmation gate block is RE-READ from the decision file when D06 is written: the block inside summary.json is
+    # the one the Monte Carlo ran under, and D06 may be regenerated (--decision-only) after the confirmation run decided;
+    # the gate line says so
+    if summary and isinstance((summary.get("gate") or {}).get("confirmation"), Mapping):
+        now = s1_decision(read_confirmation(out_root))
+        summary = {**summary, "gate": {**summary["gate"], "confirmation": {
+            **summary["gate"]["confirmation"], **now, "path": str(confirmation_path(out_root)),
+            "md_present": confirmation_md_path(out_root).exists(), "re_read_at_decision_time": True}}}
     win = pd.read_csv(root / "winners.csv") if (root / "winners.csv").exists() else None
     stab = D.read_record(root / "stability.json")
     f5 = D.read_record(root / "f5.json")
@@ -834,11 +843,15 @@ def d06_markdown(out_root: Path) -> str:
                                         f"from {inp.get('rho_path')}") if x)
         lines += [f"- Gate: seal digest `{str(seal_digest)[:12]}...`; discovery complete "
                   f"= {(g.get('discovery_complete') or {}).get('complete', NOT_COMPUTED)}; stop rule = "
-                  f"{(g.get('stop_rule') or {}).get('stop', NOT_COMPUTED)}; S1 passed = "
-                  f"{confirmation_field(conf, 's1_passed', 'S1.passed')} (deployed predictor "
-                  f"`{confirmation_field(conf, 'deployed_predictor', 'S1.deployed_predictor')}`); S2 passed = "
-                  f"{confirmation_field(conf, 's2_passed', 'S2.passed')}; "
-                  f"V6 run = {confirmation_field(conf, 'v6_run', 'V6.run')}; exploratory = {g.get('exploratory', NOT_COMPUTED)}.",
+                  f"{(g.get('stop_rule') or {}).get('stop', NOT_COMPUTED)}; S1 = "
+                  f"{conf.get('s1_verdict') or confirmation_field(conf, 's1_passed', 'S1.passed')} (S1 candidate of the frozen plan "
+                  f"`{confirmation_field(conf, 'deployed_predictor', 'S1.deployed_predictor')}`; the deployed arm is the ladder's, M0); S2 = "
+                  f"{conf.get('s2_verdict') or confirmation_field(conf, 's2_passed', 'S2.passed')}"
+                  + (f" (V6 record set {conf.get('s2_status')})" if conf.get('s2_status') else
+                     f"; V6 run = {confirmation_field(conf, 'v6_run', 'V6.run')}")
+                  + f"; exploratory = {g.get('exploratory', NOT_COMPUTED)}"
+                  + ("; confirmation block re-read from the decision file when D06 was written" if conf.get("re_read_at_decision_time") else "")
+                  + ".",
                   f"- Predictions: `{inp.get('predictions_path', NOT_COMPUTED)}` (arm `{inp.get('arm', NOT_COMPUTED)}`, "
                   f"{inp.get('n_cells', NOT_COMPUTED)} grid cells, statuses {inp.get('table_statuses', NOT_COMPUTED)}; "
                   f"registered run on the supported box {inp.get('supported_box', NOT_COMPUTED)}); residual correlation used for "

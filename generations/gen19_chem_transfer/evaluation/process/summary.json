@@ -511,22 +511,24 @@
   ],
   "gate": {
     "confirmation": {
-      "deployed_predictor": null,
+      "confirmation_schema": "gen19.confirmation.v1",
+      "deployed_predictor": "M2",
       "keys": {
-        "S1.deployed_predictor": "str: the arm deployed (M2, M1, or the best-passing baseline under F6)",
-        "S1.passed": "bool: section 9 S1 passed on the confirmation half with 5 of 5 withheld seeds for the deployed predictor",
-        "S2.passed": "bool or null: section 9 S2 (V6, single confirmation run); null when V6 has not run",
-        "V6.run": "bool: V6 has been run once (section 3.4)",
-        "seeds.verified": "bool: the --verify-seeds verdict of section 15"
+        "claims[primary].candidate": "str: the S1 candidate -- the candidate arm of the claim whose family is 'primary ...' (legacy: S1.deployed_predictor)",
+        "s1.verdict": "PASS | FAIL | UNDECIDED: section 9 S1 on the confirmation half, 5 of 5 withheld seeds, for the S1 candidate of the frozen plan (legacy: S1.passed, bool)",
+        "s2.status": "COMPLETE | INCOMPLETE: whether the single V6 run's record set was complete -- the runner writes no separate V6 flag (legacy: V6.run, bool)",
+        "s2.verdict": "PASS | FAIL | UNDECIDED: section 9 S2 (V6, the single confirmation run); decided only when s2.status is COMPLETE (legacy: S2.passed, bool or null)",
+        "seed_store.verified_against_commitment": "bool: the seed store verified against manifests/confirmation_seeds_sha256.txt (legacy: seeds.verified)"
       },
-      "md_present": false,
+      "md_present": true,
       "path": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer\\evaluation\\confirmation\\decisions\\confirmation.json",
-      "present": false,
+      "present": true,
       "s1_passed": null,
-      "s2_passed": null,
-      "schema": null,
-      "seeds_verified": null,
-      "v6_run": null
+      "s2_passed": false,
+      "schema": "gen19.confirmation_decisions.v1",
+      "schema_reading": "the once-only runner's decision file (s1.verdict, s2.verdict / s2.status, seed_store.verified_against_commitment); deployed_predictor here is the S1 candidate of the frozen plan, not the ladder's deployed arm",
+      "seeds_verified": true,
+      "v6_run": true
     },
     "discovery_complete": {
       "cheap": {
@@ -582,17 +584,16 @@
       "reasons": [
         "--exploratory run",
         "S1 not passed / not decided",
-        "S2 not passed / not decided",
-        "V6 has not run"
+        "S2 not passed / not decided"
       ]
     },
     "prereg_gate": {
-      "addenda_sha256": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
-      "addenda_sha256_registered": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
-      "addendum_implemented": 8,
+      "addenda_sha256": "2050d0ecfa925f953c19dda7b077f213d18479baf66586c5a489e0d768e5e316",
+      "addenda_sha256_registered": "2050d0ecfa925f953c19dda7b077f213d18479baf66586c5a489e0d768e5e316",
+      "addendum_implemented": 9,
       "gate_source": "registry",
-      "n_addenda": 8,
-      "n_addenda_expected": 8,
+      "n_addenda": 9,
+      "n_addenda_expected": 9,
       "prereg_sha256": "135842499a86eb3d478ece01a45718ac5b9673a4134bb4acda550f975bb45641",
       "registry_path": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer\\manifests\\digest_registry.json",
       "seal_check_exit": 0,
@@ -663,8 +664,7 @@
     "reasons": [
       "--exploratory run",
       "S1 not passed / not decided",
-      "S2 not passed / not decided",
-      "V6 has not run"
+      "S2 not passed / not decided"
     ]
   },
   "monte_carlo": {
@@ -683,7 +683,7 @@
     "n_members": 5,
     "n_untruncated_cells_total": 0,
     "rho": 0.6688390373655926,
-    "seconds": 3583.5,
+    "seconds": 3283.9,
     "seed": 18,
     "space": {
       "bounds": {

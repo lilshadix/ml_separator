@@ -5,7 +5,7 @@
     "check_only": false,
     "decision_only": false,
     "draws": 64,
-    "expect_addenda": 8,
+    "expect_addenda": 9,
     "exploratory": true,
     "max_stages": null,
     "n_bootstrap": 20,
@@ -21,34 +21,36 @@
     "solver_max_sweeps": 10
   },
   "code_sha256": {
-    "own": "e622314fd4adde98fd82181b735139adf71d3f345598ab510b193913eb2d9667",
+    "own": "031b25a4f67f068b1349488c2e642dd88ff431c30b34ca62cb369f1b8745c99d",
     "own_parts": {
       "generations/gen19_chem_transfer/gen19ct/process/gen18_adapter.py": "a9c85e07d1e58a597e0a7b1b4ef243789f0e710f477f0cf259290f6bb9681acc",
       "generations/gen19_chem_transfer/gen19ct/process/monte_carlo.py": "7ceedfa45340990257f0a1b233cae64a5798332d50de13e1462fd2c149b0b08b",
       "generations/gen19_chem_transfer/gen19ct/process/robust_optimize.py": "5319e1f3bffc23288eb3d361ac8db67514c7945e55d484bd662d81c1e5a15778",
       "generations/gen19_chem_transfer/scripts/g19_predict_process_inputs.py": "1d4811b03337fc76e050918e7cdc10ac6848e000857a6576e819da3f39473fbf",
-      "generations/gen19_chem_transfer/scripts/g19_run_process.py": "c950ce812abe31da1da6b15fab0c82a957d1236cdec0828591608aaf83f9242e"
+      "generations/gen19_chem_transfer/scripts/g19_run_process.py": "f5f18e3d3d300940bfe2fb9b006e5a9f64d5560d93d22f03a156c63dca64d94d"
     }
   },
   "confirmation_half_read": false,
   "gate": {
     "confirmation": {
-      "deployed_predictor": null,
+      "confirmation_schema": "gen19.confirmation.v1",
+      "deployed_predictor": "M2",
       "keys": {
-        "S1.deployed_predictor": "str: the arm deployed (M2, M1, or the best-passing baseline under F6)",
-        "S1.passed": "bool: section 9 S1 passed on the confirmation half with 5 of 5 withheld seeds for the deployed predictor",
-        "S2.passed": "bool or null: section 9 S2 (V6, single confirmation run); null when V6 has not run",
-        "V6.run": "bool: V6 has been run once (section 3.4)",
-        "seeds.verified": "bool: the --verify-seeds verdict of section 15"
+        "claims[primary].candidate": "str: the S1 candidate -- the candidate arm of the claim whose family is 'primary ...' (legacy: S1.deployed_predictor)",
+        "s1.verdict": "PASS | FAIL | UNDECIDED: section 9 S1 on the confirmation half, 5 of 5 withheld seeds, for the S1 candidate of the frozen plan (legacy: S1.passed, bool)",
+        "s2.status": "COMPLETE | INCOMPLETE: whether the single V6 run's record set was complete -- the runner writes no separate V6 flag (legacy: V6.run, bool)",
+        "s2.verdict": "PASS | FAIL | UNDECIDED: section 9 S2 (V6, the single confirmation run); decided only when s2.status is COMPLETE (legacy: S2.passed, bool or null)",
+        "seed_store.verified_against_commitment": "bool: the seed store verified against manifests/confirmation_seeds_sha256.txt (legacy: seeds.verified)"
       },
-      "md_present": false,
+      "md_present": true,
       "path": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer\\evaluation\\confirmation\\decisions\\confirmation.json",
-      "present": false,
+      "present": true,
       "s1_passed": null,
-      "s2_passed": null,
-      "schema": null,
-      "seeds_verified": null,
-      "v6_run": null
+      "s2_passed": false,
+      "schema": "gen19.confirmation_decisions.v1",
+      "schema_reading": "the once-only runner's decision file (s1.verdict, s2.verdict / s2.status, seed_store.verified_against_commitment); deployed_predictor here is the S1 candidate of the frozen plan, not the ladder's deployed arm",
+      "seeds_verified": true,
+      "v6_run": true
     },
     "discovery_complete": {
       "cheap": {
@@ -104,17 +106,16 @@
       "reasons": [
         "--exploratory run",
         "S1 not passed / not decided",
-        "S2 not passed / not decided",
-        "V6 has not run"
+        "S2 not passed / not decided"
       ]
     },
     "prereg_gate": {
-      "addenda_sha256": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
-      "addenda_sha256_registered": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
-      "addendum_implemented": 8,
+      "addenda_sha256": "2050d0ecfa925f953c19dda7b077f213d18479baf66586c5a489e0d768e5e316",
+      "addenda_sha256_registered": "2050d0ecfa925f953c19dda7b077f213d18479baf66586c5a489e0d768e5e316",
+      "addendum_implemented": 9,
       "gate_source": "registry",
-      "n_addenda": 8,
-      "n_addenda_expected": 8,
+      "n_addenda": 9,
+      "n_addenda_expected": 9,
       "prereg_sha256": "135842499a86eb3d478ece01a45718ac5b9673a4134bb4acda550f975bb45641",
       "registry_path": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer\\manifests\\digest_registry.json",
       "seal_check_exit": 0,
@@ -138,7 +139,7 @@
       "generations/gen18_process/gen18proc/types.py": "9421e6f140452f29596f34a3f10d8c250e5a9eb8c339a32512cc1b77f649c72a"
     }
   },
-  "git_head": "c20331c41c928b706ca0ae81d794a3bed379d0ed",
+  "git_head": "b5af39b6274db8df8155bd2cc85c2719d3b414a8",
   "inputs": [
     {
       "bytes": 2230,
@@ -225,17 +226,16 @@
     "reasons": [
       "--exploratory run",
       "S1 not passed / not decided",
-      "S2 not passed / not decided",
-      "V6 has not run"
+      "S2 not passed / not decided"
     ]
   },
   "learned_arm_fitted": false,
   "outputs": [
     {
-      "bytes": 5529,
+      "bytes": 5528,
       "path": "generations/gen19_chem_transfer/decisions/D06_process_integration.md",
-      "sha256": "c4e42ed2d9b4ae37becb4a6ad84cb40f533a5edc9e307e4b89782a1871444082",
-      "sha256_lf": "c4e42ed2d9b4ae37becb4a6ad84cb40f533a5edc9e307e4b89782a1871444082"
+      "sha256": "7de57ca50d5877aebc1b67e6ef93a35ab952a94e60ff7cbb8ca92be09b2e9d55",
+      "sha256_lf": "7de57ca50d5877aebc1b67e6ef93a35ab952a94e60ff7cbb8ca92be09b2e9d55"
     },
     {
       "bytes": 40018,
@@ -286,10 +286,10 @@
       "sha256_lf": "ef5ea3187e3b037cc9155dfc7630babb6c1b407b01665ed6d9af57236cd32214"
     },
     {
-      "bytes": 37347,
+      "bytes": 37962,
       "path": "generations/gen19_chem_transfer/evaluation/process/summary.json",
-      "sha256": "60b8f24d4c5c22a7c85857de7be192a60bc72d0d6a2dce7949c8eb9bfde4a4d0",
-      "sha256_lf": "60b8f24d4c5c22a7c85857de7be192a60bc72d0d6a2dce7949c8eb9bfde4a4d0"
+      "sha256": "6479d5bc9b5314853583972c61c6fc39249d07c4329756b0548fd3556ce59003",
+      "sha256_lf": "6479d5bc9b5314853583972c61c6fc39249d07c4329756b0548fd3556ce59003"
     },
     {
       "bytes": 16885,
@@ -329,12 +329,12 @@
     }
   ],
   "prereg_gate": {
-    "addenda_sha256": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
-    "addenda_sha256_registered": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
-    "addendum_implemented": 8,
+    "addenda_sha256": "2050d0ecfa925f953c19dda7b077f213d18479baf66586c5a489e0d768e5e316",
+    "addenda_sha256_registered": "2050d0ecfa925f953c19dda7b077f213d18479baf66586c5a489e0d768e5e316",
+    "addendum_implemented": 9,
     "gate_source": "registry",
-    "n_addenda": 8,
-    "n_addenda_expected": 8,
+    "n_addenda": 9,
+    "n_addenda_expected": 9,
     "prereg_sha256": "135842499a86eb3d478ece01a45718ac5b9673a4134bb4acda550f975bb45641",
     "registry_path": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer\\manifests\\digest_registry.json",
     "seal_check_exit": 0,

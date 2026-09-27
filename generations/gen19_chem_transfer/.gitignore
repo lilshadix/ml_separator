@@ -39,7 +39,7 @@ evaluation/preseal/predictions/V0__rows.parquet
 evaluation/discovery/*/*/s*/
 evaluation/discovery/logs/
 
-# --- the once-only confirmation run's raw fold records (RUN IN PROGRESS) -----------------------
+# --- the once-only confirmation run's raw fold records (COMPLETE 2026-09-27: 7,930 files, 366.1 MB) ---
 # Same convention as the discovery block above: the raw per-fold output is excluded by design and
 # its SHA-256 is recorded in evaluation/confirmation/MANIFEST.sha256, written by
 #   .venv/Scripts/python.exe generations/gen19_chem_transfer/scripts/g19_manifest_discovery.py --root confirmation
@@ -59,6 +59,6 @@ evaluation/discovery/logs/
 # RUN_STATUS.md, and -- once the run finishes -- decisions/confirmation.json, decisions/CONFIRMATION.md
 # and every table the report cites.
 #
-# Resume after ANY interruption (it re-fits no completed fold and re-scores no claim): run
-# scripts/g19_run_confirmation.py with --resume and --seed-store, per RUN_STATUS.md.
+# The run is SPENT (decisions/confirmation.json exists): the runner refuses any re-invocation, with or
+# without --resume (POST-HOC addendum 8 item 2); the record of the run is RUN_STATUS.md.
 evaluation/confirmation/records/

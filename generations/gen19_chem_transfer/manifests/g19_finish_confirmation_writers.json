@@ -1,0 +1,39 @@
+{
+  "added_keys": [
+    "seed_leak_scan"
+  ],
+  "addendum": "POST-HOC addendum 9 items 1-2",
+  "archive_master_sha256": "7b32979383c5246f22d36ade6246231a347ea22490f4589a76e189af07b09b01",
+  "arguments": {
+    "expect_addenda": 9,
+    "out_root": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer",
+    "seed_store": "C:/Users/Bandai/gen19_withheld/gen19_confirmation_seeds.json"
+  },
+  "changed_keys": [],
+  "code_sha256": "2c1da435a9a6a1db321e82f86dfc5a111044136e4f5c8271a0ae2ddee27d32a3",
+  "decision_file_sha256_after": "4845f6e31d2c1fca7c10fc39bfc004c176c38a9085a610d70ea73d5188d1cb1f",
+  "decision_file_sha256_before": "4f5363994dc521545e5bc83a0c530c9151cdd96744f5dcdb1abc17d756756b7e",
+  "git_head": "b5af39b6274db8df8155bd2cc85c2719d3b414a8",
+  "inputs": [],
+  "outputs": [
+    "D:\\ml_separator_gh\\generations\\gen19_chem_transfer\\evaluation\\confirmation\\decisions\\confirmation.json",
+    "D:\\ml_separator_gh\\generations\\gen19_chem_transfer\\tables\\confirmation_claims.csv",
+    "D:\\ml_separator_gh\\generations\\gen19_chem_transfer\\tables\\confirmation_not_run.csv",
+    "D:\\ml_separator_gh\\generations\\gen19_chem_transfer\\tables\\confirmation_r19_items.csv",
+    "D:\\ml_separator_gh\\generations\\gen19_chem_transfer\\tables\\confirmation_claims.md",
+    "D:\\ml_separator_gh\\generations\\gen19_chem_transfer\\decisions\\CONFIRMATION.md"
+  ],
+  "reading": "POST-HOC addendum 9 item 1: a withheld seed APPEARS in a file when its decimal form occurs as a whole number token -- not preceded by a digit or a decimal point, not followed by a digit (seed_pattern). The single run's writer stage refused on 2026-09-27 under the earlier any-substring reading: 24 of 3,965 record JSONs held a seed's six digits INSIDE the 14-16-digit mantissa of a float (split_unit_errors[].sum_abs_error, fits[].valid_macro_mae, selection.inner_fold_macro_mae), diagnosed value-blind (key path and type only; no leaf equal to a seed, no string field naming one). The scan stays total over every byte of every file the run wrote; the scrub is unchanged; no record, table or verdict was modified",
+  "schema": "gen19.manifest.v1",
+  "script": "g19_finish_confirmation_writers",
+  "seed": null,
+  "seed_leak_scan": {
+    "files_containing_a_withheld_seed": [],
+    "files_scanned": 8000,
+    "ok": true,
+    "reading": "POST-HOC addendum 9 item 1: a withheld seed APPEARS in a file when its decimal form occurs as a whole number token -- not preceded by a digit or a decimal point, not followed by a digit (seed_pattern). The single run's writer stage refused on 2026-09-27 under the earlier any-substring reading: 24 of 3,965 record JSONs held a seed's six digits INSIDE the 14-16-digit mantissa of a float (split_unit_errors[].sum_abs_error, fits[].valid_macro_mae, selection.inner_fold_macro_mae), diagnosed value-blind (key path and type only; no leaf equal to a seed, no string field naming one). The scan stays total over every byte of every file the run wrote; the scrub is unchanged; no record, table or verdict was modified",
+    "revelation_files": [],
+    "revelation_incomplete": [],
+    "rule": "no withheld seed's decimal form may appear, as a whole number token (seed_pattern; addendum 9 item 1), in any file this run wrote or in its log, EXCEPT decisions/CONFIRMATION.md written last, which must name all five (addendum 6 item 4)"
+  }
+}

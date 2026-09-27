@@ -3,24 +3,24 @@
   "arguments": {
     "check_only": false,
     "embedding_arms": "M2,M1",
-    "expect_addenda": null,
+    "expect_addenda": 9,
     "n_resamples": 10000,
     "no_embedding_refits": true,
     "no_manifest": false,
-    "only": null,
+    "only": "F12,F13",
     "out_root": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer"
   },
   "bootstrap_seed": 19,
   "code_parts": {
-    "generations/gen19_chem_transfer/gen19ct/evaluation/figures.py": "be846b6ede2dbaf136aaffa5e3a912ac9a165ffb2e0ef8f9001c7f4c6216e3e1",
-    "generations/gen19_chem_transfer/scripts/g19_make_figures.py": "54e4d35b652899eeccc2534fe3f62c4f2c0a9eaf41d2ad884972a9d8ddebb9c0"
+    "generations/gen19_chem_transfer/gen19ct/evaluation/figures.py": "598f7b43e8f55a086d3ba7bd6028347551f84c451eadf02786e9b36aebf9472f",
+    "generations/gen19_chem_transfer/scripts/g19_make_figures.py": "45b2d2251f7ce42ccb99e82856560c088984e4e4683b4e46474b9cc5528024b1"
   },
-  "code_sha256": "f6488cc69d8cdb74dc7f3c4ec8a05f1346fde91d8db001734b8174aedbb5b812",
+  "code_sha256": "3ebb337f9485b9d8e9b94d18af4686ede1243ff832085dc69da74e77f348f087",
   "confirmation_half_read": false,
   "confirmation_run": {
-    "decided": false,
-    "started": false,
-    "status": "confirmation run not run"
+    "decided": true,
+    "started": true,
+    "status": "run"
   },
   "discovery_seeds": [
     104729,
@@ -32,301 +32,22 @@
   "embedding_refits": null,
   "figures": [
     {
-      "data_path": "generations/gen19_chem_transfer/figures/data/F07_pred_vs_measured.csv",
-      "figure": "F07",
-      "inputs": [
-        "evaluation/discovery/B5/V1__copy_exact/s104729/",
-        "evaluation/discovery/B5/V2__element_exact/s104729/",
-        "evaluation/discovery/B5/V5__primary_batched_max4/s104729/",
-        "evaluation/discovery/decisions/decisions.json",
-        "evaluation/preseal/predictions/V1__copy.parquet",
-        "evaluation/preseal/predictions/V2__element.parquet",
-        "evaluation/preseal/predictions/V5__primary.parquet"
-      ],
-      "path": "generations/gen19_chem_transfer/figures/F07_pred_vs_measured.png",
-      "reason": "",
-      "stats": {
-        "panels": [
-          {
-            "arm": "B5",
-            "averaging_unit": [
-              "g19_metal_state",
-              "extractant_system_key"
-            ],
-            "design": "V5",
-            "macro_mae": 0.349888756564342,
-            "n_rows": 4101,
-            "n_units": 105
-          },
-          {
-            "arm": "B5",
-            "averaging_unit": [
-              "v1_outer_fold_unit"
-            ],
-            "design": "V1",
-            "macro_mae": 0.9718304908015634,
-            "n_rows": 5246,
-            "n_units": 65
-          },
-          {
-            "arm": "B5",
-            "averaging_unit": [
-              "g19_metal_state"
-            ],
-            "design": "V2",
-            "macro_mae": 0.5379370913113988,
-            "n_rows": 4543,
-            "n_units": 12
-          },
-          {
-            "arm": "B3i",
-            "averaging_unit": [
-              "g19_metal_state",
-              "extractant_system_key"
-            ],
-            "design": "V5",
-            "macro_mae": 0.7670149232065543,
-            "n_rows": 4101,
-            "n_units": 105
-          },
-          {
-            "arm": "B3i",
-            "averaging_unit": [
-              "v1_outer_fold_unit"
-            ],
-            "design": "V1",
-            "macro_mae": 1.097990364365573,
-            "n_rows": 5246,
-            "n_units": 65
-          },
-          {
-            "arm": "B3i",
-            "averaging_unit": [
-              "g19_metal_state"
-            ],
-            "design": "V2",
-            "macro_mae": 0.6432659016559915,
-            "n_rows": 4543,
-            "n_units": 12
-          }
-        ]
-      },
-      "status": "written"
-    },
-    {
-      "data_path": "generations/gen19_chem_transfer/figures/data/F09_uncertainty_calibration.csv",
-      "figure": "F09",
-      "inputs": [
-        "evaluation/discovery/B5/V1__copy_exact/s104729/",
-        "evaluation/discovery/B5/V2__element_exact/s104729/",
-        "evaluation/discovery/B5/V5__primary_batched_max4/s104729/",
-        "evaluation/discovery/_support/V5__primary_batched_max4/s104729/",
-        "evaluation/discovery/decisions/decisions.json",
-        "evaluation/preseal/predictions/V1__copy.parquet",
-        "evaluation/preseal/predictions/V2__element.parquet",
-        "evaluation/preseal/predictions/V5__primary.parquet"
-      ],
-      "path": "generations/gen19_chem_transfer/figures/F09_uncertainty_calibration.png",
-      "reason": "",
-      "stats": {
-        "coverage": [
-          {
-            "arm": "B5",
-            "category": "all",
-            "coverage_unit_macro": 0.660898879824544,
-            "design": "V5",
-            "level": 0.5,
-            "n_rows": 4101,
-            "n_units": 105
-          },
-          {
-            "arm": "B5",
-            "category": "all",
-            "coverage_unit_macro": 0.8954261513521985,
-            "design": "V5",
-            "level": 0.8,
-            "n_rows": 4101,
-            "n_units": 105
-          },
-          {
-            "arm": "B5",
-            "category": "all",
-            "coverage_unit_macro": 0.9827254741039643,
-            "design": "V5",
-            "level": 0.95,
-            "n_rows": 4101,
-            "n_units": 105
-          },
-          {
-            "arm": "B5",
-            "category": "all",
-            "coverage_unit_macro": 0.5232463408089022,
-            "design": "V1",
-            "level": 0.5,
-            "n_rows": 5246,
-            "n_units": 65
-          },
-          {
-            "arm": "B5",
-            "category": "all",
-            "coverage_unit_macro": 0.827626717453504,
-            "design": "V1",
-            "level": 0.8,
-            "n_rows": 5246,
-            "n_units": 65
-          },
-          {
-            "arm": "B5",
-            "category": "all",
-            "coverage_unit_macro": 0.9495371930828888,
-            "design": "V1",
-            "level": 0.95,
-            "n_rows": 5246,
-            "n_units": 65
-          },
-          {
-            "arm": "B5",
-            "category": "all",
-            "coverage_unit_macro": 0.4468426752325416,
-            "design": "V2",
-            "level": 0.5,
-            "n_rows": 4543,
-            "n_units": 12
-          },
-          {
-            "arm": "B5",
-            "category": "all",
-            "coverage_unit_macro": 0.7191166201948849,
-            "design": "V2",
-            "level": 0.8,
-            "n_rows": 4543,
-            "n_units": 12
-          },
-          {
-            "arm": "B5",
-            "category": "all",
-            "coverage_unit_macro": 0.895534193013349,
-            "design": "V2",
-            "level": 0.95,
-            "n_rows": 4543,
-            "n_units": 12
-          },
-          {
-            "arm": "B5",
-            "category": "CROSS_METAL_LIGAND_TRANSFER",
-            "coverage_unit_macro": 0.6611776898235732,
-            "design": "V5",
-            "level": 0.5,
-            "n_rows": 4084,
-            "n_units": 105
-          },
-          {
-            "arm": "B5",
-            "category": "UNSUPPORTED",
-            "coverage_unit_macro": 0.05555555555555555,
-            "design": "V5",
-            "level": 0.5,
-            "n_rows": 17,
-            "n_units": 4
-          },
-          {
-            "arm": "B5",
-            "category": "CROSS_METAL_LIGAND_TRANSFER",
-            "coverage_unit_macro": 0.8950058259575985,
-            "design": "V5",
-            "level": 0.8,
-            "n_rows": 4084,
-            "n_units": 105
-          },
-          {
-            "arm": "B5",
-            "category": "UNSUPPORTED",
-            "coverage_unit_macro": 0.5555555555555556,
-            "design": "V5",
-            "level": 0.8,
-            "n_rows": 17,
-            "n_units": 4
-          },
-          {
-            "arm": "B5",
-            "category": "CROSS_METAL_LIGAND_TRANSFER",
-            "coverage_unit_macro": 0.9826944969499306,
-            "design": "V5",
-            "level": 0.95,
-            "n_rows": 4084,
-            "n_units": 105
-          },
-          {
-            "arm": "B5",
-            "category": "UNSUPPORTED",
-            "coverage_unit_macro": 0.625,
-            "design": "V5",
-            "level": 0.95,
-            "n_rows": 17,
-            "n_units": 4
-          }
-        ]
-      },
-      "status": "written"
-    },
-    {
-      "data_path": "generations/gen19_chem_transfer/figures/data/F08_error_vs_support.csv",
-      "figure": "F08",
-      "inputs": [
-        "evaluation/discovery/B5/V1__copy_exact/s104729/",
-        "evaluation/discovery/B5/V2__element_exact/s104729/",
-        "evaluation/discovery/B5/V5__primary_batched_max4/s104729/",
-        "evaluation/discovery/_support/V5__primary_batched_max4/s104729/",
-        "evaluation/discovery/decisions/decisions.json",
-        "evaluation/preseal/predictions/V1__copy.parquet",
-        "evaluation/preseal/predictions/V2__element.parquet",
-        "evaluation/preseal/predictions/V5__primary.parquet"
-      ],
-      "path": "generations/gen19_chem_transfer/figures/F08_error_vs_support.png",
-      "reason": "",
-      "stats": {
-        "per_arm": {
-          "B3i": {
-            "bootstrap_seed": 19,
-            "n_cells": 105,
-            "n_clusters": 18,
-            "n_dropped_nan": 0,
-            "n_resamples": 10000,
-            "percentile_high": -0.1938067130943085,
-            "percentile_low": -0.6711618044559594,
-            "rho": -0.5007516225754504,
-            "status": "computed",
-            "x": "support_score"
-          },
-          "B5": {
-            "bootstrap_seed": 19,
-            "n_cells": 105,
-            "n_clusters": 18,
-            "n_dropped_nan": 0,
-            "n_resamples": 10000,
-            "percentile_high": -0.05393761007649864,
-            "percentile_low": -0.5651765272654812,
-            "rho": -0.34593812858625334,
-            "status": "computed",
-            "x": "support_score"
-          }
-        }
-      },
-      "status": "written"
-    },
-    {
       "data_path": "generations/gen19_chem_transfer/figures/data/F13_direction_confusion.csv",
       "figure": "F13",
       "inputs": [
+        "evaluation/confirmation/v6_pairs.csv",
+        "evaluation/confirmation/v6_rows.csv",
+        "evaluation/confirmation/v6_systems.csv",
         "evaluation/discovery/M2/V5PAIR__primary_batched/s104729/",
         "evaluation/discovery/decisions/decisions.json",
         "folds/V5PAIR__primary__batched__pairs.parquet"
       ],
       "path": "generations/gen19_chem_transfer/figures/F13_direction_confusion.png",
-      "reason": "V6 panel skipped: confirmation run not run (input missing: evaluation/confirmation/v6_rows.csv, evaluation/confirmation/v6_pairs.csv; the single V6 run of section 3.4 happens only inside the confirmation run, whose once-only lock is unspent)",
+      "reason": "",
       "stats": {
         "designs_drawn": [
-          "V5-PAIR"
+          "V5-PAIR",
+          "V6"
         ],
         "per_design": [
           {
@@ -344,241 +65,173 @@
             "reading": "section 4 primary (every design)",
             "registered_primary": true,
             "threshold": 0.3
+          },
+          {
+            "arm": "M2",
+            "design": "V6",
+            "direction_accuracy": 0.6764705882352942,
+            "n_excluded_below_threshold_or_nan": 175,
+            "n_pairs": 34,
+            "obs_neg_pred_neg": 3,
+            "obs_neg_pred_pos": 1,
+            "obs_neg_pred_zero": 0,
+            "obs_pos_pred_neg": 10,
+            "obs_pos_pred_pos": 20,
+            "obs_pos_pred_zero": 0,
+            "reading": "section 4 primary (every design)",
+            "registered_primary": true,
+            "threshold": 0.3
+          },
+          {
+            "arm": "M2",
+            "design": "V6",
+            "direction_accuracy": 0.7264150943396226,
+            "n_excluded_below_threshold_or_nan": 103,
+            "n_pairs": 106,
+            "obs_neg_pred_neg": 9,
+            "obs_neg_pred_pos": 12,
+            "obs_neg_pred_zero": 0,
+            "obs_pos_pred_neg": 17,
+            "obs_pos_pred_pos": 68,
+            "obs_pos_pred_zero": 0,
+            "reading": "section 4 additional (V6 only)",
+            "registered_primary": false,
+            "threshold": 0.1
           }
         ],
-        "skipped_note": "V6 panel skipped: confirmation run not run (input missing: evaluation/confirmation/v6_rows.csv, evaluation/confirmation/v6_pairs.csv; the single V6 run of section 3.4 happens only inside the confirmation run, whose once-only lock is unspent)"
+        "skipped_note": ""
       },
       "status": "written"
     },
     {
-      "data_path": "generations/gen19_chem_transfer/figures/data/F10_metal_embedding.csv",
-      "figure": "F10",
-      "inputs": [
-        "evaluation/figures/embeddings/M2/metal_embeddings.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b001.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b002.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b003.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b004.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b005.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b006.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b007.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b008.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b009.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b010.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b011.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b012.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b013.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b014.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b015.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b016.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b017.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b018.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b019.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b020.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b021.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b022.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b023.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b024.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b025.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b026.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b027.csv",
-        "evaluation/figures/embeddings/M2/stability.json",
-        "evaluation/figures/embeddings/M2/system_embeddings.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b001.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b002.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b003.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b004.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b005.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b006.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b007.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b008.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b009.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b010.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b011.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b012.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b013.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b014.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b015.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b016.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b017.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b018.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b019.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b020.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b021.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b022.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b023.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b024.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b025.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b026.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b027.csv",
-        "evaluation/figures/embeddings/M2/verification.json",
-        "evaluation/power/reliability.json"
-      ],
-      "path": "generations/gen19_chem_transfer/figures/F10_metal_embedding.png",
-      "reason": "",
-      "stats": {
-        "explained_variance_ratio": [
-          0.3454185766568688,
-          0.24817779265903783
-        ],
-        "n_replicates": 18,
-        "n_states": 43,
-        "replicate_label": "fold-replicate",
-        "source": "reproduced from the verified M2 discovery records (evaluation/figures/embeddings/M2)",
-        "stability": {
-          "floor": 0.3,
-          "gate": "RELIABLE",
-          "method": "procrustes_aligned_bootstrap",
-          "n_dimensions": 8,
-          "n_replicates": 18,
-          "n_units": 43,
-          "note": "the Procrustes statistic is upward-biased: compare it with null_stability (unit labels permuted) before reading it as agreement",
-          "null_seed": 19,
-          "null_stability": 0.2761144681588164,
-          "per_unit_stability": {
-            "Am(III)": 0.5320181433806086,
-            "Am(VI)": 0.6549451498407229,
-            "Ba(II)": 0.8777313231150978,
-            "Bi(III)": 0.8194629234738532,
-            "Ca(II)": 0.7205175029213952,
-            "Cd(II)": 0.882575608612426,
-            "Ce(III)": 0.7130286044956978,
-            "Cf(III)": 0.6151797869759581,
-            "Cm(III)": 0.6044758774080338,
-            "Dy(III)": 0.918027691770527,
-            "Er(III)": 0.920375602533259,
-            "Eu(III)": 0.7305992445816889,
-            "Gd(III)": 0.8840290871170061,
-            "Hf(IV)": 0.7655342067257126,
-            "Ho(III)": 0.9213924632710923,
-            "In(III)": 0.8085857835958126,
-            "La(III)": 0.7428876102862516,
-            "Lu(III)": 0.8867900643857467,
-            "Nd(III)": 0.7938393772824387,
-            "Np(IV)": 0.5488587832978822,
-            "Np(V)": 0.7409646843903047,
-            "Np(VI)": 0.7251150904563373,
-            "Pa(V)": 0.688609683668918,
-            "Pb(II)": 0.8954370802217129,
-            "Pd(II)": 0.8734787749100736,
-            "Pd(IV)": 0.7887194924428956,
-            "Pm(III)": 0.793763812968332,
-            "Pr(III)": 0.7821882601520956,
-            "Pu(III)": 0.6221803261887889,
-            "Pu(IV)": 0.5962951913292908,
-            "Pu(VI)": 0.7254589636843711,
-            "Sm(III)": 0.8654986258300491,
-            "Sr(II)": 0.8456803182381072,
-            "Sr(III)": 0.7323884746207137,
-            "Tb(III)": 0.9037338766478812,
-            "Tc(VII)": 0.8364953623883522,
-            "Th(IV)": 0.4698882082927758,
-            "Tm(III)": 0.9172947556264709,
-            "U(IV)": 0.6413480198093453,
-            "U(VI)": 0.6540762020311047,
-            "Y(III)": 0.3430912559433197,
-            "Yb(III)": 0.887729026527242,
-            "Zr(IV)": 0.7895178007868614
-          },
-          "reading": "Procrustes-aligned bootstrap stability of an embedding: every bootstrap replicate's matrix is aligned to the full-sample one by the orthogonal Procrustes solution (centred, not scaled), and the stability of a unit is the mean cosine similarity of its aligned replicate vectors with its full-sample vector; the table's stability is the mean over units and is gated by the 0.3 floor like a reliability. The alignment maximises agreement, so the statistic is upward-biased and its no-correspondence value is NOT 0 (measured on random matrices: 0.42 at 12 units x 4 dimensions, 0.23 at 30 x 4, 0.27 at 60 x 8, 0.23 at 200 x 16) -- at gen19's embedding sizes that sits at the registered 0.3 floor, so a unit-label-permuted null (null_stability) is computed and printed beside every value and a raw value inside the null band is flagged within_null_band. The gate stays on the raw value: using the null in a decision needs a POST-HOC addendum",
-          "registered_reliability": "NOT_RUN (evaluation/power/reliability.json, quantity embeddings): this record is descriptive and enters no registered rule",
-          "replicate_label": "fold-replicate",
-          "stability": 0.7548792586564315,
-          "stability_above_null": 0.47876479049761506,
-          "status": "computed",
-          "within_null_band": false
-        }
-      },
-      "status": "written"
-    },
-    {
-      "data_path": "generations/gen19_chem_transfer/figures/data/F11_extractant_embedding.csv",
-      "figure": "F11",
-      "inputs": [
-        "evaluation/figures/embeddings/M2/metal_embeddings.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b001.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b002.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b003.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b004.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b005.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b006.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b007.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b008.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b009.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b010.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b011.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b012.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b013.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b014.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b015.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b016.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b017.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b018.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b019.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b020.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b021.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b022.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b023.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b024.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b025.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b026.csv",
-        "evaluation/figures/embeddings/M2/metal_embeddings_replicate_s104729_S_b027.csv",
-        "evaluation/figures/embeddings/M2/stability.json",
-        "evaluation/figures/embeddings/M2/system_embeddings.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b001.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b002.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b003.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b004.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b005.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b006.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b007.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b008.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b009.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b010.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b011.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b012.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b013.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b014.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b015.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b016.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b017.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b018.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b019.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b020.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b021.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b022.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b023.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b024.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b025.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b026.csv",
-        "evaluation/figures/embeddings/M2/system_embeddings_replicate_s104729_S_b027.csv",
-        "evaluation/figures/embeddings/M2/verification.json",
-        "evaluation/power/reliability.json"
-      ],
-      "path": "generations/gen19_chem_transfer/figures/F11_extractant_embedding.png",
-      "reason": "",
-      "stats": {
-        "explained_variance_ratio": [
-          0.29878763161659416,
-          0.20211879112723374
-        ],
-        "n_families": 26,
-        "n_systems": 259,
-        "source": "reproduced from the verified M2 discovery records (evaluation/figures/embeddings/M2)"
-      },
-      "status": "written"
-    },
-    {
-      "data_path": null,
+      "data_path": "generations/gen19_chem_transfer/figures/data/F12_prnd_reconstruction.csv",
       "figure": "F12",
       "inputs": [
         "evaluation/confirmation/v6_pairs.csv",
-        "evaluation/confirmation/v6_rows.csv"
+        "evaluation/confirmation/v6_rows.csv",
+        "evaluation/confirmation/v6_systems.csv"
       ],
-      "path": null,
-      "reason": "confirmation run not run (input missing: evaluation/confirmation/v6_rows.csv, evaluation/confirmation/v6_pairs.csv; the single V6 run of section 3.4 happens only inside the confirmation run, whose once-only lock is unspent)",
-      "stats": {},
-      "status": "skipped"
+      "path": "generations/gen19_chem_transfer/figures/F12_prnd_reconstruction.png",
+      "reason": "",
+      "stats": {
+        "panels": [
+          {
+            "n_rows": 418,
+            "n_systems": 13,
+            "panel": "rows",
+            "system_macro_mae": 0.33204889078816674
+          },
+          {
+            "n_pairs": 12,
+            "observed_median_logsf": 0.321505,
+            "panel": "pairs",
+            "predicted_median_logsf": -0.141991,
+            "sign_agrees": false,
+            "system": "CCCCCCCCCCCCN(C)C(=O)C1CC(OC)CC(C(=O)N(C)CCCCCCCCCCCC)O1"
+          },
+          {
+            "n_pairs": 12,
+            "observed_median_logsf": 0.145161,
+            "panel": "pairs",
+            "predicted_median_logsf": 0.127929,
+            "sign_agrees": true,
+            "system": "CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC"
+          },
+          {
+            "n_pairs": 16,
+            "observed_median_logsf": -0.0630314,
+            "panel": "pairs",
+            "predicted_median_logsf": -0.100376,
+            "sign_agrees": true,
+            "system": "CCCCCCCCCCCCN(CCCCCCCCCCCC)C(=O)COCCOCC(=O)N(CCCCCCCCCCCC)CCCCCCCCCCCC"
+          },
+          {
+            "n_pairs": 5,
+            "observed_median_logsf": 0.168404,
+            "panel": "pairs",
+            "predicted_median_logsf": 0.0358815,
+            "sign_agrees": true,
+            "system": "CCCCCCCCCCN(CCCCCCCCCC)C(=O)C(C)OC(C)C(=O)N(CCCCCCCCCC)CCCCCCCCCC"
+          },
+          {
+            "n_pairs": 6,
+            "observed_median_logsf": 0.0423442,
+            "panel": "pairs",
+            "predicted_median_logsf": 0.0124386,
+            "sign_agrees": true,
+            "system": "CCCCCCCCN(C)C(=O)C(CCCCCC)(OCC)C(=O)N(C)CCCCCCCC|CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC"
+          },
+          {
+            "n_pairs": 25,
+            "observed_median_logsf": 0.176091,
+            "panel": "pairs",
+            "predicted_median_logsf": 0.0889123,
+            "sign_agrees": true,
+            "system": "CCCCCCCCN(C)C(=O)COCC(=O)N(C)CCCCCCCC"
+          },
+          {
+            "n_pairs": 83,
+            "observed_median_logsf": 0.06,
+            "panel": "pairs",
+            "predicted_median_logsf": 0.259113,
+            "sign_agrees": true,
+            "system": "CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC"
+          },
+          {
+            "n_pairs": 8,
+            "observed_median_logsf": -0.0606061,
+            "panel": "pairs",
+            "predicted_median_logsf": -0.109907,
+            "sign_agrees": true,
+            "system": "CCCCCCCCN(CCCCCCCC)C(=O)COCCOCC(=O)N(CCCCCCCC)CCCCCCCC"
+          },
+          {
+            "n_pairs": 16,
+            "observed_median_logsf": 0.37669,
+            "panel": "pairs",
+            "predicted_median_logsf": 0.200277,
+            "sign_agrees": true,
+            "system": "CCCCCc1nnc(-c2cccc(-c3cccc(-c4nnc(CCCCC)c(CCCCC)n4)n3)n2)nc1CCCCC"
+          },
+          {
+            "n_pairs": 5,
+            "observed_median_logsf": 0.0337711,
+            "panel": "pairs",
+            "predicted_median_logsf": 0.0925131,
+            "sign_agrees": true,
+            "system": "CCCN(CCC)C(=O)COCC(=O)N(CCC)CCC"
+          },
+          {
+            "n_pairs": 6,
+            "observed_median_logsf": -0.0115718,
+            "panel": "pairs",
+            "predicted_median_logsf": 0.0305379,
+            "sign_agrees": false,
+            "system": "CCN(CC)C(=O)COCC(=O)N(CC)CC"
+          },
+          {
+            "n_pairs": 5,
+            "observed_median_logsf": -0.0116054,
+            "panel": "pairs",
+            "predicted_median_logsf": 0.0280283,
+            "sign_agrees": false,
+            "system": "CN(C(=O)COCC(=O)N(C)c1ccccc1)c1ccccc1"
+          },
+          {
+            "n_pairs": 10,
+            "observed_median_logsf": 0.025334,
+            "panel": "pairs",
+            "predicted_median_logsf": -0.000755284,
+            "sign_agrees": false,
+            "system": "CN(C(=O)c1cccc(C(=O)N(C)c2ccccc2)n1)c1ccccc1"
+          },
+          {
+            "panel": "pairs_source",
+            "source": "the run's own per-system medians (seed mean of per-seed medians, v6_systems.csv)"
+          }
+        ]
+      },
+      "status": "written"
     }
   ],
   "gate": {
@@ -774,30 +427,48 @@
       }
     }
   },
-  "git_head": "bdc62e2aa3c9c9088c731605d292afa75d602a3b",
+  "git_head": "b5af39b6274db8df8155bd2cc85c2719d3b414a8",
   "inputs": [],
   "n_resamples": 10000,
   "outputs": [
     {
-      "bytes": 32645,
+      "bytes": 38854,
       "path": "generations/gen19_chem_transfer/evaluation/figures/figures_index.json",
-      "sha256": "eba59574e9ec5f155fda67dc894682f7962cd24476f14458bfaf1a1d031ee312",
-      "sha256_lf": "eba59574e9ec5f155fda67dc894682f7962cd24476f14458bfaf1a1d031ee312"
+      "sha256": "1f5d397865fa26f8a94d5abc5cd1f7acbe798089de47dbfbe525641deff0a14c",
+      "sha256_lf": "1f5d397865fa26f8a94d5abc5cd1f7acbe798089de47dbfbe525641deff0a14c"
     },
     {
-      "bytes": 322,
-      "path": "generations/gen19_chem_transfer/tables/s1e_error_vs_support.csv",
-      "sha256": "a1d401f5d8636548406836916f594c5cd94a7773e727dd5935846887981e5d67",
-      "sha256_lf": "a1d401f5d8636548406836916f594c5cd94a7773e727dd5935846887981e5d67"
+      "bytes": 1451,
+      "path": "generations/gen19_chem_transfer/figures/data/F12_prnd_reconstruction.csv",
+      "sha256": "cf6442440589eafa9870f6908f74ed70046ea9ba44cccdf5b8a4675131b93b15",
+      "sha256_lf": "cf6442440589eafa9870f6908f74ed70046ea9ba44cccdf5b8a4675131b93b15"
+    },
+    {
+      "bytes": 463,
+      "path": "generations/gen19_chem_transfer/figures/data/F13_direction_confusion.csv",
+      "sha256": "9d46d5265c99818f382f8b518b14e5a6094f68bb128e263708119635cb1530f2",
+      "sha256_lf": "9d46d5265c99818f382f8b518b14e5a6094f68bb128e263708119635cb1530f2"
+    },
+    {
+      "bytes": 170873,
+      "path": "generations/gen19_chem_transfer/figures/F12_prnd_reconstruction.png",
+      "sha256": "51cdfcd5f9b031ad19d035bfec1584c01a9915b43b569e391d636bf744a911ec",
+      "sha256_lf": null
+    },
+    {
+      "bytes": 71980,
+      "path": "generations/gen19_chem_transfer/figures/F13_direction_confusion.png",
+      "sha256": "ec2205116ca69d56c685b84a76036b31d73717edbeaa90f84459547a1b06ff4d",
+      "sha256_lf": null
     }
   ],
   "prereg_gate": {
-    "addenda_sha256": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
-    "addenda_sha256_registered": "da38be2522292700d77f5a7df4bc6de830155393be7bedfd272376288c9caadc",
-    "addendum_implemented": 8,
+    "addenda_sha256": "2050d0ecfa925f953c19dda7b077f213d18479baf66586c5a489e0d768e5e316",
+    "addenda_sha256_registered": "2050d0ecfa925f953c19dda7b077f213d18479baf66586c5a489e0d768e5e316",
+    "addendum_implemented": 9,
     "gate_source": "registry",
-    "n_addenda": 8,
-    "n_addenda_expected": 8,
+    "n_addenda": 9,
+    "n_addenda_expected": 9,
     "prereg_sha256": "135842499a86eb3d478ece01a45718ac5b9673a4134bb4acda550f975bb45641",
     "registry_path": "D:\\ml_separator_gh\\generations\\gen19_chem_transfer\\manifests\\digest_registry.json",
     "seal_check_exit": 0,

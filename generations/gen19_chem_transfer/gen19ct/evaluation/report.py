@@ -1110,7 +1110,13 @@ def section_q1(L: Ledger, ctx: Mapping[str, Any]) -> list[str]:
     status = claim_status(key, con, ctx["confirmation"])
     verdict = _s(row, "reported_verdict")
     if status == STATUS_CONFIRMATION and _confirmed(ctx["confirmation"], key) is True:
-        head = f"{HEAD_CAN} reconstruct hidden metal x extractant cells better than the within-system lookup: the H1 claim (M2 vs B3i, V5) is confirmed on the withheld seeds."
+        conf, ci = ctx["confirmation"], _claim_index(ctx["confirmation"], key)
+        head = (f"{HEAD_CAN} reconstruct hidden metal x extractant cells better than the within-system lookup: the H1 claim "
+                f"(M2 vs B3i, V5) is confirmed on the withheld seeds -- Delta = {_json_value(L, 'confirmation', conf, f'claims[{ci}].point', 4)} "
+                f"against delta5 = {_json_value(L, 'confirmation', conf, f'claims[{ci}].margin', 4)}, R19 "
+                f"{_json_str(L, 'confirmation', conf, f'claims[{ci}].r19_verdict')}, Delta > 0 in "
+                f"{_json_value(L, 'confirmation', conf, f'claims[{ci}].item4.n_positive', 0)} of "
+                f"{_json_value(L, 'confirmation', conf, f'claims[{ci}].item4.n_seeds_scored', 0)} withheld seeds (confirmation half).")
     elif status == STATUS_CONFIRMATION:
         head = f"{HEAD_CANNOT} be said to hold transferable structure: the H1 claim was not confirmed on the withheld seeds."
     elif row is None:
@@ -1129,7 +1135,12 @@ def section_q1(L: Ledger, ctx: Mapping[str, Any]) -> list[str]:
              "macro MAE(candidate), positive favours the candidate.", ""]
     lines += _regime_header()
     for k, note in ((key, "H1 primary"), ("M2 vs B0@V5", "S1(b) constant baseline"), ("B6 vs B3i@V5", "H1b")):
-        lines.append(_regime_row(L, k, claim_status(k, con, ctx["confirmation"]), note))
+        st = claim_status(k, con, ctx["confirmation"])
+        lines.append(_regime_row(L, k, STATUS_DISCOVERY if st == STATUS_CONFIRMATION else st, note))
+        if st == STATUS_CONFIRMATION:
+            crow = _confirmation_regime_row(L, ctx["confirmation"], k, note)
+            if crow:
+                lines.append(crow)
     lines += ["", TOST_NOTE, "", "Baseline difficulty the margin rests on (pre-seal, selection half, `evaluation/preseal/difficulty.json`):", ""]
     diff = ctx["difficulty"]
     lines += [f"- L5 (lookup comparator B3i macro MAE) = {_json_value(L, 'difficulty', diff, 'V5.L5', 4)}; "
@@ -1159,12 +1170,46 @@ def section_q1(L: Ledger, ctx: Mapping[str, Any]) -> list[str]:
 
 
 def _confirmed(conf: Mapping[str, Any] | None, key: str) -> bool | None:
-    if conf is None:
-        return None
-    for c in conf.get("claims") or []:
-        if str(c.get("contrast_key") or c.get("contrast")) == key:
-            return c.get("confirmed")
+    i = _claim_index(conf, key)
+    return None if i is None else ((conf or {}).get("claims") or [])[i].get("confirmed")
+
+
+def _claim_index(conf: Mapping[str, Any] | None, key: str) -> int | None:
+    """Index into the confirmation ``claims`` list of the claim whose report key is ``key`` (``confirmation_claim_key``)."""
+    for i, c in enumerate((conf or {}).get("claims") or []):
+        if confirmation_claim_key(c) == key:
+            return i
     return None
+
+
+def _confirmation_regime_row(L: Ledger, conf: Mapping[str, Any], key: str, note: str = "") -> str | None:
+    """The confirmation-half row of a frozen claim, beside its discovery row in the regime tables: every cell cites
+    ``claims[i].<field>`` of the decision file.  The per-item bootstrap detail lives in ``tables/confirmation_r19_items.csv``;
+    the interval columns therefore point there rather than print a number the decision file does not carry."""
+    i = _claim_index(conf, key)
+    if i is None:
+        return None
+    c = conf["claims"][i]
+    design = str(c.get("design") or key.split("@")[-1])
+    p = f"claims[{i}]"
+    tost = c.get("tost") or {}
+    tost_txt = _json_str(L, "confirmation", conf, f"{p}.tost.verdict")
+    if tost.get("low_90") is not None and tost.get("high_90") is not None:
+        tost_txt += (f" [{_json_value(L, 'confirmation', conf, f'{p}.tost.low_90')}, "
+                     f"{_json_value(L, 'confirmation', conf, f'{p}.tost.high_90')}]")
+    it4 = c.get("item4") or {}
+    seeds = (f"{_json_value(L, 'confirmation', conf, f'{p}.item4.n_seeds_scored', 0)} withheld" if it4.get("n_seeds_scored") is not None
+             else "withheld")
+    r19 = _json_str(L, "confirmation", conf, f"{p}.r19_verdict")
+    if it4.get("n_positive") is not None:
+        r19 += (f" (item 4: Delta > 0 in {_json_value(L, 'confirmation', conf, f'{p}.item4.n_positive', 0)} of "
+                f"{_json_value(L, 'confirmation', conf, f'{p}.item4.n_seeds_scored', 0)} seeds)")
+    return (f"| {str(c.get('claim', key)).split(' @ ')[0]}{(' (' + note + ')') if note else ''} | {design} | confirmation | {seeds} | "
+            f"{AVERAGING_UNIT.get(design, design)} | {parameter_status(str(c.get('candidate') or ''))} | "
+            f"{_json_value(L, 'confirmation', conf, f'{p}.point')} | {_json_value(L, 'confirmation', conf, f'{p}.margin')} | "
+            f"per item: `tables/confirmation_r19_items.csv` | idem | - | - | - | {r19} | "
+            f"confirmed = {_json_str(L, 'confirmation', conf, f'{p}.confirmed')} (status {_json_str(L, 'confirmation', conf, f'{p}.status')}) | "
+            f"{_json_str(L, 'confirmation', conf, f'{p}.sensitivity_set')} | {tost_txt} | {STATUS_CONFIRMATION} |")
 
 
 def _power_summary(L: Ledger, ctx: Mapping[str, Any]) -> str:
@@ -1187,8 +1232,20 @@ def section_q2(L: Ledger, ctx: Mapping[str, Any]) -> list[str]:
     rep = [x.get("reported_verdict") for x in (a, b0, b6) if x]
     forced = bool(s1.get("S1_forced_undecided"))
     dep = ctx["deployed"]
+    conf = ctx["confirmation"]
+    ccomp = (conf_s1(conf).get("components") or {}) if conf is not None else {}
+    ca, cb = ccomp.get("S1a"), ccomp.get("S1b")
     if dec is None:
         head = f"{HEAD_UNSHOWN} reconstruct a missing metal x extractant cell: the scorer has not run ({L.missing(L.rel('decisions'))})."
+    elif conf is not None and ca == "PASS" and cb == "PASS":
+        others = ", ".join(f"{k} {v}" for k, v in ccomp.items() if k not in ("S1a", "S1b"))
+        head = (f"{HEAD_CAN} reconstruct a missing metal x extractant cell better than the within-system lookup and the "
+                f"constant baselines: S1(a) and S1(b) PASS on the confirmation half with the withheld seeds "
+                f"(`{L.rel('confirmation')}` -> `s1.components`); S1 overall is {conf_s1(conf).get('verdict')} "
+                f"because of the other components ({others}).")
+    elif conf is not None and (ca == "FAIL" or cb == "FAIL"):
+        head = (f"{HEAD_CANNOT} reconstruct a missing metal x extractant cell better than the registered comparators by the "
+                f"registered margins: at confirmation S1(a) is {ca} and S1(b) is {cb} (`{L.rel('confirmation')}` -> `s1.components`).")
     elif forced:
         head = f"{HEAD_UNSHOWN} reconstruct a missing cell: S1 is reported UNDECIDED because the re-coloured batched-vs-exact check failed (section 7 item 6; label 'batched (check failed)')."
     elif rep and all(v == "PASS" for v in rep):
@@ -1215,6 +1272,18 @@ def section_q2(L: Ledger, ctx: Mapping[str, Any]) -> list[str]:
         lines.append(f"| {label} | {key.split('_', 1)[1].replace('_', ' ')} | {_json_value(L, 'decisions', dec, ck + '.point')} | "
                      f"{_json_value(L, 'decisions', dec, ck + '.margin')} | {comp.get('r19_full')} | {comp.get('reported_verdict')} | "
                      f"{scopes} | {STATUS_DISCOVERY} |")
+    if conf is not None:
+        for label, ckey in (("S1(a)", "M2 vs B3i@V5"), ("S1(b) constant", "M2 vs B0@V5"), ("S1(b) additive", "M2 vs B6r0@V5")):
+            i = _claim_index(conf, ckey)
+            if i is None:
+                lines.append(f"| {label} | {ckey} | {L.missing(L.rel('confirmation'), 'claims[' + ckey + ']')} | | | | | {STATUS_NOT_RUN} |")
+                continue
+            p = f"claims[{i}]"
+            lines.append(f"| {label} | {ckey.split('@')[0]} | {_json_value(L, 'confirmation', conf, p + '.point')} | "
+                         f"{_json_value(L, 'confirmation', conf, p + '.margin')} | {_json_str(L, 'confirmation', conf, p + '.r19_verdict')} | "
+                         f"confirmed = {_json_str(L, 'confirmation', conf, p + '.confirmed')} | confirmation half, "
+                         f"{_json_value(L, 'confirmation', conf, p + '.item4.n_seeds_scored', 0)} withheld seeds, Delta > 0 in "
+                         f"{_json_value(L, 'confirmation', conf, p + '.item4.n_positive', 0)} | {STATUS_CONFIRMATION} |")
     lines += ["", "S1(c)-(e) are reported under Q3 (direction), Q6 (support distance) and Q7 (calibration).", "",
               f"Strata of the deployed predictor ({dep.get('arm') or 'undecided'})'s V5 error (macro MAE per stratum, "
               "`tables/discovery_summary.csv`):", ""]
@@ -1284,6 +1353,31 @@ def section_q3(L: Ledger, ctx: Mapping[str, Any]) -> list[str]:
             if isinstance(blk, Mapping):
                 lines.append(f"  - logSF MAE gain over {y} ({y} - M2) = {_json_value(L, 'decisions', dec, base + f'.logsf_mae.{y}.gain')} "
                              f"(eta5 = {L.constant(ET.ETA5, 'section 9 S1(c): eta5 = 0.02', 2)})")
+    if conf is not None:
+        c1 = conf.get("s1c") or {}
+        ch = c1.get("confirmation_half") or {}
+        checks = ch.get("checks") or {}
+        lines += ["", f"**S1(c) at confirmation** (the single run; `{L.rel('confirmation')}` -> `s1c`):", ""]
+        lines.append(f"- verdict field: **{_json_str(L, 'confirmation', conf, 's1c.verdict')}** (status "
+                     f"{_json_str(L, 'confirmation', conf, 's1c.status')}; reasons "
+                     f"{_json_str(L, 'confirmation', conf, 's1c.confirmation_half.reasons')})")
+        for name in sorted(checks):
+            lines.append(f"  - {name}: {_json_str(L, 'confirmation', conf, 's1c.confirmation_half.checks.' + jkey(name))}")
+        if c1.get("counterweight_selection_half"):
+            lines.append(f"- selection-half counterweight as the run READ it from the discovery scorer: min_Y Delta_Y = "
+                         f"{_json_value(L, 'confirmation', conf, 's1c.counterweight_selection_half.min_delta')} (yardstick "
+                         f"{_json_str(L, 'confirmation', conf, 's1c.counterweight_selection_half.min_delta_yardstick')}) against "
+                         f"{_json_value(L, 'confirmation', conf, 's1c.counterweight_selection_half.threshold')}; counterweight_pass = "
+                         f"{_json_str(L, 'confirmation', conf, 's1c.counterweight_pass')}")
+        conf_checks_all_true = bool(checks) and all(v is True for k, v in checks.items() if not str(k).startswith("selection"))
+        if str(c1.get("verdict")) == "UNDECIDED" and c1.get("counterweight_pass") is True and conf_checks_all_true:
+            lines.append("- NOTE (runner defect recorded 2026-09-27 in `decisions/D07_confirmation_not_run.md` and "
+                         "`evaluation/confirmation/RUN_STATUS.md`): every confirmation-half check above is true and the "
+                         "selection-half counterweight the run itself read is met -- together what section 9 S1(c) requires "
+                         "for PASS -- yet the verdict field says UNDECIDED, because the combining step looked for an in-run "
+                         "selection block ('selection-half components missing') that the run does not compute. The registered "
+                         "decision file is NOT edited: the field stands as written. S1 overall is UNDECIDED regardless, "
+                         "because S1(e) is NOT_COMPUTED (the reliability floor of section 8).")
     lines += ["", "V5-PAIR difficulty (pre-seal, selection half): FLAT floor SF5_FLAT = "
               f"{_json_value(L, 'difficulty', diff, 'V5_PAIR.SF5_FLAT', 4)} log units; lookup-derived (B3i) logSF MAE = "
               f"{_json_value(L, 'difficulty', diff, 'V5_PAIR.chosen_lookup_derived_logsf_mae', 4)}; DIR5 (descriptive, enters no rule) = "
@@ -1394,6 +1488,20 @@ def section_q4(L: Ledger, ctx: Mapping[str, Any]) -> list[str]:
     if ver is None:
         lines += [f"- {L.missing(L.rel('h3_verdicts'))}", f"- {L.missing(L.rel('h3_f4'))}", f"- {L.missing(L.rel('h3_contrasts'))}", ""]
         return lines
+    conf = ctx.get("confirmation")
+    ci = next((i for i, c in enumerate((conf or {}).get("claims") or []) if str(c.get("family", "")).startswith("H3")), None)
+    if conf is not None and ci is not None:
+        p = f"claims[{ci}]"
+        rv = str(conf["claims"][ci].get("r19_verdict"))
+        read = ("the actinide rows do not help B6 on V2 by the registered margin" if rv == "FAIL" else
+                "the actinide rows help B6 on V2 by the registered margin" if rv == "PASS" else "the contrast is undecided")
+        lines += [f"At confirmation (the single run of section 15, {_json_value(L, 'confirmation', conf, p + '.item4.n_seeds_scored', 0)} withheld "
+                  f"seeds): C4 `{_json_str(L, 'confirmation', conf, p + '.claim')}` -- R19 **{_json_str(L, 'confirmation', conf, p + '.r19_verdict')}**, "
+                  f"Delta = {_json_value(L, 'confirmation', conf, p + '.point', 4)} against the margin {_json_value(L, 'confirmation', conf, p + '.margin', 3)}, "
+                  f"confirmed = {_json_str(L, 'confirmation', conf, p + '.confirmed')} (item 4: Delta > 0 in "
+                  f"{_json_value(L, 'confirmation', conf, p + '.item4.n_positive', 0)} of {_json_value(L, 'confirmation', conf, p + '.item4.n_seeds_scored', 0)} seeds; "
+                  f"TOST {_json_str(L, 'confirmation', conf, p + '.tost.verdict')}): {read}. The deployed arm's H3 verdict below is "
+                  "discovery's and stays as printed -- the confirmation plan froze the B6 contrast (C4), not an M0 one (addendum 5).", ""]
     lines += ["| model arm | verdict | WITH beats WITHOUT (V5) | WITH beats PERMUTED (V5) | V1/V2 non-inferior | "
               "non-inferior (TOST WITH - WITHOUT, V5) | kappa_min | status |",
               "|---|---|---|---|---|---|---|---|"]
@@ -1656,6 +1764,18 @@ def _f6_text(L: Ledger, ctx: Mapping[str, Any], lad: Mapping[str, Any], ladder: 
     if ladder is not None:
         kept_any = kept_any or any(r.get("kept") is True for r in (ladder.get("steps") or {}).values() if isinstance(r, Mapping))
     pending = any((lad.get(s) or {}).get("kept") is None for s in ("M1", "M2"))
+    conf = ctx.get("confirmation")
+    ca = (conf_s1(conf).get("components") or {}).get("S1a") if conf is not None else None
+    if ca == "PASS":
+        return ("does not hold: S1(a) PASSES at confirmation (5 of 5 withheld seeds; `s1.components.S1a`), so F6's first "
+                "clause is false whatever the ladder kept"
+                + (f" (no step M1-M6 is kept; the retained configuration is {ctx['deployed'].get('arm')})" if not kept_any else "")
+                + ".")
+    if ca == "FAIL" and not kept_any:
+        return ("HOLDS at confirmation: S1(a) fails on the withheld seeds and no step M1-M6 is kept; the deployed predictor "
+                f"is the best-passing baseline ({ctx['deployed'].get('arm')}) and the architecture claim failed (section 10 F6).")
+    if ca == "FAIL":
+        return "does not hold: S1(a) fails at confirmation but at least one ladder step is kept."
     if s1a == "PASS":
         return "does not hold in discovery: S1(a) passes (selection half; confirmation decides)."
     if pending or s1a is None:
@@ -2161,6 +2281,20 @@ def verdict_table(L: Ledger, ctx: Mapping[str, Any]) -> tuple[list[str], list[di
     s1_all = s1_overall(dec)
     add("S1 (overall, discovery)", "section 9: All of (a)-(e); decided on the confirmation half with the withheld seeds",
         s1_all if s1_all else L.missing(L.rel("decisions"), "S1_components"), st_s1 if s1_all else STATUS_NOT_RUN, L.rel("decisions"))
+    ccomp = (conf_s1(conf).get("components") or {}) if conf is not None else {}
+    for cname, crule in (("S1(a)", "M2 vs B3i passes R19 with delta5 on the confirmation half, 5 withheld seeds"),
+                         ("S1(b)", "M2 vs B0 and vs B6r0 pass R19 with 0.05 on the confirmation half"),
+                         ("S1(c)", "paired direction and logSF contrasts on V5-PAIR, confirmation half, with the selection counterweight"),
+                         ("S1(d)", "coverage bands on the confirmation half"),
+                         ("S1(e)", "Spearman(cell MAE, support_score) with reliable components")):
+        ck = cname.replace("(", "").replace(")", "")
+        if conf is None:
+            continue
+        v = ccomp.get(ck)
+        txt = str(v) if v is not None else L.missing(L.rel("confirmation"), f"s1.components.{ck}")
+        if ck == "S1c" and str(v) == "UNDECIDED" and (conf.get("s1c") or {}).get("counterweight_pass") is True:
+            txt += " (every recorded component holds; the combining step's defect -- Q3)"
+        add(f"{cname} (confirmation)", crule, txt, STATUS_CONFIRMATION, L.rel("confirmation"))
     tri = verdict_tri
     s1c_conf = conf_s1(conf).get("verdict") if conf else None
     add("S1 (confirmation)", "S1 for the frozen plan's S1 candidate on the confirmation half, 5 of 5 withheld seeds",
@@ -2202,8 +2336,11 @@ def verdict_table(L: Ledger, ctx: Mapping[str, Any]) -> tuple[list[str], list[di
         f"NOT_EVALUATED -- Phase H NOT_RUN ({L.missing(L.rel('process_f5'), 'F5')})",
         (STATUS_CONFIRMATION if (f5.get("label") == "registered") else STATUS_DISCOVERY + " (transfer-unsupported)") if f5 else STATUS_NOT_RUN,
         L.rel("process_f5"))
-    add("F6", "S1(a) fails and no ladder step M1-M6 is kept", ctx.get("f6_verdict") or "not computed",
-        STATUS_DISCOVERY if dec is not None else STATUS_NOT_RUN, L.rel("decisions"))
+    f6v = ctx.get("f6_verdict") or "not computed"
+    f6_by_conf = conf is not None and ("at confirmation" in f6v)
+    add("F6", "S1(a) fails and no ladder step M1-M6 is kept", f6v,
+        STATUS_CONFIRMATION if f6_by_conf else (STATUS_DISCOVERY if dec is not None else STATUS_NOT_RUN),
+        L.rel("confirmation") if f6_by_conf else L.rel("decisions"))
     lines = ["## Verdict table: S1, S2 and the failure conditions F1-F6 (sections 9-10)", "",
              "Every discovery verdict is the selection half on seed 104729 and optimistically biased; a learned-arm R19 verdict is "
              "at best UNDECIDED in discovery (R19 item 4 NOT_EVALUATED, addendum 1 item 3). `confirmation` rows come only from "

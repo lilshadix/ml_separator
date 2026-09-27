@@ -124,3 +124,41 @@ order RUN_STATUS.md 'After the run completes' gives, because on 2026-09-26 a reh
 finished run found that the report and the process gate read a decision-file schema the runner never writes and that
 F12 read files no stage produced (both fixed outside the frozen code: `report.py` / `g19_run_process.py` readers,
 `scripts/g19_export_confirmation_views.py`).
+## Completion 2026-09-27 — the run finished; this file's title is history
+
+The run this file said was NOT RUN has run and scored. Every registered verdict below comes from
+`evaluation/confirmation/decisions/confirmation.json` (written by the run at 2026-09-26T23:14:58Z; the report
+re-resolves each number from it); the record of the run, its interruptions, its end-of-run refusal and the
+S1(c) defect is `evaluation/confirmation/RUN_STATUS.md`.
+
+| claim / criterion | verdict |
+|---|---|
+| C1 `M2 vs B3i @ V5` | PASS, confirmed — Δ +0.4115 ≥ δ5 0.1057; R19 items 1–6 PASS; 5 of 5 withheld seeds; TOST PASS |
+| C2 `M2 vs B0 @ V5` | PASS, confirmed — Δ +0.6712 |
+| C3 `M2 vs B6r0 @ V5` | PASS, confirmed — Δ +0.4286 |
+| C4 `B6:WITH vs B6:ACT_PERMUTED @ V2` | FAIL — Δ +0.0282 < 0.05; items 1–3 FAIL |
+| S1 | UNDECIDED — S1(a) PASS, S1(b) PASS, S1(c) UNDECIDED, S1(d) PASS, S1(e) NOT_COMPUTED |
+| S2 | FAIL — S2(a) FAIL (9 of 13 signs; min Δ_Y −0.210), S2(b) FAIL (logSF MAE 0.159 > FLAT 0.137), S2(c) FAIL (80 % coverage 0.938), S2(d) NOT_RUN |
+
+**What changed in the verdict of this file.** Step 4 of 'Next action' (launch, once) happened on 2026-09-24;
+step 5 (resume only to complete unfitted folds) was used three times after Claude Code session exits killed
+the process, then the run executed from the user's own shell; step 6 (after the run) was done on
+2026-09-27 in the order `RUN_STATUS.md` gives. The lock is spent and the runner refuses any re-invocation.
+
+**Two defects found at the end, both recorded, neither corrected in the registered file.**
+(i) The writer stage refused before `decisions/CONFIRMATION.md` because the leak scan read a seed's six
+digits inside 24 float mantissas as an appearance; POST-HOC addendum 9 adopts the whole-number-token reading
+and the writer stage was completed once, on the unchanged decision body, by
+`scripts/g19_finish_confirmation_writers.py`. (ii) S1(c)'s verdict field is UNDECIDED with the reason
+'selection-half components missing' although the file records every confirmation-half check as true and the
+selection-half counterweight as read and met (min Δ −0.0168 ≥ −0.02, `counterweight_pass: true`) — together
+what section 9 S1(c) requires for PASS; the combining step looked for an in-run selection block the run does
+not compute. Re-scoring the single run is what section 15 forbids, so the field stands as written and the
+report prints the discrepancy beside it (Q3). S1 overall is UNDECIDED regardless (S1(e) NOT_COMPUTED).
+
+**Consequences for the rest of the generation.** S1 not passed: the process layer stays exploratory and every
+process output transfer-unsupported (section 14); Phase H as a registered run does not apply. Q3 of brief
+section 34 is answered: Pr/Nd selectivity with the pair hidden is not reconstructed to the registered
+standard. The deployed predictor remains M0 (addendum 3 item 2); the confirmed claims C1–C3 concern the
+S1 candidate M2 on V5-primary. The ladder's finding that M0 beats M2 on the selection half is unaffected by
+this run, which did not compare them.

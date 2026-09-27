@@ -605,8 +605,11 @@ def make_all(out_root: Path, *, only: Sequence[str] | None = None, n_resamples: 
                                                                      f"{CONFIRMATION_DIR}/v6_pairs.csv",
                                       [f"{CONFIRMATION_DIR}/v6_rows.csv", f"{CONFIRMATION_DIR}/v6_pairs.csv"]))
         else:
+            # the arm is the one the view files carry (the S2 candidate the exporter read), not the deployed arm
+            v6_arm = next((str(fr["arm"].iloc[0]) for fr in (conf["rows"], conf["pairs"])
+                           if fr is not None and "arm" in fr.columns and len(fr)), None)
             results.append(FG.fig12_prnd_reconstruction(conf["rows"], conf["pairs"], figures_dir, inputs=conf["inputs"],
-                                                        arm=arm or "deployed", systems=conf.get("systems")))
+                                                        arm=v6_arm or "S2 candidate", systems=conf.get("systems")))
     for r in results:
         if r.status == "written":
             outs.append(resolve_figure_output(out_root, r.path))

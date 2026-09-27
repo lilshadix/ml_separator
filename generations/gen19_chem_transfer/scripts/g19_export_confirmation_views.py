@@ -117,9 +117,13 @@ def candidate_frames(out_root: Path, body: Mapping[str, Any], *, rc: Any) -> dic
     attrs = rc.pair_attributes()
     v6 = rc.v6_by_id(corpus)
     acid = rc.ACID_STRATUM_COL
+    # the records are verified against the registry entry of stage 'confirmation' (addendum 2 item 5) and read under the
+    # code digest the RUN recorded in its start marker -- never the live one: the tree may have changed since the run
+    # (addendum 9 item 3), and a reader outside the run must not refuse the run's own records for that
+    recorded = str((json.loads(CF.started_path(out_root).read_text(encoding="utf-8")) or {}).get("code_digest") or "")
     rows, pairs, missing = [], [], []
     for i in [int(k) for k in (body.get("seed_indices") or [])]:
-        pred = rc.read_seed_predictions(out_root, arm, ddir, i)
+        pred = rc.read_seed_predictions(out_root, arm, ddir, i, code=recorded or None)
         if pred is None:
             missing.append(i)
             continue
@@ -144,7 +148,8 @@ def candidate_frames(out_root: Path, body: Mapping[str, Any], *, rc: Any) -> dic
                                    "predicted_logsf": pd.to_numeric(cin["logsf"], errors="coerce").to_numpy(),
                                    "seed_index": i}))
     return {"arm": arm, "design_dir": ddir, "rows": rows, "pairs": pairs, "seed_indices_missing": missing,
-            "seed_indices_read": [int(k) for k in (body.get("seed_indices") or []) if int(k) not in missing]}
+            "seed_indices_read": [int(k) for k in (body.get("seed_indices") or []) if int(k) not in missing],
+            "records_read_under_code_digest": recorded}
 
 
 # --------------------------------------------------------------------------------------------- #
@@ -179,6 +184,9 @@ def main(argv=None) -> int:
         log(f"v6_systems.csv: {len(sys_tab)} systems (S2 record set {(body.get('s2') or {}).get('status')})")
         cf = candidate_frames(out_root, body, rc=rc)
         rows, pairs = seed_mean_rows(cf["rows"]), seed_mean_pairs(cf["pairs"])
+        # the ARM these predictions belong to travels with the files: F12 labels its axis by it, and the S2 candidate
+        # (M2) is not the ladder's deployed arm (M0), so a reader must not assume one from the other
+        rows, pairs = rows.assign(arm=cf["arm"]), pairs.assign(arm=cf["arm"])
         outs.append(write_csv(rows, conf_dir / "v6_rows.csv"))
         outs.append(write_csv(pairs, conf_dir / "v6_pairs.csv"))
         log(f"v6_rows.csv: {len(rows)} hidden Pr/Nd rows; v6_pairs.csv: {len(pairs)} pairs; arm {cf['arm']}; seed indices "
@@ -187,6 +195,7 @@ def main(argv=None) -> int:
             run.inputs(dec)
             run.outputs(*outs)
             run.extra.update({"arm": cf["arm"], "design_dir": cf["design_dir"], "seed_indices_read": cf["seed_indices_read"],
+                              "records_read_under_code_digest": cf["records_read_under_code_digest"],
                               "seed_indices_missing": cf["seed_indices_missing"], "n_rows": int(len(rows)),
                               "n_pairs": int(len(pairs)), "n_systems": int(len(sys_tab))})
     return 0

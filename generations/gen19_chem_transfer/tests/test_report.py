@@ -412,7 +412,11 @@ def test_section_order_headlines_and_labels(full_root: Path) -> None:
     # the S2 verdicts come from the confirmation file
     verdicts = {r["criterion"]: r for r in res["claims"]["verdicts"]}
     assert verdicts["S2(a)"]["verdict"] == "PASS" and verdicts["S2(b)"]["verdict"] == "FAIL" and verdicts["S2(a)"]["status"] == "confirmation"
-    assert verdicts["S1(a)"]["verdict"] == "FAIL" and verdicts["F6"]["verdict"].startswith("HOLDS")
+    assert verdicts["S1(a)"]["verdict"] == "FAIL"
+    # the fake's confirmation file says S1a PASS: confirmation decides F6, whatever discovery said
+    assert verdicts["F6"]["verdict"].startswith("does not hold: S1(a) PASSES at confirmation")
+    assert verdicts["S1(a) (confirmation)"]["verdict"] == "PASS" and verdicts["S1(b) (confirmation)"]["verdict"] == "FAIL"
+    assert verdicts["S1(a) (confirmation)"]["status"] == "confirmation"
     assert verdicts["S1(e)"]["verdict"] == "PASS" and verdicts["S1(d)"]["verdict"] == "PASS"
     assert verdicts["S1 (confirmation)"]["verdict"] == "FAIL" and verdicts["S2 (overall)"]["verdict"] == "FAIL"
     assert verdicts["F5"]["verdict"] == "does not hold" and "transfer-unsupported" in verdicts["F5"]["status"]

@@ -258,6 +258,32 @@ def test_scrub_replaces_every_seed_and_the_scan_proves_it(root, tmp_path):
     assert not any(str(x) in json.dumps(scan) for x in FAKE_SEEDS)      # the scan itself names no seed
 
 
+def test_the_scan_reads_a_seed_as_a_whole_number_token(root):
+    """POST-HOC addendum 9 item 1: the finished run's writer stage refused on 24 record JSONs whose float mantissas
+    happened to contain a seed's six digits.  A seed APPEARS only as a whole number token: an int field, a float equal
+    to it, a fold id or path naming it; never as digits inside a longer number."""
+    store_path = _write_store(root, root.parent / "outside_store.json")
+    store = CF.load_seed_store(store_path, root=root, seal=SEAL, prereg_paths=_prereg_paths(root))
+    s = store.seed(2)
+    d = root / "records"
+    d.mkdir(parents=True, exist_ok=True)
+    mantissa = d / "mantissa.json"
+    mantissa.write_text(json.dumps({"sum_abs_error": float(f"0.{s}789"), "valid_macro_mae": float(f"12{s}.5"),
+                                    "n": int(f"1{s}"), "text": f"loss 3.{s}1 at epoch 4"}), encoding="utf-8")
+    assert f"{s}" in mantissa.read_text(encoding="utf-8")            # the digits ARE in the file ...
+    assert CF.scan_for_seed_leak(store, [mantissa])["ok"] is True      # ... and are not an appearance
+    for name, obj in (("int", {"seed": s}), ("float", {"seed": float(s)}), ("fold", {"fold_id": f"s{s}_C_b000"}),
+                      ("path", {"p": f"records/M2/V5/s{s}/x.json"})):
+        f = d / f"{name}.json"
+        f.write_text(json.dumps(obj), encoding="utf-8")
+        scan = CF.scan_for_seed_leak(store, [f])
+        assert scan["ok"] is False and str(f) in scan["files_containing_a_withheld_seed"], name
+        assert not any(str(x) in json.dumps(scan) for x in FAKE_SEEDS)
+    assert CF.scan_for_seed_leak(store, [], extra_text=[f"epoch 12 loss 0.{s}3"])["ok"] is True
+    assert CF.scan_for_seed_leak(store, [], extra_text=[f"fitting seed {s} now"])["ok"] is False
+    assert "seed_leak_scan_token" in CF.READINGS and CF.scan_for_seed_leak(store, [mantissa])["reading"]
+
+
 def test_a_wrong_seed_count_is_refused(root):
     store_path = _write_store(root, root.parent / "outside_store.json", seeds=[111111, 222222, 333333, 444444])
     with pytest.raises(SystemExit):
