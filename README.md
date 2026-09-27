@@ -9,6 +9,8 @@ design (BP) the held-out cell's publication is also removed from training. Every
 pre-registered, compared with a no-model floor and tested with a chemotype-blocked bootstrap. The
 programme reports well-supported nulls as results.
 
+**Next task (2026-09-27):** [Lanthanide separation recovery plan — goal, six R² metrics, model comparisons and a 12-hour compute cap](LANTHANIDE_SEPARATION_RECOVERY_PLAN.md). This is a prospective instruction, not a completed experiment.
+
 ## Current state (2026-09)
 
 Every number below carries its regime, and a number without one should not be quoted. **BP** means
