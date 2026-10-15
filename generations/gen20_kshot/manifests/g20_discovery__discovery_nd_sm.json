@@ -1,0 +1,231 @@
+{
+ "name": "g20_discovery",
+ "label": "discovery_nd_sm",
+ "started_utc": "2026-10-14T17:08:03Z",
+ "git": {
+  "head": "8030e166024ee869f87b093b400fab84f2bf5b7c",
+  "branch": "gen19-chem-transfer",
+  "dirty": true,
+  "describe": "8030e16"
+ },
+ "environment": {
+  "python": "3.13.0",
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "numpy": "2.5.1",
+  "pandas": "3.0.5",
+  "scipy": "1.18.0",
+  "sklearn": "1.9.0",
+  "torch": "2.13.0",
+  "torch_threads": 2
+ },
+ "dataset": {
+  "bundle_parquet": "/Users/lilshadix/PycharmProjects/ml_separator/dataset with 3D structures/dataset.parquet",
+  "bundle_sha256": "fefbefc6fe993aa9ce9db1a0c338adb9e5f58a8b75bab084cc1df4e024faf5dd",
+  "bundle_sha256_pinned": "fefbefc6fe993aa9ce9db1a0c338adb9e5f58a8b75bab084cc1df4e024faf5dd",
+  "cohort_manifest_parquet": "/Users/lilshadix/PycharmProjects/ml_separator/generations/gen13_separation/manifests/cohort_exact.parquet",
+  "cohort_manifest_sha256": "3f11ac4ccb7c9f6b1fa768f4406e1f249881cfd76689ba49a9115efc08bb7fd6"
+ },
+ "preregistration": {
+  "exists": true,
+  "sealed": true,
+  "sha256_of_body": "2915974a8a46a3ff465ae2a144f67e825edecc67e8d60265a542d4b0b78c5cc6",
+  "recorded": "2915974a8a46a3ff465ae2a144f67e825edecc67e8d60265a542d4b0b78c5cc6",
+  "valid": true
+ },
+ "seeds": [
+  104729,
+  130363,
+  155921,
+  196613,
+  262147
+ ],
+ "args": {
+  "label": "discovery_nd_sm",
+  "designs": "BP",
+  "seeds": "104729,130363,155921,196613,262147",
+  "smoke": false,
+  "max_cells": null,
+  "no_nnc": false,
+  "setting_b": false,
+  "allow_unsealed": false,
+  "models": "metal",
+  "query_name": "adjacent_gen13"
+ },
+ "finished_utc": "2026-10-14T18:22:48Z",
+ "seconds": 4485.7773151397705,
+ "status": "ok",
+ "records": {
+  "summary": {
+   "label": "discovery_nd_sm",
+   "designs": {
+    "BP": {
+     "rows": 1372560,
+     "path": "/Users/lilshadix/PycharmProjects/ml_separator/generations/gen20_kshot/predictions/discovery_nd_sm/pairs_BP.parquet",
+     "seconds": 4483.017680883408
+    }
+   },
+   "config": {
+    "label": "discovery_nd_sm",
+    "designs": [
+     "BP"
+    ],
+    "seeds": [
+     104729,
+     130363,
+     155921,
+     196613,
+     262147
+    ],
+    "models": [
+     "metal"
+    ],
+    "query_name": "adjacent_gen13",
+    "k_grid": [
+     0,
+     1,
+     2,
+     3,
+     5,
+     6,
+     8,
+     10
+    ],
+    "n_random_draws": 5,
+    "full_policy_designs": [
+     "BP",
+     "B"
+    ],
+    "remaining_regime_designs": [
+     "BP",
+     "B"
+    ],
+    "remaining_regime_sequences": [
+     [
+      "DOPT_Q",
+      0
+     ],
+     [
+      "UNIFORM",
+      0
+     ],
+     [
+      "RANDOM",
+      0
+     ]
+    ],
+    "arms": [
+     "FLAT",
+     "G14",
+     "MEAN_CURVE",
+     "NN_TANIMOTO",
+     "NNC"
+    ],
+    "nnc_configs": [
+     {
+      "hidden": 256,
+      "dropout": 0.15,
+      "weight_decay": 0.0001,
+      "lr": 0.001,
+      "max_epochs": 300,
+      "patience": 30,
+      "min_epochs": 20,
+      "adjacent_weight": 3.0,
+      "huber_delta": 1.0,
+      "n_seeds": 8,
+      "name": "c256_d15_wd1e-4"
+     },
+     {
+      "hidden": 128,
+      "dropout": 0.3,
+      "weight_decay": 0.001,
+      "lr": 0.001,
+      "max_epochs": 300,
+      "patience": 30,
+      "min_epochs": 20,
+      "adjacent_weight": 3.0,
+      "huber_delta": 1.0,
+      "n_seeds": 8,
+      "name": "c128_d30_wd1e-3"
+     },
+     {
+      "hidden": 256,
+      "dropout": 0.15,
+      "weight_decay": 0.001,
+      "lr": 0.001,
+      "max_epochs": 300,
+      "patience": 30,
+      "min_epochs": 20,
+      "adjacent_weight": 3.0,
+      "huber_delta": 1.0,
+      "n_seeds": 8,
+      "name": "c256_d15_wd1e-3"
+     }
+    ],
+    "nnc_inner_seeds": 2,
+    "nnc_outer_seeds": 8,
+    "lam_head_grid": [
+     0.1,
+     1.0,
+     10.0
+    ],
+    "lam_full_grid": [
+     0.001,
+     0.01,
+     0.1
+    ],
+    "lam_ridge_grid": [
+     0.3,
+     1.0,
+     3.0,
+     10.0
+    ],
+    "noise_factor_grid": [
+     0.5,
+     1.0,
+     2.0,
+     4.0,
+     8.0,
+     16.0
+    ],
+    "selection_ks": [
+     0,
+     3
+    ],
+    "full_ft_policy": "DOPT_Q",
+    "full_ft_ks": [
+     1,
+     3,
+     5,
+     10
+    ],
+    "full_ft_members": 4,
+    "full_ft_steps": 30,
+    "max_cells": null,
+    "smoke": false
+   }
+  },
+  "cohort": {
+   "manifest_parquet": "generations/gen13_separation/manifests/cohort_exact.parquet",
+   "manifest_sha256": "3f11ac4ccb7c9f6b1fa768f4406e1f249881cfd76689ba49a9115efc08bb7fd6",
+   "n_cells": 521,
+   "fingerprint_obtained": "854171b03411d901",
+   "n_extractants": 90,
+   "n_chemotypes": 45,
+   "n_publications": 58
+  }
+ },
+ "outputs": {
+  "folds_BP.json": {
+   "sha256": "8f2180a077f809cb67a1f057f6d0bac8ec16d332778937ed0c45a27c63f8b919",
+   "bytes": 180741
+  },
+  "pairs_BP.parquet": {
+   "sha256": "588dbe5bd6b284ceb6416ed3bf61be139e51f6d260e0f8a6334a70073eb1148f",
+   "bytes": 68260421
+  },
+  "run_summary.json": {
+   "sha256": "2d6fa605ebeebad3beb9dd56cc6e8427a39b81d07d1c59b0a2a5e968cd22e93d",
+   "bytes": 2148
+  }
+ }
+}

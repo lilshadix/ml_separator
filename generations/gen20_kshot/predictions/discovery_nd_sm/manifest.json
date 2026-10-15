@@ -1,0 +1,301 @@
+{
+ "name": "g20_discovery",
+ "label": "discovery_nd_sm",
+ "started_utc": "2026-10-14T17:08:03Z",
+ "git": {
+  "head": "8030e166024ee869f87b093b400fab84f2bf5b7c",
+  "branch": "gen19-chem-transfer",
+  "dirty": true,
+  "describe": "8030e16"
+ },
+ "environment": {
+  "python": "3.13.0",
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "numpy": "2.5.1",
+  "pandas": "3.0.5",
+  "scipy": "1.18.0",
+  "sklearn": "1.9.0",
+  "torch": "2.13.0",
+  "torch_threads": 2
+ },
+ "dataset": {
+  "bundle_parquet": "/Users/lilshadix/PycharmProjects/ml_separator/dataset with 3D structures/dataset.parquet",
+  "bundle_sha256": "fefbefc6fe993aa9ce9db1a0c338adb9e5f58a8b75bab084cc1df4e024faf5dd",
+  "bundle_sha256_pinned": "fefbefc6fe993aa9ce9db1a0c338adb9e5f58a8b75bab084cc1df4e024faf5dd",
+  "cohort_manifest_parquet": "/Users/lilshadix/PycharmProjects/ml_separator/generations/gen13_separation/manifests/cohort_exact.parquet",
+  "cohort_manifest_sha256": "3f11ac4ccb7c9f6b1fa768f4406e1f249881cfd76689ba49a9115efc08bb7fd6"
+ },
+ "preregistration": {
+  "exists": true,
+  "sealed": true,
+  "sha256_of_body": "2915974a8a46a3ff465ae2a144f67e825edecc67e8d60265a542d4b0b78c5cc6",
+  "recorded": "2915974a8a46a3ff465ae2a144f67e825edecc67e8d60265a542d4b0b78c5cc6",
+  "valid": true
+ },
+ "seeds": [
+  104729,
+  130363,
+  155921,
+  196613,
+  262147
+ ],
+ "args": {
+  "label": "discovery_nd_sm",
+  "designs": "BP",
+  "seeds": "104729,130363,155921,196613,262147",
+  "smoke": false,
+  "max_cells": null,
+  "no_nnc": false,
+  "setting_b": false,
+  "allow_unsealed": false,
+  "models": "metal",
+  "query_name": "adjacent_gen13"
+ },
+ "finished_utc": "2026-10-14T18:22:48Z",
+ "seconds": 4485.7773151397705,
+ "status": "ok",
+ "records": {
+  "summary": {
+   "label": "discovery_nd_sm",
+   "designs": {
+    "BP": {
+     "rows": 1372560,
+     "path": "/Users/lilshadix/PycharmProjects/ml_separator/generations/gen20_kshot/predictions/discovery_nd_sm/pairs_BP.parquet",
+     "seconds": 4483.017680883408
+    }
+   },
+   "config": {
+    "label": "discovery_nd_sm",
+    "designs": [
+     "BP"
+    ],
+    "seeds": [
+     104729,
+     130363,
+     155921,
+     196613,
+     262147
+    ],
+    "models": [
+     "metal"
+    ],
+    "query_name": "adjacent_gen13",
+    "k_grid": [
+     0,
+     1,
+     2,
+     3,
+     5,
+     6,
+     8,
+     10
+    ],
+    "n_random_draws": 5,
+    "full_policy_designs": [
+     "BP",
+     "B"
+    ],
+    "remaining_regime_designs": [
+     "BP",
+     "B"
+    ],
+    "remaining_regime_sequences": [
+     [
+      "DOPT_Q",
+      0
+     ],
+     [
+      "UNIFORM",
+      0
+     ],
+     [
+      "RANDOM",
+      0
+     ]
+    ],
+    "arms": [
+     "FLAT",
+     "G14",
+     "MEAN_CURVE",
+     "NN_TANIMOTO",
+     "NNC"
+    ],
+    "nnc_configs": [
+     {
+      "hidden": 256,
+      "dropout": 0.15,
+      "weight_decay": 0.0001,
+      "lr": 0.001,
+      "max_epochs": 300,
+      "patience": 30,
+      "min_epochs": 20,
+      "adjacent_weight": 3.0,
+      "huber_delta": 1.0,
+      "n_seeds": 8,
+      "name": "c256_d15_wd1e-4"
+     },
+     {
+      "hidden": 128,
+      "dropout": 0.3,
+      "weight_decay": 0.001,
+      "lr": 0.001,
+      "max_epochs": 300,
+      "patience": 30,
+      "min_epochs": 20,
+      "adjacent_weight": 3.0,
+      "huber_delta": 1.0,
+      "n_seeds": 8,
+      "name": "c128_d30_wd1e-3"
+     },
+     {
+      "hidden": 256,
+      "dropout": 0.15,
+      "weight_decay": 0.001,
+      "lr": 0.001,
+      "max_epochs": 300,
+      "patience": 30,
+      "min_epochs": 20,
+      "adjacent_weight": 3.0,
+      "huber_delta": 1.0,
+      "n_seeds": 8,
+      "name": "c256_d15_wd1e-3"
+     }
+    ],
+    "nnc_inner_seeds": 2,
+    "nnc_outer_seeds": 8,
+    "lam_head_grid": [
+     0.1,
+     1.0,
+     10.0
+    ],
+    "lam_full_grid": [
+     0.001,
+     0.01,
+     0.1
+    ],
+    "lam_ridge_grid": [
+     0.3,
+     1.0,
+     3.0,
+     10.0
+    ],
+    "noise_factor_grid": [
+     0.5,
+     1.0,
+     2.0,
+     4.0,
+     8.0,
+     16.0
+    ],
+    "selection_ks": [
+     0,
+     3
+    ],
+    "full_ft_policy": "DOPT_Q",
+    "full_ft_ks": [
+     1,
+     3,
+     5,
+     10
+    ],
+    "full_ft_members": 4,
+    "full_ft_steps": 30,
+    "max_cells": null,
+    "smoke": false
+   }
+  },
+  "cohort": {
+   "manifest_parquet": "generations/gen13_separation/manifests/cohort_exact.parquet",
+   "manifest_sha256": "3f11ac4ccb7c9f6b1fa768f4406e1f249881cfd76689ba49a9115efc08bb7fd6",
+   "n_cells": 521,
+   "fingerprint_obtained": "854171b03411d901",
+   "n_extractants": 90,
+   "n_chemotypes": 45,
+   "n_publications": 58
+  }
+ },
+ "outputs": {
+  "folds_BP.json": {
+   "sha256": "8f2180a077f809cb67a1f057f6d0bac8ec16d332778937ed0c45a27c63f8b919",
+   "bytes": 180741
+  },
+  "pairs_BP.parquet": {
+   "sha256": "588dbe5bd6b284ceb6416ed3bf61be139e51f6d260e0f8a6334a70073eb1148f",
+   "bytes": 68260421
+  },
+  "run_summary.json": {
+   "sha256": "2d6fa605ebeebad3beb9dd56cc6e8427a39b81d07d1c59b0a2a5e968cd22e93d",
+   "bytes": 2148
+  }
+ },
+ "log": [
+  "[      61s]     BP seed 104729 fold 0: 50/418 cells, 21198 rows, 61s",
+  "[      99s]     BP seed 104729 fold 0: 100/418 cells, 36021 rows, 98s",
+  "[     132s]     BP seed 104729 fold 0: 150/418 cells, 55533 rows, 132s",
+  "[     171s]     BP seed 104729 fold 0: 200/418 cells, 88257 rows, 171s",
+  "[     181s]     BP seed 104729 fold 0: 250/418 cells, 89352 rows, 180s",
+  "[     207s]     BP seed 104729 fold 0: 300/418 cells, 102243 rows, 207s",
+  "[     252s]     BP seed 104729 fold 0: 350/418 cells, 135495 rows, 252s",
+  "[     278s]     BP seed 104729 fold 0: 400/418 cells, 148527 rows, 278s",
+  "[     300s]   BP seed 104729 fold 0: 162489 rows in 299s",
+  "[     385s]   BP seed 104729 fold 1: 35742 rows in 85s",
+  "[     474s]   BP seed 104729 fold 2: 23925 rows in 90s",
+  "[     565s]   BP seed 104729 fold 3: 8964 rows in 91s",
+  "[     662s]   BP seed 104729 fold 4: 43392 rows in 96s",
+  "[     765s]   BP seed 130363 fold 0: 22149 rows in 103s",
+  "[     862s]     BP seed 130363 fold 1: 50/60 cells, 34794 rows, 97s",
+  "[     878s]   BP seed 130363 fold 1: 49173 rows in 113s",
+  "[    1004s]   BP seed 130363 fold 2: 34506 rows in 126s",
+  "[    1079s]     BP seed 130363 fold 3: 50/394 cells, 21237 rows, 75s",
+  "[    1107s]     BP seed 130363 fold 3: 100/394 cells, 35286 rows, 103s",
+  "[    1133s]     BP seed 130363 fold 3: 150/394 cells, 50169 rows, 129s",
+  "[    1166s]     BP seed 130363 fold 3: 200/394 cells, 81126 rows, 161s",
+  "[    1174s]     BP seed 130363 fold 3: 250/394 cells, 82020 rows, 170s",
+  "[    1211s]     BP seed 130363 fold 3: 300/394 cells, 102975 rows, 206s",
+  "[    1250s]     BP seed 130363 fold 3: 350/394 cells, 134346 rows, 246s",
+  "[    1277s]   BP seed 130363 fold 3: 148350 rows in 273s",
+  "[    1504s]   BP seed 130363 fold 4: 20334 rows in 227s",
+  "[    1586s]   BP seed 155921 fold 0: 30909 rows in 82s",
+  "[    1798s]   BP seed 155921 fold 1: 20994 rows in 212s",
+  "[    1901s]   BP seed 155921 fold 2: 27309 rows in 103s",
+  "[    2063s]     BP seed 155921 fold 3: 50/415 cells, 21441 rows, 162s",
+  "[    2169s]     BP seed 155921 fold 3: 100/415 cells, 37428 rows, 267s",
+  "[    2249s]     BP seed 155921 fold 3: 150/415 cells, 50112 rows, 348s",
+  "[    2364s]     BP seed 155921 fold 3: 200/415 cells, 83268 rows, 463s",
+  "[    2389s]     BP seed 155921 fold 3: 250/415 cells, 84354 rows, 487s",
+  "[    2474s]     BP seed 155921 fold 3: 300/415 cells, 97368 rows, 573s",
+  "[    2661s]     BP seed 155921 fold 3: 350/415 cells, 147351 rows, 760s",
+  "[    2757s]     BP seed 155921 fold 3: 400/415 cells, 169431 rows, 855s",
+  "[    2809s]   BP seed 155921 fold 3: 176169 rows in 907s",
+  "[    2925s]   BP seed 155921 fold 4: 19131 rows in 116s",
+  "[    3016s]   BP seed 196613 fold 0: 18348 rows in 91s",
+  "[    3084s]     BP seed 196613 fold 1: 50/400 cells, 22974 rows, 69s",
+  "[    3116s]     BP seed 196613 fold 1: 100/400 cells, 37413 rows, 101s",
+  "[    3141s]     BP seed 196613 fold 1: 150/400 cells, 49947 rows, 126s",
+  "[    3173s]     BP seed 196613 fold 1: 200/400 cells, 81261 rows, 157s",
+  "[    3181s]     BP seed 196613 fold 1: 250/400 cells, 82206 rows, 165s",
+  "[    3212s]     BP seed 196613 fold 1: 300/400 cells, 101526 rows, 197s",
+  "[    3271s]     BP seed 196613 fold 1: 350/400 cells, 155883 rows, 255s",
+  "[    3292s]     BP seed 196613 fold 1: 400/400 cells, 170235 rows, 277s",
+  "[    3293s]   BP seed 196613 fold 1: 170235 rows in 278s",
+  "[    3388s]   BP seed 196613 fold 2: 32859 rows in 95s",
+  "[    3494s]   BP seed 196613 fold 3: 37125 rows in 106s",
+  "[    3562s]   BP seed 196613 fold 4: 15945 rows in 68s",
+  "[    3656s]   BP seed 262147 fold 0: 43218 rows in 94s",
+  "[    3750s]   BP seed 262147 fold 1: 12129 rows in 94s",
+  "[    3830s]     BP seed 262147 fold 2: 50/400 cells, 17760 rows, 81s",
+  "[    3866s]     BP seed 262147 fold 2: 100/400 cells, 32526 rows, 116s",
+  "[    3896s]     BP seed 262147 fold 2: 150/400 cells, 50070 rows, 146s",
+  "[    3932s]     BP seed 262147 fold 2: 200/400 cells, 84762 rows, 182s",
+  "[    3939s]     BP seed 262147 fold 2: 250/400 cells, 85857 rows, 189s",
+  "[    3959s]     BP seed 262147 fold 2: 300/400 cells, 98274 rows, 209s",
+  "[    3992s]     BP seed 262147 fold 2: 350/400 cells, 131787 rows, 243s",
+  "[    4013s]     BP seed 262147 fold 2: 400/400 cells, 143760 rows, 263s",
+  "[    4014s]   BP seed 262147 fold 2: 143760 rows in 264s",
+  "[    4245s]     BP seed 262147 fold 3: 50/56 cells, 47019 rows, 231s",
+  "[    4252s]   BP seed 262147 fold 3: 52215 rows in 238s",
+  "[    4484s]   BP seed 262147 fold 4: 23190 rows in 232s",
+  "[    4486s] BP: 1372560 rows -> /Users/lilshadix/PycharmProjects/ml_separator/generations/gen20_kshot/predictions/discovery_nd_sm/pairs_BP.parquet",
+  "[    4486s] done in 4486s"
+ ]
+}

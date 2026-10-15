@@ -1,0 +1,197 @@
+{
+ "name": "g20_discovery",
+ "label": "smoke_bp",
+ "started_utc": "2026-10-14T12:34:19Z",
+ "git": {
+  "head": "8030e166024ee869f87b093b400fab84f2bf5b7c",
+  "branch": "gen19-chem-transfer",
+  "dirty": true,
+  "describe": "8030e16"
+ },
+ "environment": {
+  "python": "3.13.0",
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "numpy": "2.5.1",
+  "pandas": "3.0.5",
+  "scipy": "1.18.0",
+  "sklearn": "1.9.0",
+  "torch": "2.13.0",
+  "torch_threads": 4
+ },
+ "dataset": {
+  "bundle_parquet": "/Users/lilshadix/PycharmProjects/ml_separator/dataset with 3D structures/dataset.parquet",
+  "bundle_sha256": "fefbefc6fe993aa9ce9db1a0c338adb9e5f58a8b75bab084cc1df4e024faf5dd",
+  "bundle_sha256_pinned": "fefbefc6fe993aa9ce9db1a0c338adb9e5f58a8b75bab084cc1df4e024faf5dd",
+  "cohort_manifest_parquet": "/Users/lilshadix/PycharmProjects/ml_separator/generations/gen13_separation/manifests/cohort_exact.parquet",
+  "cohort_manifest_sha256": "3f11ac4ccb7c9f6b1fa768f4406e1f249881cfd76689ba49a9115efc08bb7fd6"
+ },
+ "preregistration": {
+  "exists": true,
+  "sealed": false,
+  "sha256_of_body": "cc84e89662ed95e96c6a43b985c72671a6c6ab15a9320ab54265c6bf875b4e87",
+  "recorded": null,
+  "valid": false
+ },
+ "seeds": [
+  104729
+ ],
+ "args": {
+  "label": "smoke_bp",
+  "designs": "BP",
+  "seeds": "104729",
+  "smoke": true,
+  "max_cells": 12,
+  "no_nnc": false,
+  "setting_b": true,
+  "allow_unsealed": false
+ },
+ "finished_utc": "2026-10-14T12:36:42Z",
+ "seconds": 143.58976101875305,
+ "status": "ok",
+ "records": {
+  "summary": {
+   "label": "smoke_bp",
+   "designs": {
+    "BP": {
+     "rows": 72187,
+     "path": "/Users/lilshadix/PycharmProjects/ml_separator/generations/gen20_kshot/predictions/smoke_bp/pairs_BP.parquet",
+     "seconds": 142.1956386566162
+    }
+   },
+   "config": {
+    "label": "smoke_bp",
+    "designs": [
+     "BP"
+    ],
+    "seeds": [
+     104729
+    ],
+    "k_grid": [
+     0,
+     1,
+     2,
+     3,
+     5,
+     8,
+     10
+    ],
+    "n_random_draws": 5,
+    "full_policy_designs": [
+     "BP",
+     "B"
+    ],
+    "remaining_regime_designs": [
+     "BP",
+     "B"
+    ],
+    "remaining_regime_sequences": [
+     [
+      "DOPT_Q",
+      0
+     ],
+     [
+      "WIDEST",
+      0
+     ],
+     [
+      "RANDOM",
+      0
+     ]
+    ],
+    "arms": [
+     "FLAT",
+     "G14",
+     "MEAN_CURVE",
+     "NN_TANIMOTO",
+     "NNC"
+    ],
+    "nnc_configs": [
+     {
+      "hidden": 256,
+      "dropout": 0.15,
+      "weight_decay": 0.0001,
+      "lr": 0.001,
+      "max_epochs": 300,
+      "patience": 30,
+      "min_epochs": 20,
+      "adjacent_weight": 3.0,
+      "huber_delta": 1.0,
+      "n_seeds": 8,
+      "name": "c256_d15_wd1e-4"
+     },
+     {
+      "hidden": 128,
+      "dropout": 0.3,
+      "weight_decay": 0.001,
+      "lr": 0.001,
+      "max_epochs": 300,
+      "patience": 30,
+      "min_epochs": 20,
+      "adjacent_weight": 3.0,
+      "huber_delta": 1.0,
+      "n_seeds": 8,
+      "name": "c128_d30_wd1e-3"
+     }
+    ],
+    "nnc_inner_seeds": 1,
+    "nnc_outer_seeds": 2,
+    "lam_head_grid": [
+     0.1,
+     1.0,
+     10.0
+    ],
+    "lam_full_grid": [
+     0.001,
+     0.01,
+     0.1
+    ],
+    "lam_ridge_grid": [
+     0.3,
+     1.0,
+     3.0,
+     10.0
+    ],
+    "full_ft_policy": "DOPT_Q",
+    "full_ft_ks": [
+     1,
+     3,
+     10
+    ],
+    "full_ft_members": 4,
+    "full_ft_steps": 10,
+    "max_cells": 12,
+    "smoke": true
+   },
+   "setting_b": {
+    "BP": 1397
+   }
+  },
+  "cohort": {
+   "manifest_parquet": "generations/gen13_separation/manifests/cohort_exact.parquet",
+   "manifest_sha256": "3f11ac4ccb7c9f6b1fa768f4406e1f249881cfd76689ba49a9115efc08bb7fd6",
+   "n_cells": 521,
+   "fingerprint_obtained": "854171b03411d901",
+   "n_extractants": 90,
+   "n_chemotypes": 45,
+   "n_publications": 58
+  }
+ },
+ "outputs": {
+  "folds_BP.json": {
+   "sha256": "59d14fe19b46fd29ee21d09181436d07df6ee6c60b8b4fedb6864dcaf81df2d2",
+   "bytes": 18189
+  },
+  "pairs_BP.parquet": {
+   "sha256": "009b8963d09c306aef4adb0edccc687881471722743992ea10159bbee22dcd93",
+   "bytes": 4263282
+  },
+  "run_summary.json": {
+   "sha256": "508a3ce5ec8d52642372b386161f4429822c5c68218717d703f7cf351d0df2e0",
+   "bytes": 1627
+  },
+  "settingB_BP.parquet": {
+   "sha256": "fb84d471ced62bc07461ee16c3c3fcce6c265229a333a8c374ea69b62f450a14",
+   "bytes": 84541
+  }
+ }
+}

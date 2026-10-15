@@ -1,0 +1,258 @@
+{
+ "name": "g20_discovery",
+ "label": "discovery",
+ "started_utc": "2026-10-14T13:13:12Z",
+ "git": {
+  "head": "8030e166024ee869f87b093b400fab84f2bf5b7c",
+  "branch": "gen19-chem-transfer",
+  "dirty": true,
+  "describe": "8030e16"
+ },
+ "environment": {
+  "python": "3.13.0",
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "numpy": "2.5.1",
+  "pandas": "3.0.5",
+  "scipy": "1.18.0",
+  "sklearn": "1.9.0",
+  "torch": "2.13.0",
+  "torch_threads": 2
+ },
+ "dataset": {
+  "bundle_parquet": "/Users/lilshadix/PycharmProjects/ml_separator/dataset with 3D structures/dataset.parquet",
+  "bundle_sha256": "fefbefc6fe993aa9ce9db1a0c338adb9e5f58a8b75bab084cc1df4e024faf5dd",
+  "bundle_sha256_pinned": "fefbefc6fe993aa9ce9db1a0c338adb9e5f58a8b75bab084cc1df4e024faf5dd",
+  "cohort_manifest_parquet": "/Users/lilshadix/PycharmProjects/ml_separator/generations/gen13_separation/manifests/cohort_exact.parquet",
+  "cohort_manifest_sha256": "3f11ac4ccb7c9f6b1fa768f4406e1f249881cfd76689ba49a9115efc08bb7fd6"
+ },
+ "preregistration": {
+  "exists": true,
+  "sealed": true,
+  "sha256_of_body": "2915974a8a46a3ff465ae2a144f67e825edecc67e8d60265a542d4b0b78c5cc6",
+  "recorded": "2915974a8a46a3ff465ae2a144f67e825edecc67e8d60265a542d4b0b78c5cc6",
+  "valid": true
+ },
+ "seeds": [
+  104729,
+  130363,
+  155921,
+  196613,
+  262147
+ ],
+ "args": {
+  "label": "discovery",
+  "designs": "BP,B",
+  "seeds": "104729,130363,155921,196613,262147",
+  "smoke": false,
+  "max_cells": null,
+  "no_nnc": false,
+  "setting_b": true,
+  "allow_unsealed": false,
+  "models": "metal,pair",
+  "query_name": "adjacent"
+ },
+ "finished_utc": "2026-10-14T17:07:59Z",
+ "seconds": 14087.546787023544,
+ "status": "ok",
+ "records": {
+  "summary": {
+   "label": "discovery",
+   "designs": {
+    "BP": {
+     "rows": 2864676,
+     "path": "/Users/lilshadix/PycharmProjects/ml_separator/generations/gen20_kshot/predictions/discovery/pairs_BP.parquet",
+     "seconds": 7052.643430709839
+    },
+    "B": {
+     "rows": 2864917,
+     "path": "/Users/lilshadix/PycharmProjects/ml_separator/generations/gen20_kshot/predictions/discovery/pairs_B.parquet",
+     "seconds": 7011.931061029434
+    }
+   },
+   "config": {
+    "label": "discovery",
+    "designs": [
+     "BP",
+     "B"
+    ],
+    "seeds": [
+     104729,
+     130363,
+     155921,
+     196613,
+     262147
+    ],
+    "models": [
+     "metal",
+     "pair"
+    ],
+    "query_name": "adjacent",
+    "k_grid": [
+     0,
+     1,
+     2,
+     3,
+     5,
+     6,
+     8,
+     10
+    ],
+    "n_random_draws": 5,
+    "full_policy_designs": [
+     "BP",
+     "B"
+    ],
+    "remaining_regime_designs": [
+     "BP",
+     "B"
+    ],
+    "remaining_regime_sequences": [
+     [
+      "DOPT_Q",
+      0
+     ],
+     [
+      "UNIFORM",
+      0
+     ],
+     [
+      "RANDOM",
+      0
+     ]
+    ],
+    "arms": [
+     "FLAT",
+     "G14",
+     "MEAN_CURVE",
+     "NN_TANIMOTO",
+     "NNC"
+    ],
+    "nnc_configs": [
+     {
+      "hidden": 256,
+      "dropout": 0.15,
+      "weight_decay": 0.0001,
+      "lr": 0.001,
+      "max_epochs": 300,
+      "patience": 30,
+      "min_epochs": 20,
+      "adjacent_weight": 3.0,
+      "huber_delta": 1.0,
+      "n_seeds": 8,
+      "name": "c256_d15_wd1e-4"
+     },
+     {
+      "hidden": 128,
+      "dropout": 0.3,
+      "weight_decay": 0.001,
+      "lr": 0.001,
+      "max_epochs": 300,
+      "patience": 30,
+      "min_epochs": 20,
+      "adjacent_weight": 3.0,
+      "huber_delta": 1.0,
+      "n_seeds": 8,
+      "name": "c128_d30_wd1e-3"
+     },
+     {
+      "hidden": 256,
+      "dropout": 0.15,
+      "weight_decay": 0.001,
+      "lr": 0.001,
+      "max_epochs": 300,
+      "patience": 30,
+      "min_epochs": 20,
+      "adjacent_weight": 3.0,
+      "huber_delta": 1.0,
+      "n_seeds": 8,
+      "name": "c256_d15_wd1e-3"
+     }
+    ],
+    "nnc_inner_seeds": 2,
+    "nnc_outer_seeds": 8,
+    "lam_head_grid": [
+     0.1,
+     1.0,
+     10.0
+    ],
+    "lam_full_grid": [
+     0.001,
+     0.01,
+     0.1
+    ],
+    "lam_ridge_grid": [
+     0.3,
+     1.0,
+     3.0,
+     10.0
+    ],
+    "noise_factor_grid": [
+     0.5,
+     1.0,
+     2.0,
+     4.0,
+     8.0,
+     16.0
+    ],
+    "selection_ks": [
+     0,
+     3
+    ],
+    "full_ft_policy": "DOPT_Q",
+    "full_ft_ks": [
+     1,
+     3,
+     5,
+     10
+    ],
+    "full_ft_members": 4,
+    "full_ft_steps": 30,
+    "max_cells": null,
+    "smoke": false
+   },
+   "setting_b": {
+    "BP": 6985,
+    "B": 6985
+   }
+  },
+  "cohort": {
+   "manifest_parquet": "generations/gen13_separation/manifests/cohort_exact.parquet",
+   "manifest_sha256": "3f11ac4ccb7c9f6b1fa768f4406e1f249881cfd76689ba49a9115efc08bb7fd6",
+   "n_cells": 521,
+   "fingerprint_obtained": "854171b03411d901",
+   "n_extractants": 90,
+   "n_chemotypes": 45,
+   "n_publications": 58
+  }
+ },
+ "outputs": {
+  "folds_B.json": {
+   "sha256": "4706586180ffdbfc8f8aa5bb825f45d5e8e6e43613ab41493333ea84c5ac82ec",
+   "bytes": 180785
+  },
+  "folds_BP.json": {
+   "sha256": "6eada5c47dc2fa27425a016fb52e21531098f1dca4085e7d181cb647a3919c17",
+   "bytes": 180605
+  },
+  "pairs_B.parquet": {
+   "sha256": "f978ec05a2ebdd38a39ed444e69a77fcd9fc8b11ab1992a071bdb23c3d0884e6",
+   "bytes": 137627262
+  },
+  "pairs_BP.parquet": {
+   "sha256": "8fd90c15627cc587492223267c03fd2a2e54b7c846c1d6fecabdbd6cfc603f3d",
+   "bytes": 137476249
+  },
+  "run_summary.json": {
+   "sha256": "dc6a9529f07ad1c39bba4dfdd89c6a0750e7bd281239da43d066b471ddd59e42",
+   "bytes": 2331
+  },
+  "settingB_B.parquet": {
+   "sha256": "d3b55ba2170586ed4b7e4599d70a4040e961c489acd4507453ebf16f922b6565",
+   "bytes": 233139
+  },
+  "settingB_BP.parquet": {
+   "sha256": "d3c13a5709afd0721bd3b8b10624b8cb813051eefde4350f84bb3104a940df61",
+   "bytes": 232924
+  }
+ }
+}
