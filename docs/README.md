@@ -9,9 +9,11 @@ reports and results together); start at [`../generations/README.md`](../generati
 docs/
 ├── HANDOFF_FOR_CHATGPT.md   the gen2–gen11 programme in one document
 ├── audits/      leakage and feature audits, written before any result
-├── protocols/   pre-registrations — hypotheses and decision rules, frozen before the run
+├── protocols/   pre-registrations — hypotheses and decision rules, frozen before the run;
+│                also the 2026-09-27 recovery plan (lanthanide_separation_recovery_plan_20260927.md)
 ├── results/     what the runs found
-├── design/      roadmaps and design notes, including the old gen2-era Russian README
+├── design/      roadmaps and design notes: the gen2-era Russian README, the 3D roadmap, and the
+│                2026-09-13 process-improvement plan (kshot_next_steps_20260913.md, Russian)
 └── figures/     the publication figure set's knowledge (renders deleted, see below)
 ```
 
@@ -26,6 +28,8 @@ docs/
 | whether the evaluation is sound | [`audits/LEAKAGE_AUDIT.md`](audits/LEAKAGE_AUDIT.md) |
 | the frozen gen10 `log D` pipeline and its limits | [`../runs/gen10_final/GEN10_FINAL_MODEL_CARD.md`](../runs/gen10_final/GEN10_FINAL_MODEL_CARD.md) |
 | the deployed separation-curve predictor (gen15, left unchanged by gen16) | [`../generations/gen15_curve/scripts/g15_predict.py`](../generations/gen15_curve/scripts/g15_predict.py) |
+| the 2026-09-27 recovery plan (six R² metrics, model comparisons, 12-hour cap; never executed as written, gen20 implements its k-shot part) | [`protocols/lanthanide_separation_recovery_plan_20260927.md`](protocols/lanthanide_separation_recovery_plan_20260927.md) |
+| the script and library maps for gen2–gen11 | [`../scripts/README.md`](../scripts/README.md), [`../src/lanthanide_separation/README.md`](../src/lanthanide_separation/README.md), [`../slurm/README.md`](../slurm/README.md) |
 
 **Read `figures/METRIC_AUDIT.md` before quoting any headline number.** The same frozen model
 scores macro MAE `0.9695` and `1.0358` depending only on which cohort and averaging unit is used.
@@ -55,7 +59,10 @@ Both are correct; a number without its cohort is not.
 | 16 side, *unreviewed* | anchor regression with the publication as the anchor | — | none written; `results/g16f_*_BP.csv` — every anchor arm scores worse than gen14 under BP | [`generations/gen16_anchor`](../generations/gen16_anchor/) |
 | 16 side, *unreviewed* | few-cluster inference, within-laboratory designs BP1/BP1X, ligand-vs-laboratory identifiability, power | — | none written; `results/` (two runs incomplete) | [`generations/gen16_protocol`](../generations/gen16_protocol/) |
 | 17, *unreviewed* | within-publication pairwise difference learning | — | [`results/g17_summary.txt`](../generations/gen17_pairdiff/results/g17_summary.txt) — every arm worse than predicting zero difference; an exploratory probe, not the gen17 agenda gen16 set | [`generations/gen17_pairdiff`](../generations/gen17_pairdiff/) |
+| 18 | the process-design chain (purity, recovery, cascade) and what the corpus can support | [`PRE_REGISTRATION.md`](../generations/gen18_process/PRE_REGISTRATION.md), [`BRIEF.md`](../generations/gen18_process/BRIEF.md); task document `design/kshot_next_steps_20260913.md` | [`GEN18_REPORT.md`](../generations/gen18_process/GEN18_REPORT.md), [`SUMMARY.md`](../generations/gen18_process/SUMMARY.md) | [`generations/gen18_process`](../generations/gen18_process/) |
 | 19 | chemistry transfer: reconstruct unmeasured metal × extractant behaviour under hidden-cell, hidden-metal and hidden-publication hold-outs, with uncertainty carried into the gen18 process layer | [`preregistration.md`](../generations/gen19_chem_transfer/preregistration.md) (sealed 2026-09-15, eight POST-HOC addenda), [`GEN19_CLAUDE_CODE_INSTRUCTIONS.md`](../generations/gen19_chem_transfer/GEN19_CLAUDE_CODE_INSTRUCTIONS.md) (brief) | [`SUMMARY.md`](../generations/gen19_chem_transfer/SUMMARY.md), [`GEN19_REPORT.md`](../generations/gen19_chem_transfer/GEN19_REPORT.md), [`decisions/`](../generations/gen19_chem_transfer/decisions/) — discovery complete on the selection half, seed 104729, optimistically biased (M2 beats the within-system lookup on hidden cells, +0.263 ≥ δ5 0.106, R19 items 1, 2, 3, 5 PASS, full verdict UNDECIDED; the descriptor CatBoost M0 is better still, M2 − M0 = −0.154, and is deployed; F4 negative actinide transfer HOLDS on V2, conservative reading, a §10 failure condition met); **the confirmation run and the single Pr/Nd test were NOT RUN, so every full R19 verdict of a learned-arm contrast, and therefore S1 and S2, is UNDECIDED** | [`generations/gen19_chem_transfer`](../generations/gen19_chem_transfer/) |
+
+| 20 | leakage-safe k-shot learning: do k measured separation factors make an unseen extractant's adjacent-pair `log SF` predictable, and does any model beat a line through them? | [`PRE_REGISTRATION.md`](../generations/gen20_kshot/PRE_REGISTRATION.md) (sealed), [`IMPLEMENTATION_PLAN.md`](../generations/gen20_kshot/IMPLEMENTATION_PLAN.md), [`AUDIT.md`](../generations/gen20_kshot/AUDIT.md) | [`GEN20_REPORT.md`](../generations/gen20_kshot/GEN20_REPORT.md) — measurements help (confirmed), no model beats the line by the margin, the pre-registered neural arm is significantly worse than the line | [`generations/gen20_kshot`](../generations/gen20_kshot/) |
 
 Cross-cutting: `results/metrics_reproduction_20260818.md` documents how the headline metrics are
 recomputed from raw predictions.

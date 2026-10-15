@@ -9,7 +9,7 @@ design (BP) the held-out cell's publication is also removed from training. Every
 pre-registered, compared with a no-model floor and tested with a chemotype-blocked bootstrap. The
 programme reports well-supported nulls as results.
 
-**Next task (2026-09-27):** [Lanthanide separation recovery plan — goal, six R² metrics, model comparisons and a 12-hour compute cap](LANTHANIDE_SEPARATION_RECOVERY_PLAN.md). This is a prospective instruction, not a completed experiment.
+**Next task (2026-09-27):** [Lanthanide separation recovery plan — goal, six R² metrics, model comparisons and a 12-hour compute cap](docs/protocols/lanthanide_separation_recovery_plan_20260927.md). This is a prospective instruction, not a completed experiment.
 
 ## Current state (2026-09)
 
@@ -78,10 +78,10 @@ BP, extractant-macro MAE of pairwise `log SF`:
 
 ```
 .
-├── src/lanthanide_separation/   gen2–gen11 library code (pairs, ablation, gen3_*, levels, gen6/ … gen11/)
-├── scripts/                     gen2–gen11 runners and analysis scripts
+├── src/lanthanide_separation/   gen2–gen11 library code (map in its README.md)
+├── scripts/                     gen2–gen11 runners and analysis scripts, flat (pipeline-ordered map in scripts/README.md)
 ├── tests/                       gen2–gen11 pytest suite ("slow" tests need the built cohort or run artefacts)
-├── slurm/                       SLURM job and submit scripts for the gen2–gen6 cluster runs
+├── slurm/                       SLURM job and submit scripts for the gen2–gen6 cluster runs (job map in slurm/README.md)
 ├── runs/                        gen2–gen11 run artefacts and reports, incl. the frozen gen6–gen11 cohort
 ├── generations/                 gen12 onwards, one self-contained directory each, plus the 2026-09 relocation record
 ├── docs/                        documentation index, gen2–gen11 briefing, protocols, results, audits, figures

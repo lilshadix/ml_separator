@@ -1,6 +1,6 @@
 ## 0. What this generation answers, and what it does not
 
-`docs/kshot_next_steps_20260913.md` sets the programme's goal as **a cleaner product at comparable
+`docs/design/kshot_next_steps_20260913.md` sets the programme's goal as **a cleaner product at comparable
 recovery, or the same product with fewer stages and less reagent** — explicitly *not* a lower ML
 error — and asks the software (§8–§9) for one thing: the chain
 

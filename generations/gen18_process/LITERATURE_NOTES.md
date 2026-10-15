@@ -6,7 +6,7 @@ entries. Nothing here is a measurement made in this repository. Statuses:
 
 - `literature_verified` — read on 2026-09-13 in an accessible source (patent full text, open-access
   article); the quoted passage is reproduced.
-- `literature_cited_by_task_doc` — stated in `docs/kshot_next_steps_20260913.md` with a DOI; the
+- `literature_cited_by_task_doc` — stated in `docs/design/kshot_next_steps_20260913.md` with a DOI; the
   full text was not accessible to verify (Elsevier abstracts are elided in Semantic Scholar,
   OpenAlex and Crossref; publisher pages return 403).
 - `not_found` — searched, no accessible source; the database must carry a null and the case study

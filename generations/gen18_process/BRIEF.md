@@ -6,7 +6,7 @@ constraints every deliverable must satisfy. Read it completely before doing anyt
 
 ## 0. The task, in one paragraph
 
-`docs/kshot_next_steps_20260913.md` (Russian; committed as "new task", cdfcebe) replaces the old
+`docs/design/kshot_next_steps_20260913.md` (Russian; committed as "new task", cdfcebe) replaces the old
 k-shot plan. It says the programme's end result is **a cleaner lanthanide product at high recovery
 and lower cost**, not a lower ML error. Its software section (§8, §9 "Для программной части")
 asks for one thing from this repository: build the chain
