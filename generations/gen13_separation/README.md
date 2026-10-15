@@ -21,6 +21,7 @@ tests/           executable invariants (leakage, target-free features, antisymme
 manifests/       cohort parquet + audit json (exact and relaxed keys)
 predictions/     per-label pair tables, curves, bases, fold plan, similarity, selections
 metrics/ bootstrap/ headline_tables/ analysis/
+data_audit/      the 2026-09-07 data-audit scripts and their outputs that DATA_AUDIT.md quotes
 ```
 
 ## Reproducing

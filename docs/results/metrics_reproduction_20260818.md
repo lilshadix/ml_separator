@@ -13,7 +13,7 @@
 | Группа | Число | Откуда (артефакт) |
 |---|---|---|
 | **A. Чемпион на невиданных экстрагентах** (основной режим) | A2: equal-extractant macro MAE **0.3192**, pooled MAE 0.4189, pooled R² 0.323, sign acc 0.847; A2+TP: macro **0.3175**; PAIRMEAN_baseline: macro 0.4482 / pooled MAE 0.3825 / R² 0.444 | `runs/gen4_candidates_20260817T003449Z/leaderboard.csv`, `per_seed_metrics.csv`, `paired_bootstrap.csv`; те же A2-числа в `runs/gen3_primary_20260815T181555Z/aggregate/aggregate_metrics.csv` (арм `A2_current_champion`) |
-| **B. R² по режимам** | unseen extractant: pooled R² **0.31** (oracle-offset потолок 0.51, oracle-affine 0.58; 5/10-shot offset 0.41/0.46); seen extractant / unseen conditions: pooled R² **0.744**, macro MAE 0.249 | `runs/ablation_all_20260810T181058Z/aggregate/r2_supplement/{arm_r2,calibration_bounds}.csv`; `runs/condition_regime_20260815T171535Z/summary.json` |
+| **B. R² по режимам** | unseen extractant: pooled R² **0.31** (oracle-offset потолок 0.51, oracle-affine 0.58; 5/10-shot offset 0.41/0.46); seen extractant / unseen conditions: pooled R² **0.744**, macro MAE 0.249 | `runs/ablation_all_20260810T181058Z/aggregate/r2_supplement/{arm_r2,calibration_bounds}.csv`; `runs/gen2/condition_regime_20260815T171535Z/summary.json` |
 | **C. k-shot калибровка** | A2+TP `cross_condition`: 0.3785 → 0.2413 при k=10; PAIRMEAN 0.2322; `y≈b·ΔZ` без модели 0.2395; `random`: 0.3327 → 0.1757 | `runs/kshot_calibration_20260817T181016Z/{head_to_head_vs_nulls,grid_metrics_seedmean,decision_table}.csv`; описание `docs/kshot_calibration_study_20260817.md` |
 
 Все MAE / R² — в единицах **log₁₀ SF** (см. §2). «macro MAE» везде означает
@@ -327,5 +327,5 @@ python scripts/run_kshot_calibration.py runs/gen4_candidates_20260817T003449Z/oo
 | Метрики и бутстрэп | `src/lanthanide_separation/gen3_metrics.py` |
 | TP, gen4-армы | `src/lanthanide_separation/gen4_candidates.py`, `scripts/run_gen4_candidates.py`, `scripts/gen4_decision.py` |
 | Замороженный протокол gen3 | `gen3_protocol.json` |
-| Прогоны с числами | `runs/gen3_primary_20260815T181555Z/aggregate/`, `runs/gen4_candidates_20260817T003449Z/`, `runs/condition_regime_20260815T171535Z/`, `runs/ablation_all_20260810T181058Z/aggregate/r2_supplement/`, `runs/kshot_calibration_20260817T181016Z/` |
+| Прогоны с числами | `runs/gen3_primary_20260815T181555Z/aggregate/`, `runs/gen4_candidates_20260817T003449Z/`, `runs/gen2/condition_regime_20260815T171535Z/`, `runs/ablation_all_20260810T181058Z/aggregate/r2_supplement/`, `runs/kshot_calibration_20260817T181016Z/` |
 | Независимый пересчёт метрик | `scripts/reproduce_headline_metrics.py` |

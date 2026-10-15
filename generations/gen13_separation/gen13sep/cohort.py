@@ -13,7 +13,7 @@ Design decisions, made before any model was fitted:
   filter collapsed 190 extractants to 34.  Two rows recorded with the same
   missing fields come from the same table of the same paper; treating "not
   reported" as a matchable value recovers 90 extractants with at least one
-  multi-metal cell (``scripts/audit/gen13_sf_data_audit_part1.out.txt``).  The
+  multi-metal cell (``generations/gen13_separation/data_audit/gen13_sf_data_audit_part1.out.txt``).  The
   gen6 provenance ``publication_id`` is added to the key so that a cell can
   never mix two publications: 7 of 521 exact cells did, and they are split.
 * **Replicates are averaged per (cell, metal)** and their count and spread are

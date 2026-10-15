@@ -1,7 +1,7 @@
 # Gen13 — data audit for the separation target
 
 *Written 2026-09-07, before the pre-registration and before any locked Gen13 model was
-fitted.  Numbers come from `scripts/audit/gen13_sf_data_audit_part{1,2}.py` (untracked
+fitted.  Numbers come from `generations/gen13_separation/data_audit/gen13_sf_data_audit_part{1,2}.py` (untracked
 audit scripts run on 2026-09-07), from `gen13sep.cohort.build_cohort` (the cohort manifest
 under `manifests/`), and from the repository's own reports.  Exploratory prototypes run
 before this document are listed in §7 and disclosed in the pre-registration.*

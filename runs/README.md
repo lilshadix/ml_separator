@@ -11,6 +11,24 @@ SLURM workers write unique directories under `attempts/` and atomically publish
 only hash-validated results as `run_*` directories. Aggregation ignores attempts
 and follows the same attempt-then-publish contract.
 
+## Index of run roots
+
+One directory per published run, named after its generation. The protocol references and the
+code paths below are fixed by hashes or by imports, so these names must not change.
+
+| gen | run roots | note |
+|---|---|---|
+| 2 | `ablation_all_20260810T181058Z` | the gen2 primary; pinned by `gen3_protocol.json` and the gen3 run manifests, so it stays at this path |
+| 2 | `gen2/` | every other gen2 run: the 2026-08-07 delta3d / compact / strict / shrinkage runs, `ablation_all_20260809T080927Z`, `ablation_prespecified_extractant_s42`, `descriptor_20260808T182353Z`, `simplicial_20260807T200005Z`, `condition_regime_20260815T171535Z`, `gen2_2026081*` (moved here 2026-10-15; the `output_dir` fields inside their `summary.json` record where they were written and were left as they were) |
+| 3 | `gen3_primary_20260815T181555Z` | hash-validated split × model-seed tasks plus `aggregate/` |
+| 4 | `gen4_candidates_20260817T003449Z`, `gen4_candidates_confirm_5seeds`, `gen4_candidates_controls_5seeds`, `gen4_candidates_seed104729_v{1,2}`, `kshot_calibration_20260817T181016Z` | candidates, confirmation, controls and the first k-shot study |
+| 5 | `gen5_levels_20260817T195411Z`, `gen5_levels_20260818T180930Z` (crashed, kept for the record), `gen5_levels_20260818T211105Z`, `gen5_massaction_local_20260818` | the `log D` level target |
+| 6 | `gen6_phase0`, `gen6_chemistry`, `gen6_provenance`, `gen6_exp{A,B,C,F}_*`, `gen6_aggregate` | `gen6_provenance/provenance_table.parquet` is read by gen13 onwards |
+| 7–11 | `gen7_architecture`, `gen8_architecture`, `gen9_shape`, `gen10_final`, `gen11_transfer` | `gen7_architecture/cache/` holds the frozen cohort every later generation uses |
+| other | `sae_dataset_audit` | audit of the all-metals archive build (`dataset_all_metals/`) |
+
+New cluster runs still land at `runs/<protocol>_<stamp>/`, as the `slurm/` jobs write them.
+
 ## Retention
 
 Published artifacts of the current protocols (`simplicial_*`, `descriptor_*`) are

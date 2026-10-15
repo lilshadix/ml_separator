@@ -2,7 +2,7 @@
 
 Date of local audit: 2026-08-08  
 Repository: `ml_separator`  
-Run bundle: `runs/simplicial_20260807T200005Z`
+Run bundle: `runs/gen2/simplicial_20260807T200005Z`
 
 ## Executive decision
 
@@ -67,10 +67,10 @@ the passing aggregate validation.
 
 Authoritative starting points:
 
-- machine-readable verdict: `runs/simplicial_20260807T200005Z/aggregate/validation.json`
-- aggregate statistics: `runs/simplicial_20260807T200005Z/aggregate/aggregate_summary.json`
-- concise generated report: `runs/simplicial_20260807T200005Z/aggregate/report.md`
-- per-pair ensemble predictions: `runs/simplicial_20260807T200005Z/aggregate/cross_seed_oof_predictions.csv`
+- machine-readable verdict: `runs/gen2/simplicial_20260807T200005Z/aggregate/validation.json`
+- aggregate statistics: `runs/gen2/simplicial_20260807T200005Z/aggregate/aggregate_summary.json`
+- concise generated report: `runs/gen2/simplicial_20260807T200005Z/aggregate/report.md`
+- per-pair ensemble predictions: `runs/gen2/simplicial_20260807T200005Z/aggregate/cross_seed_oof_predictions.csv`
 
 ## Primary result
 

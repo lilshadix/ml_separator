@@ -24,7 +24,7 @@ pipeline they belong to (data → run → aggregate → analyse → report). gen
 | run | `run_ablation_benchmark.py` (A0–A6 feature families), `run_delta3d_benchmark.py`, `run_simplicial_benchmark.py` |
 | aggregate | `aggregate_ablation_runs.py`, `aggregate_delta3d_runs.py`, `aggregate_simplicial_runs.py` |
 | analyse | `compare_descriptor_arms.py` (real vs permuted null), `analyze_oof_r2.py`, `analyze_screening_utility.py`, `evaluate_condition_regime.py` |
-| audit | `audit/gen13_sf_data_audit_part{1,2}.py` (the gen13 separation-factor data audit; outputs beside them) |
+| local driver | `run_gen2_local.sh` (sequential stand-in for `slurm/ablation_multiseed.slurm` on a workstation without SLURM) |
 
 ## gen3 — learner, residual and architecture changes (`src/lanthanide_separation/gen3_*.py`, `gen3_protocol.json`)
 

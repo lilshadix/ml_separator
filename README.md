@@ -124,7 +124,7 @@ depends on it.
 
 | gen | question | verdict (one line) | where |
 |---|---|---|---|
-| 2 | Does 3D coordination geometry beat a 2D fingerprint for `log SF`? | No: adding 3D is significantly worse (−0.015 macro MAE, CI excludes 0), on extractant-grouped folds that carry an ECFP-homolog leak. | `docs/results/metal_site_descriptor_experiment.md`, `runs/ablation_all_*`, `runs/simplicial_*` |
+| 2 | Does 3D coordination geometry beat a 2D fingerprint for `log SF`? | No: adding 3D is significantly worse (−0.015 macro MAE, CI excludes 0), on extractant-grouped folds that carry an ECFP-homolog leak. | `docs/results/metal_site_descriptor_experiment.md`, `runs/ablation_all_20260810T181058Z` (the gen3 reference run), `runs/gen2/` (every other gen2 run) |
 | 3 | Do learner, residual or architecture changes help? | No: a valid negative result. | `gen3_protocol.json`, `runs/gen3_primary_20260815T181555Z/` |
 | 4 | Candidate families, and the first k-shot study | From k = 2 the model adds nothing over a two-parameter no-model fit (`log SF`, 12 extractants). | `docs/results/gen4_candidate_study_20260816.md`, `docs/results/kshot_calibration_study_20260817.md` |
 | 5 | Pivot to the `log D` level | The level model behaves like a near-neighbour lookup; 3D is worse by 0.10; mass-action features help only when the ligand is known. | `docs/results/gen5_levels_results_20260819_full4regimes.md` |
