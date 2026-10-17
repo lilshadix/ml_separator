@@ -1,0 +1,3137 @@
+{
+ "schema": "gen20.1 S3 counts; label-free except the declared frozen quarantine mask (label_reads); deterministic, no timestamps",
+ "s3_status": "PASS",
+ "label_reads": [
+  {
+   "what": "gen13sep.cohort.apply_quarantine sentinel mask log_D <= LOG_D_FLOOR on the raw bundle (the frozen gen13 cohort-membership rule)",
+   "column": "log_D",
+   "threshold": -6.0,
+   "source": "dataset with 3D structures/dataset.parquet",
+   "rows_read": 5992,
+   "rows_flagged": 3,
+   "rows_in_521_cells": 0,
+   "rows_in_521_cells_definition": "quarantined rows (either rule) inside the multi-metal cells of the unquarantined chain, which are the 521 bench cells; the sentinel rows are a subset",
+   "used_for": "cohort-chain membership counts only (C11-*); the column is dropped right after the mask; no statistic of it is computed"
+  }
+ ],
+ "frozen_trees_unchanged": true,
+ "cohort_assertions": {
+  "assert_matches_manifest": {
+   "manifest_parquet": "generations\\gen13_separation\\manifests\\cohort_exact.parquet",
+   "manifest_sha256": "3f11ac4ccb7c9f6b1fa768f4406e1f249881cfd76689ba49a9115efc08bb7fd6",
+   "n_cells": 521
+  },
+  "Y_equals_frame_logD": true,
+  "bundle_sha256": "fefbefc6fe993aa9ce9db1a0c338adb9e5f58a8b75bab084cc1df4e024faf5dd",
+  "cohort_parquet_sha256": "3f11ac4ccb7c9f6b1fa768f4406e1f249881cfd76689ba49a9115efc08bb7fd6",
+  "bench_pkl": "generations/gen14_direction/cache/bench.pkl",
+  "bench_pkl_sha256": "5915ece8729c8ddb06dcd91bb9658a58916ded46834083043bb1ee6037747386",
+  "bench_pkl_bytes": 10901386,
+  "fingerprint_obtained": "4c3c6628ea0be949",
+  "fingerprint_gen13_recorded": "4c3c6628ea0be949",
+  "fingerprint_drift": false,
+  "n_cells": 521,
+  "n_entries": 3359
+ },
+ "cohort_chain": {
+  "quarantine_audit": {
+   "rows_in": 5992,
+   "todga_name_mismatch_rows": 129,
+   "sentinel_rows": 3,
+   "rows_out": 5860
+  },
+  "n_quarantined_rows": 132,
+  "quarantined_rows_in_multimetal_cells_raw": 0,
+  "quarantined_pub": {
+   "cells_all": 2395,
+   "entries_all": 5233,
+   "cells_multi": 521,
+   "rows_multi": 3871,
+   "entries_multi": 3359,
+   "cells_single": 1874,
+   "rows_single": 1989,
+   "replicated_entries": 216,
+   "replicated_cells": 41,
+   "replicated_rows": 728
+  },
+  "quarantined_nopub": {
+   "cells_all": 2387,
+   "entries_all": 5230,
+   "cells_multi": 521,
+   "rows_multi": 3878,
+   "entries_multi": 3364,
+   "cells_single": 1866,
+   "rows_single": 1982,
+   "replicated_entries": 218,
+   "replicated_cells": 42,
+   "replicated_rows": 732
+  },
+  "raw_pub": {
+   "cells_all": 2467,
+   "entries_all": 5305,
+   "cells_multi": 521,
+   "rows_multi": 3871,
+   "entries_multi": 3359,
+   "cells_single": 1946,
+   "rows_single": 2121,
+   "replicated_entries": 216,
+   "replicated_cells": 41,
+   "replicated_rows": 728
+  },
+  "multi_metal_cells_equal_bench": true
+ },
+ "populations": {
+  "COH-D-C3": {
+   "n_rows": 2425,
+   "n_cells": 229,
+   "n_extractants": 79,
+   "n_chemotypes": 38,
+   "n_publications": 39,
+   "kish_chemotypes": 3.4300818874177788,
+   "largest_chemotype": "sc009",
+   "largest_chemotype_share": 0.5237113402061856
+  },
+  "COH-SF-C3": {
+   "n_rows": 1802,
+   "n_cells": 229,
+   "n_extractants": 79,
+   "n_chemotypes": 38,
+   "n_publications": 39,
+   "kish_chemotypes": 3.8511214634053776,
+   "largest_chemotype": "sc009",
+   "largest_chemotype_share": 0.4894561598224195
+  },
+  "COH-D-C3M": {
+   "n_rows": 2208,
+   "n_cells": 229,
+   "n_extractants": 79,
+   "n_chemotypes": 38,
+   "n_publications": 39,
+   "kish_chemotypes": 3.7924391803485276,
+   "largest_chemotype": "sc009",
+   "largest_chemotype_share": 0.49320652173913043
+  },
+  "COH-D-ALL": {
+   "n_rows": 3359,
+   "n_cells": 521,
+   "n_extractants": 90,
+   "n_chemotypes": 45,
+   "n_publications": 58,
+   "kish_chemotypes": 2.734453041823298,
+   "largest_chemotype": "sc009",
+   "largest_chemotype_share": 0.5960107174754391
+  },
+  "COH-SF-ANY": {
+   "n_rows": 2114,
+   "n_cells": 378,
+   "n_extractants": 82,
+   "n_chemotypes": 40,
+   "n_publications": 45,
+   "kish_chemotypes": 3.2959919993391784,
+   "largest_chemotype": "sc009",
+   "largest_chemotype_share": 0.5364238410596026
+  },
+  "COH-SF-C1": {
+   "n_rows": 2067,
+   "n_cells": 331,
+   "n_extractants": 82,
+   "n_chemotypes": 40,
+   "n_publications": 44,
+   "kish_chemotypes": 3.3903987785804013,
+   "largest_chemotype": "sc009",
+   "largest_chemotype_share": 0.5278180938558297
+  },
+  "COH-SF-NDSM": {
+   "n_rows": 1984,
+   "n_cells": 236,
+   "n_extractants": 79,
+   "n_chemotypes": 39,
+   "n_publications": 39,
+   "kish_chemotypes": 3.841778971532083,
+   "largest_chemotype": "sc009",
+   "largest_chemotype_share": 0.4904233870967742
+  },
+  "COH-SC009-D": {
+   "n_rows": 1270,
+   "n_cells": 129,
+   "n_extractants": 23,
+   "n_chemotypes": 1,
+   "n_publications": 15,
+   "kish_chemotypes": 1.0,
+   "largest_chemotype": "sc009",
+   "largest_chemotype_share": 1.0
+  },
+  "COH-SC009-SF": {
+   "n_rows": 882,
+   "n_cells": 129,
+   "n_extractants": 23,
+   "n_chemotypes": 1,
+   "n_publications": 15,
+   "kish_chemotypes": 1.0,
+   "largest_chemotype": "sc009",
+   "largest_chemotype_share": 1.0
+  },
+  "COH-NOSC009-D": {
+   "n_rows": 1155,
+   "n_cells": 100,
+   "n_extractants": 56,
+   "n_chemotypes": 37,
+   "n_publications": 29,
+   "kish_chemotypes": 13.139608183044905,
+   "largest_chemotype": "sc061",
+   "largest_chemotype_share": 0.19134199134199134
+  },
+  "COH-NOSC009-SF": {
+   "n_rows": 920,
+   "n_cells": 100,
+   "n_extractants": 56,
+   "n_chemotypes": 37,
+   "n_publications": 29,
+   "kish_chemotypes": 12.969659822249463,
+   "largest_chemotype": "sc061",
+   "largest_chemotype_share": 0.18478260869565216
+  },
+  "COH-D-C3@NODMD": {
+   "n_rows": 2355,
+   "n_cells": 224,
+   "n_extractants": 79,
+   "n_chemotypes": 38,
+   "n_publications": 39,
+   "kish_chemotypes": 3.2628916290674916,
+   "largest_chemotype": "sc009",
+   "largest_chemotype_share": 0.5392781316348195
+  },
+  "COH-SF-C3@NODMD": {
+   "n_rows": 1742,
+   "n_cells": 224,
+   "n_extractants": 79,
+   "n_chemotypes": 38,
+   "n_publications": 39,
+   "kish_chemotypes": 3.6456299015838844,
+   "largest_chemotype": "sc009",
+   "largest_chemotype_share": 0.5063145809414467
+  },
+  "COH-D-C3M@NODMD": {
+   "n_rows": 2138,
+   "n_cells": 224,
+   "n_extractants": 79,
+   "n_chemotypes": 38,
+   "n_publications": 39,
+   "kish_chemotypes": 3.5969191594102083,
+   "largest_chemotype": "sc009",
+   "largest_chemotype_share": 0.509354536950421
+  },
+  "COH-D-ALL@NODMD": {
+   "n_rows": 3289,
+   "n_cells": 516,
+   "n_extractants": 90,
+   "n_chemotypes": 45,
+   "n_publications": 58,
+   "kish_chemotypes": 2.6310444891916394,
+   "largest_chemotype": "sc009",
+   "largest_chemotype_share": 0.6086956521739131
+  },
+  "COH-SF-ANY@NODMD": {
+   "n_rows": 2054,
+   "n_cells": 373,
+   "n_extractants": 82,
+   "n_chemotypes": 40,
+   "n_publications": 45,
+   "kish_chemotypes": 3.136535304753295,
+   "largest_chemotype": "sc009",
+   "largest_chemotype_share": 0.5520934761441091
+  },
+  "COH-SF-C1@NODMD": {
+   "n_rows": 2007,
+   "n_cells": 326,
+   "n_extractants": 82,
+   "n_chemotypes": 40,
+   "n_publications": 44,
+   "kish_chemotypes": 3.2240563866835603,
+   "largest_chemotype": "sc009",
+   "largest_chemotype_share": 0.543597409068261
+  },
+  "COH-SF-NDSM@NODMD": {
+   "n_rows": 1919,
+   "n_cells": 231,
+   "n_extractants": 79,
+   "n_chemotypes": 39,
+   "n_publications": 39,
+   "kish_chemotypes": 3.6391927401160373,
+   "largest_chemotype": "sc009",
+   "largest_chemotype_share": 0.5070349140177176
+  },
+  "COH-SC009-D@NODMD": {
+   "n_rows": 1270,
+   "n_cells": 129,
+   "n_extractants": 23,
+   "n_chemotypes": 1,
+   "n_publications": 15,
+   "kish_chemotypes": 1.0,
+   "largest_chemotype": "sc009",
+   "largest_chemotype_share": 1.0
+  },
+  "COH-SC009-SF@NODMD": {
+   "n_rows": 882,
+   "n_cells": 129,
+   "n_extractants": 23,
+   "n_chemotypes": 1,
+   "n_publications": 15,
+   "kish_chemotypes": 1.0,
+   "largest_chemotype": "sc009",
+   "largest_chemotype_share": 1.0
+  },
+  "COH-NOSC009-D@NODMD": {
+   "n_rows": 1085,
+   "n_cells": 95,
+   "n_extractants": 56,
+   "n_chemotypes": 37,
+   "n_publications": 29,
+   "kish_chemotypes": 13.558282561875915,
+   "largest_chemotype": "sc061",
+   "largest_chemotype_share": 0.20368663594470046
+  },
+  "COH-NOSC009-SF@NODMD": {
+   "n_rows": 860,
+   "n_cells": 95,
+   "n_extractants": 56,
+   "n_chemotypes": 37,
+   "n_publications": 29,
+   "kish_chemotypes": 13.580609621740727,
+   "largest_chemotype": "sc061",
+   "largest_chemotype_share": 0.19767441860465115
+  }
+ },
+ "ndsm_overlap_with_c3": {
+  "ndsm_cells_in_c3": 226,
+  "c3_cells_in_ndsm": 226,
+  "ndsm_only_cells": 10,
+  "ndsm_pairs_strict": 1794,
+  "ndsm_pairs_nd_sm": 190
+ },
+ "dmd": {
+  "cells": [
+   503,
+   505,
+   507,
+   509,
+   511
+  ],
+  "entries": 70,
+  "strict_adjacent_pairs": 60
+ },
+ "coh_rep": {
+  "cohort_entries": 216,
+  "cohort_cells": 41,
+  "c3_entries": 161,
+  "per_fold_train_min_max_by_design": {
+   "A": {
+    "min": 93,
+    "max": 216
+   },
+   "B": {
+    "min": 35,
+    "max": 216
+   },
+   "BP": {
+    "min": 35,
+    "max": 216
+   },
+   "BPG": {
+    "min": 22,
+    "max": 216
+   },
+   "BQ": {
+    "min": 35,
+    "max": 216
+   },
+   "BR": {
+    "min": 27,
+    "max": 216
+   }
+  }
+ },
+ "coh_reppair": {
+  "n_readings": 3871,
+  "experiment_id_unique_per_reading": true,
+  "experiment_id_equals_safe_exp_id": 1.0,
+  "status": {
+   "experiment_id_status": {
+    "reconstructed": 3871
+   },
+   "experiment_series_id_status": {
+    "reconstructed": 3871
+   },
+   "replicate_id_status": {
+    "surrogate": 3871
+   }
+  },
+  "bundle_metal_equals_provenance_metal_symbol": 1.0,
+  "keys": {
+   "experiment_id": {
+    "both_endpoints_replicated_strict_pairs": 145,
+    "both_endpoints_replicated_cells": 23,
+    "run_paired_pairs": 0,
+    "run_paired_cells": 0,
+    "run_paired_chemotypes": 0,
+    "run_paired_pairs_in_c3": 0,
+    "bp_training_folds_min_pairs": 0,
+    "bp_training_folds_max_pairs": 0,
+    "bp_training_folds_min_chemotypes": 0,
+    "bp_folds_estimable_(>=20_pairs_>=5_chemotypes)": 0,
+    "run_paired_chemotype_counts": {},
+    "bp_training_folds": [
+     {
+      "seed": 104729,
+      "fold": 0,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 104729,
+      "fold": 1,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 104729,
+      "fold": 2,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 104729,
+      "fold": 3,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 104729,
+      "fold": 4,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 130363,
+      "fold": 0,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 130363,
+      "fold": 1,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 130363,
+      "fold": 2,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 130363,
+      "fold": 3,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 130363,
+      "fold": 4,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 155921,
+      "fold": 0,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 155921,
+      "fold": 1,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 155921,
+      "fold": 2,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 155921,
+      "fold": 3,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 155921,
+      "fold": 4,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 196613,
+      "fold": 0,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 196613,
+      "fold": 1,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 196613,
+      "fold": 2,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 196613,
+      "fold": 3,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 196613,
+      "fold": 4,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 262147,
+      "fold": 0,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 262147,
+      "fold": 1,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 262147,
+      "fold": 2,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 262147,
+      "fold": 3,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 262147,
+      "fold": 4,
+      "pairs": 0,
+      "chemotypes": 0
+     }
+    ]
+   },
+   "experiment_series_id": {
+    "both_endpoints_replicated_strict_pairs": 145,
+    "both_endpoints_replicated_cells": 23,
+    "run_paired_pairs": 115,
+    "run_paired_cells": 20,
+    "run_paired_chemotypes": 2,
+    "run_paired_pairs_in_c3": 95,
+    "bp_training_folds_min_pairs": 9,
+    "bp_training_folds_max_pairs": 115,
+    "bp_training_folds_min_chemotypes": 1,
+    "bp_folds_estimable_(>=20_pairs_>=5_chemotypes)": 0,
+    "run_paired_chemotype_counts": {
+     "sc009": 106,
+     "sc020": 9
+    },
+    "bp_training_folds": [
+     {
+      "seed": 104729,
+      "fold": 0,
+      "pairs": 9,
+      "chemotypes": 1
+     },
+     {
+      "seed": 104729,
+      "fold": 1,
+      "pairs": 115,
+      "chemotypes": 2
+     },
+     {
+      "seed": 104729,
+      "fold": 2,
+      "pairs": 94,
+      "chemotypes": 2
+     },
+     {
+      "seed": 104729,
+      "fold": 3,
+      "pairs": 115,
+      "chemotypes": 2
+     },
+     {
+      "seed": 104729,
+      "fold": 4,
+      "pairs": 85,
+      "chemotypes": 1
+     },
+     {
+      "seed": 130363,
+      "fold": 0,
+      "pairs": 106,
+      "chemotypes": 1
+     },
+     {
+      "seed": 130363,
+      "fold": 1,
+      "pairs": 115,
+      "chemotypes": 2
+     },
+     {
+      "seed": 130363,
+      "fold": 2,
+      "pairs": 94,
+      "chemotypes": 2
+     },
+     {
+      "seed": 130363,
+      "fold": 3,
+      "pairs": 9,
+      "chemotypes": 1
+     },
+     {
+      "seed": 130363,
+      "fold": 4,
+      "pairs": 115,
+      "chemotypes": 2
+     },
+     {
+      "seed": 155921,
+      "fold": 0,
+      "pairs": 115,
+      "chemotypes": 2
+     },
+     {
+      "seed": 155921,
+      "fold": 1,
+      "pairs": 115,
+      "chemotypes": 2
+     },
+     {
+      "seed": 155921,
+      "fold": 2,
+      "pairs": 106,
+      "chemotypes": 1
+     },
+     {
+      "seed": 155921,
+      "fold": 3,
+      "pairs": 9,
+      "chemotypes": 1
+     },
+     {
+      "seed": 155921,
+      "fold": 4,
+      "pairs": 94,
+      "chemotypes": 2
+     },
+     {
+      "seed": 196613,
+      "fold": 0,
+      "pairs": 94,
+      "chemotypes": 2
+     },
+     {
+      "seed": 196613,
+      "fold": 1,
+      "pairs": 9,
+      "chemotypes": 1
+     },
+     {
+      "seed": 196613,
+      "fold": 2,
+      "pairs": 115,
+      "chemotypes": 2
+     },
+     {
+      "seed": 196613,
+      "fold": 3,
+      "pairs": 115,
+      "chemotypes": 2
+     },
+     {
+      "seed": 196613,
+      "fold": 4,
+      "pairs": 85,
+      "chemotypes": 1
+     },
+     {
+      "seed": 262147,
+      "fold": 0,
+      "pairs": 85,
+      "chemotypes": 1
+     },
+     {
+      "seed": 262147,
+      "fold": 1,
+      "pairs": 94,
+      "chemotypes": 2
+     },
+     {
+      "seed": 262147,
+      "fold": 2,
+      "pairs": 9,
+      "chemotypes": 1
+     },
+     {
+      "seed": 262147,
+      "fold": 3,
+      "pairs": 115,
+      "chemotypes": 2
+     },
+     {
+      "seed": 262147,
+      "fold": 4,
+      "pairs": 115,
+      "chemotypes": 2
+     }
+    ]
+   },
+   "replicate_id": {
+    "both_endpoints_replicated_strict_pairs": 145,
+    "both_endpoints_replicated_cells": 23,
+    "run_paired_pairs": 0,
+    "run_paired_cells": 0,
+    "run_paired_chemotypes": 0,
+    "run_paired_pairs_in_c3": 0,
+    "bp_training_folds_min_pairs": 0,
+    "bp_training_folds_max_pairs": 0,
+    "bp_training_folds_min_chemotypes": 0,
+    "bp_folds_estimable_(>=20_pairs_>=5_chemotypes)": 0,
+    "run_paired_chemotype_counts": {},
+    "bp_training_folds": [
+     {
+      "seed": 104729,
+      "fold": 0,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 104729,
+      "fold": 1,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 104729,
+      "fold": 2,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 104729,
+      "fold": 3,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 104729,
+      "fold": 4,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 130363,
+      "fold": 0,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 130363,
+      "fold": 1,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 130363,
+      "fold": 2,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 130363,
+      "fold": 3,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 130363,
+      "fold": 4,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 155921,
+      "fold": 0,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 155921,
+      "fold": 1,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 155921,
+      "fold": 2,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 155921,
+      "fold": 3,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 155921,
+      "fold": 4,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 196613,
+      "fold": 0,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 196613,
+      "fold": 1,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 196613,
+      "fold": 2,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 196613,
+      "fold": 3,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 196613,
+      "fold": 4,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 262147,
+      "fold": 0,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 262147,
+      "fold": 1,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 262147,
+      "fold": 2,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 262147,
+      "fold": 3,
+      "pairs": 0,
+      "chemotypes": 0
+     },
+     {
+      "seed": 262147,
+      "fold": 4,
+      "pairs": 0,
+      "chemotypes": 0
+     }
+    ]
+   }
+  },
+  "feasible": false,
+  "verdict": "log SF noise NOT ESTIMABLE from run-paired replicated adjacent pairs (fewer than 20 pairs from 5 chemotypes per BP training fold under every available run key); S5 reports 'not estimable' plus the labelled sqrt(2)*sigma bound (O16 default)"
+ },
+ "row_manifests": {
+  "COH-D-ALL": {
+   "file": "row_manifests/COH-D-ALL.parquet",
+   "target": "logd",
+   "side": "test",
+   "definition": "every entry of the 521 cells",
+   "rows_per_design_seed": 3359,
+   "rows_total": 100770,
+   "columns": [
+    "design",
+    "split_seed",
+    "fold",
+    "ci",
+    "cell_id",
+    "extractant",
+    "chemotype",
+    "publication_id",
+    "n_metals",
+    "metal",
+    "im"
+   ],
+   "sha256_file": "5ce97812a8555674c78038ef0e8e190e5abeb0a670603b83de2f85c3c0ef665f",
+   "sha256_content_csv": "8f4c1db94576fe6a733baae580476510b14969387f267e79e115eefefaba2662"
+  },
+  "COH-D-ALL@NODMD": {
+   "file": "row_manifests/COH-D-ALL@NODMD.parquet",
+   "target": "logd",
+   "side": "test",
+   "definition": "every entry of the 521 cells minus the DMDPhPDA cells",
+   "rows_per_design_seed": 3289,
+   "rows_total": 98670,
+   "columns": [
+    "design",
+    "split_seed",
+    "fold",
+    "ci",
+    "cell_id",
+    "extractant",
+    "chemotype",
+    "publication_id",
+    "n_metals",
+    "metal",
+    "im"
+   ],
+   "sha256_file": "42a6a39cc44103ca0e6cbfab80ed09266578e703fa7feee5e55556e43c9d8b6a",
+   "sha256_content_csv": "4c98fb91d8a663396064b2ad363f4a57d6f87d9d6f86d3445cb31f8baf2323e2"
+  },
+  "COH-D-C3": {
+   "file": "row_manifests/COH-D-C3.parquet",
+   "target": "logd",
+   "side": "test",
+   "definition": "every measured entry of the C3 cells",
+   "rows_per_design_seed": 2425,
+   "rows_total": 72750,
+   "columns": [
+    "design",
+    "split_seed",
+    "fold",
+    "ci",
+    "cell_id",
+    "extractant",
+    "chemotype",
+    "publication_id",
+    "n_metals",
+    "metal",
+    "im"
+   ],
+   "sha256_file": "506b5ce3eca5263da305276660cab22f6bd199319c5736fd981074cfc288f0f9",
+   "sha256_content_csv": "37c181dbdee9aef9d929c1f6fb71fc7f4bb7548f654f0f57a1551dba61665b06"
+  },
+  "COH-D-C3@NODMD": {
+   "file": "row_manifests/COH-D-C3@NODMD.parquet",
+   "target": "logd",
+   "side": "test",
+   "definition": "every measured entry of the C3 cells minus the DMDPhPDA cells",
+   "rows_per_design_seed": 2355,
+   "rows_total": 70650,
+   "columns": [
+    "design",
+    "split_seed",
+    "fold",
+    "ci",
+    "cell_id",
+    "extractant",
+    "chemotype",
+    "publication_id",
+    "n_metals",
+    "metal",
+    "im"
+   ],
+   "sha256_file": "70b312eb56e9fb0f6c26e0505b942c72bdcfbc24e9da81b92d7c12709dca6d2c",
+   "sha256_content_csv": "738a461966c5adee308d02e272a6817ee21197e05a1eaf9d9bde904691147aba"
+  },
+  "COH-D-C3M": {
+   "file": "row_manifests/COH-D-C3M.parquet",
+   "target": "logd",
+   "side": "test",
+   "definition": "C3 entries whose metal is in >= 1 Q_adj pair of its cell",
+   "rows_per_design_seed": 2208,
+   "rows_total": 66240,
+   "columns": [
+    "design",
+    "split_seed",
+    "fold",
+    "ci",
+    "cell_id",
+    "extractant",
+    "chemotype",
+    "publication_id",
+    "n_metals",
+    "metal",
+    "im"
+   ],
+   "sha256_file": "e9be0745d1b445ef173387ced03f5cb9f1aad6f199a3987731e11c9bef7f6f75",
+   "sha256_content_csv": "cee37a149855947b4088da8751e38b8498d794e41a81468d9f35302905a81862"
+  },
+  "COH-D-C3M@NODMD": {
+   "file": "row_manifests/COH-D-C3M@NODMD.parquet",
+   "target": "logd",
+   "side": "test",
+   "definition": "C3 entries whose metal is in >= 1 Q_adj pair of its cell minus the DMDPhPDA cells",
+   "rows_per_design_seed": 2138,
+   "rows_total": 64140,
+   "columns": [
+    "design",
+    "split_seed",
+    "fold",
+    "ci",
+    "cell_id",
+    "extractant",
+    "chemotype",
+    "publication_id",
+    "n_metals",
+    "metal",
+    "im"
+   ],
+   "sha256_file": "c8d84bd9938974178493386e344d4e80fec781a9e19cc72b4acab41c06194681",
+   "sha256_content_csv": "e578a658bacf8889ef96943dc3f6317fa08f42244e5e66d66c2876e70efda024"
+  },
+  "COH-NOSC009-D": {
+   "file": "row_manifests/COH-NOSC009-D.parquet",
+   "target": "logd",
+   "side": "test",
+   "definition": "COH-D-C3 minus sc009",
+   "rows_per_design_seed": 1155,
+   "rows_total": 34650,
+   "columns": [
+    "design",
+    "split_seed",
+    "fold",
+    "ci",
+    "cell_id",
+    "extractant",
+    "chemotype",
+    "publication_id",
+    "n_metals",
+    "metal",
+    "im"
+   ],
+   "sha256_file": "398ac163d715089f6e4e94009ca511f28c035d5013c56616a40c4a91590bf89c",
+   "sha256_content_csv": "acf32559eebdafa4f41e494b084fabaefda96d1a45803f8eaa9ae679587dbd2f"
+  },
+  "COH-NOSC009-D@NODMD": {
+   "file": "row_manifests/COH-NOSC009-D@NODMD.parquet",
+   "target": "logd",
+   "side": "test",
+   "definition": "COH-D-C3 minus sc009 minus the DMDPhPDA cells",
+   "rows_per_design_seed": 1085,
+   "rows_total": 32550,
+   "columns": [
+    "design",
+    "split_seed",
+    "fold",
+    "ci",
+    "cell_id",
+    "extractant",
+    "chemotype",
+    "publication_id",
+    "n_metals",
+    "metal",
+    "im"
+   ],
+   "sha256_file": "ade6edcd22faa338f19ba6b7833b0c82f2f34263377048469a5b6624dcf60bb9",
+   "sha256_content_csv": "d2527b315f833bd2768c5e909ab27a583732cbfa934fb5d012935b6063c45965"
+  },
+  "COH-NOSC009-SF": {
+   "file": "row_manifests/COH-NOSC009-SF.parquet",
+   "target": "logsf",
+   "side": "test",
+   "definition": "COH-SF-C3 minus sc009",
+   "rows_per_design_seed": 920,
+   "rows_total": 27600,
+   "columns": [
+    "design",
+    "split_seed",
+    "fold",
+    "ci",
+    "cell_id",
+    "extractant",
+    "chemotype",
+    "publication_id",
+    "n_metals",
+    "a",
+    "b",
+    "ia",
+    "ib",
+    "dZ",
+    "pair",
+    "strict",
+    "gen13adj"
+   ],
+   "sha256_file": "55c8b7ab697bbd7babf8bfd524f33a98ec6c16d056fe212f949cb710e835ee7c",
+   "sha256_content_csv": "daa9f24d76f29cd2f4e05509328663319de59fa0385e810815c5ba4608af5079"
+  },
+  "COH-NOSC009-SF@NODMD": {
+   "file": "row_manifests/COH-NOSC009-SF@NODMD.parquet",
+   "target": "logsf",
+   "side": "test",
+   "definition": "COH-SF-C3 minus sc009 minus the DMDPhPDA cells",
+   "rows_per_design_seed": 860,
+   "rows_total": 25800,
+   "columns": [
+    "design",
+    "split_seed",
+    "fold",
+    "ci",
+    "cell_id",
+    "extractant",
+    "chemotype",
+    "publication_id",
+    "n_metals",
+    "a",
+    "b",
+    "ia",
+    "ib",
+    "dZ",
+    "pair",
+    "strict",
+    "gen13adj"
+   ],
+   "sha256_file": "c61a42ff3c9a820b039568e296c287d723925ceec03c361af2013a62b2420c8d",
+   "sha256_content_csv": "3cc1d33516a32df900de0b2b4cd193f7c3c09a371afdee04bfadafb04ebbeba3"
+  },
+  "COH-SC009-D": {
+   "file": "row_manifests/COH-SC009-D.parquet",
+   "target": "logd",
+   "side": "test",
+   "definition": "COH-D-C3 restricted to sc009",
+   "rows_per_design_seed": 1270,
+   "rows_total": 38100,
+   "columns": [
+    "design",
+    "split_seed",
+    "fold",
+    "ci",
+    "cell_id",
+    "extractant",
+    "chemotype",
+    "publication_id",
+    "n_metals",
+    "metal",
+    "im"
+   ],
+   "sha256_file": "1903b50685a2f2980c860592ddeee0c78ada487ab4d46b7b4f491494535c5542",
+   "sha256_content_csv": "30bee4f8f1687a4c6eaf73d1da987cd9e32942534720d1c5b3d7abdf729e05eb"
+  },
+  "COH-SC009-D@NODMD": {
+   "file": "row_manifests/COH-SC009-D@NODMD.parquet",
+   "target": "logd",
+   "side": "test",
+   "definition": "COH-D-C3 restricted to sc009 minus the DMDPhPDA cells",
+   "rows_per_design_seed": 1270,
+   "rows_total": 38100,
+   "columns": [
+    "design",
+    "split_seed",
+    "fold",
+    "ci",
+    "cell_id",
+    "extractant",
+    "chemotype",
+    "publication_id",
+    "n_metals",
+    "metal",
+    "im"
+   ],
+   "sha256_file": "1903b50685a2f2980c860592ddeee0c78ada487ab4d46b7b4f491494535c5542",
+   "sha256_content_csv": "30bee4f8f1687a4c6eaf73d1da987cd9e32942534720d1c5b3d7abdf729e05eb"
+  },
+  "COH-SC009-SF": {
+   "file": "row_manifests/COH-SC009-SF.parquet",
+   "target": "logsf",
+   "side": "test",
+   "definition": "COH-SF-C3 restricted to sc009",
+   "rows_per_design_seed": 882,
+   "rows_total": 26460,
+   "columns": [
+    "design",
+    "split_seed",
+    "fold",
+    "ci",
+    "cell_id",
+    "extractant",
+    "chemotype",
+    "publication_id",
+    "n_metals",
+    "a",
+    "b",
+    "ia",
+    "ib",
+    "dZ",
+    "pair",
+    "strict",
+    "gen13adj"
+   ],
+   "sha256_file": "be95e15344ca2b7868d6e5fe91bfea6296a03912bb7556029a2d046c8d52ae5f",
+   "sha256_content_csv": "fa47935f4574d528b611d9dd3a675d94d35e29fde33791778dd8747258429272"
+  },
+  "COH-SC009-SF@NODMD": {
+   "file": "row_manifests/COH-SC009-SF@NODMD.parquet",
+   "target": "logsf",
+   "side": "test",
+   "definition": "COH-SF-C3 restricted to sc009 minus the DMDPhPDA cells",
+   "rows_per_design_seed": 882,
+   "rows_total": 26460,
+   "columns": [
+    "design",
+    "split_seed",
+    "fold",
+    "ci",
+    "cell_id",
+    "extractant",
+    "chemotype",
+    "publication_id",
+    "n_metals",
+    "a",
+    "b",
+    "ia",
+    "ib",
+    "dZ",
+    "pair",
+    "strict",
+    "gen13adj"
+   ],
+   "sha256_file": "be95e15344ca2b7868d6e5fe91bfea6296a03912bb7556029a2d046c8d52ae5f",
+   "sha256_content_csv": "fa47935f4574d528b611d9dd3a675d94d35e29fde33791778dd8747258429272"
+  },
+  "COH-SF-ANY": {
+   "file": "row_manifests/COH-SF-ANY.parquet",
+   "target": "logsf",
+   "side": "test",
+   "definition": "strict pairs of cells with >= 1 such pair",
+   "rows_per_design_seed": 2114,
+   "rows_total": 63420,
+   "columns": [
+    "design",
+    "split_seed",
+    "fold",
+    "ci",
+    "cell_id",
+    "extractant",
+    "chemotype",
+    "publication_id",
+    "n_metals",
+    "a",
+    "b",
+    "ia",
+    "ib",
+    "dZ",
+    "pair",
+    "strict",
+    "gen13adj"
+   ],
+   "sha256_file": "c2d368a7afa85cc2ceeb01c23b212b5638c0a1be34495817cbedf48a9653de41",
+   "sha256_content_csv": "934c330196e0fc65b4d88e1963fb1def145a696d25ecc70f997ffc908e93c3bf"
+  },
+  "COH-SF-ANY@NODMD": {
+   "file": "row_manifests/COH-SF-ANY@NODMD.parquet",
+   "target": "logsf",
+   "side": "test",
+   "definition": "strict pairs of cells with >= 1 such pair minus the DMDPhPDA cells",
+   "rows_per_design_seed": 2054,
+   "rows_total": 61620,
+   "columns": [
+    "design",
+    "split_seed",
+    "fold",
+    "ci",
+    "cell_id",
+    "extractant",
+    "chemotype",
+    "publication_id",
+    "n_metals",
+    "a",
+    "b",
+    "ia",
+    "ib",
+    "dZ",
+    "pair",
+    "strict",
+    "gen13adj"
+   ],
+   "sha256_file": "fc47356a48169b0a2e6717766ce9f4c0e93c2513ed6baba8541f469201a419c3",
+   "sha256_content_csv": "8e6e3e24f2aeacad03930867925fa03d09e99a54ea9537e4a90f52088bd70d8d"
+  },
+  "COH-SF-C1": {
+   "file": "row_manifests/COH-SF-C1.parquet",
+   "target": "logsf",
+   "side": "test",
+   "definition": "strict pairs of cells with k_max >= 1",
+   "rows_per_design_seed": 2067,
+   "rows_total": 62010,
+   "columns": [
+    "design",
+    "split_seed",
+    "fold",
+    "ci",
+    "cell_id",
+    "extractant",
+    "chemotype",
+    "publication_id",
+    "n_metals",
+    "a",
+    "b",
+    "ia",
+    "ib",
+    "dZ",
+    "pair",
+    "strict",
+    "gen13adj"
+   ],
+   "sha256_file": "4b7c3acf08033cad49c8c71268c94347d4bff9e6b4d880df9e3d439142bca9e5",
+   "sha256_content_csv": "a009bf199e5c10a577baa5959e99d0947cfdd2f3666c4626f1c1358e3de2adaa"
+  },
+  "COH-SF-C1@NODMD": {
+   "file": "row_manifests/COH-SF-C1@NODMD.parquet",
+   "target": "logsf",
+   "side": "test",
+   "definition": "strict pairs of cells with k_max >= 1 minus the DMDPhPDA cells",
+   "rows_per_design_seed": 2007,
+   "rows_total": 60210,
+   "columns": [
+    "design",
+    "split_seed",
+    "fold",
+    "ci",
+    "cell_id",
+    "extractant",
+    "chemotype",
+    "publication_id",
+    "n_metals",
+    "a",
+    "b",
+    "ia",
+    "ib",
+    "dZ",
+    "pair",
+    "strict",
+    "gen13adj"
+   ],
+   "sha256_file": "d5014650f1898ab45d06b64138fabdf192e994aa200bde96e1348a65696ecf25",
+   "sha256_content_csv": "ff5f55c984969879997618bb96126816b521fa1aa02c9d19d70303b13a3b5eee"
+  },
+  "COH-SF-C3": {
+   "file": "row_manifests/COH-SF-C3.parquet",
+   "target": "logsf",
+   "side": "test",
+   "definition": "Q_adj pairs of the C3 cells",
+   "rows_per_design_seed": 1802,
+   "rows_total": 54060,
+   "columns": [
+    "design",
+    "split_seed",
+    "fold",
+    "ci",
+    "cell_id",
+    "extractant",
+    "chemotype",
+    "publication_id",
+    "n_metals",
+    "a",
+    "b",
+    "ia",
+    "ib",
+    "dZ",
+    "pair",
+    "strict",
+    "gen13adj"
+   ],
+   "sha256_file": "53690537cd7c95fbbab1eb6eab3fb65cfc2936ab885074ddd6ad5aef8c65ae7e",
+   "sha256_content_csv": "c7bf8e221772534308fc5695ddad222c29209c8752ed02a04b3c1e6726da8312"
+  },
+  "COH-SF-C3@NODMD": {
+   "file": "row_manifests/COH-SF-C3@NODMD.parquet",
+   "target": "logsf",
+   "side": "test",
+   "definition": "Q_adj pairs of the C3 cells minus the DMDPhPDA cells",
+   "rows_per_design_seed": 1742,
+   "rows_total": 52260,
+   "columns": [
+    "design",
+    "split_seed",
+    "fold",
+    "ci",
+    "cell_id",
+    "extractant",
+    "chemotype",
+    "publication_id",
+    "n_metals",
+    "a",
+    "b",
+    "ia",
+    "ib",
+    "dZ",
+    "pair",
+    "strict",
+    "gen13adj"
+   ],
+   "sha256_file": "268a1cf75f834ed15eb86dd7ee01fbe7a17d88f12eb56584302f56a52785f690",
+   "sha256_content_csv": "aa570a2ccc66ef73b7890710e8350ea1f4f577247e0ed636de8d7ead40d4466e"
+  },
+  "COH-SF-NDSM": {
+   "file": "row_manifests/COH-SF-NDSM.parquet",
+   "target": "logsf",
+   "side": "test",
+   "definition": "gen13-adjacency pairs (strict + Nd-Sm) of cells with a non-empty 'adjacent_gen13' query and metal-model k_max >= 3 under it",
+   "rows_per_design_seed": 1984,
+   "rows_total": 59520,
+   "columns": [
+    "design",
+    "split_seed",
+    "fold",
+    "ci",
+    "cell_id",
+    "extractant",
+    "chemotype",
+    "publication_id",
+    "n_metals",
+    "a",
+    "b",
+    "ia",
+    "ib",
+    "dZ",
+    "pair",
+    "strict",
+    "gen13adj"
+   ],
+   "sha256_file": "31eb3c0c8ab2804adf07264255b10811e7557ccd34a749192bd97185a4ab3b8d",
+   "sha256_content_csv": "ff6a44b63d14be8fe8186df58d33187d8d09ea64bf272014d7d0261ff5877e68"
+  },
+  "COH-SF-NDSM@NODMD": {
+   "file": "row_manifests/COH-SF-NDSM@NODMD.parquet",
+   "target": "logsf",
+   "side": "test",
+   "definition": "gen13-adjacency pairs (strict + Nd-Sm) of cells with a non-empty 'adjacent_gen13' query and metal-model k_max >= 3 under it minus the DMDPhPDA cells",
+   "rows_per_design_seed": 1919,
+   "rows_total": 57570,
+   "columns": [
+    "design",
+    "split_seed",
+    "fold",
+    "ci",
+    "cell_id",
+    "extractant",
+    "chemotype",
+    "publication_id",
+    "n_metals",
+    "a",
+    "b",
+    "ia",
+    "ib",
+    "dZ",
+    "pair",
+    "strict",
+    "gen13adj"
+   ],
+   "sha256_file": "0cf16339a7d21693f8a64263ad242bd1c9fcaadf5c6f52748ecc380b2dd59ffb",
+   "sha256_content_csv": "8588b9ce560c62e763cfd8f5b88fae9599b1fb05f4434a2706c2512751e6a7b4"
+  },
+  "COH-TRAIN": {
+   "file": "row_manifests/COH-TRAIN.parquet",
+   "target": "logd",
+   "side": "train",
+   "definition": "every measured entry of the masked outer-training cells per (design, split_seed, fold); nrep = replicate count; COH-NODMD training rows = rows with is_dmd False",
+   "rows_total": 374518,
+   "columns": [
+    "design",
+    "split_seed",
+    "fold",
+    "ci",
+    "cell_id",
+    "metal",
+    "im",
+    "nrep",
+    "is_dmd"
+   ],
+   "sha256_file": "066f836e6c3c0ac4f29b419b97c13e121e760d94bf9553ae4ac12fea780556b4",
+   "sha256_content_csv": "ea5966132a991b69deb786d1ad24ba86bb8f28e2656ad5d38421117573ad26e1"
+  },
+  "COH-REP": {
+   "file": "row_manifests/COH-REP.parquet",
+   "target": "logd",
+   "side": "train",
+   "definition": "COH-TRAIN rows with nrep >= 2 (replicated entries of the outer-training cells; counts only, never values)",
+   "rows_total": 24459,
+   "columns": [
+    "design",
+    "split_seed",
+    "fold",
+    "ci",
+    "cell_id",
+    "metal",
+    "im",
+    "nrep",
+    "is_dmd"
+   ],
+   "sha256_file": "eff3dbb14548172660d3f1f0807f35608438b750c75420078917c7b86867bee1",
+   "sha256_content_csv": "d959343a2dae4bf81f1f9a6a8d16a8f52b00e07ac7d16f260748d3ada311cd94"
+  },
+  "COH-INNER": {
+   "file": "row_manifests/COH-INNER.parquet",
+   "target": "cell",
+   "side": "inner",
+   "definition": "4-fold chemotype inner cross-fit of every outer training fold: seeded_group_kfold(chemotype[train], 4, inner_seed(seed, fold)), gen20k.cov.inner_mask applied (role masked_out), skipped if < 20 masked inner-train cells; skipped_nodmd after removing the 5 DMDPhPDA cells (rows with is_dmd True)",
+   "rows_total": 234604,
+   "columns": [
+    "design",
+    "split_seed",
+    "fold",
+    "inner",
+    "role",
+    "ci",
+    "cell_id",
+    "is_dmd",
+    "skipped",
+    "skipped_nodmd"
+   ],
+   "sha256_file": "6f5c9bbff97d23d98b8d9347fe3217b94b5f25268ac88ea9f0c85992ff555b5f",
+   "sha256_content_csv": "7c693fd517bb6f67b7b02f9947fd5613794bfca557f1334dd0b9b349f70cc692"
+  },
+  "COH-FROZEN": {
+   "file": "row_manifests/COH-FROZEN.parquet",
+   "target": "cell",
+   "side": "cohort",
+   "definition": "the 521 cells of the frozen gen13 exact cohort (universe for folds and training); its entries are COH-D-ALL",
+   "rows_total": 521,
+   "columns": [
+    "ci",
+    "cell_id",
+    "extractant",
+    "chemotype",
+    "publication_id",
+    "n_metals",
+    "n_rows",
+    "is_dmd"
+   ],
+   "sha256_file": "fb5a1640ceac92db29767f2825e2f201fb5ea4e83be472fbcecdedd2f76e13a3",
+   "sha256_content_csv": "c2785db55658bf6e76bc8c8355621ebebbf16c915cc93def48e09431818a566f"
+  },
+  "COH-AUG": {
+   "file": "row_manifests/COH-AUG.parquet",
+   "target": "cell",
+   "side": "cohort",
+   "definition": "single-metal gen13-key cells (canonical SMILES @@ publication_id @@ 64-column condition key) after the quarantine; NOT RUN (O23)",
+   "rows_total": 1874,
+   "columns": [
+    "cell_id",
+    "extractant",
+    "publication_id",
+    "metal",
+    "n_rows",
+    "safe_exp_ids"
+   ],
+   "sha256_file": "04d5f279a088f3841aece04adaae64b9b168c0a794142e72f0d82ee52da74bdf",
+   "sha256_content_csv": "d27dac6fafe33c18e2b2aaa6617f856b2cf1751505ce05b5f6fa4f504c6c4ea3"
+  },
+  "COH-REPPAIR": {
+   "file": "row_manifests/COH-REPPAIR.parquet",
+   "target": "logsf",
+   "side": "cohort",
+   "definition": "strict-adjacent pairs whose two endpoints are replicated (nrep >= 2), with the number of run values (key column) in which a and b each have exactly one reading; run_paired = >= 2 such runs; identity columns only (O16 feasibility)",
+   "rows_total": 435,
+   "columns": [
+    "ci",
+    "cell_id",
+    "chemotype",
+    "ia",
+    "ib",
+    "nrep_a",
+    "nrep_b",
+    "n_paired_runs",
+    "run_paired",
+    "key",
+    "a",
+    "b"
+   ],
+   "sha256_file": "d3760cbecd151f8c57c74480b44e2a7879d6035873e0ff6a6e172dfc9077e4ff",
+   "sha256_content_csv": "2525ea99ad42109fa94d181292651d8aab4f5fdcbc9dcb405864995f02f41b76"
+  }
+ },
+ "gates": {
+  "a": true,
+  "b": true,
+  "b_subprocess": true,
+  "c": true,
+  "d": true,
+  "e": true
+ },
+ "comparison": [
+  {
+   "id": "C11-bundle",
+   "source": "PLAN \u00a71.1",
+   "tag": "audit",
+   "what": "bundle raw rows",
+   "expected": 5992,
+   "recomputed": 5992,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "C11-quar",
+   "source": "PLAN \u00a71.1",
+   "tag": "audit",
+   "what": "rows after quarantine",
+   "expected": 5860,
+   "recomputed": 5860,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "C11-todga",
+   "source": "PLAN \u00a71.1",
+   "tag": "audit",
+   "what": "TODGA-SMILES/name-mismatch rows",
+   "expected": 129,
+   "recomputed": 129,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "C11-sentinel",
+   "source": "PLAN \u00a71.1",
+   "tag": "audit",
+   "what": "sentinel rows (log D <= -6)",
+   "expected": 3,
+   "recomputed": 3,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "C11-allcells",
+   "source": "PLAN \u00a71.1",
+   "tag": "[CNT]",
+   "what": "all gen13 cells (any metal count)",
+   "expected": 2395,
+   "recomputed": 2395,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "C11-allobs",
+   "source": "PLAN \u00a71.1",
+   "tag": "[CNT]",
+   "what": "all gen13 (cell, metal) obs",
+   "expected": 5233,
+   "recomputed": 5233,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "C11-multi",
+   "source": "PLAN \u00a71.1/\u00a72",
+   "tag": "[CNT]",
+   "what": "multi-metal cells (>= 2 lanthanides)",
+   "expected": 521,
+   "recomputed": 521,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "C11-multi-bench",
+   "source": "PLAN \u00a71.1",
+   "tag": "assert",
+   "what": "chain multi-metal cell_ids == bench cell_ids",
+   "expected": true,
+   "recomputed": true,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "C11-rows",
+   "source": "PLAN \u00a71.1",
+   "tag": "audit",
+   "what": "raw rows in the 521 cells",
+   "expected": 3871,
+   "recomputed": 3871,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "C11-rows-frame",
+   "source": "PLAN \u00a71.1",
+   "tag": "audit",
+   "what": "sum frame.n_rows == sum nrep__",
+   "expected": [
+    3871,
+    3871
+   ],
+   "recomputed": [
+    3871,
+    3871
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "C11-entries",
+   "source": "PLAN \u00a71.1/\u00a70",
+   "tag": "[CNT]",
+   "what": "replicate-mean (cell, metal) entries (chain)",
+   "expected": 3359,
+   "recomputed": 3359,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "C11-entries-bench",
+   "source": "PLAN \u00a71.1",
+   "tag": "[CNT]",
+   "what": "non-null logD__ of the cohort (NaN mask)",
+   "expected": 3359,
+   "recomputed": 3359,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "C11-ext",
+   "source": "PLAN \u00a71.1/\u00a72",
+   "tag": "[CNT]",
+   "what": "extractants of the 521 cells",
+   "expected": 90,
+   "recomputed": 90,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "C11-chem",
+   "source": "PLAN \u00a71.1/\u00a72",
+   "tag": "[CNT]",
+   "what": "chemotypes of the 521 cells",
+   "expected": 45,
+   "recomputed": 45,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "C11-pub",
+   "source": "PLAN \u00a71.1/\u00a72",
+   "tag": "[CNT]",
+   "what": "publications of the 521 cells",
+   "expected": 58,
+   "recomputed": 58,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "C11-rep",
+   "source": "PLAN \u00a71.1/\u00a72",
+   "tag": "audit",
+   "what": "replicated entries (nrep >= 2)",
+   "expected": 216,
+   "recomputed": 216,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "C11-rep-chain",
+   "source": "PLAN \u00a71.1",
+   "tag": "audit",
+   "what": "replicated entries (bundle chain)",
+   "expected": 216,
+   "recomputed": 216,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "C11-repcells",
+   "source": "PLAN \u00a71.1/\u00a72",
+   "tag": "audit",
+   "what": "cells with a replicated entry",
+   "expected": 41,
+   "recomputed": 41,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "C11-reprows",
+   "source": "PLAN \u00a71.1",
+   "tag": "[CNT]",
+   "what": "raw rows of the replicated entries",
+   "expected": 728,
+   "recomputed": 728,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "C11-reprows-nrep",
+   "source": "PLAN \u00a71.1",
+   "tag": "[CNT]",
+   "what": "sum nrep over replicated entries",
+   "expected": 728,
+   "recomputed": 728,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "C11-identity",
+   "source": "PLAN \u00a71.1 corr.(1)",
+   "tag": "[CNT]",
+   "what": "3,871 - 728 + 216",
+   "expected": 3359,
+   "recomputed": 3359,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "C11-largest",
+   "source": "PLAN \u00a71.1",
+   "tag": "audit",
+   "what": "largest chemotype (cells, extractants, name)",
+   "expected": [
+    375,
+    23,
+    "sc009"
+   ],
+   "recomputed": [
+    375,
+    23,
+    "sc009"
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "C11-excl",
+   "source": "PLAN \u00a71.1/\u00a72 COH-AUG",
+   "tag": "[CNT]",
+   "what": "single-metal gen13-key cells / raw rows",
+   "expected": [
+    1874,
+    1989
+   ],
+   "recomputed": [
+    1874,
+    1989
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "C11-quar0",
+   "source": "PLAN \u00a71.1 corr.(2)",
+   "tag": "[CNT]",
+   "what": "quarantine rows in >= 2-metal cells / quarantined rows",
+   "expected": [
+    0,
+    132
+   ],
+   "recomputed": [
+    0,
+    132
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "C11-quar-nochange",
+   "source": "PLAN \u00a71.1 corr.(2)",
+   "tag": "[CNT]",
+   "what": "multi-metal cells/rows/entries without quarantine",
+   "expected": [
+    521,
+    3871,
+    3359
+   ],
+   "recomputed": [
+    521,
+    3871,
+    3359
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "C11-nopub",
+   "source": "PLAN \u00a71.1 corr.(2)",
+   "tag": "[CNT]",
+   "what": "key without publication_id: raw rows / entries",
+   "expected": [
+    3878,
+    3364
+   ],
+   "recomputed": [
+    3878,
+    3364
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "P-C3-cells",
+   "source": "PLAN \u00a70/\u00a72; PREREG \u00a72; README",
+   "tag": "[CNT]",
+   "what": "C3 cells",
+   "expected": 229,
+   "recomputed": 229,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "P-D-C3",
+   "source": "PLAN \u00a70/\u00a72; PREREG \u00a72; README",
+   "tag": "[CNT]",
+   "what": "COH-D-C3 entries per seed",
+   "expected": 2425,
+   "recomputed": 2425,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "P-SF-C3",
+   "source": "PLAN \u00a70/\u00a72; PREREG \u00a72",
+   "tag": "[CNT]",
+   "what": "COH-SF-C3 pairs per seed",
+   "expected": 1802,
+   "recomputed": 1802,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "P-C3-ext",
+   "source": "PLAN \u00a70/\u00a72; PREREG \u00a72",
+   "tag": "[CNT]",
+   "what": "C3 extractants",
+   "expected": 79,
+   "recomputed": 79,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "P-C3-chem",
+   "source": "PLAN \u00a70/\u00a72/\u00a76; PREREG \u00a72/\u00a76",
+   "tag": "[CNT]",
+   "what": "C3 chemotypes (both tables)",
+   "expected": [
+    38,
+    38
+   ],
+   "recomputed": [
+    38,
+    38
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "P-C3-pub",
+   "source": "PLAN \u00a70/\u00a72/\u00a76; PREREG \u00a72/\u00a76",
+   "tag": "[CNT]",
+   "what": "C3 publications (both tables)",
+   "expected": [
+    39,
+    39
+   ],
+   "recomputed": [
+    39,
+    39
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "P-C3-lists",
+   "source": "PREREG \u00a72 (LT-17)",
+   "tag": "[CNT]",
+   "what": "D-C3 and SF-C3 share chemotype & publication lists",
+   "expected": true,
+   "recomputed": true,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "P-D-C3-kish",
+   "source": "PLAN \u00a72; PREREG \u00a72",
+   "tag": "[CNT]",
+   "what": "COH-D-C3 Kish (chemotypes, rows)",
+   "expected": 3.43,
+   "recomputed": 3.4300818874177788,
+   "match": true,
+   "rule": "round 3"
+  },
+  {
+   "id": "P-D-C3-share",
+   "source": "PLAN \u00a72; PREREG \u00a77",
+   "tag": "[CNT]",
+   "what": "COH-D-C3 largest chemotype share (sc009)",
+   "expected": 0.524,
+   "recomputed": 0.5237113402061856,
+   "match": true,
+   "rule": "round 3"
+  },
+  {
+   "id": "P-D-C3-rep",
+   "source": "PLAN \u00a72; PREREG \u00a710",
+   "tag": "[CNT]",
+   "what": "replicated entries in COH-D-C3",
+   "expected": 161,
+   "recomputed": 161,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "P-C3-metals",
+   "source": "PLAN \u00a72; PREREG \u00a72; README",
+   "tag": "[CNT]",
+   "what": "measured metals per C3 cell (min, max)",
+   "expected": [
+    5,
+    14
+   ],
+   "recomputed": [
+    5,
+    14
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "P-SF-C3-kish",
+   "source": "PLAN \u00a72; PREREG \u00a72 ([LEV]:6)",
+   "tag": "[CNT]",
+   "what": "COH-SF-C3 Kish (chemotypes, pairs)",
+   "expected": 3.8511214634053776,
+   "recomputed": 3.8511214634053776,
+   "match": true,
+   "rule": "|d| <= 1e-12"
+  },
+  {
+   "id": "P-SF-C3-share",
+   "source": "PLAN \u00a72; PREREG \u00a72/\u00a77",
+   "tag": "[CNT]",
+   "what": "COH-SF-C3 largest share (sc009)",
+   "expected": 0.489,
+   "recomputed": 0.4894561598224195,
+   "match": true,
+   "rule": "round 3"
+  },
+  {
+   "id": "P-SF-C3-sc009",
+   "source": "PLAN \u00a72",
+   "tag": "[CNT]",
+   "what": "largest chemotype of C3 is sc009",
+   "expected": [
+    "sc009",
+    "sc009"
+   ],
+   "recomputed": [
+    "sc009",
+    "sc009"
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "P-D-C3M",
+   "source": "PLAN \u00a72; PREREG \u00a72; README",
+   "tag": "[CNT]",
+   "what": "COH-D-C3M entries",
+   "expected": 2208,
+   "recomputed": 2208,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "P-D-C3-noSF",
+   "source": "PREREG \u00a72 (O27)",
+   "tag": "[CNT]",
+   "what": "C3 entries without a scored log SF counterpart",
+   "expected": 217,
+   "recomputed": 217,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "P-D-ALL",
+   "source": "PLAN \u00a72",
+   "tag": "[CNT]",
+   "what": "COH-D-ALL entries",
+   "expected": 3359,
+   "recomputed": 3359,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "P-D-ALL-kish",
+   "source": "PLAN \u00a72",
+   "tag": "[CNT]",
+   "what": "COH-D-ALL Kish rows",
+   "expected": 2.734,
+   "recomputed": 2.734453041823298,
+   "match": true,
+   "rule": "round 3"
+  },
+  {
+   "id": "P-SF-ANY",
+   "source": "PLAN \u00a72; PREREG \u00a72",
+   "tag": "[CNT]",
+   "what": "COH-SF-ANY pairs/cells/ext/chem/pub",
+   "expected": [
+    2114,
+    378,
+    82,
+    40,
+    45
+   ],
+   "recomputed": [
+    2114,
+    378,
+    82,
+    40,
+    45
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "P-SF-ANY-entries",
+   "source": "PLAN \u00a72",
+   "tag": "[CNT]",
+   "what": "COH-SF-ANY cells' entries",
+   "expected": 2980,
+   "recomputed": 2980,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "P-SF-ANY-kish",
+   "source": "PLAN \u00a72",
+   "tag": "[CNT]",
+   "what": "COH-SF-ANY Kish pairs",
+   "expected": 3.296,
+   "recomputed": 3.2959919993391784,
+   "match": true,
+   "rule": "round 3"
+  },
+  {
+   "id": "P-SF-C1",
+   "source": "PLAN \u00a72; PREREG \u00a72",
+   "tag": "[CNT]",
+   "what": "COH-SF-C1 pairs/cells/ext/chem/pub",
+   "expected": [
+    2067,
+    331,
+    82,
+    40,
+    44
+   ],
+   "recomputed": [
+    2067,
+    331,
+    82,
+    40,
+    44
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "P-SF-C1-entries",
+   "source": "PLAN \u00a72",
+   "tag": "[CNT]",
+   "what": "COH-SF-C1 cells' entries",
+   "expected": 2886,
+   "recomputed": 2886,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "P-SF-NDSM",
+   "source": "PLAN \u00a72; PREREG \u00a72",
+   "tag": "[CNT]",
+   "what": "COH-SF-NDSM pairs/cells/ext/chem/pub",
+   "expected": [
+    1984,
+    236,
+    79,
+    39,
+    39
+   ],
+   "recomputed": [
+    1984,
+    236,
+    79,
+    39,
+    39
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "P-SF-NDSM-entries",
+   "source": "PLAN \u00a72",
+   "tag": "[CNT]",
+   "what": "COH-SF-NDSM cells' entries",
+   "expected": 2466,
+   "recomputed": 2466,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "P-SC009",
+   "source": "PLAN \u00a72; PREREG \u00a72/\u00a76",
+   "tag": "[CNT]",
+   "what": "COH-SC009 cells/ext/pub/entries/pairs",
+   "expected": [
+    129,
+    23,
+    15,
+    1270,
+    882
+   ],
+   "recomputed": [
+    129,
+    23,
+    15,
+    1270,
+    882
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "P-NOSC009",
+   "source": "PLAN \u00a72; PREREG \u00a72",
+   "tag": "[CNT]",
+   "what": "COH-NOSC009 cells/ext/chem/pub/entries/pairs",
+   "expected": [
+    100,
+    56,
+    37,
+    29,
+    1155,
+    920
+   ],
+   "recomputed": [
+    100,
+    56,
+    37,
+    29,
+    1155,
+    920
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "P-NOSC009-kish-rows",
+   "source": "PLAN \u00a72",
+   "tag": "[CNT]",
+   "what": "COH-NOSC009 Kish rows",
+   "expected": 13.14,
+   "recomputed": 13.139608183044905,
+   "match": true,
+   "rule": "round 2"
+  },
+  {
+   "id": "P-NOSC009-kish-pairs",
+   "source": "PLAN \u00a72",
+   "tag": "[CNT]",
+   "what": "COH-NOSC009 Kish pairs",
+   "expected": 12.97,
+   "recomputed": 12.969659822249463,
+   "match": true,
+   "rule": "round 2"
+  },
+  {
+   "id": "DMD-rule",
+   "source": "PLAN \u00a71.1(6); PREREG \u00a72",
+   "tag": "[DMD]",
+   "what": "DMDPhPDA cells / entries / strict-adjacent pairs",
+   "expected": [
+    5,
+    70,
+    60
+   ],
+   "recomputed": [
+    5,
+    70,
+    60
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "DMD-in-C3",
+   "source": "PLAN \u00a71.1(6); PREREG \u00a72; README",
+   "tag": "[DMD]",
+   "what": "DMDPhPDA cells in C3",
+   "expected": 5,
+   "recomputed": 5,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "NODMD-C3",
+   "source": "PLAN \u00a72; PREREG \u00a72",
+   "tag": "[CNT]+[DMD]",
+   "what": "COH-NODMD C3 cells/entries/pairs",
+   "expected": [
+    224,
+    2355,
+    1742
+   ],
+   "recomputed": [
+    224,
+    2355,
+    1742
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "NODMD-cohort",
+   "source": "PLAN \u00a72",
+   "tag": "[CNT]+[DMD]",
+   "what": "COH-NODMD cohort cells/entries",
+   "expected": [
+    516,
+    3289
+   ],
+   "recomputed": [
+    516,
+    3289
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "REP-cohort",
+   "source": "PLAN \u00a72 COH-REP",
+   "tag": "audit",
+   "what": "COH-REP cohort entries / cells (nrep >= 2)",
+   "expected": [
+    216,
+    41
+   ],
+   "recomputed": [
+    216,
+    41
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "AUG",
+   "source": "PLAN \u00a72 COH-AUG",
+   "tag": "[CNT]",
+   "what": "COH-AUG manifest: single-metal cells / raw rows",
+   "expected": [
+    1874,
+    1989
+   ],
+   "recomputed": [
+    1874,
+    1989
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "F-once",
+   "source": "PLAN \u00a71.2; LT-01",
+   "tag": "[CNT]",
+   "what": "each cell tested once per seed (6 designs)",
+   "expected": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "recomputed": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "G-a-test",
+   "source": "PLAN \u00a71.2/\u00a74 (a)",
+   "tag": "gate",
+   "what": "test-index plan digest 7046c640",
+   "expected": "7046c640676f4bf8b065393a1291464231340e7bccd33b31028010bc6d440d16",
+   "recomputed": "7046c640676f4bf8b065393a1291464231340e7bccd33b31028010bc6d440d16",
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "G-a-tt",
+   "source": "PLAN \u00a71.2/\u00a74 (a)",
+   "tag": "gate",
+   "what": "train+test digest 9a24b6e9",
+   "expected": "9a24b6e985c7515601e247ae04de5068f5c76974ce4992ce1bd2dcaad13c8054",
+   "recomputed": "9a24b6e985c7515601e247ae04de5068f5c76974ce4992ce1bd2dcaad13c8054",
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "G-b-B",
+   "source": "PLAN \u00a71.2/\u00a74 (b)",
+   "tag": "gate",
+   "what": "per-design digest B",
+   "expected": "b50c9fd6d419a840700cc076e59769af1c00499bf273f1d12a6df2773f0b28ba",
+   "recomputed": "b50c9fd6d419a840700cc076e59769af1c00499bf273f1d12a6df2773f0b28ba",
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "G-b-BR",
+   "source": "PLAN \u00a71.2/\u00a74 (b)",
+   "tag": "gate",
+   "what": "per-design digest BR",
+   "expected": "b50c9fd6d419a840700cc076e59769af1c00499bf273f1d12a6df2773f0b28ba",
+   "recomputed": "b50c9fd6d419a840700cc076e59769af1c00499bf273f1d12a6df2773f0b28ba",
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "G-b-BQ",
+   "source": "PLAN \u00a71.2/\u00a74 (b)",
+   "tag": "gate",
+   "what": "per-design digest BQ",
+   "expected": "b50c9fd6d419a840700cc076e59769af1c00499bf273f1d12a6df2773f0b28ba",
+   "recomputed": "b50c9fd6d419a840700cc076e59769af1c00499bf273f1d12a6df2773f0b28ba",
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "G-b-A",
+   "source": "PLAN \u00a71.2/\u00a74 (b)",
+   "tag": "gate",
+   "what": "per-design digest A",
+   "expected": "afda7475714a942972b88c9416bbd22c5e069d18ced8842382a3387ba8e139e7",
+   "recomputed": "afda7475714a942972b88c9416bbd22c5e069d18ced8842382a3387ba8e139e7",
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "G-b-BP",
+   "source": "PLAN \u00a71.2/\u00a74 (b)",
+   "tag": "gate",
+   "what": "per-design digest BP",
+   "expected": "b50c9fd6d419a840700cc076e59769af1c00499bf273f1d12a6df2773f0b28ba",
+   "recomputed": "b50c9fd6d419a840700cc076e59769af1c00499bf273f1d12a6df2773f0b28ba",
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "G-ab-anchors",
+   "source": "anchors.json:31-40",
+   "tag": "gate",
+   "what": "constants equal anchors.json",
+   "expected": [
+    true,
+    true
+   ],
+   "recomputed": [
+    true,
+    true
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "G-b-subproc",
+   "source": "PLAN \u00a74 (b); LT-05",
+   "tag": "gate",
+   "what": "(a)+(b) and the (e) digest in subprocesses, PYTHONHASHSEED 1 and 2",
+   "expected": true,
+   "recomputed": true,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "G-c",
+   "source": "PLAN \u00a71.2/\u00a74 (c); PREREG \u00a72",
+   "tag": "[CNT]",
+   "what": "BP (seed, fold, n_train, n_test) == folds_BP.json",
+   "expected": 25,
+   "recomputed": 25,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "G-d",
+   "source": "PLAN \u00a71.2/\u00a74 (d); PREREG \u00a72",
+   "tag": "[CNT]",
+   "what": "test sets equal BP's: B, BR, BQ, BPG, A",
+   "expected": [
+    25,
+    25,
+    25,
+    25,
+    0
+   ],
+   "recomputed": [
+    25,
+    25,
+    25,
+    25,
+    0
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "TRAIN-BP",
+   "source": "PLAN \u00a72 COH-TRAIN; PREREG \u00a72",
+   "tag": "[CNT]",
+   "what": "design BP training cells per fold (min, max)",
+   "expected": [
+    76,
+    492
+   ],
+   "recomputed": [
+    76,
+    492
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "TRAIN-B",
+   "source": "PLAN \u00a72 COH-TRAIN; PREREG \u00a72",
+   "tag": "[CNT]",
+   "what": "design B training cells per fold (min, max)",
+   "expected": [
+    103,
+    507
+   ],
+   "recomputed": [
+    103,
+    507
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "TRAIN-BR",
+   "source": "PLAN \u00a72 COH-TRAIN; PREREG \u00a72",
+   "tag": "[CNT]",
+   "what": "design BR training cells per fold (min, max)",
+   "expected": [
+    76,
+    492
+   ],
+   "recomputed": [
+    76,
+    492
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "TRAIN-BQ",
+   "source": "PLAN \u00a72 COH-TRAIN; PREREG \u00a72",
+   "tag": "[CNT]",
+   "what": "design BQ training cells per fold (min, max)",
+   "expected": [
+    76,
+    492
+   ],
+   "recomputed": [
+    76,
+    492
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "TRAIN-BPG",
+   "source": "PLAN \u00a72 COH-TRAIN; PREREG \u00a72",
+   "tag": "[CNT]",
+   "what": "design BPG training cells per fold (min, max)",
+   "expected": [
+    73,
+    492
+   ],
+   "recomputed": [
+    73,
+    492
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "TRAIN-A",
+   "source": "PLAN \u00a72 COH-TRAIN; PREREG \u00a72",
+   "tag": "[CNT]",
+   "what": "design A training cells per fold (min, max)",
+   "expected": [
+    241,
+    494
+   ],
+   "recomputed": [
+    241,
+    494
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "TRAIN-BP-rows",
+   "source": "PLAN \u00a72 COH-TRAIN; PREREG \u00a72",
+   "tag": "[CNT]",
+   "what": "design BP training log D rows per fold (min, max)",
+   "expected": [
+    725,
+    3084
+   ],
+   "recomputed": [
+    725,
+    3084
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "GIANT-tuples",
+   "source": "PLAN \u00a74",
+   "tag": "[CNT]",
+   "what": "giant BP folds (seed, fold, tr cells, tr rows, te cells, te C3 cells, te C3 pairs)",
+   "expected": [
+    [
+     104729,
+     0,
+     76,
+     764,
+     418,
+     148,
+     1070
+    ],
+    [
+     130363,
+     3,
+     98,
+     931,
+     394,
+     142,
+     989
+    ],
+    [
+     155921,
+     3,
+     82,
+     725,
+     415,
+     158,
+     1150
+    ],
+    [
+     196613,
+     1,
+     85,
+     803,
+     400,
+     151,
+     1102
+    ],
+    [
+     262147,
+     2,
+     85,
+     919,
+     400,
+     136,
+     935
+    ]
+   ],
+   "recomputed": [
+    [
+     104729,
+     0,
+     76,
+     764,
+     418,
+     148,
+     1070
+    ],
+    [
+     130363,
+     3,
+     98,
+     931,
+     394,
+     142,
+     989
+    ],
+    [
+     155921,
+     3,
+     82,
+     725,
+     415,
+     158,
+     1150
+    ],
+    [
+     196613,
+     1,
+     85,
+     803,
+     400,
+     151,
+     1102
+    ],
+    [
+     262147,
+     2,
+     85,
+     919,
+     400,
+     136,
+     935
+    ]
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "GIANT-one-per-seed",
+   "source": "PLAN \u00a74",
+   "tag": "[CNT]",
+   "what": "one giant fold per seed, each holds out sc009",
+   "expected": [
+    5,
+    5,
+    5
+   ],
+   "recomputed": [
+    5,
+    5,
+    5
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "GIANT-share",
+   "source": "PLAN \u00a74/\u00a712; PREREG \u00a79",
+   "tag": "[CNT]",
+   "what": "giant folds' share of the seed's C3 pairs, % (min, max)",
+   "expected": [
+    52,
+    64
+   ],
+   "recomputed": [
+    52,
+    64
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "GIANT-train",
+   "source": "PREREG \u00a79",
+   "tag": "[CNT]",
+   "what": "giant folds' training cells (min, max)",
+   "expected": [
+    76,
+    98
+   ],
+   "recomputed": [
+    76,
+    98
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "GEN20-INNER-VAL",
+   "source": "PREREG \u00a712 row 6 / O12; PLAN \u00a74",
+   "tag": "[CNT]",
+   "what": "gen20 single inner split: BP folds with 10-11 validation cells (n, min, max)",
+   "expected": [
+    4,
+    10,
+    11
+   ],
+   "recomputed": [
+    4,
+    10,
+    11
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "INNER-first-BP",
+   "source": "PLAN \u00a74; PREREG \u00a72",
+   "tag": "[INNER]",
+   "what": "first chemotype inner fold == stored Fold.inner_* (BP)",
+   "expected": 25,
+   "recomputed": 25,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "INNER-first-B",
+   "source": "PLAN \u00a74; PREREG \u00a72",
+   "tag": "[INNER]",
+   "what": "first chemotype inner fold == stored Fold.inner_* (B)",
+   "expected": 25,
+   "recomputed": 25,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "INNER-first-BR",
+   "source": "PLAN \u00a74; PREREG \u00a72",
+   "tag": "[INNER]",
+   "what": "first chemotype inner fold == stored Fold.inner_* (BR)",
+   "expected": 25,
+   "recomputed": 25,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "INNER-first-BQ",
+   "source": "PLAN \u00a74; PREREG \u00a72",
+   "tag": "[INNER]",
+   "what": "first chemotype inner fold == stored Fold.inner_* (BQ)",
+   "expected": 25,
+   "recomputed": 25,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "INNER-first-BPG",
+   "source": "PLAN \u00a74; PREREG \u00a72",
+   "tag": "[INNER]",
+   "what": "first chemotype inner fold == stored Fold.inner_* (BPG)",
+   "expected": 25,
+   "recomputed": 25,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "INNER-first-A",
+   "source": "PLAN \u00a74; PREREG \u00a72",
+   "tag": "[INNER]",
+   "what": "first chemotype inner fold == stored Fold.inner_* (A)",
+   "expected": 0,
+   "recomputed": 0,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "INNER-BP-n",
+   "source": "PLAN \u00a72/\u00a74; PREREG \u00a72",
+   "tag": "[INNER]",
+   "what": "BP inner folds (count, skipped)",
+   "expected": [
+    100,
+    1
+   ],
+   "recomputed": [
+    100,
+    1
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "INNER-BP-min",
+   "source": "PLAN \u00a72/\u00a74; PREREG \u00a72",
+   "tag": "[INNER]",
+   "what": "BP minimum masked inner-train cells",
+   "expected": 18,
+   "recomputed": 18,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "INNER-BP-skipped",
+   "source": "PLAN \u00a74; PREREG \u00a72",
+   "tag": "[INNER]",
+   "what": "BP skipped inner fold (seed, fold, inner, cells)",
+   "expected": [
+    [
+     155921,
+     2,
+     3,
+     18
+    ]
+   ],
+   "recomputed": [
+    [
+     155921,
+     2,
+     3,
+     18
+    ]
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "INNER-B",
+   "source": "PLAN \u00a72/\u00a74; PREREG \u00a72",
+   "tag": "[INNER]",
+   "what": "design B: skipped inner folds, minimum inner-train",
+   "expected": [
+    0,
+    59
+   ],
+   "recomputed": [
+    0,
+    59
+   ],
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "LT25-nodmd-train",
+   "source": "PLAN \u00a72 COH-NODMD; LT-25",
+   "tag": "[DMD]",
+   "what": "NODMD train = primary train minus the 5 cells (units)",
+   "expected": 150,
+   "recomputed": 150,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "G-e",
+   "source": "PLAN \u00a74 (e)",
+   "tag": "gate",
+   "what": "outer+inner plan digest: subprocess-identical (and = previous S3 run)",
+   "expected": true,
+   "recomputed": true,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "M-TRAIN-rows",
+   "source": "PLAN \u00a72 COH-TRAIN",
+   "tag": "assert",
+   "what": "COH-TRAIN manifest rows per unit == training entries (units)",
+   "expected": 150,
+   "recomputed": 150,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "M-REP-rows",
+   "source": "PLAN \u00a72 COH-REP",
+   "tag": "assert",
+   "what": "COH-REP manifest rows per unit == replicated training entries",
+   "expected": 150,
+   "recomputed": 150,
+   "match": true,
+   "rule": "exact"
+  },
+  {
+   "id": "M-NODMD-rows",
+   "source": "PLAN \u00a72 COH-NODMD",
+   "tag": "assert",
+   "what": "every unit's NODMD training rows = training rows minus the DMDPhPDA entries (units)",
+   "expected": 150,
+   "recomputed": 150,
+   "match": true,
+   "rule": "exact"
+  }
+ ],
+ "recorded_info": [
+  {
+   "id": "I-NDSM-overlap",
+   "source": "PREREG \u00a72 (overlap with COH-SF-C3 counted at S3)",
+   "tag": "info",
+   "what": "COH-SF-NDSM cells in C3 / NDSM-only cells / NDSM strict pairs / NDSM Nd-Sm pairs",
+   "recomputed": [
+    226,
+    10,
+    1794,
+    190
+   ]
+  },
+  {
+   "id": "I-REP-BP",
+   "source": "PLAN \u00a72 COH-REP (per fold at S3)",
+   "tag": "info",
+   "what": "design BP: replicated training entries per fold (min, max)",
+   "recomputed": [
+    35,
+    216
+   ]
+  },
+  {
+   "id": "I-REP-B",
+   "source": "PLAN \u00a72 COH-REP (per fold at S3)",
+   "tag": "info",
+   "what": "design B: replicated training entries per fold (min, max)",
+   "recomputed": [
+    35,
+    216
+   ]
+  },
+  {
+   "id": "I-REP-BR",
+   "source": "PLAN \u00a72 COH-REP (per fold at S3)",
+   "tag": "info",
+   "what": "design BR: replicated training entries per fold (min, max)",
+   "recomputed": [
+    27,
+    216
+   ]
+  },
+  {
+   "id": "I-REP-BQ",
+   "source": "PLAN \u00a72 COH-REP (per fold at S3)",
+   "tag": "info",
+   "what": "design BQ: replicated training entries per fold (min, max)",
+   "recomputed": [
+    35,
+    216
+   ]
+  },
+  {
+   "id": "I-REP-BPG",
+   "source": "PLAN \u00a72 COH-REP (per fold at S3)",
+   "tag": "info",
+   "what": "design BPG: replicated training entries per fold (min, max)",
+   "recomputed": [
+    22,
+    216
+   ]
+  },
+  {
+   "id": "I-REP-A",
+   "source": "PLAN \u00a72 COH-REP (per fold at S3)",
+   "tag": "info",
+   "what": "design A: replicated training entries per fold (min, max)",
+   "recomputed": [
+    93,
+    216
+   ]
+  },
+  {
+   "id": "I-REP-BP-folds",
+   "source": "PLAN \u00a72 COH-REP",
+   "tag": "info",
+   "what": "design BP: replicated training entries, 25 folds in (seed, fold) order",
+   "recomputed": [
+    35,
+    215,
+    163,
+    215,
+    154,
+    195,
+    187,
+    176,
+    50,
+    215,
+    215,
+    216,
+    167,
+    50,
+    176,
+    175,
+    50,
+    216,
+    202,
+    139,
+    142,
+    175,
+    35,
+    215,
+    216
+   ]
+  },
+  {
+   "id": "I-REPPAIR",
+   "source": "PLAN \u00a72/\u00a77 COH-REPPAIR (O16)",
+   "tag": "info",
+   "what": "strict pairs with both endpoints replicated (pairs, cells); run-paired by experiment_series_id (pairs, cells, chemotypes, in C3)",
+   "recomputed": [
+    145,
+    23,
+    115,
+    20,
+    2,
+    95
+   ]
+  },
+  {
+   "id": "I-REPPAIR-BP",
+   "source": "PLAN \u00a77 (>= 20 pairs from >= 5 chemotypes per fold)",
+   "tag": "info",
+   "what": "BP training folds: run-paired pairs (min, max), chemotypes (min), folds estimable",
+   "recomputed": [
+    9,
+    115,
+    1,
+    0
+   ]
+  },
+  {
+   "id": "I-REPPAIR-feasible",
+   "source": "O16",
+   "tag": "info",
+   "what": "COH-REPPAIR feasible",
+   "recomputed": false
+  },
+  {
+   "id": "I-bench-pkl",
+   "source": "PLAN \u00a71.1 (recorded)",
+   "tag": "info",
+   "what": "bench.pkl sha256 / bytes",
+   "recomputed": [
+    "5915ece8729c8ddb06dcd91bb9658a58916ded46834083043bb1ee6037747386",
+    10901386
+   ]
+  },
+  {
+   "id": "I-fingerprint",
+   "source": "PLAN \u00a71.1 (drift from 4c3c6628ea0be949 expected)",
+   "tag": "info",
+   "what": "Gen13Cohort fingerprint obtained",
+   "recomputed": "4c3c6628ea0be949"
+  },
+  {
+   "id": "I-gate-e",
+   "source": "PLAN \u00a74 (e)",
+   "tag": "info",
+   "what": "outer+inner plan digest (six designs)",
+   "recomputed": "bac9fcef3992b6548e76ed81739f5dd08595d966a8f402d613e74f9324962f08"
+  },
+  {
+   "id": "I-NODMD-skip",
+   "source": "PLAN \u00a72 COH-NODMD",
+   "tag": "info",
+   "what": "inner folds whose skip status changes when the 5 DMD cells are removed",
+   "recomputed": []
+  }
+ ],
+ "n_compared": 100,
+ "n_mismatches": 0,
+ "n_coverage_unmapped_blocks": 0
+}

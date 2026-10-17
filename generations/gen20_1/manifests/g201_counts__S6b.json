@@ -1,0 +1,1017 @@
+{
+ "name": "g201_counts",
+ "label": "S6b",
+ "started_utc": "2026-10-16T17:41:30Z",
+ "git": {
+  "head": "44df7635c12fb92e4288d976c61dacc58ee852cf",
+  "branch": "main",
+  "dirty": true,
+  "describe": "44df763"
+ },
+ "environment": {
+  "platform": "Windows-10-10.0.19045-SP0",
+  "machine": "AMD64",
+  "python": "3.14.5",
+  "executable": "D:\\ml_separator_gh\\.venv\\Scripts\\python.exe",
+  "numpy": "2.5.3",
+  "pandas": "3.0.5",
+  "scipy": "1.18.1",
+  "sklearn": "1.9.0",
+  "pyarrow": "25.0.1",
+  "cpu_count": 12,
+  "ram_bytes": 8464097280,
+  "LOKY_MAX_CPU_COUNT": "2",
+  "OMP_NUM_THREADS": "2",
+  "PYTHONHASHSEED": null,
+  "dont_write_bytecode": true,
+  "torch_loaded": false,
+  "torch_threads": null
+ },
+ "dataset": {
+  "bundle_parquet": "dataset with 3D structures/dataset.parquet",
+  "bundle_sha256": "fefbefc6fe993aa9ce9db1a0c338adb9e5f58a8b75bab084cc1df4e024faf5dd",
+  "bundle_sha256_pinned": "fefbefc6fe993aa9ce9db1a0c338adb9e5f58a8b75bab084cc1df4e024faf5dd",
+  "cohort_manifest_parquet": "generations/gen13_separation/manifests/cohort_exact.parquet",
+  "cohort_manifest_sha256": "3f11ac4ccb7c9f6b1fa768f4406e1f249881cfd76689ba49a9115efc08bb7fd6",
+  "bench_pkl": "generations/gen14_direction/cache/bench.pkl",
+  "bench_pkl_sha256": "5915ece8729c8ddb06dcd91bb9658a58916ded46834083043bb1ee6037747386",
+  "bench_pkl_bytes": 10901386
+ },
+ "preregistration": {
+  "path": "D:\\ml_separator_gh\\generations\\gen20_1\\PRE_REGISTRATION.md",
+  "exists": true,
+  "sealed": true,
+  "valid": true,
+  "digest": "f34a1b97433b79b37024ecd8fd5349eeb0d4853b5d7cad60ed21470f1be2d232",
+  "recorded": "f34a1b97433b79b37024ecd8fd5349eeb0d4853b5d7cad60ed21470f1be2d232",
+  "lf_digest_whole_file": "6d03c742816ac2f0466e459c9fbe95c5b4510d2eb1fca2f465656eaa76ea20e5",
+  "markers_remaining": {}
+ },
+ "seeds": [
+  104729,
+  130363,
+  155921,
+  196613,
+  262147
+ ],
+ "args": {
+  "out": "D:\\ml_separator_gh\\generations\\gen20_1\\manifests",
+  "label": "S6b",
+  "no_subprocess": false
+ },
+ "finished_utc": "2026-10-16T17:42:15Z",
+ "seconds": 44.91088676452637,
+ "status": "ok",
+ "environment_at_exit": {
+  "torch_loaded": false
+ },
+ "records": {
+  "mode": {
+   "mode": "rerun",
+   "reference_dir": "D:\\ml_separator_gh\\generations\\gen20_1\\manifests",
+   "work_dir": "C:\\Users\\Bandai\\AppData\\Local\\Temp\\g201_counts_S6b_dzfw5lni",
+   "reference_files_present": [
+    "counts_g201.json",
+    "fold_plan_g201.json",
+    "fold_records_g201.parquet",
+    "row_manifests/COH-AUG.parquet",
+    "row_manifests/COH-D-ALL.parquet",
+    "row_manifests/COH-D-ALL@NODMD.parquet",
+    "row_manifests/COH-D-C3.parquet",
+    "row_manifests/COH-D-C3@NODMD.parquet",
+    "row_manifests/COH-D-C3M.parquet",
+    "row_manifests/COH-D-C3M@NODMD.parquet",
+    "row_manifests/COH-FROZEN.parquet",
+    "row_manifests/COH-INNER.parquet",
+    "row_manifests/COH-NOSC009-D.parquet",
+    "row_manifests/COH-NOSC009-D@NODMD.parquet",
+    "row_manifests/COH-NOSC009-SF.parquet",
+    "row_manifests/COH-NOSC009-SF@NODMD.parquet",
+    "row_manifests/COH-REP.parquet",
+    "row_manifests/COH-REPPAIR.parquet",
+    "row_manifests/COH-SC009-D.parquet",
+    "row_manifests/COH-SC009-D@NODMD.parquet",
+    "row_manifests/COH-SC009-SF.parquet",
+    "row_manifests/COH-SC009-SF@NODMD.parquet",
+    "row_manifests/COH-SF-ANY.parquet",
+    "row_manifests/COH-SF-ANY@NODMD.parquet",
+    "row_manifests/COH-SF-C1.parquet",
+    "row_manifests/COH-SF-C1@NODMD.parquet",
+    "row_manifests/COH-SF-C3.parquet",
+    "row_manifests/COH-SF-C3@NODMD.parquet",
+    "row_manifests/COH-SF-NDSM.parquet",
+    "row_manifests/COH-SF-NDSM@NODMD.parquet",
+    "row_manifests/COH-TRAIN.parquet",
+    "row_manifests/DIGESTS.json"
+   ]
+  },
+  "coverage_audit": {
+   "not_a_count": {
+    "\\b\\d{4}-\\d{2}-\\d{2}\\b": "a date",
+    "\\bdraft \\d+\\b": "draft number of the document",
+    "\\b\\d+\\.\\d+ s\\b": "[TIM] mean single-fit seconds of gen13's timings.csv (cited), not a count",
+    "\\b12 logical CPUs, 8,464,097,280 bytes RAM, Python \\d+\\.\\d+\\.\\d+, numpy \\d+\\.\\d+\\.\\d+": "[ENV] machine reading (recorded by gen201.env.environment at run time), not a count",
+    "\u03c4 = 0\\.4 / 0\\.5": "decision thresholds tau",
+    "RULED_OUT at 0\\.4, RULED_OUT at 0\\.5": "decision thresholds tau",
+    "\\b(?:95|98\\.75) %": "interval levels (K = 4 Bonferroni gives 98.75 %)",
+    "\\b(?:2\\.5|97\\.5)th percentiles?": "percentile levels of the 95 % interval",
+    "\\b10,000 seed-mean draws": "bootstrap replicate count (design constant)",
+    "\\bK = 4 Bonferroni": "number of deciding claims (design constant)",
+    "\u2265 4 of 5 per-seed values": "RULE-T per-seed criterion (design constant)",
+    "Fewer than 10 clusters": "'preliminary' threshold on the number of clusters (recovery plan :304)",
+    "repsd > 0\\.5": "COH-REPCAP replicate-sd cap (design constant)",
+    "\\|\u0394Z\\| = 1(?:, 12 types)?": "strict adjacency |dZ| = 1 and its 12 pair types (La/Ce .. Yb/Lu, Pm absent): definitional",
+    "\\by < 0\\b": "sign convention of log SF",
+    "\\bk(?:_max)? *(?:=|\u2265|>|<) *\\d+": "k-shot level / gen20's metal-model k_max cohort threshold (definitional)",
+    "\u2265 [12] (?:lanthanides|metals|such pair|scored)": "cohort / population membership thresholds (definitional)",
+    "\\bnrep \u2265 2\\b": "replicate definition (nrep >= 2)",
+    "\\bddof 1\\b": "sample-sd convention of repsd__",
+    "\\b64-column condition key": "width of gen13's condition key (definitional)",
+    "\\b\\d+-fold\\b": "number of outer or inner folds (design constant)",
+    "\\b5 split seeds \u00d7 5 folds": "split seeds x folds (design constant)",
+    "\\b5-seed mean": "number of split seeds (design constant)",
+    "< 20(?= masked inner-training|, skipped)": "MIN_INNER_TRAIN = 20, the skip threshold of an inner fold (gen20k/cov.py:84)",
+    "\\brow \\d+\\b": "a table row reference",
+    "^\\| \\d+ \\|": "the row number of the PRE_REGISTRATION \u00a712 deviations table",
+    "(?<![\\w(])\\(\\d\\)(?= [A-Z0-9`\\\"])": "an enumerator '(1)'..'(7)' of the plan's corrections",
+    "\\bpossibly 0\\b": "a hedge on a count that S3 recomputes (COH-REPPAIR feasibility, recorded as info)",
+    "\\babout 4 effective chemotypes": "a rounding of the Kish values 3.85 / 3.43 that are checked themselves",
+    "\\b111 rows of other extractants": "cited breakdown of the 129 quarantined rows (runs/gen7_architecture/ambiguity_audit.md:311)",
+    "\\b18 legitimate \\\"TODGA,DHOA\\\" mixture rows": "cited breakdown of the 129 quarantined rows (ambiguity_audit.md:311)",
+    "89 %/11 %, variance 2\\.776, adjacent sd 0\\.231 with n = 2,115, replicate median 0\\.237": "DATA_AUDIT \u00a73 statistics, cited (pre-quarantine target statistics; S3 reads no target value)",
+    "\\bfor 0\\.237\\b": "DATA_AUDIT replicate median, cited (a target statistic)",
+    "\\+4/\\+3/\\+2/\\+1 decades in the 1\u20134 M cells and by \\+1 for La, Ce and Pr in the 5 M cell": "gen8's DMDPhPDA source audit (cited): decade shifts and nitrate molarities, not counts",
+    "\\b59 of its\\b": "gen8's DMDPhPDA source audit (cited; label-derived: entries that differ from the curated copy)",
+    "the 5 M Pr/Nd pair \\(\\+1\\.0\\)": "gen8's DMDPhPDA source audit (cited): molarity and decade shift",
+    "= 42 \\+ fold\u00b71009 \\+ 9,999,991": "model-seed formula constants (gen13sep/splits.py:24-29)",
+    "seed\u00b731 \\+ fold\u00b77919 \\+ 17": "inner-seed formula constants (gen20k/splits.py:31-33)",
+    "\\(275 cells, 1,980 strict-adjacent pairs": "gen20's pair-model C3 cohort, cited (levels_BP_pair_C3_DOPT_Q.csv:6,18); not a gen20.1 population",
+    "\\b12 % of replicated readings": "cited (GEN20_REPORT.md:402); label-derived, never recomputed at S3",
+    "\\b13/25 near tie": "gen20's selection near ties, cited (GEN20_REPORT.md)",
+    "0\\.2583 \\(gen5 BASE91": "cited pooled R2 (gen5), a result, not a count",
+    "0\\.2721 \\(gen7": "cited pooled R2 (gen7)",
+    "0\\.174\u20130\\.303 per seed": "cited per-seed R2 range (gen6 MONO_ET)",
+    "0\\.42\u20130\\.43 only with near analogues": "cited R2 range (gen5)",
+    "unseen_ligand 0\\.4253": "cited R2 (gen5 unseen_ligand)",
+    "pooled R\u00b2 0\\.421": "cited R2 (gen12.2 DEC_L4_S1)",
+    "pre-registered selection 0\\.240": "cited R2 (gen12.2 selection)",
+    "< 0\\.4 \\(gen6 within-cell shape R\u00b2 0\\.30": "threshold tau and a cited R2 (gen6 phase 2)"
+   },
+   "blocks": [
+    {
+     "doc": "PLAN",
+     "lines": [
+      18,
+      33
+     ],
+     "tags": [
+      "CNT",
+      "DMD",
+      "INNER"
+     ],
+     "n_numbers": 1,
+     "unmapped": []
+    },
+    {
+     "doc": "PLAN",
+     "lines": [
+      37,
+      52
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 7,
+     "unmapped": []
+    },
+    {
+     "doc": "PLAN",
+     "lines": [
+      62,
+      62
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 2,
+     "unmapped": []
+    },
+    {
+     "doc": "PLAN",
+     "lines": [
+      63,
+      63
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 1,
+     "unmapped": []
+    },
+    {
+     "doc": "PLAN",
+     "lines": [
+      65,
+      65
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 1,
+     "unmapped": []
+    },
+    {
+     "doc": "PLAN",
+     "lines": [
+      66,
+      66
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 4,
+     "unmapped": []
+    },
+    {
+     "doc": "PLAN",
+     "lines": [
+      67,
+      67
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 5,
+     "unmapped": []
+    },
+    {
+     "doc": "PLAN",
+     "lines": [
+      69,
+      69
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 2,
+     "unmapped": []
+    },
+    {
+     "doc": "PLAN",
+     "lines": [
+      71,
+      91
+     ],
+     "tags": [
+      "CNT",
+      "DMD"
+     ],
+     "n_numbers": 22,
+     "unmapped": []
+    },
+    {
+     "doc": "PLAN",
+     "lines": [
+      123,
+      131
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 1,
+     "unmapped": []
+    },
+    {
+     "doc": "PLAN",
+     "lines": [
+      202,
+      214
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 2,
+     "unmapped": []
+    },
+    {
+     "doc": "PLAN",
+     "lines": [
+      222,
+      222
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 14,
+     "unmapped": []
+    },
+    {
+     "doc": "PLAN",
+     "lines": [
+      223,
+      223
+     ],
+     "tags": [
+      "INNER"
+     ],
+     "n_numbers": 4,
+     "unmapped": []
+    },
+    {
+     "doc": "PLAN",
+     "lines": [
+      224,
+      224
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 11,
+     "unmapped": []
+    },
+    {
+     "doc": "PLAN",
+     "lines": [
+      225,
+      225
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 3,
+     "unmapped": []
+    },
+    {
+     "doc": "PLAN",
+     "lines": [
+      226,
+      226
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 1,
+     "unmapped": []
+    },
+    {
+     "doc": "PLAN",
+     "lines": [
+      227,
+      227
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 3,
+     "unmapped": []
+    },
+    {
+     "doc": "PLAN",
+     "lines": [
+      228,
+      228
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 13,
+     "unmapped": []
+    },
+    {
+     "doc": "PLAN",
+     "lines": [
+      229,
+      229
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 6,
+     "unmapped": []
+    },
+    {
+     "doc": "PLAN",
+     "lines": [
+      230,
+      230
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 13,
+     "unmapped": []
+    },
+    {
+     "doc": "PLAN",
+     "lines": [
+      231,
+      231
+     ],
+     "tags": [
+      "CNT",
+      "DMD"
+     ],
+     "n_numbers": 7,
+     "unmapped": []
+    },
+    {
+     "doc": "PLAN",
+     "lines": [
+      233,
+      233
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 3,
+     "unmapped": []
+    },
+    {
+     "doc": "PLAN",
+     "lines": [
+      234,
+      234
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 2,
+     "unmapped": []
+    },
+    {
+     "doc": "PLAN",
+     "lines": [
+      342,
+      351
+     ],
+     "tags": [
+      "CNT",
+      "INNER"
+     ],
+     "n_numbers": 13,
+     "unmapped": []
+    },
+    {
+     "doc": "PLAN",
+     "lines": [
+      353,
+      356
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 33,
+     "unmapped": []
+    },
+    {
+     "doc": "PLAN",
+     "lines": [
+      464,
+      464
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 0,
+     "unmapped": []
+    },
+    {
+     "doc": "PLAN",
+     "lines": [
+      612,
+      612
+     ],
+     "tags": [
+      "CNT",
+      "DMD",
+      "INNER"
+     ],
+     "n_numbers": 10,
+     "unmapped": []
+    },
+    {
+     "doc": "PLAN",
+     "lines": [
+      702,
+      702
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 7,
+     "unmapped": []
+    },
+    {
+     "doc": "PREREG",
+     "lines": [
+      6,
+      14
+     ],
+     "tags": [
+      "CNT",
+      "DMD",
+      "INNER"
+     ],
+     "n_numbers": 0,
+     "unmapped": []
+    },
+    {
+     "doc": "PREREG",
+     "lines": [
+      16,
+      26
+     ],
+     "tags": [
+      "CNT",
+      "DMD",
+      "INNER"
+     ],
+     "n_numbers": 1,
+     "unmapped": []
+    },
+    {
+     "doc": "PREREG",
+     "lines": [
+      89,
+      90
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 8,
+     "unmapped": []
+    },
+    {
+     "doc": "PREREG",
+     "lines": [
+      91,
+      94
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 3,
+     "unmapped": []
+    },
+    {
+     "doc": "PREREG",
+     "lines": [
+      101,
+      115
+     ],
+     "tags": [
+      "CNT",
+      "DMD"
+     ],
+     "n_numbers": 21,
+     "unmapped": []
+    },
+    {
+     "doc": "PREREG",
+     "lines": [
+      116,
+      118
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 4,
+     "unmapped": []
+    },
+    {
+     "doc": "PREREG",
+     "lines": [
+      119,
+      129
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 6,
+     "unmapped": []
+    },
+    {
+     "doc": "PREREG",
+     "lines": [
+      130,
+      135
+     ],
+     "tags": [
+      "INNER"
+     ],
+     "n_numbers": 6,
+     "unmapped": []
+    },
+    {
+     "doc": "PREREG",
+     "lines": [
+      136,
+      141
+     ],
+     "tags": [
+      "DMD"
+     ],
+     "n_numbers": 3,
+     "unmapped": []
+    },
+    {
+     "doc": "PREREG",
+     "lines": [
+      296,
+      298
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 1,
+     "unmapped": []
+    },
+    {
+     "doc": "PREREG",
+     "lines": [
+      318,
+      335
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 2,
+     "unmapped": []
+    },
+    {
+     "doc": "PREREG",
+     "lines": [
+      442,
+      452
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 5,
+     "unmapped": []
+    },
+    {
+     "doc": "PREREG",
+     "lines": [
+      479,
+      482
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 5,
+     "unmapped": []
+    },
+    {
+     "doc": "PREREG",
+     "lines": [
+      516,
+      516
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 3,
+     "unmapped": []
+    },
+    {
+     "doc": "PREREG",
+     "lines": [
+      540,
+      540
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 3,
+     "unmapped": []
+    },
+    {
+     "doc": "PREREG",
+     "lines": [
+      557,
+      561
+     ],
+     "tags": [
+      "CNT",
+      "DMD",
+      "INNER"
+     ],
+     "n_numbers": 0,
+     "unmapped": []
+    },
+    {
+     "doc": "README",
+     "lines": [
+      8,
+      11
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 0,
+     "unmapped": []
+    },
+    {
+     "doc": "README",
+     "lines": [
+      13,
+      22
+     ],
+     "tags": [
+      "CNT",
+      "DMD",
+      "INNER"
+     ],
+     "n_numbers": 1,
+     "unmapped": []
+    },
+    {
+     "doc": "README",
+     "lines": [
+      54,
+      54
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 10,
+     "unmapped": []
+    },
+    {
+     "doc": "README",
+     "lines": [
+      194,
+      196
+     ],
+     "tags": [
+      "CNT"
+     ],
+     "n_numbers": 2,
+     "unmapped": []
+    }
+   ]
+  },
+  "frozen_trees_check_before_counts": {
+   "files": 24795,
+   "unchanged": true,
+   "changed": {}
+  },
+  "s3_status": "PASS",
+  "label_reads": [
+   {
+    "what": "gen13sep.cohort.apply_quarantine sentinel mask log_D <= LOG_D_FLOOR on the raw bundle (the frozen gen13 cohort-membership rule)",
+    "column": "log_D",
+    "threshold": -6.0,
+    "source": "dataset with 3D structures/dataset.parquet",
+    "rows_read": 5992,
+    "rows_flagged": 3,
+    "rows_in_521_cells": 0,
+    "rows_in_521_cells_definition": "quarantined rows (either rule) inside the multi-metal cells of the unquarantined chain, which are the 521 bench cells; the sentinel rows are a subset",
+    "used_for": "cohort-chain membership counts only (C11-*); the column is dropped right after the mask; no statistic of it is computed"
+   }
+  ],
+  "frozen_trees_unchanged": true,
+  "n_compared": 100,
+  "n_mismatches": 0,
+  "gates": {
+   "a": true,
+   "b": true,
+   "b_subprocess": true,
+   "c": true,
+   "d": true,
+   "e": true
+  },
+  "gate_e_sha256": "bac9fcef3992b6548e76ed81739f5dd08595d966a8f402d613e74f9324962f08",
+  "gate_e_check": {
+   "gate": "e",
+   "sha256": "bac9fcef3992b6548e76ed81739f5dd08595d966a8f402d613e74f9324962f08",
+   "per_design": {
+    "BP": "4686ec706705733b789ccd8e26e83687f22fdecdfba76627c37f86713623f9ca",
+    "B": "562ead039a8174cae42fe48ee71c67521baa3ad3f9d1a4e20785754bf584df8d",
+    "BR": "e187f5add0b7045c0048eaa1347310593fcc92cd723f7b52da5fce4437377025",
+    "BQ": "0a96f6e88c3863e87a69565a2a3f31fcf14fe2ced0f07a546241743b108cc45f",
+    "BPG": "8e3dcf224b4a0d5181aeb73c9ce64418311c5a73354da21340c80bc6fd251cb9",
+    "A": "4133df970a06df4f4cf4258ca962ccdc1a6c8da6196de5c43e78f4f03d2bbe1c"
+   },
+   "subprocess_identical": true,
+   "equals_recorded": true,
+   "recorded_sha256": "bac9fcef3992b6548e76ed81739f5dd08595d966a8f402d613e74f9324962f08",
+   "pass": true,
+   "previous_run_present": true
+  },
+  "rerun_comparison": {
+   "n_files": 32,
+   "identical": true,
+   "differing": [],
+   "files": [
+    {
+     "file": "counts_g201.json",
+     "reference_sha256": "892ef014648c93d520788fe0735d192bfec3eaa4fd97229920297a963ffee52a",
+     "rerun_sha256": "892ef014648c93d520788fe0735d192bfec3eaa4fd97229920297a963ffee52a",
+     "identical": true
+    },
+    {
+     "file": "fold_plan_g201.json",
+     "reference_sha256": "5ed6c4a01e6771e83404954a8983fec0759ba6289933cc43be1353709fd061a6",
+     "rerun_sha256": "5ed6c4a01e6771e83404954a8983fec0759ba6289933cc43be1353709fd061a6",
+     "identical": true
+    },
+    {
+     "file": "fold_records_g201.parquet",
+     "reference_sha256": "10dec51f9169c88cf407deda68191a4feffce448101a64bbeef04ecf9b1b7ef0",
+     "rerun_sha256": "10dec51f9169c88cf407deda68191a4feffce448101a64bbeef04ecf9b1b7ef0",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/COH-AUG.parquet",
+     "reference_sha256": "04d5f279a088f3841aece04adaae64b9b168c0a794142e72f0d82ee52da74bdf",
+     "rerun_sha256": "04d5f279a088f3841aece04adaae64b9b168c0a794142e72f0d82ee52da74bdf",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/COH-D-ALL.parquet",
+     "reference_sha256": "5ce97812a8555674c78038ef0e8e190e5abeb0a670603b83de2f85c3c0ef665f",
+     "rerun_sha256": "5ce97812a8555674c78038ef0e8e190e5abeb0a670603b83de2f85c3c0ef665f",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/COH-D-ALL@NODMD.parquet",
+     "reference_sha256": "42a6a39cc44103ca0e6cbfab80ed09266578e703fa7feee5e55556e43c9d8b6a",
+     "rerun_sha256": "42a6a39cc44103ca0e6cbfab80ed09266578e703fa7feee5e55556e43c9d8b6a",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/COH-D-C3.parquet",
+     "reference_sha256": "506b5ce3eca5263da305276660cab22f6bd199319c5736fd981074cfc288f0f9",
+     "rerun_sha256": "506b5ce3eca5263da305276660cab22f6bd199319c5736fd981074cfc288f0f9",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/COH-D-C3@NODMD.parquet",
+     "reference_sha256": "70b312eb56e9fb0f6c26e0505b942c72bdcfbc24e9da81b92d7c12709dca6d2c",
+     "rerun_sha256": "70b312eb56e9fb0f6c26e0505b942c72bdcfbc24e9da81b92d7c12709dca6d2c",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/COH-D-C3M.parquet",
+     "reference_sha256": "e9be0745d1b445ef173387ced03f5cb9f1aad6f199a3987731e11c9bef7f6f75",
+     "rerun_sha256": "e9be0745d1b445ef173387ced03f5cb9f1aad6f199a3987731e11c9bef7f6f75",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/COH-D-C3M@NODMD.parquet",
+     "reference_sha256": "c8d84bd9938974178493386e344d4e80fec781a9e19cc72b4acab41c06194681",
+     "rerun_sha256": "c8d84bd9938974178493386e344d4e80fec781a9e19cc72b4acab41c06194681",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/COH-FROZEN.parquet",
+     "reference_sha256": "fb5a1640ceac92db29767f2825e2f201fb5ea4e83be472fbcecdedd2f76e13a3",
+     "rerun_sha256": "fb5a1640ceac92db29767f2825e2f201fb5ea4e83be472fbcecdedd2f76e13a3",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/COH-INNER.parquet",
+     "reference_sha256": "6f5c9bbff97d23d98b8d9347fe3217b94b5f25268ac88ea9f0c85992ff555b5f",
+     "rerun_sha256": "6f5c9bbff97d23d98b8d9347fe3217b94b5f25268ac88ea9f0c85992ff555b5f",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/COH-NOSC009-D.parquet",
+     "reference_sha256": "398ac163d715089f6e4e94009ca511f28c035d5013c56616a40c4a91590bf89c",
+     "rerun_sha256": "398ac163d715089f6e4e94009ca511f28c035d5013c56616a40c4a91590bf89c",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/COH-NOSC009-D@NODMD.parquet",
+     "reference_sha256": "ade6edcd22faa338f19ba6b7833b0c82f2f34263377048469a5b6624dcf60bb9",
+     "rerun_sha256": "ade6edcd22faa338f19ba6b7833b0c82f2f34263377048469a5b6624dcf60bb9",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/COH-NOSC009-SF.parquet",
+     "reference_sha256": "55c8b7ab697bbd7babf8bfd524f33a98ec6c16d056fe212f949cb710e835ee7c",
+     "rerun_sha256": "55c8b7ab697bbd7babf8bfd524f33a98ec6c16d056fe212f949cb710e835ee7c",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/COH-NOSC009-SF@NODMD.parquet",
+     "reference_sha256": "c61a42ff3c9a820b039568e296c287d723925ceec03c361af2013a62b2420c8d",
+     "rerun_sha256": "c61a42ff3c9a820b039568e296c287d723925ceec03c361af2013a62b2420c8d",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/COH-REP.parquet",
+     "reference_sha256": "eff3dbb14548172660d3f1f0807f35608438b750c75420078917c7b86867bee1",
+     "rerun_sha256": "eff3dbb14548172660d3f1f0807f35608438b750c75420078917c7b86867bee1",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/COH-REPPAIR.parquet",
+     "reference_sha256": "d3760cbecd151f8c57c74480b44e2a7879d6035873e0ff6a6e172dfc9077e4ff",
+     "rerun_sha256": "d3760cbecd151f8c57c74480b44e2a7879d6035873e0ff6a6e172dfc9077e4ff",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/COH-SC009-D.parquet",
+     "reference_sha256": "1903b50685a2f2980c860592ddeee0c78ada487ab4d46b7b4f491494535c5542",
+     "rerun_sha256": "1903b50685a2f2980c860592ddeee0c78ada487ab4d46b7b4f491494535c5542",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/COH-SC009-D@NODMD.parquet",
+     "reference_sha256": "1903b50685a2f2980c860592ddeee0c78ada487ab4d46b7b4f491494535c5542",
+     "rerun_sha256": "1903b50685a2f2980c860592ddeee0c78ada487ab4d46b7b4f491494535c5542",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/COH-SC009-SF.parquet",
+     "reference_sha256": "be95e15344ca2b7868d6e5fe91bfea6296a03912bb7556029a2d046c8d52ae5f",
+     "rerun_sha256": "be95e15344ca2b7868d6e5fe91bfea6296a03912bb7556029a2d046c8d52ae5f",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/COH-SC009-SF@NODMD.parquet",
+     "reference_sha256": "be95e15344ca2b7868d6e5fe91bfea6296a03912bb7556029a2d046c8d52ae5f",
+     "rerun_sha256": "be95e15344ca2b7868d6e5fe91bfea6296a03912bb7556029a2d046c8d52ae5f",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/COH-SF-ANY.parquet",
+     "reference_sha256": "c2d368a7afa85cc2ceeb01c23b212b5638c0a1be34495817cbedf48a9653de41",
+     "rerun_sha256": "c2d368a7afa85cc2ceeb01c23b212b5638c0a1be34495817cbedf48a9653de41",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/COH-SF-ANY@NODMD.parquet",
+     "reference_sha256": "fc47356a48169b0a2e6717766ce9f4c0e93c2513ed6baba8541f469201a419c3",
+     "rerun_sha256": "fc47356a48169b0a2e6717766ce9f4c0e93c2513ed6baba8541f469201a419c3",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/COH-SF-C1.parquet",
+     "reference_sha256": "4b7c3acf08033cad49c8c71268c94347d4bff9e6b4d880df9e3d439142bca9e5",
+     "rerun_sha256": "4b7c3acf08033cad49c8c71268c94347d4bff9e6b4d880df9e3d439142bca9e5",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/COH-SF-C1@NODMD.parquet",
+     "reference_sha256": "d5014650f1898ab45d06b64138fabdf192e994aa200bde96e1348a65696ecf25",
+     "rerun_sha256": "d5014650f1898ab45d06b64138fabdf192e994aa200bde96e1348a65696ecf25",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/COH-SF-C3.parquet",
+     "reference_sha256": "53690537cd7c95fbbab1eb6eab3fb65cfc2936ab885074ddd6ad5aef8c65ae7e",
+     "rerun_sha256": "53690537cd7c95fbbab1eb6eab3fb65cfc2936ab885074ddd6ad5aef8c65ae7e",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/COH-SF-C3@NODMD.parquet",
+     "reference_sha256": "268a1cf75f834ed15eb86dd7ee01fbe7a17d88f12eb56584302f56a52785f690",
+     "rerun_sha256": "268a1cf75f834ed15eb86dd7ee01fbe7a17d88f12eb56584302f56a52785f690",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/COH-SF-NDSM.parquet",
+     "reference_sha256": "31eb3c0c8ab2804adf07264255b10811e7557ccd34a749192bd97185a4ab3b8d",
+     "rerun_sha256": "31eb3c0c8ab2804adf07264255b10811e7557ccd34a749192bd97185a4ab3b8d",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/COH-SF-NDSM@NODMD.parquet",
+     "reference_sha256": "0cf16339a7d21693f8a64263ad242bd1c9fcaadf5c6f52748ecc380b2dd59ffb",
+     "rerun_sha256": "0cf16339a7d21693f8a64263ad242bd1c9fcaadf5c6f52748ecc380b2dd59ffb",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/COH-TRAIN.parquet",
+     "reference_sha256": "066f836e6c3c0ac4f29b419b97c13e121e760d94bf9553ae4ac12fea780556b4",
+     "rerun_sha256": "066f836e6c3c0ac4f29b419b97c13e121e760d94bf9553ae4ac12fea780556b4",
+     "identical": true
+    },
+    {
+     "file": "row_manifests/DIGESTS.json",
+     "reference_sha256": "8a3fc19c778c38fdf0231536946f830f0f79fdf07670b3cb3e25a14b17ecd0b1",
+     "rerun_sha256": "8a3fc19c778c38fdf0231536946f830f0f79fdf07670b3cb3e25a14b17ecd0b1",
+     "identical": true
+    }
+   ]
+  },
+  "frozen_trees_unchanged_at_end": true,
+  "status": "PASS"
+ },
+ "outputs": {},
+ "log": [
+  "[     0.2s] rerun run: every output is written to C:\\Users\\Bandai\\AppData\\Local\\Temp\\g201_counts_S6b_dzfw5lni; it is compared byte for byte with the reference files in D:\\ml_separator_gh\\generations\\gen20_1\\manifests, which are never touched",
+  "[     0.3s] snapshot of 24795 files outside generations/gen20_1 (+ the gen20.1 documents) taken",
+  "[     0.5s] cohort assertions passed: 521-cell manifest equality, bench.Y == frame logD__*, bundle fefbefc6, parquet 3f11ac4c, bench.pkl 5915ece8, fingerprint 4c3c6628ea0be949",
+  "[    10.5s] cohort chain recomputed",
+  "[    11.0s] populations recomputed",
+  "[    19.4s] folds, gates (a)-(d) and inner cross-fit recomputed",
+  "[    22.2s] gate (e) digest bac9fcef3992... (pass True) written to the temporary fold_plan_g201.json",
+  "[    23.7s] COH-REPPAIR: log SF noise NOT ESTIMABLE from run-paired replicated adjacent pairs (fewer than 20 pairs from 5 chemotypes per BP training fold under every available run key); S5 reports 'not estimable' plus the labelled sqrt(2)*sigma bound (O16 default)",
+  "[    44.5s] 28 row manifests written (DIGESTS.json)"
+ ]
+}

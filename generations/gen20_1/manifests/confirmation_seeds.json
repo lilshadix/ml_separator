@@ -1,0 +1,227 @@
+{
+ "rule": "int(sha256(\"gen20_1-confirmation-seed-{i}\")[:8], 16) % 900000 + 100000",
+ "n": 5,
+ "seeds": [
+  215593,
+  276871,
+  348239,
+  385670,
+  915723
+ ],
+ "commitment_sha256": "a2bb89f77fdc4be9f0e7ac186517d9d92cb6e9c406bc9c207bdb2850865f23bd",
+ "commitment_form": "sha256(json.dumps(sorted(seeds)))",
+ "excluded": {
+  "discovery": [
+   104729,
+   130363,
+   155921,
+   196613,
+   262147
+  ],
+  "gen16_confirmation": [
+   137171,
+   506411,
+   721632,
+   937310,
+   939478
+  ],
+  "gen20_confirmation_rederived": [
+   148569,
+   228670,
+   253534,
+   561551,
+   978178
+  ],
+  "gen20_rederived_equals_documented": true,
+  "gen20_commitment_equals_RUN_ONCE": true
+ },
+ "trace": [
+  {
+   "i": 1,
+   "seed": 385670,
+   "skipped": null
+  },
+  {
+   "i": 2,
+   "seed": 215593,
+   "skipped": null
+  },
+  {
+   "i": 3,
+   "seed": 348239,
+   "skipped": null
+  },
+  {
+   "i": 4,
+   "seed": 276871,
+   "skipped": null
+  },
+  {
+   "i": 5,
+   "seed": 915723,
+   "skipped": null
+  }
+ ],
+ "confirmation_fold_digest_BP": {
+  "design": "BP",
+  "sha256": "f6d7bd70460f6b35da9b60d68723016e3883578800c2352a100b86c043148841",
+  "per_design": {
+   "BP": "f6d7bd70460f6b35da9b60d68723016e3883578800c2352a100b86c043148841"
+  },
+  "definition": "sha256 over |design|seed|fold| + test + train + per inner fold |inner j|skipped=0/1| + itrain + ival, each array as 'label:size:' + sorted int64 bytes",
+  "folds": [
+   {
+    "seed": 215593,
+    "fold": 0,
+    "n_train": 96,
+    "n_test": 396
+   },
+   {
+    "seed": 215593,
+    "fold": 1,
+    "n_train": 430,
+    "n_test": 44
+   },
+   {
+    "seed": 215593,
+    "fold": 2,
+    "n_train": 486,
+    "n_test": 29
+   },
+   {
+    "seed": 215593,
+    "fold": 3,
+    "n_train": 484,
+    "n_test": 29
+   },
+   {
+    "seed": 215593,
+    "fold": 4,
+    "n_train": 460,
+    "n_test": 23
+   },
+   {
+    "seed": 276871,
+    "fold": 0,
+    "n_train": 85,
+    "n_test": 402
+   },
+   {
+    "seed": 276871,
+    "fold": 1,
+    "n_train": 431,
+    "n_test": 49
+   },
+   {
+    "seed": 276871,
+    "fold": 2,
+    "n_train": 463,
+    "n_test": 28
+   },
+   {
+    "seed": 276871,
+    "fold": 3,
+    "n_train": 447,
+    "n_test": 16
+   },
+   {
+    "seed": 276871,
+    "fold": 4,
+    "n_train": 418,
+    "n_test": 26
+   },
+   {
+    "seed": 348239,
+    "fold": 0,
+    "n_train": 453,
+    "n_test": 24
+   },
+   {
+    "seed": 348239,
+    "fold": 1,
+    "n_train": 492,
+    "n_test": 21
+   },
+   {
+    "seed": 348239,
+    "fold": 2,
+    "n_train": 399,
+    "n_test": 30
+   },
+   {
+    "seed": 348239,
+    "fold": 3,
+    "n_train": 59,
+    "n_test": 431
+   },
+   {
+    "seed": 348239,
+    "fold": 4,
+    "n_train": 489,
+    "n_test": 15
+   },
+   {
+    "seed": 385670,
+    "fold": 0,
+    "n_train": 480,
+    "n_test": 24
+   },
+   {
+    "seed": 385670,
+    "fold": 1,
+    "n_train": 427,
+    "n_test": 39
+   },
+   {
+    "seed": 385670,
+    "fold": 2,
+    "n_train": 370,
+    "n_test": 46
+   },
+   {
+    "seed": 385670,
+    "fold": 3,
+    "n_train": 451,
+    "n_test": 22
+   },
+   {
+    "seed": 385670,
+    "fold": 4,
+    "n_train": 89,
+    "n_test": 390
+   },
+   {
+    "seed": 915723,
+    "fold": 0,
+    "n_train": 379,
+    "n_test": 47
+   },
+   {
+    "seed": 915723,
+    "fold": 1,
+    "n_train": 469,
+    "n_test": 37
+   },
+   {
+    "seed": 915723,
+    "fold": 2,
+    "n_train": 447,
+    "n_test": 24
+   },
+   {
+    "seed": 915723,
+    "fold": 3,
+    "n_train": 493,
+    "n_test": 11
+   },
+   {
+    "seed": 915723,
+    "fold": 4,
+    "n_train": 82,
+    "n_test": 402
+   }
+  ],
+  "skipped_inner_folds": [],
+  "each_cell_tested_once_per_seed": true
+ }
+}
