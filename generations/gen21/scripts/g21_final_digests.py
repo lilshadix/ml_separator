@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """SHA-256 of the code, predictions and result tables at the end of a round
-(manifests/round1_sha256.json).  The protocol-time digests in inputs_sha256.json are left as recorded."""
+(manifests/round1_sha256.json; overwritten at the end of each round).  The protocol-time digests in inputs_sha256.json are left as recorded."""
 from __future__ import annotations
 
 import json

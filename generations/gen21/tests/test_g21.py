@@ -178,3 +178,28 @@ def test_other_fits_use_training_cells_only(bench, rec, which):
         a, b = M.attempt3_fit_all(bench, rec), M.attempt3_fit_all(poisoned, rec)
         for n in a:
             assert np.allclose(a[n].x, b[n].x)
+
+
+def test_hbk_exp_equals_hb2gp(bench, rec):
+    """Attempt 4's HBK[exp] is attempt 2's HB2+GP (same model, same optimiser path)."""
+    a = M.attempt2_fit(bench, rec)["HB2+GP"]
+    b = M.attempt4_fit(bench, rec)["HBK[exp]"]
+    assert np.allclose(a.x, b.x)
+
+
+@pytest.mark.parametrize("which", ["attempt4", "attempt5", "attempt6"])
+def test_round2_fits_use_training_cells_only(bench, rec, which):
+    """Poison the held-out cells' log D: every round-2 fitted quantity must stay the same."""
+    from types import SimpleNamespace
+    te = rec["outer"]["test_index"]
+    Yp = bench.Y.copy()
+    Yp[te] = np.where(np.isfinite(Yp[te]), 7.0, np.nan)
+    poisoned = SimpleNamespace(Y=Yp, groups=bench.groups, n_obs=bench.n_obs, basis=bench.basis, frame=bench.frame)
+    fit = {"attempt4": M.attempt4_fit, "attempt5": M.attempt5_fit, "attempt6": M.attempt6_fit}[which]
+    a, b = fit(bench, rec), fit(poisoned, rec)
+    assert set(a) == set(b)
+    for n in a:
+        if hasattr(a[n], "x"):
+            assert np.allclose(a[n].x, b[n].x), n
+        else:
+            assert a[n] == b[n], n

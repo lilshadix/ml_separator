@@ -521,3 +521,439 @@ def attempt3_fit_all(bench, rec):
     out = attempt3_fit(bench, rec)
     out["HB2+GP"] = HBModel(hb_basis(bench, "B2"), use_gp=True).fit(bench.Y[tr], w)
     return out
+
+
+# ======================================================================================
+# Attempt 4 -- the residual kernel: smoother Matern / squared-exponential residuals chosen by the
+# training marginal likelihood ("HBK")
+# ======================================================================================
+# HB2+GP's residual delta has the exponential (Ornstein-Uhlenbeck) kernel rho^|dZ|: a random walk in
+# Z, which carries no local slope past a read metal.  HBK keeps everything else (basis, theta prior,
+# reading noise, weighted ML on the outer training cells) and swaps the kernel; with the same
+# number of parameters (tau2, length l, sig2) the kernel is chosen per fold by the training
+# likelihood (HBK@ML).
+
+KERNELS = ("exp", "m32", "m52", "se")
+
+
+def kernel_matrix(kind: str, dZ: np.ndarray, par: float) -> np.ndarray:
+    """``par`` is rho in (0, 1) for 'exp', the length l (Z units) otherwise."""
+    if kind == "exp":
+        return par ** dZ
+    r = dZ / par
+    if kind == "m32":
+        a = np.sqrt(3.0) * r
+        return (1.0 + a) * np.exp(-a)
+    if kind == "m52":
+        a = np.sqrt(5.0) * r
+        return (1.0 + a + a * a / 3.0) * np.exp(-a)
+    if kind == "se":
+        return np.exp(-0.5 * r * r)
+    raise ValueError(kind)
+
+
+class HBKModel(HBModel):
+    def __init__(self, basis: np.ndarray, kernel: str):
+        super().__init__(basis, use_gp=True)
+        self.kernel = kernel
+
+    def _unpack(self, x):
+        m, S, tau2, rho, sig2 = super()._unpack(x)
+        if self.kernel != "exp":
+            o = self.p + self.p * (self.p + 1) // 2
+            rho = float(np.exp(x[o + 2]))                    # length l
+        return m, S, tau2, rho, sig2
+
+    def cov_full(self, S, tau2, rho, sig2, *, latent=False):
+        C = self.B.T @ S @ self.B + tau2 * kernel_matrix(self.kernel, self.dZ, rho)
+        if not latent:
+            C = C + sig2 * np.eye(N_LN)
+        return C
+
+    def fit(self, Y, w, *, min_metals: int = 3):
+        if self.kernel == "exp":
+            return super().fit(Y, w, min_metals=min_metals)
+        # same as HBModel.fit, with the length initialised at 3 Z units
+        ok = np.isfinite(Y).sum(1) >= min_metals
+        Y, w = Y[ok], w[ok] / w[ok].mean()
+        pats: dict = {}
+        for i, row in enumerate(Y):
+            pats.setdefault(tuple(np.flatnonzero(np.isfinite(row))), []).append(i)
+        self.groups = []
+        for key, idx in pats.items():
+            Mi = np.array(key)
+            n = len(Mi)
+            P = np.hstack([-np.ones((n - 1, 1)), np.eye(n - 1)])
+            self.groups.append((Mi, P, Y[np.ix_(idx, Mi)] @ P.T, w[idx]))
+        p = self.p
+        x0 = np.zeros(p + p * (p + 1) // 2 + 3)
+        x0[p:p + p * (p + 1) // 2][[sum(range(j + 2)) - 1 for j in range(p)]] = np.log(0.3)
+        o = p + p * (p + 1) // 2
+        x0[o], x0[o + 1], x0[o + 2] = np.log(0.01), np.log(0.05), np.log(3.0)
+        res = minimize(self._nll, x0, method="L-BFGS-B", options={"maxiter": 500})
+        self.x = res.x
+        self.fit_info = {"success": bool(res.success), "nll": float(res.fun), "n_cells": int(len(Y)), "nit": int(res.nit),
+                         "kernel": self.kernel}
+        self.m, self.S, self.tau2, self.rho, self.sig2 = self._unpack(res.x)
+        return self
+
+
+def attempt4_fit(bench, rec):
+    from gen13sep.amplitude_bench import cell_weights
+    tr = np.asarray(rec["outer"]["train_index"])
+    w = cell_weights(bench.groups[tr], bench.n_obs[tr])
+    out = {f"HBK[{k}]": HBKModel(hb_basis(bench, "B2"), k).fit(bench.Y[tr], w) for k in KERNELS}
+    best = min(KERNELS, key=lambda k: out[f"HBK[{k}]"].fit_info["nll"])
+    out["ml_kernel"] = best
+    return out
+
+
+def attempt4_methods(bench):
+    def make(name):
+        def fn(block, cell, obs, k):
+            return block["fitted"][name].predict(obs.support)
+        return fn
+
+    def ml(block, cell, obs, k):
+        f = block["fitted"]
+        return f[f"HBK[{f['ml_kernel']}]"].predict(obs.support)
+    m = {f"HBK[{k}]": make(f"HBK[{k}]") for k in KERNELS}
+    m["HBK@ML"] = ml
+    return m
+
+
+# ======================================================================================
+# Attempt 5 -- heteroscedastic hierarchy: a two-component mixture of HB curve models ("HBMIX")
+# ======================================================================================
+# Cells differ in curve variance (diagnosis before round 2: error grows with how badly the reads fit
+# the single model; sc061 has 3x the MSE).  y_contrasts ~ pi N(mu_1, C_1) + (1 - pi) N(mu_2, C_2),
+# each component a full HB model (theta prior, residual kernel, reading noise).  Fitted by weighted
+# ML of the mixture likelihood on the outer training cells (exact torch gradients).  Prediction: the
+# component posterior given the read contrasts, then the posterior-weighted conditional means.
+
+def _torch_kernel(kind, dZ, par):
+    import torch
+    if kind == "exp":
+        return par ** dZ
+    r = dZ / par
+    if kind == "m32":
+        a = np.sqrt(3.0) * r
+        return (1.0 + a) * torch.exp(-a)
+    if kind == "m52":
+        a = np.sqrt(5.0) * r
+        return (1.0 + a + a * a / 3.0) * torch.exp(-a)
+    if kind == "se":
+        return torch.exp(-0.5 * r * r)
+    raise ValueError(kind)
+
+
+class HBMixModel:
+    """Two HBK components with a shared kernel family."""
+
+    def __init__(self, basis: np.ndarray, kernel: str = "exp", n_comp: int = 2):
+        self.B = np.asarray(basis, float)
+        self.p = self.B.shape[0]
+        self.kernel = kernel
+        self.n_comp = n_comp
+        self.dZ = np.abs(Z_VEC[:, None] - Z_VEC[None, :]).astype(float)
+        self.q = self.p * (self.p + 1) // 2
+        self.npc = self.p + self.q + 3                  # m, chol(S), log sig2, log tau2, kernel par
+
+    def _comp_np(self, x):
+        p, q = self.p, self.q
+        m = x[:p]
+        L = np.zeros((p, p))
+        L[np.tril_indices(p)] = x[p:p + q]
+        L[np.diag_indices(p)] = np.exp(L[np.diag_indices(p)])
+        S = L @ L.T
+        sig2, tau2 = np.exp(x[p + q]), np.exp(x[p + q + 1])
+        par = 1.0 / (1.0 + np.exp(-x[p + q + 2])) if self.kernel == "exp" else np.exp(x[p + q + 2])
+        C = self.B.T @ S @ self.B + tau2 * kernel_matrix(self.kernel, self.dZ, par) + sig2 * np.eye(N_LN)
+        return self.B.T @ m, C, {"m": m.tolist(), "S_theta": S.tolist(), "sig2": float(sig2), "tau2": float(tau2), "kpar": float(par)}
+
+    def components(self):
+        out = []
+        for c in range(self.n_comp):
+            mu, C, _ = self._comp_np(self.x[c * self.npc:(c + 1) * self.npc])
+            out.append((mu, C))
+        logits = np.concatenate([[0.0], self.x[self.n_comp * self.npc:]])
+        pi = np.exp(logits - logits.max())
+        return out, pi / pi.sum()
+
+    def fit(self, Y, w, *, init: "HBKModel | None" = None, min_metals: int = 3, maxiter: int = 300):
+        import torch
+        torch.set_num_threads(4)
+        ok = np.isfinite(Y).sum(1) >= min_metals
+        Y, w = Y[ok], w[ok] / w[ok].mean()
+        pats: dict = {}
+        for i, row in enumerate(Y):
+            pats.setdefault(tuple(np.flatnonzero(np.isfinite(row))), []).append(i)
+        T = lambda a: torch.tensor(np.asarray(a), dtype=torch.float64)  # noqa: E731
+        groups = []
+        for key, idx in pats.items():
+            Mi = np.array(key)
+            n = len(Mi)
+            P = np.hstack([-np.ones((n - 1, 1)), np.eye(n - 1)])
+            groups.append((torch.tensor(Mi), T(P), T(Y[np.ix_(idx, Mi)] @ P.T), T(w[idx])))
+        B, dZ = T(self.B), T(self.dZ)
+        p, q, npc, K = self.p, self.q, self.npc, self.n_comp
+        tril = torch.tril_indices(p, p)
+
+        def comp(xc):
+            L = torch.zeros((p, p), dtype=torch.float64).index_put((tril[0], tril[1]), xc[p:p + q])
+            d = torch.diagonal(L)
+            L = L - torch.diag(d) + torch.diag(torch.exp(d))
+            S = L @ L.T
+            sig2, tau2 = torch.exp(xc[p + q]), torch.exp(xc[p + q + 1])
+            par = torch.sigmoid(xc[p + q + 2]) if self.kernel == "exp" else torch.exp(xc[p + q + 2])
+            C = B.T @ S @ B + tau2 * _torch_kernel(self.kernel, dZ, par) + sig2 * torch.eye(N_LN, dtype=torch.float64)
+            return B.T @ xc[:p], C
+
+        def nll(xn):
+            x = torch.tensor(xn, dtype=torch.float64, requires_grad=True)
+            comps = [comp(x[c * npc:(c + 1) * npc]) for c in range(K)]
+            logits = torch.cat([torch.zeros(1, dtype=torch.float64), x[K * npc:]])
+            logpi = logits - torch.logsumexp(logits, 0)
+            tot = torch.zeros((), dtype=torch.float64)
+            for Mi, P, R, wg in groups:
+                lls = []
+                for c, (mu, C) in enumerate(comps):
+                    V = P @ C[Mi][:, Mi] @ P.T
+                    L = torch.linalg.cholesky(V)
+                    z = torch.linalg.solve_triangular(L, (R - (P @ mu[Mi]).unsqueeze(0)).T, upper=False)
+                    lls.append(logpi[c] - torch.log(torch.diagonal(L)).sum() - 0.5 * (z * z).sum(0))
+                tot = tot - (wg * torch.logsumexp(torch.stack(lls, 0), 0)).sum()
+            tot.backward()
+            return float(tot.detach()), x.grad.detach().numpy().astype(float)
+
+        def safe(xn):
+            try:
+                return nll(xn)
+            except Exception:
+                return 1e12, np.zeros_like(xn)
+        # initialise from the single-component fit: one component shrunk, one inflated (variance x0.5 / x2)
+        x0 = np.zeros(K * npc + K - 1)
+        if init is not None:
+            base = np.asarray(init.x, float)
+            for c, f in enumerate((0.5, 2.0)[:K]):
+                xc = base.copy()
+                xc[p:p + q][[sum(range(j + 2)) - 1 for j in range(p)]] += 0.5 * np.log(f)
+                xc[p + q] += np.log(f)
+                xc[p + q + 1] += np.log(f)
+                x0[c * npc:(c + 1) * npc] = xc
+        res = minimize(safe, x0, jac=True, method="L-BFGS-B", options={"maxiter": maxiter})
+        self.x = res.x
+        self.fit_info = {"success": bool(res.success), "nll": float(res.fun), "n_cells": int(len(Y)), "nit": int(res.nit),
+                         "kernel": self.kernel}
+        return self
+
+    def predict(self, support) -> np.ndarray:
+        comps, pi = self.components()
+        if support.k == 0:
+            return sum(pk * mu for pk, (mu, _) in zip(pi, comps))
+        D = AD.pair_matrix(support.pairs)
+        y = np.asarray(support.values, float)
+        logw, means = [], []
+        for pk, (mu, C) in zip(pi, comps):
+            V = D @ C @ D.T
+            r = y - D @ mu
+            L = np.linalg.cholesky(V)
+            z = np.linalg.solve(L, r)
+            logw.append(np.log(pk) - np.log(np.diag(L)).sum() - 0.5 * float(z @ z))
+            means.append(mu + C @ D.T @ np.linalg.solve(V, r))
+        logw = np.array(logw)
+        wts = np.exp(logw - logw.max())
+        wts /= wts.sum()
+        return sum(wk * mk for wk, mk in zip(wts, means))
+
+    def params(self) -> dict:
+        comps, pi = self.components()
+        out = {"pi": pi.tolist(), **self.fit_info}
+        for c in range(self.n_comp):
+            _, _, d = self._comp_np(self.x[c * self.npc:(c + 1) * self.npc])
+            for k_, v in d.items():
+                out[f"c{c}.{k_}"] = v
+        return out
+
+
+def attempt5_fit(bench, rec):
+    """Attempt 4's fits (the four kernels and the ML choice) plus the two-component mixture with the
+    fold's ML kernel family, initialised from that kernel's single fit."""
+    from gen13sep.amplitude_bench import cell_weights
+    out = attempt4_fit(bench, rec)
+    tr = np.asarray(rec["outer"]["train_index"])
+    w = cell_weights(bench.groups[tr], bench.n_obs[tr])
+    kern = out["ml_kernel"]
+    out["HBMIX"] = HBMixModel(hb_basis(bench, "B2"), kern).fit(bench.Y[tr], w, init=out[f"HBK[{kern}]"])
+    return out
+
+
+def attempt5_methods(bench):
+    def mix(block, cell, obs, k):
+        return block["fitted"]["HBMIX"].predict(obs.support)
+
+    def ml(block, cell, obs, k):
+        f = block["fitted"]
+        return f[f"HBK[{f['ml_kernel']}]"].predict(obs.support)
+
+    def hb2gp(block, cell, obs, k):
+        return block["fitted"]["HBK[exp]"].predict(obs.support)
+    return {"HBMIX": mix, "HBK@ML": ml, "HB2+GP": hb2gp}
+
+
+
+# ======================================================================================
+# Attempt 6 -- metal-specific effects in the prior: per-metal mean anomalies (the gadolinium break,
+# Ce) and optionally per-metal reading noise ("HBKM")
+# ======================================================================================
+# HBK's prior mean is a smooth radius curve B'm, so a level displacement that every extractant
+# shares at one metal (Gd lower than the smooth curve -> Eu/Gd under-, Gd/Tb over-predicted at
+# k = 3) is invisible to it unless that metal is read.  HBKM adds a mean vector alpha in the
+# complement of span{1, B} (11 free numbers, shared by all chemotypes, so it transfers to a held-out
+# chemotype) and, in the +NOISE variant, a per-metal noise variance.  Same kernel family as the
+# fold's HBK@ML; weighted ML on the outer training cells with exact torch gradients.
+
+def _complement_basis(B: np.ndarray) -> np.ndarray:
+    """Orthonormal rows spanning the complement of span{1, rows of B} in R^14."""
+    A = np.vstack([np.ones(N_LN), B]).T
+    Q, _ = np.linalg.qr(A, mode="complete")
+    return Q[:, A.shape[1]:].T                                   # (14 - 1 - p) x 14
+
+
+class HBKMModel:
+    def __init__(self, basis: np.ndarray, kernel: str, metal_noise: bool):
+        self.B = np.asarray(basis, float)
+        self.p = self.B.shape[0]
+        self.q = self.p * (self.p + 1) // 2
+        self.kernel = kernel
+        self.metal_noise = metal_noise
+        self.Ac = _complement_basis(self.B)
+        self.na = self.Ac.shape[0]
+        self.dZ = np.abs(Z_VEC[:, None] - Z_VEC[None, :]).astype(float)
+
+    def _sizes(self):
+        return self.p + self.q + 3 + self.na + (N_LN if self.metal_noise else 0)
+
+    def _np(self, x):
+        p, q = self.p, self.q
+        m = x[:p]
+        L = np.zeros((p, p))
+        L[np.tril_indices(p)] = x[p:p + q]
+        L[np.diag_indices(p)] = np.exp(L[np.diag_indices(p)])
+        S = L @ L.T
+        o = p + q
+        logs2, tau2 = x[o], np.exp(x[o + 1])
+        par = 1.0 / (1.0 + np.exp(-x[o + 2])) if self.kernel == "exp" else np.exp(x[o + 2])
+        alpha = x[o + 3:o + 3 + self.na]
+        dn = x[o + 3 + self.na:] if self.metal_noise else np.zeros(N_LN)
+        sig2 = np.exp(logs2 + dn - dn.mean())
+        mu = self.B.T @ m + self.Ac.T @ alpha
+        C = self.B.T @ S @ self.B + tau2 * kernel_matrix(self.kernel, self.dZ, par) + np.diag(sig2)
+        return mu, C, {"m": m.tolist(), "S_theta": S.tolist(), "tau2": float(tau2), "kpar": float(par),
+                       "alpha_metal": (self.Ac.T @ alpha).tolist(), "sig2_metal": sig2.tolist()}
+
+    def fit(self, Y, w, *, init: "HBKModel | None" = None, min_metals: int = 3, maxiter: int = 500):
+        import torch
+        torch.set_num_threads(4)
+        ok = np.isfinite(Y).sum(1) >= min_metals
+        Y, w = Y[ok], w[ok] / w[ok].mean()
+        pats: dict = {}
+        for i, row in enumerate(Y):
+            pats.setdefault(tuple(np.flatnonzero(np.isfinite(row))), []).append(i)
+        T = lambda a: torch.tensor(np.asarray(a), dtype=torch.float64)  # noqa: E731
+        groups = []
+        for key, idx in pats.items():
+            Mi = np.array(key)
+            n = len(Mi)
+            P = np.hstack([-np.ones((n - 1, 1)), np.eye(n - 1)])
+            groups.append((torch.tensor(Mi), T(P), T(Y[np.ix_(idx, Mi)] @ P.T), T(w[idx])))
+        B, dZ, Ac = T(self.B), T(self.dZ), T(self.Ac)
+        p, q, na = self.p, self.q, self.na
+        tril = torch.tril_indices(p, p)
+
+        def nll(xn):
+            x = torch.tensor(xn, dtype=torch.float64, requires_grad=True)
+            L = torch.zeros((p, p), dtype=torch.float64).index_put((tril[0], tril[1]), x[p:p + q])
+            d = torch.diagonal(L)
+            L = L - torch.diag(d) + torch.diag(torch.exp(d))
+            S = L @ L.T
+            o = p + q
+            par = torch.sigmoid(x[o + 2]) if self.kernel == "exp" else torch.exp(x[o + 2])
+            dn = x[o + 3 + na:] if self.metal_noise else torch.zeros(N_LN, dtype=torch.float64)
+            sig2 = torch.exp(x[o] + dn - dn.mean())
+            mu = B.T @ x[:p] + Ac.T @ x[o + 3:o + 3 + na]
+            C = B.T @ S @ B + torch.exp(x[o + 1]) * _torch_kernel(self.kernel, dZ, par) + torch.diag(sig2)
+            tot = torch.zeros((), dtype=torch.float64)
+            for Mi, P, R, wg in groups:
+                V = P @ C[Mi][:, Mi] @ P.T
+                Lc = torch.linalg.cholesky(V)
+                z = torch.linalg.solve_triangular(Lc, (R - (P @ mu[Mi]).unsqueeze(0)).T, upper=False)
+                tot = tot + (wg * (torch.log(torch.diagonal(Lc)).sum() + 0.5 * (z * z).sum(0))).sum()
+            tot.backward()
+            return float(tot.detach()), x.grad.detach().numpy().astype(float)
+
+        def safe(xn):
+            try:
+                return nll(xn)
+            except Exception:
+                return 1e12, np.zeros_like(xn)
+        x0 = np.zeros(self._sizes())
+        if init is not None:
+            b = np.asarray(init.x, float)                  # HBK layout: m, chol, log sig2, log tau2, kernel par
+            x0[:p + q + 3] = b[:p + q + 3]
+        res = minimize(safe, x0, jac=True, method="L-BFGS-B", options={"maxiter": maxiter})
+        self.x = res.x
+        self.mu, self.C, self._p = self._np(res.x)
+        self.fit_info = {"success": bool(res.success), "nll": float(res.fun), "n_cells": int(len(Y)), "nit": int(res.nit),
+                         "kernel": self.kernel, "n_params": int(len(res.x)),
+                         "n_contrasts": int(sum((len(Mi) - 1) * R.shape[0] for Mi, P, R, wg in groups))}
+        return self
+
+    def predict(self, support) -> np.ndarray:
+        if support.k == 0:
+            return self.mu.copy()
+        D = AD.pair_matrix(support.pairs)
+        r = np.asarray(support.values, float) - D @ self.mu
+        return self.mu + self.C @ D.T @ np.linalg.solve(D @ self.C @ D.T, r)
+
+    def params(self) -> dict:
+        return {**self._p, **self.fit_info}
+
+
+def attempt6_fit(bench, rec):
+    """Attempt 4's fits plus HBKM[mean] and HBKM[mean+noise] with the fold's ML kernel, each
+    initialised from that kernel's HBK fit; HBKM@BIC picks the lower training BIC."""
+    from gen13sep.amplitude_bench import cell_weights
+    out = attempt4_fit(bench, rec)
+    tr = np.asarray(rec["outer"]["train_index"])
+    w = cell_weights(bench.groups[tr], bench.n_obs[tr])
+    kern = out["ml_kernel"]
+    init = out[f"HBK[{kern}]"]
+    for name, noise in (("HBKM[mean]", False), ("HBKM[mean+noise]", True)):
+        out[name] = HBKMModel(hb_basis(bench, "B2"), kern, noise).fit(bench.Y[tr], w, init=init)
+
+    def bic(mdl):
+        fi = mdl.fit_info
+        return 2.0 * fi["nll"] + fi["n_params"] * np.log(fi["n_contrasts"])
+    out["bic_variant"] = min(("HBKM[mean]", "HBKM[mean+noise]"), key=lambda n: bic(out[n]))
+    return out
+
+
+def attempt6_methods(bench):
+    def make(name):
+        def fn(block, cell, obs, k):
+            return block["fitted"][name].predict(obs.support)
+        return fn
+
+    def bic(block, cell, obs, k):
+        f = block["fitted"]
+        return f[f["bic_variant"]].predict(obs.support)
+
+    def ml(block, cell, obs, k):
+        f = block["fitted"]
+        return f[f"HBK[{f['ml_kernel']}]"].predict(obs.support)
+
+    def hb2gp(block, cell, obs, k):
+        return block["fitted"]["HBK[exp]"].predict(obs.support)
+    return {"HBKM[mean]": make("HBKM[mean]"), "HBKM[mean+noise]": make("HBKM[mean+noise]"), "HBKM@BIC": bic,
+            "HBK@ML": ml, "HB2+GP": hb2gp}

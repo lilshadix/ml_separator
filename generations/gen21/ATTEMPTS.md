@@ -275,9 +275,263 @@ amendment A1 below. The round's candidate stays HB2+GP with DOPT_Q reads (attemp
   guards only against split-specific over-fitting and cannot confirm a regime or variant chosen on
   these cells. Its expected seed-to-seed spread is the partition spread (about ±0.01 on a 5-seed
   mean), not the chemotype-bootstrap interval, which describes generalisation to new chemotypes.
+* **A4 (2026-10-19, added after the round-2 review).** Round 2 (attempts 4–6) does not rerun
+  G14@BLUP20 and FLAT@BLUP20. Their rows are identical to attempt 2's (`predictions/attempt2_*.parquet`):
+  C3 k = 3 R² 0.248 / 0.189 (BP), both below RIDGE2 and LINE, which are rerun in every attempt.
 
 **Round status (2026-10-18; the user limited this round to three ideas).** Candidate: HB2+GP at
 k = 3 with DOPT_Q reads, R² 0.403 (BP) / 0.407 (BPG) on dev. The final check on the withheld seeds
 has **not** been run. It needs a method frozen on dev, a declared regime (A2) and the user's
 go-ahead (PROTOCOL §5). Resume point: choose the next idea, or freeze HB2+GP, declare the regime
 and run the final check once.
+
+---
+
+# Round 2 (started 2026-10-19; the user asked to continue with new tests)
+
+Same protocol, cohorts, dev seeds, designs and checks as round 1 (amendments A1–A3 apply). The
+candidate going in is HB2+GP (attempt 2). The final check stays unrun.
+
+## Diagnosis of HB2+GP before round 2 (`scripts/g21_diag_r2.py` → `results/diag/diag_r2.txt`)
+
+On BP, k = 3, C3:
+* **Distance to the nearest read metal.** Pairs with one end read have MSE 0.028. Pairs one Z-step
+  from a read metal with neither end read have the highest raw MSE of the large groups (0.036,
+  1,752 rows); pairs 2–3 steps away have 0.022–0.025, and the 63 rows 4 steps away 0.047. Relative
+  to their own spread, those pairs are not special (MSE / sd² = 0.58 / 0.64 / 0.65 / 0.67 for
+  distance 0–3). That the random-walk residual fails to carry the local slope past a read is
+  therefore the hypothesis tested in attempt 4, not a diagnosed cause.
+* **Chemotype bias.** A chemotype × pair-type mean explains 36 % of the squared error, against
+  26 % under a permutation null (95th percentile 29 %). sc061 holds 25 % of the squared error at
+  3× the MSE of the DGA chemotype. A held-out chemotype's own bias cannot be estimated, though.
+  The structure model does not supply it either: regressing the HB2+GP residual on
+  (G14@ZERO − HB2+GP) gives slope 0.08, correlation 0.06 and 0.5 % less squared error in-sample,
+  so a structure-based prior is **not** pursued.
+* **Read consistency.** Leave-one-read-out standardized residuals of the reads under the fitted
+  model: cells with a read at |z| > 3 are 3 % of cells and 6 % of the squared error. Error rises
+  steadily with the worst |z| (MSE 0.019 / 0.031 / 0.062 for |z| ≤ 1 / 1–2 / 2–3). Cells whose
+  reads fit the model badly are the cells the model predicts badly: the curve variance differs
+  between cells.
+
+## Attempt 4 — the residual kernel (`HBK`)
+
+**Hypothesis (from the diagnosis).** The exponential (Ornstein–Uhlenbeck) residual extrapolates no
+local slope past a read metal, which is why pairs one step from a read are the worst. A smoother
+residual (Matérn 3/2, Matérn 5/2 or squared-exponential in Z), chosen per fold by the **training**
+marginal likelihood, should predict those pairs and the pooled adjacent log SF better than HB2+GP
+on the same reads.
+
+**Information contract.** As attempt 2: k + 1 metals read by gen20's DOPT_Q; only their
+differences are used; parameters by chemotype-balanced weighted ML on the outer training cells'
+curves. Variants `HBK[exp]` (= HB2+GP refitted), `HBK[m32]`, `HBK[m52]` and `HBK[se]` have the same
+number of parameters (θ prior, τ², length or ρ, σ²). `HBK@ML` uses, in each fold, the kernel with
+the highest training likelihood. Nothing is chosen on held-out cells. Comparators on identical rows
+and reads: HB2+GP (attempt 2), RIDGE2, LINE, G14 zero-shot, FLAT. Advancement (PROTOCOL §6 + A1):
+beat both RIDGE2 and HB2+GP in R² and MAE in ≥ 4/5 seeds, with the sign held on BPG.
+
+**Result (k = 3, C3, 229 cells / 1,802 pairs per seed; `results/attempt4/`).**
+
+| # | method | regime | R² logSF BP [95 %] | per-seed R² BP | MAE | RMSE | macro MAE | R² BPG [95 %] | per-seed R² BPG | MAE BPG |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 4 | **HBK@ML** (kernel by training likelihood) | k = 3, DOPT_Q | **0.414** [0.321, 0.500] | 0.404, 0.425, 0.403, 0.427, 0.412 | **0.1054** | 0.1699 | 0.1208 | **0.419** [0.325, 0.503] | 0.402, 0.425, 0.420, 0.428, 0.419 | 0.1050 |
+| 4 | HBK[m52] | k = 3 | 0.417 [0.326, 0.503] | — | 0.1049 | 0.1695 | 0.1203 | 0.421 | — | 0.1045 |
+| 4 | HBK[m32] | k = 3 | 0.416 | — | 0.1051 | 0.1696 | 0.1203 | 0.421 | — | 0.1046 |
+| 4 | HBK[se] | k = 3 | 0.415 | — | 0.1054 | 0.1697 | 0.1207 | 0.420 | — | 0.1050 |
+| 2 | HB2+GP (= HBK[exp]) | k = 3 | 0.403 [0.318, 0.491] | 0.392, 0.416, 0.395, 0.412, 0.401 | 0.1079 | 0.1714 | 0.1215 | 0.407 | — | 0.1075 |
+| ref | RIDGE2 | k = 3 | 0.310 | — | 0.1206 | 0.1844 | 0.1346 | 0.323 | — | 0.1191 |
+
+Budget ladder, HBK@ML (BP, with BPG in brackets): C3 k = 0 −0.118, k = 1 0.099, k = 2 0.344, k = 3
+0.414 (0.419); C6 k = 3 0.392, k = 5 **0.499** (0.497), k = 6 0.533 (0.531). HB2+GP at the same
+points: −0.116, 0.076, 0.334, 0.403; C6 0.376, 0.489, 0.521. LINE: C3 −0.135, 0.168, 0.237, 0.236;
+C6 (k = 3 / 5 / 6) 0.224, 0.230, 0.228. **At k = 1 (two metals read) HBK@ML (0.099) is still below
+LINE (0.168).** log D of the unread metals (k = 3, R² / MAE / RMSE): HBK@ML 0.983 / 0.142 / 0.215;
+HB2+GP 0.982 / 0.149 / 0.221; mean of the reads 0.823 / 0.508 / 0.690.
+
+Contrasts at k = 3: HBK@ML − HB2+GP ΔR² **+0.011** [−0.006, +0.020] (BP) / +0.012 [−0.005,
++0.021] (BPG); ΔMAE +0.0024 [−0.0006, +0.0036] / +0.0025; **5/5 seeds on both statistics under
+both designs**. HBK@ML − RIDGE2: ΔR² +0.104 [+0.078, +0.123], ΔMAE +0.0152, 5/5. Training
+likelihood chose squared-exponential in 19 of 25 folds, Matérn 5/2 in 5 and Matérn 3/2 in 1
+(both designs). Every fit converged. Intervention (all five dev seeds): 610,400 predictions per
+design, max change 0.
+
+**Short report.** The smoother residual helps a little, and in every seed. With HBK@ML every seed
+crosses 0.40 under both designs (0.402–0.428, against 0.392–0.416 for HB2+GP). That is a +0.011
+shift, of the size of the ±0.01 partition spread (A3). The gain over HB2+GP is small (+0.011 R²,
++0.0024 MAE). It is positive in every seed but inside the chemotype-level percentile interval (the
+MAE BCa interval excludes 0). Seed counts measure partition stability, not replication. About half
+of each seed's C3 rows are one chemotype (DGA), whose gain is positive in every seed; on the other
+chemotypes the MAE gain is positive in 4/5 seeds and the squared-error gain in 3/5. It clears the advancement rule (PROTOCOL §6 + A1: better than
+RIDGE2 and the previous best in R² and MAE in ≥ 4/5 seeds, sign held on BPG), so **HBK@ML becomes
+the round's candidate**. The single kernels m52 and m32 are nominally 0.002–0.003 higher than the
+ML choice, but HBK@ML is the rule declared before the run and is kept. Per pair type, the heavy end
+gains most: Ho/Er 0.18 → 0.22, Er/Tm 0.16 → 0.21, Tm/Yb −0.04 → 0.01. Yb/Lu gets worse (−0.07 →
+−0.14), and Pr/Nd and Eu/Gd slightly worse. Pairs one Z-step from a read improve only a little
+(MSE 0.0363 → 0.0349), so the slope-extrapolation hypothesis explains only part of the gain.
+
+**Diagnosis for the next step** (`scripts/g21_diag_a4.py` → `results/diag/diag_a4.txt`). Under
+HBK@ML, Spearman(posterior variance, squared error) is 0.09 / 0.08 / 0.11 at k = 1 / 2 / 3. If the
+variances were exactly calibrated (squared error = variance × χ²₁) it would be ≈ 0.15, so the rank
+statistic alone is weak evidence (corrected after the review). The quintiles are what is
+informative: under calibration the top/bottom quintile MSE ratio would be ≈ 2.2; observed it is
+1.02 / 0.83 / 0.82. The inversion is between pair types. The prior gives Yb/Lu and Tm/Yb the
+largest posterior variance (0.047, 0.038), where the realised MSE is among the lowest (0.017,
+0.015), and La/Ce and Ce/Pr the smallest (0.030), where the MSE is the highest (0.058, 0.070); the
+rank correlation over the 12 pair types is ≈ −0.46. Total posterior variance overstates the SSE by
+18–21 %. Two consequences. A read policy that minimises this posterior variance (the planned
+"DOPT_HB") would steer reads toward the heavy end, where the error is smallest. It was judged
+unlikely to gain and deferred; its gain was not measured. And the error depends on cell-level
+variance that a single Gaussian prior ignores, so the next attempt is the heteroscedastic mixture.
+
+## Attempt 5 — heteroscedastic hierarchy: a two-component mixture (`HBMIX`)
+
+**Hypothesis.** Cells come in at least two variance regimes, for example smooth, well-measured
+curves against rough or noisy ones (like sc061). Fit a two-component mixture of HBK models by ML on
+the training cells, and let the reads of a new cell decide which regime it belongs to. Each cell
+then gets the shrinkage that suits it, which should lower the error and rank the uncertainty
+better than HBK@ML on the same reads.
+
+**Information contract.** As in attempts 2 and 4: k + 1 metals are read by gen20's DOPT_Q, and only
+their differences are used. Two HBK components with the fold's ML kernel family (attempt 4's rule)
+are fitted jointly by weighted mixture maximum likelihood on the outer training cells, with exact
+torch gradients. The fit starts from the single HBK@ML fit, with one component's variances halved
+and the other's doubled. Prediction: the component posterior from the likelihood of the read
+contrasts under each component, then the posterior-weighted conditional means; k = 0 is the
+prior-weighted mean. Nothing is tuned on held-out cells. Comparators on identical rows and reads:
+HBK@ML (attempt 4), HB2+GP and RIDGE2.
+
+*Dev look before the full run (2026-10-19, recorded here).* While the model was being written, it
+was fitted on one dev fold (BP 130363 fold 2). The training likelihood rose by about 590, and one
+third of the cells went to a noisy component with σ² ≈ 0.03–0.05. Held-out k = 3 R² on that fold:
+with the exp kernel, 0.39 for the mixture against 0.40 for the single model; with the se kernel,
+0.38 against 0.405. The full run goes ahead as planned; the look is disclosed because it came
+first.
+
+**Result (k = 3, C3, 229 cells / 1,802 pairs per seed; `results/attempt5/`).**
+
+| # | method | regime | R² logSF BP [95 %] | per-seed R² BP | MAE | RMSE | macro MAE | R² BPG | per-seed R² BPG | MAE BPG |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 5 | HBMIX | k = 3, DOPT_Q | 0.416 [0.320, 0.498] | 0.421, 0.417, 0.403, 0.427, 0.411 | 0.1052 | 0.1697 | 0.1204 | 0.421 | 0.417, 0.417, 0.421, 0.428, 0.423 | 0.1045 |
+| 4 | HBK@ML (candidate) | k = 3, DOPT_Q | 0.414 [0.321, 0.500] | 0.404, 0.425, 0.403, 0.427, 0.412 | 0.1054 | 0.1699 | 0.1208 | 0.419 | 0.402, 0.425, 0.420, 0.428, 0.419 | 0.1050 |
+| ref | RIDGE2 | k = 3 | 0.310 | — | 0.1206 | 0.1844 | 0.1346 | 0.323 | — | 0.1191 |
+
+HBMIX − HBK@ML at k = 3: ΔR² **+0.0015** [−0.007, +0.006] (BP; 2/5 seeds) / +0.0023 (BPG; 4/5);
+ΔMAE +0.0003 [−0.0010, +0.0009] (3/5) / +0.0005 (3/5). Ladder (BP): C3 k = 0 −0.114, k = 1 0.095,
+k = 2 0.348, k = 3 0.416; C6 k = 5 0.499, k = 6 0.536 (HBK@ML: −0.118, 0.099, 0.344, 0.414; 0.499,
+0.533). log D of the unread metals (k = 3): 0.983 / 0.142 / 0.215, the same as HBK@ML. Fits: all
+converged. The mixture raises the training likelihood by a median of 524 over the single model.
+Mean mixing weights are 0.59 / 0.41, with reading noise σ² median 0.0037 in the quiet component and
+0.034 in the noisy one. Intervention (all five dev seeds): 427,280 predictions per design, max
+change 0.
+
+**Short report.** The training data are strongly heteroscedastic. About 40 % of training cells
+fall in a component with ~10× the white-residual variance σ² and ~20× τ². σ² is a model residual,
+not a measured reading noise: it includes structure the kernel does not resolve, and the single
+model's σ² on the same cells is 0.006 with the exp kernel and 0.017 with se. Modelling the regimes
+gives the held-out prediction **nothing measurable** (+0.002 R², 2/5 seeds on BP). The reads do
+identify the regime (corrected after the review): for held-out C3 cells the k = 3 component
+posterior has AUC 0.86 against the full-curve label, and the read call agrees with the full-curve
+call in 81 % of cells. Even in the cells correctly identified as noisy, the mixture's error equals
+HBK@ML's (MSE 0.0564 against 0.0566): regime-specific shrinkage does not lower the error. Those
+noisy cells are 37.5 % of the held-out C3 cells but carry 79 % of HBK@ML's squared error (MSE 0.056
+against 0.010). HBK@ML still explains about 36 % of their adjacent variance. Per pair type the
+mixture helps Tm/Yb (0.01 → 0.06) and Yb/Lu (−0.14 → −0.09); elsewhere it changes R² by at most
+±0.02 (largest Eu/Gd +0.017, Pr/Nd −0.010). **Not advanced** (fails ≥ 4/5 seeds on BP). The
+candidate stays HBK@ML. On the noise ceiling: taken as pure noise, the noisy component's σ² would
+be about half of the adjacent variance in those cells. But it is not identified as reading noise;
+replicate whole-curve measurements would measure the real floor (untested).
+
+## Attempt 6 — metal-specific effects in the prior (`HBKM`)
+
+*Contract written 2026-10-19, before attempt 6 ran and while attempt 5 was still running; attempt
+5's result (above) was inserted after both runs finished.*
+
+**Hypothesis (from attempt 4's errors).** At k = 3, HBK@ML's errors have pair-type offsets around
+the half-shell (dev BP, regression of y on the prediction per pair type; `scripts/g21_diag_a6.py` part 1 → `results/diag/diag_a6.txt`). Mean residuals
+(y − prediction): Eu/Gd +0.087, Gd/Tb −0.102, Ce/Pr +0.050. A constant offset alone would remove
+21 % and 36 % of the Eu/Gd and Gd/Tb squared error (intercept and slope: 21 % and 37 %). This is
+in-sample, on the same dev rows on which attempt 6 is then scored (wording corrected after the
+review; the contract originally quoted the regression intercepts +0.081 / −0.086 / +0.074). The heavy pairs are over-dispersed (slope 0.54 at Tm/Yb, 0.36 at Yb/Lu).
+This is the signature of per-metal level anomalies shared by all extractants (the gadolinium
+break) and of metal-dependent reading noise. A smooth radius prior cannot represent either unless
+the metal is read. Adding to the HBK prior (a) a per-metal mean vector α in the complement of
+span{1, basis} (11 numbers) and (b) optionally a per-metal noise variance (14 numbers), all fitted
+on training curves, should remove the offsets and the over-dispersion. It should beat HBK@ML on
+the same reads.
+
+**Information contract.** As attempts 2 and 4: k + 1 metals are read by gen20's DOPT_Q, and only
+their differences are used. The fold's ML kernel family is taken from attempt 4's rule. α and the
+per-metal noise are shared by all chemotypes, so they transfer to a held-out chemotype. They are
+fitted by chemotype-balanced weighted ML on the **outer training cells' curves** only (exact torch
+gradients), starting from the fold's HBK@ML fit. Variants: `HBKM[mean]` (α), `HBKM[mean+noise]`
+(α and per-metal σ²_m), and `HBKM@BIC`, the variant with the lower training BIC = 2·NLL +
+n_params·ln(n_contrasts) in each fold. The **declared candidate is HBKM@BIC**. Comparators on
+identical rows and reads: HBK@ML (round candidate), HB2+GP, RIDGE2, LINE, G14 zero-shot, FLAT;
+attempt 5's HBMIX is compared offline on identical rows if it is advanced. Advancement: PROTOCOL
+§6 + A1 against HBK@ML.
+
+*Looked at before the run:* only the training fit on one fold (BP 130363 fold 2), no held-out
+score. α_Gd = −0.083, α_Sm +0.06, α_Tm +0.06; σ²_Tm 0.077 and σ²_Er 0.035 are the noisy metals;
+the training likelihood rises by 102 (mean) and 428 (mean + noise).
+
+**Result (k = 3, C3, 229 cells / 1,802 pairs per seed; `results/attempt6/`).**
+
+| # | method | regime | R² logSF BP [95 %] | per-seed R² BP | MAE | RMSE | macro MAE | R² BPG | MAE BPG |
+|---|---|---|---|---|---|---|---|---|---|
+| 6 | HBKM@BIC (declared) | k = 3, DOPT_Q | 0.407 [0.331, 0.500] | 0.395, 0.434, 0.407, 0.399, 0.400 | 0.1095 | 0.1709 | 0.1232 | 0.411 | 0.1094 |
+| 6 | HBKM[mean] | k = 3 | 0.412 [0.340, 0.509] | 0.397, 0.426, 0.417, 0.422, 0.401 | 0.1091 | 0.1701 | 0.1219 | 0.417 | 0.1089 |
+| 6 | HBKM[mean+noise] | k = 3 | 0.408 | — | 0.1091 | 0.1707 | 0.1227 | 0.412 | 0.1091 |
+| 4 | HBK@ML (candidate) | k = 3 | 0.414 [0.321, 0.500] | 0.404, 0.425, 0.403, 0.427, 0.412 | 0.1054 | 0.1699 | 0.1208 | 0.419 | 0.1050 |
+| ref | RIDGE2 | k = 3 | 0.310 [0.221, 0.401] | 0.303, 0.335, 0.294, 0.313, 0.305 | 0.1206 | 0.1844 | 0.1346 | 0.323 | 0.1191 |
+
+HBKM@BIC − RIDGE2: ΔR² +0.097 [+0.062, +0.141]. HBKM@BIC − HBK@ML at k = 3: ΔR² **−0.007** [−0.041, +0.041] (BP; 2/5 seeds) / −0.007 (BPG; 2/5);
+ΔMAE **−0.0041** [−0.0085, +0.0064] (**0/5 seeds**, both designs). BIC chose mean + noise in 23 of
+25 folds. HBKM[mean+noise] stopped at the L-BFGS-B iteration cap (maxiter 500, `success` False in
+`fitted_*.csv`) in 18/25 BP and 19/25 BPG folds, 17 of them BIC choices; HBKM[mean] converged in
+every fold (disclosed after the review). Post-hoc refits of capped folds to convergence moved the
+training NLL by at most 0.17, held-out predictions by at most 0.0033 and MAE by at most 0.0001,
+and did not change the BIC choice; the verdict is unaffected. Ladder (BP): C3 k = 1 0.105, k = 2 0.354, k = 3 0.407; C6 k = 5 0.500, k = 6 0.532.
+HBKM[mean] is best on C6 (k = 5 0.514, k = 6 0.543, against 0.499 / 0.533 for HBK@ML). log D of
+the unread metals (k = 3): 0.983 / 0.146 / 0.217. Intervention (all five dev seeds): 549,360
+predictions per design, max change 0.
+
+**Why it fails — half of the hypothesis holds.** The fitted metal effects (HBKM[mean], 25 BP
+folds; `fitted_BP.csv`; `scripts/g21_diag_a6.py` part 2 → `results/diag/diag_a6.txt`) include a **gadolinium break**: α_Gd = −0.096 ± 0.020, negative in all 25 folds
+(α_Tb is positive and α_Yb negative in all folds as well). The folds share most of their training
+cells, so this stability is not a transfer test. Pooled over held-out chemotypes, MAE falls at
+Eu/Gd (0.150 → 0.124) and Gd/Tb (0.129 → 0.104), but the gain comes from the **non-DGA**
+chemotypes (Eu/Gd 0.173 → 0.129, Gd/Tb 0.154 → 0.105, every seed; sc061 alone gives 31 % / 39 % of
+it). On held-out DGA (sc009, 49 % of C3 rows) it is Eu/Gd 0.124 → 0.119 and Gd/Tb 0.101 → 0.102:
+α_Gd fitted without DGA (−0.10 to −0.14, against −0.06 to −0.12 in the other folds) is larger
+than DGA's own break, and with Gd unread the mean residual flips sign (Eu/Gd +0.084 → −0.040, Gd/Tb
+−0.064 → +0.082). The shift comes from the whole α vector (α_Tb supplies about 30 % of the Gd/Tb
+shift), and these pair types were picked from the same dev rows. The other components do not
+transfer: α_Tm ranges from −0.03 to +0.11 across folds (sd 0.038) and
+α_Lu from −0.09 to +0.01. These estimates come from few, noisy training measurements, and they
+damage the small-variance heavy pairs: MAE at Er/Tm 0.068 → 0.097, Tm/Yb 0.060 → 0.091 (0.103 with
+per-metal noise), Ho/Er 0.068 → 0.079, Sm/Eu 0.112 → 0.126. By chemotype: on the non-DGA
+chemotypes the Gd gain outweighs the heavy-pair losses (HBKM[mean] MAE 0.1113 → 0.1098, better in
+4/5 seeds; HBKM@BIC 3/5). On held-out DGA (one fold per seed, trained on only 73–93 cells) there is
+no Gd gain, and Sm/Eu, Er/Tm and Tm/Yb get worse (0.0993 → 0.1085, worse in 5/5 seeds). Pooled
+MAE is therefore worse in every seed, but each of those 0/5 seeds contains the same DGA fold. The per-metal noise variant makes it worse still,
+although training BIC prefers it in 23 folds: a better training fit does not mean better transfer.
+
+**Short report.** **Refuted as declared** (HBKM@BIC loses to HBK@ML on MAE in 0/5 seeds). The
+diagnosis splits the hypothesis. The Gd break is a real per-metal anomaly that transfers to the
+non-DGA chemotypes, but its size differs by chemotype, and the value learned without DGA
+over-corrects DGA. A free 11-number metal vector also over-fits the poorly measured heavy metals. **Not advanced.** The candidate
+stays HBK@ML. The obvious next test, a Gd-only offset (one parameter) or shrunk metal effects with
+an ML-estimated variance, was **not** run in this round (three ideas per round); it is proposed
+for the next one. It must report DGA and non-DGA separately: one shared Gd offset learned without
+DGA is expected to over-correct DGA cells unless its size is shrunk or varies by chemotype.
+
+---
+
+**Round 2 status (2026-10-19).** Three ideas tested: attempt 4 (smoother residual kernel) **advanced**;
+attempt 5 (heteroscedastic mixture) neutral; attempt 6 (metal effects) refuted as declared. Its
+Gd-break component helps the non-DGA chemotypes and over-corrects DGA. The deferred read-policy idea (DOPT_HB, code in
+`g21/policies.py`, **not run**) is still open. Candidate: **HBK@ML**, k = 3, DOPT_Q reads, dev R²
+0.414 (BP) / 0.419 (BPG), every seed ≥ 0.40 under both designs (seeds re-partition the same
+cells); still below LINE at k = 1. The final check on the withheld
+seeds has **not** been run; amendments A2/A3 still apply (no regime declared; the default is C3,
+k = 3). Resume point: the next idea (Gd-only offset / shrunk metal effects, DOPT_HB) or freeze
+HBK@ML, declare the regime and run the final check once.

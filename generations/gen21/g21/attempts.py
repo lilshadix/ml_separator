@@ -100,6 +100,57 @@ def get(attempt: str, bench) -> Spec:
             logd_arms=("HB2+GP", "HBG@POOL"),
             contrasts=(("HBG@POOL", "RIDGE2"), ("HBG@POOL", "RIDGE2@POOL"), ("HBG@POOL", "HB2+GP"),
                        ("HBG@POOL", "HBG@OWN"), ("HBG@OWN", "HB2+GP"), ("RIDGE2@POOL", "RIDGE2")))
+    if attempt == "4":
+        m = {n: base[n] for n in ("RIDGE2", "LINE", "G14@ZERO", "FLAT")}
+        m.update(M.attempt4_methods(bench))
+
+        def hb2gp(block, cell, obs, k):
+            return block["fitted"]["HBK[exp]"].predict(obs.support)
+        m["HB2+GP"] = hb2gp           # attempt 2's candidate, refitted (identical model and fit)
+        return Spec(
+            hypothesis=("HB2+GP's exponential (random-walk) residual extrapolates no local slope past a read metal; a "
+                        "smoother residual kernel (Matern 3/2, 5/2, squared-exponential), chosen per fold by the training "
+                        "likelihood, predicts the adjacent log SF better than HB2+GP on the same reads."),
+            contract=("As attempt 2: k+1 metals read by gen20's DOPT_Q, only their differences used; all parameters and the "
+                      "kernel choice (HBK@ML: highest training likelihood) from the outer training cells' curves; nothing "
+                      "tuned on held-out cells."),
+            methods=m, fit=M.attempt4_fit,
+            per_pair_arms=("RIDGE2", "HB2+GP", "HBK[m32]", "HBK[m52]", "HBK[se]", "HBK@ML"),
+            logd_arms=("HB2+GP", "HBK@ML"),
+            contrasts=(("HBK@ML", "HB2+GP"), ("HBK@ML", "RIDGE2"), ("HBK[m32]", "HB2+GP"), ("HBK[m52]", "HB2+GP"),
+                       ("HBK[se]", "HB2+GP")))
+    if attempt == "5":
+        m = {n: base[n] for n in ("RIDGE2", "LINE", "G14@ZERO", "FLAT")}
+        m.update(M.attempt5_methods(bench))
+        return Spec(
+            hypothesis=("Cells come in different variance regimes; a two-component mixture of HBK models fitted by ML on "
+                        "the training cells, with the component chosen by the new cell's reads, predicts the adjacent log SF "
+                        "better than the single HBK@ML on the same reads."),
+            contract=("As attempts 2/4: k+1 metals read by gen20's DOPT_Q, only their differences used; mixture of two HBK "
+                      "components (the fold's ML kernel family) fitted by weighted ML on the outer training cells; "
+                      "prediction = component posterior from the reads x component conditional means; nothing tuned on "
+                      "held-out cells."),
+            methods=m, fit=M.attempt5_fit,
+            per_pair_arms=("RIDGE2", "HB2+GP", "HBK@ML", "HBMIX"),
+            logd_arms=("HBK@ML", "HBMIX"),
+            contrasts=(("HBMIX", "HBK@ML"), ("HBMIX", "RIDGE2"), ("HBMIX", "HB2+GP"), ("HBK@ML", "HB2+GP")))
+    if attempt == "6":
+        m = {n: base[n] for n in ("RIDGE2", "LINE", "G14@ZERO", "FLAT")}
+        m.update(M.attempt6_methods(bench))
+        return Spec(
+            hypothesis=("HBK@ML's k=3 errors carry pair-type offsets at the half-shell (Eu/Gd +0.08, Gd/Tb -0.09, Ce/Pr "
+                        "+0.07) and over-dispersion at the heavy end: per-metal level anomalies (the gadolinium break) and "
+                        "metal-dependent noise shared by all extractants. A per-metal mean (and noise) in the prior, fitted on "
+                        "training curves, removes them and beats HBK@ML on the same reads."),
+            contract=("As attempts 2/4: k+1 metals read by gen20's DOPT_Q, only their differences used; per-metal mean alpha "
+                      "(complement of span{1, basis}) and optional per-metal noise, shared by all chemotypes, fitted by "
+                      "weighted ML on the outer training cells' curves with the fold's ML kernel; HBKM@BIC (declared "
+                      "candidate) picks the variant with the lower training BIC; nothing tuned on held-out cells."),
+            methods=m, fit=M.attempt6_fit,
+            per_pair_arms=("RIDGE2", "HBK@ML", "HBKM[mean]", "HBKM[mean+noise]", "HBKM@BIC"),
+            logd_arms=("HBK@ML", "HBKM@BIC"),
+            contrasts=(("HBKM@BIC", "HBK@ML"), ("HBKM@BIC", "RIDGE2"), ("HBKM[mean]", "HBK@ML"),
+                       ("HBKM[mean+noise]", "HBK@ML"), ("HBKM@BIC", "HB2+GP")))
     raise KeyError(attempt)
 
 

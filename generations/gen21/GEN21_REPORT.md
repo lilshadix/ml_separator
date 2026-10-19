@@ -1,5 +1,8 @@
 # gen21 — round 1 report: three ideas for adjacent-lanthanide log SF
 
+> **Round 2 (2026-10-19) has superseded this report's candidate**: see `GEN21_ROUND2_REPORT.md`
+> (new candidate HBK@ML, dev R² 0.414 BP / 0.419 BPG). This file is kept as written for round 1.
+
 *2026-10-18. The user limited this round to three ideas. Every number comes from a file under
 `results/` (paths given per table) computed from the row-level predictions in `predictions/`. All
 results are **development (dev)** results. The final check on the withheld seeds has **not** been

@@ -101,7 +101,8 @@ def main() -> int:
     bench = D.load_bench()
     spec = AT.get(a.attempt, bench)
     out = paths.RESULTS / f"attempt{a.attempt}"
-    if a.designs != "BP,BPG":
+    single = a.designs in ("BP", "BPG")             # per-design runs (in parallel) share the attempt folder
+    if a.designs != "BP,BPG" and not single:
         out = out / ("designs_" + a.designs.replace(",", "_"))
     out.mkdir(parents=True, exist_ok=True)
     paths.PREDICTIONS.mkdir(parents=True, exist_ok=True)
@@ -171,7 +172,8 @@ def main() -> int:
     if not all(x["passed"] for x in summary["intervention"]):
         raise SystemExit("INTERVENTION TEST FAILED")
     summary["seconds"] = time.time() - t0
-    (out / "summary.json").write_text(json.dumps(summary, indent=1, default=str), encoding="utf-8")
+    (out / (f"summary_{a.designs}.json" if single else "summary.json")).write_text(json.dumps(summary, indent=1, default=str),
+                                                                                  encoding="utf-8")
     log(f"done in {summary['seconds']:.0f}s -> {out}")
     return 0
 
