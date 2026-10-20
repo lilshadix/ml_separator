@@ -51,6 +51,9 @@ rows (`results/leakage/runner_smoke.json`); it then hashes every repository modu
 later code edit, data change or package-version change makes the runner refuse; then re-run the repro, the
 tests and the freeze, and record it.
 
+Line endings: the sealed digests are byte digests of the Windows working copy (mixed CRLF / LF). In another
+checkout, verify with `manifests/freeze_lf_digests.json` (CRLF converted to LF before hashing).
+
 ## The final check (RUN ONCE on 2026-10-19; it cannot be repeated)
 
 Re-apply the frozen decision rule to the stored final outputs (read-only):
