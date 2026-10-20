@@ -1,0 +1,238 @@
+{
+ "frozen_on": "2026-10-19",
+ "config_id": "R02",
+ "candidate_column": "COR_G",
+ "reason": "PROTOCOL section 7 applied as written (after the review): primary regime DOPT_Q; R14 and R08 fail section 8.6; simplicity clause among R22/R19/R02/R07; R02 passes section 8.6 (CTRL02W)",
+ "data_version": "V1",
+ "cohort": "C3 (metal-model k_max >= 3, non-empty strict-adjacent query)",
+ "query_rule": "every strict-adjacent pair (|dZ| = 1) of the cell; A lighter; no pair with both ends read",
+ "budget_k": 3,
+ "policy": "DOPT_Q",
+ "fit_parts": [
+  "hbk",
+  "cor:G"
+ ],
+ "method_chain": {
+  "reads": "DOPT_Q: gen20's label-free D-optimal sequence from the outer-training covariance (the fixed reference policy)",
+  "base_predictor": "PWL_R: piecewise-linear interpolation of read log D along -radius (Shannon CN8), constant beyond the extreme reads",
+  "correction": "ridge on 6 geometry features of the PWL_R residual (segment curvature, edge-slope extrapolation), fitted on masked outer-training cells (DOPT_Q nested / UNIFORM / 4 RANDOM masks, cell weight split over its masks); lambda from (0.003, 0.03, 0.3, 3, 30) x trace scale by inner task loss",
+  "no_chemistry_no_ids": true,
+  "data_version": "V1 (no V2 quarantines)"
+ },
+ "comparators": [
+  "PWL_R",
+  "PWL_Z",
+  "HBK@ML",
+  "RIDGE2"
+ ],
+ "secondary_configs": [
+  "R14",
+  "R23"
+ ],
+ "secondary_detail": {
+  "R14": {
+   "policy": "DOPT_Q",
+   "columns": [
+    "COR[Dnc]"
+   ],
+   "fit_parts": [
+    "hbk",
+    "cor:Dnc"
+   ]
+  },
+  "R23": {
+   "policy": "POL_ERR",
+   "columns": [
+    "COR[Dnc]"
+   ],
+   "fit_parts": [
+    "hbk",
+    "pol_err",
+    "cor:Dnc"
+   ]
+  }
+ },
+ "decision_rule": {
+  "primary_target": "reached only if the seed-mean pooled R2 of the candidate column is >= 0.50 (unrounded) under BP AND BPG on the final seeds, its MAE is lower than PWL_R and PWL_Z on the same reads in both designs (where the candidate is not itself PWL_R), and every intervention passes",
+  "gain_over_interpolation": "for a learned candidate: confirmed only if candidate - PWL_R (same reads) has dR2 > 0 and dMAE > 0 with the chemotype-blocked bootstrap 95 % lower bound > 0 in BP AND BPG",
+  "secondary": "each secondary configuration's own contrasts against PWL_R / PWL_Z / HBK@ML on its own reads are reported with the same intervals and the same thresholds, labelled descriptive: they were not selected by the rule and cannot become the round's result after the run",
+  "reporting": "every seed, BP and BPG, MAE / RMSE, DGA / non-DGA, one-end-read / both-hidden, per pair type; no re-tuning, no second run, no change of rule after the run; a miss is reported as a miss"
+ },
+ "dev_seeds": [
+  104729,
+  130363,
+  155921,
+  196613,
+  262147
+ ],
+ "environment": {
+  "python": "3.14.5",
+  "numpy": "2.5.3",
+  "pandas": "3.0.5",
+  "scipy": "1.18.1",
+  "sklearn": "1.9.0"
+ },
+ "runner_smoke": "results/leakage/runner_smoke.json (compute() on dev seed 104729 fold 0, both designs: bit-identical)",
+ "final_seeds_commitment": "sha256 of the withheld final-seed file (bytes): 30ec7c0da81135ef5747f3b7d13f9f831bbc89cc2d9ed660d7402955e6e4cdb5\nfile kept outside the repository; seeds revealed only after the single final run.",
+ "inputs": {
+  "cohort_manifest_sha256": "3f11ac4ccb7c9f6b1fa768f4406e1f249881cfd76689ba49a9115efc08bb7fd6",
+  "logD_matrix_sha256": "f0be7fb3f87129a17c0dacbbb9bcc510a63a1c981e62a4866e4b203f51973036",
+  "n_cells": 521,
+  "folds": {
+   "BP": {
+    "seeds": [
+     104729,
+     130363,
+     155921,
+     196613,
+     262147
+    ],
+    "n_rows": 12073,
+    "sha256": "56e6fded585f76e650b3b259f136d80fe97a98500e515d8e31c14c095b93c0b6"
+   },
+   "BPG": {
+    "seeds": [
+     104729,
+     130363,
+     155921,
+     196613,
+     262147
+    ],
+    "n_rows": 12031,
+    "sha256": "13632a17ff5e51864f49415c2ed6f8b48f7a45360c83d89caa2732fc150496ec"
+   }
+  },
+  "cache_content": {
+   "BP_104729_0.pkl": "da065a42ed0e9a358c1f2fc30f53c1307d46b1bf9f8875a71092855530d86d47",
+   "BP_104729_1.pkl": "9cafe76826162e3dab039d5ee44f3ddcead848dece576b55780afe4b8afe218b",
+   "BP_104729_2.pkl": "9f95bd98948907bd823594dde8610c954131ae021e2472c2bf5bbe5761fcfbe2",
+   "BP_104729_3.pkl": "126a97d07f86345e190200240aac42a9bda81aea65ed917da412db2b7cc94a90",
+   "BP_104729_4.pkl": "a5b6077abfd28cd6d2ed414673be9e19bb8e2b5f98cc3c3454b8083818373e03",
+   "BP_130363_0.pkl": "1d912c183dfdc0f6175c3ec0df158465a043d5a487cafef47cd5a6ecfb346868",
+   "BP_130363_1.pkl": "634d3f2980f03ccd14da2cbe991beb5956ac71ccdae2050b938950bf91865f7b",
+   "BP_130363_2.pkl": "afda1ce81df9b345f90c0e00f79797474e503bd3f66d3281aa5c4673e86d0046",
+   "BP_130363_3.pkl": "36643cd35aa6c7ca9530749a49eb7b9f913aac6bf3118ce254a07e0284a51b9c",
+   "BP_130363_4.pkl": "e47a52774ba800fe4668e35c5f76599f0c040166f5eb966f61bf8e17882149c7",
+   "BP_155921_0.pkl": "76362c7b2184bbf97c6f8cbafe39cf780f6c4323c50b4f9c3bb13df13eb54b10",
+   "BP_155921_1.pkl": "1836f11515048f0ccb7cf3a5424076cad24259c4782ef3daec0483efffc0a296",
+   "BP_155921_2.pkl": "e946405a09c24f422939689aa5645fa01f37c3cc8f1eeddf5752eb8ee51301a1",
+   "BP_155921_3.pkl": "611d72b3cc512f1b73c635500c02c6142fec5d0b0f905f3fafdf44c1f74a2b51",
+   "BP_155921_4.pkl": "92105b9983fc389f8c6c659d1a21125bf062db177e058234978cfe4629c78f89",
+   "BP_196613_0.pkl": "8693838c3dfac385fb9620430f11cd55e4b717a64ebc85ef88303ec36b61f428",
+   "BP_196613_1.pkl": "5d0351659ca6622229ebfeb6975e2f7acca3bf000ad70f9bf6918bc88f4ea630",
+   "BP_196613_2.pkl": "8790e3d802eb90a0a60aebf490ad8e600e3341b6babfeb16df33090ff06705fa",
+   "BP_196613_3.pkl": "3c53e5cf1eb9402a81eefce4370fe2f83b66892956bfda181d365a1d0dc2e566",
+   "BP_196613_4.pkl": "55a300385d5a9bf08daa1c5e5e668dd76ac14a36958f76e8940ed05d2a5e5d86",
+   "BP_262147_0.pkl": "5079fa0f089b00c9c50ef887801d7f4c77144015536e5f14321218abdcceba00",
+   "BP_262147_1.pkl": "0f22b2c662a1a18f62df60062684eee4f525012f6a488af10c9507ead356c897",
+   "BP_262147_2.pkl": "dbd54b8334f5c048f57cd2d9629bf7082d0b7099bb0aa3e37484212765c5fa3e",
+   "BP_262147_3.pkl": "4380a9cf07c7416c3ce32cfedd0d91e7d48d8521d069e99c06364e8741bc317d",
+   "BP_262147_4.pkl": "ad53531a8235324ab4527d8fd7a26fe5e806e9a24d94f6537dc68210236cafb0",
+   "BPG_104729_0.pkl": "1e8bdd846159ae995ae66b2f054b3dd91e12e3616dbb71805f69abdb3e076a9c",
+   "BPG_104729_1.pkl": "2522f4d064ba01b5461242d4fc78a0c38fab8b4931ad357db6d18b68d551cd4e",
+   "BPG_104729_2.pkl": "b66e8ab5f78910768b64b49392e79ce2ecde94e77dedabcfe45405b944aec38e",
+   "BPG_104729_3.pkl": "74c021a039fe9ee546946302e416b96a1bbe8cf22d627ee649bd044f950b8fb8",
+   "BPG_104729_4.pkl": "2de7f8794122e37480ea93839722e99c89332933e552b848f093de21ba5bdae3",
+   "BPG_130363_0.pkl": "0c5f65fd5763dd727e9ec8ab1763bbbc06cb5d6f35d21ae8c5287c0e19402a12",
+   "BPG_130363_1.pkl": "ce3c05850c3eb478e1ae4375430793d0bfb65d66be9442d1888ffaed78d7abe5",
+   "BPG_130363_2.pkl": "b0872fb711d90a1e268268e8c103ff1e92147ef0c97a02067c094f87e327c90a",
+   "BPG_130363_3.pkl": "a273eea078a94e9b9a546175995642667c2896e6df0d62c8363e6a5a0b83b702",
+   "BPG_130363_4.pkl": "b694b1a214bbc8bc4cb544c5524ae6e283a9c0db4d16b1153e1c202533d90dc2",
+   "BPG_155921_0.pkl": "ddfef468463dd145453fc47549090594b21523b181d044ea9923758a34b4ced9",
+   "BPG_155921_1.pkl": "2c6b8b700a46c2071311a57bb949add740f04aeb8967ecba8277c79359f66ba9",
+   "BPG_155921_2.pkl": "ed0088273495b44f3845f657d5b8459adc7d518e17ff19bc8939023ff51e85ea",
+   "BPG_155921_3.pkl": "2e9f26c26318c3f5e732cc0f2fb99626b26d8bf4e0ac61ba4741ad9600ec89e3",
+   "BPG_155921_4.pkl": "e6181014e25aeca97c0e08a28cca151e2ba6880a2cac829f928e6620fddf0be1",
+   "BPG_196613_0.pkl": "62841eeecc165ed4e1640a6ed2ae2851ce4973c11162d11a2cabe27b2fb31690",
+   "BPG_196613_1.pkl": "6ace0423e5d842a022b78a74855da1ab023197b4771da06735a1c0d7b3ece634",
+   "BPG_196613_2.pkl": "68caab41f95f540dc29ce45ccc6f16c5760f35c0e839932efb7aa265127d1fd1",
+   "BPG_196613_3.pkl": "3fc2784cdec04b99122379dfea9f1aac6ba6b423736e14284a150e32cca61931",
+   "BPG_196613_4.pkl": "f836c3dda8178a4d8fa6142e7e36563f2ede60bf2f5da7e8d4265a85f487eba9",
+   "BPG_262147_0.pkl": "982eaf7943f801133321ac6921f79e6c63116b322f749fd724da45fc1a66a160",
+   "BPG_262147_1.pkl": "f6965a2ca8feab8e98674bc9284ee88fc224eb9532bb3011cf679a9fee512a0f",
+   "BPG_262147_2.pkl": "7c2b2890869a9bd7b84aaed60ceb26311c5c479ffb5c4c6fa5ae2d8de9fa60be",
+   "BPG_262147_3.pkl": "a2b1d23ed3707a7ae1faa0c09f7e6b37dfca698e7637eb8caec630a238b533d7",
+   "BPG_262147_4.pkl": "6c1470d6ed5d949f191882b2857cd240c7bc842f300f05ef47fc63e22f475073"
+  }
+ },
+ "code_sha256": {
+  "generations/gen13_separation/gen13sep/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "generations/gen13_separation/gen13sep/amplitude_bench.py": "14014fbb7521a1dbceb41e1dd613cf1757d96afe34ff4b5714604703e006bdbf",
+  "generations/gen13_separation/gen13sep/basis.py": "394ec43de79a798147caca8b656cce660d8b109ae6a84e0305e147a7bdebc97b",
+  "generations/gen13_separation/gen13sep/cohort.py": "3a859430fbdc951a8b24511d17f02ab5a98ded35a13f269fb5e2d8e6038f22ba",
+  "generations/gen13_separation/gen13sep/features.py": "7ea0f47a5945871ea93336ecc5f03c2089bccd689fbf05bde1c1fe958bdeddd2",
+  "generations/gen13_separation/gen13sep/inference.py": "ead39596e58b2b927f1a4d5f54e5b16c05c3e66a1ea68d9069de41b4372bb463",
+  "generations/gen13_separation/gen13sep/metals.py": "49225eb01e471f65813bee4bcd5f57946a1f3f528c1576ea0cffcfdf80c0fafc",
+  "generations/gen13_separation/gen13sep/metrics.py": "e8b4f97d9d12a7565cc9f708e43c3708558f63c22fba036c4ff2265f417e711a",
+  "generations/gen13_separation/gen13sep/models.py": "cd2e2641da3130e55b06e4a1d1dfa49f69796df918cfedefb84f10b6fc4dfb7c",
+  "generations/gen13_separation/gen13sep/paths.py": "ddd448dabe374c0ebfcdd39f67b8476415b65097c41a32864f98ad8387d3853b",
+  "generations/gen13_separation/gen13sep/splits.py": "9fb5962adfd0104943b807baf91fb54ec1630eaad47f7d2193ceaa34d0bfff85",
+  "generations/gen14_direction/gen14/__init__.py": "b05d7a5ad982a21c623ffff8206e2da185908cb4fc929fb8da2d6c4e876e221a",
+  "generations/gen14_direction/gen14/dirbench.py": "6c50decf144e5d9b66f4740d958776d0c8a9f732e44e36886517a9a73cde5dcf",
+  "generations/gen14_direction/gen14/models.py": "8b9967729357fa717003e99871ed88979efe80c639558b14833b6ef1b0bbde01",
+  "generations/gen15_curve/gen15/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "generations/gen15_curve/gen15/arms.py": "60ef3164026f0b7966297c075c801c3e9b57e78b8e10352ef30d80ff2b9646d6",
+  "generations/gen15_curve/gen15/fewshot.py": "1a24d4130127028844acc5e79f00a57a3ee11dc0b191450a0d641a7c1b841f03",
+  "generations/gen15_curve/gen15/valuebench.py": "d05c205c73bfe071dcf4d98ad7e68fe472d0a0e53256cc10aaa936c0e694d34c",
+  "generations/gen20_kshot/gen20k/__init__.py": "d1c9d5e958e59ec019764f7bfba8ade1925ace5a7223bba889fbe523d9e59c43",
+  "generations/gen20_kshot/gen20k/adapters.py": "55abf4da40ad3af31946b6ed1ae984fe65bfba4da1d745a92894d1fe1e16a722",
+  "generations/gen20_kshot/gen20k/arms.py": "131d4277ac891f6cf73db9b4424a84f10200144bf59a2b8f4f6a8c65f9721082",
+  "generations/gen20_kshot/gen20k/bootstrap.py": "d76939894e53252b673c20086b7f9ada1c4015caab79b5eaa90cb53b00b39e5e",
+  "generations/gen20_kshot/gen20k/cov.py": "797d601885b98c9662a513f6b8dc16d8140d640e5c7b180872458288c0d9aee7",
+  "generations/gen20_kshot/gen20k/data.py": "772bbf22b9ac499545d6ef5d7da5a1d4fc8bda851e4856bbd603be6ab86322dc",
+  "generations/gen20_kshot/gen20k/design.py": "4b6ba6e944d38876db7d7da33eb301aa9a36ce8530ccf3d1e0ca7d00a42b5944",
+  "generations/gen20_kshot/gen20k/inference.py": "bdb02d3c83c053118107acff0ed691a38b7a82b4c9b90303ba9687bfb357e5b5",
+  "generations/gen20_kshot/gen20k/metrics.py": "81c88e2af05d5457e391d326e6f3be83684d083e1bf89f5d4093ab3ee535d5f0",
+  "generations/gen20_kshot/gen20k/nnc.py": "03474cec3ff7d62e20b2078e3987a1f1142ec41a3416e27c7856e97fecb00508",
+  "generations/gen20_kshot/gen20k/report.py": "09a86e560b5cd7cd755e1bdf31b842c790032fbc499aa15acb554bec50cb254a",
+  "generations/gen20_kshot/gen20k/runner.py": "b93d76e375440466f0e9904816db3ffa62022c08689b2c4282ee8848563c3675",
+  "generations/gen20_kshot/gen20k/splits.py": "ea1fad088746a51a7ed09e711cf319c57efca49748b20915d849b7fa1e1dcfcc",
+  "generations/gen21/g21/__init__.py": "28c7f20351a158f794f53f5848dc6745445af8b2f518a4810b22ec45aa010558",
+  "generations/gen21/g21/cache.py": "96becffc03b1d3e6b282476dae20361dac2f7f781e8d53e5f81e226684526d6d",
+  "generations/gen21/g21/evaluate.py": "d75752734d0e68c511dea1b56d6b1f20ef55e9c98c7fa8feba3bd052c7ed2209",
+  "generations/gen21/g21/methods.py": "61e8301f3442274011f97cb3d2a78e9a6af8fa689b941effb2be08bc8c41857a",
+  "generations/gen21/g21/paths.py": "b324b2982c7a17e98873faf94bf9811a42a2bdf8d16996db601bdd7150e7febf",
+  "generations/gen21/next_research_20261019/r3/__init__.py": "706f53278c9c375b5d6086769949b645d5bff4fb7186909f6b375ee74ada9738",
+  "generations/gen21/next_research_20261019/r3/chem.py": "dbb842aa57bf91dcb643aba027f132872609131f87874d15fa50252b8e745e1a",
+  "generations/gen21/next_research_20261019/r3/configs.py": "3d6dbfe98bacbba593c8917516f3b969ae207d58692dc911191bd63de290af30",
+  "generations/gen21/next_research_20261019/r3/corrector.py": "543d95e2278e38bcac22dcde29a20a5b0e0cff8416ad7a915181ff091f99263a",
+  "generations/gen21/next_research_20261019/r3/datav2.py": "38b80dedeac980e1123dddb515be036b9397733e79f3c6db12fb55370528e88b",
+  "generations/gen21/next_research_20261019/r3/harness.py": "be07c66d24f68b1940a7b3249c07e228f9254d4b8beb9983583a3f4d84b2ab87",
+  "generations/gen21/next_research_20261019/r3/inner_preds.py": "280eae703560e9ac3177bc4a7931660e8cc2dc4490915758940878ad45481770",
+  "generations/gen21/next_research_20261019/r3/interp.py": "c60aa2c8ec8461a43bf6a7772debe6dbc550d05f8b0acff440c31505414ff083",
+  "generations/gen21/next_research_20261019/r3/metrics.py": "041dd0b9b4efc9e2447ae30bbfdd8d4a986fa082c6945ca715e5f5920bce04cf",
+  "generations/gen21/next_research_20261019/r3/paths.py": "245975b1ebc8742f0f4e4164193bd6d4f98b4203d6ee2fe578c3f215a9c41eea",
+  "generations/gen21/next_research_20261019/r3/policy.py": "c2b46ebca8e8c742983a2852d90c11911115a0073c467fbbf6b992fe8213d5c6",
+  "generations/gen21/next_research_20261019/r3/registry.py": "baec2a35e92085cda329157801e167db6dc4c48f2990aa685c15ce6055a1c9bb",
+  "generations/gen21/next_research_20261019/scripts/r3_cache_poison.py": "2ef9d5840bce9a8e8bee4f0e0d10341462590ced442c270a2c9999dfb793d4fd",
+  "generations/gen21/next_research_20261019/scripts/r3_calibration.py": "997ed35259e1be29c9454ca6a4cb8e9e06b4ae7f7ca2724f6d22edc1bb9a09c3",
+  "generations/gen21/next_research_20261019/scripts/r3_cross2x2.py": "414c2100daaed3d924662a32f1a638f4c74028d6e2e0628829bf80d65db5040a",
+  "generations/gen21/next_research_20261019/scripts/r3_diagnostics.py": "abeaf709ec580577189c7efc128c460799b27e021fa5b9f8f304a6711c237759",
+  "generations/gen21/next_research_20261019/scripts/r3_final_runner.py": "7822a0079364eeaa45bbc23cc77f0d1b6513560fe1ba655089445e7f0e3bdeeb",
+  "generations/gen21/next_research_20261019/scripts/r3_freeze.py": "fffa379f68ac18623dbc25c85714a75b83d54d932558a231bd89b5984a3624de",
+  "generations/gen21/next_research_20261019/scripts/r3_intervention.py": "3ecb11aa0f03c2b70a4462e4e4a7c0848b3125783bd25a99b86c92b729ea7eff",
+  "generations/gen21/next_research_20261019/scripts/r3_ladders.py": "1ac566eb74c6c0b172e194080aeecc90b4ddc11a3a517a2d4a0112d02655a2e7",
+  "generations/gen21/next_research_20261019/scripts/r3_manifest.py": "135606f084537ef62edc85af1cb51ce6b6f0cd6661f41a52f9dd1f56f8d0ef2a",
+  "generations/gen21/next_research_20261019/scripts/r3_poison_chain.py": "003841448e5590bee8c1425088da1c53ccd35f0440775ebed8ed7ec825202900",
+  "generations/gen21/next_research_20261019/scripts/r3_policy_cross.py": "24df3553c1d4bfbb4b13f421f47aa858c7cdc38af98ea891cf9597d98d68c112",
+  "generations/gen21/next_research_20261019/scripts/r3_queue.py": "c043f802f50ca8ec413646ff754a2498aa48dfa2b2ef5b81658a2857eab1eb4d",
+  "generations/gen21/next_research_20261019/scripts/r3_repro.py": "f5ddc8a9a5154f471aee9db9e6f328c0b6a50c4ac5fcb5f7ec32a56fb54ce733",
+  "generations/gen21/next_research_20261019/scripts/r3_run.py": "8e04e93affa797109d07a80d1cb0775d36ddcb1c87b98e30c05cbe517ec0aa34",
+  "generations/gen21/next_research_20261019/scripts/r3_selection_optimism.py": "44331ac6aeac194a1c2a564b47fa0a95ef05ca945f3539c89049ee9dfcc0702d",
+  "generations/gen21/next_research_20261019/scripts/r3_table.py": "3ca374535583545a417dbebf92a0eb9697ff8d8c88b6566616815e953a67ee9a",
+  "generations/gen21/next_research_20261019/tests/test_r3.py": "90d3d401b8f9327a44fba1c0d04243a991dbd46b303858692c38faa94f773d20",
+  "src/lanthanide_separation/__init__.py": "72010bcb4e16956c685fd4ce7de00710a67fa13100b8694699c157b34292a8e6",
+  "src/lanthanide_separation/ablation.py": "21ae0f9881e42da8c08ae4ee5f515f1d365e5d697d7d8edcb462ec9ea9de17eb",
+  "src/lanthanide_separation/electronic.py": "1bd6a4c2728b8082bfa93f05872bda72b3b514c0ce9708a0350595d58c45e7eb",
+  "src/lanthanide_separation/evaluation.py": "8d79e259a93c6a3c3d0ac908de08cf53eba522ed9e2ad891cf981d0c15555163",
+  "src/lanthanide_separation/feature_registry.py": "0dded003ef320b06611386b69c1369431c1b62ed66253f0fcb164fe4e97243cc",
+  "src/lanthanide_separation/gen6/__init__.py": "ef4625437e9bb4e8b172a72dc0547eef305c2a2c753810680c5e2c80e34e3369",
+  "src/lanthanide_separation/gen6/cohorts.py": "239ec151bb36f727dab4abea4f85ac0c1232a171b8964bdc0630646496119de2",
+  "src/lanthanide_separation/gen8/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "src/lanthanide_separation/gen8/inference.py": "fecef1e17a5b33813e596a2e52cb1fe7f3f8f9a95120f737e7c20ff50c8d84cc",
+  "src/lanthanide_separation/geometry_descriptors.py": "142d71d2f021bd9d4bdd8f2eae22ff505f8919c5776c331143506937b809b13f",
+  "src/lanthanide_separation/levels.py": "0b54bcfc5c08bd9855177eb8d14bda7b440054560e307bd6723ba0c2603e152a",
+  "src/lanthanide_separation/pair_response.py": "f865c775d326053283b7e53a77908d575904b1c8e5492b7578956aee392049e6",
+  "src/lanthanide_separation/pairs.py": "0c7767920dd12e1dc902615fab208e30b6891538b8c85d1779e0f34f9af74664"
+ }
+}
