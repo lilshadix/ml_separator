@@ -1,0 +1,73 @@
+seed 104729 done 3s
+seed 130363 done 7s
+seed 155921 done 10s
+seed 196613 done 13s
+seed 262147 done 16s
+max |B1 - B1_par|: 6.661338147750939e-16
+rows matched to lab_rows2: 3935 of 3935 max |MX_LM10 - lab_rows2|: 0.0
+
+--- POPX (BPG): cells 92, pubs 16, rows/seed 787 ---
+    arm     R2  rel_vs_B1
+     B1 0.4437     0.0000
+MX_LM10 0.4936     0.0896
+  E_PCM 0.4286    -0.0272
+ E_PCMC 0.4339    -0.0177
+ E_RPUB 0.4335    -0.0185
+[POPX]
+        contrast     rel      lo      hi  G  up  down   p_sf   top3  jk_min     jk_min_pub
+    MX_LM10 - B1  0.0896  0.0031  0.1762 16  10     4 0.0368 0.9348  0.0595 pub_1bd76c48d9
+ MX_LM10 - E_PCM  0.1138  0.0233  0.2042 16  11     3 0.0082 0.8130  0.0842 pub_1bd76c48d9
+MX_LM10 - E_PCMC  0.1054  0.0211  0.1898 16  11     3 0.0085 0.8449  0.0770 pub_1bd76c48d9
+MX_LM10 - E_RPUB  0.1062  0.0178  0.1946 16  13     3 0.0095 0.8443  0.0760 pub_1bd76c48d9
+      E_PCM - B1 -0.0272 -0.0485 -0.0059 16   3    11 0.9993    NaN -0.0310 pub_a49146c8fd
+     E_PCMC - B1 -0.0177 -0.0313 -0.0041 16   4     9 0.9861    NaN -0.0199 pub_74428aeab2
+   per-publication rel SSE MX_LM10 vs B1: median +0.063, equal-weight mean +0.084, positive 10/16
+   per-publication rel SSE MX_LM10 vs E_PCM: median +0.091, equal-weight mean +0.142, positive 12/16
+   per-publication rel SSE E_PCMC vs B1: median -0.007, equal-weight mean -0.070, positive 5/16
+   per-publication rel SSE E_PCM vs B1: median -0.017, equal-weight mean -0.130, positive 4/16
+
+--- POPX without pub_126bbe7976, pub_1bd76c48d9: cells 71, pubs 14, rows/seed 590 ---
+    arm     R2  rel_vs_B1
+     B1 0.4912     0.0000
+MX_LM10 0.5043     0.0258
+  E_PCM 0.4759    -0.0300
+ E_PCMC 0.4806    -0.0208
+ E_RPUB 0.4798    -0.0224
+[POPX without the two lead publications]
+        contrast    rel      lo     hi  G  up  down   p_sf   top3  jk_min     jk_min_pub
+    MX_LM10 - B1 0.0258 -0.0376 0.0892 14   8     4 0.1472 1.2990  0.0113 pub_dfa96a5118
+ MX_LM10 - E_PCM 0.0542 -0.0302 0.1386 14   9     3 0.0330 0.7665  0.0408 pub_5a68dc5665
+MX_LM10 - E_PCMC 0.0456 -0.0231 0.1143 14   9     3 0.0342 0.8262  0.0316 pub_dfa96a5118
+
+broad class of POPX targets (cells): {'DGA': 59, 'aminocarboxylate': 2, 'malonamide': 8, 'organoP': 1, 'other': 10, 'pyridine-amide': 12}
+   class DGA: cells 59 pubs 7  MX_LM10 +0.112  E_PCM -0.039  E_PCMC -0.027
+   class malonamide: cells 8 pubs 3  MX_LM10 +0.165  E_PCM -0.014  E_PCMC -0.005
+   class other: cells 10 pubs 5  MX_LM10 -0.022  E_PCM -0.004  E_PCMC -0.032
+   class pyridine-amide: cells 12 pubs 4  MX_LM10 +0.000  E_PCM -0.038  E_PCMC +0.001
+
+--- rows with both same-medium and different-medium own-campaign donors: cells 36, pubs 6, rows/seed 311 ---
+       arm     R2  rel_vs_B1
+        B1 0.5504     0.0000
+   MX_LM10 0.5667     0.0363
+MX_LM10_SM 0.5667     0.0364
+MX_LM10_DM 0.5556     0.0117
+     E_PCM 0.5268    -0.0524
+[medium split]
+               contrast    rel      lo     hi  G  up  down   p_sf   top3  jk_min     jk_min_pub
+        MX_LM10_SM - B1 0.0364 -0.2208 0.2936  6   5     1 0.2656 1.4178 -0.0066 pub_dfa96a5118
+        MX_LM10_DM - B1 0.0117 -0.0623 0.0857  6   4     2 0.1562 1.2829  0.0036 pub_4cba27f5f3
+MX_LM10_SM - MX_LM10_DM 0.0250 -0.1765 0.2265  6   2     4 0.3750 1.8518 -0.0167 pub_dfa96a5118
+
+--- rows with no same-medium own-campaign donor: cells 5, pubs 4, rows/seed 55 ---
+    arm     R2  rel_vs_B1
+     B1 0.6778     0.0000
+MX_LM10 0.6944     0.0516
+  E_PCM 0.6573    -0.0636
+
+--- rows with >= 1 same-medium own-campaign donor: cells 87, pubs 16, rows/seed 732 ---
+       arm     R2  rel_vs_B1
+        B1 0.4355     0.0000
+   MX_LM10 0.4865     0.0904
+MX_LM10_SM 0.4865     0.0904
+     E_PCM 0.4205    -0.0265
+done 18s

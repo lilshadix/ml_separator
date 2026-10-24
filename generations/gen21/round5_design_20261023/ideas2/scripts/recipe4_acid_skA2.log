@@ -1,0 +1,28 @@
+=== G. RMSE (log10 SF units) per arm; relative SSE vs MEAN
+  all       interior sd(y) 0.161: MEAN 0.114 (1.00); NEAR_TIE 0.143 (1.58); LIN 0.110 (0.93); LINHALF 0.109 (0.92); LINCLIP 0.110 (0.93); LINHALF_CLIP 0.109 (0.92)
+  all       exterior sd(y) 0.169: MEAN 0.137 (1.00); NEAR_TIE 0.137 (1.01); LIN 0.192 (1.97); LINHALF 0.133 (0.94); LINCLIP 0.126 (0.86); LINHALF_CLIP 0.126 (0.84)
+  nosuspect interior sd(y) 0.156: MEAN 0.109 (1.00); NEAR_TIE 0.146 (1.80); LIN 0.108 (0.98); LINHALF 0.106 (0.95); LINCLIP 0.108 (0.98); LINHALF_CLIP 0.106 (0.95)
+  nosuspect exterior sd(y) 0.173: MEAN 0.147 (1.00); NEAR_TIE 0.145 (0.97); LIN 0.191 (1.69); LINHALF 0.140 (0.90); LINCLIP 0.135 (0.83); LINHALF_CLIP 0.136 (0.85)
+
+=== H. same 30 interior cells (de-duplicated population), copy link in vs out
+  all       cells 30 rows 231: MEAN 0.512, LINHALF_CLIP 0.535 (d +0.024), LIN 0.523
+  nosuspect cells 30 rows 231: MEAN 0.512, LINHALF_CLIP 0.535 (d +0.024), LIN 0.523
+  cells moved interior->exterior when the copy link is dropped: ['44012938119033a5', 'e4ee526bda3920c2']
+
+=== K. exterior distance outside the sibling range (log10 acid)
+{'count': 25.0, 'mean': 0.307, 'std': 0.254, 'min': 0.085, '25%': 0.146, '50%': 0.222, '75%': 0.301, 'max': 1.176}
+  exterior with dist <= 0.15: cells 7, MEAN 0.414, LIN 0.252, LINHALF 0.463, LINHALF_CLIP 0.473, NEAR 0.136
+  exterior with dist <= 0.3: cells 14, MEAN 0.514, LIN 0.334, LINHALF 0.542, LINHALF_CLIP 0.560, NEAR 0.334
+
+=== I. C5-BTBP: does pub_6a0ef8528c have C3 targets with >= 2 acid-only siblings?
+  C5 rows 148, cells 15, interior cells 9
+  C5 alone interior: MEAN 0.280, LINHALF_CLIP 0.341, LIN 0.319, NEAR 0.356
+  with C5 interior: MEAN 0.408, LINHALF_CLIP 0.457 (d +0.049), LIN 0.445, NEAR 0.295
+  C5 alone exterior: MEAN 0.171, LINHALF_CLIP 0.350, LIN 0.193, NEAR 0.261
+  with C5 exterior: MEAN 0.251, LINHALF_CLIP 0.398 (d +0.147), LIN 0.026, NEAR 0.303
+
+=== J. 3-level design, per publication (re-built as in skA section E)
+  pub_1605e436d7: groups 1, levels [np.int64(7)], span 1.06, rows 48, sd(y) 0.174; RMSE MEAN3 0.209, LINHALF3 0.212, PWL3 0.219, oracle all-level mean 0.152; pooled R2 MEAN3 -0.478, LINHALF3 -0.521, PWL3 -0.617
+  pub_1c1b558856: groups 1, levels [np.int64(5)], span 0.54, rows 12, sd(y) 0.149; RMSE MEAN3 0.037, LINHALF3 0.028, PWL3 0.016, oracle all-level mean 0.033; pooled R2 MEAN3 0.934, LINHALF3 0.962, PWL3 0.987
+  pub_8415538291: groups 1, levels [np.int64(5)], span 0.70, rows 24, sd(y) 0.110; RMSE MEAN3 0.086, LINHALF3 0.074, PWL3 0.048, oracle all-level mean 0.075; pooled R2 MEAN3 0.368, LINHALF3 0.527, PWL3 0.801
+  pub_c8195b4ca7: groups 2, levels [np.int64(5), np.int64(6)], span 1.85, rows 10, sd(y) 0.030; RMSE MEAN3 0.079, LINHALF3 0.076, PWL3 0.064, oracle all-level mean 0.052; pooled R2 MEAN3 -6.874, LINHALF3 -6.277, PWL3 -4.212

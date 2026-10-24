@@ -1,0 +1,123 @@
+=== (a) COPY vs always-heavier on covered |y|>=.1 rows (n=318): wins 33, losses 3, net +0.094
+by pair:
+       win  loss   n
+pair                
+Ce/Pr    6     1  35
+Dy/Ho    0     0  34
+Er/Tm    0     0   3
+Eu/Gd   15     1  46
+Gd/Tb    0     0  57
+Ho/Er    0     0  12
+La/Ce    0     1  28
+Pr/Nd    2     0  18
+Sm/Eu    4     0  49
+Tb/Dy    6     0  36
+by publication:
+                win  loss   n  net
+pub                               
+pub_ca616a18dd    6     0  10    6
+pub_a49146c8fd    8     2  12    6
+pub_1c1b558856    4     0  21    4
+pub_8415538291    4     0  20    4
+pub_f8a621ede4    3     0   7    3
+pub_1605e436d7    4     1  41    3
+pub_0fd6ab4e40    2     0   2    2
+pub_b0b3296ec5    2     0  61    2
+pub_5a68dc5665    0     0  28    0
+pub_4cba27f5f3    0     0   9    0
+pub_37086f6378    0     0   4    0
+pub_19783c039b    0     0  78    0
+pub_0a8da089ad    0     0   5    0
+pub_af0c74798c    0     0   2    0
+pub_cd72e4a7bb    0     0  12    0
+pub_d68ed8c8cf    0     0   6    0
+net wins 30; top-1 pub share 0.20; top-3 share 0.53
+same on ALL covered rows (incl |y|<0.1):
+                win  loss  net
+pub                           
+pub_ca616a18dd    9     1    8
+pub_a49146c8fd    8     2    6
+pub_1c1b558856    5     0    5
+pub_8415538291    4     0    4
+pub_f8a621ede4    3     0    3
+pub_0fd6ab4e40    3     0    3
+pub_b0b3296ec5    2     0    2
+pub_1605e436d7    4     3    1
+pub_cd72e4a7bb    1     0    1
+pub_5a68dc5665    0     0    0
+pub_37086f6378    0     0    0
+pub_19783c039b    0     0    0
+pub_0a8da089ad    0     0    0
+pub_4cba27f5f3    0     0    0
+pub_af0c74798c    0     0    0
+pub_d68ed8c8cf    0     2   -2
+  net 31 of 408 rows; top-3 share 0.61
+  excl ['Eu/Gd']: COPY 0.974 always-heavier 0.915 n 272
+  excl ['Eu/Gd', 'Gd/Tb']: COPY 0.967 always-heavier 0.893 n 215
+
+=== (b) each pool vs always-heavier and D7@2 on that pool's own covered |y|>=.1 rows ===
+  own: n 318 pubs 16 COPY 0.972 always-heavier 0.877 D7@2 0.918 D7@4 0.934
+      all covered rows: n 408 COPY 0.922 always-heavier 0.846
+  xext: n 223 pubs 15 COPY 0.852 always-heavier 0.807 D7@2 0.897 D7@4 0.906
+      all covered rows: n 335 COPY 0.767 always-heavier 0.722
+  xpub: n 257 pubs 13 COPY 0.922 always-heavier 0.934 D7@2 0.938 D7@4 0.946
+      all covered rows: n 357 COPY 0.877 always-heavier 0.888
+  chem: n 423 pubs 24 COPY 0.891 always-heavier 0.879 D7@2 0.896 D7@4 0.915
+      all covered rows: n 611 COPY 0.854 always-heavier 0.835
+  cells with both own & xext, rows covered by both (|y|>=.1): n 30 pubs 4: own 0.900 xext 0.900 always-heavier 0.867
+
+=== (c) family table (pub|extractant), own, all rows with |COPY|>=0.1 ===
+                                           n    acc     ah           cluster
+family                                                                      
+pub_19783c039b|CCCCCCCCN(C)C(=O)COCC(=O)  87  0.977  0.977  g:pub_74428aeab2
+pub_b0b3296ec5|CCCCCCCCN(CCCCCCCC)C(=O)C  75  0.987  0.960  g:pub_74428aeab2
+pub_1605e436d7|CCCCCCCCN(CCCCCCCC)C(=O)C  55  0.855  0.836  g:pub_74428aeab2
+pub_8415538291|CN(C(=O)c1cccc(C(=O)N(C)c  30  0.900  0.767  g:pub_8415538291
+pub_1c1b558856|CCCCCCCCCCN(CCCCCCCCCC)C(  25  1.000  0.800  g:pub_74428aeab2
+pub_4cba27f5f3|CCCCCCCCN(CCCCCCCC)C(=O)C  17  0.882  0.882  g:pub_74428aeab2
+pub_a49146c8fd|CCCCCCn1c(-c2ccccc2)c(-c2  16  0.500  0.125  g:pub_3e0f6bb1b5
+pub_5a68dc5665|CCCCCCCCN(CCCCCCCC)C(=O)C  15  1.000  1.000  g:pub_74428aeab2
+pub_ca616a18dd|CCCCCCCCP(=O)(CCCCCCCC)Cc  15  0.867  0.333  g:pub_ca616a18dd
+pub_d68ed8c8cf|CCCCCCCCCCCCN(CCCCCCCCCCC  13  0.769  0.923  g:pub_74428aeab2
+pub_cd72e4a7bb|CCCCCCCCCCCCN(C)C(=O)C1CC  13  1.000  0.923  g:pub_cd72e4a7bb
+pub_5a68dc5665|CN(C(=O)COCC(=O)N(C)c1ccc  12  1.000  1.000  g:pub_74428aeab2
+pub_f8a621ede4|CCCCCCCCN(C)C(=O)COCC(=O)   8  1.000  0.625  g:pub_74428aeab2
+pub_5a68dc5665|CCCN(CCC)C(=O)COCC(=O)N(C   6  1.000  1.000  g:pub_74428aeab2
+pub_0a8da089ad|CCCCN(CCCC)C(=O)COCC(=O)N   6  0.833  0.833  g:pub_74428aeab2
+pub_0fd6ab4e40|O=C(c1cc(Cl)c2ccc3c(Cl)cc   5  0.800  0.200  g:pub_0fd6ab4e40
+pub_37086f6378|CCCCCCCCN(CCCCCCCC)C(=O)C   5  1.000  1.000  g:pub_74428aeab2
+pub_af0c74798c|CCCCCCCCN(CCCCCCCC)C(=O)C   4  1.000  1.000  g:pub_74428aeab2
+pub_a49146c8fd|CCCCCCCCN(CCCCCCCC)C(=O)c   1  0.000  0.000  g:pub_3e0f6bb1b5
+  families 19; acc<0.90: 8; acc < always-heavier+0.05: 12; families with n>=10: 12, of which acc<0.90: 5
+
+=== (d) metals that must still be read per cell (radiotracer), own cells ===
+       n_metals_in_pairs  n_pairs  pairs_uncovered  metals_need_thr  metals_need_thr_plus_list
+count             115.00   115.00           115.00           115.00                     115.00
+mean                8.79     7.13             3.58             5.03                       5.84
+std                 4.03     3.76             2.35             3.05                       3.23
+min                 3.00     2.00             0.00             0.00                       0.00
+25%                 5.00     3.00             2.00             3.00                       3.00
+50%                 8.00     7.00             4.00             5.00                       5.00
+75%                13.50    11.00             5.00             7.00                       9.00
+max                14.00    12.00            10.00            13.00                      13.00
+  pooled fraction of pair-metals still to read: thr only 0.573; thr + always list 0.665; fraction of pairs uncovered 0.502
+  cells needing ALL their pair-metals read (thr + list): 0.226
+
+=== (e) literature (xpub) per pair on covered |y|>=.1 rows ===
+        n   copy     ah
+pair                   
+Ce/Pr  19  0.737  0.789
+Dy/Ho  33  1.000  1.000
+Eu/Gd  31  0.871  0.871
+Gd/Tb  52  1.000  1.000
+Ho/Er   5  0.800  0.800
+La/Ce  33  0.818  0.818
+Pr/Nd  13  1.000  1.000
+Sm/Eu  39  1.000  1.000
+Tb/Dy  30  0.933  0.933
+Yb/Lu   2  0.000  1.000
+  chemotypes on covered xpub rows: {'sc009': 236, 'sc076': 15, 'sc061': 6}
+
+=== (f) single sibling, covered |y|>=.1: COPY1 0.942 vs always-heavier 0.860; all covered: COPY1 0.872 vs always-heavier 0.802
+  outside dominant cluster [covered |y|>=.1]: links 106 targets 14 pubs 5 COPY1 0.891 always-heavier 0.569
+  outside dominant cluster [all covered]: links 171 targets 15 pubs 5 COPY1 0.779 always-heavier 0.516

@@ -1,0 +1,101 @@
+EXPLORATORY: 229 already-seen C3 cells; no test.
+rows 441 (interior 245 rows / 32 cells; exterior 196 / 25), pubs 8
+
+=== A reproduction (pooled R2, publication bootstrap)
+interior  MEAN     R2 0.496 [0.209,0.777]  d_vs_MEAN +0.000 [+0.000,+0.000]  lopo 0.397..0.673
+interior  LIN      R2 0.533 [0.200,0.799]  d_vs_MEAN +0.037 [-0.056,+0.143]  lopo 0.452..0.723
+interior  LINCLIP  R2 0.533 [0.200,0.799]  d_vs_MEAN +0.037 [-0.056,+0.143]  lopo 0.452..0.723
+interior  LINHALF  R2 0.535 [0.227,0.799]  d_vs_MEAN +0.040 [-0.004,+0.103]  lopo 0.451..0.722
+interior  NEAR     R2 0.205 [-0.427,0.712]  d_vs_MEAN -0.291 [-0.646,+0.033]  lopo 0.062..0.626
+exterior  MEAN     R2 0.342 [0.070,0.535]  d_vs_MEAN +0.000 [+0.000,+0.000]  lopo 0.257..0.412
+exterior  LIN      R2 -0.295 [-1.783,0.375]  d_vs_MEAN -0.637 [-1.910,-0.031]  lopo -0.553..0.170
+exterior  LINCLIP  R2 0.437 [0.063,0.655]  d_vs_MEAN +0.095 [-0.174,+0.332]  lopo 0.338..0.517
+exterior  LINHALF  R2 0.379 [-0.096,0.636]  d_vs_MEAN +0.038 [-0.217,+0.249]  lopo 0.270..0.498
+exterior  NEAR     R2 0.335 [-0.255,0.683]  d_vs_MEAN -0.006 [-0.493,+0.361]  lopo 0.198..0.525
+
+=== B interior competitors (all interior rows have a bracket)
+bracket available on 245 of 245 interior rows
+PAIRMEAN  R2 0.535  d_vs_MEAN +0.040 [-0.055,+0.180]  d_vs_LINHALF +0.000 [-0.053,+0.084]
+BRK       R2 0.515  d_vs_MEAN +0.019 [-0.090,+0.193]  d_vs_LINHALF -0.020 [-0.101,+0.101]
+LINHALF   R2 0.535  d_vs_MEAN +0.040 [-0.004,+0.103]  d_vs_LINHALF +0.000 [+0.000,+0.000]
+LAM0.00   R2 0.496  d_vs_MEAN +0.000 [+0.000,+0.000]  d_vs_LINHALF -0.040 [-0.103,+0.004]
+LAM0.25   R2 0.521  d_vs_MEAN +0.025 [+0.002,+0.059]  d_vs_LINHALF -0.015 [-0.044,+0.008]
+LAM0.50   R2 0.535  d_vs_MEAN +0.040 [-0.004,+0.103]  d_vs_LINHALF +0.000 [+0.000,+0.000]
+LAM0.75   R2 0.539  d_vs_MEAN +0.044 [-0.023,+0.131]  d_vs_LINHALF +0.004 [-0.021,+0.028]
+LAM1.00   R2 0.533  d_vs_MEAN +0.037 [-0.056,+0.143]  d_vs_LINHALF -0.002 [-0.056,+0.043]
+nested-LOPO lambda: chosen {'pub_1605e436d7': 0.75, 'pub_19783c039b': 0.5, 'pub_1c1b558856': 0.75, 'pub_4cba27f5f3': 0.75, 'pub_8415538291': 0.75, 'pub_b0b3296ec5': 0.75, 'pub_c8195b4ca7': 1.0, 'pub_f8a621ede4': 0.75}; R2 0.523 d_vs_MEAN +0.027 [-0.049,+0.101]
+
+=== C per-publication (interior): SSE MEAN, SSE LINHALF, rel. change, SSE PAIRMEAN, SSE NEAR, SST_pub
+   publication  cells  rows chemotype  n_levels_med  sse_MEAN  sse_LINHALF  sse_PAIRMEAN  sse_NEAR  sse_LIN  sst_pub  rel_LINHALF  rel_NEAR  rel_PAIRMEAN
+pub_1605e436d7      5    60     sc009           6.0    1.6996       1.6729        1.7695    3.3241   1.6948   1.7707      -0.0157    0.9558        0.0412
+pub_19783c039b      3    36     sc009           4.0    0.5833       0.4008        0.3085    0.5450   0.2974   0.8793      -0.3129   -0.0658       -0.4711
+pub_b0b3296ec5      6    60     sc009           3.0    0.3012       0.3094        0.3698    0.5318   0.3289   1.5277       0.0272    0.7657        0.2276
+pub_8415538291      3    36     sc077           4.0    0.2526       0.1911        0.0865    0.1814   0.1741   0.3635      -0.2438   -0.2821       -0.6576
+pub_c8195b4ca7     10    20     sc009           5.0    0.2183       0.2383        0.2944    0.2065   0.3095   0.1301       0.0915   -0.0540        0.3485
+pub_4cba27f5f3      1    12     sc009           2.0    0.0876       0.0891        0.0876    0.1782   0.1119   0.1590       0.0174    1.0343        0.0000
+pub_1c1b558856      3    18     sc027           4.0    0.0356       0.0246        0.0094    0.0331   0.0215   0.3979      -0.3086   -0.0719       -0.7362
+pub_f8a621ede4      1     3     sc009           3.0    0.0073       0.0099        0.0081    0.0216   0.0131   0.2965       0.3643    1.9752        0.1120
+total SSE gain LINHALF vs MEAN 0.2495; positive pubs 4/8; top-1 share 0.73; top-2 share 0.98
+  drop pub_1605e436d7: R2 MEAN 0.673 LINHALF 0.722 d +0.049  NEAR-MEAN -0.047
+  drop pub_19783c039b: R2 MEAN 0.478 LINHALF 0.492 d +0.013  NEAR-MEAN -0.376
+  drop pub_b0b3296ec5: R2 MEAN 0.397 LINHALF 0.451 d +0.054  NEAR-MEAN -0.335
+  drop pub_8415538291: R2 MEAN 0.495 LINHALF 0.527 d +0.032  NEAR-MEAN -0.328
+  drop pub_c8195b4ca7: R2 MEAN 0.507 LINHALF 0.552 d +0.045  NEAR-MEAN -0.307
+  drop pub_4cba27f5f3: R2 MEAN 0.497 LINHALF 0.538 d +0.041  NEAR-MEAN -0.284
+  drop pub_1c1b558856: R2 MEAN 0.466 LINHALF 0.506 d +0.040  NEAR-MEAN -0.312
+  drop pub_f8a621ede4: R2 MEAN 0.462 LINHALF 0.505 d +0.043  NEAR-MEAN -0.308
+NEAR excess SSE over MEAN 1.8361; top-1 pub share 0.88 (pub_1605e436d7)
+
+=== D acid-permutation control (sibling acids permuted within each target's sibling set; interior rows fixed)
+observed LINHALF - MEAN +0.0395; permutation null mean -0.0137, 95th pct +0.0236, max +0.0551; P(null >= obs) 0.006
+
+=== E pooled pair-type slope (leave-one-publication-out), applied to MEAN (clamped)
+POOLPAIR       R2 0.544 d_vs_MEAN +0.048 [-0.049,+0.121]
+POOLALL        R2 0.517 d_vs_MEAN +0.022 [-0.004,+0.050]
+POOLPAIR_HALF  R2 0.528 d_vs_MEAN +0.032 [-0.011,+0.071]
+per-pair slope signs across publications (whole bench V2 groups): {'Ce/Pr': '0+/6-  med -0.210', 'Dy/Ho': '3+/4-  med -0.004', 'Er/Tm': '3+/3-  med -0.004', 'Eu/Gd': '3+/5-  med -0.055', 'Gd/Tb': '2+/5-  med -0.063', 'Ho/Er': '1+/6-  med -0.045', 'La/Ce': '1+/5-  med -0.144', 'Pr/Nd': '1+/4-  med -0.044', 'Sm/Eu': '2+/5-  med -0.026', 'Tb/Dy': '2+/4-  med -0.118', 'Tm/Yb': '2+/4-  med -0.017', 'Yb/Lu': '6+/0-  med +0.049'}
+
+=== F power for the prospective kill (unit = campaign; per-publication deltas as the campaign distribution)
+per-pub delta R2 (within-pub SST): mean +0.0303 sd 0.1129 median +0.0049; per-pub rel SSE gain mean +0.0476 sd 0.2320
+ N  metric  P_lb_gt0  P_pass_kill
+ 8 dR2_pub   0.22625      0.22400
+ 8  relSSE   0.19950      0.19950
+12 dR2_pub   0.26525      0.26475
+12  relSSE   0.22300      0.22300
+20 dR2_pub   0.34775      0.34775
+20  relSSE   0.27275      0.27275
+30 dR2_pub   0.46575      0.46575
+30  relSSE   0.33500      0.33500
+50 dR2_pub   0.66125      0.66075
+50  relSSE   0.47625      0.47625
+
+=== G keep-3-spanning-levels recipe on acid-only groups with >= 5 distinct acid levels (whole bench)
+groups with >= 5 levels: 17; scored (group,pair,level) rows 124; groups 7; pubs 5; median levels 5.0
+MEAN3            pooled R2 0.073  within-(group,pair) R2 -1.417  RMSE 0.154  pubs better than MEAN3: 0/5
+LIN3             pooled R2 0.142  within-(group,pair) R2 -1.236  RMSE 0.148  pubs better than MEAN3: 4/5
+LINHALF3         pooled R2 0.146  within-(group,pair) R2 -1.225  RMSE 0.148  pubs better than MEAN3: 4/5
+BRK3             pooled R2 0.168  within-(group,pair) R2 -1.169  RMSE 0.146  pubs better than MEAN3: 4/5
+PAIRMEAN3        pooled R2 0.128  within-(group,pair) R2 -1.274  RMSE 0.150  pubs better than MEAN3: 4/5
+MEAN_LOO_ALL     pooled R2 0.281  within-(group,pair) R2 -0.874  RMSE 0.136  pubs better than MEAN3: 4/5
+LINHALF_LOO_ALL  pooled R2 0.347  within-(group,pair) R2 -0.701  RMSE 0.129  pubs better than MEAN3: 5/5
+per-publication rows: {'pub_1605e436d7': 48, 'pub_19783c039b': 24, 'pub_1c1b558856': 12, 'pub_8415538291': 24, 'pub_c8195b4ca7': 16}
+
+=== H make-up of the interior population
+                          cells  rows  acid_min  acid_max
+publication    chemotype                                 
+pub_1605e436d7 sc009          5    60  0.012589  0.056234
+pub_19783c039b sc009          3    36  2.000000  4.000000
+pub_1c1b558856 sc027          3    18  2.600000  4.600000
+pub_4cba27f5f3 sc009          1    12  1.500000  1.500000
+pub_8415538291 sc077          3    36  2.000000  4.000000
+pub_b0b3296ec5 sc009          6    60  2.000000  3.000000
+pub_c8195b4ca7 sc009         10    20  0.500000  5.000000
+pub_f8a621ede4 sc009          1     3  1.500000  1.500000
+chemotype share of interior rows: {'sc009': 0.78, 'sc077': 0.147, 'sc027': 0.073}
+interior: pooled SST 6.3156; within (pub,extractant,pair) SS 2.1605 (0.34 of SST)
+  MEAN     SSE 3.1856  pooled R2 0.496  SSE/within-SS 1.47  RMSE 0.114
+  LINHALF  SSE 2.9361  pooled R2 0.535  SSE/within-SS 1.36  RMSE 0.109
+  PAIRMEAN SSE 2.9338  pooled R2 0.535  SSE/within-SS 1.36  RMSE 0.109
+  NEAR     SSE 5.0217  pooled R2 0.205  SSE/within-SS 2.32  RMSE 0.143
+  LIN      SSE 2.9511  pooled R2 0.533  SSE/within-SS 1.37  RMSE 0.110
+  pair-type-mean (LOPO, no campaign info) pooled R2 -0.083

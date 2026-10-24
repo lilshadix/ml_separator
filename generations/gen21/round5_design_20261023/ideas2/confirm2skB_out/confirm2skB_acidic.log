@@ -1,0 +1,22 @@
+bench cells 521; with Eu, Gd, Tb 134; in C3 127
+cells with a chord by mechanism x C3:
+c3                      False  True 
+mech                                
+ACIDIC_CATION_EXCHANGE      0      1
+NEUTRAL_SOLVATING           7     81
+SOFT_N_DONOR                0     45
+
+acidic / chelating cells with a chord (any C3 status):
+                pub                        name    c3     c   slope   step
+398  pub_40c355ae86  dihexyl hydrogen phosphate  True -0.37  18.443  0.658
+                   c  n                        name   step
+pub                                                       
+pub_40c355ae86 -0.37  1  dihexyl hydrogen phosphate  0.658
+
+unit level, chord vs Eu->Tb step (log D(Tb) - log D(Eu)):
+  all        units  45 spearman -0.353 (p 0.017); gamma (chord/step) -0.254
+  DGA        units  20 spearman -0.385 (p 0.094); gamma (chord/step) -0.148
+  nonDGA     units  25 spearman -0.731 (p 0.000); gamma (chord/step) -0.339
+  nonDGA C3  units  25 spearman -0.731 (p 0.000); gamma (chord/step) -0.339
+
+LOUO among nonDGA C3 units (n=25), mean squared error of the unit chord: {'pooled': 0.01538, 'HS_split': 0.01058, 'prop_step': 0.02157, 'beta': 0.01666}

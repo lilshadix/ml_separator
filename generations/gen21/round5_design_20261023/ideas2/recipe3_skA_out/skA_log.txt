@@ -1,0 +1,259 @@
+C3 cells 229 bench cells 521
+
+=== 1. REPRODUCTION (own pool, no C5) ===
+own rows 820 cells 115 pubs 17 clusters 6 |y|>=0.1 rows 424
+COPY sign acc |y|>=0.1: 0.9127 pub-boot 95% (0.8370003477857639, 0.9562475532313829)
+ thr 0.05: |y|>=0.1 acc 0.9497 cov 0.892 n 378 | all rows acc 0.8833 cov 0.700 n 574
+ thr 0.1: |y|>=0.1 acc 0.9717 cov 0.750 n 318 | all rows acc 0.9216 cov 0.498 n 408
+ thr 0.2: |y|>=0.1 acc 0.9645 cov 0.399 n 169 | all rows acc 0.9378 cov 0.235 n 193
+recipe_signrule own rows (for comparison):
+ pool  thr     rows  coverage   n  sign_acc  pubs
+ own 0.00      all    1.0000 820    0.7939    17
+ own 0.00 |y|>=0.1    1.0000 424    0.9127    17
+ own 0.05      all    0.7000 574    0.8833    17
+ own 0.05 |y|>=0.1    0.8915 378    0.9497    17
+ own 0.10      all    0.4976 408    0.9216    16
+ own 0.10 |y|>=0.1    0.7500 318    0.9717    16
+ own 0.20      all    0.2354 193    0.9378    16
+ own 0.20 |y|>=0.1    0.3986 169    0.9645    15
+ own 0.30      all    0.0805  66    0.9394    11
+ own 0.30 |y|>=0.1    0.1392  59    0.9492     9
+
+like-for-like other pools (no C5), thr 0.1: acc on |y|>=0.1 rows / on all rows
+  own: overall|y|>=.1 0.913  thr|y|>=.1 0.972 (cov 0.75)  thr all 0.922 (cov 0.50) pubs 17
+  xext: overall|y|>=.1 0.746  thr|y|>=.1 0.852 (cov 0.60)  thr all 0.767 (cov 0.43) pubs 17
+  xpub: overall|y|>=.1 0.876  thr|y|>=.1 0.922 (cov 0.76)  thr all 0.877 (cov 0.60) pubs 13
+  chem: overall|y|>=.1 0.838  thr|y|>=.1 0.891 (cov 0.77)  thr all 0.854 (cov 0.60) pubs 26
+
+=== 2. COMPARATORS on the identical rows selected by |COPY_own| >= 0.1 ===
+                             rows                            arm   n   acc  lo95  hi95  lo_1sided95
+           |y|>=0.1 & |COPY|>=0.1               COPY_own (0 exp) 318 0.972 0.931 0.994        0.939
+           |y|>=0.1 & |COPY|>=0.1                 always-heavier 318 0.877 0.734 0.946        0.765
+           |y|>=0.1 & |COPY|>=0.1        pair-type majority LOPO 318 0.877 0.734 0.946        0.765
+           |y|>=0.1 & |COPY|>=0.1 chemotype x pair majority LOPO 318 0.877 0.734 0.946        0.765
+           |y|>=0.1 & |COPY|>=0.1                      D7 HULL@2 318 0.918 0.849 0.960        0.863
+           |y|>=0.1 & |COPY|>=0.1                  SH_own HULL@2 318 0.965 0.934 0.985        0.940
+           |y|>=0.1 & |COPY|>=0.1                      D7 HULL@3 318 0.931 0.883 0.967        0.892
+           |y|>=0.1 & |COPY|>=0.1                  SH_own HULL@3 318 0.972 0.937 0.991        0.944
+           |y|>=0.1 & |COPY|>=0.1                      D7 HULL@4 318 0.934 0.888 0.970        0.896
+           |y|>=0.1 & |COPY|>=0.1                  SH_own HULL@4 318 0.972 0.937 0.994        0.943
+                all & |COPY|>=0.1               COPY_own (0 exp) 408 0.922 0.844 0.967        0.863
+                all & |COPY|>=0.1                 always-heavier 408 0.846 0.690 0.923        0.729
+                all & |COPY|>=0.1        pair-type majority LOPO 408 0.841 0.679 0.921        0.722
+                all & |COPY|>=0.1 chemotype x pair majority LOPO 408 0.841 0.679 0.921        0.722
+                all & |COPY|>=0.1                      D7 HULL@2 408 0.873 0.784 0.928        0.801
+                all & |COPY|>=0.1                  SH_own HULL@2 408 0.926 0.862 0.968        0.877
+                all & |COPY|>=0.1                      D7 HULL@3 408 0.885 0.824 0.935        0.835
+                all & |COPY|>=0.1                  SH_own HULL@3 408 0.926 0.855 0.969        0.872
+                all & |COPY|>=0.1                      D7 HULL@4 408 0.885 0.827 0.932        0.840
+                all & |COPY|>=0.1                  SH_own HULL@4 408 0.919 0.846 0.966        0.860
+          |y|>=0.1 (all coverage)               COPY_own (0 exp) 424 0.913 0.837 0.956        0.854
+          |y|>=0.1 (all coverage)                 always-heavier 424 0.814 0.684 0.908        0.709
+          |y|>=0.1 (all coverage)        pair-type majority LOPO 424 0.833 0.703 0.915        0.732
+          |y|>=0.1 (all coverage) chemotype x pair majority LOPO 424 0.811 0.678 0.908        0.705
+          |y|>=0.1 (all coverage)                      D7 HULL@2 424 0.858 0.789 0.930        0.798
+          |y|>=0.1 (all coverage)                  SH_own HULL@2 424 0.922 0.875 0.963        0.882
+          |y|>=0.1 (all coverage)                      D7 HULL@3 424 0.882 0.810 0.951        0.820
+          |y|>=0.1 (all coverage)                  SH_own HULL@3 424 0.955 0.921 0.976        0.928
+          |y|>=0.1 (all coverage)                      D7 HULL@4 424 0.889 0.820 0.956        0.829
+          |y|>=0.1 (all coverage)                  SH_own HULL@4 424 0.960 0.929 0.983        0.934
+|y|>=0.1 & |COPY|<0.1 (uncovered)               COPY_own (0 exp) 106 0.736 0.592 0.825        0.615
+|y|>=0.1 & |COPY|<0.1 (uncovered)                 always-heavier 106 0.623 0.511 0.817        0.527
+|y|>=0.1 & |COPY|<0.1 (uncovered)        pair-type majority LOPO 106 0.698 0.586 0.821        0.610
+|y|>=0.1 & |COPY|<0.1 (uncovered) chemotype x pair majority LOPO 106 0.613 0.490 0.815        0.509
+|y|>=0.1 & |COPY|<0.1 (uncovered)                      D7 HULL@2 106 0.679 0.575 0.851        0.585
+|y|>=0.1 & |COPY|<0.1 (uncovered)                  SH_own HULL@2 106 0.792 0.686 0.871        0.707
+|y|>=0.1 & |COPY|<0.1 (uncovered)                      D7 HULL@3 106 0.736 0.634 0.910        0.649
+|y|>=0.1 & |COPY|<0.1 (uncovered)                  SH_own HULL@3 106 0.906 0.844 0.956        0.857
+|y|>=0.1 & |COPY|<0.1 (uncovered)                      D7 HULL@4 106 0.755 0.661 0.924        0.673
+|y|>=0.1 & |COPY|<0.1 (uncovered)                  SH_own HULL@4 106 0.925 0.883 0.984        0.890
+  COPY - always-heavier on covered |y|>=.1 rows: +0.094 [+0.039, +0.208]
+  COPY - D7 HULL@2 on covered |y|>=.1 rows: +0.053 [+0.011, +0.112]
+  COPY - D7 HULL@4 on covered |y|>=.1 rows: +0.038 [+0.000, +0.080]
+  COPY - pair-type majority LOPO on covered |y|>=.1 rows: +0.094 [+0.039, +0.208]
+  share of covered |y|>=.1 rows that are heavy-selective (y<0): 0.877
+
+=== 3. PUBLICATION / CLUSTER DEPENDENCE (own, no C5, |COPY|>=0.1) ===
+[|y|>=.1] per publication:
+                 n    acc           cluster  ext  cells  share
+pub                                                           
+pub_19783c039b  78  0.987  g:pub_74428aeab2    1     14  0.245
+pub_b0b3296ec5  61  1.000  g:pub_74428aeab2    1     18  0.192
+pub_1605e436d7  41  0.951  g:pub_74428aeab2    1      7  0.129
+pub_5a68dc5665  28  1.000  g:pub_74428aeab2    3     12  0.088
+pub_1c1b558856  21  1.000  g:pub_74428aeab2    1      5  0.066
+pub_8415538291  20  0.950  g:pub_8415538291    1      5  0.063
+pub_cd72e4a7bb  12  1.000  g:pub_cd72e4a7bb    1      3  0.038
+pub_a49146c8fd  12  0.667  g:pub_3e0f6bb1b5    1      2  0.038
+pub_ca616a18dd  10  1.000  g:pub_ca616a18dd    1      2  0.031
+pub_4cba27f5f3   9  1.000  g:pub_74428aeab2    1      2  0.028
+pub_f8a621ede4   7  1.000  g:pub_74428aeab2    1      4  0.022
+pub_d68ed8c8cf   6  0.833  g:pub_74428aeab2    1      3  0.019
+pub_0a8da089ad   5  1.000  g:pub_74428aeab2    1      3  0.016
+pub_37086f6378   4  1.000  g:pub_74428aeab2    1      2  0.013
+pub_0fd6ab4e40   2  1.000  g:pub_0fd6ab4e40    1      2  0.006
+pub_af0c74798c   2  1.000  g:pub_74428aeab2    1      2  0.006
+  top-1 share 0.25, top-3 share 0.57; equal-weight per-pub acc 0.962; min per-pub acc 0.667; pubs with acc<0.9: 2 of 16
+  LOPO acc range [0.965, 0.984]
+  without top-3 pubs: acc 0.957 n 138
+  per cluster:
+                    n    acc  share
+cluster                            
+g:pub_0fd6ab4e40    2  1.000  0.006
+g:pub_3e0f6bb1b5   12  0.667  0.038
+g:pub_74428aeab2  262  0.985  0.824
+g:pub_8415538291   20  0.950  0.063
+g:pub_ca616a18dd   10  1.000  0.031
+g:pub_cd72e4a7bb   12  1.000  0.038
+  without dominant cluster g:pub_74428aeab2: acc 0.911 n 56
+  families 18; pooled acc 0.972; family-bootstrap one-sided 95% lower 0.940; equal-weight family mean 0.966, t one-sided 95% lower 0.931
+[all] per publication:
+                 n    acc           cluster  ext  cells  share
+pub                                                           
+pub_19783c039b  87  0.977  g:pub_74428aeab2    1     14  0.213
+pub_b0b3296ec5  75  0.987  g:pub_74428aeab2    1     18  0.184
+pub_1605e436d7  55  0.855  g:pub_74428aeab2    1      7  0.135
+pub_5a68dc5665  33  1.000  g:pub_74428aeab2    3     13  0.081
+pub_8415538291  30  0.900  g:pub_8415538291    1      5  0.074
+pub_1c1b558856  25  1.000  g:pub_74428aeab2    1      5  0.061
+pub_4cba27f5f3  17  0.882  g:pub_74428aeab2    1      3  0.042
+pub_a49146c8fd  17  0.471  g:pub_3e0f6bb1b5    2      3  0.042
+pub_ca616a18dd  15  0.867  g:pub_ca616a18dd    1      2  0.037
+pub_d68ed8c8cf  13  0.769  g:pub_74428aeab2    1      3  0.032
+pub_cd72e4a7bb  13  1.000  g:pub_cd72e4a7bb    1      3  0.032
+pub_f8a621ede4   8  1.000  g:pub_74428aeab2    1      4  0.020
+pub_0a8da089ad   6  0.833  g:pub_74428aeab2    1      3  0.015
+pub_0fd6ab4e40   5  0.800  g:pub_0fd6ab4e40    1      2  0.012
+pub_37086f6378   5  1.000  g:pub_74428aeab2    1      2  0.012
+pub_af0c74798c   4  1.000  g:pub_74428aeab2    1      2  0.010
+  top-1 share 0.21, top-3 share 0.53; equal-weight per-pub acc 0.896; min per-pub acc 0.471; pubs with acc<0.9: 7 of 16
+  LOPO acc range [0.907, 0.941]
+  without top-3 pubs: acc 0.890 n 191
+  per cluster:
+                    n    acc  share
+cluster                            
+g:pub_0fd6ab4e40    5  0.800  0.012
+g:pub_3e0f6bb1b5   17  0.471  0.042
+g:pub_74428aeab2  328  0.948  0.804
+g:pub_8415538291   30  0.900  0.074
+g:pub_ca616a18dd   15  0.867  0.037
+g:pub_cd72e4a7bb   13  1.000  0.032
+  without dominant cluster g:pub_74428aeab2: acc 0.812 n 80
+  families 19; pooled acc 0.922; family-bootstrap one-sided 95% lower 0.864; equal-weight family mean 0.862, t one-sided 95% lower 0.763
+
+=== 4. NEAR-COPIES among own siblings (no C5 targets) ===
+target-sibling links 871 targets 115
+  identical logD series: 0
+  links with max|dSF| <= 1e-09: 0 (0.000)
+  links with max|dSF| <= 0.005: 8 (0.009)
+  links with max|dSF| <= 0.02: 62 (0.071)
+  links with max|dSF| <= 0.05: 196 (0.225)
+  own rows with COPY == y (1e-6): 10 of 820; among covered |y|>=.1 rows: 3 of 318
+  covered |y|>=.1 acc without targets having a near-identical (<=0.005) sibling: 0.972 n 318 (removed 7 targets)
+
+=== 5. SINGLE-SIBLING COPY (each own sibling separately; no C5) ===
+  [|y|>=.1 all cov] target-weighted acc 0.877  (links 2460, targets 92, pubs 17)
+  [|y|>=.1 & |COPY1|>=.1] target-weighted acc 0.942  (links 1744, targets 91, pubs 17)
+  [all & |COPY1|>=.1] target-weighted acc 0.872  (links 2440, targets 115, pubs 17)
+  coverage among |y|>=.1 (target-weighted): 0.716
+  min over siblings of per-(target,pair) correctness, covered rows: 0.860
+         class        rows  links  targets  pubs   acc  cov_big
+  acid + other     |y|>=.1   1041       27     5 0.798    0.656
+  acid + other |y|>=.1&sel    693       26     5 0.890    0.656
+  acid + other     all&sel   1037       44     5 0.785    0.656
+acid_conc only     |y|>=.1    990       61    12 0.880    0.703
+acid_conc only |y|>=.1&sel    704       60    12 0.943    0.703
+acid_conc only     all&sel    991       68    12 0.879    0.703
+ diluent (any)     |y|>=.1    391       28     2 0.957    0.787
+ diluent (any) |y|>=.1&sel    311       28     2 0.991    0.787
+ diluent (any)     all&sel    371       33     2 0.963    0.787
+extr_conc only     |y|>=.1     32        5     2 0.995    0.925
+extr_conc only |y|>=.1&sel     30        5     2 0.995    0.925
+extr_conc only     all&sel     33        6     2 0.990    0.925
+         other     |y|>=.1      6        3     1 1.000    1.000
+         other |y|>=.1&sel      6        3     1 1.000    1.000
+         other     all&sel      8        3     1 0.833    1.000
+
+=== 6. C5-BTBP dependence ===
+  with C5: |y|>=.1 acc 0.916 n 546; covered 0.961; all covered 0.923; C5 rows 148
+  C5 alone: |y|>=.1 acc 0.926 n 122; covered 0.931
+
+=== 7. THRESHOLD ROBUSTNESS (own, no C5) ===
+ elig_|y|   thr   acc   cov   n  acc_allrows  cov_allrows  always_heavier_same_rows
+     0.05 0.000 0.890 1.000 565        0.794        1.000                     0.786
+     0.05 0.050 0.946 0.825 466        0.883        0.700                     0.811
+     0.05 0.075 0.954 0.727 411        0.902        0.574                     0.837
+     0.05 0.100 0.970 0.642 363        0.922        0.498                     0.879
+     0.05 0.125 0.973 0.584 330        0.928        0.443                     0.885
+     0.05 0.150 0.972 0.508 287        0.930        0.382                     0.895
+     0.05 0.200 0.967 0.319 180        0.938        0.235                     0.878
+     0.10 0.000 0.913 1.000 424        0.794        1.000                     0.814
+     0.10 0.050 0.950 0.892 378        0.883        0.700                     0.836
+     0.10 0.075 0.957 0.830 352        0.902        0.574                     0.858
+     0.10 0.100 0.972 0.750 318        0.922        0.498                     0.877
+     0.10 0.125 0.970 0.698 296        0.928        0.443                     0.885
+     0.10 0.150 0.969 0.606 257        0.930        0.382                     0.895
+     0.10 0.200 0.964 0.399 169        0.938        0.235                     0.882
+     0.15 0.000 0.929 1.000 340        0.794        1.000                     0.838
+     0.15 0.050 0.959 0.941 320        0.883        0.700                     0.856
+     0.15 0.075 0.964 0.897 305        0.902        0.574                     0.872
+     0.15 0.100 0.975 0.829 282        0.922        0.498                     0.883
+     0.15 0.125 0.974 0.779 265        0.928        0.443                     0.894
+     0.15 0.150 0.974 0.691 235        0.930        0.382                     0.902
+     0.15 0.200 0.968 0.453 154        0.938        0.235                     0.890
+     0.20 0.000 0.941 1.000 237        0.794        1.000                     0.857
+     0.20 0.050 0.969 0.949 225        0.883        0.700                     0.876
+     0.20 0.075 0.972 0.911 216        0.902        0.574                     0.884
+     0.20 0.100 0.976 0.869 206        0.922        0.498                     0.888
+     0.20 0.125 0.975 0.835 198        0.928        0.443                     0.894
+     0.20 0.150 0.972 0.764 181        0.930        0.382                     0.906
+     0.20 0.200 0.962 0.549 130        0.938        0.235                     0.877
+
+=== 8. THREE-WAY DECISION (own rows, no C5) ===
+          arm  acc3  called_sep  dir_flip_among_called  called_sep_but_truly_I  truly_sep_called_I
+     COPY_own 0.750       408.0                  0.022                   0.221               0.250
+    D7 HULL@2 0.666       437.0                  0.043                   0.307               0.285
+    D7 HULL@4 0.748       403.0                  0.020                   0.221               0.259
+SH_own HULL@2 0.767       400.0                  0.018                   0.200               0.245
+SH_own HULL@4 0.824       398.0                  0.010                   0.143               0.196
+     always H 0.421         NaN                    NaN                     NaN                 NaN
+     always I 0.483         NaN                    NaN                     NaN                 NaN
+
+=== 9. PER PAIR (own, no C5): overall |y|>=.1 and covered ===
+ pair  n_big  acc_big  n_cov  acc_cov  n_all_cov  acc_all_cov  always_heavier_cov  pubs_big  share_top_pub_big
+Ce/Pr     37    0.919     35    0.971         40        0.900               0.829         9              0.297
+Dy/Ho     50    0.960     34    1.000         49        0.980               1.000        12              0.200
+Er/Tm     14    0.500      3    1.000          7        0.857               1.000         7              0.429
+Eu/Gd     50    0.960     46    0.957         53        0.925               0.652        12              0.280
+Gd/Tb     61    0.967     57    1.000         67        0.955               1.000        11              0.279
+Ho/Er     21    0.810     12    0.917         21        0.857               0.917        10              0.286
+La/Ce     39    0.744     28    0.857         33        0.879               0.893         9              0.282
+Pr/Nd     25    0.880     18    1.000         23        0.957               0.889         8              0.400
+Sm/Eu     50    1.000     49    1.000         54        0.963               0.918        11              0.360
+Tb/Dy     52    0.962     36    0.972         53        0.906               0.806        11              0.250
+Tm/Yb     12    0.833      0      NaN          4        0.250                 NaN         5              0.583
+Yb/Lu     13    1.000      0      NaN          4        0.750                 NaN         6              0.385
+
+=== 10. LITERATURE (xpub) leg dependence (no C5) ===
+                 n    acc  share
+pub                             
+pub_b0b3296ec5  78  0.897  0.304
+pub_19783c039b  71  0.972  0.276
+pub_5a68dc5665  26  1.000  0.101
+pub_1605e436d7  20  0.750  0.078
+pub_4cba27f5f3  19  1.000  0.074
+pub_126bbe7976  12  1.000  0.047
+pub_f8a621ede4  10  0.600  0.039
+pub_37086f6378   6  1.000  0.023
+pub_723ceb6c2c   6  0.833  0.023
+pub_af0c74798c   4  1.000  0.016
+pub_74428aeab2   3  1.000  0.012
+pub_b9dfc468cd   1  1.000  0.004
+pub_d68ed8c8cf   1  1.000  0.004
+  pooled 0.922; equal-weight per pub 0.927; extractants 5: {'CCCCCCCCN(CCCCCCCC)C(=O)COCC(=O)N(CCCCCCCC)CCCCCCCC': 140, 'CCCCCCCCN(C)C(=O)COCC(=O)N(C)CCCCCCCC': 94, 'CN(C(=O)COCC(=O)N(C)c1ccccc1)c1ccccc1': 15, 'CCCCCc1nnc(-c2cccc(-c3cccc(-c4nnc(CCCCC)c(CCCCC)n4)n3)n2)nc1CCCCC': 6, 'CCCCC(CC)CN(CC(CC)CCCC)C(=O)COCC(=O)N(CC(CC)CCCC)CC(CC)CCCC': 2}
+  always-heavier on same rows 0.934; D7@2 on same rows 0.938
+  clusters:
+                  size   mean
+cluster                      
+g:pub_74428aeab2   251  0.924
+g:pub_af7a1cd919     6  0.833

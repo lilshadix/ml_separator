@@ -1,0 +1,46 @@
+== BPG: confirm-2 reconciliation on skeptic B's OOF rows (EXPLORATORY) ==
+   fold beta means: pool -0.128  HS -0.210; Gd read in 60.5% of cell x seed read sets
+ -- HS defined by cls (reads-only slope)
+  all HS rows                                    rows/seed  359.8 pubs 14 | R2 B1 0.356 POOL 0.367 STRAT 0.381 | SSE/seed B1 16.556 STRAT 15.915 | STRAT vs B1 +3.9% (vs POOL +2.2%) | pubs STRAT better 8 / worse 6
+  HS without C5                                  rows/seed  211.8 pubs 13 | R2 B1 0.496 POOL 0.507 STRAT 0.498 | SSE/seed B1 5.303 STRAT 5.281 | STRAT vs B1 +0.4% (vs POOL -1.8%) | pubs STRAT better 7 / worse 6
+  HS without C5, without complexant pub          rows/seed  201.8 pubs 12 | R2 B1 0.518 POOL 0.532 STRAT 0.539 | SSE/seed B1 4.785 STRAT 4.574 | STRAT vs B1 +4.4% (vs POOL +1.5%) | pubs STRAT better 7 / worse 5
+    ... and Eu-Gd-Tb cells only (eligible)       rows/seed  201.8 pubs 12 | R2 B1 0.518 POOL 0.532 STRAT 0.539 | SSE/seed B1 4.785 STRAT 4.574 | STRAT vs B1 +4.4% (vs POOL +1.5%) | pubs STRAT better 7 / worse 5
+    ... eligible, Gd hidden                      rows/seed  161.4 pubs 10 | R2 B1 0.512 POOL 0.527 STRAT 0.537 | SSE/seed B1 3.732 STRAT 3.538 | STRAT vs B1 +5.2% (vs POOL +2.4%) | pubs STRAT better 6 / worse 4
+    ... eligible, Gd read                        rows/seed   40.4 pubs  7 | R2 B1 0.630 POOL 0.640 STRAT 0.637 | SSE/seed B1 1.053 STRAT 1.036 | STRAT vs B1 +1.5% (vs POOL -1.5%) | pubs STRAT better 3 / worse 4
+    ... eligible, Eu/Gd + Gd/Tb pairs only       rows/seed   34.8 pubs 12 | R2 B1 0.617 POOL 0.670 STRAT 0.697 | SSE/seed B1 0.994 STRAT 0.776 | STRAT vs B1 +21.9% (vs POOL +9.3%) | pubs STRAT better 7 / worse 5
+  with C5: Eu-Gd-Tb cells, complexant pub kept   rows/seed  349.8 pubs 13 | R2 B1 0.361 POOL 0.373 STRAT 0.394 | SSE/seed B1 16.038 STRAT 15.208 | STRAT vs B1 +5.2% (vs POOL +3.3%) | pubs STRAT better 8 / worse 5
+ -- HS defined by cls_full (full-series slope)
+  all HS rows                                    rows/seed  381.0 pubs 11 | R2 B1 0.378 POOL 0.392 STRAT 0.410 | SSE/seed B1 15.909 STRAT 15.070 | STRAT vs B1 +5.3% (vs POOL +3.0%) | pubs STRAT better 8 / worse 3
+  HS without C5                                  rows/seed  233.0 pubs 10 | R2 B1 0.543 POOL 0.563 STRAT 0.565 | SSE/seed B1 4.655 STRAT 4.437 | STRAT vs B1 +4.7% (vs POOL +0.3%) | pubs STRAT better 7 / worse 3
+  HS without C5, without complexant pub          rows/seed  233.0 pubs 10 | R2 B1 0.543 POOL 0.563 STRAT 0.565 | SSE/seed B1 4.655 STRAT 4.437 | STRAT vs B1 +4.7% (vs POOL +0.3%) | pubs STRAT better 7 / worse 3
+    ... and Eu-Gd-Tb cells only (eligible)       rows/seed  233.0 pubs 10 | R2 B1 0.543 POOL 0.563 STRAT 0.565 | SSE/seed B1 4.655 STRAT 4.437 | STRAT vs B1 +4.7% (vs POOL +0.3%) | pubs STRAT better 7 / worse 3
+    ... eligible, Gd hidden                      rows/seed  190.2 pubs  9 | R2 B1 0.515 POOL 0.534 STRAT 0.534 | SSE/seed B1 3.964 STRAT 3.792 | STRAT vs B1 +4.3% (vs POOL +0.4%) | pubs STRAT better 6 / worse 3
+    ... eligible, Gd read                        rows/seed   42.8 pubs  7 | R2 B1 0.686 POOL 0.702 STRAT 0.702 | SSE/seed B1 0.690 STRAT 0.645 | STRAT vs B1 +6.6% (vs POOL -0.1%) | pubs STRAT better 4 / worse 3
+    ... eligible, Eu/Gd + Gd/Tb pairs only       rows/seed   40.0 pubs 10 | R2 B1 0.595 POOL 0.657 STRAT 0.664 | SSE/seed B1 1.289 STRAT 1.069 | STRAT vs B1 +17.1% (vs POOL +2.0%) | pubs STRAT better 7 / worse 3
+  with C5: Eu-Gd-Tb cells, complexant pub kept   rows/seed  381.0 pubs 11 | R2 B1 0.378 POOL 0.392 STRAT 0.410 | SSE/seed B1 15.909 STRAT 15.070 | STRAT vs B1 +5.3% (vs POOL +3.0%) | pubs STRAT better 8 / worse 3
+   per-publication SSE gain STRAT vs B1 (seed mean), eligible reads-defined HS, no C5:
+   pub_3f3b6220e0: -0.104, pub_74428aeab2: -0.082, pub_b8175dc3a1: -0.062, pub_e9799b75f3: -0.041, pub_4fb6e0c041: -0.020, pub_af7a1cd919: +0.015, pub_723ceb6c2c: +0.016, pub_a49146c8fd: +0.048, pub_401a06b4b7: +0.052, pub_8415538291: +0.062, pub_40c355ae86: +0.126, pub_1845fd6492: +0.137
+
+== BP: confirm-2 reconciliation on skeptic B's OOF rows (EXPLORATORY) ==
+   fold beta means: pool -0.126  HS -0.208; Gd read in 58.3% of cell x seed read sets
+ -- HS defined by cls (reads-only slope)
+  all HS rows                                    rows/seed  359.8 pubs 14 | R2 B1 0.356 POOL 0.366 STRAT 0.379 | SSE/seed B1 16.564 STRAT 15.956 | STRAT vs B1 +3.7% (vs POOL +2.2%) | pubs STRAT better 8 / worse 6
+  HS without C5                                  rows/seed  211.8 pubs 13 | R2 B1 0.497 POOL 0.506 STRAT 0.497 | SSE/seed B1 5.303 STRAT 5.297 | STRAT vs B1 +0.1% (vs POOL -1.8%) | pubs STRAT better 7 / worse 6
+  HS without C5, without complexant pub          rows/seed  201.8 pubs 12 | R2 B1 0.518 POOL 0.531 STRAT 0.538 | SSE/seed B1 4.786 STRAT 4.594 | STRAT vs B1 +4.0% (vs POOL +1.5%) | pubs STRAT better 7 / worse 5
+    ... and Eu-Gd-Tb cells only (eligible)       rows/seed  201.8 pubs 12 | R2 B1 0.518 POOL 0.531 STRAT 0.538 | SSE/seed B1 4.786 STRAT 4.594 | STRAT vs B1 +4.0% (vs POOL +1.5%) | pubs STRAT better 7 / worse 5
+    ... eligible, Gd hidden                      rows/seed  168.4 pubs 10 | R2 B1 0.511 POOL 0.525 STRAT 0.538 | SSE/seed B1 3.952 STRAT 3.729 | STRAT vs B1 +5.6% (vs POOL +2.9%) | pubs STRAT better 6 / worse 4
+    ... eligible, Gd read                        rows/seed   33.4 pubs  6 | R2 B1 0.623 POOL 0.630 STRAT 0.615 | SSE/seed B1 0.834 STRAT 0.865 | STRAT vs B1 -3.6% (vs POOL -5.1%) | pubs STRAT better 2 / worse 4
+    ... eligible, Eu/Gd + Gd/Tb pairs only       rows/seed   34.8 pubs 12 | R2 B1 0.633 POOL 0.680 STRAT 0.708 | SSE/seed B1 0.951 STRAT 0.748 | STRAT vs B1 +21.4% (vs POOL +9.8%) | pubs STRAT better 7 / worse 5
+  with C5: Eu-Gd-Tb cells, complexant pub kept   rows/seed  349.8 pubs 13 | R2 B1 0.361 POOL 0.372 STRAT 0.392 | SSE/seed B1 16.047 STRAT 15.253 | STRAT vs B1 +4.9% (vs POOL +3.3%) | pubs STRAT better 8 / worse 5
+ -- HS defined by cls_full (full-series slope)
+  all HS rows                                    rows/seed  381.0 pubs 11 | R2 B1 0.378 POOL 0.390 STRAT 0.409 | SSE/seed B1 15.913 STRAT 15.109 | STRAT vs B1 +5.1% (vs POOL +3.1%) | pubs STRAT better 8 / worse 3
+  HS without C5                                  rows/seed  233.0 pubs 10 | R2 B1 0.544 POOL 0.561 STRAT 0.563 | SSE/seed B1 4.652 STRAT 4.450 | STRAT vs B1 +4.3% (vs POOL +0.6%) | pubs STRAT better 7 / worse 3
+  HS without C5, without complexant pub          rows/seed  233.0 pubs 10 | R2 B1 0.544 POOL 0.561 STRAT 0.563 | SSE/seed B1 4.652 STRAT 4.450 | STRAT vs B1 +4.3% (vs POOL +0.6%) | pubs STRAT better 7 / worse 3
+    ... and Eu-Gd-Tb cells only (eligible)       rows/seed  233.0 pubs 10 | R2 B1 0.544 POOL 0.561 STRAT 0.563 | SSE/seed B1 4.652 STRAT 4.450 | STRAT vs B1 +4.3% (vs POOL +0.6%) | pubs STRAT better 7 / worse 3
+    ... eligible, Gd hidden                      rows/seed  197.2 pubs  9 | R2 B1 0.514 POOL 0.531 STRAT 0.536 | SSE/seed B1 4.179 STRAT 3.977 | STRAT vs B1 +4.8% (vs POOL +1.3%) | pubs STRAT better 6 / worse 3
+    ... eligible, Gd read                        rows/seed   35.8 pubs  6 | R2 B1 0.708 POOL 0.720 STRAT 0.706 | SSE/seed B1 0.473 STRAT 0.473 | STRAT vs B1 -0.0% (vs POOL -5.5%) | pubs STRAT better 3 / worse 3
+    ... eligible, Eu/Gd + Gd/Tb pairs only       rows/seed   40.0 pubs 10 | R2 B1 0.609 POOL 0.663 STRAT 0.675 | SSE/seed B1 1.243 STRAT 1.035 | STRAT vs B1 +16.7% (vs POOL +3.4%) | pubs STRAT better 7 / worse 3
+  with C5: Eu-Gd-Tb cells, complexant pub kept   rows/seed  381.0 pubs 11 | R2 B1 0.378 POOL 0.390 STRAT 0.409 | SSE/seed B1 15.913 STRAT 15.109 | STRAT vs B1 +5.1% (vs POOL +3.1%) | pubs STRAT better 8 / worse 3
+   per-publication SSE gain STRAT vs B1 (seed mean), eligible reads-defined HS, no C5:
+   pub_3f3b6220e0: -0.101, pub_74428aeab2: -0.083, pub_b8175dc3a1: -0.058, pub_e9799b75f3: -0.043, pub_4fb6e0c041: -0.026, pub_af7a1cd919: +0.015, pub_723ceb6c2c: +0.016, pub_401a06b4b7: +0.042, pub_a49146c8fd: +0.048, pub_8415538291: +0.068, pub_40c355ae86: +0.125, pub_1845fd6492: +0.128
+

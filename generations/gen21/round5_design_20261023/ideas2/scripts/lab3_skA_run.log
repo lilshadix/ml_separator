@@ -1,0 +1,52 @@
+bench 521 cells; donor-eligible 243; v2drop 26
+near-copy (shift-sd < 0.02 or identical) other-publication donor links: 60; targets 38; bit-identical 0
+                               n  same_chem  same_cg        sd
+t_pub          d_pub                                          
+pub_0af6736cb1 pub_5a68dc5665  1      False    False  0.010463
+               pub_9428119866  1      False    False  0.011303
+pub_126bbe7976 pub_5a68dc5665  1      False    False  0.016052
+pub_1605e436d7 pub_5a68dc5665  6       True    False  0.015583
+pub_19783c039b pub_5a68dc5665  1       True    False  0.012788
+pub_37086f6378 pub_5a68dc5665  1       True    False  0.017757
+pub_4cba27f5f3 pub_5a68dc5665  3       True    False  0.016781
+               pub_c8195b4ca7  1       True    False  0.019154
+pub_4fb6e0c041 pub_9428119866  1       True    False  0.019419
+pub_5a68dc5665 pub_126bbe7976  1      False    False  0.016052
+               pub_1605e436d7  6      False    False  0.015583
+               pub_723ceb6c2c  1      False    False  0.019683
+               pub_b0b3296ec5  3      False    False  0.018538
+               pub_b9dfc468cd  1      False    False  0.018104
+               pub_c8195b4ca7  9       True    False  0.016006
+pub_6a0ef8528c pub_74428aeab2  1      False    False  0.011029
+pub_723ceb6c2c pub_5a68dc5665  1      False    False  0.019683
+pub_74428aeab2 pub_6a0ef8528c  1      False    False  0.011029
+pub_af0c74798c pub_d68ed8c8cf  2       True     True  0.003100
+pub_b0b3296ec5 pub_5a68dc5665  3       True    False  0.018538
+pub_b9dfc468cd pub_5a68dc5665  2      False    False  0.018104
+               pub_9428119866  1      False    False  0.011311
+pub_c8195b4ca7 pub_4cba27f5f3  1       True    False  0.019154
+               pub_5a68dc5665  9      False    False  0.016006
+pub_d68ed8c8cf pub_af0c74798c  2       True     True  0.003100
+BPG done 4s
+BPG done 6s
+BPG done 8s
+BPG done 10s
+BPG done 12s
+BP done 15s
+BP done 16s
+BP done 18s
+BP done 20s
+BP done 22s
+
+max |B1(recomputed) - B1(REF)| = 8.88e-16 over 18020 rows
+BPG training donors sharing the target's copy group: 0
+Traceback (most recent call last):
+  File "D:\ml_separator_gh\generations\gen21\round5_design_20261023\ideas2\scripts\lab3_recompute_skA.py", line 315, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "D:\ml_separator_gh\generations\gen21\round5_design_20261023\ideas2\scripts\lab3_recompute_skA.py", line 283, in main
+    rp = jk(d, a, "publication")
+  File "D:\ml_separator_gh\generations\gen21\round5_design_20261023\ideas2\scripts\lab3_recompute_skA.py", line 121, in jk
+    se = np.sqrt((G - 1) / G * ((j - j.mean()) ** 2).sum())
+                 ~~~~~~~~^~~
+ZeroDivisionError: division by zero

@@ -1,0 +1,70 @@
+=== 1. gradient robustness (cell-level within-publication rank corr; one-sided perm p) ===
+A1 no C5 (author's, pubs>=2 cells)            adxm: template +0.259 p 0.046 | B1@4 control +0.015 p 0.455 | 8 pubs 67 cells
+A1 no C5 (author's, pubs>=2 cells)            adxn: template +0.336 p 0.016 | B1@4 control +0.121 p 0.212 | 8 pubs 67 cells
+extrapolation targets only                    adxm: template +0.397 p 0.037 | B1@4 control -0.073 p 0.621 | 4 pubs 27 cells
+extrapolation targets only                    adxn: template +0.238 p 0.153 | B1@4 control +0.004 p 0.489 | 4 pubs 27 cells
+interior targets only                         adxm: template -0.079 p 0.632 | B1@4 control -0.035 p 0.557 | 6 pubs 30 cells
+interior targets only                         adxn: template +0.338 p 0.124 | B1@4 control +0.294 p 0.176 | 5 pubs 24 cells
+HNO3 only                                     adxm: template +0.637 p 0.002 | B1@4 control +0.388 p 0.056 | 6 pubs 37 cells
+HNO3 only                                     adxn: template +0.299 p 0.102 | B1@4 control -0.005 p 0.523 | 6 pubs 37 cells
+without pub_b0b3296ec5 (organic acids)        adxm: template +0.241 p 0.095 | B1@4 control +0.136 p 0.217 | 7 pubs 52 cells
+without pub_b0b3296ec5 (organic acids)        adxn: template +0.384 p 0.018 | B1@4 control +0.234 p 0.094 | 7 pubs 52 cells
+without pub_19783c039b and pub_c8195b4ca7     adxm: template +0.300 p 0.104 | B1@4 control -0.175 p 0.786 | 6 pubs 39 cells
+without pub_19783c039b and pub_c8195b4ca7     adxn: template +0.179 p 0.216 | B1@4 control -0.190 p 0.802 | 6 pubs 39 cells
+without pub_19783c039b                        adxm: template +0.151 p 0.196 | B1@4 control -0.088 p 0.702 | 7 pubs 55 cells
+without pub_19783c039b                        adxn: template +0.313 p 0.033 | B1@4 control +0.110 p 0.269 | 7 pubs 55 cells
+without pub_c8195b4ca7                        adxm: template +0.441 p 0.004 | B1@4 control +0.027 p 0.458 | 7 pubs 51 cells
+without pub_c8195b4ca7                        adxn: template +0.260 p 0.087 | B1@4 control -0.077 p 0.665 | 7 pubs 51 cells
+
+row MSE of ACOPY@0 / B1@4 by extrapolation x |dx_mean| (no C5)
+  extrap=False near<=0.30 cells  21 pubs  7 rows/seed   193 MSE copy 0.0101 B1@4 0.0138 SH@4 0.0075
+  extrap=False far>0.30   cells  11 pubs  3 rows/seed    52 MSE copy 0.0239 B1@4 0.0145 SH@4 0.0111
+  extrap=True  near<=0.30 cells  11 pubs  5 rows/seed    83 MSE copy 0.0128 B1@4 0.0184 SH@4 0.0094
+  extrap=True  far>0.30   cells  32 pubs 10 rows/seed   232 MSE copy 0.0233 B1@4 0.0153 SH@4 0.0110
+
+crosstab extrap x near (cells):
+adxm   False  True 
+ex                 
+False     11     21
+True      32     11
+
+=== 2. tie structure: distinct |dx_mean| values per publication (cells) ===
+                cells  distinct  near  far
+pub                                       
+pub_0fd6ab4e40      2         1     2    0
+pub_1605e436d7      7         7     3    4
+pub_19783c039b     12        12     6    6
+pub_1c1b558856      5         5     4    1
+pub_37086f6378      2         1     0    2
+pub_4cba27f5f3      3         3     0    3
+pub_8415538291      5         5     3    2
+pub_af0c74798c      2         1     0    2
+pub_b0b3296ec5     15         8     8    7
+pub_c8195b4ca7     16        10     2   14
+pub_d68ed8c8cf      2         1     0    2
+pub_f8a621ede4      4         4     4    0
+
+=== 3. near side (|dx_mean| <= 0.30), no C5, BPG: read ladder on identical rows ===
+near {'ACOPY_0': np.float64(0.655), 'COPY': np.float64(0.647), 'AINT_0': np.float64(0.675), 'ACOPY_1': np.float64(0.677), 'SH_1': np.float64(0.664), 'SH_2': np.float64(0.71), 'SH_3': np.float64(0.745), 'B1_1': np.float64(0.133), 'B1_2': np.float64(0.439), 'B1_3': np.float64(0.518), 'OFF': np.float64(0.728), 'ACOPYSH_1': np.float64(0.618), 'ACOPYSH_3': np.float64(0.725)}
+far {'ACOPY_0': np.float64(0.139), 'COPY': np.float64(0.272), 'AINT_0': np.float64(0.127), 'ACOPY_1': np.float64(0.359), 'SH_1': np.float64(0.475), 'SH_2': np.float64(0.573), 'SH_3': np.float64(0.594), 'B1_1': np.float64(0.084), 'B1_2': np.float64(0.404), 'B1_3': np.float64(0.443), 'OFF': np.float64(0.587), 'ACOPYSH_1': np.float64(0.426), 'ACOPYSH_3': np.float64(0.562)}
+  near eq-w relSSE ACOPY_0 vs B1_3: -0.430 (4/8 pubs +)
+  far  eq-w relSSE ACOPY_0 vs B1_3: -1.187 (2/10 pubs +)
+  near eq-w relSSE ACOPY_0 vs SH_1: -0.708 (2/8 pubs +)
+  far  eq-w relSSE ACOPY_0 vs SH_1: -0.825 (1/10 pubs +)
+  near eq-w relSSE ACOPY_0 vs SH_3: -1.742 (2/8 pubs +)
+  far  eq-w relSSE ACOPY_0 vs SH_3: -1.456 (0/10 pubs +)
+  near eq-w relSSE SH_1 vs B1_3: +0.284 (7/8 pubs +)
+  far  eq-w relSSE SH_1 vs B1_3: -0.603 (5/10 pubs +)
+  near eq-w relSSE ACOPY_0 vs B1_2: -0.338 (5/8 pubs +)
+  far  eq-w relSSE ACOPY_0 vs B1_2: -0.988 (2/10 pubs +)
+
+=== 4. power of prospective kill (i)+(ii) if the corpus were the truth ===
+F= 8 families x m=3 cells (pubs eligible 8): P(kill i) 0.21  P(kill ii) 0.04  P(killed by i or ii) 0.23; median r 0.54
+F= 8 families x m=4 cells (pubs eligible 7): P(kill i) 0.18  P(kill ii) 0.06  P(killed by i or ii) 0.20; median r 0.46
+F= 8 families x m=5 cells (pubs eligible 6): P(kill i) 0.16  P(kill ii) 0.07  P(killed by i or ii) 0.19; median r 0.41
+F=12 families x m=3 cells (pubs eligible 8): P(kill i) 0.09  P(kill ii) 0.02  P(killed by i or ii) 0.10; median r 0.53
+F=12 families x m=4 cells (pubs eligible 7): P(kill i) 0.07  P(kill ii) 0.03  P(killed by i or ii) 0.07; median r 0.46
+F=12 families x m=5 cells (pubs eligible 6): P(kill i) 0.08  P(kill ii) 0.02  P(killed by i or ii) 0.10; median r 0.41
+F=16 families x m=3 cells (pubs eligible 8): P(kill i) 0.04  P(kill ii) 0.00  P(killed by i or ii) 0.04; median r 0.50
+F=16 families x m=4 cells (pubs eligible 7): P(kill i) 0.03  P(kill ii) 0.01  P(killed by i or ii) 0.03; median r 0.46
+F=16 families x m=5 cells (pubs eligible 6): P(kill i) 0.03  P(kill ii) 0.01  P(killed by i or ii) 0.04; median r 0.40

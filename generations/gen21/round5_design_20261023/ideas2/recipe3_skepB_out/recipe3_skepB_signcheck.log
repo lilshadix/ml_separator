@@ -1,0 +1,92 @@
+population own>=1 noC5: rows 820, cells 115, pubs 17, clusters 6; |y|>=0.1 rows 424; |COPY|>=0.1 rows 408
+
+=== Q1 sign accuracy on identical rows (binary sign; ties/NaN excluded for that arm)
+                  rows   n  COPY_own  always_heavier  pairtype_majority_LOPO  chemotype_pairtype_majority_LOPO  D7_HULL_2  D7_HULL_4  SH_own_HULL_2  SH_own_HULL_4  COPY_xpub  n_xpub  B1_4reads_DOPTQ  G14_zeroshot
+              all rows 820     0.794           0.709                   0.670                             0.694      0.755      0.793          0.824          0.849      0.760     499            0.763         0.715
+              |y|>=0.1 424     0.913           0.814                   0.797                             0.821      0.858      0.889          0.922          0.960      0.869     291            0.878         0.824
+ |COPY|>=0.1, all rows 408     0.922           0.846                   0.831                             0.860      0.873      0.885          0.926          0.919      0.921     278            0.893         0.843
+|COPY|>=0.1 & |y|>=0.1 318     0.972           0.877                   0.868                             0.890      0.918      0.934          0.965          0.972      0.938     227            0.945         0.872
+  |COPY|<0.1, all rows 412     0.667           0.573                   0.510                             0.529      0.638      0.701          0.723          0.779      0.557     221            0.633         0.588
+ |COPY|<0.1 & |y|>=0.1 106     0.736           0.623                   0.585                             0.613      0.679      0.755          0.792          0.925      0.625      64            0.679         0.679
+
+=== Q2 coverage-matched: each arm keeps its own top-|pred| rows at COPY's coverage
+    rows  coverage  COPY_own  D7_HULL_2  D7_HULL_4  SH_own_HULL_2  SH_own_HULL_4  B1_4reads_DOPTQ
+all rows     0.498     0.922      0.865      0.919          0.949          0.966            0.933
+|y|>=0.1     0.750     0.972      0.928      0.975          0.978          0.991            0.963
+
+=== Q3 three-way (heavier y<=-0.1 / lighter y>=0.1 / inseparable) accuracy on all rows
+  class shares (H/I/L): [0.421 0.483 0.096]
+  COPY_own: 0.75
+  pairtype_modal_class_LOPO: 0.594
+  D7_HULL_2: 0.666
+  D7_HULL_4: 0.748
+  SH_own_HULL_2: 0.767
+  SH_own_HULL_4: 0.824
+  B1_4reads: 0.776
+  always_heavier_3way: 0.421
+  COPY_own_opposite_call_rate: 0.011
+  D7_HULL_2_opposite_call_rate: 0.023
+  SH_own_HULL_2_opposite_call_rate: 0.009
+
+=== Q4 publication-level accuracy at |COPY|>=0.1 (all rows), and the kill rule replayed
+                 n    acc  accAH           cluster
+publication                                       
+pub_19783c039b  87  0.977  0.977  g:pub_74428aeab2
+pub_b0b3296ec5  75  0.987  0.960  g:pub_74428aeab2
+pub_1605e436d7  55  0.855  0.836  g:pub_74428aeab2
+pub_5a68dc5665  33  1.000  1.000  g:pub_74428aeab2
+pub_8415538291  30  0.900  0.767  g:pub_8415538291
+pub_1c1b558856  25  1.000  0.800  g:pub_74428aeab2
+pub_4cba27f5f3  17  0.882  0.882  g:pub_74428aeab2
+pub_a49146c8fd  17  0.471  0.118  g:pub_3e0f6bb1b5
+pub_ca616a18dd  15  0.867  0.333  g:pub_ca616a18dd
+pub_d68ed8c8cf  13  0.769  0.923  g:pub_74428aeab2
+pub_cd72e4a7bb  13  1.000  0.923  g:pub_cd72e4a7bb
+pub_f8a621ede4   8  1.000  0.625  g:pub_74428aeab2
+pub_0a8da089ad   6  0.833  0.833  g:pub_74428aeab2
+pub_0fd6ab4e40   5  0.800  0.200  g:pub_0fd6ab4e40
+pub_37086f6378   5  1.000  1.000  g:pub_74428aeab2
+pub_af0c74798c   4  1.000  1.000  g:pub_74428aeab2
+  pooled_acc: 0.922
+  pooled_pubboot_5pct: 0.859
+  pooled_pubboot_2.5pct: 0.844
+  n_pubs: 16
+  eqweight_mean: 0.896
+  eqweight_t_lb95_1sided: 0.835
+  AH_same_rows: 0.846
+  acc_outside_giant_cluster: 0.812
+  n_outside_giant_cluster: 80
+  AH_outside_giant_cluster: 0.538
+  giant_cluster_share_selected: 0.804
+  power at 11 families (corpus publications as families, n>=5 rows): {'P(eqw family LB >= 0.90)': np.float64(0.092), 'P(mean >= 0.90)': np.float64(0.4235), 'P(mean - AH >= 0.05)': np.float64(0.93725), 'n_pubs_used': 15}
+  per pair type at |COPY|>=0.1 (all rows):
+        n    acc  accAH  binom_se
+pair                             
+Ce/Pr  40  0.900  0.825     0.047
+Dy/Ho  49  0.980  0.959     0.020
+Er/Tm   7  0.857  0.714     0.132
+Eu/Gd  53  0.925  0.623     0.036
+Gd/Tb  67  0.955  0.955     0.025
+Ho/Er  21  0.857  0.810     0.076
+La/Ce  33  0.879  0.909     0.057
+Pr/Nd  23  0.957  0.870     0.043
+Sm/Eu  54  0.963  0.889     0.026
+Tb/Dy  53  0.906  0.792     0.040
+Tm/Yb   4  0.250  0.750     0.217
+Yb/Lu   4  0.750  0.750     0.217
+
+=== Q5 near-replicate sign agreement (same pub+extractant, differ only in contact time/metal conc/nothing)
+  {'n_rows': 0}
+
+=== Q6 confident wrong calls (|COPY|>=0.1, sign wrong)
+  n wrong 32 of 408; separable wrong 9; by pub: {'pub_a49146c8fd': 9, 'pub_1605e436d7': 8, 'pub_d68ed8c8cf': 3, 'pub_8415538291': 3, 'pub_4cba27f5f3': 2, 'pub_ca616a18dd': 2, 'pub_19783c039b': 2, 'pub_b0b3296ec5': 1, 'pub_0fd6ab4e40': 1, 'pub_0a8da089ad': 1}; by pair: {'Tb/Dy': 5, 'La/Ce': 4, 'Ce/Pr': 4, 'Eu/Gd': 4, 'Gd/Tb': 3, 'Ho/Er': 3, 'Tm/Yb': 3, 'Sm/Eu': 2, 'Yb/Lu': 1, 'Pr/Nd': 1, 'Dy/Ho': 1, 'Er/Tm': 1}
+           ctype  cells  pubs  rows  acc_|y|>=0.1  AH_|y|>=0.1  acc_sel  AH_sel  cov_sel
+  acid_conc_only     32     9   289         0.938        0.822    0.914   0.802    0.561
+acid_type(+conc)     16     2   160         0.821        0.653    0.853   0.765    0.425
+diluent_involved     33     2   242         0.983        0.992    0.983   0.983    0.496
+extr_conc(+acid)      7     3    46         0.879        0.818    0.903   0.935    0.674
+     mixed_other     27     4    83         0.833        0.567    0.889   0.593    0.325
+
+=== Q7 metals needed to re-measure flagged pairs (|COPY|<0.1 or Er/Tm, Ho/Er, La/Ce)
+  {'mean_metals': 9.747826086956522, 'mean_pairs': 7.130434782608695, 'mean_flag_pairs': 4.113043478260869, 'mean_flag_metals': 5.843478260869565, 'mean_flag_metals_thr_only': 5.034782608695652, 'share_cells_needing_>=2_metals': 0.991304347826087, 'share_cells_needing_>=4_metals': 0.6347826086956522, 'share_cells_needing_all_but_<=2': 0.17391304347826086, 'metals_saved_fraction': 0.4005352363960749}
+  triage (re-measured pairs counted right) dir acc on |y|>=0.1: 0.991; SH_own@2 on same rows: 0.922

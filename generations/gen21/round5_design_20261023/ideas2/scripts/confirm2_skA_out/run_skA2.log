@@ -1,0 +1,79 @@
+[F2] non-DGA cells: predicting the held-out Gd chord (= Gd error of an amplitude a)
+                scope holdout  cls  units  groups  cell_rel_3_vs_beta  cell_rel_3_vs_nd  unit_rel_3_vs_beta  unit_rel_3_vs_nd  groups_3_better_beta  groups_3_better_nd
+0              nonDGA     pub  all     25      17               0.408             0.254               0.263             0.209                     9                  10
+1              nonDGA     pub   HS     12      11               0.585             0.390               0.514             0.261                     8                   7
+2              nonDGA     pub   LS     13      10              -0.154             0.000              -0.128             0.169                     3                   5
+3              nonDGA      cl  all     25      10               0.403             0.302               0.247             0.270                     6                   6
+4              nonDGA      cl   HS     12       7               0.577             0.407               0.488             0.247                     5                   5
+5              nonDGA      cl   LS     13       5              -0.152             0.121              -0.128             0.285                     1                   2
+6         nonDGA noC5     pub  all     24      16               0.160             0.060               0.212             0.178                     8                  10
+7         nonDGA noC5     pub   HS     11      10               0.443             0.191               0.477             0.250                     7                   7
+8         nonDGA noC5     pub   LS     13      10              -0.154            -0.029              -0.128             0.129                     3                   5
+9         nonDGA noC5      cl  all     24      10               0.144             0.114               0.197             0.230                     6                   6
+10        nonDGA noC5      cl   HS     11       7               0.411             0.162               0.450             0.215                     5                   5
+11        nonDGA noC5      cl   LS     13       5              -0.152             0.085              -0.128             0.239                     1                   2
+12  nonDGA noC5 noDMD     pub  all     23      15               0.042             0.007               0.192             0.170                     7                   9
+13  nonDGA noC5 noDMD     pub   HS     10       9               0.368             0.122               0.462             0.251                     6                   6
+14  nonDGA noC5 noDMD     pub   LS     13      10              -0.154            -0.038              -0.128             0.115                     3                   5
+15  nonDGA noC5 noDMD      cl  all     23       9               0.013             0.069               0.169             0.217                     5                   5
+16  nonDGA noC5 noDMD      cl   HS     10       6               0.289             0.043               0.420             0.198                     4                   4
+17  nonDGA noC5 noDMD      cl   LS     13       5              -0.152             0.079              -0.128             0.229                     1                   2
+
+[D2] non-DGA units with an external slope: 25 of 25
+   Spearman(cw, ext) -0.632 (p 0.001)
+   Spearman(cw, slope) -0.638 (p 0.001)
+   sign(ext) == sign(full slope): 0.960
+   cw ~ HS + signed ext: HS -0.044 (se 0.050); ext -0.0071 (se 0.0025)
+   cw ~ HS + abs ext: HS -0.130 (se 0.041); ext -0.0036 (se 0.0028)
+   |ext| <= median: HS n=5 mean -0.154; LS n=8 mean -0.074
+   |ext| > median: HS n=7 mean -0.263; LS n=5 mean -0.070
+
+[M] non-DGA units by metadata class x slope class (winsorised unit chords)
+                       size   mean
+meta              cls             
+NO_amide_PDA_phen HS      4 -0.184
+                  LS      2  0.004
+acidic_OP         HS      1 -0.370
+malonamide        LS      5 -0.093
+neutral_P_O       HS      1 -0.080
+                  LS      1 -0.144
+other             HS      3 -0.212
+                  LS      5 -0.069
+soft_N_BTP_BTBP   HS      3 -0.261
+   metadata: acidic OP + BTP/BTBP: units 4, mean -0.289, sd 0.106
+   metadata: acidic OP + BTP/BTBP + PDA/phen amides: units 10, mean -0.188, sd 0.139
+   PDA/phen amides only (any direction): units 6, mean -0.121, sd 0.121
+   slope rule HS (corpus stratum): units 12, mean -0.217, sd 0.101
+   slope rule HS minus BTP/BTBP: units 9, mean -0.203, sd 0.100
+
+[R] reads-only (DOPT_Q 4 reads) unit direction, per seed
+      seed  HS_units  HS_mean  LS_units  LS_mean
+0  104729        11   -0.208        14   -0.090
+1  130363        10   -0.220        15   -0.090
+2  155921        12   -0.206        13   -0.083
+3  196613        10   -0.220        15   -0.090
+4  262147        11   -0.208        14   -0.090
+
+[N] near-copy pairs touching HS units (log D series)
+   354fe634113a078e (TODGA, pub_5a68dc5665) vs c6571910bb94ca86 (3-[6-[6-(5-6-dipentyl-1-2-4-triazin-3-yl)-2-pyridinyl]-2-pyridinyl]-5-6-dipentyl-1-2-4-triazine, pub_723ceb6c2c)
+                   La     Ce     Pr     Nd     Sm   Eu     Gd     Tb     Dy     Ho     Er     Tm     Yb     Lu
+354fe634113a078e  NaN    NaN    NaN    NaN    NaN  NaN  0.865  1.231  1.484  1.658  1.737  1.771  1.799  1.838
+c6571910bb94ca86 -3.0 -2.222 -1.824 -1.301 -1.046 -1.0 -1.071 -0.699 -0.456 -0.301 -0.222    NaN -0.155 -0.155
+diff              NaN    NaN    NaN    NaN    NaN  NaN  1.936  1.930  1.940  1.959  1.959    NaN  1.954  1.993
+   conditions a: {'cond__acid__hno3': np.int8(1), 'cond__acid_concentration_M': np.float64(1.0), 'cond__contact_time_min': np.float64(50.0), 'cond__diluent__n_dodecane': np.int8(1), 'cond__extractant_concentration_M': np.float64(0.04), 'cond__metal_concentration_mM': np.float64(0.0006), 'cond__temperature_C': np.float64(25.0)}
+   conditions b: {'cond__acid__hno3': np.int8(1), 'cond__acid_concentration_M': np.float64(0.5), 'cond__diluent__cyclohexanone': np.int8(1), 'cond__extractant_concentration_M': np.float64(0.005), 'cond__metal_concentration_mM': np.float64(0.001), 'cond__temperature_C': np.float64(25.0)}
+   326289072f176f80 (C5BTBP, pub_6a0ef8528c) vs 1b71b86063cd1faf (DMDPDGA, pub_74428aeab2)
+                     La    Ce     Pr     Nd     Sm     Eu     Gd     Tb     Dy     Ho     Er     Tm     Yb     Lu
+326289072f176f80 -4.304 -4.16 -4.246 -3.939 -4.514 -3.353 -3.487 -3.043 -2.804 -2.569 -2.410    NaN -2.313 -2.316
+1b71b86063cd1faf    NaN   NaN    NaN    NaN    NaN    NaN  1.859  2.325  2.578  2.807  2.965  3.028  3.052  3.060
+diff                NaN   NaN    NaN    NaN    NaN    NaN -5.346 -5.368 -5.382 -5.376 -5.375    NaN -5.365 -5.376
+   conditions a: {'cond__acid__hno3': np.int8(1), 'cond__acid_concentration_M': np.float64(0.5), 'cond__diluent__kerosene_0_7_1_octanol_0_3': np.int8(1), 'cond__extractant_concentration_M': np.float64(0.005), 'cond__temperature_C': np.float64(20.0)}
+   conditions b: {'cond__acid__hno3': np.int8(1), 'cond__acid_concentration_M': np.float64(4.0), 'cond__contact_time_min': np.float64(20.0), 'cond__diluent__chloroform': np.int8(1), 'cond__extractant_concentration_M': np.float64(0.2), 'cond__metal_concentration_mM': np.float64(0.006), 'cond__temperature_C': np.float64(23.0)}
+   pub_723ceb6c2c|sc061 c6571910bb94ca86: La:-3.00 Ce:-2.22 Pr:-1.82 Nd:-1.30 Sm:-1.05 Eu:-1.00 Gd:-1.07 Tb:-0.70 Dy:-0.46 Ho:-0.30 Er:-0.22 Yb:-0.15 Lu:-0.15
+      cond: {'cond__acid__hno3': np.int8(1), 'cond__acid_concentration_M': np.float64(0.5), 'cond__diluent__cyclohexanone': np.int8(1), 'cond__extractant_concentration_M': np.float64(0.005), 'cond__metal_concentration_mM': np.float64(0.001), 'cond__temperature_C': np.float64(25.0)}
+   pub_1845fd6492|sc015 7ad5ac5e8cdc02e6: La:-4.00 Ce:-3.30 Pr:-3.00 Nd:-2.70 Sm:-1.52 Eu:-1.05 Gd:-0.96 Tb:-0.10 Dy:-0.02 Ho:0.02 Er:0.01 Tm:-0.04 Yb:-0.12 Lu:-0.30
+      cond: {'cond__acid__hno3': np.int8(1), 'cond__acid_concentration_M': np.float64(0.1), 'cond__diluent__other': np.int8(1), 'cond__extractant_concentration_M': np.float64(0.03), 'cond__temperature_C': np.float64(20.0)}
+   pub_40c355ae86|sc058 5148f598b8fefae0: La:-0.70 Ce:-0.74 Pr:-0.70 Nd:-0.40 Sm:0.00 Eu:0.34 Gd:0.30 Tb:1.00 Dy:1.70 Ho:1.95
+      cond: {'cond__acid__hno3': np.int8(1), 'cond__acid_concentration_M': np.float64(1.0), 'cond__diluent__n_dodecane': np.int8(1), 'cond__extractant_concentration_M': np.float64(0.3), 'cond__metal_concentration_mM': np.float64(40.0), 'cond__temperature_C': np.float64(25.0)}
+   pub_401a06b4b7|sc012 80c823b698d1e2e3: La:-2.30 Ce:-2.15 Pr:-2.00 Nd:-1.82 Sm:-1.46 Eu:-1.32 Gd:-1.34 Tb:-0.89 Dy:-0.80 Ho:-0.92 Er:-1.12 Tm:-1.40 Yb:-1.60 Lu:-1.82
+      cond: {'cond__acid__hno3': np.int8(1), 'cond__acid_concentration_M': np.float64(1.0), 'cond__diluent__1_octanol': np.int8(1), 'cond__extractant_concentration_M': np.float64(0.01), 'cond__temperature_C': np.float64(20.0)}
