@@ -1,0 +1,462 @@
+{
+ "workflow": "wf_756372ce-bc9",
+ "lenses": [
+  {
+   "lens": "fixes",
+   "findings": [
+    {
+     "id": "r2-fixes-controls-04",
+     "severity": "major",
+     "file": "PROTOCOL.md",
+     "line": 585,
+     "title": "controls-04 resolution is partial: the low-power / null-firing consequence is not in the claim rules or in r4_decide, and A4 does not exist",
+     "description": "The controls-04 resolution says 'the consequence of low power is stated in A4 and in the claim rules'. Pairing the worlds, raising SIGNAL_AMP to 0.15 and adding SMOOTH_NULL are all implemented (scripts/r4_synthetic_c.py:52-56, 93-99). The consequence is not. The \u00a712 claim rules (PROTOCOL.md:585-608) have no clause for AN_SIGNAL power being low, and none for NULL or SMOOTH_NULL firing. Line 603 says only that SMOOTH_NULL 'measures how often that fires', with no effect on the label. report/r4_decide.py block_c (188-265) reads nothing from the synthetic study. AMENDMENTS.md stops at A3 (heading at line 276; the file is 301 lines). Block B's A2 did declare its consequence ('A negative one is uninformative about geometry signals of this size', AMENDMENTS.md:269). Failure scenario: run 3 gives AN_SIGNAL 0/6, the same as run 2's 0/6 transfer claim, and SMOOTH_NULL fires in 1-2 of 6. Under the sealed text, a real S13 result would still be labelled 'An attribution not shown' or 'An(III) transfer (exploratory)'. Nothing would say that control power was not shown, and nothing would downgrade a positive label that a smooth irrelevant auxiliary can reproduce. Run 2's results are listed only in EVIDENCE.",
+     "suggested_fix": "Before sealing, add to PROTOCOL \u00a712 'Claim rules' a pre-declared conditional with explicit thresholds on run 3's counts. Example: if AN_SIGNAL's transfer claim fires in fewer than k of 6, a negative S13 result is labelled 'no detected gain; control power not shown'. If NULL or SMOOTH_NULL fires in 1 or more of 6, a positive transfer label carries 'not distinguishable from a smooth auxiliary regulariser'. Mirror this in the r4_decide.block_c label text, for example by reading a small sealed JSON written by r4_synthetic_c_summary.py. Record the run-3 counts and the consequence in A4.",
+     "verdict": {
+      "id": "r2-fixes-controls-04",
+      "confirmed": true,
+      "severity": "major",
+      "reasoning": "I checked the cited text and code. The implemented parts are present: scripts/r4_synthetic_c.py:52-56 sets SIGNAL_AMP 0.15 and WORLDS includes SMOOTH_NULL, an_targets is at 93-99, and the replicate seed 13300+rep is shared across worlds (one(), l.124-166), so the worlds are paired. The consequence the resolution promises is missing:\n- The \u00a712 claim rules (PROTOCOL.md:585-608) say nothing about AN_SIGNAL power, NULL firing or SMOOTH_NULL firing. Line 603 says only that SMOOTH_NULL 'measures how often that fires', and line 649 defers to A4.\n- AMENDMENTS.md has headings only for A1 (l.12), A2 (l.168) and A3 (l.276). There is no A4.\n- report/r4_decide.py block_c (188-265) reads nothing from results/synthetic_c.\nThe block-B precedent is real: AMENDMENTS A2's 'Consequence for the real run ... A negative one is uninformative' line exists. The resolution in blockC_review.json says 'stated in A4 and in the claim rules', and neither has been done.\n\nMitigations: the precedent put the consequence only in amendment prose, which A4 could still do. The \u00a712 label text already concedes that smooth regularisers are not excluded.\n\nI keep it major. This is the substance of a confirmed-major finding (brief \u00a78.8: a powerless test must not be used to reject), and it is still unimplemented. The right moment to pre-declare thresholds is before run 3's rep_*.json are read, and they do not exist yet (results/synthetic_c holds only run2/).",
+      "fix": "Before any run-3 replicate is read, add a clause with explicit thresholds to the \u00a712 claim rules. Example: if AN_SIGNAL's transfer claim fires in fewer than k of 6, a negative S13 result reads 'no detected gain; control power not shown'. If NULL or SMOOTH_NULL fires in 1 or more of 6, a positive label adds 'not distinguishable from a smooth auxiliary regulariser'. In A4, record the run-3 counts and the resulting consequence. If the clause changes the mechanical label, mirror it in r4_decide.block_c, for example from a sealed summary JSON. Otherwise state it as an interpretive rule, as in A2."
+     },
+     "resolution": "section 12 claim rules and r4_decide.block_c now carry a pre-declared synthetic-power consequence read from the sealed results/synthetic_c/summary.json (AN_SIGNAL claim in fewer than half of the replicates -> 'control power not shown' on a non-positive result; any NULL / SMOOTH_NULL firing -> a positive label is 'not distinguishable from an irrelevant / smooth auxiliary'); A4 records the run counts"
+    },
+    {
+     "id": "r2-fixes-consistency-4",
+     "severity": "minor",
+     "file": "AMENDMENTS.md",
+     "line": 276,
+     "title": "consistency-4 resolution not implemented yet: no A4 entry, although \u00a712 and several other resolutions rely on it",
+     "description": "The resolution says 'AMENDMENTS A4 written before the seal, naming 7c8b2f043ede, listing all results seen and the redesigns'. AMENDMENTS.md still ends with A3 (line 276 onward) and does not contain '7c8b2f043ede'. PROTOCOL \u00a712 already cites A4 contents: line 433 '(A3; every result listed in A4)', line 439 'A4 lists all of these, together with the design changes they caused', and line 649 'It is summarised in A4. Runs 1 and 2 used the pre-review scaffold; their record is in A4'. The controls-04, consistency-6 and controls-06 resolutions also defer parts to A4. The supersession of the PROVENANCE/REPORT.md:40 figures and the synthetic gate-equivalent rate are examples. scripts/r4_seal.py:189-192 checks only that the 12-character old-seal prefix appears somewhere in AMENDMENTS.md. So a one-line mention would satisfy the guard without the required list of results seen: the label-free counts, the technical-smoke inner scores, synthetic runs 1-3, the 05:10 synthetic design diagnostics, both reviews, and the redesign of S15/S16/S24 and of the loss and WD after run 2.",
+     "suggested_fix": "Write A4 before running --seal. It should name 7c8b2f043ede, list every result seen (including the RUN_RECORD 04:34 and 05:05-05:10 redesigns and run 2's all-'zero' outcome), state that the PROVENANCE/REPORT An(III) figures are superseded, and give the synthetic consequence. Optionally make r4_seal require a '## A4' heading that contains the old prefix.",
+     "verdict": {
+      "id": "r2-fixes-consistency-4",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "Confirmed. AMENDMENTS.md ends with A3 (heading l.276, 301 lines), and '7c8b2f043ede' appears nowhere in it. The current seal is 7c8b2f043ede... (manifests/stage0_seal.txt). PROTOCOL \u00a712 already refers to A4's contents at l.433, l.439 and l.649.\n\nThe guard at scripts/r4_seal.py:189-192 only tests `old[:12] in amend`, so any one-line mention of the prefix would let --seal proceed without the required list of results seen. As an unwritten to-do this is expected before a seal, and resealing is impossible until some A4 text exists. That is why this stays minor. The weak substring guard is the concrete defect, and it is the same guard A1-A3 used.",
+      "fix": "Before --seal, write '## A4 (...): stage 1 block C; supersedes seal 7c8b2f043ede'. List every result seen: label-free counts and isolation; the one-fold technical-smoke inner scores; synthetic run 1 (stopped, no output), run 2 (all arms 'zero') and run 3; the 05:10 design diagnostics; both reviews; the 04:34 S15/S16/S24 redesign and the post-run-2 loss/WD redesign. Also state that the PROVENANCE/REPORT An(III) figures are superseded, and give the synthetic consequence. Optionally make r4_seal require an '## A4' heading line that contains old[:12]."
+     },
+     "resolution": "A4 written before the seal (names 7c8b2f043ede, lists every result seen and every redesign)"
+    },
+    {
+     "id": "r2-fixes-controls-14",
+     "severity": "minor",
+     "file": "scripts/r4_seal.py",
+     "line": 47,
+     "title": "controls-14 / consistency-3: the A4 EVIDENCE list names a test log that does not exist and omits pre-seal evidence that \u00a712 lists as seen",
+     "description": "The EVIDENCE A4 group (r4_seal.py:47-53) includes 'results/logs/tests_a4.log'. Only results/logs/tests_a4_pre.log exists, written at 09:50 before the review fixes ('28 passed'). The post-fix block-C test result appears only as prose in RUN_RECORD ('Tests: block-C 8 passed'). results/synthetic_c/SUMMARY.md and rep_0..5.json do not exist yet, because run 3 is in progress. PROTOCOL \u00a712 (lines 435-437) also lists, as seen before the seal, 'training-side inner scores of one fold from a technical smoke' and 'the synthetic-only design diagnostics'. RUN_RECORD 05:10 records those diagnostics: inner pair loss +17% vs B1 at WD 1e-3, -3% to -17% at WD 0.03/0.3, and the shape-amplitude head at +35% to +170%. These drove the WD grid. No results file holds them, so the A4 seal cannot hash them. RUN_RECORD.md is digested only as 'informational' (r4_seal.py:203).",
+     "suggested_fix": "Before --seal, write the post-fix test run to results/logs/tests_a4.log. Save the technical-smoke inner scores and the 05:10 design diagnostics to results files (for example results/synthetic_c/design_diagnostics.json) and add them to EVIDENCE. Seal only after run 3's rep_*.json and SUMMARY.md exist.",
+     "verdict": {
+      "id": "r2-fixes-controls-14",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "The facts are confirmed, but the risk is smaller than described.\n\nscripts/r4_seal.py:47-53 lists results/logs/tests_a4.log, but only results/logs/tests_a4_pre.log exists. It was written at 09:50 local: 28 passed on the full suite, before the fixes. r4/leakage.py (deep_equal) was modified at 10:24 local. That module is used by test_r4.py, test_slots_a.py and test_slots_b.py as well as by r4_poison.py. Yet RUN_RECORD records only 'block-C 8 passed' after the fixes, so no post-fix full-suite result is on file. results/synthetic_c holds only run2/, so rep_0..5.json and SUMMARY.md do not exist yet.\n\nThese gaps cannot be sealed over silently. build() calls sha256_text_lf on each EVIDENCE path, which raises on a missing file, so --seal fails until the files exist.\n\nThe smoke inner scores and the 05:10 design diagnostics exist only as RUN_RECORD prose, which is digested 'informational' (l.203). A1 and A2 likewise listed technical smokes and tests in prose and did not hash them. So hashing is not required by precedent; listing them in A4 is. The diagnostics differ in one respect: they drove a design choice (the WD grid), so a file is worth having.",
+      "fix": "Rerun the full test suite after the fixes and write it to results/logs/tests_a4.log. leakage.deep_equal changed, and the block A/B poison tests depend on it. Seal only after run 3's rep_*.json and SUMMARY.md exist. List the smoke inner scores and the 05:10 design diagnostics in A4. Optionally save the diagnostics as results/synthetic_c/design_diagnostics.json and add that file to EVIDENCE."
+     },
+     "resolution": "results/logs/tests_a4.log written by a tee'd pytest run after the last code change; technical-smoke inner scores and the synthetic design diagnostics saved to results/synthetic_c/design_diagnostics.json and sealed; the seal waits for run 4"
+    },
+    {
+     "id": "r2-fixes-controls-01",
+     "severity": "minor",
+     "file": "r4/slots_c.py",
+     "line": 404,
+     "title": "controls-01 / implementation-s14 fix adds an undeclared second difference between S13 and S14 where S11's best network has w_Ln = 0",
+     "description": "_ln_with_x (slots_c.py:404-405) gives S14 an Ln raw-logD term at max(w_Ln, 0.3) whenever w_X > 0 (train(), line 265). S13's positive-w_X arms keep w_Ln = best_wl. In fold-fits where S11's inner selection chose w_Ln = 0, it rejected an Ln-aux term at 0.3 or 1.0 (WD fixed). In those fold-fits, S14's positive arms carry that rejected 0.3 term and S13's carry none. S13 - S14 then mixes 'private vs shared head' with 'without vs with an Ln-aux term inner CV found worse'. If that term hurts, S14's inner choice falls back to w_X = 0, which is S11 (_x_stage line 414). Given the transfer claim (S13 - S11 >= 0.005), the selectivity sub-label 'S13 - S14 > 0' then passes by construction. This happened in practice: synthetic run 2 had best w_Ln = 0 in an AN_SIGNAL replicate. PROTOCOL \u00a712 (line 537), DATA_CONTRACT:195 and EXPERIMENT_REGISTRY S14 say only that the head 'is always shared'. They do not declare the extra term. block_c (r4_decide.py:235-238) does not report how many fold-fits have best w_Ln = 0. The count is available from fitted_info 'best_net' and from gate_c.json 'S11_best_network'.",
+     "suggested_fix": "In \u00a712's S14 row, declare that where S11's best w_Ln = 0, S14 additionally carries an Ln-aux term at 0.3 that S13 lacks. In r4_decide.block_c, report per design the number of fold-fits with best_net w_Ln = 0, and the number in which S14's outer choice is 'zero' or w_X = 0, next to the selectivity sub-label. Alternatively, pre-declare that the sub-label is 'untested' when S14 falls back to S11's network in the majority of fold-fits.",
+     "verdict": {
+      "id": "r2-fixes-controls-01",
+      "confirmed": false,
+      "severity": "minor",
+      "reasoning": "Refuted as described. The finding's central claim is that the extra Ln-aux term is undeclared, and that is false. PROTOCOL.md:537 (S14 row) states: 'when w_X > 0 the Ln raw-log D term enters with weight max(w_Ln, 0.3), so the head is always shared with Ln data'. DATA_CONTRACT.md:195 states: 'When w_X > 0, the Ln term enters with weight max(w_Ln, 0.3).' The EXPERIMENT_REGISTRY S14 row states: 'Ln term weight max(w_Ln, 0.3) whenever w_X > 0'. The code matches: slots_c.py:404-405, train() l.265, _x_stage l.419, _refit l.439.\n\nThis was the first review's own recommended fix for controls-01 ('fix its Ln-aux weight to a positive value, for example max(best_wl, 0.3) ... and declare this'). It was implemented and declared. It follows directly that S13 at w_Ln = 0 lacks the term.\n\nThe argument that the sub-label 'passes by construction' is not specific to w_Ln = 0. Whenever S14's inner CV picks w_X = 0 or zero, S14 equals S11, so S13 \u2212 S14 = S13 \u2212 S11 \u2265 0.005 under the claim, at any w_Ln. That outcome is the intended reading: naive sharing gives no gain. Reporting per design how many fold-fits had best_net w_Ln = 0 would be a cheap diagnostic, but it is not a defect in the sealed text.",
+      "fix": ""
+     },
+     "resolution": "refuted as a defect, adopted as declaration: section 12 and the registry declare the extra Ln term where S11's best w_Ln = 0; r4_decide reports the fold-fit counts (S14_fallback)"
+    },
+    {
+     "id": "r2-fixes-controls-13",
+     "severity": "minor",
+     "file": "scripts/r4_run.py",
+     "line": 99,
+     "title": "controls-13 / consistency-11: route enforcement trusts a gate_c.json that is not tied to the sealed code",
+     "description": "block_c_route (r4_run.py:99-111) opens the S13 route whenever results/gate_c.json has G_transfer_passes true. That file is written by scripts/r4_gate_c.py --combine (lines 106-123) from shard JSONs. r4_gate_c.py never calls r4_seal.verify(). Neither the shards nor gate_c.json record the seal key or a code digest. block_c (r4_decide.py:199-203) also accepts any gate_c.json. Failure scenario: the gate shards are run before the A4 seal, or with slots_c code edited after it. An example is a pre-fix scaffold whose degenerate-scale or un-normalised loss changes the 30/50 inner count. Or a stale gate_c.json is left in results/. In either case S13 would be run, scored and made finalist-eligible on a gate computed by code other than the sealed code, while r4_run's own fits are keyed to the verified seal.",
+     "suggested_fix": "In r4_gate_c.py, call r4_seal.verify() (refuse if it fails) for --shard and --combine. Write the seal key into each shard and into gate_c.json, and make --combine refuse shards with different keys. In block_c_route and r4_decide.block_c, require gate_c['seal'] to equal the current verified seal.",
+     "verdict": {
+      "id": "r2-fixes-controls-13",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "Confirmed.\n- scripts/r4_gate_c.py never imports r4_seal or calls verify(). Its shard rows (l.138-142) and gate_c.json (l.112-121) carry no seal key or code digest.\n- scripts/r4_run.py:99-111 block_c_route opens S13 whenever gate_c.json has G_transfer_passes true. That check runs after seal_tag() verifies the seal for r4_run's own code, but nothing ties gate_c.json to that seal.\n- report/r4_decide.py:199-202 accepts any gate_c.json.\nBlock B's G-geo was computed in r4_decide from S06's fitted inner scores, which r4_run wrote under the verified seal key. Block C's gate is a separate script without that tie.\n\nIf the shards were run before the A4 seal, or with code edited afterwards, or if a stale gate_c.json were left behind, S13 would be routed on a gate from unsealed code. Gate shards run before the seal would also be block-C inner results seen before sealing, which \u00a712 l.433-437 does not allow. Related: --combine does not check that fold_fits == 50.\n\nOperator discipline normally prevents all this, so the severity is minor.",
+      "fix": "In r4_gate_c.py --shard and --combine, call r4_seal.verify() and refuse if it fails. Write seal[:12] into each shard row file and into gate_c.json. Make --combine refuse mixed or missing keys and any fold_fits != 50. In block_c_route and r4_decide.block_c, require gate_c['seal'] == the currently verified seal."
+     },
+     "resolution": "seal binding: r4_gate_c shard / combine verify the seal and carry its key; combine needs exactly 50 distinct fold-fits under one seal; r4_run.block_c_route and r4_decide.block_c accept gate / decision files only under the current seal"
+    },
+    {
+     "id": "r2-fixes-controls-02",
+     "severity": "minor",
+     "file": "report/r4_decide.py",
+     "line": 257,
+     "title": "controls-02: the reworded transfer label in \u00a712 does not match the label the decision code writes",
+     "description": "The controls-02 resolution reworded \u00a712 to say what S15/S16 exclude. PROTOCOL.md:603 states: 'A transfer label is therefore \"An(III) data improve held-out Ln log SF beyond Ln-only, matched and permuted auxiliaries\", not proof that An chemistry specifically transfers'. report/r4_decide.py:257 still writes 'An(III) transfer (exploratory)', and the S13 row of EXPERIMENT_REGISTRY.csv carries the same wording. A mechanically produced blockC_decision.md would therefore carry the stronger, chemistry-specific wording that \u00a712 says the controls cannot support. This is exactly the overstatement controls-02 found.",
+     "suggested_fix": "Make the r4_decide label text equal the \u00a712 label, for example 'An(III) auxiliary gain beyond Ln-only, matched and permuted auxiliaries (exploratory; smooth-regulariser not excluded)'. Or change \u00a712 to quote the code's label and add the caveat after it. Seal one wording.",
+     "verdict": {
+      "id": "r2-fixes-controls-02",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "Confirmed for the decision code. PROTOCOL.md:603 says the transfer label is 'An(III) data improve held-out Ln log SF beyond Ln-only, matched and permuted auxiliaries', not proof that An chemistry transfers. report/r4_decide.py:257 writes 'An(III) transfer (exploratory); ...'. A mechanically produced blockC_decision.md would therefore carry the stronger wording that controls-02 found to be an overstatement.\n\nThe finding's sub-claim about the registry is wrong. EXPERIMENT_REGISTRY.csv's S13 row does not contain 'An(III) transfer (exploratory)'. Its notes read 'finalist-eligible when on route; transfer claim needs the S15 / S16 rules; S14 decides the selectivity sub-label'.\n\nThe rule logic in code and doc agrees. Only the label wording differs, so minor.",
+      "fix": "Change the label string at r4_decide.py:257 to the \u00a712 wording. For example: 'An(III) data improve held-out Ln log SF beyond Ln-only, matched and permuted auxiliaries (exploratory; smooth-regulariser gain not excluded)', followed by the sub-labels. Alternatively, make \u00a712 quote the code's label with the caveat attached. Seal one wording."
+     },
+     "resolution": "decision label changed to the section 12 wording ('An(III) data improve held-out Ln log SF beyond Ln-only, matched and permuted auxiliaries ... smooth-auxiliary regulariser not excluded')"
+    },
+    {
+     "id": "r2-fixes-consistency-9",
+     "severity": "minor",
+     "file": "RESOURCE_PLAN.md",
+     "line": 72,
+     "title": "consistency-9 resolution states a memory headroom that the running block-C jobs contradict",
+     "description": "The resolution says 'measured 0.45-0.6 GB per block-C process', and line 72 says 'Up to 6 parallel processes fit in the 7.9 GB machine ... with about 3.5 GB free'. During synthetic run 3 (10:43-10:48), the six r4_synthetic_c.py processes had working sets of 0.51-0.59 GB but private commit of about 1.0-1.1 GB each (about 6.6 GB for six). Free physical memory was 0.9 GB with one further 0.5 GB process running, and 1.2 GB with the block-C pytest running. That is at or below the 'keep about 1 GB free' floor of line 6, so the machine is committing into the pagefile. The 3.5 GB is roughly what six processes occupy, not what remains free. The figure comes from synthetic runs only. r4_run S13/S16 jobs (HBK, B1, B2, intervention bench copies) and r4_poison jobs were not measured; r4_poison's _S11_CACHE also keeps every poisoned bench copy alive across 50 folds.",
+     "suggested_fix": "Replace the line with measured private and commit figures (about 1.1 GB per synthetic process). Cap parallel block-C processes so that at least 1 GB stays free (about 4-5 synthetic processes, fewer for r4_run/r4_poison). Measure one r4_run S13 fold-fit and one r4_poison fold before allowing more than 3 parallel scored jobs.",
+     "verdict": {
+      "id": "r2-fixes-consistency-9",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "Confirmed by a read-only process query during run 3 (Get-Process / Win32_OperatingSystem, no process touched).\n- The six r4_synthetic_c processes (started 10:34) have working sets of 0.495-0.538 GB and private bytes of 1.067-1.090 GB each. A seventh python process (started 10:49) has 0.60 GB working set and 1.10 GB private.\n- Free physical memory is 1.18 GB, and free commit is 3.25 GB of 17.38 GB.\n\nRESOURCE_PLAN.md:72 says 'about 0.45-0.6 GB per process ... Up to 6 parallel processes fit ... with about 3.5 GB free'. The per-process working-set figure is right, but the 3.5 GB headroom is not. Even allowing for the seventh process, six synthetic jobs leave roughly 1.8 GB free, close to line 6's 'keep about 1 GB free' floor.\n\nThe figure also comes only from synthetic runs. r4_run S13/S16 jobs (HBK, B1, B2, intervention bench copies) and r4_poison have not been measured. This does not affect results, so minor.",
+      "fix": "Restate line 72 with measured figures: about 0.5 GB working set and about 1.1 GB private per synthetic process, with about 1.2-1.8 GB free at six. Cap block-C parallelism so that at least 1 GB stays free: 5 synthetic processes, and at most 3 r4_run/r4_poison jobs until one S13 fold-fit and one poison fold have been measured."
+     },
+     "resolution": "RESOURCE_PLAN restated with measured 0.5 GB working set / 1.1 GB private per process; cap 5 synthetic processes and 3 run / poison / gate jobs; run 4 used 5 + 1 processes"
+    }
+   ]
+  },
+  {
+   "lens": "bugs",
+   "findings": [
+    {
+     "id": "r2-bugs-01",
+     "severity": "major",
+     "file": "generations/gen21/round4_20261022/r4/an_data.py",
+     "line": 55,
+     "title": "Aqueous hold-back complexants pass the 'no aqueous complexant' filter: 102 SANEX-type An rows are kept",
+     "description": "an3_records() only tests `complexant_names`. The archive also stores aqueous complexing agents as hold-back reagents (`holdback_smiles_canonical` / `holdback_concentration_M`), and nothing filters those. I ran a label-free recount on the current set (1,574 rows): 146 rows carry a hold-back SMILES. Of these, 93 have concentration > 0 and 9 have no concentration, so 102 rows have an active or unknown hold-back. The agents are the hydrophilic An-selective stripping agents of i-SANEX/GANEX: SO3-Ph-BTBP (23 rows), PyTri-diol, the phenanthroline diamide/diol agents, sulfonated BTP, and others. All 102 rows come from one publication (pub_e287124c22, TODGA, linked to sc009; 454 rows in the set), and they survive the exclusions in 8 of the 50 fold-fits. PROTOCOL \u00a712 line 449 and DATA_CONTRACT line 172 seal 'no aqueous complexant: SANEX-type aqueous stripping reverses the selectivity mechanism'. These rows are exactly that regime: Am/Cm are held back in the aqueous phase. So the sealed data rule is not implemented, and in those folds the private head is trained on selectivity-reversed An log D. The PROTOCOL / registry / DATA_CONTRACT counts (1,574 rows etc.) and the sealed an3_records digest describe the contaminated set.",
+     "suggested_fix": "In an3_records add `has_hb = a.holdback_smiles_canonical.notna() & (a.holdback_smiles_canonical.astype(str).str.len() > 0) & ~(a.holdback_concentration_M == 0)` and filter `~has_hb` (an unknown concentration is excluded). Then rerun `r4_gate_c.py --counts`, update the counts in PROTOCOL \u00a712, DATA_CONTRACT, EXPERIMENT_REGISTRY and PROVENANCE, and add a test that no kept record has an active hold-back agent.",
+     "verdict": {
+      "id": "r2-bugs-01",
+      "confirmed": true,
+      "severity": "major",
+      "reasoning": "I reproduced every number with a label-free recount. an_data.py:55-58 filters only on `complexant_names`. Of the 1,574 kept rows, 146 carry a `holdback_smiles_canonical`. Of these, 93 have holdback_concentration_M > 0, 9 have NaN and 44 have 0, which leaves 102 rows with an active or unknown hold-back agent. All 102 have an empty `complexant_names` and come from pub_e287124c22 (454 rows in the set). Their extractant is TODGA, linked to sc009. The agents are aqueous SANEX/GANEX hold-back reagents: SO3-Ph-BTBP (23 rows), PyTri-diol, phenanthroline diol/diamide, sulfonated BTPhen/BTP, and phosphonic and polycarboxylate agents. Their metals are Am 72 and Cm 30. The 102 rows survive the outer exclusions in exactly 8 of 50 fold-fits (BP and BPG of 104729/1, 155921/0, 196613/2 and 262147/4). gen19's own ligand roles classify `aqueous_holdback` as an aqueous role (ligands.py:70-71, 'water-soluble complexants / holdback agents'). EVIDENCE_INVENTORY (D3 and the implications) explicitly recommends excluding hold-back cells as SANEX-type reversed-selectivity systems. So the sealed 'no aqueous complexant' rule (PROTOCOL \u00a712, DATA_CONTRACT block C) is not implemented as written. No unread label leaks, so this is a mismatch with a sealed data rule rather than leakage: major. A check of the raw fields shows no further hidden cases. No row has holdback_smiles_raw without a canonical SMILES. The 308 rows with a non-empty concentration_raw and no SMILES all read '0'.",
+      "fix": "In an3_records, before the main filter, add: `hbc = pd.to_numeric(a.holdback_concentration_M, errors='coerce'); has_hb = a.holdback_smiles_canonical.notna() & (a.holdback_smiles_canonical.astype(str).str.len() > 0) & ~(hbc == 0)`. Then add `& ~has_hb` to the filter, so an unknown concentration is excluded. Update the module docstring to say 'no aqueous complexant or active hold-back agent'. Add a test assertion that no kept record has an active hold-back. Rerun `r4_gate_c.py --counts` (blockC_counts.json, isolation_an.csv). Update the counts (1,574 -> 1,472 rows and the derived fold ranges) in PROTOCOL \u00a712, DATA_CONTRACT, EXPERIMENT_REGISTRY and PROVENANCE. Rerun the synthetic run 3: it uses the real An record set, so the reps now being written describe the old set. Do all of this before sealing, so the an3_records digest describes the corrected set."
+     },
+     "resolution": "an3_records drops records with an active or unknown-concentration aqueous hold-back agent (102 rows); test asserts none kept"
+    },
+    {
+     "id": "r2-bugs-02",
+     "severity": "major",
+     "file": "generations/gen21/round4_20261022/report/r4_decide.py",
+     "line": 233,
+     "title": "S15 leg is an absolute 0.005 margin, so S15 can reproduce most of the An gain and the transfer claim still passes",
+     "description": "The transfer claim (PROTOCOL \u00a712 l.592, r4_decide.py:233, and the same rule in r4_synthetic_c.py:154) requires only g13 - g15 >= 0.005. Sealed \u00a76.2 defines a falsification control as reproducing the gain when it reaches >= 50% of the candidate's gain, and \u00a712 applies that 50% form to S16 (mean(S16 - S11) < 0.5 (S13 - S11)) but not to S15. Worked example: S11 dR2 = 0.020, S13 = 0.050, S15 = 0.044. S15 then reproduces 80% of the An gain over the scaffold (0.024 of 0.030), yet S13 - S15 = 0.006 >= 0.005, so the claim passes and S13 is labelled 'An(III) transfer'. For any S13 - S11 above 0.01, the S15 leg tolerates more than half of the gain being reproduced. The S15 control therefore cannot do the job \u00a712 l.601 gives it: excluding gains reproducible by reusing training-Ln targets with the An source structure.",
+     "suggested_fix": "Make the S15 leg `g13 - g15 >= 0.005 and (g15 - g11) < 0.5 * (g13 - g11)`, mirroring S16, in PROTOCOL \u00a712, r4_decide.block_c and r4_synthetic_c.one (and its summary). Do this before sealing.",
+     "verdict": {
+      "id": "r2-bugs-02",
+      "confirmed": false,
+      "severity": "minor",
+      "reasoning": "The arithmetic is correct, but this is a deliberate sealed design that follows the round's own precedent, not a bug. PROTOCOL \u00a78.6 says the falsification controls are 'declared per slot in the stage-1 amendment', and \u00a712 declares the S15 leg as S13 \u2212 S15 \u2265 0.005. That is the same form as block A's S03 leg (S02 \u2212 S03 \u2265 0.005) and block B's S22 leg (S06 \u2212 S22 \u2265 0.005). In both of those blocks the 50% reproduction rule is applied only to the permutation-draw control. \u00a710 states this explicitly: 'This is \u00a76.2's 50% reproduction rule, applied to the draw mean, and it applies to S21 only'. The transfer claim invokes only 'criterion 2's vs-B2 part', not \u00a76.2's control clause. A literal \u00a76.2 test (S15 \u0394R\u00b2 vs B1 \u2265 50% of S13's) would almost always fire, because S15 inherits the S11 scaffold gain. So the proposed 'fix' is a new, stricter rule, not a restoration of a sealed one. The protocol, r4_decide.py:233 and r4_synthetic_c.py:154 agree, so there is no doc/code mismatch. The label's wording ('improve held-out Ln log SF beyond ... matched ... auxiliaries') holds when S13 beats S15 by the planning margin. At most this is a clarity point. \u00a712 could say, as \u00a710 does, that the 50% rule applies to S16 only, and that S15 requires S13 to exceed it by 0.005 rather than excluding partial reproduction. Adopting a stricter S15 leg is a design choice the authors may make before sealing, but the current rule is not broken."
+     },
+     "resolution": "refuted as a defect, adopted anyway: the S15 leg now also needs (S15 - S11) < 0.5 (S13 - S11) (section 6.2's 50% rule, as for S16)"
+    },
+    {
+     "id": "r2-bugs-03",
+     "severity": "major",
+     "file": "generations/gen21/round4_20261022/scripts/r4_run.py",
+     "line": 163,
+     "title": "Predictions parquet is written before the intervention and slot-identity checks, and r4_decide C never checks run validity",
+     "description": "r4_run.py writes predictions/<ID>_<design>.parquet at line 163. Only afterwards does it run the intervention (l.170-177) and the new block-C slot identity check (l.178-184), which exit with SystemExit on failure but leave the parquet in place. report/r4_decide.py block_c (l.204-264) loads any parquet that exists and never reads results/<ID>/intervention_*.json, identity_*.json or results/leakage/poison_<ID>.json. Failure scenario: the S13 run fails its 'w_X = 0 must equal S11' identity in one fold, but predictions/S13_BPG.parquet and S13_BP.parquet exist. `r4_decide.py C` then computes criterion 1, sets run_controls = true (which unlocks S14-S16 through r4_run.block_c_route), and lists S13 in finalist_eligible. \u00a76.6 requires 'every leakage check (\u00a78)' for eligibility, and \u00a712 lists the slot identity as part of the leakage chain, so neither the gate on controls nor the eligibility rule can do its job.",
+     "suggested_fix": "In r4_run, write the parquet to a temporary name and rename it only after the intervention and identity checks pass (or delete it on failure). In r4_decide.block_c (and slot_eval generally), require that intervention_<design>.json has passed = true and identity_<design>.json has passed = true before using a table. Require poison_<ID>.json all_identical = true before listing a slot as finalist-eligible; otherwise report it as 'pending leakage checks'.",
+     "verdict": {
+      "id": "r2-bugs-03",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "Confirmed by reading the code. r4_run.py:163 writes predictions/<ID>_<design>.parquet before the intervention (l.170-177) and the slot identity check (l.178-184), and both of those exit with SystemExit while leaving the parquet in place. r4_decide.load (l.40-45) and slot_eval / block_c (l.204-264) read any parquet that exists. They never consult intervention_*.json, identity_*.json or poison_<ID>.json. A failed S13 run can therefore produce run_controls = true, which r4_run.block_c_route (l.107) trusts to unlock S14-S16, and it lists S13 in finalist_eligible. I downgraded this to minor because the checks themselves still work. A failure exits non-zero and writes an 'INTERVENTION FAILED' or 'SLOT IDENTITY CHECK FAILED' line to RUN_RECORD.md, and report/r4_table.py (l.35-79) prints the intervention, identity and poison status for the table. Blocks A and B use the same pattern, and finalist_eligible in r4_decide has always been a criterion-1 list. The gap is that the new 'enforced in code' routing can be unlocked by an invalid run.",
+      "fix": "In r4_run, write the parquet to `<name>.parquet.tmp` and `replace()` it to the final name only after the intervention and identity checks pass, or delete it on failure. In r4_decide.slot_eval / load, return None (treat as NOT RUN / invalid) unless results/<ID>/intervention_<design>.json has passed = true and identity_<design>.json (when present) has passed = true. Report finalist eligibility as 'pending leakage checks' until results/leakage/poison_<ID>.json shows all_identical = true."
+     },
+     "resolution": "r4_run writes the parquet as .pending and renames it only after the intervention and identity checks pass; r4_decide.load counts a run only if its intervention and identity JSONs show passed = true (blocks A/B unchanged: all passed)"
+    },
+    {
+     "id": "r2-bugs-04",
+     "severity": "major",
+     "file": "generations/gen21/round4_20261022/scripts/r4_gate_c.py",
+     "line": 106,
+     "title": "Gate and route artifacts are not bound to the seal; --combine silently merges stale shards",
+     "description": "r4_gate_c.py never calls r4_seal.verify(). The shards (results/gate_c/shard_<i>of<n>.json) and gate_c.json carry no seal tag or code digest. `--combine N` reads whatever shard_iofN.json files exist (l.108-109), without checking that they cover 50 distinct fold-fits or come from the same code. r4_run.block_c_route (l.99-111) and r4_decide.block_c (l.199-203) trust gate_c.json and blockC_decision.json as they are. Failure scenario: a gate run under the pre-redesign scaffold (raw-unit main loss, 3 S16 draws), or under a later re-seal, leaves shard_0of3.json in place. A partial rerun overwrites only shards 1 and 2, and --combine 3 mixes the old and new code into G_transfer_passes, which then unlocks S13 through r4_run. The same applies to a blockC_decision.json left over from an earlier seal, which unlocks S14-S16. The sealed route rule (\u00a712 'enforced in code') is enforced only against whatever file happens to be on disk.",
+     "suggested_fix": "In shard mode call r4_seal.verify() and write the seal tag (seal[:12]) into each shard row. In --combine, assert that every shard has the current seal and that the rows hold exactly 50 distinct (design, seed, fold), and write the seal into gate_c.json. Have r4_decide C copy the seal into blockC_decision.json. In block_c_route, refuse when the gate or decision seal differs from seal_tag(True).",
+     "verdict": {
+      "id": "r2-bugs-04",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "Confirmed by reading the code. r4_gate_c.py never calls r4_seal.verify(). Its shards and gate_c.json carry no seal or code tag. `--combine N` (l.106-121) reads shard_i of N without checking the seal or that the rows cover 50 distinct (design, seed, fold). r4_run.block_c_route (l.99-111) and r4_decide.block_c (l.199-203) trust gate_c.json and blockC_decision.json as they find them. The gate is the only block-C quantity that unlocks S13, and unlike blocks A and B (whose G-geo came from seal-verified r4_run fitted_*.json), it is computed outside the seal-verified runner. Nothing in code therefore stops it being run on unsealed code, or before the seal. That would also break \u00a712's list of what was seen before sealing. I rate it minor, not major: results/gate_c/ is currently empty and neither gate_c.json nor blockC_decision.json exists, so no stale artifact is in play now. The scenario needs a later partial rerun or reseal. Duplicate rows cannot arise, because the shard indices are distinct and a missing shard raises.",
+      "fix": "In shard mode, call r4_seal.verify() (refuse if it fails) and store seal[:12] in every shard row. In --combine, assert one seal across all shards, equal to the current verified seal, and exactly 50 distinct (design, seed, fold). Write the seal into gate_c.json. Have r4_decide C copy the gate's seal into blockC_decision.json, and have block_c_route refuse when either file's seal differs from seal_tag(True)."
+     },
+     "resolution": "as r2-fixes-controls-13"
+    },
+    {
+     "id": "r2-bugs-05",
+     "severity": "minor",
+     "file": "generations/gen21/round4_20261022/r4/an_data.py",
+     "line": 58,
+     "title": "Synergistic mixtures recorded as 'modifier', and suspect-flagged records, pass the 'verified, one extractant' filter",
+     "description": "`n_organic_extractants == 1` does not catch an acidic co-extractant recorded as a modifier. Five Am rows (pub_e4dd361427, a glycolamide extractant) have modifier_name 'HDEHP' at 0.25 M, which is a synergistic two-extractant system, although \u00a712 l.454 says 'synergistic mixtures are dropped'. Five further kept rows have has_suspect_flag = True (flag 'extractant_name_structure_conflict'), although the brief and \u00a712 describe the set as verified records.",
+     "suggested_fix": "Exclude records whose modifier_name is an extractant (at least HDEHP / HEH[EHP] / acidic organophosphorus; or any modifier that is not a declared alcohol or TBP-type phase modifier), and records with has_suspect_flag. Then recompute the counts and digests.",
+     "verdict": {
+      "id": "r2-bugs-05",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "A label-free check confirms both parts. Five kept Am rows of pub_e4dd361427 have the extractant CCCCCCCCN(CCCCCCCC)C(=O)CO (a dioctyl glycolamide/hydroxyacetamide) with modifier_name 'HDEHP' at 0.25 M. HDEHP is an acidic extractant, so this is a synergistic two-extractant system that passes because all rows have n_organic_extractants == 1. The only other modifier is isodecanol (6 rows), a genuine phase modifier. Five kept Am rows of pub_b155314682 have has_suspect_flag = True with flags ['extractant_name_structure_conflict']. \u00a712 says 'synergistic mixtures are dropped', and the brief asks for 'verified' records. The suspect-flag part is weaker, since the protocol never defines 'verified' as no suspect flag, but excluding a name/structure conflict is cheap. The effect is 10 rows of 1,574, hence minor.",
+      "fix": "In an3_records, add `& ~a.modifier_name.astype(str).str.contains(r'HDEHP|HEH\\[?EHP|D2EHPA|EHEHPA|Cyanex', case=False, regex=True)`, or keep only modifiers on a declared whitelist (alcohols, TBP-type), and add `& ~a.has_suspect_flag.astype(bool)`. Combine this with the r2-bugs-01 recount (counts, digests, documents, synthetic rerun) before sealing."
+     },
+     "resolution": "an3_records drops acidic co-extractants recorded as modifiers (HDEHP-type; 5 rows) and suspect-flagged records (5 rows); tested"
+    },
+    {
+     "id": "r2-bugs-06",
+     "severity": "minor",
+     "file": "generations/gen21/round4_20261022/report/r4_decide.py",
+     "line": 229,
+     "title": "On-route controls not yet run are labelled 'An attribution not shown' instead of untested",
+     "description": "When p13 is true but predictions/S15_* or S16_* do not exist yet, per[d] = None, so rules['passed'] is False, and the S13 label becomes 'exploratory gain over B1; An attribution not shown' (l.256-259). blockC_decision.json/.md must be written in exactly this state to unlock the controls (run_controls), so the first recorded block-C decision says the attribution failed when it was in fact never tested. 'selectivity' handles None as 'untested', but the main claim does not.",
+     "suggested_fix": "When any per[d] is None, set rules['passed'] = None and label S13 'An attribution untested (controls on route, not yet run)'. Keep 'not shown' only for a False result.",
+     "verdict": {
+      "id": "r2-bugs-06",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "Confirmed by reading r4_decide.py:224-259. When p13 is true and the S15 or S16 parquet is missing, per[d] = None. rules['passed'] = all(v is True ...) is then False, and the S13 label becomes 'exploratory gain over B1; An attribution not shown'. Under \u00a712's run order, blockC_decision.json must be written in exactly this state to set run_controls and unlock the controls, so the first recorded decision says the attribution failed when it was never tested. 'selectivity' already handles None as 'untested', but the main claim does not. Block B has the same pattern (geometry_rule is absent and reads as 'not shown'). This is a labelling and clarity issue, and the decision is recomputed after the controls run.",
+      "fix": "Set rules['passed'] = None when any per[d] is None, and otherwise use the bool. In the labels, use 'An attribution untested (controls on route, not yet run)' when rules.get('passed') is None and p13 is true. Keep 'An attribution not shown' only for False."
+     },
+     "resolution": "rules['passed'] is None while on-route controls have not run; label 'An attribution untested (controls on route, not yet run)'"
+    },
+    {
+     "id": "r2-bugs-07",
+     "severity": "minor",
+     "file": "generations/gen21/round4_20261022/scripts/r4_seal.py",
+     "line": 53,
+     "title": "Seal evidence list names files that do not exist, so `--seal` will crash in build()",
+     "description": "EVIDENCE includes results/logs/tests_a4.log and results/synthetic_c/SUMMARY.md, but only results/logs/tests_a4_pre.log exists and results/synthetic_c/ has only run2/. rep_0..rep_5 are still being written. build() calls sha256_text_lf on each path, so `r4_seal.py --seal` raises FileNotFoundError unless these exact files are created first. AMENDMENTS.md also has no A4 entry naming 7c8b2f043ede yet, which the reseal guard requires, although blockC_review.json's resolution of consistency-4 says it was written.",
+     "suggested_fix": "Before sealing, write the test log as results/logs/tests_a4.log (or change the name in EVIDENCE), run report/r4_synthetic_c_summary.py after all six reps finish, and write A4. Have build() report every missing evidence path in one message.",
+     "verdict": {
+      "id": "r2-bugs-07",
+      "confirmed": false,
+      "severity": "minor",
+      "reasoning": "The files are indeed absent today: results/logs/tests_a4.log (only tests_a4_pre.log, 28 passed), results/synthetic_c/SUMMARY.md and rep_0..5.json (being written now), and AMENDMENTS has no A4 entry (it ends at A3, l.276). But this is the pre-seal state, and the EVIDENCE list deliberately names the outputs that must exist before the seal. Failing when they are missing is the intended fail-safe, not a bug. The description is also slightly off. `--seal` would first stop at the reseal guard (r4_seal.py:187-192: SystemExit because '7c8b2f043ede' is not in AMENDMENTS.md), not with a FileNotFoundError in build(). And build() runs before the old seal is archived (l.195), so a missing file leaves the current seal intact. The consistency-4 resolution ('AMENDMENTS A4 written before the seal') reads as a planned step, not a claim that it is already done. The fair remaining point is a checklist reminder: rerun the tests after the fixes into tests_a4.log, run r4_synthetic_c_summary.py after all reps, and write A4. A one-message list of missing evidence paths would be a cosmetic convenience only."
+     },
+     "resolution": "refuted (pre-seal state); the seal is run only after every EVIDENCE file exists"
+    },
+    {
+     "id": "r2-bugs-08",
+     "severity": "minor",
+     "file": "generations/gen21/round4_20261022/scripts/r4_gate_c.py",
+     "line": 48,
+     "title": "The 'independent' An isolation check reuses an_links() and _canon, so the linked-chemotype clause is not independently verified",
+     "description": "PROTOCOL \u00a712 l.485 and the r4_gate_c docstring say the four clauses are recomputed independently of excluded_by. _overlaps (l.43-53) and the unit test (test_slots_c.py:62) both use AD.an_links() and AD._canon, the same objects excluded_by uses. A wrong threshold, radius or fingerprint size in an_links (for example a linked chemotype missed) would give 0 overlaps in all 248 checks.",
+     "suggested_fix": "In _overlaps, recompute links directly (a fresh Morgan generator plus BulkTanimotoSimilarity against the bench frame's extractants and chemotypes, without AD.an_links), or reword the documents to say the publication / copy-group / extractant clauses are independent and the link map is shared.",
+     "verdict": {
+      "id": "r2-bugs-08",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "Confirmed by reading the code. r4_gate_c._overlaps (l.43-53) and tests/test_slots_c.py:62-70 use AD.an_links() and AD._canon, the same link map that excluded_by uses (an_data.py:103-105). The check recomputes the held-cell publication, copy-group, extractant and chemotype sets independently of excluded_by. That makes \u00a712's wording ('recomputes the four clauses independently of excluded_by') literally true for how the rule is applied. But the linked-chemotype clause cannot detect an error in the link map itself, for example the threshold, the comparison direction, fingerprint parameters, or a collision in the cohort_chemotypes dict. I found no actual defect: no cohort extractant maps to more than one chemotype (90/90 unique), and the map is sealed by digest. This is minor: verification independence and documentation clarity.",
+      "fix": "The cheapest fix is to reword PROTOCOL \u00a712, DATA_CONTRACT and the r4_gate_c docstring: 'the publication, copy-group and extractant clauses are recomputed independently; the linked-chemotype clause reuses the sealed link map (an3_links_sha256)'. Optionally, in _overlaps, recompute the links with a fresh rdFingerprintGenerator (radius 2, 2048 bits) and DataStructs.BulkTanimotoSimilarity against the bench frame's extractants and chemotypes directly, and assert that the result equals AD.an_links()."
+     },
+     "resolution": "wording changed to 'recomputed without calling excluded_by (reusing the sealed link map, canonicaliser and copy-group map)'; new test rebuilds the link map from scratch with a fresh fingerprint generator"
+    },
+    {
+     "id": "r2-bugs-09",
+     "severity": "minor",
+     "file": "generations/gen21/round4_20261022/report/r4_synthetic_c_summary.py",
+     "line": 8,
+     "title": "Synthetic summary says selectivity is reported 'given the claim and overall', but only the overall rate is computed",
+     "description": "The docstring (l.8) promises the selectivity sub-label rate conditional on the transfer claim. Line 61 reports only cp([r['selectivity'] for r in rs]), the unconditional rate. Under the sealed rule the sub-label is shown only given the claim, so the reported number is not the rule as applied.",
+     "suggested_fix": "Add a column cp([r['selectivity'] for r in rs if r['transfer_claim']]) (k/n with n = the claims), or correct the docstring.",
+     "verdict": {
+      "id": "r2-bugs-09",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "Confirmed. The r4_synthetic_c_summary.py docstring (l.8) says the selectivity sub-label is 'reported given the claim and overall'. Line 61 computes only cp([r['selectivity'] for r in rs]), the unconditional rate, and the column header (l.47) does not say 'overall'. Under \u00a712 the sub-label applies only given the transfer claim, so the reported number is not the rule as applied. r4_synthetic_c.one (l.164) stores selectivity unconditionally, so the conditional rate can be computed from the stored reps without rerunning anything.",
+      "fix": "Add a column `cp([r['selectivity'] for r in rs if r['transfer_claim']])` (k/n, where n is the number of claims; '0/0' when there are none) and label the existing column 'selectivity overall'. Alternatively, correct the docstring to 'overall only'."
+     },
+     "resolution": "summary reports selectivity overall and given the claim"
+    }
+   ]
+  },
+  {
+   "lens": "docs",
+   "findings": [
+    {
+     "id": "r2-docs-01",
+     "severity": "major",
+     "file": "generations/gen21/round4_20261022/PROTOCOL.md",
+     "line": 437,
+     "title": "Amendment A4 does not exist, though PROTOCOL \u00a712, the registry and the review resolutions rely on it",
+     "description": "AMENDMENTS.md ends with A3 (last modified 09:00, before the redesign). It has no '## A4' heading and does not contain the current seal id 7c8b2f043ede. Several sealed texts depend on A4:\n- PROTOCOL \u00a712 l.437: 'A4 lists all of these, together with the design changes they caused'.\n- l.649: synthetic run 3 'is summarised in A4. Runs 1 and 2 ... their record is in A4'.\n- l.433: 'every result listed in A4'.\n- Every block-C registry status reads 'SEALED (A4)'.\n- The sealed evidence results/blockC_review.json (finding consistency-4) gives the resolution 'AMENDMENTS A4 written before the seal, naming 7c8b2f043ede, listing all results seen and the redesigns'. That is false for the current tree.\n\u00a70 rule 2 requires every amendment to list every result already seen. As things stand, the list of results seen for block C (blocks A/B outcomes, the label-free counts, synthetic runs 2-3, the design diagnostics, the smoke) exists only in RUN_RECORD. r4_seal --seal fails closed here (old[:12] not in AMENDMENTS.md), so there is no silent seal, but the documents as written point to a record that does not exist.",
+     "suggested_fix": "Write the A4 entry before sealing. It should name 7c8b2f043ede and list every block-C result seen: counts, isolation, the technical smoke, synthetic runs 1-3 with the run-3 summary, the design diagnostics, the 40-finding review and the redesigns. Alternatively, change the blockC_review.json resolution so that it does not claim A4 already exists.",
+     "verdict": {
+      "id": "r2-docs-01",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "The facts check out. AMENDMENTS.md has only the headings A1 (l.12), A2 (l.168) and A3 (l.276). The text '7c8b2f043ede' appears nowhere in it, yet manifests/stage0_seal.txt is 7c8b2f043ede... (the A3 seal, RUN_RECORD l.54). PROTOCOL \u00a712 relies on A4 at l.433 ('every result listed in A4'), l.439 ('A4 lists all of these') and l.649 (run-3 summary and the runs 1-2 record). Five registry rows read 'SEALED (A4)'. In blockC_review.json, consistency-4's resolution names A4, and so does controls-04's ('stated in A4'). I downgrade it from major to minor because nothing can be sealed by mistake. r4_seal.main (l.187-192) refuses to reseal while old[:12] is missing from AMENDMENTS.md. A4 also cannot be complete yet: it has to summarise synthetic run 3, which is still running (rep logs are 0 bytes and there are no rep_*.json files). So this is a pending pre-seal step, not a broken rule. One real residual risk: the guard only checks that the 12-character prefix is present. It does not check that A4 actually lists everything \u00a70 rule 2 requires.",
+      "fix": "Before running --seal, write '## A4 ... supersedes seal 7c8b2f043ede'. It must list every block-C quantity seen: label-free counts, isolation_an, the technical smoke (configs, design, fold, pre- or post-review scaffold), synthetic run 1 (stopped), runs 2 and 3 with the run-3 summary, the design diagnostics, the 40-finding review with its verdicts, the redesigns (S15/S16/S24 after counts; loss normalisation and WD after run 2) and the test results."
+     },
+     "resolution": "as r2-fixes-consistency-4"
+    },
+    {
+     "id": "r2-docs-02",
+     "severity": "minor",
+     "file": "generations/gen21/round4_20261022/scripts/r4_seal.py",
+     "line": 53,
+     "title": "EVIDENCE names results/logs/tests_a4.log, which nothing produces and which does not exist",
+     "description": "EVIDENCE ends with \"results/logs/tests_a4.log\". Only results/logs/tests_a4_pre.log (113 bytes, '28 passed') exists, and no script writes tests_a4.log: the README / test-module pytest command does not tee to a log. build() calls sha256_text_lf on every EVIDENCE path, so --seal (and every later --verify) will raise FileNotFoundError until someone creates the file by hand. results/synthetic_c/SUMMARY.md and rep_0..5.json are also absent for now. They depend on run 3 finishing all 6 replicates and on report/r4_synthetic_c_summary.py being run, and a single failed replicate blocks the seal in the same way. This fails closed, but nothing documents how the log is made.",
+     "suggested_fix": "State the exact command that writes tests_a4.log (pytest ... | tee results/logs/tests_a4.log) in RESOURCE_PLAN or A4, or point EVIDENCE at an existing log. Run r4_synthetic_c_summary.py after the 6 replicates finish and before --seal.",
+     "verdict": {
+      "id": "r2-docs-02",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "r4_seal.py l.53 adds 'results/logs/tests_a4.log' to EVIDENCE. Only results/logs/tests_a4_pre.log exists (113 bytes, '28 passed'). A grep finds no producer for tests_a4.log. The pytest commands in README l.25, RESUME l.24 and the test module docstrings do not tee to a log. build() (l.153) runs sha256_text_lf on every EVIDENCE path, and that does Path.read_bytes, so a missing file raises FileNotFoundError. The same happens until results/synthetic_c/SUMMARY.md and rep_0..5.json exist; only run2/ is present now. This fails closed: build() runs before the old seal is archived (l.195), so the current seal stays in place. The real problem is that how this log gets made is undocumented.",
+      "fix": "Document the exact command, for example '.venv/Scripts/python.exe -m pytest generations/gen21/round4_20261022/tests -q -p no:cacheprovider -W ignore 2>&1 | tee generations/gen21/round4_20261022/results/logs/tests_a4.log', in A4 or RESOURCE_PLAN. Run it, and run report/r4_synthetic_c_summary.py once all six rep_*.json files exist, both before --seal."
+     },
+     "resolution": "as r2-fixes-controls-14"
+    },
+    {
+     "id": "r2-docs-03",
+     "severity": "minor",
+     "file": "generations/gen21/round4_20261022/scripts/r4_run.py",
+     "line": 102,
+     "title": "Route enforcement trusts any gate_c.json / blockC_decision.json; the gate is not bound to the seal",
+     "description": "block_c_route opens S13 whenever results/gate_c.json has G_transfer_passes true, and opens the controls whenever results/blockC_decision.json has run_controls true. Two gaps:\n- scripts/r4_gate_c.py (--shard and --combine) never calls r4_seal.verify. Neither the shards nor gate_c.json record a seal or code key.\n- --combine joins whatever shard_{i}of{n}.json files are in results/gate_c/ (the directory already exists), without checking provenance.\nSo shards left over from pre-seal or modified code (for example a development run of the old scaffold) would open S13's route, and r4_run would accept it. PROTOCOL \u00a712 l.573 says routes are 'enforced in code'. For the gate input that holds only if the operator runs the gate after the seal.",
+     "suggested_fix": "Have r4_gate_c verify the seal (as r4_run.seal_tag does) and write the seal id into each shard and into gate_c.json. In block_c_route and block_c, require gate_c.json's seal to equal the current verified seal and fold_fits == 50.",
+     "verdict": {
+      "id": "r2-docs-03",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "Confirmed as described. block_c_route (r4_run.py l.99-111) opens S13 when gate_c.json has G_transfer_passes true. It also accepts any blockC_decision.json with run_controls true. Neither file is checked against the seal. r4_gate_c.py never imports r4_seal or calls verify(). Shards (l.144) and gate_c.json (l.121) record no seal or code key. --combine (l.106-123) joins whatever shard_{i}of{n}.json files are present. It does not check fold_fits == 50 or that the folds are distinct, so a stale or partial set (for example --combine 1 on a leftover shard_0of1.json from the default --shard 0/1) would be accepted. report/r4_decide.block_c (l.199-202) trusts gate_c.json the same way. It stays minor because results/gate_c/ is empty today and sealed run order puts the gate after the seal, so the binding currently depends on operator discipline, not on code. PROTOCOL l.573 nevertheless says the routes are 'enforced in code'.",
+      "fix": "In r4_gate_c (shard and combine), call r4_seal.verify() and refuse if it fails, as r4_run.seal_tag does. Write the seal id into each shard and into gate_c.json. In --combine, require one key across shards and exactly 50 distinct (design, seed, fold). In block_c_route and r4_decide.block_c, accept gate_c.json only when its seal equals the current verified seal and fold_fits == 50."
+     },
+     "resolution": "as r2-fixes-controls-13"
+    },
+    {
+     "id": "r2-docs-04",
+     "severity": "minor",
+     "file": "generations/gen21/round4_20261022/scripts/r4_gate_c.py",
+     "line": 48,
+     "title": "'Independent' exclusion check reuses the same link map, canonicaliser and copy-group column as excluded_by",
+     "description": "PROTOCOL \u00a712 l.485 and DATA_CONTRACT l.191 say r4_gate_c --counts 'recomputes the four clauses independently of excluded_by'. _overlaps uses:\n- AD.an_links() (l.48);\n- AD._canon (l.52);\n- the an3_records copy_group column, built from the same copy_group_map().\nThe unit test (tests/test_slots_c.py l.62-70) does the same. Both only re-check excluded_by's boolean OR. A wrong link map would pass both checks with 0 overlaps: for example a fingerprint or threshold different from the project's ECFP r2/2048 @ 0.7 rule, or a canonicalisation mismatch. The 0-in-248 result therefore does not independently confirm the linked-chemotype clause.",
+     "suggested_fix": "Either reword it as 'recomputes the union of the four clauses separately from excluded_by (same link map)', or compute the linked-chemotype clause independently, for example through gen11 pools.chemotype_assignment on the ECFP columns, and compare it with an_links.",
+     "verdict": {
+      "id": "r2-docs-04",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "r4_gate_c._overlaps (l.43-53) does not call excluded_by, and it builds the held set its own way (l.63), which is a real check of fold_an's held-set construction and filtering. But it reuses exactly what excluded_by uses: AD.an_links() (l.48), AD._canon (l.52), copy_group_map() for the held side, and the an.copy_group column, which an3_records built from the same map. tests/test_slots_c.py l.61-70 does the same. A fault in the link map would therefore pass both checks: for example the cohort_chemotypes dict collapsing an extractant that has two chemotypes, a fingerprint or threshold drift from gen11 pools.chemotype_assignment (which uses the cohort's featurizer ECFP columns and tanimoto_cluster), or a canonicalisation mismatch. 'Recomputes the four clauses independently of excluded_by' (PROTOCOL l.485) is literally true, but it overstates what the 0-in-248 result shows for clause (d) and the canonical-extractant clause.",
+      "fix": "Reword PROTOCOL l.485 and the DATA_CONTRACT l.191 heading to 'recomputes the four clauses from the held cells without calling excluded_by (same link map, canonicaliser and copy-group map)'. Optionally add a label-free test that compares an_links() with gen11 pools.chemotype_assignment on the cohort ECFP columns."
+     },
+     "resolution": "as r2-bugs-08"
+    },
+    {
+     "id": "r2-docs-05",
+     "severity": "minor",
+     "file": "generations/gen21/round4_20261022/RESOURCE_PLAN.md",
+     "line": 69,
+     "title": "Fit-poisoning estimate for the controls contradicts the plan's own S16 fit cost",
+     "description": "Line 69 gives fit poisoning as 'twice the fit cost per fold for 50 folds' and 'controls 8-15 h each'. Line 68 gives S16 at 10-12 min per fold-fit, so S16 poisoning is 2 \u00d7 10-12 min \u00d7 50 \u2248 17-20 h, outside the stated 8-15 h. The rule at line 74 for when control poisoning would exceed the 30 wall-hour ceiling depends on this estimate.",
+     "suggested_fix": "State S14/S15 at about 8-10 h and S16 at about 17-20 h, and recheck the 30 wall-hour ceiling against the sum.",
+     "verdict": {
+      "id": "r2-docs-05",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "r4_poison.py fits the whole chain twice per fold, real and poisoned, over 50 folds, so 'twice the fit cost' is the right model. From RESOURCE_PLAN's own rows: S14/S15 at 5-6 min per fold-fit gives 2 \u00d7 50 \u00d7 5-6 min \u2248 8.3-10 h. S16 at 10-12 min gives \u2248 16.7-20 h, outside the stated 'controls 8-15 h each' (l.69). The S11 cache does not help here, because the poisoned bench has a different id and misses it. The overrun rule at l.74 depends on this estimate.",
+      "fix": "At l.69, write 'S14 / S15 about 8-10 h each, S16 about 17-20 h'. Recheck the 30 wall-hour ceiling and the BPG-first rule against the parallel sum."
+     },
+     "resolution": "RESOURCE_PLAN poisoning estimates: S14 / S15 8-10 h, S16 17-20 h; ceiling 40 wall-hours"
+    },
+    {
+     "id": "r2-docs-06",
+     "severity": "minor",
+     "file": "generations/gen21/round4_20261022/PROTOCOL.md",
+     "line": 435,
+     "title": "The block-C technical smoke declared as seen has no RUN_RECORD entry",
+     "description": "\u00a712 lists 'training-side inner scores of one fold from a technical smoke' among the block-C quantities seen before the seal. RUN_RECORD.md (header and \u00a70 l.14: 'logs every run start and end') has no smoke entry for block C: grep for 'smoke' finds nothing. Unrecorded:\n- which config (S11 or S13), design and fold (r4_run --technical-smoke uses folds_for(...)[0]);\n- whether it ran the pre-review or the revised scaffold.\nThose real-label inner scores are the same kind of quantity the G-transfer inner gate counts.",
+     "suggested_fix": "Add a RUN_RECORD line (or an A4 item) naming the config, design, seed and fold, the code state, and what was printed: fitted_info truncated to 600 characters, including inner scores.",
+     "verdict": {
+      "id": "r2-docs-06",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "Partly confirmed. There is no smoke entry in RUN_RECORD.md, but by the established convention that is not a violation. Block-A and block-B smokes were never logged in RUN_RECORD either. They were declared in the amendments (A1 l.69-72 names the configs and designs; A2 l.224 names S05/S06/S09/S22 on one BPG fold), and r4_run --technical-smoke writes nothing by design (l.119, l.265-290). The substantive residual is real, though. PROTOCOL l.435 declares that inner scores from a block-C smoke were seen, but no document records which config (S11 or S13), design or fold was smoked, or whether the run used the pre-review or the revised scaffold. If S13 was smoked, its positive-w_X inner scores on one fold are of the same kind G-transfer counts. This overlaps with r2-docs-01, because A4 is where it belongs.",
+      "fix": "In A4, following A1/A2's format, list each block-C technical smoke: config, design, seed and fold (folds_for(...)[0]), the code state (pre-review scaffold or revised; time), and that the printed fitted_info, truncated to 600 characters, included inner scores. No RUN_RECORD line is needed."
+     },
+     "resolution": "A4 lists the block-C technical smoke (config, fold, time, code state, inner scores); also in design_diagnostics.json"
+    },
+    {
+     "id": "r2-docs-07",
+     "severity": "minor",
+     "file": "generations/gen21/round4_20261022/DATA_CONTRACT.md",
+     "line": 177,
+     "title": "S14 described with the private head's one-hot features; PROTOCOL says the private head trains whenever w_X > 0",
+     "description": "DATA_CONTRACT puts S14 in 'An(III) auxiliary rows (S13, S14, S16)' (l.167), with 'Features: the encoder of the extractant, plus a 4-way metal one-hot' (l.177). In code, S14's An rows instead use [h, x(analogue), q(analogue)] through the Ln head (slots_c.py l.197-203) and never use the one-hot. PROTOCOL l.501 says the private head is 'present in every arm, trained only when w_X > 0', but S14 never trains it at any w_X. The \u00a712 slot table and DATA_CONTRACT 'Control data' state this correctly, so the two sections contradict each other.",
+     "suggested_fix": "Write 'S13, S16 (S14: see Control data)' for the one-hot features, and qualify l.501 as 'trained when w_X > 0, except S14, whose An rows go through the Ln head'.",
+     "verdict": {
+      "id": "r2-docs-07",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "DATA_CONTRACT l.167 puts S14 under 'An(III) auxiliary rows (S13, S14, S16)', and l.177 gives their features as 'the encoder of the extractant, plus a 4-way metal one-hot'. For S14, slots_c.aux_data (l.197-203) sets priv=None. It sends the An rows through the Ln head as [h, x(analogue), q(analogue)] (an_in_ln), and train() uses net.ln for kind 'ln', so the one-hot is never used. DATA_CONTRACT l.195 ('Control data') describes this correctly, so the document contradicts itself. The slots_c docstring is correct: 'private aux head (S13, S15, S16, S24)'. PROTOCOL l.501 ('present in every arm, trained only when w_X > 0') is not strictly false, since 'only when' is a necessary condition. Next to the slot table's 'with no private head' for S14 (l.537), though, it reads as if S14 trains the private head.",
+      "fix": "At DATA_CONTRACT l.177, write 'Features (S13, S16): the encoder plus a 4-way metal one-hot; S14: see Control data'. At PROTOCOL l.501, write 'used by S13, S15, S16 and S24 when w_X > 0; S11 never uses it, and S14 routes its An rows through the Ln head'."
+     },
+     "resolution": "DATA_CONTRACT and section 12 say which arms use the private head and that S14 routes An rows through the Ln head"
+    },
+    {
+     "id": "r2-docs-08",
+     "severity": "minor",
+     "file": "generations/gen21/round4_20261022/PROVENANCE.md",
+     "line": 114,
+     "title": "PROVENANCE gate paragraph still says block C 'needs a chemotype assignment' and keeps the old inventory as current",
+     "description": "The new A4 note at l.71 supersedes the inventory, but two statements still read as current:\n- l.114: 'It still needs the inner-signal gate, and a chemotype assignment for non-cohort extractants, before scoring.' A4 now defines the chemotype links (an_links, 44 of 113 linked).\n- l.74: 'Not done: chemotype isolation ... a transfer slot must add one before use.'\nThe sealed REPORT.md l.40 also still says '19 or more publications and 95 or more An(III) extractants survive'. Under A4 the minima are 13 publications / 12 copy groups / 77 extractants.",
+     "suggested_fix": "In l.114, replace the chemotype clause with 'chemotype links defined in A4 (\u00a712)'. Mark l.74 as superseded. Note REPORT.md's An counts as pre-A4, or update REPORT.md when block C is reported.",
+     "verdict": {
+      "id": "r2-docs-08",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "PROVENANCE l.114 was edited for A4 ('Under A4's definition the count part still passes ...'), but it still ends 'It still needs the inner-signal gate, and a chemotype assignment for non-cohort extractants, before scoring'. A4 now defines that assignment (an_links; PROTOCOL l.460-467), so that clause is stale. l.74 ('Not done: chemotype isolation ...') sits under l.71's 'Superseded for block C ... The figures below are the stage-1 inventory', so it is mostly covered, though 'figures' does not obviously include that statement. REPORT.md l.40 is the A3 close-out report, sealed as evidence. Its counts were correct under the stage-1 definition, and the first review already decided (consistency-6) to update REPORT.md when block C is reported. That part is not a new defect.",
+      "fix": "At PROVENANCE l.114, replace the chemotype clause with 'chemotype links are defined in A4 (PROTOCOL \u00a712); it still needs the inner-signal gate before scoring'. Prefix l.74 with '(stage-1 inventory; superseded by A4)'. Leave REPORT.md for the block-C report, as already resolved."
+     },
+     "resolution": "PROVENANCE l.74 and l.114 updated (stage-1 inventory superseded; chemotype links defined in A4)"
+    },
+    {
+     "id": "r2-docs-09",
+     "severity": "minor",
+     "file": "generations/gen21/round4_20261022/PROTOCOL.md",
+     "line": 29,
+     "title": "\u00a70 was annotated in place for A4 but still states stage-0 facts as current",
+     "description": "\u00a70 was edited for A4 (block list l.32). It still says:\n- l.19: 'The campaign slots S01\u2013S24 (section 7) are PLANNED.' S01/S02/S05/S06 are RUN, and most of the rest are NOT RUN.\n- l.29: 'B2 has never been scored on outer folds.' B2 was scored in REF and in every block-A/B run.\n- l.21: the 'Seen before this seal' list is the stage-0 list only, although this seal is A4.",
+     "suggested_fix": "Prefix these lines with 'At the stage-0 seal:'. Point to A1\u2013A4 for what was seen before the current seal.",
+     "verdict": {
+      "id": "r2-docs-09",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "\u00a70 (PROTOCOL l.17-34) is headed 'Status, and what was seen before this seal'. l.32 was annotated in place for A1, A2 and A4, but l.19 ('The campaign slots S01\u2013S24 (section 7) are PLANNED') and l.29 ('B2 has never been scored on outer folds') are now false. B2 was scored in REF (results/REF/TABLE.md: B2 0.4299 BPG) and appears in every block-A/B table. The 'Seen before this seal' list (l.21-27) is stage 0's only. The complete lists live in the amendments and in the per-block sections (\u00a710-\u00a712), so this is a clarity issue that predates A4, not a rule failure.",
+      "fix": "Change the \u00a70 heading or l.19-29 to read 'At the stage-0 seal (1a09964dd60b): ...', and add a line saying that what was seen before each later seal is listed in A1-A4 and in \u00a710-\u00a712."
+     },
+     "resolution": "section 0 headed as the stage-0 state, pointing to A1-A4 and sections 10-12"
+    },
+    {
+     "id": "r2-docs-10",
+     "severity": "minor",
+     "file": "generations/gen21/round4_20261022/scripts/r4_seal.py",
+     "line": 80,
+     "title": "code_digests resolves torch.ops' relative __file__ against the working directory",
+     "description": "torch is in sys.modules when the seal is built (imported via r3.harness). torch.ops.__file__ == '_ops.py' and torch.classes.__file__ == '_classes.py' are relative paths. Path(f).resolve() maps them to <cwd>/_ops.py, so the working directory is added to `dirs`, and every *.py there is digested. This is harmless today: D:/ml_separator_gh, the round-4 root, scripts/ and tests/ add nothing new. But the manifest depends on where --seal or --verify (and therefore r4_run) is launched. Coverage of block C's lazy imports is otherwise complete: gen19ct (data/ and paths), gen20k.splits/data/design, gen13sep, g21.evaluate and r3.interp are all covered, and torch, rdkit and catboost are versioned in environment().",
+     "suggested_fix": "Skip modules whose __file__ is not absolute (`if not Path(f).is_absolute(): continue`) before resolving.",
+     "verdict": {
+      "id": "r2-docs-10",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "I checked this in the venv. After importing the seal's module list, torch is already in sys.modules (it arrives with r4.metrics), and the only modules with a relative __file__ are torch.ops ('_ops.py') and torch.classes ('_classes.py'). Path('_ops.py').resolve() gives <cwd>/_ops.py, which passes the ROOT, .venv and suffix filters in code_digests (l.76-87), so the working directory's *.py files are added to the manifest. Today this is harmless only from ROOT or round4/, where no new .py files appear. Launched from D:/ml_separator_gh/scripts, it would add 99 unrelated files. A seal and a verify run from different directories would then disagree, and r4_run would refuse. That fails closed, but the manifest depends on the working directory.",
+      "fix": "In code_digests, add `if not Path(f).is_absolute(): continue` before `p = Path(f).resolve()`."
+     },
+     "resolution": "code_digests skips modules with a relative __file__"
+    }
+   ]
+  }
+ ],
+ "n_findings": 26,
+ "n_confirmed": 23
+}

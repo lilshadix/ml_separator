@@ -1,0 +1,1241 @@
+[
+ {
+  "area": "Strain architecture (anchored level/shape + distance-encoder blend) and its fresh-444 confirmation. Paths below use strain = D:/ml_separator_refs/lanthanidestrain_025f808 (pinned 025f808, text files verified against MANIFEST.json blob SHAs). RI = D:/ml_separator_gh/generations/gen21/round4_design_20261022/RESEARCH_IDEAS.md, CCP = .../CLAUDE_CODE_PROMPT.md. Read-only. No strain code was imported or run. The only computations were python -I reads of JSON/CSV/TREE/npz and git hash-object.",
+  "claims": [
+   {
+    "id": "S1",
+    "claim": "The strain models regress per-row log D and are scored by R2 on adjacent-pair log SF; they do not predict R2 itself.",
+    "doc_ref": "RI L48 'What the strain architecture actually does'",
+    "status": "VERIFIED",
+    "evidence": "strain/automl/dataset.py:55 TARGET = \"log_D\"; strain/automl/topo/anchored_champion.py:123 y = df[\"log_D\"], :153-156 adj_r2 = ev._r2(dy, dp) from ev.adjacent_pair_arrays; strain/automl/evaluation.py:193-206 replicate-mean per (composition, metal), then dy = y[lower index] - y[higher index] for |delta lanthanide_index| == 1",
+    "note": "Orientation is lighter minus heavier, as in Gen21. It is a zero-shot leave-extractant-out task: no measured supports. Every adjacent pair with both endpoints measured is scored, which differs from Gen21's k=3 queries."
+   },
+   {
+    "id": "S2",
+    "claim": "The confirmed blend is prediction = anchor + 0.65*tabular_shape + 0.35*encoder_shape.",
+    "doc_ref": "RI L50-52 formula; CCP §6 'scalar blending'",
+    "status": "VERIFIED",
+    "evidence": "strain/automl/topo/anchored_3d_confirm.py:40 W_FIXED = 0.35; :68 df[\"blend\"] = (anchor + (1 - w) * st + w * se); :13-14 '0.35 is the median nested weight from the legacy-population analysis (I15); it is NOT re-fitted here'; strain/automl/reports/anchored_3d.json:15-17 w mean 0.34868421052631593, min 0.30000000000000004, max 0.4",
+    "note": "0.35 came from legacy-905 pooled-OOF nested selection (anchored_3d.py:48 GRID 0..1 step 0.05). The median itself is not stored in the JSON."
+   },
+   {
+    "id": "S3",
+    "claim": "One CatBoost model learns the level.",
+    "doc_ref": "RI L54",
+    "status": "VERIFIED",
+    "evidence": "anchored_champion.py:50-51 CHAMP = iterations=1500, learning_rate=0.04, depth=9, l2_leaf_reg=3.0, rsm=0.3, loss 'Quantile:alpha=0.6'; :132 base fitted on raw y[tr] (log_D); :144 anchor = bp.groupby(key_te).transform('mean'); :147-148 p = anchor + shape_weight*shape_c + (1-shape_weight)*base_c",
+    "note": "The base model fits full log D. Only its key mean enters, because the champion anch_q60_q60 (:168) uses shape_weight default 1.0 (:111). Inputs are the rdkit/ecfp/metal/cond/plan blocks (:73-74), 746 columns (:18)."
+   },
+   {
+    "id": "S4",
+    "claim": "The champion's second (shape) model is trained on targets centred by training extractant, and test-side centring uses predictions only.",
+    "doc_ref": "RI L54; CCP §6 'All centering of training targets uses training labels only'",
+    "status": "VERIFIED",
+    "evidence": "anchored_champion.py:111 level=\"extractant\" default; :126 key_arr = g if level == \"extractant\" else comp; :136-138 resid = y[tr] - training-key mean of y[tr]; :143-146 anchor/shape_c centred on test-key means of predictions; :168 'anch_q60_q60': dict(base_params=CHAMP, resid_params=CHAMP); TRANSFORMERS.md:159-160 'its target is centred by extractant, so every one of the 4,746 rows trains it'",
+    "note": "TRANSFORMERS.md:24-25 and SCIENTIFIC_FINDINGS.md:1156 call this 'block-centred'. For the champion the block is the extractant, so the wording is inconsistent but the code is unambiguous. This complies with CCP's rule against centring by held-out labels."
+   },
+   {
+    "id": "S5",
+    "claim": "Composition-block centring is available as another variant.",
+    "doc_ref": "RI L54",
+    "status": "VERIFIED",
+    "evidence": "anchored_champion.py:170-171 'anch_q60_mae_comp': dict(base_params=CHAMP, resid_params=MAE_DEEP, level=\"composition\")",
+    "note": "The variant uses an MAE residual model, not the champion's quantile-0.6 residual."
+   },
+   {
+    "id": "S6",
+    "claim": "The later 3D blend centres predictions by composition block.",
+    "doc_ref": "RI L54",
+    "status": "VERIFIED",
+    "evidence": "anchored_3d.py:74-78 anchor = oof.groupby(composition_key).mean; st/se centred on the same key; anchored_3d_confirm.py:64-67 the same",
+    "note": "The anchored-champion OOF (extractant-anchored) is re-centred here by binned composition_key."
+   },
+   {
+    "id": "S7",
+    "claim": "The SchNet-style distance encoder supplies a shape estimate from atom types, charges, donor/metal flags and interatomic distances.",
+    "doc_ref": "RI L54; CCP §6 'distance encoder'",
+    "status": "PARTLY",
+    "evidence": "dist_gnn.py:23-26 'SchNet-style continuous filter network'; :197 hn = z_emb(z_idx) + node_in(node_feat); :199 rbf(edge_filt); simplicial_data.py:372-373 node_feat = [charge, charge_missing, is_metal, is_donor, dist_to_metal]; :55-56 27-element Z vocab incl. Z 57-71; train.py:533-534 DistanceNet(..., tabular_dim=X.shape[1]); dist_gnn.py:234-237 tabular concatenated into the head; slurm/c19_enc_has3d.sh:26-28 '--preset baseline_2d --filtration-max 4.0 --heavy-only --pair-loss-weight 4.0 --rbf-bins 64 --select-on adjacent'",
+    "note": "Not mentioned in the docs: the head also receives the full 2D tabular block (rdkit, ecfp, metal Z/radius, cond, plan), and the network trains on log D plus a within-block pair loss of weight 4. So 'encoder shape' is a hybrid of 3D and 2D, not a 3D-only signal. Metal identity enters both through the Z embedding and through the tabular columns."
+   },
+   {
+    "id": "S8",
+    "claim": "The common anchor cancels in pair differences.",
+    "doc_ref": "RI L54",
+    "status": "VERIFIED",
+    "evidence": "anchored_3d_confirm.py:64-65 anchor is constant per composition_key; :76-89 pairs are formed only inside one composition_key; :103 tab = anchor + (oof - anchor) (= raw anchored OOF); TRANSFORMERS.md:27-28 'The anchor cancels in every scored pair'",
+    "note": "The scored contrast therefore compares only the two shape terms."
+   },
+   {
+    "id": "S9",
+    "claim": "The architecture blends scalar predictions and is not 'OOF latent embeddings into CatBoost'.",
+    "doc_ref": "RI L54; RI L71; CCP §6 'not OOF embeddings into CatBoost'",
+    "status": "VERIFIED",
+    "evidence": "anchored_3d_confirm.py:50-56 averages scalar 'oof' columns across encoder seed parquets; strain/automl/reports/EMBEDDING_RESULTS.md:18-19 B0 tabular +0.1422 vs 'B1 tabular + SNN embedding (1,610) | -0.0092'; :39 accuracy 1.000 (chance 0.200) predicting the fold from the embedding; :54 scalar cross-fitted stacking is sound",
+    "note": "This also verifies the RI L71 rule that fold-trained embeddings have unaligned bases."
+   },
+   {
+    "id": "S10",
+    "claim": "The fresh-subset comparison is 0.1206581465 vs 0.1050815759 (+0.0155765706 R2).",
+    "doc_ref": "RI L56",
+    "status": "VERIFIED",
+    "evidence": "strain/automl/reports/anchored_3d_confirm.json:6-7 n 444, r2 0.1206581464767792; :11-12 r2 0.10508157590687539; :15 contrast 0.015576570569903803",
+    "note": "Matches to 10 decimals. Legacy-905 contrast is 0.01457751361579629 (:28); the 1,349 union is 0.014920536216495695 (:41). This cannot be recomputed locally (see S20)."
+   },
+   {
+    "id": "S11",
+    "claim": "The declared PASS rule required only a positive contrast, and no CI or p-value is supplied.",
+    "doc_ref": "RI L58",
+    "status": "VERIFIED",
+    "evidence": "anchored_3d_confirm.py:15-16 'PASS = blend R2 > tabular R2 on the fresh pairs (sign of the contrast, not a magnitude threshold...)'; :113 verdict = out['results']['fresh']['contrast'] > 0; anchored_3d_confirm.json:1-45 holds only n, r2, pearson2, contrast and 'primary_pass': true",
+    "note": "No bootstrap, SE or interval anywhere in the confirm script or JSON."
+   },
+   {
+    "id": "S12",
+    "claim": "The 444 pairs are newly eligible records in the same database after geometry-QC relaxation, not an external cohort.",
+    "doc_ref": "RI L59",
+    "status": "VERIFIED",
+    "evidence": "fresh_eval.py:4-10; :55-60 legacy = geometry_ok & has_3d, expanded = has_3d, fresh = sorted(expanded - legacy); :35,:54 both read automl/artifacts/matrix/matrix.parquet; artifacts/fresh_eval/fresh_pairs.json:4-12 legacy 4,746 rows / 905 pairs, expanded 5,946 / 1,349, n_fresh 444",
+    "note": "They are also not chemically independent: 53 of the 59 fresh extractants (424 of 444 pairs) also have pairs in the legacy-905 iteration set. I computed this against reports/adjacent_decomposition.csv (76 extractants, n_pairs sum 905). The top fresh extractant is TODGA with 52 pairs. has_3d depends on geom3d artifacts (dataset.py:532-533) that are absent from the tree."
+   },
+   {
+    "id": "S13",
+    "claim": "The frozen identities span 117 condition blocks and 59 extractants.",
+    "doc_ref": "RI L59",
+    "status": "VERIFIED",
+    "evidence": "python -I on strain/automl/artifacts/fresh_eval/fresh_pairs.json:13+: 444 identities, 117 distinct composition_key, 59 distinct extractant prefixes (text before '||'); all l_hi = l_lo+1; 12 pair types (1,2)...(14,15), none touching index 5",
+    "note": "lanthanide_index = Z-56 with Pm absent (evaluation.py:220-221), so this is strict |dZ|=1 adjacency with Nd/Sm excluded. It is consistent with Gen21."
+   },
+   {
+    "id": "S14",
+    "claim": "Conditions use the strain repository's binned composition key, not Gen21's exact experimental-cell contract.",
+    "doc_ref": "RI L60",
+    "status": "VERIFIED",
+    "evidence": "dataset.py:71-77 GEOM_COND_COLS (acid_class, acid_strength_bin, nitrate_activity, pH_bin, diluent_family, modifier_class, temperature_bin, contact_time_bin, shaking_time_bin, phase_ratio_bin); :381-382 composition_key = extractant_group + '||' + binned cond; strict key at :383-392 is unused by fresh_eval.py:45 and anchored_3d_confirm.py:64,76; Gen21 PROTOCOL.md:12-13 'A cell is one extractant under one exactly matched condition key in one publication'",
+    "note": "The strain key has no publication field. dist_gnn.py:177-178 reports that the same (composition, adjacent pair) across strict blocks reproduces to 0.1533, against a spread of 0.2236."
+   },
+   {
+    "id": "S15",
+    "claim": "The 444 pairs were subsequently reused in another architectural comparison and cannot serve as untouched confirmation.",
+    "doc_ref": "RI L61; RI L141; CCP §9",
+    "status": "VERIFIED",
+    "evidence": "TRANSFORMERS.md:40-43, :119-125; transformer_confirm.json:47-65 (attn blend r2 0.1308511412618557, n 444); also earlier I14 looks: SCIENTIFIC_FINDINGS.md:1168-1171 'fresh 444: +0.0888 vs +0.0709', :1205-1206 '+0.0923 vs flat +0.0709'",
+    "note": "There were at least four looks (two for I14 before the I15 confirmation, then I15, then the transformers). CAMPAIGN_AUG2026.md:45-47 nonetheless says 'no selection ever touched them'."
+   },
+   {
+    "id": "S16",
+    "claim": "The attention encoder vs the distance encoder: +0.0102 on the 444, -0.0059 on the legacy pairs, -0.0003 on the union.",
+    "doc_ref": "RI L65",
+    "status": "VERIFIED",
+    "evidence": "transformer_confirm.json:64 vs_dist_contrast 0.010192994785076515; :83 -0.005895226505317042; :102 -0.00029851947843861915; TRANSFORMERS.md:121-123",
+    "note": "The attention primary contrast vs tabular on the 444 is 0.025769565354980317 (:63)."
+   },
+   {
+    "id": "S17",
+    "claim": "Tabular (FT) and block transformers lose to CatBoost.",
+    "doc_ref": "RI L65",
+    "status": "VERIFIED",
+    "evidence": "TRANSFORMERS.md:7-10; :70-73 ensemble standalone FT level/shape +0.146, FT flat +0.171, block rows +0.127, block cells +0.091 vs tabular +0.3182, nested weight 0.00; :176-180; transformer_confirm.json ft/blocktf/celltf w_fixed 0.0, primary_contrast 0.0, primary_pass false (e.g. :128, :169)",
+    "note": "Their held-out contrast is zero by construction (w = 0), so the look tested nothing for them."
+   },
+   {
+    "id": "S18",
+    "claim": "There is little justification for beginning Gen21 with a large architecture sweep.",
+    "doc_ref": "RI L65",
+    "status": "HYPOTHESIS",
+    "evidence": "Support: TRANSFORMERS.md:82 the two encoders correlate at 0.936; :164-172 four architectures land on the same predictions, effective rank 1.05",
+    "note": "This is a recommendation, not a factual claim."
+   },
+   {
+    "id": "S19",
+    "claim": "Remote 025f808 is 55 commits ahead of local 7041d51, and the core anchored-model and result files are unchanged.",
+    "doc_ref": "RI L20-21 evidence table",
+    "status": "NOT_CHECKABLE",
+    "evidence": "Only 025f808 is pinned (strain/MANIFEST.json); no 7041d51 checkout is in scope",
+    "note": "Diffing would need the 7041d51 tree or git history."
+   },
+   {
+    "id": "S20",
+    "claim": "The required OOF/model artifacts are missing, so the +0.0156 contrast and its uncertainty cannot be recomputed.",
+    "doc_ref": "RI L22",
+    "status": "VERIFIED",
+    "evidence": "strain/TREE_025f808.json (6,313 entries, truncated False) lists only 14 automl/artifacts entries (an_ln, fresh_eval, gxtb_series, lnxtb). Absent: anchored_3d_confirm.py:44 oof_anch_q60_q60_has3d_ens4.parquet, :47 topo_c19/oof_c19_plw4h3d_s*.parquet, :60 matrix.parquet. No .pt/.pth/.ckpt/.pkl/.cbm/.joblib/.onnx anywhere in the tree",
+    "note": "There is also an encoder seed-count discrepancy: c19_enc_has3d.sh:25 defaults to 7 seeds (42 51 67 83 91 103 107), while CAMPAIGN_AUG2026.md:54-55 says 8. It cannot be resolved without the artifacts."
+   },
+   {
+    "id": "S21",
+    "claim": "A frozen supervised strain encoder would leak, because its training data include the held-out Gen21 records.",
+    "doc_ref": "RI L69; CCP §6 'Supervised weights from the overlapping SAFE corpus are forbidden'",
+    "status": "VERIFIED",
+    "evidence": "git hash-object of D:/ml_separator_gh/dataset with 3D structures/dataset.parquet = 6edf45607269ef679889c651cde36447ca53025f, identical to strain collaborator_update/dataset.parquet in TREE (same sha, 2,802,776 bytes); gen13 reads that file (generations/gen13_separation/gen13sep/paths.py:20-22); strain train.py:172-173 collab population = 5,479 rows from it; gen19 DATA_AUDIT.md:434 bundle rows join SAFE 1:1 by safe_exp_id",
+    "note": "The overlap is by construction: the same corpus, not merely the same source. No supervised encoder weights exist at 025f808. The dist encoder trains from scratch inside each leave-extractant-out fold (train.py:481-510). Self-supervised pretraining exists only for arch snn (:1796) and is transductive over all complexes (:358-364)."
+   },
+   {
+    "id": "S22",
+    "claim": "Strain's blend weight was chosen from pooled OOF predictions whose models were trained on the held-out extractant's labels (the dependency RI/CCP prohibit).",
+    "doc_ref": "RI L70; CCP §6 'No full-dataset OOF shortcut'",
+    "status": "VERIFIED",
+    "evidence": "anchored_3d.py:93-107 w for extractant g = argmin of the mean of per-extractant pooled-OOF MSE over h != g; those OOFs come from 5-fold x 3-repeat leave-extractant-out models (anchored_champion.py:130-131; evaluation.py:40-62 grouped_folds), and each model that predicted h was trained with g's labels whenever g was outside h's fold",
+    "note": "anchored_3d.py:15-21 discloses that a pair-weighted variant was run first (+0.3183). The confirmation reuses this legacy-selected 0.35."
+   },
+   {
+    "id": "S23",
+    "claim": "Train and test geometry availability must share one evaluation denominator, with an interpolation fallback (strain practice is the opposite).",
+    "doc_ref": "RI L72; CCP §6 'preserve failures and use the reference fallback'",
+    "status": "VERIFIED",
+    "evidence": "anchored_champion.py:61-70 population filters (ok_only / has3d / collab); train.py:174-183 rows require an asset complex; anchored_3d_confirm.py:54-56 seed intersection and :62-63 inner merges of anchored and encoder OOF",
+    "note": "Strain scores only geometry-covered rows and has no 2D/interpolation fallback. The rule is a recommendation; the premise about strain is verified."
+   },
+   {
+    "id": "S24",
+    "claim": "Every step of centring, imputation, normalisation, early stopping and blending must respect inner folds.",
+    "doc_ref": "RI L73",
+    "status": "HYPOTHESIS",
+    "evidence": "Strain practice: residual centring on outer-training labels (anchored_champion.py:136-138); encoder median-impute/standardise fitted on inner-fit rows (train.py:510, :254-257); target mu/sd on fit_idx (:518); inner early stopping on 15% of training extractants (:503-508) with the adjacent-R2 criterion (:1209-1221)",
+    "note": "Strain satisfies this for single models and violates it only at the blend-weight stage (S22)."
+   },
+   {
+    "id": "S25",
+    "claim": "Port the level/shape decomposition and scalar blending, not the old point score or hyperparameters.",
+    "doc_ref": "CCP §6 L104",
+    "status": "HYPOTHESIS",
+    "evidence": "Strain hyperparameters were tuned on legacy 905 under zero-shot leave-extractant-out with the binned key (anchored_champion.py:50-53; anchored_3d_confirm.py:13-15)",
+    "note": "Design guidance; consistent with the facts above."
+   },
+   {
+    "id": "S26",
+    "claim": "Train a small CatBoost correction on 2D ligand, conditions, support values/slopes and interpolation coordinates.",
+    "doc_ref": "CCP §6 L104",
+    "status": "HYPOTHESIS",
+    "evidence": "The strain CatBoost has no support inputs (anchored_champion.py:73-76 blocks rdkit, ecfp, metal, cond, plan) and is not small (1500 iterations, depth 9, 746 columns)",
+    "note": "This is a new design. Strain provides no precedent for support-conditioned residuals."
+   },
+   {
+    "id": "S27",
+    "claim": "Cross-metal geometry needs comparable composition, charge, ligand count and nitrate/water, with frozen QC and the failures preserved.",
+    "doc_ref": "CCP §6 L110; RI L123",
+    "status": "PARTLY",
+    "evidence": "TREE data/geometries: 1,244 xyz (all ox3), CN8 501 / CN9 743, inner-sphere nitrate 866 / water 378 (parsed from file names); build_vr_has3d.py:15-17 the 279 extra (fresh) builds have NaN partial charges; local bundle features/vietoris_rips_inputs.npz: 39 of 1,155 complexes contain NaN charges",
+    "note": "Whether CN or anion changes within one ligand's metal series is not checkable from the names (the 12-hex hash is unique per file); that needs geometry_specs.csv or data_geometries_merged_index.csv. Fresh rows differ systematically through charge_missing = 1."
+   },
+   {
+    "id": "S28",
+    "claim": "Test compact geometry descriptors and a distance encoder only if their inputs exist with usable provenance.",
+    "doc_ref": "CCP §6 L104",
+    "status": "PARTLY",
+    "evidence": "Local D:/ml_separator_gh/dataset with 3D structures/features/vietoris_rips_inputs.npz (65,559,118 B): 1,155 complexes with coordinates, atomic_numbers, partial_charges, is_metal, is_coord_donor, edge_index, edge_filtration max 3.9999993, triangles; row_geometry_map.csv has vr_graph_index for 5,479 of 5,992 rows. Not fetched: strain data/processed/feature_blocks/vietoris_rips_inputs.npz (55,413,544 B, 956 complexes) and data/geometries (1,244 xyz + 1,244 mol2, 70,218,850 B)",
+    "note": "Inputs exist locally. Coverage of Gen21 C3's 229 cells / 1,802 queries is NOT computed and must be measured before any encoder slot."
+   }
+  ],
+  "implications": "### What strain predicts and how it is scored (not Gen21's task)\n- **Target**: per-row `log_D` (`strain/automl/dataset.py:55`).\n- **Score**: pooled R2 of adjacent `logSF = logD(lighter) - logD(heavier)` inside a **binned** `composition_key` (`evaluation.py:179-207`).\n  - Replicates are averaged per (block, metal) first.\n  - Adjacency is strict |dZ|=1 (Pm absent, `evaluation.py:220-221`).\n  - All adjacent pairs with both endpoints measured are scored.\n- **Regime**: zero-shot leave-extractant-out with no measured supports. It is not the k=3 / four-reading interpolation task, and both-measured pairs are scored, which Gen21 forbids.\n- **Seed aggregation**: OOFs are averaged over repeats and seeds before scoring (`anchored_champion.py:149-151`, ens parquets). That is ensemble R2, not Gen21's per-seed pooled R2 averaged over seeds.\n- **Consequence**: no strain number (0.318 / 0.326 / +0.0156) is comparable to Gen21 B0/B1/B2 (~0.42-0.45). Use none of them as targets or priors.\n\n### Split and grouping\n- `GroupKFold(shuffle)` over `extractant_group` (canonical SMILES), 5 folds x 3 repeats (`evaluation.py:40-62`, `anchored_champion.py:130-131`).\n- There is **no publication, chemotype or cross-publication-copy grouping**, so strain OOFs are invalid under Gen21 BP/BPG.\n- Encoder early stopping uses an inner 15%-of-training-extractants split (`train.py:503-508`). CatBoost runs a fixed 1500 iterations with no early stopping.\n\n### Data and weights\n- **No model weights of any kind exist at 025f808**: no .pt/.cbm/.pkl in the 6,313-entry tree, and `automl/artifacts` holds only 14 small entries. All OOF parquets, matrix.parquet, geom3d features and the has3d VR asset are absent, so the +0.0156 contrast and its uncertainty cannot be reproduced.\n- **The Gen21 corpus and the strain corpus are the same file.** The `dataset.parquet` that `D:/ml_separator_gh/dataset with 3D structures/` holds (read by gen13 `paths.py:20-22`) has git blob 6edf4560..., byte-identical to strain `collaborator_update/dataset.parquet`.\n  - Any strain-trained supervised weights or OOFs are therefore contaminated by construction.\n  - Encoders must be trained fold-locally.\n  - Target-free options exist: ChemBERTa-77M-MTR/MLM and MoLFormer manifests in `ligand_pretrained_embeddings.manifest.json`, and strain's masked-charge pretraining (`train.py:355-401`). The masked-charge pretraining is transductive over all complexes, so it must be declared, or restricted to training complexes.\n- **The fresh 444 are consumed.** They were looked at at least four times, 424 of the 444 sit in extractants that are in the legacy iteration set, and they use the binned key. Do not use them as confirmation.\n\n### Encoder inputs\n- **What DistanceNet needs per complex**:\n  - Z in a 27-element vocabulary;\n  - node_feat = [xTB charge, charge_missing, is_metal, is_donor, dist_to_metal] (`simplicial_data.py:372-373`);\n  - edge_index and edge length, with edges at most 4.0 Å, heavy-only in C19;\n  - the 2D tabular block, fused in the head (`train.py:533-534`);\n  - composition blocks for the pair loss (`train.py:725-765`, pair_adj_w 3.0, weight 4.0).\n- **What exists locally**: `D:/ml_separator_gh/dataset with 3D structures/features/vietoris_rips_inputs.npz` has exactly these arrays for 1,155 complexes, covering 5,479 of 5,992 rows (`row_geometry_map.csv` vr_graph_index); 39 complexes contain NaN charges.\n- **What exists only in the strain tree (not fetched)**: `data/geometries` (1,244 xyz + 1,244 mol2, 14 Ln, CN 8/9, nitrate/water inner sphere) and the strain shipped VR npz (956 complexes).\n- **Before slots 05-10**, measure C3-cell and query coverage against vr_graph_index, and keep the full denominator with B1 fallback.\n- **Random-encoder and shuffled-geometry controls** must keep the tabular fusion and the metal-Z embedding. Otherwise they confound 3D information with head capacity and metal identity.\n\n### Portable as fold-local code\nRe-implement inside `generations/gen21/round4_20261022/`, recording the MANIFEST blob SHAs; never import strain.\n- `anchored_champion.run_cell`, lines 132-148: centre training targets with training labels; centre predictions with prediction means. In Gen21 the 'anchor' becomes the support-preserving base `b_S`, and centring becomes the projection `- I_S[correction(S)]`.\n- `anchored_3d.nested_blend`, lines 93-107: an equal-group weight grid that includes w=0. Feed it inner-fold OOF scalars only.\n- `dist_gnn.py` RBFExpansion / CFConvLayer / DistanceNet, lines 69-238, plus the `_mlp` and scatter helpers from `snn.py`, and `collate` from `simplicial_data.py`.\n- `fresh_eval._pair_ids` and `score_on_pairs` only as a pattern. Gen21's own scorer and exact cell key must be used.\n\n### Traps\n1. The binned key merges different exact cells.\n2. 'Encoder shape' includes 2D tabular information.\n3. Pooled-OOF weight selection (S22).\n4. TODGA is about 21% of strain pairs (`anchored_3d.py:16-17`; 194 of 905 in `adjacent_decomposition.csv`), so equal-group versus pair weighting changes the selected weight.\n5. Fresh and borderline geometries have systematically missing charges.\n6. `has_3d` and `geometry_ok` populations depend on artifacts that are not in the repo.\n7. Strain documents call the extractant-centred target 'block-centred'.",
+  "checks": [
+   {
+    "id": "S7",
+    "final_status": "PARTLY",
+    "agrees_with_reader": true,
+    "evidence": "I opened every file myself, all under D:/ml_separator_refs/lanthanidestrain_025f808.\n\nWhat matches the claim:\n- automl/topo/dist_gnn.py:23-24 calls the model \"a SchNet-style continuous filter network\".\n- dist_gnn.py:197 is `hn = self.z_emb(batch[\"z_idx\"]) + self.node_in(batch[\"node_feat\"])`, so the atom types enter through the Z embedding. The vocabulary of 27 elements is at automl/topo/simplicial_data.py:55-56 and includes Z 57-71.\n- simplicial_data.py:372-373 builds the node features as `[c.charge, c.charge_missing, c.is_metal, c.is_donor, c.dist_to_metal]`. Lines 224 and 286 show the charges are xTB partial charges.\n- dist_gnn.py:199 is `rbf = self.rbf(batch[\"edge_filt\"])`, and :72-74 says the edge filtration radius is the distance between the two atoms.\n- automl/topo/anchored_3d.py:9-10 and :77-78 make \"shape_encoder\" the distance-encoder ensemble minus its composition-block mean, so \"a shape estimate\" is literally true.\n\nWhat the claim leaves out:\n- automl/topo/train.py:533-534 builds `DistanceNet(..., tabular_dim=X.shape[1])`.\n- dist_gnn.py:234-237 concatenates that tabular block into the head.\n- Both encoder runs behind the blend use `--preset baseline_2d`: automl/slurm/c19_enc_has3d.sh:26 for C19, used by automl/collab_ours.py:16-19,46-47 with W_ENC=0.35 at :47, and automl/slurm/inert_check.sh:21 for c15_plw4.\n- automl/dataset.py:543 defines BASE_2D = (\"rdkit\", \"ecfp\", \"metal\", \"cond\", \"plan\"), and :454-455 shows the metal block holds Atomic Number_metal, lanthanide_index, Ionic Radius_metal and metal_ox.\n- The node features also include dist_to_metal, and dist_gnn.py:221-228 adds a radial shell readout centred on the metal.\n- The training target is log_D (dataset.py:55), and the runs add `--pair-loss-weight 4.0` (c19_enc_has3d.sh:27).",
+    "note": "The inputs the claim lists are all in the code, but the list is incomplete. The same network head also receives the full 2D tabular block (rdkit, ecfp, metal, cond and plan columns) plus a metal-centred distance and a radial shell readout. So the \"encoder shape\" mixes 3D and 2D information and is not a signal from 3D distances alone. That makes PARTLY correct, not VERIFIED. Every line number and value in the reader's evidence checked out exactly."
+   },
+   {
+    "id": "S27",
+    "final_status": "HYPOTHESIS",
+    "agrees_with_reader": false,
+    "evidence": "The claim is a design requirement, not a factual statement. CCP L110 says \"Use physically comparable composition, charge, ligand count, nitrate/water content and energy reference... Freeze generation/QC rules... preserve failures\". RI L123 says \"Require consistent metal oxidation, ligand identity/count, nitrate/water content, charge, and reference state\" and cites Summers et al. No file can make a requirement VERIFIED or PARTLY.\n\nWhat the files do show is the state of the existing geometry set the requirement responds to.\n\n(1) The reader's TREE counts are correct (TREE_025f808.json, data/geometries/): 1,244 xyz, all ox3; CN9 743 / CN8 501; nitrate 866 / water 378; nlig 1/2/3/4 = 177/535/423/109.\n\n(2) The reader's note is wrong: within-series composition is checkable locally, and it is not comparable. The cause is a coded rule. D:/ml_separator_refs/lanthanidestrain_025f808/src/chemistry/coordination.py:96-98 has CN_BY_Z = {range(57,65): 9 (La..Gd), range(65,72): 8 (Tb..Lu)}. Ligand count and fill follow from CN at :693 choose_n_ligs and :745 n_fill.\n\n(3) The local bundle confirms the effect. D:/ml_separator_gh/dataset with 3D structures/accepted_geometries.csv has 1,155 rows, CN by metal La–Gd mostly 9 and Tb–Lu mostly 8. Of 88 ligands with more than one metal, 75 vary in coreCN, 52 in n_ligs and 11 in anion. Of 63 ligand+anion series containing both Gd and Tb, 57 change CN and 59 change n_ligs/n_fill. Example: one ligand+water series is (9, 3 lig, 0 fill) for La–Gd and (8, 2 lig, 2 fill) for Tb–Lu.\n\n(4) Charge is incomplete: automl/topo/build_vr_has3d.py:15-17 gives NaN partial charges for the 279 extras. The local features/vietoris_rips_inputs.npz has 39 of 1,155 complexes with all-NaN charges (6,516 NaN atoms).\n\n(5) QC and failures: build_vr_has3d.py:4-5 says the 279 builds \"back the borderline-QC rows\". accepted_geometries.csv selection_source is frozen_accepted_manifest 1098 + current_qc_supplement 57. Accepted files include emergency_unrelaxed 13 and uff_unrelaxed 5 builds. excluded_geometries.csv keeps 101 failures (qc_rejected 78, generation_failed 15, terminal_generation_failure 8).",
+    "note": "Disagree with PARTLY. Nothing in the claim is a fact that files can verify, so it belongs under HYPOTHESIS (with literature backing at RI L123). The reader's counts are accurate. Their key note is wrong: the bundle's accepted_geometries.csv, plus a coded rule in the strain repo (coordination.py:96-98), shows a systematic CN9-to-CN8 and ligand/fill change at Gd|Tb in 57 of the 63 series that contain both metals. That means the existing geometries clearly break the requirement exactly at the half-shell pair, which matters for round 4."
+   },
+   {
+    "id": "S28",
+    "final_status": "HYPOTHESIS",
+    "agrees_with_reader": false,
+    "evidence": "CLAUDE_CODE_PROMPT.md:104 reads \"Then test compact geometry descriptors and a distance encoder only if their inputs exist with usable provenance\". That is a conditional design rule, not a factual claim, and slots 05-10 at L129 register these as planned arms. I checked the precondition myself, read-only.\n\nInputs exist locally in D:/ml_separator_gh/dataset with 3D structures/features/vietoris_rips_inputs.npz (65,559,118 B). It holds coordinates (260068,3), atomic_numbers, partial_charges, is_metal, is_coord_donor, edge_index (2,2722813), edge_filtration (max 3.9999992847442627), triangle_index and build_ids (1155,). These are the node and edge inputs that strain automl/topo/dist_gnn.py:31-34 names: same VR edges, xTB partial charge, metal/donor flags, distance to metal, Z.\n\nCoverage and provenance files:\n- feature_blocks_manifest.json gives row_count 5992, clean_geometry_count 1155 and geometry_feature_failures 0.\n- row_geometry_map.csv has vr_graph_index non-null for 5,479 of 5,992 rows; summary.txt agrees (\"Dataset rows with accepted geometry: 5479\").\n- accepted_geometries.csv carries source_xyz_sha256 and QC columns for each of 1,155 geometries: selection_source frozen_accepted_manifest 1098 and current_qc_supplement 57; fill_ligand nitrate 785 and water 370.\n- 18 of those 1,155 source paths contain \"unrelaxed\".\n\nWhether this provenance is \"usable\" under the L110 rules (comparable composition, nitrate/water content, QC frozen without label access) is a judgement no file settles.\n\nStrain-side files were not fetched: TREE_025f808.json lists data/processed/feature_blocks/vietoris_rips_inputs.npz at 55,413,544 B, and data/geometries holds 1,244 xyz + 1,244 mol2 + 1 csv, 70,218,850 B in total.",
+    "note": "I disagree with PARTLY because the claim asserts nothing that could be verified; it is a conditional instruction. The reader's checks only bear on its precondition, which inputs-exist partly satisfies. The reader's numbers for the local files reproduce exactly. However, the \"956 complexes\" figure for the unfetched strain npz does not come from that file. It is the published-population count in automl/reports/C12_RESULTS.md:7, so it is not a verified property of the npz. Coverage of the C3 cells (229 cells / 1,802 queries) still needs measuring. The join is available: the Gen21 cohort is rebuilt from dataset with 3D structures/dataset.parquet (next_research_20261019/inventory_data_quality.md:14), keyed by safe_exp_id, the same key that row_geometry_map.csv uses."
+   },
+   {
+    "id": "S1",
+    "final_status": "VERIFIED",
+    "agrees_with_reader": true,
+    "evidence": "I opened the files myself.\n- automl/dataset.py:55 sets TARGET = \"log_D\", and META_COLS at :59-60 keeps \"D\" and \"log_D\" out of the features.\n- automl/topo/anchored_champion.py:123 sets y = df[\"log_D\"].to_numpy(float). The base CatBoost is fit on y[tr] at :131. The residual (shape) CatBoost is fit at :136-138 on resid = y[tr] minus the training-group mean of log_D, where the key is extractant_group or composition_key.\n- The out-of-fold per-row log D predictions are scored at :153-156 as adj_r2 = ev._r2(dy, dp), where dy, dp = ev.adjacent_pair_arrays(y, oof, comp, lanthanide_index). logD_r2 is reported next to it at :159.\n- automl/evaluation.py:193-205 builds the pairs. It averages replicates per (composition, metal) with groupby(\"m\", as_index=False) at :196, which sorts metals ascending. It then takes triu_indices at :201 and keeps |Δindex| == 1 at :202. At :205 it computes dy = yv[i] - yv[j], which is the lower lanthanide_index minus the higher, i.e. lighter minus heavier.\n- The R² itself is computed after the fact by _r2 at evaluation.py:68-76. No R² is ever a regression target.\n- The 3D blend is scored the same way: anchored_3d.py:82-84 calls ev.adjacent_pair_arrays on anchor + shape, and anchored_3d_confirm.py:91 sets \"r2\": ev._r2(dy, dp).",
+    "note": "The claim holds for the champion and its blend. Every model emits per-row log D predictions, these are differenced into adjacent log SF and scored by R². None of them predicts R². Three nuances limit how literally \"regress per-row log D\" applies:\n- The shape model's target is log D centred on the training-extractant mean (anchored_champion.py:136-137), not raw log D.\n- The encoder arm trains with an added within-block pair-difference loss: train.py:734 reads pair_loss_weight, and c6_manifest.py:51 sets \"--pair-loss-weight 2.0\".\n- The repo also contains a PairwiseDeltaRegressor whose model is fit on y_i - y_j (advanced.py:192-195).\n\nThe reader's leave-extractant-out remark is consistent with grouped_folds(g,...) on extractant_group at anchored_champion.py:130. Pairs use the binned composition_key."
+   },
+   {
+    "id": "S4",
+    "final_status": "VERIFIED",
+    "agrees_with_reader": true,
+    "evidence": "D:/ml_separator_refs/lanthanidestrain_025f808/automl/topo/anchored_champion.py:111 run_cell defaults to level=\"extractant\", and the champion cell at :168 \"anch_q60_q60\": dict(base_params=CHAMP, resid_params=CHAMP) does not override it. :124 sets g = df[\"extractant_group\"] and :126 key_arr = g if level == \"extractant\" else comp. :131 folds come from ev.grouped_folds(g, ...), and automl/evaluation.py:40-62 uses GroupKFold on those groups, so the held-out extractants are disjoint from the training ones. :136-138 builds the shape target as resid = y[tr] minus key_tr.map(pd.Series(y[tr]).groupby(key_tr).mean()), so only training labels are used, and :140 fits rm on Xr[tr]. On the test side, :141-142 bp and sp are model predictions, and :144-146 anchor, shape_c and base_c are means of bp and sp grouped by key_te. No y[te] is used before scoring at :153. The downstream blend in anchored_3d.py:74-78, the RI L54 formula, recentres the anch_q60_q60_ens8 OOF predictions (:116) and the encoder predictions by composition_key, again from predictions only. SCIENTIFIC_FINDINGS.md:1155-1157 reports 'residual model trained on block-centred targets, level = extractant'. TRANSFORMERS.md:159-160 says the shape model's 'target is centred by extractant'.",
+    "note": "The code literally supports both halves of the claim: training-label-only extractant centring (lines 136-138) and prediction-only test centring (lines 144-146, and anchored_3d.py:74-78 for the later composition-block blend). The composition-level variant (anch_q60_mae_comp, :170-171) also centres on training labels. TRANSFORMERS.md:24-25 calls the target 'block-centred', which is loose wording; it is not a contradiction in the code."
+   },
+   {
+    "id": "S8",
+    "final_status": "VERIFIED",
+    "agrees_with_reader": true,
+    "evidence": "D:/ml_separator_refs/lanthanidestrain_025f808/automl/topo/anchored_3d_confirm.py:64-65 sets anchor = oof.groupby(composition_key).transform(\"mean\"), so the anchor is constant within each block. Line 68 has blend = anchor + (1-w)*st + w*se, with st and se block-centred at :66-67. Lines 76-89 build pairs only inside one composition_key: groupby(\"composition_key\") and |Δlanthanide_index| == 1. Line 103 has tab = anchor + (oof - anchor).\n\nThe same holds in the shared scorer. automl/evaluation.py:195-206 (adjacent_pair_arrays) forms dy/dp only within groupby(\"c\"), the composition block.\n\nIn the champion itself, automl/topo/anchored_champion.py:144 has anchor = bp.groupby(key_te).transform(\"mean\"). There key_te is extractant_group (the default level=\"extractant\", :124-126) or composition_key. automl/dataset.py:382 defines composition_key = extractant_group + \"||\" + cond_key, so blocks sit inside extractants. Folds are grouped by extractant (anchored_champion.py:131), so a whole block always falls in one test fold. The anchor is therefore identical for both members of every scored pair and cancels algebraically.\n\nThe documentation states this directly: automl/topo/anchored_3d.py:6-7 says \"level; block-constant, cancels in every scored pair\". automl/reports/TRANSFORMERS.md:27-28 says \"The anchor cancels in every scored pair, so the adjacent-pair score depends on the two shape terms only.\"",
+    "note": "I agree this is VERIFIED. The anchor is a per-block (or per-extractant) mean, and every scored pair is formed inside one composition block that sits within a single extractant. As a result, the pair contrast depends only on the shape terms (cancellation is exact up to floating-point rounding)."
+   },
+   {
+    "id": "S11",
+    "final_status": "VERIFIED",
+    "agrees_with_reader": true,
+    "evidence": "D:/ml_separator_refs/lanthanidestrain_025f808/automl/topo/anchored_3d_confirm.py:14-16 says \"PASS = blend R2 > tabular R2 on the fresh pairs (sign of the contrast, not a magnitude threshold; ...the pre-declared claim is the direction)\". Line 113 is `verdict = out[\"results\"][\"fresh\"][\"contrast\"] > 0` and line 114 sets `out[\"primary_pass\"] = bool(verdict)`. score() (lines 73-94) returns only n, r2 and pearson2, with no bootstrap, SE or interval. D:/ml_separator_refs/lanthanidestrain_025f808/automl/reports/anchored_3d_confirm.json:1-45 contains only w_fixed 0.35 and per-population n, r2, pearson2 and contrast: fresh contrast 0.015576570569903803 at line 15, blend r2 0.1206581464767792 at line 7, tabular r2 0.10508157590687539 at line 12. It ends with \"primary_pass\": true at line 44 and has no CI or p-value field. The reports CAMPAIGN_AUG2026.md:48-59 and SCIENTIFIC_FINDINGS.md:1252-1258 restate \"+0.0156 PASS\" with no interval or p-value either.",
+    "note": "I re-checked this myself. The rule is sign-only, and there is no CI or p-value for the fresh-444 contrast in the confirm script, the result JSON or the campaign/findings reports that cite it."
+   },
+   {
+    "id": "S14",
+    "final_status": "VERIFIED",
+    "agrees_with_reader": true,
+    "evidence": "Strain side, under D:/ml_separator_refs/lanthanidestrain_025f808/: automl/dataset.py:56 sets GROUP_COL = \"extractant_group\". dataset.py:71-77 defines GEOM_COND_COLS as 10 geom_cond__ fields: acid_class, acid_strength_bin, nitrate_activity, pH_bin, diluent_family, modifier_class, temperature_bin, contact_time_bin, shaking_time_bin, phase_ratio_bin. dataset.py:381-382 builds composition_key = extractant_group + \"||\" + \"|\".join(those columns). The separate strict_composition_key (dataset.py:383-392, with numeric cond__ columns) is not the key the confirmation path uses. dataset.py:386-388 notes that with \"the binned key\" two rows can share a block while differing in extractant concentration. scripts/build_dataset_no3d.py:683-693 shows every field is binned, including nitrate_activity, which goes through nitrate_activity_bin at :563/:684. matrix_cache.py:20-26 writes matrix.parquet from build_matrix. The confirmation path groups on that binned key at topo/fresh_eval.py:45 (the frozen pair identity is (composition_key, l_lo, l_hi), :12, :64) and at topo/anchored_3d_confirm.py:62-64 and :76. The frozen file automl/artifacts/fresh_eval/fresh_pairs.json (read with -I) has n_fresh 444. Its keys look like 'C1CCC2OCC...||nitrate|medium|medium|missing|other|none|ambient|missing|missing|missing': 10 binned fields, with no publication and no numeric concentration. There are 117 distinct keys, which matches the 117 condition blocks in RI. Gen21 side: D:/ml_separator_gh/generations/gen21/PROTOCOL.md:13-14 says \"A cell is one extractant under one exactly matched condition key in one publication\".",
+    "note": "The reader's status is correct; one citation is off by a line. The PROTOCOL.md sentence is at lines 13-14, not 12-13. The dist_gnn.py:177-178 figure (0.1533 vs 0.2236) is only a code comment, not a result-file value, and it does not bear on this claim. matrix.parquet is not available locally, but the frozen fresh_pairs.json keys show the binned format directly."
+   }
+  ]
+ },
+ {
+  "area": "Strain repo (lanthanidestrain @025f808): actinide/lanthanide transfer (automl/an_ln), metal-physics/f-shell features (automl/metal_physics.py) and Campaign 6, with cross-checks against ml_separator An data",
+  "claims": [
+   {
+    "id": "S1",
+    "claim": "Adding Am/Cm rows to training changed the strain lanthanide metric by +0.0021 (paired seeds).",
+    "doc_ref": "RESEARCH_IDEAS \"These proposals have relevant negative precedents\", row Strain Ln+Am/Cm",
+    "status": "VERIFIED",
+    "evidence": "D:/ml_separator_refs/lanthanidestrain_025f808/automl/reports/an_ln/summary.json:90 \"d_ln_legacy_mean\": 0.0021; recomputed from per_seed in ln_am.json/ln_only.json = 0.0020618",
+    "note": "The mean of ln_am minus ln_only over seeds 42/51/67/83 (summary.json:85-89). The ensemble moved 0.3071 to 0.3094 (summary.json:5, :38). Training included Cm as well as Am (experiments.py:170)."
+   },
+   {
+    "id": "S2",
+    "claim": "The seed SD of that Ln contrast is 0.0204.",
+    "doc_ref": "RESEARCH_IDEAS negative-precedents row Strain Ln+Am/Cm",
+    "status": "VERIFIED",
+    "evidence": "an_ln/summary.json:91 \"d_ln_legacy_sd\": 0.0204; computed with ddof=1 at automl/an_ln/report.py:104; recomputed 0.0204067",
+    "note": "There are only 4 seeds. A t-interval from the reported per-seed values (my arithmetic, no run) is about [-0.030, +0.035], so the design could not detect an effect below about 0.03. That is roughly the size of the whole Gen21 Gd correction."
+   },
+   {
+    "id": "S3",
+    "claim": "Zero-shot Am/Eu log SF R² (Ln-only training, Am as a pseudo-lanthanide) is -0.1362.",
+    "doc_ref": "RESEARCH_IDEAS negative-precedents row Strain Ln+Am/Cm",
+    "status": "VERIFIED",
+    "evidence": "an_ln/summary.json:8 \"r2\": -0.1362 (ln_only ensemble am_eu, n=312 at :7; sign_acc 0.468 at :10)",
+    "note": "Am enters at lanthanide_index 5.27 and radius 1.09 Å (build.py:38-40), i.e. in the Pm gap of the Ln interpolation curve."
+   },
+   {
+    "id": "S4",
+    "claim": "The joint Ln+Am model gives Am/Eu R² 0.4666, against 0.4716 for a no-model leave-one-extractant-out SMARTS-family mean.",
+    "doc_ref": "RESEARCH_IDEAS negative-precedents row Strain Ln+Am/Cm",
+    "status": "VERIFIED",
+    "evidence": "an_ln/summary.json:41 \"r2\": 0.4666 (ln_am ensemble); :175 \"r2\": 0.4716 under control_family_mean_loeo (definition note :177; code report.py:126-135)",
+    "note": "The family baseline beats the model. Within-family joint skill is R² 0.024 (summary.json:180), so the pooled Am/Eu skill is family membership."
+   },
+   {
+    "id": "S5",
+    "claim": "\"Shared f shells did not produce a demonstrated Ln benefit in that experiment.\"",
+    "doc_ref": "RESEARCH_IDEAS negative-precedents row Strain Ln+Am/Cm, consequence column",
+    "status": "PARTLY",
+    "evidence": "No Ln benefit: summary.json:90-92 (d_ln_legacy_all_positive false). Features: experiments.py:58,92 METAL3 = [Atomic Number_metal, lanthanide_index, Ionic Radius_metal] + is_actinide",
+    "note": "The no-benefit part is verified. However, the model carried no f-shell or 5f descriptor, only Z, a pseudo-Ln index, the radius and a 0/1 flag. 'Shared f shells' was never represented, so it was not tested."
+   },
+   {
+    "id": "S6",
+    "claim": "Strain SCIENTIFIC_FINDINGS says the Ln contrast was positive on \"2 of 4 seeds\".",
+    "doc_ref": "Strain automl/reports/SCIENTIFIC_FINDINGS.md I20 (supports the RESEARCH_IDEAS row)",
+    "status": "CONTRADICTED",
+    "evidence": "SCIENTIFIC_FINDINGS.md:1415 \"(2 of 4 seeds up)\"; per-seed deltas from ln_am.json/ln_only.json: +0.02209, +0.00899, -0.02619, +0.00335",
+    "note": "3 of 4 seeds are positive. The mean and SD are unaffected."
+   },
+   {
+    "id": "S7",
+    "claim": "The strain An/Ln experiment's Ln metric is the legacy 905-pair adjacent subset on the binned composition_key, not Gen21's strict-adjacent C3 task.",
+    "doc_ref": "RESEARCH_IDEAS Evaluation section (Gen21 metric) vs strain row",
+    "status": "VERIFIED",
+    "evidence": "experiments.py:86-88 (legacy = geometry_ok & has_3d & is_actinide==0), :122-128 score_ln; ln_am.json per_seed n_pairs 905; key fields at automl/dataset.py:71-77,381-382",
+    "note": "The +0.0021 cannot be transferred to Gen21 V1. Its pairs, conditions and read contract all differ."
+   },
+   {
+    "id": "S8",
+    "claim": "The strain data note reports 1,815 Am(III) rows after cleaning, with 21 Am(VI) rows dropped.",
+    "doc_ref": "Strain SCIENTIFIC_FINDINGS.md I20 data paragraph",
+    "status": "PARTLY",
+    "evidence": "SCIENTIFIC_FINDINGS.md:1388 \"1,815 Am(III) rows on 110 ligands ... (21 Am(VI) rows dropped)\"; artifacts/an_ln/info.json:4 \"Am\": 1794; info.json:46 deduplicated_rows 7944 vs :2 rows 7923",
+    "note": "The final table has 1794 Am rows (1815 - 21). The 21-row loss matches the Am(VI) drop. The '110 ligands' and '95% on Ln ligands' figures are not checkable because anln_rows.parquet was not committed."
+   },
+   {
+    "id": "S9",
+    "claim": "Am(VI) rows are dropped, but An rows with missing oxidation state are kept as if III.",
+    "doc_ref": "CLAUDE_CODE_PROMPT §6 Actinide transfer (\"Keep actinyl species and other oxidation states separate\")",
+    "status": "VERIFIED",
+    "evidence": "automl/an_ln/build.py:66-73: bad = is_an & ~ox.isin({\"III\",\"3\",\"NAN\",\"NONE\",\"\"})",
+    "note": "For scale, the ml_separator archive has 275 Am and 9 Cm rows with no oxidation state. Strain's own count of unknown-state rows is not checkable."
+   },
+   {
+    "id": "S10",
+    "claim": "Strain gives Am a Shannon CN-8 radius of 1.09 Å and Cm an estimated 1.08 Å, with pseudo lanthanide indices 5.27 and 5.93.",
+    "doc_ref": "RESEARCH_IDEAS \"How to use f-shell information correctly\" (CN-dependent radius, species)",
+    "status": "VERIFIED",
+    "evidence": "build.py:8-11 and :38-43 AN_DESCRIPTORS {\"Am\": {95, 5.27, 1.090}, \"Cm\": {96, 5.93, 1.080}}; info.json:22-33",
+    "note": "The Cm radius is flagged as an estimate because Shannon tabulates Cm only at CN 6 (build.py:9-10)."
+   },
+   {
+    "id": "S11",
+    "claim": "Both arms use identical extractant-grouped folds over the union of Ln and An rows, and an extractant's Am and Ln rows are held out together.",
+    "doc_ref": "CLAUDE_CODE_PROMPT §6 (exclusions across the union)",
+    "status": "VERIFIED",
+    "evidence": "experiments.py:17-20 docstring; :108-109 ev.grouped_folds(g, folds, seed) over all rows, then tr = tr[train_mask[tr]]",
+    "note": "Grouping is by canonical_smiles only. There is no publication or copy-group exclusion."
+   },
+   {
+    "id": "S12",
+    "claim": "In the ln_am arm the per-extractant shape centring includes An rows, so the Ln shape-model targets differ between the two arms.",
+    "doc_ref": "CLAUDE_CODE_PROMPT §6 (\"Hold Ln rows, their weights, targets ... identical in each An-versus-no-An contrast\")",
+    "status": "VERIFIED",
+    "evidence": "experiments.py:111-112: resid = y[tr] - ktr.map(pd.Series(y[tr]).groupby(ktr).mean())",
+    "note": "Within-extractant Ln differences are unchanged, but each Ln target row moves by an extractant constant. The An weight was fixed at 1, and there were no private heads, extra-Ln control or permuted-An control."
+   },
+   {
+    "id": "S13",
+    "claim": "The An/Ln evaluation pairs were frozen before any model result: Am/Eu 312 pairs on 82 extractants, Cm/Eu 27 on 9, Am/Cm 35 on 12.",
+    "doc_ref": "RESEARCH_IDEAS strain row (provenance of the 312 pairs)",
+    "status": "VERIFIED",
+    "evidence": "automl/artifacts/an_ln/frozen_pairs.json:3 n_pairs 312, :321 27, :354 35, :394 \"frozen\": \"2026-09-07, before any An/Ln model result existed\", :395 rule; summary.json:2 frozen_check",
+    "note": "The pairs are binned-block pairs, with replicates averaged per (block, metal) (experiments.py:133-143). Pairs with dy==0 were dropped as detection-limit artefacts (:140-141)."
+   },
+   {
+    "id": "S14",
+    "claim": "The 312 Am/Eu blocks are 309 nitrate and 3 chloride; every block has the pH bin and phase-ratio bin 'missing'; 15 use ionic-liquid diluents.",
+    "doc_ref": "CLAUDE_CODE_PROMPT §6 (\"compatible donor/solvent/speciation regimes\")",
+    "status": "VERIFIED",
+    "evidence": "Computed by parsing frozen_pairs.json block_keys with the field order at dataset.py:71-77: acid_class nitrate 309/chloride 3; pH_bin missing 312; phase_ratio_bin missing 312; diluent ionic_liquid 15, aliphatic 162, alcohol_modifier 54, other 54, aromatic 20, chlorinated 7",
+    "note": "The key contains no extractant concentration and no holdback/aqueous complexant (dataset.py:381-382). 'Identical conditions' (SCIENTIFIC_FINDINGS.md:1390-1391) therefore means identical bins only."
+   },
+   {
+    "id": "S15",
+    "claim": "By family, the Am/Eu pairs are dominated by DGA (179 pairs, 41 extractants) and BTP/BTBP/BTPhen (42 pairs, 9 extractants).",
+    "doc_ref": "CLAUDE_CODE_PROMPT §6 (compatible donor regimes)",
+    "status": "VERIFIED",
+    "evidence": "an_ln/summary.json:118-119 DGA n 179 (r2 -0.1197, n_extractants 41); :108-109 BTP n 42 (r2 -0.0589, sign_acc 0.952); other families at :107-165",
+    "note": "Families with fewer than 8 pairs are omitted (report.py:114). Within DGA and within BTP, joint R² is negative."
+   },
+   {
+    "id": "S16",
+    "claim": "The strain raw_data folder holds SAFE exports for Am, Cm, Np, Pu, Pa, Th and U, but the An/Ln experiment used only Am and Cm.",
+    "doc_ref": "RESEARCH_IDEAS \"Do not combine U(VI)O2, Th(IV), Am(III), and Ln(III)\"",
+    "status": "VERIFIED",
+    "evidence": "TREE_025f808.json: raw_data/Am_SAFE.csv 1723117 B, Cm_SAFE.csv 170875 B, Np 321540, Pu 521785, Pa 549870, Th 2402881, U 3530928; build.py:57 adds only AN_DESCRIPTORS (Am, Cm)",
+    "note": "raw_data was not fetched locally. The final table has Am 1794, Cm 137, Eu 1566 rows (info.json:4,19,5)."
+   },
+   {
+    "id": "S17",
+    "claim": "There are no Am/Cm structures and no committed An row table or OOF predictions, so the An/Ln experiment cannot be reproduced from the pinned checkout's committed files.",
+    "doc_ref": "RESEARCH_IDEAS \"Strain reproducibility assets\" row",
+    "status": "VERIFIED",
+    "evidence": "build.py:13-14 (geometry stage skipped, no Am structures); TREE: data/geometries and collaborator_update/geometries hold only Ce..Lu files; automl/artifacts/an_ln contains only frozen_pairs.json and info.json (anln_rows.parquet, oof_*_ens4.parquet absent)",
+    "note": "Rebuilding needs raw_data/*.csv and data/processed/final_ml_dataset_3d.parquet (build.py:36), neither of which was fetched."
+   },
+   {
+    "id": "M1",
+    "claim": "The isolated strain metal-physics arm changed held-out R² by -0.0044.",
+    "doc_ref": "RESEARCH_IDEAS negative-precedents row Existing electronic features",
+    "status": "VERIFIED",
+    "evidence": "automl/reports/C6_RESULTS.md:156 \"| `mphys` ... | +0.0853 | −0.0044 vs D0 |\"; :39 e0_mphys +0.2986 vs :37 D0 incumbent +0.3030 (report third, 301 pairs)",
+    "note": "Against the matched re-run control a0_published (+0.3058, :36) it is -0.0072, and no CI is given. The arm is a distance GNN with preset baseline_2d_mphys (c6_manifest.py:141-143), scored on a binned-key adjacent metric."
+   },
+   {
+    "id": "M2",
+    "claim": "The composite C6 endpoint (metal-physics features + 4.0 Å cutoff + adjacent weighting) changed held-out R² by -0.0127, 90% CI [-0.0485, +0.0196].",
+    "doc_ref": "RESEARCH_IDEAS negative-precedents row Existing electronic features",
+    "status": "VERIFIED",
+    "evidence": "C6_RESULTS.md:24 report third +0.2903 / −0.0127; :26-27 \"−0.0127, 90 % CI [−0.0485, +0.0196]**, P(better) = 0.27\"; config C6_PREREGISTRATION.md:137-143 (--preset baseline_2d_mphys --filtration-max 4.0 --rbf-bins 64 --pair-adj-weight 10.0)",
+    "note": "It is measured against D0. On the selection half the same arm scored +0.0431 (C6_RESULTS.md:23), a winner's-curse inversion."
+   },
+   {
+    "id": "M3",
+    "claim": "The composite interval cannot isolate electronic-feature effects.",
+    "doc_ref": "RESEARCH_IDEAS negative-precedents row Existing electronic features, consequence",
+    "status": "VERIFIED",
+    "evidence": "C6_PREREGISTRATION.md:145-147 (endpoint composes three axes: metal block, 4.0 Å graph + matched basis, adjacent emphasis 10)",
+    "note": "Only e0_mphys isolates the block, and it has no reported interval."
+   },
+   {
+    "id": "M4",
+    "claim": "For Ln(III), the strain f-count n_f equals Z-57, so it adds no information for adjacent pairs.",
+    "doc_ref": "RESEARCH_IDEAS \"How to use f-shell information correctly\"",
+    "status": "VERIFIED",
+    "evidence": "metal_physics.py:52-66 (n_f 0..14 for La..Lu); c6_prescreen.csv:19 mphys__n_f sd_within_block 0.0, \"block-constant or too sparse\"; c6_manifest.py:137-139 \"within-block adjacent difference is a CONSTANT -1\"",
+    "note": "The same holds for Z and lanthanide_index (c6_prescreen.csv:17-18). Any linear-in-Z feature is an intercept for adjacent pairs."
+   },
+   {
+    "id": "M5",
+    "claim": "The strain metal-physics block holds n_f, hydration enthalpy and free energy, aqua CN, IE3, Ln-OH2 distance, three tetrad distances, a half-shell flag, a CN-break flag, z/r and a Born residual.",
+    "doc_ref": "RESEARCH_IDEAS priority 3 (prespecified f-shell/tetrad bases)",
+    "status": "VERIFIED",
+    "evidence": "metal_physics.py:76-98 and :114-124",
+    "note": "half_shell flags n_f in (6, 7, 13, 14), i.e. Eu, Gd, Yb and Lu (:94), so it is not a Gd indicator. cn_break is 1 from Gd onward (aqua CN < 9). The block covers Ln only, and Am/Cm would get NaN (attach, :106-113)."
+   },
+   {
+    "id": "M6",
+    "claim": "In the free pre-screen, within-pair dG_hyd correlates with dy at 0.215, against 0.171 for the radius and only 0.058 for |n_f-7|.",
+    "doc_ref": "RESEARCH_IDEAS priority 3 / electronic-features row",
+    "status": "VERIFIED",
+    "evidence": "c6_prescreen.csv:3 mphys__dG_hyd 0.21497755; :4 Ionic Radius_metal 0.17074 (signed -0.17074); :16 mphys__tetrad_q2 0.05787; :12 half_shell 0.09050; :7 tetrad_q3 0.15898",
+    "note": "C6_RESULTS.md:160-165 records that this pre-screen did not predict generalisation."
+   },
+   {
+    "id": "M7",
+    "claim": "The strain interaction head pred = f(u) + Σ g_k(u)·phi_k uses radius, radius², index and index² as phi, not f-shell or tetrad bases, and its metal-physics variant was only 4-seed screened.",
+    "doc_ref": "RESEARCH_IDEAS priority 3 \"Electronic features as interactions\"",
+    "status": "VERIFIED",
+    "evidence": "automl/topo/train.py:626-689 (basis = r, r2, l, l2); c6_manifest.py:148 e2_mphys_basis; c6_screen.csv:40 e2_mphys_basis 0.15713 (4 seeds) vs :69 a0_published 0.12248",
+    "note": "About +0.035 on screening, below the additive e0 block (+0.0853 at 4 seeds). It was not shortlisted or confirmed. A ligand-dependent amplitude × f-shell basis is therefore untested in strain."
+   },
+   {
+    "id": "M8",
+    "claim": "On the snn encoder (C17), the metal-physics arm read +0.0294 but was ruled not reportable because of selection contamination.",
+    "doc_ref": "RESEARCH_IDEAS electronic-features row (additional strain precedent)",
+    "status": "VERIFIED",
+    "evidence": "SCIENTIFIC_FINDINGS.md:1134-1137 \"`mphys` +0.0294 ... not reportable as gains\"; C17_PREREGISTRATION.md:175-190 (interim +0.0286, demoted to descriptive)",
+    "note": "This was scored on a population that contains the extractants that selected the block."
+   },
+   {
+    "id": "M9",
+    "claim": "Up-weighting the metal-identity features in CatBoost did not help: ×2 gave +0.321 vs +0.319, ×5 +0.273, ×10 +0.237.",
+    "doc_ref": "RESEARCH_IDEAS electronic-features row (related precedent)",
+    "status": "VERIFIED",
+    "evidence": "SCIENTIFIC_FINDINGS.md:1370-1375 (I19 table)",
+    "note": "Legacy 905 pairs, 4 seeds."
+   },
+   {
+    "id": "M10",
+    "claim": "Strain labels carry a ligand-independent pair-position series shape beyond radius: pair-identity LOEO R² 0.0657 against 0.0114 for radius only.",
+    "doc_ref": "RESEARCH_IDEAS \"universal series prior\" split in Evaluation and stopping",
+    "status": "VERIFIED",
+    "evidence": "automl/reports/series_shape_summary.json:6 loeo_r2_lookup 0.06569; :8 loeo_r2_radius 0.01143; :16 F 7.98; :17 p 2.27e-13; :9 split-half r 0.751",
+    "note": "Binned-key legacy 905 pairs, which is not Gen21's exact cells. It supports keeping a training-only series/read-set prior as a reference."
+   },
+   {
+    "id": "M11",
+    "claim": "Gen11 and Gen19 in ml_separator already compute f-electron count and metal-state descriptors.",
+    "doc_ref": "RESEARCH_IDEAS electronic-features row",
+    "status": "VERIFIED",
+    "evidence": "D:/ml_separator_gh/src/lanthanide_separation/gen11/metalrep.py:158 def f_electron_count, :388 out[\"metal_f_electron_count\"]; generations/gen19_chem_transfer/gen19ct/chemistry/metals.py:293 (configuration, f_count, d_count)",
+    "note": "The Gen11 count extends to 5f (metalrep.py:135, Rn core)."
+   },
+   {
+    "id": "M12",
+    "claim": "Nd(III) is 4f3, and neutral-atom configurations are inappropriate.",
+    "doc_ref": "RESEARCH_IDEAS \"How to use f-shell information correctly\"",
+    "status": "LITERATURE",
+    "evidence": "NIST citation in RESEARCH_IDEAS; consistent with metal_physics.py:55 (Nd n_f 3)",
+    "note": "The strain table uses Ln(III) ionic counts, not neutral-atom ones."
+   },
+   {
+    "id": "D1",
+    "claim": "The strain 5,992 Ln rows are the same records as the ml_separator bundle, so strain An/Ln data is not an independent source.",
+    "doc_ref": "RESEARCH_IDEAS Recommendation (\"do not import its ... numerical gains\") / CLAUDE_CODE_PROMPT §6 union exclusions",
+    "status": "VERIFIED",
+    "evidence": "build.py:17-20 (Ln rows identical to the shipped 5,992); info.json rows 7923 - Am 1794 - Cm 137 = 5992; D:/ml_separator_gh/generations/gen19_chem_transfer/DATA_AUDIT.md:434 \"all 5,992 bundle rows join the archive 1:1 through safe_exp_id\"",
+    "note": "Both repositories derive from the same SAFE exports (raw_data/*_SAFE.csv)."
+   },
+   {
+    "id": "D2",
+    "claim": "Eu rows in Am/Eu cells come largely from the Am SAFE export, so An-pair cells share Eu (Ln) rows and publications with the Ln corpus.",
+    "doc_ref": "CLAUDE_CODE_PROMPT §6 (\"Apply ligand/chemotype/publication/copy exclusions across the union of both domains\")",
+    "status": "VERIFIED",
+    "evidence": "gen19 DATA_AUDIT.md:445 \"`Am_SAFE:10321` is a Eu(III) row\"; strain info.json:5 Eu 1566 rows vs at most 635 for any other Ln (:6 Nd 635)",
+    "note": "An auxiliary labels from a held-out Gen21 cell's publication or extractant must be excluded together with it."
+   },
+   {
+    "id": "D3",
+    "claim": "The ml_separator archive holds An(III) rows for Am (1775), Cm (151), Pu (118) and Cf (23), plus Am(VI) 54, Am unknown-state 275 and Cm unknown-state 9.",
+    "doc_ref": "CLAUDE_CODE_PROMPT §6 \"Start with verified An(III) records\"",
+    "status": "VERIFIED",
+    "evidence": "Read D:/ml_separator_gh/dataset_all_metals/clean/master_clean.parquet: crosstab metal_symbol × metal_oxidation_state (Am 3.0:1775, 6.0:54, NaN:275; Cm 3.0:151, NaN:9; Cf 3.0:23; Pu 3.0:118, 4.0:766, 6.0:119); actinide total 6302",
+    "note": "Among Am/Cm/Cf rows, 141 carry an aqueous complexant and 195 a holdback agent, which are fields the strain block key ignores."
+   },
+   {
+    "id": "H1",
+    "claim": "Selective An(III) transfer with a shared representation, private Ln/An heads and a zero-allowed auxiliary weight may improve held-out Ln logSF.",
+    "doc_ref": "RESEARCH_IDEAS Prioritized hypotheses, priority 5; CLAUDE_CODE_PROMPT §6",
+    "status": "HYPOTHESIS",
+    "evidence": "No strain or local result tests this design; the nearest precedent is automl/an_ln (single shared model + is_actinide flag)",
+    "note": "The strain precedent is underpowered: MDE about 0.03, 4 seeds, no An-weight tuning and no controls. So it is weak negative evidence, not a refutation."
+   },
+   {
+    "id": "H2",
+    "claim": "Electronic/tetrad bases might help as donor-dependent interactions rather than as additive features.",
+    "doc_ref": "RESEARCH_IDEAS priority 3",
+    "status": "HYPOTHESIS",
+    "evidence": "Strain tested only an additive block (e0) and a polynomial radius/index interaction (e2, screening only): c6_screen.csv:40, train.py:683-689",
+    "note": "This is not refuted by strain, but strain's additive form failed held out (M1)."
+   }
+  ],
+  "implications": "### What An data exists, and where\n- **Strain repo:** the An/Ln table holds **Am 1794 and Cm 137 rows**, alongside 5,992 Ln rows (`automl/artifacts/an_ln/info.json:2-19`). They were built from `raw_data/Am_SAFE.csv` and `raw_data/Cm_SAFE.csv`, which were not fetched; their sizes are in `TREE_025f808.json`.\n  - The repo also ships Np, Pu, Pa, Th and U SAFE exports, but no code uses them.\n  - There are no Am structures.\n  - `anln_rows.parquet` and the OOF parquets were never committed. Only the pair identities in `frozen_pairs.json` and the scores are reusable.\n- **ml_separator already has a superset with provenance:** `D:/ml_separator_gh/dataset_all_metals/clean/master_clean.parquet`, which has 6,302 An rows. The explicit An(III) rows are Am 1775, Cm 151, Pu(III) 118 and Cf 23. Set aside Am(VI) (54 rows) and the unknown-state Am/Cm rows (284).\n  - Use this archive with gen19ct's `g19_publication_id` and copy groups rather than the strain table. The strain table keeps unknown-state Am as III (`build.py:70`) and uses binned keys.\n- **Regime of the strain Am/Eu pairs:**\n  - Acid: 309 of 312 are nitrate.\n  - Diluent: mostly aliphatic, alcohol-modified or other.\n  - Families: DGA 179 pairs, BTP/BTBP/BTPhen 42, other amides 37, P=O 16, aza-aromatic amides 15, P=S 14.\n  - Compatibility: this is largely O-donor solvating plus N-donor chemistry in nitrate, so it is broadly compatible with the Gen21 Ln cells.\n  - Exclude or separate the 15 ionic-liquid blocks, which use a different, cation-exchange mechanism.\n  - Exclude or separate cells with an aqueous complexant or holdback agent: 141 and 195 Am/Cm/Cf rows in the archive. These are SANEX-type reversed-selectivity systems, and the strain block key ignores them.\n\n### Overlap and leakage traps\n- **Not independent:** strain An/Ln data comes from the same SAFE records as the ml_separator bundle and archive (gen19 `DATA_AUDIT.md:434`).\n- **Shared Eu rows:** many Eu rows sit in Am exports (`DATA_AUDIT.md:445`). An auxiliary cells therefore share publications, extractants and Eu labels with Gen21 Ln cells. Apply publication, chemotype and copy-group exclusions over the union before any fitting or weight choice.\n- **Spent pairs:** do not reuse strain's 312 frozen pairs or its scores as confirmation data. They are binned-key blocks that average differing extractant concentrations and complexants (`experiments.py:133-143`, `dataset.py:71-77`).\n- **Pseudo-lanthanide trap:** placing Am on the Ln radius/index scale (`build.py:38-43`) makes the model treat Am as Pm-like, which gives zero-shot R² of -0.1362. Give An a private head with a species/oxidation-state domain, not a point on the Ln interpolation curve.\n- **Centring trap:** in strain, An rows enter the per-extractant residual centring (`experiments.py:111-112`), so the Ln targets change between arms. Round 4 must keep Ln targets, weights and budget byte-identical across the An and no-An arms.\n\n### What an honest An(III) transfer arm (CLAUDE_CODE_PROMPT §6) could use\n- **Inputs:**\n  - **Auxiliary labels:** raw log D for Am(III) and Cm(III) in an An-private head.\n  - **Exact-cell An/Ln contrasts** where both metals were measured in the identical cell: Am/Eu, plus the few Cm/Eu and Am/Cm pairs.\n  - **No An adjacent-curve target:** Am/Cm is the only adjacent-like pair, with 35 pairs on 12 extractants.\n- **Exact-cell counts under Gen21's cell contract have not been computed.** Do this first, and count independent publications and extractants, not rows.\n- **Baselines and controls:**\n  - The Ln-only multitask scaffold.\n  - An extra-Ln arm.\n  - A naive shared head (this is what strain did).\n  - Block-permuted An targets.\n  - The strain-style LOEO family-mean for any An-side score (`summary.json:174-178`, `report.py:126-135`). That baseline alone matches the joint model (0.4716 vs 0.4666), and within-family skill is 0.024.\n- **Power:**\n  - Strain's 4-seed paired SD of 0.0204 gives a minimum detectable effect of about 0.03, roughly the whole Gd-correction gain.\n  - Use cell-level paired bootstrap or many seeds, with promotion only on Gen21 V1 strict-adjacent Ln R².\n\n### Metal-physics and electronic features\n- **Prior evidence is negative or not interpretable:**\n  - The additive block failed held out: -0.0044 vs D0, or -0.0072 vs the matched control, with no CI.\n  - The composite endpoint cannot isolate the features.\n  - C17's +0.0294 is selection-contaminated.\n  - Metal-feature up-weighting was negative.\n- **n_f is an intercept:** n_f, Z and the index have a constant adjacent difference (`c6_prescreen.csv:17-19`). Only non-linear-in-Z bases (|n_f-7|, tetrads, half-shell, cn_break) can matter, and these compete with a same-capacity Z basis.\n- **Strain's half_shell is not a Gd flag:** it flags Eu, Gd, Yb and Lu (`metal_physics.py:94`), so do not reuse it as the Gd term.\n- **Untested form:** strain never tried donor-dependent amplitude × f-shell basis. Its interaction head used radius/index polynomials (`train.py:683-689`) and was only screened. Gen21 priority 3 is therefore open, but needs the electronic-map permutation and the same-capacity Z control.\n- **Reusable pieces, as ideas only:**\n  - `automl/metal_physics.py`: lookup constants. Re-source them, because strain cites them as \"Marcus compilation\" without references.\n  - `automl/topo/c6_prescreen.py`: a zero-fit within-pair correlation gate. It was necessary but not sufficient.\n  - `automl/topo/series_shape.py` (`series_shape_summary.json`): a pair-identity series prior, LOEO R² 0.0657 vs 0.0114 for radius. It supports a training-only series/read-set reference.",
+  "checks": [
+   {
+    "id": "S5",
+    "final_status": "VERIFIED",
+    "agrees_with_reader": false,
+    "evidence": "The joint Ln+Am+Cm run is real. With config ln_am, every row is trained on (D:/ml_separator_refs/lanthanidestrain_025f808/automl/an_ln/experiments.py:167-170; docstring :13 says \"train on lanthanide + Am (+ Cm) rows\"), and automl/artifacts/an_ln/info.json lists Am 1794 rows and Cm 137 rows. There is no demonstrated Ln benefit. In automl/reports/an_ln/summary.json:90-92, d_ln_legacy_mean is 0.0021, d_ln_legacy_sd is 0.0204 and d_ln_legacy_all_positive is false. The ensemble Ln legacy R2 is 0.3071 for ln_only (summary.json:5) and 0.3094 for ln_am (summary.json:38), on 905 pairs in both ln_only.json and ln_am.json. My recompute of the per-seed deltas gives +0.0221, +0.0090, -0.0262 and +0.0034, so 3 of 4 seeds are up, with mean 0.0021 and SD 0.0204. The strain write-up agrees: \"The lanthanide target does not benefit from the extra chemistry\" (automl/reports/SCIENTIFIC_FINDINGS.md:1414-1415). The shared features were Z, lanthanide_index and Ionic Radius (experiments.py:58) plus is_actinide (experiments.py:92). The Am/Cm values are Z 95/96, pseudo-index 5.27/5.93 and radius 1.09/1.08 (an_ln/build.py:38-43). The repo itself calls is_actinide \"a 5f flag\" (SCIENTIFIC_FINDINGS.md:1394, 1399).",
+    "note": "The claim only says there was no demonstrated Ln benefit in that experiment, and summary.json:90-92 supports that exactly. The reader's grounds for PARTLY do not hold up when checked against the files. First, the strain repo labels is_actinide a \"5f flag\" (SCIENTIFIC_FINDINGS.md:1394), so \"no 5f descriptor\" is not literally true. Second, Z together with is_actinide fixes the formal f count, so f count is implicitly encoded; RESEARCH_IDEAS.md:117 makes the same n_f=Z-57 argument for the Ln series. Caveat: there is no explicit f-occupancy feature, and the pseudo-index places Am by radius, not by f count. The result is therefore a null for adding An(III) rows, not a test of f-shell descriptors. A side discrepancy, which does not affect the claim: SCIENTIFIC_FINDINGS.md:1415 says \"2 of 4 seeds up\", but the per-seed values in summary.json give 3 of 4."
+   },
+   {
+    "id": "S6",
+    "final_status": "PARTLY",
+    "agrees_with_reader": false,
+    "evidence": "As worded, the claim is about what the document says, and that part holds: D:/ml_separator_refs/lanthanidestrain_025f808/automl/reports/SCIENTIFIC_FINDINGS.md:1415 reads \"paired-seed contrast +0.002 ± 0.020 (2 of 4 seeds up)\". This is the only \"2 of 4\" anywhere in the reports. The underlying count is wrong, though. Pairing per_seed ln_legacy r2 in automl/reports/an_ln/ln_am.json against ln_only.json (seeds 42/51/67/83) gives ln_only 0.27883/0.30429/0.32092/0.27412 and ln_am 0.30092/0.31328/0.29473/0.27747. That is a delta of +0.022094/+0.008995/-0.026192/+0.003350, so 3 of 4 seeds are up. summary.json:78-92 agrees: rounded ln_only [0.2788,0.3043,0.3209,0.2741] and ln_am [0.3009,0.3133,0.2947,0.2775], d_ln_legacy_mean 0.0021, d_ln_legacy_sd 0.0204 (ddof=1, report.py:103-104), and d_ln_legacy_all_positive false (report.py:105). The mean and SD match the \"+0.002 ± 0.020\" in the document. The pearson2 deltas also have 3 of 4 positive (+0.02317, +0.00725, -0.02924, +0.00266). No file stores a count of seeds up.",
+    "note": "The reader's numbers check out: the per-seed deltas, the 3-of-4 count and the unchanged mean and SD are all correct. I don't agree with CONTRADICTED for the claim as written, because the document really does say \"2 of 4 seeds up\" at line 1415. What's wrong is that statement: the strain repo's own result files show 3 of 4 seeds up. The status should be PARTLY: the quote is VERIFIED, and its seed count is CONTRADICTED by ln_am.json, ln_only.json and summary.json (3 of 4)."
+   },
+   {
+    "id": "S8",
+    "final_status": "PARTLY",
+    "agrees_with_reader": true,
+    "evidence": "The note's wording is verified. automl/reports/SCIENTIFIC_FINDINGS.md:1387 says \"the SAFE database holds 1,815 Am(III) rows on 110 ligands after the\", and :1388 continues \"lanthanide pipeline's own cleaning (21 Am(VI) rows dropped, SF ≡ 1\". The committed build artifact does not match that figure: automl/artifacts/an_ln/info.json:4 gives \"Am\": 1794 in the final row table. The total drop of 21 does match. info.json:46 gives \"deduplicated_rows\": 7944 and :2 gives \"rows\": 7923, so 21 rows were removed between dedup and the final table. automl/an_ln/build.py:65-73 is the only step there that removes rows (\"drop non-III actinides (Am(VI) etc.)\"). In scripts/build_dataset_no3d.py, build_ligand_features (:941) and select_final_columns (:1327-1347) only work on columns. The \"SF ≡ 1\" drop happens at pair level in experiments.py:23-24 and :140-141, not in the row table. 1794 + 21 = 1815, so 1,815 looks like the Am count before the Am(VI) drop, not the count of Am(III) rows after cleaning.",
+    "note": "The note does say \"1,815 Am(III) ... 21 Am(VI) rows dropped\", but the committed info.json shows 1794 Am rows after cleaning (7944 to 7923 is a 21-row drop), so 1,815 appears to include the dropped Am(VI) rows. The split of those 21 rows between Am and Cm is not recorded, because the build.py:71 printout is not committed. The \"110 ligands\" figure cannot be checked: info.json:21 gives 200 ligands across all metals, and anln_rows.parquet was not committed. The reader cited only line 1388, but the quoted text spans lines 1387-1388."
+   },
+   {
+    "id": "S1",
+    "final_status": "VERIFIED",
+    "agrees_with_reader": true,
+    "evidence": "The value is in D:/ml_separator_refs/lanthanidestrain_025f808/automl/reports/an_ln/summary.json:90 as \"d_ln_legacy_mean\": 0.0021, with \"d_ln_legacy_sd\": 0.0204 at :91 and paired seeds [42, 51, 67, 83] at :72-77. The rounded per-seed values are ln_only [0.2788, 0.3043, 0.3209, 0.2741] (:78-83) and ln_am [0.3009, 0.3133, 0.2947, 0.2775] (:84-89). It is computed in automl/an_ln/report.py:97 and :103 as the mean over seeds of ln_am minus ln_only legacy-Ln R2, rounded to 4 decimals. I recomputed it from the per_seed ln_legacy.r2 values in automl/reports/an_ln/ln_am.json and ln_only.json: the paired deltas are [+0.02209, +0.00899, -0.02619, +0.00335], mean 0.0020618 and SD 0.020407. The metric is the legacy 905-pair Ln R2 (n_pairs 905 in both JSON files). The ln_am training set includes Cm: automl/an_ln/experiments.py:170 sets train_mask = np.ones(len(df), bool), so every row trains, actinides included. The docstring at :13 says \"lanthanide + Am (+ Cm) rows\", and the Cm/Eu scoring at :180 finds 27 Cm pairs. For comparison, the ensemble moved from 0.3071 (summary.json:5) to 0.3094 (:38), which is +0.0024 on the unrounded ensemble values.",
+    "note": "The claim matches the files exactly: +0.0021 is the paired-seed mean (SD 0.0204), and Am+Cm training is confirmed. One discrepancy elsewhere in the strain repo: automl/reports/SCIENTIFIC_FINDINGS.md:1415 says \"+0.002 ± 0.020 (2 of 4 seeds up)\", but the per-seed deltas show 3 of 4 seeds up. summary.json:92 only records all_positive=false. This does not affect S1. If someone cites the paired seeds as a \"seeds up\" count, they should use 3/4, not 2/4."
+   },
+   {
+    "id": "S4",
+    "final_status": "VERIFIED",
+    "agrees_with_reader": true,
+    "evidence": "D:/ml_separator_refs/lanthanidestrain_025f808/automl/reports/an_ln/summary.json:37-41 has ensemble.ln_am.am_eu \"r2\": 0.4666 (n 312, :40). The unrounded value is 0.46659966367122796 at automl/reports/an_ln/ln_am.json:181-186 (ensemble, n_pairs 312, n_extractants 82). summary.json:174-177 has control_family_mean_loeo \"r2\": 0.4716, with the note \"predict a held-out extractant's Am/Eu by the mean of the other extractants in its SMARTS family; no model\". The code is automl/an_ln/report.py:126-135, which uses the same Pj = P[\"ln_am\"] pairs (:111) and the families defined by FAMILY_SMARTS at :34-44. report.py:152 labels ln_am \"joint training: Ln + Am rows, 5f flag\". experiments.py:19-20 and :108 group folds by canonical_smiles, so extractants are held out. The figures match RESEARCH_IDEAS.md:81.",
+    "note": "One caveat: when no other extractant shares a family, the control falls back to the mean of all other extractants (report.py:129), so it is not a pure family mean for every row. Within-family joint R² is 0.024 (summary.json:179-182), which supports the reader's point that the pooled Am/Eu skill comes from family membership."
+   },
+   {
+    "id": "S10",
+    "final_status": "VERIFIED",
+    "agrees_with_reader": true,
+    "evidence": "D:/ml_separator_refs/lanthanidestrain_025f808/automl/an_ln/build.py:8-11 (docstring) reads \"Shannon CN-8 radius (Am 1.09 A; Cm 1.08 A, an estimate -- Shannon tabulates Cm only at CN 6), and a pseudo lanthanide_index obtained by placing the radius on the Ln radius scale (Am 5.27, Cm 5.93: the Pm gap)\". build.py:38-43 sets AN_DESCRIPTORS = {\"Am\": {\"Atomic Number_metal\": 95, \"lanthanide_index\": 5.27, \"Ionic Radius_metal\": 1.090}, \"Cm\": {\"Atomic Number_metal\": 96, \"lanthanide_index\": 5.93, \"Ionic Radius_metal\": 1.080}}. build.py:58 merges these into B.LANTHANIDE_DESCRIPTORS. The output D:/ml_separator_refs/lanthanidestrain_025f808/automl/artifacts/an_ln/info.json:22-33 records the same values: Am lanthanide_index 5.27, Ionic Radius_metal 1.09; Cm lanthanide_index 5.93, Ionic Radius_metal 1.08.",
+    "note": "I checked every number in the claim (1.09, 1.08, 5.27, 5.93) and found each in the code (build.py:38-43) and in the run artifact (info.json:22-33). The code itself calls the Cm 1.08 radius an estimate (build.py:9). Whether 1.09 Å really is the Shannon CN-8 value for Am(III) is a literature question, but the claim is only about what strain uses, and that is verified."
+   },
+   {
+    "id": "S13",
+    "final_status": "PARTLY",
+    "agrees_with_reader": false,
+    "evidence": "The counts check out. automl/artifacts/an_ln/frozen_pairs.json has Am_Eu n_pairs 312 and n_extractants 82 at :3-4, Cm_Eu 27 and 9 at :321-322, and Am_Cm 35 and 12 at :354-355. Parsing the file with python -I shows 312, 27 and 35 unique block_keys on 82, 9 and 12 unique extractant SMILES, so the stated counts match the lists. The timing is not independently checkable. The only support is the file's own \"frozen\": \"2026-09-07, before any An/Ln model result existed\" at :394, repeated in prose at automl/reports/SCIENTIFIC_FINDINGS.md:1383-1384 (\"frozen before any result existed\"). D:/ml_separator_refs/lanthanidestrain_025f808 has no .git history or commit timestamps. No .py file in the fetched tree writes frozen_pairs.json; a grep finds only the read in automl/an_ln/report.py:83. The code identity check, report.py:85-86 (assert scored ck == frozen[\"Am_Eu\"][\"block_keys\"]), covers Am/Eu only, and summary.json:2 says \"312 Am/Eu pairs == frozen set\". Cm/Eu and Am/Cm come straight from the per-run JSON (report.py:91-92) with no check against the frozen lists. Their counts in summary.json (:16-17 n_pairs 27, n_extractants 9; :27-28 n_pairs 35, n_extractants 12) only match the frozen counts.",
+    "note": "The pair and extractant counts are confirmed exactly, but \"frozen before any model result\" rests only on the artifact's own label and the findings prose. No commit history or freeze-generating code is available locally to confirm the order. The code checks the scored pairs against the frozen set for Am/Eu only, not for Cm/Eu or Am/Cm."
+   },
+   {
+    "id": "S16",
+    "final_status": "VERIFIED",
+    "agrees_with_reader": true,
+    "evidence": "TREE_025f808.json lists these blobs and sizes: raw_data/Am_SAFE.csv 1723117 (lines 44112-44116), Cm_SAFE.csv 170875 (44160-44164), Np_SAFE.csv 321540 (44256-44260), Pa_SAFE.csv 549870 (44264-44268), Pu_SAFE.csv 521785 (44296-44300), Th_SAFE.csv 2402881 (44320-44324) and U_SAFE.csv 3530928 (44336-44340). The folder has no other actinide files. scripts/build_dataset_no3d.py:100 sets RAW_DIR_CANDIDATES = [raw_data, data/raw]. read_raw (:778-791) reads every *.csv in that folder, and the metal gate at :843 is `keep = df[METAL_COL].isin(LANTHANIDE_SET)`. automl/an_ln/build.py:38-43 defines AN_DESCRIPTORS with only Am and Cm, :57 widens the gate with only those two (`B.LANTHANIDE_SET = set(B.LANTHANIDE_SET) | set(AN_DESCRIPTORS)`), and :65-73 also drops actinide rows that are not III. In automl/artifacts/an_ln/info.json, per_metal shows Am 1794 (line 4) and Cm 137 (line 19) as the only actinides, alongside Eu 1566 (line 5), with rows 7923 (line 2). automl/an_ln/experiments.py scores only Am/Eu and Cm/Eu (:179-180).",
+    "note": "I checked both halves myself and they hold; the reader's line references (build.py:57; info.json:4, 19, 5) are correct. One caveat: the raw_data CSV contents were not fetched, so \"SAFE export\" rests only on the *_SAFE.csv file names and the safe_exp_id naming in the code. Even so, Np, Pu, Pa, Th and U rows would be dropped at the metal gate (build_dataset_no3d.py:843), because build.py adds only Am and Cm to the gate."
+   }
+  ]
+ },
+ {
+  "area": "Local negative precedents and priors in ml_separator (gen13 D7 Gd dip, Gen11 actinide transfer, Gen19 chemistry transfer, Gen11/19 metal descriptors, Gen15/16 xTB geometry and energy), plus literature claims attached to them",
+  "claims": [
+   {
+    "id": "D1",
+    "claim": "The fixed -0.072 Gd coefficient comes from a full-corpus gen13 D7 diagnostic on 268 cells.",
+    "doc_ref": "RESEARCH_IDEAS.md:41 (Corrections item 1); CLAUDE_CODE_PROMPT.md:61",
+    "status": "VERIFIED",
+    "evidence": "generations/gen13_separation/analysis/stage2/D7/FINDINGS.md:3 \"268 cells with >= 6 observed metals (77 extractants, 36 chemotypes, 39 publications; 2664 cell-metal residuals)\"; FINDINGS.md:14 \"Gd -0.072 (p=0.012)\"; D7_table1_per_element_residual.csv:8 mean_resid_quad=-0.07154223452529478, CI [-0.12187, -0.03742], p_holm=0.011518794484234852, n_cells=225; d7_residual_structure.py:37 MIN_METALS = 6, :125 reads manifests/cohort_exact.parquet with no fold filter; D7_summary.json n_cells 268",
+    "note": "The value is a mean residual after a per-cell quadratic in standardised Shannon CN8 radius. It is not a coefficient fitted for PWL interpolation, so the functional form also differs from R14's Gd term."
+   },
+   {
+    "id": "D2",
+    "claim": "The D7 base contains 224 of the 229 C3 held-out cells, so -0.072 was estimated on the labels it would later be scored on.",
+    "doc_ref": "RESEARCH_IDEAS.md:41; CLAUDE_CODE_PROMPT.md:61",
+    "status": "VERIFIED",
+    "evidence": "Computed read-only: cohort_exact.parquet n_metals>=6 gives 268 cell_ids; C3 = role=='outer' & k_max>=3 in generations/gen21/predictions/attempt6_BP.parquet gives 229 cells (k_max 3/4/5/6 = 51/34/11/133; 79 extractants, 38 chemotypes, 39 publications); intersection = 224",
+    "note": "This makes the 'not fold-independent' warning concrete. generations/gen21/round4_20261022/r4/refs.py:24,45 already marks HIST_D7_BETA = -0.072 as diagnostic only."
+   },
+   {
+    "id": "D3",
+    "claim": "D7 found the Gd dip reproducible but judged it not worth modelling, and the dip is much stronger outside the DGA supercluster sc009.",
+    "doc_ref": "RESEARCH_IDEAS.md:41-42 (Gd-centred improvement); CLAUDE_CODE_PROMPT.md:96-100",
+    "status": "VERIFIED",
+    "evidence": "FINDINGS.md:30 reproducible rms amplitude \"0.0349\"; :32-33 \"-0.127 (z=-4.8) outside the diglycolamide supercluster sc009 and -0.025 (z=-2.0) inside it\"; :38 chemotype heterogeneity \"p = 0.33\"; :40-41 Nd dip \"-0.109 in sc009 vs -0.007 elsewhere\"; :58-60 \"buys at most ~0.003 extractant-macro MAE. Not worth modelling.\"",
+    "note": "The 'not worth modelling' verdict was on zero-shot extractant-macro MAE, and round 3 later found about +0.03 R2 at k=3, so it does not carry over to this task. The sc009 split is in-sample on the same cells."
+   },
+   {
+    "id": "D4",
+    "claim": "A fold-trained Gd coefficient already exists locally: -0.094 +/- 0.015 over 25 BP folds, close to the D7 -0.072.",
+    "doc_ref": "RESEARCH_IDEAS.md:41 (use outer-training-fitted coefficient); CLAUDE_CODE_PROMPT.md:57 (B1)",
+    "status": "VERIFIED",
+    "evidence": "generations/gen21/next_research_20261019/FINAL_REPORT_RU.md:153 \"обученный коэффициент −0,094 ± 0,015 по 25 BP folds\" (R23, BP section at :146); ATTEMPTS.md:232 smoke fit \"coefficient −0.079 (the gen13 D7 dip is −0.072)\"; FINAL_REPORT_RU.md:147-148 gain concentrated in Eu/Gd 0.180->0.349 and Gd/Tb 0.272->0.546",
+    "note": "The round-3 reports are present at HEAD b96b0fc, although RESEARCH_IDEAS.md:18 says the round-3 implementation was absent at 9be774c. This estimate is under POL_ERR (R23), not DOPT_Q."
+   },
+   {
+    "id": "G11a",
+    "claim": "The corrected Gen11 decision report's verdict is INCONCLUSIVE.",
+    "doc_ref": "RESEARCH_IDEAS.md:79 (precedent table, Gen11 row)",
+    "status": "VERIFIED",
+    "evidence": "runs/gen11_transfer/GEN11_DECISION_REPORT.md:3-7 rewritten 2026-09-04, superseding the 2026-08-23 report; :9 \"Headline: the stage is INCONCLUSIVE.\"; :242 \"No criterion is met. gen11 does not ship.\"",
+    "note": "26 of 34 pre-registered arms never ran, including both negative controls (:22-24)."
+   },
+   {
+    "id": "G11b",
+    "claim": "Gen11's all-actinide arm improved macro log D MAE by +0.0491 with registered BCa [-0.00049, +0.11865].",
+    "doc_ref": "RESEARCH_IDEAS.md:79",
+    "status": "VERIFIED",
+    "evidence": "GEN11_DECISION_REPORT.md:43 design-matched control 0.97324; :46 \"C (all actinides, n≈3,852) | 0.92410 | +0.0491\"; :51-53 \"at the pre-registered 5,000 replicates, eff(C) has BCa [−0.00049, +0.11865]\"; target is log_D (src/lanthanide_separation/gen11/arms.py:186)",
+    "note": "The interval excludes zero only at 20,000 replicates. The metric is individual-metal log D MAE on the gen10 cohort (5,248 rows), not log SF."
+   },
+   {
+    "id": "G11c",
+    "claim": "The matched actinide-versus-non-actinide contrast was +0.0142 with chemotype-blocked BCa [-0.034, +0.085].",
+    "doc_ref": "RESEARCH_IDEAS.md:79",
+    "status": "VERIFIED",
+    "evidence": "GEN11_DECISION_REPORT.md:60 \"mean +0.0142\"; :64 \"chemotype-blocked BCa on the mean | [−0.034, +0.085]\"; :77 MDE \"+0.087\"; :166-168 F and D differ ~15x in per-chemotype weight and ~12x in ligand diversity; :99 far-band F−D \"+0.2018\" 5/5; :175 \"C − F = −0.0884, BCa [−0.174, −0.034]\"",
+    "note": "The design was underpowered (power about 22-25% for +0.04), and 'matched' F vs D was not matched on per-chemotype weight. The only interval-supported contrast is block size (C−F)."
+   },
+   {
+    "id": "G11d",
+    "claim": "Gen11's actinide arms pooled every actinide oxidation state, which is the mixing the round-4 brief forbids.",
+    "doc_ref": "RESEARCH_IDEAS.md:119 (do not combine U(VI)O2, Th(IV), Am(III), Ln(III)); CLAUDE_CODE_PROMPT.md:114",
+    "status": "VERIFIED",
+    "evidence": "src/lanthanide_separation/gen11/arms.py:43 ACTINIDE = \"actinide\" and :82 C_LN_PLUS_ACTINIDES selects (ACTINIDE,) with no state filter; runs/gen11_transfer/metalrep/metal_coverage.csv auxA_oxidation_states Am 3|6, U 4|6, Pu 3|4|6, Th 4, Np 4|5|6, Pa 5; actinide auxA rows total 4,896",
+    "note": "An An(III)-only transfer arm has therefore never been tested in Gen11."
+   },
+   {
+    "id": "G19a",
+    "claim": "In Gen19 the actinide benefit to lanthanide prediction was not established.",
+    "doc_ref": "RESEARCH_IDEAS.md:80",
+    "status": "VERIFIED",
+    "evidence": "generations/gen19_chem_transfer/SUMMARY.md:18 \"H3 is UNDECIDED (no registered power check)\"; :10 and :51 F4 negative actinide transfer HOLDS under the conservative reading, \"V2: WITHOUT vs WITH Delta 0.026, BCa 95 % [0.003, 0.078]\"; scripts/g19_run_h3.py:362 WITHOUT removes every actinide row of all states",
+    "note": "The record is stronger than 'unestablished': under the conservative reading Gen19 met a registered negative-transfer failure condition. Its WITH arm also pooled all actinide states."
+   },
+   {
+    "id": "G19b",
+    "claim": "Gen19's Pr/Nd selectivity criterion S2 failed.",
+    "doc_ref": "RESEARCH_IDEAS.md:80",
+    "status": "VERIFIED",
+    "evidence": "SUMMARY.md:17 \"S2 fails in the confirmation run\"; :43-46 S2 overall/(a)/(b)/(c) FAIL (confirmation); :47 S2(d) NOT_RUN",
+    "note": ""
+   },
+   {
+    "id": "G19c",
+    "claim": "In Gen19 the descriptor model M0 beat the factorised M2 on V5.",
+    "doc_ref": "RESEARCH_IDEAS.md:80",
+    "status": "VERIFIED",
+    "evidence": "SUMMARY.md:19 \"Delta (M0 - M2) = -0.154 log D, BCa 95 % [-0.348, -0.088], p 0.0000, and on V2: -0.154 [-0.259, -0.038]\"",
+    "note": "Discovery selection half only, seed 104729, labelled optimistically biased (SUMMARY.md:3). The target is cell log D reconstruction, not Ln log SF."
+   },
+   {
+    "id": "E1",
+    "claim": "Gen11 and Gen19 already include f-electron count and metal-state descriptors.",
+    "doc_ref": "RESEARCH_IDEAS.md:82 (Existing electronic features); CLAUDE_CODE_PROMPT.md:98",
+    "status": "VERIFIED",
+    "evidence": "src/lanthanide_separation/gen11/metalrep.py:307-326 GENERAL_COLUMNS incl. metal_oxidation_state, metal_effective_charge, metal_is_oxo_species, metal_f_electron_count (assigned :388), forced on every auxiliary arm (GEN11_DECISION_REPORT.md:34-37); generations/gen19_chem_transfer/gen19ct/models/features.py:113-114 METAL_NUMERIC = (Z, formal_charge, radius_cn6_A, radius_cn8_A, radius_cn9_A, f_electron_count, d_electron_count, electronegativity_pauling), categorical series/hsab_class, M1 e_ox/e_series (:9)",
+    "note": "For Ln(III) every one of these columns is a deterministic function of Z."
+   },
+   {
+    "id": "E2",
+    "claim": "For ordinary Ln(III), n_f = Z-57 and adds no information beyond element identity.",
+    "doc_ref": "RESEARCH_IDEAS.md:117; CLAUDE_CODE_PROMPT.md:98",
+    "status": "VERIFIED",
+    "evidence": "generations/gen13_separation/gen13sep/metals.py:22 F_COUNT = ATOMIC_NUMBER[m] - 57; metalrep.py:134 _LN_CORE_Z = 54 and :186 z - 54 - oxidation_state; gen19 descriptors/metals.csv Nd(III) f=3 \"[Xe] 4f3\", Gd(III) f=7 \"[Xe] 4f7\"",
+    "note": ""
+   },
+   {
+    "id": "E3",
+    "claim": "Generic f-count/tetrad features have already been tried in both repositories.",
+    "doc_ref": "CLAUDE_CODE_PROMPT.md:98",
+    "status": "PARTLY",
+    "evidence": "ml_separator: gen13sep/models.py:636,646 PhysicsBasisArm(radius, radius_sq, tetrad_e1, tetrad_e3); headline_tables/t1_leaderboard.md:10 radius+radius_sq macro 0.4979 / adjacent 0.1885, :12 +tetrad 0.4994 / 0.1841, :15 +gd_break 0.5018 / 0.1928; DECISION_REPORT.md:600-602 stop spending on tetrad basis terms (<= 0.006); gen20_kshot/gen20k/nnc.py:46 METAL_DESCRIPTORS incl. tetrad_e1, tetrad_e3; strain: C17_PREREGISTRATION.md:167 mphys 'aqueous/f-shell metal constants'",
+    "note": "Tetrad use is verified only in ml_separator, and only as zero-shot design-B bases, where tetrad improved adjacent MAE by 0.0044. They were never tested as donor interactions or in k=3 interpolation. Strain tetrad use was not checked."
+   },
+   {
+    "id": "E4",
+    "claim": "In the strain repo the isolated metal-physics arm changed held-out R2 by -0.0044, and the composite endpoint changed it by -0.0127, 90% CI [-0.0485, +0.0196].",
+    "doc_ref": "RESEARCH_IDEAS.md:82",
+    "status": "VERIFIED",
+    "evidence": "D:/ml_separator_refs/lanthanidestrain_025f808/automl/reports/C17_PREREGISTRATION.md:167 \"`mphys` — aqueous/f-shell metal constants | +0.0853 | −0.0044 vs D0\"; C6_RESULTS.md:19-27 arm z1_mphys_f40_w10 report third \"−0.0127, 90 % CI [−0.0485, +0.0196]\"",
+    "note": "C17_PREREGISTRATION.md:174-177 also records an interim mphys +0.0286 (17/18, p=0.0001) on a population that contains the screening extractants. The design doc omits it."
+   },
+   {
+    "id": "G15a",
+    "claim": "Gen15's naive two-way xTB energy slope had Spearman +0.644 with the observed curve amplitude.",
+    "doc_ref": "RESEARCH_IDEAS.md:83",
+    "status": "VERIFIED",
+    "evidence": "generations/gen15_curve/GEN15_REPORT.md:157 \"Spearman +0.644 with the observed amplitude (p < 1e-4)\", :172 \"39 | +0.644\"; reproduced in generations/gen16_leads/results/L1/L1_REPORT.md:72 \"+0.643927\"",
+    "note": "n = 39 energy-complete series. The target is amplitude a, not log SF. Slope and curvature are one step-function signal (Spearman -0.981, L1_REPORT.md:94)."
+   },
+   {
+    "id": "G15b",
+    "claim": "After composition control the slope correlation fell to 0.195 with p = 0.11.",
+    "doc_ref": "RESEARCH_IDEAS.md:83",
+    "status": "PARTLY",
+    "evidence": "GEN15_REPORT.md:173 \"70 | +0.195 | 0.11\", but gen15_curve/README.md:94 \"Rows 70/+0.195 and 71/+0.216 do not reproduce\"; exp/phys3d/trap_check.csv construction A n=79 rho 0.10421 p 0.36073, B n=81 rho 0.20282 p 0.06938; L1_REPORT.md:84-91; gen16 registered exact-cycle SPECIES rho -0.084 (p = 0.52, CI [-0.297, +0.240]) at gen16_leads/DECISION_REPORT.md:348",
+    "note": "The collapse to |rho| <= 0.22 holds, but the 0.195 / p=0.11 figures do not reproduce. Quote trap_check.csv or the gen16 cycle instead."
+   },
+   {
+    "id": "G15c",
+    "claim": "85 of 219 xTB series changed composition along the lanthanide series.",
+    "doc_ref": "RESEARCH_IDEAS.md:83",
+    "status": "VERIFIED",
+    "evidence": "gen15_curve/exp/phys3d/build_block.py:6 \"85 of 219 series change atom count\"; GEN15_REPORT.md:166; recomputed from geometry_long.parquet: 219 (SMILES, anion) series, 85 atom-count changes, 86 composition changes, but only 97 series have >= 2 metals (exp/phys3d/log_trap.txt: \"series with >= 2 metals: 97 / composition changes across the series: 86\")",
+    "note": "The denominator includes 122 single-metal series; 85 of 97 multi-metal series change. The report's 'up to 109 atoms' disagrees with the recomputed maximum of 183 (log_trap.txt)."
+   },
+   {
+    "id": "G15d",
+    "claim": "Binding/strain reference jobs were 'previously unavailable', so the strain hypothesis is not experimentally refuted.",
+    "doc_ref": "RESEARCH_IDEAS.md:125",
+    "status": "PARTLY",
+    "evidence": "GEN15_REPORT.md:379 phys3d arm 0.4998 null, \"the reference jobs were never run\"; but gen16_leads/results/L1/reference_species/summary.json n_species 361, n_strain_geometries 168, all 361 converged in reference_energies.csv; DECISION_REPORT.md:348 binding-energy cycle -0.084, reliability 0.80, detectable 0.90 (:363); L1_STAGE2_HANDOVER.md:104 \"Strain is a bonus: the registered cycle does not use it.\"",
+    "note": "The statement is out of date for binding energies, which gen16 computed and found null with power. Ligand strain single points exist but were never analysed."
+   },
+   {
+    "id": "LIT1",
+    "claim": "In a primary TODGA study, outer-sphere nitrate/water interactions explain important selectivity trends (Baldwin et al. 2018).",
+    "doc_ref": "RESEARCH_IDEAS.md:42",
+    "status": "LITERATURE",
+    "evidence": "doi 10.1021/acscentsci.8b00223 (external; not checkable locally)",
+    "note": "Locally consistent: D7 FINDINGS.md:32-33 shows the Gd dip differs inside vs outside sc009."
+   },
+   {
+    "id": "LIT2",
+    "claim": "Equal An/Ln bond lengths need not imply equal extraction behaviour (Jensen et al. 2002; C2-POPhen study).",
+    "doc_ref": "RESEARCH_IDEAS.md:119",
+    "status": "LITERATURE",
+    "evidence": "doi 10.1021/ja0178620; doi 10.1021/acs.inorgchem.8b03592 (external)",
+    "note": ""
+   },
+   {
+    "id": "LIT3",
+    "claim": "Several chemically plausible configurations may matter more than small differences between lanthanides, so computed selectivity is only an auxiliary signal (Summers et al., JACS Au).",
+    "doc_ref": "RESEARCH_IDEAS.md:123",
+    "status": "LITERATURE",
+    "evidence": "doi 10.1021/jacsau.4c00770 (external)",
+    "note": "Local geometries are single-conformer and builder-composition (G15c, gen16 L1), so this caveat applies directly."
+   },
+   {
+    "id": "LIT4",
+    "claim": "Nd(III) is 4f3 per NIST free-ion analysis and ASD, and neutral-atom configurations are inappropriate.",
+    "doc_ref": "RESEARCH_IDEAS.md:117",
+    "status": "LITERATURE",
+    "evidence": "NIST Nd IV analysis / ASD (external); local generations/gen19_chem_transfer/descriptors/metals.csv Nd(III) electron_configuration \"[Xe] 4f3\" agrees",
+    "note": ""
+   },
+   {
+    "id": "H1",
+    "claim": "A gain from |n_f-7|, tetrad terms or a half-shell flag would reflect a better basis or regulariser, not discovered electron physics.",
+    "doc_ref": "RESEARCH_IDEAS.md:117",
+    "status": "HYPOTHESIS",
+    "evidence": "interpretive; gen13 DECISION_REPORT.md:120-122 shows tetrad/Gd-break/low-rank bases interchangeable within 0.006",
+    "note": ""
+   },
+   {
+    "id": "H2",
+    "claim": "Small donor/condition-dependent amplitudes on prespecified f-shell/tetrad bases may add skill beyond radius and Gd.",
+    "doc_ref": "RESEARCH_IDEAS.md:93 (priority 3)",
+    "status": "HYPOTHESIS",
+    "evidence": "proposal; not run in either repository as an interaction",
+    "note": "D7's in-sample sc009 split (D3) is the only local hint."
+   },
+   {
+    "id": "H3",
+    "claim": "Selective An(III) transfer with private Ln/An heads and a possibly-zero auxiliary weight may improve Ln residuals.",
+    "doc_ref": "RESEARCH_IDEAS.md:95 (priority 5)",
+    "status": "HYPOTHESIS",
+    "evidence": "proposal; all prior An arms pooled An states (G11d, G19a)",
+    "note": ""
+   }
+  ],
+  "implications": "**Gd reference (B1 / HIST_D7).** The D7 -0.072 was fitted on 224 of the 229 C3 cells (computed from `generations/gen13_separation/manifests/cohort_exact.parquet` against C3 = outer cells with k_max>=3 in `generations/gen21/predictions/attempt6_BP.parquet`). Use it only as the labelled diagnostic, as `generations/gen21/round4_20261022/r4/refs.py:24,45` already does. A fold-trained check value exists: -0.094 +/- 0.015 over 25 BP folds (R23/POL_ERR, `generations/gen21/next_research_20261019/FINAL_REPORT_RU.md:153`). Round 3's gain sits in the Eu/Gd and Gd/Tb pair-type means (`FINAL_REPORT_RU.md:140-149`), so any electronic arm must beat a training-only pair-type prior.\n\n**Local actinide data.**\n- `dataset_all_metals/clean/master_clean.parquet` has 16,770 rows, 6,302 of them actinide:\n  - Am: III 1,775, VI 54, unknown 275\n  - Cm: III 151, unknown 9\n  - Pu: III 118, IV 766, VI 119\n  - Cf: III 23\n  - Th: IV 810\n  - U: VI 1,547 (16 flagged uranyl), IV 15\n  - Np: IV 223, V 194, VI 79\n  - Pa: V 52\n- An(III) totals 2,067 rows, 116 primary extractants and 34 DOIs. Only 1,157 An(III) rows (Am 993, Cm 136, Cf 23, Pu 5) fall on 22 of the 79 C3 extractants (28 DOIs). That is an RDKit match on `extractant_primary_smiles` and may under-match multi-component systems. `metal_species_form` is almost always null.\n- Gen11 auxA: `runs/gen11_transfer/metalrep/metal_coverage.csv`, 4,896 actinide rows with mixed states.\n- Gen19 metal-state table: `generations/gen19_chem_transfer/descriptors/metals.csv`, 79 rows including 19 An states with f count, configuration and effective charge (U(VI) uranyl 3.2). It has gaps: Cm(III) radius_cn8 is NaN and Am(III) radius_cn9 is NaN, so CN-consistent An radii are incomplete.\n- Trap: both earlier An experiments pooled all An states and targeted individual log D (`gen11/arms.py:82`, `g19_run_h3.py:362`). Gen19 F4 (negative transfer) holds under the conservative reading. An An(III)-only, Ln-log-SF-scored arm is genuinely untried, but its support is about 22 C3 extractants, and exclusions must be applied across the Ln∪An union.\n\n**Local geometry and energy for C3.**\n- Sources:\n  - `dataset with 3D structures/accepted_geometries.csv`: 1,155 QC-accepted GFN2-xTB Ln(III) complexes covering 177 SMILES and 14 Ln (no Pm, no An). Keyed Z|SMILES|anion, single conformer, gas phase, with the nitrate/water fill chosen by the builder.\n  - `generations/gen15_curve/exp/phys3d/geometry_long.parquet`: 1,116 of 1,155 energies non-null, plus composition and n_atoms. `phys3d_block.parquet` is 177 x 29.\n  - `generations/gen16_leads/results/L1/reference_species/reference_energies.csv`: 361 species, all converged (177 free ligands, 168 ligand-at-complex strain single points, NO3-, H2O, 14 Ln3+). `scripts/l1_stage2_cycle.py:114` builds the binding energy dE_eV.\n- Coverage of C3 (computed by me):\n  - All 229 cells (79 extractants) have at least one geometry, a phys3d_block row and a strain single point.\n  - 191/229 cells have a geometry for every metal in the cell (2,085/2,208 cell-metals).\n  - 185/229 have a single (SMILES, anion) series with energies for all their metals, but only 60/229 also keep composition constant across those metals.\n  - Only 7 cells' extractants keep one composition across all computed metals.\n  - 11 of 79 extractants have both nitrate and water series.\n- Geometry is extractant-level, not condition-level.\n- Measured nulls to respect:\n  - gen13 RESP3D block: about +0.000.\n  - gen15 phys3d arm: 0.4998.\n  - Composition-controlled energy slope: trap_check 79/+0.104 and 81/+0.203; do not quote 0.195.\n  - gen16 exact binding cycle: -0.084 with reliability 0.80.\n- Composition-matched xTB energies support only a coverage-matched subset of about 60 cells.\n\n**What an electronic arm can use that was not tried.**\n- Already tried:\n  - Generic f count, oxidation state and effective charge (Gen11 GENERAL, Gen19 M0).\n  - Jorgensen tetrad e1/e3 and gd_break as global bases (gen13 M_PHYSICS, zero-shot design B, within 0.006 of each other).\n  - Hydration and tetrad descriptors in gen20 NNC (`gen20k/nnc.py:46`).\n  - A single shared Gd dip (round 3).\n  - Strain mphys (-0.0044).\n- Untried:\n  - (a) Gd and Nd amplitudes interacting with donor/chemotype class (DGA/sc009 vs other) inside the k=3 residual, with shrinkage to the shared Gd term. D7 gives an in-sample direction (Gd -0.127 outside vs -0.025 inside sc009; Nd -0.109 vs -0.007), which must be re-estimated within outer training.\n  - (b) A CN9 vs CN8 radius coordinate for the interpolation operator itself; gen19 had these radii only as features.\n  - (c) The per-ligand xTB strain scalar E_strain (168/177 ligands, 79/79 C3 extractants), computed in gen16 but never analysed, as a moderator of the Gd/curvature amplitude. It comes from one metal per ligand, so it is not a cross-metal response.\n- Required controls: an equal-capacity free per-element offset or Z/radius basis (n_f = Z-57 carries the same information as element identity), an electronic-map permutation, and the pair-type prior.\n\n**Reusable read-only scripts** (scratch, not committed): `C:\\Users\\Bandai\\AppData\\Local\\Temp\\claude\\C--Users-Bandai--claude-spares-spare-9MsqWO\\0cd609d3-ed34-4de3-83c3-904e5f4bdb8b\\scratchpad\\c3cov.py` (C3 cell list and geometry/energy/strain coverage) and `C:\\Users\\Bandai\\AppData\\Local\\Temp\\claude\\C--Users-Bandai--claude-spares-spare-9MsqWO\\0cd609d3-ed34-4de3-83c3-904e5f4bdb8b\\scratchpad\\anov.py` (An(III) overlap with C3 extractants). No seeds file was opened (I avoided `generations/gen21/manifests/final_seeds_commitment.txt`), no strain code was executed, and no pickles were loaded.",
+  "checks": [
+   {
+    "id": "E3",
+    "final_status": "VERIFIED",
+    "agrees_with_reader": false,
+    "evidence": "STRAIN (025f808), which the reader did not check: automl/metal_physics.py:78 defines `mphys__n_f`, :89-91 define `mphys__tetrad_q1/q2/q3` = |f-3.5|, |f-7.0|, |f-10.5|, and :94 defines `half_shell`. automl/dataset.py:443-444 attaches them, :467 puts every `mphys__` column into block \"mphys\", and :553 defines preset `baseline_2d_mphys`. automl/reports/c6_prescreen.csv:6,10,16 gives |corr| with dy of 0.1589787311474369 (tetrad_q3), 0.13131979473595554 (tetrad_q1) and 0.0578709154757734 (tetrad_q2); :19 marks n_f as \"block-constant or too sparse\". Trained arms e0_mphys and z1_mphys_f40_w10 appear in c6_confirm.csv:2-3 and C6_RESULTS.md:39-41. C6_RESULTS.md:156 gives `mphys` \"+0.0853\" on screening and \"−0.0044 vs D0\" on the report third; C17_PREREGISTRATION.md:167 repeats this. automl/topo/pair_model.py:131-137,177-179 also uses nf_lo/nf_hi and tetrad_q*_lo/hi as pair-identity features. ML_SEPARATOR: src/lanthanide_separation/gen7/harness.py:182-187 builds the METALPHYS block with n_f, n_f_norm, n_f_from_half and n_f_from_half_sq. docs/results/gen8_architecture_results_20260820.md:726 reports \"shared RBF over ionic radius + tetrad term\" with within-curve MAE 0.339. generations/gen13_separation/gen13sep/metals.py:22 defines F_COUNT=Z-57 and :70-71 define tetrad_e1/e3. gen13sep/models.py:636,646 defines PhysicsBasisArm(radius, radius_sq, tetrad_e1, tetrad_e3). gen13sep/arms_stage2.py:27,70-72 gives the \"rich\" row features: 4f count q plus the Jorgensen e1/e3 terms. headline_tables/t1_leaderboard.md:10 gives 0.4979/0.1885 and :12 (+tetrad) gives 0.4994/0.1841. gen13 DECISION_REPORT.md:601-602 says \"Do not spend further effort on ... tetrad basis terms ... ≤ 0.006\". gen20_kshot/gen20k/nnc.py:46 includes tetrad_e1 and tetrad_e3 in METAL_DESCRIPTORS.",
+    "note": "Both repositories implement and evaluate generic f-count and tetrad features with recorded results, so the claim holds and the reader's PARTLY rests on not checking strain. One caveat: strain tested its f-count/tetrad columns only inside the bundled mphys block (with hydration, IE3 and CN-break terms), not on their own. The reader's side remark that these features were \"never tested in k=3 interpolation\" is also doubtful, because gen20k/nnc.py:46 uses tetrad_e1/e3 as k-shot metal descriptors."
+   },
+   {
+    "id": "G15b",
+    "final_status": "PARTLY",
+    "agrees_with_reader": true,
+    "evidence": "The fall is verified, but the specific 0.195 / p = 0.11 values are contradicted. The 0.195 figure appears only as a gen15 report row: GEN15_REPORT.md:173 \"contrasts inside constant-composition blocks only | 70 | +0.195 | 0.11\". Later files say it does not reproduce: gen15_curve/README.md:94 \"Rows 70/+0.195 and 71/+0.216 do not reproduce; trap_check.csv gives 79/+0.104 and 81/+0.203\", and gen16_leads/results/L1/L1_REPORT.md:83-91 says those rows \"do not correspond to any construction in the frozen phys3d scripts\". The same construction (trap_check.py:59 \"A: constant-composition block only\") gives these values in gen15_curve/exp/phys3d/trap_check.csv: line 4 (all cohort, A, a) n=79, rho=0.10421129503407985, p=0.36072821048657483; line 6 (all cohort, B, a) n=81, rho=0.20282294489611563, p=0.06937664256642796. gen16 L1 stage1_reproduction.csv lines 2 and 4 reproduce both to about 1e-16. No CSV under phys3d or L1 contains a 0.195 / p 0.11 pair. The drop from the naive value is real: the +0.644 reproduces as +0.643927 on n=39 (L1_REPORT.md:72). The later exact cycle is also near zero: gen16_leads/DECISION_REPORT.md:348 gives SPECIES -0.084 (p = 0.52, CI [-0.297, +0.240]) on S8 n=62, and -0.048 on S14 n=39.",
+    "note": "PARTLY is right: the correlation does fall after composition control, but 0.195 and p = 0.11 come from a report row that does not reproduce; quote trap_check.csv A +0.104 (p 0.361, n 79) / B +0.203 (p 0.069, n 81) or the gen16 cycle -0.084 instead. One part of the reader's note is wrong. It says the collapse to |rho| <= 0.22 holds, but in trap_check.csv that is true only for the all-cohort subset. On the complete 14-metal series, the same subset the 0.644 came from, construction B is +0.42351916376306625 (p 0.005794930480563751; trap_check.csv:12) and A is +0.24355400696864116 (p 0.125; trap_check.csv:10). The near-zero result holds only under gen16's exact cycle (S14 -0.048)."
+   },
+   {
+    "id": "G15d",
+    "final_status": "PARTLY",
+    "agrees_with_reader": true,
+    "evidence": "The premise that the jobs were \"previously unavailable\" holds for both repos, but binding/interaction energies were computed later in both. Only strain itself has never been tested.\n\nSupports the premise:\n- ml_separator generations/gen15_curve/GEN15_REPORT.md:379: the phys3d arm is null at best BP 0.4998, and the report says \"the reference jobs were never run, so binding, strain and frontier-orbital energies are all NULL\".\n- Strain repo automl/reports/FINDINGS.md:745-747: `binding_energy_eV` and `strain_energy_eV` are \"still null for all 5992 rows\".\n\nContradicts it as a current state (binding):\n- gen16_leads/results/L1/reference_species/summary.json: n_species 361 and n_strain_geometries 168.\n- reference_energies.csv has 361 rows, all converged=ok, 168 of them `strain_lig_*`; local_run.log reports \"0 not ok\".\n- gen16_leads/DECISION_REPORT.md:348: the registered SPECIES `dE` arm gives -0.084 (p = 0.52, CI [-0.297, +0.240]).\n- DECISION_REPORT.md:363: jackknife reliability 0.80, max attainable |rho| 0.90.\n- Strain repo automl/reports/ENERGY_RESULTS.md:19-22: frozen-geometry E_int was computed for 953 of 956 geometries.\n- ENERGY_RESULTS.md:40: with all 57 energy columns, strict adjacent R² falls from +0.0819 to -0.1994.\n\nSupports \"strain not refuted\":\n- gen16_leads/results/L1/L1_STAGE2_HANDOVER.md:104: \"Strain is a bonus: the registered cycle does not use it.\"\n- gen16_leads/scripts/l1_stage2_cycle.py:21: strain_lig_XXX is \"(not used here)\". No other gen16+ script reads it.\n- Strain repo ENERGY_RESULTS.md:128: \"Strain was not computed.\"\n- DECISION_REPORT.md:617-622 limits the L1 null to one construction, not \"xTB is useless\".",
+    "note": "I agree with the reader's PARTLY. The narrow logical point stands: no strain energy has been tested in either repo. In ml_separator, 168 strain single points exist but were never analysed. In the strain repo, strain was never computed. But \"previously unavailable\" is out of date for binding/interaction energies. Both repos later computed them and found a null or a significant harm for selectivity: gen16 rho -0.084 with reliability 0.80, and the strain repo's strict adjacent R² fell from +0.0819 to -0.1994. Also, none of these tests are experimental; they are computational descriptors checked against measured selectivity. The reader's evidence was accurate but missed the strain repo's own record (FINDINGS.md:745, ENERGY_RESULTS.md:19-22 and :128)."
+   },
+   {
+    "id": "D1",
+    "final_status": "VERIFIED",
+    "agrees_with_reader": true,
+    "evidence": "I opened each file myself. generations/gen13_separation/analysis/stage2/D7/FINDINGS.md:3 reads \"Base: **268 cells** with >= 6 observed metals (77 extractants, 36 chemotypes, 39 publications; 2664 cell-metal residuals)\", and FINDINGS.md:14 reads \"Gd -0.072 (p=0.012)\". D7_table1_per_element_residual.csv:8 (Gd) gives mean_resid_quad = -0.07154223452529478, CI [-0.12187011516190814, -0.03742040911756246], p_holm = 0.011518794484234852 and n_cells = 225. d7_tetrad_residual/verify/V_summary.json:52-53 repeats n_cells 225 and mean_resid -0.07154223452529478, and D7_summary.json gives n_cells 268. In d7_residual_structure.py, line 37 sets MIN_METALS = 6, line 80 keeps df[\"n_metals\"] >= min_metals, and line 125 reads manifests/cohort_exact.parquet with no fold or split filter. Lines 85-95 fit a per-cell lstsq on [1, z, z^2] (z is the standardised Shannon CN8 radius, lines 53-58), and line 158 takes the column mean of the residuals. I read the parquet: cohort_exact has 521 cells (the same size as round-3 V1, PROTOCOL.md:21), 268 of them have n_metals >= 6, and 225 of those have Gd. Round-3 documents tie the number to D7 independently of the audit: next_research_20261019/ATTEMPTS.md:232 says \"(the gen13 D7 dip is -0.072)\" and FINAL_REPORT_RU.md:153 says \"провалу у Gd из gen13 D7 (-0,072)\". The local fixed use is round4_20261022/r4/refs.py:45, HIST_D7_BETA = -0.072, with a comment citing D7 FINDINGS.md section 1.",
+    "note": "The provenance checks out: -0.072 is the rounded value of D7's Gd mean residual, -0.07154223452529478. That diagnostic ran on the whole 521-cell gen13 cohort with no hold-out, restricted to the 268 cells with at least 6 metals. Three precision caveats. (1) The Gd value itself is averaged over only the 225 of those 268 cells that measured Gd. (2) It is a mean residual after a per-cell quadratic in standardised CN8 radius, not a coefficient fitted in the PWL gd_dip form. (3) Round 3 never used a fixed -0.072. R14 and R23 learned the Gd parameter per fold (FINAL_REPORT_RU.md:153: -0.094 +/- 0.015 over 25 BP folds; smoke fit -0.079 at ATTEMPTS.md:232). So the \"fixed\" -0.072 exists locally only in round-4 refs.py:45 (HIST_D7), and any audit use of it is AUDIT_ONLY."
+   },
+   {
+    "id": "D4",
+    "final_status": "VERIFIED",
+    "agrees_with_reader": true,
+    "evidence": "The result files, not only the report, contain the coefficient. generations/gen21/next_research_20261019/results/R23/fitted_BP.json is tracked at HEAD b96b0fc. It has 25 fold keys (seeds 104729, 130363, 155921, 196613 and 262147, folds 0-4). Each fold has \"cor:Dnc\".coef, and the first is -0.08870700102701792 for fold 104729_0. Recomputed over the 25 folds: mean -0.09392674890890768, population SD 0.015432 (sample SD 0.015751), range -0.1378 to -0.0748. Lambda was 0.03 in 23 folds and 0.003 in 2. The report states the same figure: FINAL_REPORT_RU.md:153 \"обученный коэффициент −0,094 ± 0,015 по 25 BP folds… gen13 D7 (−0,072)\", and ATTEMPTS.md:272 has \"−0.094 ± 0.015 over 25 BP folds\". The coefficient is fitted only on the outer training fold: r3/corrector.py:9 and :289-323 choose lambda on the inner blocks and then refit on all training situations. The D7 comparator is generations/gen13_separation/analysis/stage2/D7/FINDINGS.md:14 \"Gd -0.072 (p=0.012)\". The BPG equivalent (R23/fitted_BPG.json) is -0.0913, with sample SD 0.0198.",
+    "note": "The reader's note is wrong on one point. results/R14/fitted_BP.json (DOPT_Q) holds coefficients identical to R23 (POL_ERR) in all 25 folds. The Gd parameter is fitted on training situations independent of the evaluation read policy, so -0.094 is not specific to POL_ERR. The ±0.015 is the population SD; the sample SD would round to 0.016. \"Close to -0.072\" is an interpretation: the two numbers are about 1.4 SD apart and the quantities are defined differently. D7 is a per-cell quadratic-residual mean on the full corpus, while R14/R23 fit a ridge coefficient on 1[b=Gd, unread] - w_Gd(b). There is also a caveat for RESEARCH_IDEAS.md:41. The existing fit is outer-trained and inner-tuned, but zero correction was never a candidate in the tuning. LAMBDA_GRID = (0.003, 0.03, 0.3, 3.0, 30.0) at r3/corrector.py:40, and line 320 picks the best of these only; inner_pwl is recorded but cannot be selected. So it does not yet meet the brief's \"include zero correction in tuning\" requirement."
+   },
+   {
+    "id": "G11c",
+    "final_status": "VERIFIED",
+    "agrees_with_reader": true,
+    "evidence": "D:/ml_separator_gh/runs/gen11_transfer/GEN11_DECISION_REPORT.md:57 defines the primary endpoint as `eff(F) − eff(D)`, where F is \"actinides matched to D\" (line 49). Line 60 gives the per-draw values \"−0.0017, +0.0243, +0.0119, +0.0159, +0.0205 → mean +0.0142\", and line 64 reads \"chemotype-blocked BCa on the mean | [−0.034, +0.085]\". I recomputed the point estimate independently from D:/ml_separator_gh/runs/gen11_transfer/arms/leaderboard.csv. Taking the five F draws' macro_mae values (1.028323, 1.002362, 1.014747, 1.010713, 1.006085) away from D's macro MAE of 1.02662 (report line 47) gives −0.001703, +0.024258, +0.011873, +0.015907 and +0.020535. Their mean is +0.014174, which matches +0.0142. No machine-readable file holds the interval [−0.034, +0.085] or the SE of 0.0309 (line 65). The headline_tables/t3_paired_bootstrap.csv file holds only the earlier, superseded 5-arm comparisons, so the interval appears only in the corrected report. RESEARCH_IDEAS.md:79 states \"+0.0142, CI [-0.034, +0.085]\", which agrees.",
+    "note": "The number and interval are exact, but \"matched\" means matched on n_aux only. The report itself (lines 166-168) says F and D differ about 15x in per-chemotype weight and about 12x in auxiliary ligand diversity. The design was underpowered: the minimum detectable effect was +0.087 (line 77) and power for +0.04 was about 22-25% (line 79), so the interval is not informative."
+   },
+   {
+    "id": "G19b",
+    "final_status": "VERIFIED",
+    "agrees_with_reader": true,
+    "evidence": "The claim checks out in four places. (1) The decision file generations/gen19_chem_transfer/evaluation/confirmation/decisions/confirmation.json: under key s2, \"verdict\": \"FAIL\" sits at line 9442 with \"status\": \"COMPLETE\". Its sub-blocks give s2a.status = \"FAIL\", s2b.status = \"FAIL\" and s2c.status = \"FAIL\". s2d.status = \"NOT_RUN\", because it is \"conditional on Phase H; ... S1 is UNDECIDED\". The s2a HNO3 direction detail reads \"min_Y Delta_Y = -0.248556 ... (binding B8); margin 0.05\". In s2b, \"beats_flat_by_margin\" is false and the pooled logsf_mae of 0.15915699670739855 is above flat_logsf_mae of 0.1369864033696729. (2) generations/gen19_chem_transfer/SUMMARY.md:7 says \"S2 verdict = FAIL\". SUMMARY.md:17 says \"S2 fails in the confirmation run\". The table at :43-46 lists S2 overall, S2(a), S2(b) and S2(c) as FAIL (confirmation), and :47 lists S2(d) as NOT_RUN. (3) generations/gen19_chem_transfer/preregistration.md:1151-1171 defines S2 as the Pr/Nd criterion. Its parts are the sign of logSF_Nd/Pr in at least 11 of 13 systems with direction accuracy at least 0.05 above every yardstick, a logSF MAE at most FLAT - 0.02, and logSF interval coverage. (4) Line 1173 of the same file calls S2 \"the applied claim\". That confirms it is the Pr/Nd selectivity criterion.",
+    "note": "The reader's quotes match SUMMARY.md, and the underlying file confirmation.json:9442 independently records the S2 verdict as FAIL. One qualifier: S2(d) was never run (NOT_RUN), but S2 fails overall because (a), (b) and (c) all FAIL."
+   },
+   {
+    "id": "E2",
+    "final_status": "VERIFIED",
+    "agrees_with_reader": true,
+    "evidence": "D:/ml_separator_gh/generations/gen13_separation/gen13sep/metals.py:22 `F_COUNT = {m: ATOMIC_NUMBER[m] - 57 for m in LANTHANIDES}  # 4f^q of Ln3+` is a plain lookup keyed by element symbol. D:/ml_separator_gh/src/lanthanide_separation/gen11/metalrep.py:134 sets `_LN_CORE_Z = 54`, and :186 computes `np.clip(z - _LN_CORE_Z - oxidation_state, 0.0, 14.0)`, which gives Z-57 at oxidation state 3. The reader quoted this line as the literal `z - 54 - oxidation_state`, but it is the same rule. In D:/ml_separator_gh/generations/gen19_chem_transfer/descriptors/metals.csv, line 30 is Nd(III) with f_electron_count 3 and \"[Xe] 4f3\", and line 37 is Gd(III) with f_electron_count 7 and \"[Xe] 4f7\". I checked all 15 Ln(III) rows (La to Lu) with the venv Python: f_electron_count == Z-57 holds for every one (True), and it equals the series_index column, which is defined as \"Ln Z-57 (La=0..Lu=14)\". The strain repo encodes the same rule. D:/ml_separator_refs/lanthanidestrain_025f808/automl/qc/gxtb_probe.py:79 has the comment \"Ln(III): f-count is Z-57\", and :87 has `return Z_OF[sym] - 57`. D:/ml_separator_refs/lanthanidestrain_025f808/automl/metal_physics.py:51-66 hard-codes n_f 0..14 for La..Lu, and metal_physics_frame (:78 `mphys__n_f`) is \"One row per lanthanide symbol, indexed by symbol\". The doc statements are at RESEARCH_IDEAS.md:117 and CLAUDE_CODE_PROMPT.md:98.",
+    "note": "Every local encoding gives n_f = Z-57 for Ln(III) and looks it up by element symbol (or by Z with oxidation state fixed at 3). So, as used in both repos, n_f is a fixed function of element identity and carries no extra information. In gen19 metals.csv it is literally identical to series_index for all 15 Ln(III) rows. The \"no extra information\" part follows logically from that fixed mapping; no experiment measured it. That the real Ln(III) ions have 4f^(Z-57) configurations is a convention the code adopts; the doc supports it by citing NIST (external). The Gd(III) values sit at metals.csv:37, not on a separate line as the reader's citation implies."
+   }
+  ]
+ },
+ {
+  "area": "gen21 round-3 facts as restated by the round-4 docs (RESEARCH_IDEAS \"What the Gen21 audit establishes\", \"Two important qualifications\", \"Data acquisition\", \"Evaluation and stopping\"; CLAUDE_CODE_PROMPT §3, §4, §9)",
+  "claims": [
+   {
+    "id": "G1",
+    "claim": "The primary target is strict-adjacent logSF(A/B)=log10 D(A)-log10 D(B), lighter metal first, with Nd/Sm not adjacent.",
+    "doc_ref": "RESEARCH_IDEAS \"What the Gen21 audit establishes\" para 1; CLAUDE_CODE_PROMPT §3",
+    "status": "VERIFIED",
+    "evidence": "generations/gen21/PROTOCOL.md:15-18 (\"A the lighter lanthanide\"; \"strict adjacent pairs (|ΔZ| = 1; 12 pair types ... Nd/Sm is not adjacent\"); r3/metrics.py:19 PAIR_ORDER has 12 pairs; predictions/B0_BP.parquet C3 k=3 rows have dZ == 1 only",
+    "note": "Pair order and sign are the same in every round-3 prediction file."
+   },
+   {
+    "id": "G2",
+    "claim": "k=3 means four measured metal logD values per held-out cell, not three.",
+    "doc_ref": "RESEARCH_IDEAS \"What the Gen21 audit establishes\"; CLAUDE_CODE_PROMPT §3",
+    "status": "VERIFIED",
+    "evidence": "generations/gen21/PROTOCOL.md:35-37 (\"k + 1 metals of the held-out cell are read\"); next_research_20261019/PROTOCOL.md:26 (\"k = 3 (four measured metals)\"); r3/corrector.py:167 (target = min(k, dz.k_max) + 1); every C3 k=3 row of predictions/B0_BP.parquet, R14_BP, R02_BPG, R23_BP has 4 metals in read_set",
+    "note": "All read sets hold 4 metals, and the reads are absolute log D values."
+   },
+   {
+    "id": "G3",
+    "claim": "C3 contains 229 cells and 1,802 scored strict-adjacent pairs per seed.",
+    "doc_ref": "RESEARCH_IDEAS \"What the Gen21 audit establishes\"; CLAUDE_CODE_PROMPT §3 \"Expected C3 counts\"",
+    "status": "VERIFIED",
+    "evidence": "next_research_20261019/PROTOCOL.md:27 (\"229 cells, 1,802 pairs per seed\"); results/R14/summary_BP.csv:9 n_rows_per_seed 1802.0, n_cells_per_seed 229.0; results/final/DECISION.json:17-18 (cells_per_seed 229.0, pairs_per_seed 1802.0); recount from predictions/*.parquet: 1802 rows and 229 cells per seed, 38 chemotypes, 39 publications",
+    "note": "Prediction files hold 9,010 rows per design, which is 5 seeds x 1,802."
+   },
+   {
+    "id": "G4",
+    "claim": "BP holds out chemotypes and excludes their publications from training.",
+    "doc_ref": "RESEARCH_IDEAS \"What the Gen21 audit establishes\"",
+    "status": "VERIFIED",
+    "evidence": "generations/gen13_separation/gen13sep/splits.py:30-35 (GROUP_COLUMNS BP='chemotype'; publication-aware training mask) and :73-76 (drop training cells whose publication is among held-out cells); gen20k/splits.py:102-103 asserts zero publication overlap",
+    "note": "The dev seeds are gen13sep/splits.py:24 SPLIT_SEEDS."
+   },
+   {
+    "id": "G5",
+    "claim": "BPG additionally excludes known cross-publication copies, also inside inner folds.",
+    "doc_ref": "RESEARCH_IDEAS \"What the Gen21 audit establishes\"; CLAUDE_CODE_PROMPT §3 \"including exclusions inside every inner fold\"",
+    "status": "VERIFIED",
+    "evidence": "generations/gen20_kshot/gen20k/splits.py:58-65 (bpg_folds drops training cells whose group_cross_publication_copy is among held-out cells; copy map from gen19_chem_transfer/data_audit/leakage_publication_components.csv, :26-27, :36-48); gen20k/cov.py:64-72 inner_mask re-applies publication (BP) / copy-group (BPG) masks; g21/cache.py:81-88",
+    "note": "Under BPG, inner_mask masks by copy group only. This assumes every publication maps to a group, and all C3 publications do (recount found no missing publication)."
+   },
+   {
+    "id": "G6",
+    "claim": "No scored query has both endpoints measured.",
+    "doc_ref": "RESEARCH_IDEAS \"What the Gen21 audit establishes\"; CLAUDE_CODE_PROMPT §3",
+    "status": "VERIFIED",
+    "evidence": "r3/harness.py:54-55 raises AssertionError(\"a scored pair has both ends read\"); r3/corrector.py:217-218 same for training situations; predictions parquet: (a_read & b_read).sum() == 0",
+    "note": "gen21/PROTOCOL.md:36-39 also requires lab_known to be false."
+   },
+   {
+    "id": "G7",
+    "claim": "Final (consumed-seed) PWL_R on the R02/R14 reads scores 0.422 / 0.423 (BP / BPG).",
+    "doc_ref": "RESEARCH_IDEAS final table row PWL_R",
+    "status": "VERIFIED",
+    "evidence": "results/final/DECISION.json:25 PWL_R_R2 0.4222051424714411 (BP); :148 0.4228326686208765 (BPG)",
+    "note": "Dev values are 0.4178842609893546 / 0.4180263527106908 (results/B0/summary_BP.csv:2, summary_BPG.csv:2). The doc calls these audit values, but they come straight from DECISION.json."
+   },
+   {
+    "id": "G8",
+    "claim": "Final R02 (PWL_R plus geometry ridge) scores 0.422 / 0.423, about +0.0002 over PWL_R.",
+    "doc_ref": "RESEARCH_IDEAS final table row R02",
+    "status": "PARTLY",
+    "evidence": "results/final/DECISION.json:12 R2 0.4224404648961647 (BP), :135 0.422670171232489 (BPG); vs PWL_R R2 point +0.0002353224247237 [-0.00063647633972, +0.0011955697747741] (:50-55) for BP but -0.0001624973883874 [-0.0027559792432218, +0.0012344004411337] (:173-178) for BPG",
+    "note": "The levels are correct. The +0.0002 holds only for BP; BPG is -0.0002. Either way there is no demonstrated gain."
+   },
+   {
+    "id": "G9",
+    "claim": "R02's \"geometry\" is interpolation/read-set geometry, not a molecular 3D encoder.",
+    "doc_ref": "RESEARCH_IDEAS final table R02 row",
+    "status": "VERIFIED",
+    "evidence": "r3/corrector.py:17-19 and :42 GEO_NAMES = (\"g\",\"g_kappa\",\"dL\",\"dL_slope\",\"dR\",\"dR_slope\"); :48-80 computes them from read positions on x = -Shannon CN8 radius and segment slopes; EXPERIMENT_REGISTRY.csv:4 R02 = \"PWL_R + ridge(G: 6 features)\"",
+    "note": "R02 has no molecular structure input. Inner CV chose strong shrinkage: lambda=30 in 15/25 BP folds (ATTEMPTS.md:114)."
+   },
+   {
+    "id": "G10",
+    "claim": "Final R14 (PWL_R plus one shrunk Gd coefficient) scores 0.455 / 0.454, about +0.03 over PWL_R.",
+    "doc_ref": "RESEARCH_IDEAS final table row R14; CLAUDE_CODE_PROMPT §4 \"approximately 0.45\"",
+    "status": "VERIFIED",
+    "evidence": "results/final/DECISION.json:268 R2 0.4546732584297311, :391 0.454185131703723; vs PWL_R +0.0324681159582903 [0.01213240660012, 0.0685805034712207] (:306-311) and +0.0313524630828467 [0.0100602772668854, 0.069142843104962] (:429-434)",
+    "note": "Dev values are 0.4518018908187661 / 0.45196379230924694 (results/R14/summary_BP.csv:9, summary_BPG.csv:9)."
+   },
+   {
+    "id": "G11",
+    "claim": "Final R23 (Gd correction on POL_ERR reads) scores 0.471 / 0.463 and is a separate read-policy regime.",
+    "doc_ref": "RESEARCH_IDEAS final table row R23",
+    "status": "VERIFIED",
+    "evidence": "results/final/DECISION.json:524 R2 0.4712661019370567, :647 0.4633410288824331; its own PWL_R 0.4346246491829649 / 0.4306958824711454 (:537, :660); next_research_20261019/PROTOCOL.md:29 (new policy = separate regime); AMENDMENTS.md:44-47 (D-6)",
+    "note": "R14 and R23 share the same fitted Gd coefficients: results/R14/fitted_BP.json and R23/fitted_BP.json both give mean -0.0939, sd 0.0158, lambda 0.03 in 23/25 folds. Only the evaluation reads differ, and the 2x2 crossing is in results/policy_cross/contrasts_2x2_*.csv."
+   },
+   {
+    "id": "G12",
+    "claim": "93% of the Gd gain survives replacement of the Gd term by pair-type constants.",
+    "doc_ref": "RESEARCH_IDEAS \"What the Gen21 audit establishes\" last paragraph",
+    "status": "AUDIT_ONLY",
+    "evidence": "No round-3 file replaces the Gd term with pair-type constants (grep of gen21/ for pair-type constant/offset/93% finds nothing). What exists is the within-pair-type residual shuffle (r3/corrector.py:267-286 shuffle_targets; ATTEMPTS.md:365-366): CTRL14W-PWL_R 0.02966773117164756 / 0.03049738415465153 (CTRL14W/contrasts_BP.csv:3, _BPG.csv:3) vs R14-PWL_R 0.0339176298294114 / 0.03393743959855633 (R14/contrasts_*.csv:3), which keeps 87.5% / 89.9%; CTRL23W keeps 0.03269156698108659/0.03814756198314169 = 85.7% (BP) and 0.03377322778901115/0.038663109151670684 = 87.4% (BPG)",
+    "note": "The 93% figure cannot be traced. The nearest local quantity is 86-90% retention under a shuffle, which is not the same intervention. The shuffle exists only on dev seeds; no control was run on the final seeds."
+   },
+   {
+    "id": "G13",
+    "claim": "The cell-specific remainder of the Gd gain is only about +0.0005 to +0.002 R².",
+    "doc_ref": "RESEARCH_IDEAS \"What the Gen21 audit establishes\" last paragraph",
+    "status": "AUDIT_ONLY",
+    "evidence": "No round-3 file reports this. Real minus within-pair-type-shuffled R² on dev: R14 0.4518018908187661-0.4475519921610022 = +0.0042 (BP), 0.45196379230924694-0.4485237368653424 = +0.0034 (BPG); R23 0.4748406964093421-0.46938470140728705 = +0.0055 (BP), 0.47334838988729544-0.46845850852463594 = +0.0049 (BPG) (summary_*.csv:9 of each). The all-row shuffle CTRL23 minus PWL_R is +0.0007415726790900967 [-0.0010167959070644871, 0.0016319619843416073] (BP), +0.00022867637918912997 (BPG) (CTRL23/contrasts_*.csv:3)",
+    "note": "The CTRL23 numbers look like the audit's range, but they measure a gain after both the pair-type mean and cell signal are destroyed, so they are not a cell-specific remainder. The local shuffle-based remainder is +0.003 to +0.005."
+   },
+   {
+    "id": "G14",
+    "claim": "The Gd correction's gain is predominantly a pair-type (series/read-set) prior rather than cell-specific skill.",
+    "doc_ref": "RESEARCH_IDEAS \"What the Gen21 audit establishes\" last paragraph",
+    "status": "PARTLY",
+    "evidence": "ATTEMPTS.md:370-377 (\"learns the mean Gd-break residual of the training cells, a pair-type-level quantity\", explicitly labelled inference); AMENDMENTS.md:77-81; FINAL_REPORT_RU.md:32-36 (control keeps 86-90%)",
+    "note": "Round 3 states this as an inference consistent with the shuffle controls. It never decomposed the gain directly, and a read-set-dependent prior was not tested."
+   },
+   {
+    "id": "G15",
+    "claim": "The registered within-pair shuffle could not remove a between-pair Gd prior.",
+    "doc_ref": "RESEARCH_IDEAS \"What the Gen21 audit establishes\" after qualifications",
+    "status": "VERIFIED",
+    "evidence": "r3/corrector.py:278-280 permutes residual targets only within each pid (pair type keyed by the lighter metal, :223); ATTEMPTS.md:372-375 (\"A within-pair-type permutation keeps that mean\"); AMENDMENTS.md:80-81 (\"preserves by construction\")",
+    "note": "across_pair_types=True (CTRL23) is the only variant in the code that removes position means."
+   },
+   {
+    "id": "G16",
+    "claim": "The fixed -0.072 Gd coefficient comes from full curves in 268 cells of the historical corpus (gen13 D7), not external physics.",
+    "doc_ref": "RESEARCH_IDEAS \"Two important qualifications\" item 1; CLAUDE_CODE_PROMPT §4",
+    "status": "VERIFIED",
+    "evidence": "generations/gen13_separation/analysis/stage2/D7/FINDINGS.md:3 (\"Base: 268 cells with >= 6 observed metals\"); :13-14 (\"Gd -0.072 (p=0.012)\") from per-cell quadratic residuals on radius",
+    "note": "Round 3 never used a fixed -0.072 arm. It cites -0.072 only as a comparison (ATTEMPTS.md:232; FINAL_REPORT_RU.md:153). R14/R23 fit beta per outer fold: mean -0.0939 BP, -0.0913 BPG."
+   },
+   {
+    "id": "G17",
+    "claim": "R14 is already a single Gd amplitude fitted on outer-training tasks with inner-selected shrinkage, but its tuning did not include zero correction.",
+    "doc_ref": "RESEARCH_IDEAS \"Two important qualifications\" item 1 (\"Include zero correction in tuning\"); CLAUDE_CODE_PROMPT §4 B1",
+    "status": "PARTLY",
+    "evidence": "r3/corrector.py:289-325 fit_corrector picks lambda on rec['inner'] blocks with nested covariance and refits on all training situations; :40 LAMBDA_GRID = (0.003, 0.03, 0.3, 3.0, 30.0) with D penalty x10 (:157), so there is no lambda=inf / beta=0 endpoint; fitted_BP.json lambda 0.03 in 23/25 folds",
+    "note": "The B1 structure exists. Round 4 must add an explicit zero-amplitude endpoint, because lambda=30 shrinks beta without making it exactly 0."
+   },
+   {
+    "id": "G18",
+    "claim": "Round-3 gd_dip subtracts the dip of a read Gd before interpolation and adds it at an unread Gd, rather than adding a constant at an unread Gd only.",
+    "doc_ref": "RESEARCH_IDEAS \"concrete interpolation-preserving architecture\"; CLAUDE_CODE_PROMPT §4 last paragraph",
+    "status": "VERIFIED",
+    "evidence": "r3/corrector.py:86-111: feature = 1.0 for unread Gd (:97-99); -w_Gd(b) for unread b interpolated from a read Gd (:100-110, w = 1-t or t, and w = 1.0 under constant continuation beyond an extreme read Gd); predict_levels :328-334 adds coef*feature to unread metals only, so read supports stay exact",
+    "note": "This is algebraically identical to b_S(m) = I_S[y_S - beta*h_S](m) + beta*h(m) at unread m, and to y_s at reads."
+   },
+   {
+    "id": "G19",
+    "claim": "C3 has 38 nominal chemotypes but about four effective groups under pooled weighting.",
+    "doc_ref": "RESEARCH_IDEAS \"Evaluation and stopping\"; CLAUDE_CODE_PROMPT §9",
+    "status": "VERIFIED",
+    "evidence": "results/selection_optimism.json:30 n_clusters 38; generations/gen20_1/IMPLEMENTATION_PLAN.md:225 (\"Kish (pairs) 3.8511214634053776; largest share 0.489\"); :141 (\"38 chemotypes, 39 publications; Kish 3.851\"); label-free recount from predictions/B0_BP.parquet gives Kish 3.8511 with sc009 share 0.4895",
+    "note": "Round-3 reports (FINAL_REPORT_RU.md:102; PROTOCOL.md:49) state ≈4 without recomputing it. The Kish over rows/entries is 3.430 (IMPLEMENTATION_PLAN.md:224)."
+   },
+   {
+    "id": "G20",
+    "claim": "Round 3 reports 14 connected chemotype/publication clusters.",
+    "doc_ref": "RESEARCH_IDEAS \"Evaluation and stopping\"; CLAUDE_CODE_PROMPT §9",
+    "status": "VERIFIED",
+    "evidence": "results/selection_optimism.json:201 n_clusters 14; :370-375 publications 39, publications_spanning_chemotypes 15, row_share 0.4184239733629301, kish_effective_clusters 2.6791404847396767; ATTEMPTS.md:439-441; built by scripts/r3_selection_optimism.py:78-89 _components (union-find on chemotype and publication only)",
+    "note": "The 14 clusters have Kish 2.68, below the ≈4 quoted for chemotypes. Copy groups are not included. Adding gen20k copy groups gives 13 components with Kish 2.24, and the largest component holds 1,059 of 1,802 pairs (label-free recount)."
+   },
+   {
+    "id": "G21",
+    "claim": "Dropping one publication changes R² by +0.041.",
+    "doc_ref": "RESEARCH_IDEAS \"Data acquisition\" item 1",
+    "status": "AUDIT_ONLY",
+    "evidence": "No round-3 or gen21 file reports a publication-drop sensitivity (grep for leave-one-publication / drop publication finds nothing). The only +0.041 values in round 3 are R23 contrasts: R23-PWL_R@DOPT_Q BPG +0.041 (FINAL_REPORT_RU.md:76; ATTEMPTS.md:528) and R23-HBK@ML BP +0,041 (FINAL_REPORT_RU.md:63)",
+    "note": "No file says which publication or model this concerns. The C5BTBP publication pub_6a0ef8528c (15 C3 cells, 148 C3 pairs; inventory_data_quality.md:84), and the 'one BTBP series carries a quarter of the squared error' (GEN21_REPORT.md:184), are plausible but unconfirmed. It was not recomputed here, to avoid a new dev look."
+   },
+   {
+    "id": "G22",
+    "claim": "The existing data request names recovery of the C5BTBP detection limits and the DMDPhPDA 5 M Pr/Nd source value.",
+    "doc_ref": "RESEARCH_IDEAS \"Data acquisition\" item 1; CLAUDE_CODE_PROMPT §5",
+    "status": "VERIFIED",
+    "evidence": "next_research_20261019/EXPERIMENTAL_DATA_REQUEST.md:43-47 (Shimada et al. SX&IE 22(2) 147-161 Table 1/Figure 5 for 5 M Pr/Nd of DMDPhPDA copy A; detection limits for C5BTBP series pub_6a0ef8528c and ORNL imports); DATA_QUALITY_REPORT.md:29-32 (no written detection limits; floor is pattern-only), :64-66",
+    "note": "The 5 M Pr/Nd defect of copy B is +1.000 decade (DATA_QUALITY_REPORT.md:18)."
+   },
+   {
+    "id": "G23",
+    "claim": "Round-3 V2-5 removed hidden labels on the basis of their own values, which round 4 must not inherit.",
+    "doc_ref": "CLAUDE_CODE_PROMPT §5; RESEARCH_IDEAS \"Data acquisition\" item 1 (\"Never infer a detection limit from a flat curve\")",
+    "status": "VERIFIED",
+    "evidence": "next_research_20261019/DATA_QUALITY_REPORT.md:47-52 (V2-5 censors 24 D5 floor readings by value pattern, including hidden metals of 4 C3 cells / 20 C3 pairs); AMENDMENTS.md:51-53 (D-7); V2 C3 = 208 cells / 1,620 pairs (DATA_QUALITY_REPORT.md:56)",
+    "note": "R17/R18 (V2) rest partly on this rule. V2 without V2-5 was never run."
+   },
+   {
+    "id": "G24",
+    "claim": "The historical primary metric is pooled strict-adjacent R² within each seed, then averaged over seeds.",
+    "doc_ref": "RESEARCH_IDEAS \"Evaluation and stopping\" bullet 1; CLAUDE_CODE_PROMPT §3 and §9",
+    "status": "VERIFIED",
+    "evidence": "generations/gen21/PROTOCOL.md:75-77; r3/metrics.py:3-4 and :21-26 (_r2 = 1 - SSE/SST, NaN if undefined, never clipped); results/*/summary_*.csv R2 equals the mean of R2_per_seed",
+    "note": "Balanced-MAE precedents are MAE_macro_ext and MAE_macro_chem in r3/metrics.py:37-38 (extractant macro; chemotype→extractant→mean)."
+   },
+   {
+    "id": "G25",
+    "claim": "Non-sc009 is not synonymous with non-DGA.",
+    "doc_ref": "RESEARCH_IDEAS \"Evaluation and stopping\" bullet 1; CLAUDE_CODE_PROMPT §9",
+    "status": "VERIFIED",
+    "evidence": "r3/metrics.py:18 DGA = \"sc009\"; :50 \"non_DGA\": base[base.chemotype != DGA], so round-3 'non-DGA' (also in DECISION.json keys non_DGA_R2) is exactly non-sc009; ATTEMPTS.md:136-137 notes descriptors cannot separate sc009 from 'the other DGAs'",
+    "note": "Round-3 DGA/non-DGA tables must be relabelled as sc009/non-sc009. A donor-defined DGA split needs the dga-unit descriptor (r3/chem.py:7, :28)."
+   },
+   {
+    "id": "G26",
+    "claim": "The round-3 final seeds are consumed, and new seeds over the same cells only measure partition stability.",
+    "doc_ref": "RESEARCH_IDEAS \"Evaluation and stopping\"; CLAUDE_CODE_PROMPT §4 and §9",
+    "status": "VERIFIED",
+    "evidence": "results/final/DECISION.json:3-8 run_once with permission and seeds_sha256 30ec7c0d...; ATTEMPTS.md:529-530 (\"a new split of the same 229 cells ... cannot be repeated (RUN_ONCE)\"); generations/gen21/PROTOCOL.md:66-71",
+    "note": "Final-seed artifacts (cache_final/, results/final/*) must not be reused for selection. The strain fresh444 part is outside this area."
+   },
+   {
+    "id": "G27",
+    "claim": "C6 contains 133 cells, so its score cannot replace C3's 229-cell score.",
+    "doc_ref": "CLAUDE_CODE_PROMPT §3",
+    "status": "VERIFIED",
+    "evidence": "generations/gen21/PROTOCOL.md:51 (C6 k_max >= 6, 133 cells); next_research_20261019/ATTEMPTS.md:251 (\"C6 = 133 cells / 1,349 pairs per seed\"); :322-323 (C6 is the harder part of C3)",
+    "note": "The k=5 placement-only effect on identical C6 rows is +0.016 [-0.015, +0.102] (ATTEMPTS.md:319-321)."
+   },
+   {
+    "id": "G28",
+    "claim": "B0 PWL_R uses constant continuation outside the support range and keeps measured supports exact.",
+    "doc_ref": "CLAUDE_CODE_PROMPT §4 B0; RESEARCH_IDEAS architecture section",
+    "status": "VERIFIED",
+    "evidence": "r3/interp.py:19 X_R = -Shannon CN8 radius; :30-43 pwl_levels uses np.interp (holds end values) and overwrites read metals with y_masked",
+    "note": "PWL_Z is the same function with kind=\"Z\"."
+   },
+   {
+    "id": "G29",
+    "claim": "The DOPT_Q policy and query set used in round 3 are the original gen20 reference policy and the fixed query set.",
+    "doc_ref": "CLAUDE_CODE_PROMPT §3",
+    "status": "VERIFIED",
+    "evidence": "next_research_20261019/PROTOCOL.md:26-27 (gen20's DOPT_Q as fixed reference policy); r3/harness.py:22-24 (cell['seqs'][policy] from the gen21 fold cache); generations/gen21/PROTOCOL.md:17-19 (query set fixed before any method)",
+    "note": "The read sequences are cached in generations/gen21/cache/*.pkl (50 files, untracked). Their digests are in next_research_20261019/manifests/inputs_sha256.json."
+   },
+   {
+    "id": "G30",
+    "claim": "Going from a 0.45 reference to 0.50 on the identical population requires about 9% less squared error.",
+    "doc_ref": "RESEARCH_IDEAS \"Evaluation and stopping\" last bullet",
+    "status": "VERIFIED",
+    "evidence": "Arithmetic: (1-0.50)/(1-0.45) = 0.909, i.e. 9.1% less SSE at fixed SST",
+    "note": "For R14's final 0.4547 BP, reaching 0.50 needs 8.3% less SSE."
+   },
+   {
+    "id": "G31",
+    "claim": "The round-3 implementation is absent from the local checkout.",
+    "doc_ref": "RESEARCH_IDEAS \"Evidence and versions\" table; CLAUDE_CODE_PROMPT §2",
+    "status": "PARTLY",
+    "evidence": "True at 9be774c only. generations/gen21/next_research_20261019/r3/*.py and scripts/ are tracked at current HEAD b96b0fc (added in b4f9274, and 9be774c is an ancestor of b4f9274); git log of r3/corrector.py shows b4f9274",
+    "note": "No isolated clone of round-3 code is needed. Integrity can be checked against next_research_20261019/manifests/freeze_lf_digests.json and code_sha256.json."
+   },
+   {
+    "id": "G32",
+    "claim": "The matching round-3 audit is generations/gen21/AUDIT_ROUND3_2026-10-22.md.",
+    "doc_ref": "RESEARCH_IDEAS \"Evidence and versions\"; CLAUDE_CODE_PROMPT §2",
+    "status": "NOT_CHECKABLE",
+    "evidence": "ls generations/gen21 shows no AUDIT* file; git status shows only untracked generations/gen21/round4_20261022/",
+    "note": "Every claim only it supports (G12, G13, G21) is AUDIT_ONLY. Round 3's earlier audit (AUDIT_2026-10-19.md) was also absent (next_research_20261019/PROTOCOL.md:11-14)."
+   },
+   {
+    "id": "G33",
+    "claim": "A Gd-centred improvement does not establish a unique electronic mechanism, since outer-sphere nitrate/water interactions explain TODGA selectivity trends (Baldwin et al., 2018).",
+    "doc_ref": "RESEARCH_IDEAS \"Two important qualifications\" item 2",
+    "status": "LITERATURE",
+    "evidence": "External publication, doi 10.1021/acscentsci.8b00223; not in the repository",
+    "note": "Round 3 itself states the mechanism is inference (FINAL_REPORT_RU.md:158-161)."
+   },
+   {
+    "id": "G34",
+    "claim": "Planning margins of +0.01 R² and a 0.005 balanced-MAE reduction over B1 are proposed defaults, not measured thresholds.",
+    "doc_ref": "RESEARCH_IDEAS \"Evaluation and stopping\"; CLAUDE_CODE_PROMPT §9",
+    "status": "HYPOTHESIS",
+    "evidence": "Design choice stated in CLAUDE_CODE_PROMPT.md:170 and :176; no round-3 file derives them",
+    "note": "The round-3 simplicity tie margin was 0.005 R² (next_research_20261019/PROTOCOL.md:95-96), which is a different rule."
+   }
+  ],
+  "implications": "**What round 4 can reuse directly (all present and tracked at HEAD b96b0fc; round-3 code no longer needs fetching):**\n\n- **B0 (PWL_R / PWL_Z):** `D:/ml_separator_gh/generations/gen21/next_research_20261019/r3/interp.py` `pwl_levels(y_masked, metals, \"R\"|\"Z\")` (lines 19, 30-43). Reference dev values to reproduce:\n  - `results/B0/summary_BP.csv:2-3`: PWL_R 0.4178842609893546, PWL_Z 0.4117974161883722.\n  - `results/B0/summary_BPG.csv:2-3`: PWL_R 0.4180263527106908, PWL_Z 0.4106961700941715.\n- **B1 (R14 = fset `Dnc`, cfg `cor:Dnc`):** `r3/corrector.py`:\n  - `gd_dip` (86-111), `features` (125-142), `training_situations` (181-227; DOPT_Q nested + UNIFORM + 4 seeded RANDOM legal masks, chemotype-balanced weight split over masks).\n  - `ridge_fit` (240-247; trace-scaled lambda, column scaling on training rows), `penalty_vector` (x10 on D), `fit_corrector` (289-325; lambda chosen on `rec['inner']` blocks with each block's nested covariance), `predict_levels` (328-334).\n  - Wiring: `r3/registry.py:73-77` and `r3/configs.py:57-115`. Dev targets: `results/R14/summary_BP.csv:9` 0.4518018908187661, `summary_BPG.csv:9` 0.45196379230924694. Bit-identical repro evidence is in `results/leakage/repro_R14_*.json`.\n  - **Trap:** `LAMBDA_GRID` (line 40) has no beta=0 / lambda=inf endpoint. The brief requires one, so add it explicitly.\n  - **Trap:** R14 and R23 share identical fitted coefficients (`results/R14|R23/fitted_*.json`: mean -0.0939 BP, -0.0913 BPG). R23's difference is reads only.\n- **B2 (series/read-set prior):** there is no exact precedent. Nearest:\n  - R03 `P` block (`corrector.py:114-122`; 14 unread-metal indicators). It is *not* support-consistent: there is no `-w_j(b)` term for neighbours of read metals.\n  - Round-2 attempt 6 HBKM@BIC (per-metal prior mean), refuted at -0.007 vs HBK@ML (`generations/gen21/GEN21_ROUND2_REPORT.md:37`).\n  - A coherent per-metal potential is the generalisation of `gd_dip` to every metal j: `1[b=j unread] - w_j(b)`.\n- **Controls:** `corrector.shuffle_targets` (267-286). `across_pair_types=False` is the within-pair-type shuffle (CTRL14W/CTRL23W); `True` is the all-row shuffle (CTRL23). Neither isolates the pair-type prior, which is why B2 is needed.\n- **Harness/metrics:**\n  - `r3/harness.py` `run_design`/`cell_rows` (no-both-read assert at 54-55; `DS.assert_no_closure`) and `intervention` (91-141).\n  - `r3/metrics.py` `_r2` per seed then mean; MAE_macro_ext / MAE_macro_chem at 37-38. **Relabel** `non_DGA` (line 50 = chemotype != sc009) as non-sc009.\n  - Cluster bootstrap: `gen20k.inference` as used by `scripts/r3_selection_optimism.py`.\n- **Splits/clusters:**\n  - BP: `generations/gen13_separation/gen13sep/splits.py:30-35, 63-76` (dev SPLIT_SEEDS line 24).\n  - BPG: `generations/gen20_kshot/gen20k/splits.py` `bpg_folds` 58-65, `copy_groups_of` 42-48 from `generations/gen19_chem_transfer/data_audit/leakage_publication_components.csv` column `group_cross_publication_copy`, `assert_design_integrity` 79-112.\n  - Inner-fold re-masking: `gen20k/cov.py:64-72`, `g21/cache.py:81-88`.\n  - Fold cache: `generations/gen21/cache/*.pkl` (50, untracked; digests in `next_research_20261019/manifests/inputs_sha256.json`).\n  - Chemotype∪publication components: `scripts/r3_selection_optimism.py:78-89` `_components`. It excludes copy groups; adding them gives 13 components, Kish 2.24.\n- **Row identity:** `next_research_20261019/predictions/<ID>_<design>.parquet`. Filter `k==3 & k_max>=3`; KEY = split_seed, cell_id, A, B. Use it to hash the 229 cells / 1,802 rows per seed.\n- **Do not touch:** `cache_final/`, `results/final/SEEDS_REVEALED.json`, `RUN_ONCE.json`. Use only `results/final/DECISION.json` for the historical final numbers.\n\n**Numbers in the round-4 docs that are wrong or untraceable:**\n1. \"93% survives replacement by pair-type constants\": no such analysis exists. The local analogue (within-pair-type shuffle) keeps 87.5% / 89.9% for R14 and 85.7% / 87.4% for R23.\n2. \"Cell-specific remainder +0.0005 to +0.002\": not in the files. The shuffle-based remainder is +0.0042 / +0.0034 (R14) and +0.0055 / +0.0049 (R23). The all-row CTRL23 residual of +0.0007 / +0.0002 is a different quantity.\n3. \"+0.041 from dropping one publication\": not found anywhere. The only +0.041 values are R23 contrasts.\n4. \"R02 ≈ +0.0002\": BPG is -0.0002.\n5. \"About four effective groups\": this holds for chemotypes (Kish 3.85 on pairs). The recommended 14 chemotype∪publication clusters have Kish 2.68, and with copy groups 2.24 with one component holding 59% of pairs. Asymptotic cluster inference is even weaker than the docs suggest.\n6. The version table's \"round-3 implementation absent locally\" is stale.\n\n**Missing evidence:** the round-3 audit file itself, so G12, G13 and G21 stay AUDIT_ONLY. No control run exists on the final seeds.",
+  "checks": [
+   {
+    "id": "G8",
+    "final_status": "PARTLY",
+    "agrees_with_reader": true,
+    "evidence": "D:/ml_separator_gh/generations/gen21/next_research_20261019/results/final/DECISION.json lines 12 and 135 give R02 R2 = 0.4224404648961647 (BP) and 0.422670171232489 (BPG), which round to 0.422 / 0.423. Lines 25 and 148 give the PWL_R levels as 0.4222051424714411 (BP) and 0.4228326686208765 (BPG). The R02-minus-PWL_R R2 contrast is +0.0002353224247237, ci95 [-0.00063647633972, 0.0011955697747741], for BP (lines 48-54). For BPG it is -0.0001624973883874, ci95 [-0.0027559792432218, 0.0012344004411337] (lines 171-177). ATTEMPTS.md:386-387 defines R02 as \"COR_G: PWL_R plus a ridge on 6 geometry features of the residual\". ATTEMPTS.md:519 reports \"+0.0002 [-0.0006, +0.0012] (3/5, 5/5); -0.0002 [-0.0028, +0.0012]\".",
+    "note": "Three parts are verified: the method description, the 0.422 / 0.423 levels, and the +0.0002 under BP. Under BPG the difference is -0.0002, R02 0.42267 against PWL_R 0.42283. So \"+0.0002 over PWL_R\" holds for BP only, and both intervals include 0."
+   },
+   {
+    "id": "G14",
+    "final_status": "VERIFIED",
+    "agrees_with_reader": false,
+    "evidence": "The code settles this. The R14 and R23 Gd correction is defined as \"cor:Dnc\" in next_research_20261019/r3/registry.py:76-77 and 87-91, where it is described as \"PWL_R + ONE shrunk shared Gd-dip parameter (no geometry, no chemistry)\". In r3/corrector.py:125-142, the fset \"Dnc\" has no G, P or uppercase C block, and \"nc\" zeroes the chemistry vector at line 139. That leaves a single feature, gd_dip(b) (corrector.py:86-111), which is 1 for an unread Gd and -w_Gd(b) for a neighbour interpolated from a read Gd. n_features(\"Dnc\") is 1 (line 146). So the correction for any query depends only on its pair type and read set, scaled by one coefficient fitted on all training rows. It has no cell-specific input. The results files agree, R2 row (line 3) of each contrasts_BP.csv: R14 COR[Dnc]-PWL_R is +0.03392 and the within-pair-type shuffle CTRL14W keeps +0.02967 (87.5%); R23 is +0.03815 and CTRL23W keeps +0.03269 (85.7%). ATTEMPTS.md:365-366 reports these as 87% and 86%. Permuting residuals across all rows (CTRL23) leaves only +0.00074 [-0.0010, +0.0016] (results/CTRL23/contrasts_BP.csv line 3; ATTEMPTS.md:334-337). The shuffle code that separates these two controls is corrector.py:267-286.",
+    "note": "I disagree with the reader's PARTLY. The method is one shared coefficient on a feature that depends only on the read set and the metal's position, so the code shows the gain is entirely a series/read-set prior by construction, which is stronger than \"predominantly\". The two shuffle controls also confirm it empirically: about 86-88% of the gain survives the within-pair-type shuffle, and almost none survives the all-row shuffle. The doc's own figures (93% kept by pair-type constants, a cell-specific remainder of about +0.0005 to +0.002) are not in any repo file; they are AUDIT_ONLY and are not part of G14's wording. The 12-14% lost under the within-pair-type shuffle is not cell-specific skill. That shuffle also mixes residuals across masks, which breaks some of the read-set dependence. ATTEMPTS.md:373-374 adds that the shuffled fits picked a noisier lambda."
+   },
+   {
+    "id": "G17",
+    "final_status": "VERIFIED",
+    "agrees_with_reader": false,
+    "evidence": "The source files back every part of the claim. All paths are under D:/ml_separator_gh/generations/gen21/next_research_20261019/.\n(1) Single Gd amplitude: r3/registry.py:73-78 defines R14 as (\"hbk\",\"cor:Dnc\"). In r3/corrector.py:146, n_features gives 1 for an fset containing \"nc\". The fitted file results/R14/fitted_BP.json stores a one-element \"coef\" in every fold (for example 104729_0: coef [-0.08870700102701792]).\n(2) Fit on outer-training tasks only: corrector.py:190-196 builds wmap from rec[\"outer\"][\"train_index\"] and skips any cell not in wmap. results/leakage/poison_chain_R14.json reports fit_identical true in 50/50 folds when every non-training cell is poisoned.\n(3) Shrinkage selected in inner folds: in corrector.py:297-320, fit_corrector scores each lambda on rec[\"inner\"] blocks, rebuilding the fit situations with that block's nested cov (:302-303). It then refits on all training situations (:321-322).\n(4) No zero correction in tuning: corrector.py:40 sets LAMBDA_GRID = (0.003, 0.03, 0.3, 3.0, 30.0), and :320 takes best = min(scores) over that grid only. The zero-correction score inner_pwl is computed at :319 but is never a candidate. For one column, ridge_fit (:245-246) with the D penalty x10 (:157) shrinks the coefficient by 1/(1+10*lambda), so lambda=30 gives 1/301 of the unpenalised value, not 0. The stored scores confirm this: in fold 104729_0 the lambda=30 score is 0.044263342470820664 and inner_pwl is 0.04427869467849392.\nSelected lambda: BP {0.03: 23, 0.003: 2} and BPG {0.03: 23, 0.3: 1, 0.003: 1}. In 0/25 BP and 0/25 BPG folds did inner_pwl beat the selected lambda's score.",
+    "note": "I disagree with the reader's PARTLY: its own evidence supports all four parts, so the status should be VERIFIED. Two caveats. First, the docstring at corrector.py:24-25 says a large penalty \"returns PWL exactly\", which overstates what the finite grid does. Second, zero correction never scored better than the selected lambda in any stored fold (0/25 BP, 0/25 BPG), so adding the zero endpoint B1 asks for would not have changed any round-3 lambda choice."
+   },
+   {
+    "id": "G31",
+    "final_status": "PARTLY",
+    "agrees_with_reader": true,
+    "evidence": "The claim is only true for the pinned commit, so PARTLY holds. The doc pins it: RESEARCH_IDEAS.md:18 says \"Local `ml_separator` | `9be774c...` | Round-3 implementation is absent locally\" and CLAUDE_CODE_PROMPT.md:23 says local HEAD \"was `9be774c...`\". At that commit `git ls-tree -r 9be774c -- generations/gen21/next_research_20261019` returns 0 files, so the claim holds there. Current local HEAD is b96b0fc3. Both b4f9274 and 7d02f8e (the GitHub pin in RESEARCH_IDEAS.md:19) are ancestors of HEAD (`git merge-base --is-ancestor` succeeds). At HEAD, 12 r3/*.py files and 17 scripts/r3_*.py files are tracked under generations/gen21/next_research_20261019/. `git log -- .../r3/corrector.py` shows only b4f9274. `git status` shows only the untracked generations/gen21/round4_20261022/, so the working tree matches HEAD. I hashed the files LF-normalised with SHA-256 and compared them to manifests/freeze_lf_digests.json \"code_sha256_lf_normalised\": 29 of 29 next_research_20261019 entries matched, with 0 bad and 0 missing.",
+    "note": "True at 9be774c (no committed round-3 files), but contradicted for the current checkout: HEAD b96b0fc contains the round-3 code, and all 29 files match the freeze LF digests. CLAUDE_CODE_PROMPT.md:29 only asks for an isolated copy \"If round-3 code is still absent locally\", so no isolated reference is needed for round-3 code."
+   },
+   {
+    "id": "G1",
+    "final_status": "VERIFIED",
+    "agrees_with_reader": true,
+    "evidence": "The protocol defines the target. generations/gen21/PROTOCOL.md:15 says \"logSF(A/B) = log10 D(A) − log10 D(B) with A the lighter lanthanide\". Lines 17-18 say the pairs are \"strict adjacent pairs (|ΔZ| = 1; 12 pair types ... Pm is absent, so Nd/Sm is *not* adjacent)\".\n\nThe code implements the same rule:\n- generations/gen20_kshot/gen20k/data.py:7 says y(A/B) = log10 D(A) - log10 D(B), A lighter. Line 10 says strict adjacency is |Z_A - Z_B| == 1, so Nd-Sm is not adjacent.\n- data.py:90-92 enforces ia < ib and computes y_row[ia] - y_row[ib]. Line 96 holds the |ΔZ|==1 test.\n- data.py:129-131 builds pairs as (m[i], m[j]) with i < j, over metals sorted by index.\n- gen20k/design.py:60-61: the \"adjacent\" query is the set of pairs where is_strict_adjacent holds.\n- gen13sep/metals.py:17-21: LANTHANIDES has no Pm, with Nd=60 and Sm=62.\n- r3/harness.py:38 uses make_design(...,\"adjacent\",...). Line 61 sets y = Y[a] - Y[b] and line 63 sets pred = v[a] - v[b].\n\nThe result files agree. I read all 54 non-logd parquets in next_research_20261019/predictions/ (B0, CTRL*, R01-R24, BP and BPG). Every one has dZ values {1} only, A lighter than B in every row, no Nd/Sm rows and exactly 12 pair types: La/Ce, Ce/Pr, Pr/Nd, Sm/Eu, Eu/Gd, Gd/Tb, Tb/Dy, Dy/Ho, Ho/Er, Er/Tm, Tm/Yb, Yb/Lu. This matches r3/metrics.py:19 PAIR_ORDER. B0_BP has 1802 rows per seed at C3 with k=3.",
+    "note": "I confirm the reader's status from independent code and data checks. The reader cites metrics.py:19 PAIR_ORDER, but that list only sets the reporting order. The target is actually defined in gen20k/data.py:88-96, design.py:60-61 and r3/harness.py:61. All rows have dZ == 1 at every k, not just the C3 k=3 rows. One side note: R17 and R18 have 1620 C3 k=3 rows per seed instead of 1802. Their pair types and sign still match the other files."
+   },
+   {
+    "id": "G4",
+    "final_status": "VERIFIED",
+    "agrees_with_reader": true,
+    "evidence": "generations/gen13_separation/gen13sep/splits.py:30 has GROUP_COLUMNS \"BP\": \"chemotype\". Line 67 builds the groups from that column, and line 71 passes them to seeded_group_kfold, so the held-out unit is the chemotype. The docstring at lines 3-4 defines a chemotype as the frozen gen6 single-linkage Tanimoto-0.7 cluster. Lines 31-35 describe the publication-aware mask (PUBLICATION_MASKED_DESIGNS = (\"BP\",)). Lines 75-76 set held = set(publications[test_index]) and keep training cells whose publication is not in held, and line 104 applies this with train_index = train_index[keep]. Gen21 really does use these folds: g21/evaluate.py:192-194 and r3/harness.py:19,75 call gen20k.splits.folds_for. That function (gen20_kshot/gen20k/splits.py:68-75) calls the unchanged gen13 all_folds for BP and then assert_design_integrity. Lines 102-103 and 108-109 of that file raise an error on any publication overlap between train and test for BP/BPG, and lines 100-101 do the same for chemotype overlap. g21/evaluate.py:217-233 (assert_test_isolation) re-checks cell, extractant, chemotype and publication_id overlap for each fold.",
+    "note": "The reader's line citations are accurate. One small correction to the reader's note: gen21 takes its seeds from paths.DEV_SEEDS (g21/paths.py:22 = (104729, 130363, 155921, 196613, 262147)), not directly from gen13sep SPLIT_SEEDS. The values are identical to gen13sep/splits.py:24. Only the mask's behaviour in code is verified here. No fold was run to confirm the zero overlap empirically."
+   },
+   {
+    "id": "G7",
+    "final_status": "VERIFIED",
+    "agrees_with_reader": true,
+    "evidence": "D:/ml_separator_gh/generations/gen21/next_research_20261019/results/final/DECISION.json gives PWL_R_R2 = 0.4222051424714411 for BP at R02 (line 25) and R14 (line 281), and 0.4228326686208765 for BPG at R02 (line 148) and R14 (line 404). Each block has cells_per_seed 229.0 and pairs_per_seed 1802.0. These round to 0.422 / 0.423. The final per-config CSVs agree: results/final/summary_R02_BP.csv:2 (all, PWL_R, 0.4222051424714411) and results/final/summary_R14_BPG.csv:2 (all, PWL_R, 0.42283266862087654). By contrast, R23 (POL_ERR reads) gives different PWL_R values: 0.4346246491829649 for BP (line 537) and 0.4306958824711454 for BPG (line 660). This confirms that 0.422 / 0.423 is specific to the R02/R14 read policy. Lines 3-8 of DECISION.json are the run_once block, which records the single final check on withheld seeds (seeds_sha256, freeze_seal), so the result is the consumed-seed one.",
+    "note": "I checked the reader's dev values and they are correct. B0 on the dev seeds gave PWL_R R2 = 0.4178842609893546 for BP (results/B0/summary_BP.csv:2) and 0.4180263527106908 for BPG (results/B0/summary_BPG.csv:2). The doc labels the final numbers as historical audit values (RESEARCH_IDEAS.md:35), but they can be checked directly in the local round-3 results, so the status is VERIFIED rather than AUDIT_ONLY. I did not open the seeds file."
+   },
+   {
+    "id": "G11",
+    "final_status": "VERIFIED",
+    "agrees_with_reader": true,
+    "evidence": "The final run-once file generations/gen21/next_research_20261019/results/final/DECISION.json (freeze_seal 93d3839a…, the withheld-seed final check) has an R23 block at :522. It gives BP R2 0.4712661019370567 at :524 and BPG R2 0.4633410288824331 at :647, which round to 0.471 / 0.463. PWL_R on the same reads is 0.4346246491829649 (:537) and 0.4306958824711454 (:660). The decision role at :770 is \"secondary (descriptive)\". EXPERIMENT_REGISTRY.csv:25 defines R23 as \"PWL_R + 1 Gd parameter\" with policy POL_ERR and notes \"separate POL_ERR regime; ... final (secondary): 0.4713 / 0.4633\". PROTOCOL.md:29 reads \"Separate regimes, never mixed with the primary: k = 0, 1, 2; C6 with k = 5, 6; any new policy; V2.\" AMENDMENTS.md:44 (D-6) says \"POL_ERR results are reported as a separate regime.\" All the line numbers the reader gave check out.",
+    "note": "Both numbers and the separate-regime status are confirmed in the result files and protocol files. Two extra observations come from the reader's note, not the claim. First, results/R14/fitted_BP.json and results/R23/fitted_BP.json begin with identical cor:Dnc fits, for example fold 104729_0 has lambda 0.03 and coef -0.08870700102701792. Second, the method-by-policy crossing is in results/policy_cross/contrasts_2x2_BP.csv: Dnc@POL_ERR - Dnc@DOPT_Q has BP R2 point 0.0230, with a percentile CI that crosses 0 (-0.0034 to 0.0568) and p = 0.07."
+   },
+   {
+    "id": "G18",
+    "final_status": "VERIFIED",
+    "agrees_with_reader": true,
+    "evidence": "D:/ml_separator_gh/generations/gen21/next_research_20261019/r3/corrector.py:86-111 `gd_dip` returns 1.0 for an unread Gd (:97-98). For any other unread b it returns -w, where w = 1-t when the left read neighbour is Gd (:104-105), w = t when the right read neighbour is Gd (:106-107), and w = 1.0 when b lies beyond an extreme read Gd (:108-109). Read metals are skipped (:95-96). The docstring (:87-89) states \"+alpha at an unread Gd and -w * alpha at neighbours interpolated from a read Gd\". These weights match r3/interp.py:39-42: `pwl_levels` uses np.interp, which holds end values constant outside the support range and puts weight 1-t on the left read and t on the right read, and read metals are reset to their exact values. `features` (corrector.py:129,138-140) appends gd[b]*[1, chem] only for unread b (the geo.items() keys). `predict_levels` (:328-334) adds f@coef to unread metals only, so reads stay exact. R08 = fset \"GD\" (r3/registry.py:120-121) goes through CF.corrector_method → CO.predict_levels (r3/configs.py:110-114). ATTEMPTS.md:83-87 pins this same mechanism. By the linearity of PWL, base(b) + beta*(1[b=Gd] - w_Gd(b)) equals I_S[y_S - beta*h_S](b) + beta*h(b) at unread b and y_s at reads, which is the RESEARCH_IDEAS.md:105 form.",
+    "note": "The code does not literally subtract the dip before interpolating. It adds -w_Gd(b)*coef after interpolation, which is algebraically equivalent because PWL is linear. In R08 (GD, not GDnc) the amplitude is coef·[1, chem] (corrector.py:139-140), so the dip is chemistry-conditioned rather than one scalar beta."
+   }
+  ]
+ }
+]

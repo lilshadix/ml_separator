@@ -1,0 +1,29 @@
+{
+ "note": "Everything block C showed before the A4 seal outside the synthetic study runs. Inner scores are weighted pair-loss MSE on inner-validation DOPT_Q masks; 'rel' = score / B1's score - 1. No outer-fold score of any block-C configuration exists.",
+ "technical_smoke_real_data": {
+  "when_utc": "2026-10-23T04:22",
+  "code_state": "first design (raw-unit main loss, WD 1e-3, w_Ln grid only, first An filter: 877 rows / 21 publications / 95 extractants after this fold's exclusions)",
+  "fold": ["BPG", 130363, 2],
+  "what": "SC.fit_slot S11 and S13 on the real bench (training side; inner selection plus outer refit; no held-out cell predicted)",
+  "S11_inner": {"zero (B1)": 0.03322, "w_Ln=0.0": 0.03485, "w_Ln=0.3": 0.03776, "w_Ln=1.0": 0.04026},
+  "S11_choice": "zero",
+  "S13_inner": {"zero (B1)": 0.03322, "w_X=0.0": 0.03485, "w_X=0.3": 0.03312, "w_X=1.0": 0.0341},
+  "S13_choice": {"w_Ln": 0.0, "w_X": 0.3}
+ },
+ "synthetic_diagnostics": [
+  {"when_utc": "2026-10-23T05:00", "fold": ["BPG", 130363, 2], "seed": 13999, "code": "main loss variance-normalised, WD 1e-3, pointwise head",
+   "rel": {"AN_SIGNAL amp 0.08": {"S11 w_Ln=0": 0.174, "w_Ln=0.3": 0.388, "w_Ln=1": 0.186, "S13 w_X=0.3": 0.260, "S13 w_X=1": 0.187},
+           "AN_SIGNAL amp 0.2": {"S11 w_Ln=0": 0.176, "w_Ln=0.3": 0.276, "w_Ln=1": 0.352, "S13 w_X=0.3": 0.160, "S13 w_X=1": 0.111},
+           "NULL amp 0.08": {"S11 w_Ln=0": 0.174, "w_Ln=0.3": 0.388, "w_Ln=1": 0.186, "S13 w_X=0.3": 0.096, "S13 w_X=1": 0.094}}},
+  {"when_utc": "2026-10-23T05:05", "fold": ["BPG", 130363, 1], "seeds": [14001, 14002], "code": "shape-amplitude head theta(h).(s - I_S s), WD 1e-3",
+   "rel": {"AN_SIGNAL 0.08": {"S11 best": 0.819, "S13 best": 0.781}, "AN_SIGNAL 0.2": {"S11 best": 0.659, "S13 best": 0.451},
+           "NULL 0.08": {"S11 best": 0.819, "S13 best": 0.819}, "NULL 0.2": {"S11 best": 0.659, "S13 best": 0.659},
+           "NULL 0.0": {"S11 best": 0.895, "S13 best": 0.895}, "AN_SIGNAL 0.2 fold 0": {"S11 best": 1.280, "S13 best": 1.110}}},
+  {"when_utc": "2026-10-23T05:12", "fold": ["BPG", 130363, 1], "seed": 14001, "code": "WD sweep",
+   "rel": {"shape WD 0.03": {"AN_SIGNAL 0.2 S11 best": 0.352, "NULL 0.0 S11 best": 0.536},
+           "shape WD 0.3": {"AN_SIGNAL 0.2 S11 best": 0.448, "NULL 0.0 S11 best": 0.460},
+           "point WD 0.03": {"AN_SIGNAL 0.2 S11 best": -0.058, "AN_SIGNAL 0.2 S13 best": -0.058, "NULL 0.0 S11 best": -0.164},
+           "point WD 0.3": {"AN_SIGNAL 0.2 S11 best": -0.026, "AN_SIGNAL 0.2 S13 best": -0.026, "NULL 0.0 S11 best": -0.169}}}
+ ],
+ "decision": "pointwise head kept; main loss variance-normalised; WD in S11's inner grid {0.03, 0.3}; shape-amplitude head dropped"
+}

@@ -1,0 +1,526 @@
+[
+ {
+  "topic": "Nilsson et al. 2006, C5-BTBP extraction properties (SEIX 24(3) 299-318, DOI 10.1080/07366290600646947): how D was measured, any detection floor for light lanthanides, open-access copies, and whether the 15 corpus cells really come from this paper",
+  "findings": [
+   {
+    "id": "F1",
+    "question": "Q1/Q3: Can the paper's full text be read, and what does the paper itself say about how D was measured?",
+    "status": "NOT_ACCESSIBLE",
+    "statement": "The publisher full text returned HTTP 403 (paywalled). OpenAlex marks the paper oa_status 'closed', with no open-access URL and no repository full text. Semantic Scholar shows openAccessPdf as empty and notes the publisher withheld the abstract. Crossref confirms the bibliographic data: vol. 24, issue 3, pp. 299-318, nine authors. Because the full text could not be read, no statement from the paper about tracers, ICP-MS or isotopes could be checked.",
+    "url": "https://doi.org/10.1080/07366290600646947",
+    "consequence": "We have no source-verified measurement method or detection limit from the paper itself. Any floor or censoring treatment for these 15 cells stays an assumption until someone with journal access reads the Experimental section."
+   },
+   {
+    "id": "F2",
+    "question": "Q1: What does the paper's own abstract cover (metals, diluents)?",
+    "status": "VERIFIED_FROM_SOURCE",
+    "statement": "Abstract rebuilt word for word from OpenAlex's abstract_inverted_index. It covers only Am(III) and Eu(III) into 'a variety of organic diluents'. It also covers stoichiometry, contact time, temperature, gamma resistance and recycling. Results range from no extraction to D(Am) > 1000; in 1,1,2,2-tetrachloroethane SF(Am/Eu) > 60 at about 5 min. D(Am) falls about 80% after 17 kGy. The abstract names no lanthanide series and no kerosene/octanol mixture. Quote: 'ranging from no extraction to distribution ratios over 1000 for americium(III)'.",
+    "url": "https://api.openalex.org/works/doi:10.1080/07366290600646947",
+    "consequence": "Our corpus has 15 cells under this DOI: 13 lanthanides (La-Lu without Pm and Tm), in 70% kerosene / 30% 1-octanol, at 0.1-1.0 M HNO3, with 0.005/0.01/0.015 M C5-BTBP, at 20 C, curator Baosen Zhang, data_location empty. The abstract describes none of this, so the attribution of these cells is doubtful and should be checked against the full text before any floor treatment is applied."
+   },
+   {
+    "id": "F3",
+    "question": "Provenance: could the 15 kerosene/octanol lanthanide cells come from Foreman et al. 2005 instead?",
+    "status": "SECONDARY",
+    "statement": "Foreman, Hudson, Geist, Madic and Weigl 2005, SEIX 23(5) 645-662, DOI 10.1080/07366290500230735. The title covers 'Americium(III), Lanthanides and D-Block Metals' with C5-BTBP. The abstract (OpenAlex) says: 'In octanol/kerosene the distribution ratios suggest that stripping will be possible.' Separately, the Crossref reference list deposited for Nilsson 2006 (31 references) does not include the Foreman 2005 DOI.",
+    "url": "https://api.openalex.org/works/doi:10.1080/07366290500230735",
+    "consequence": "This is only a hypothesis, not a verified attribution. The diluent and metal list fit Foreman 2005 better than Nilsson 2006. Foreman 2005 is also closed access (Reading repository record has no full text). If the cells belong to Foreman 2005, the measurement method and detection limit are unknown and the copy-group/source-cluster logic should be revisited."
+   },
+   {
+    "id": "F4",
+    "question": "Q1 (same group's report): how did Chalmers measure D in its C5-BTBP work?",
+    "status": "SECONDARY",
+    "statement": "SKB report R-05-13, Partitioning and Transmutation Annual Report 2004, by Andersson, Drouet, Ekberg, Liljenzin, Magnusson, Nilsson, Retegan, Skarnemark (Jan 2005, open PDF). Section 2.1 'Chemical behaviour of C5-BTBP' describes trace experiments with 241Am and 152Eu measured by gamma spectroscopy. In the macro-Ln runs (0.01 M C5 + 0.25 M 2-bromohexanoic acid in TBB), 241Am/244Cm/252Cf were measured by alpha spectroscopy and lanthanides by ICP-MS. Quote: 'ICP-MS analysis for inactive lanthanides (La, Ce, Pr, Nd, Sm, Eu, Gd) and Y'.",
+    "url": "https://skb.com/publication/834001/R-05-13.pdf",
+    "consequence": "This is the best open evidence on the group's methods: radiotracer gamma/alpha for Am/Eu/Cm/Cf, ICP-MS for inactive Ln. The listed ICP-MS elements stop at Gd, while the corpus cells include Tb-Lu. It does not establish which method produced the 15 corpus cells."
+   },
+   {
+    "id": "F5",
+    "question": "Q2: Does the same group state a lowest measurable D or 'no extraction' threshold for C5-BTBP?",
+    "status": "SECONDARY",
+    "statement": "R-05-13, diluent screening: 0.005 M C5 in each diluent, 0.01 M H+ / 1 M NO3-, trace 241Am or 152Eu, triplicates. It reports that hexane and TPH could not dissolve C5, and that trichloroethylene gave no extraction, stated as D < 10^-4. Quote: 'no extraction (D<10–4) was observed for neither americium nor europium'.",
+    "url": "https://skb.com/publication/834001/R-05-13.pdf",
+    "consequence": "This is the group's own operational floor for radiotracer D: below 1e-4 is reported as 'no extraction', and the paper's abstract also uses the phrase 'no extraction'. The corpus La median log D is -4.24, at or below log D = -4. This supports treating these values as censored or near-floor, but it is not a source-verified detection limit for the corpus cells. It applies to a different diluent and probably a different method (tracer, not ICP-MS)."
+   },
+   {
+    "id": "F6",
+    "question": "Q2: Does the same group's report say C5-BTBP dissolves in aliphatic diluents?",
+    "status": "SECONDARY",
+    "statement": "R-05-13 says that of hexane, TPH and trichloroethylene, C5 could not be dissolved in the first two (0.005 M). It also says that in 1-alcohols (hexanol to decanol), longer chains gave lower extraction and lower separation, which it calls bad news for kerosene-type process diluents. No C5-BTBP data in kerosene/octanol mixtures appear in the 2004 report.",
+    "url": "https://skb.com/publication/834001/R-05-13.pdf",
+    "consequence": "Chalmers' 2004 programme, which appears to underlie Nilsson 2006, has no 70/30 kerosene/octanol experiments. This weakens the attribution of the 15 corpus cells to this DOI."
+   },
+   {
+    "id": "F7",
+    "question": "Q2: Any statement that low lanthanide D values were hard to measure in the group's related C5-BTBP work?",
+    "status": "SECONDARY",
+    "statement": "R-05-13, C5 in cyclohexanone with a HAW-type solution: Ln values are from a single sample, so uncertainties could not be calculated. Quote: 'the heaviest lanthanides were present only in small amounts in the initial aqueous solutions'. The same report, for a different ligand (BODO, HPGe tracer measurements), says Tb, Tm, Yb and Lu could not be evaluated because of low D and/or difficulties in evaluating the spectra.",
+    "url": "https://skb.com/publication/834001/R-05-13.pdf",
+    "consequence": "This is qualitative evidence that the lab's Ln measurements lose precision at low concentration or low D. The cyclohexanone passage is relevant to the companion paper DOI 10.1080/07366290600952659 (pub_723ceb6c2c, 1 corpus cell). No numeric limit is given."
+   },
+   {
+    "id": "F8",
+    "question": "Q2: Does the 2005 annual report mention a detection limit?",
+    "status": "SECONDARY",
+    "statement": "SKB R-06-45, Partitioning and Transmutation Annual Report 2005 (Chalmers, Jan 2006). For CyMe4-S-BTP in tetrachloroethane, it says the 152Eu D is 'uncertain since it is close to the detection limit'. No number is given. The report also lists Nilsson et al. C5-BTBP as 'Accepted for publication in Solvent Extraction and Ion Exchange 2006', and says Nilsson defended his PhD in December 2005.",
+    "url": "https://skb.com/publication/1114706/R-06-45.pdf",
+    "consequence": "This confirms the group's tracer D measurements had a practical detection limit, but it is for a different ligand and gives no value. It does not change the dataset directly."
+   },
+   {
+    "id": "F9",
+    "question": "Q3: Thesis versions (Nilsson, Andersson) with open full text?",
+    "status": "NOT_FOUND",
+    "statement": "Mikael Nilsson, 'Screening Investigations of Novel Nitrogen Donor Ligands', Chalmers doctoral thesis 2005 (ISBN 91-7291-699-0; keywords include BTBP). The Chalmers record (publication 8594) shows only the abstract, with no PDF or list of appended papers; OpenAlex marks it closed. Sofie Andersson's 2005 thesis is on other systems (BODO/2-bromodecanoic acid, nitrate complexes), not C5-BTBP extraction, per its Chalmers record and the search snippet.",
+    "url": "https://research.chalmers.se/en/publication/8594",
+    "consequence": "There is no open thesis copy that would expose the paper's Experimental section. A Chalmers library request (the record points to research.lib@chalmers.se) is the only route found."
+   },
+   {
+    "id": "F10",
+    "question": "Q3: Any other open-access copy (institutional repository, OSTI, ResearchGate, CORE)?",
+    "status": "NOT_FOUND",
+    "statement": "Chalmers research record 25110 lists bibliographic data only, with no abstract or full text. ResearchGate and Academia.edu returned 403. CORE and scholar.archive.org showed bot-check pages, and the Reading CentAUR record showed an Anubis bot check. None was bypassed. No OSTI or EUROPART deliverable with C5-BTBP lanthanide D values or detection limits turned up in searches.",
+    "url": "https://research.chalmers.se/publication/25110",
+    "consequence": "No open-access copy exists among the sources checked. The open SKB annual reports (R-05-13, R-06-45) are the only related public material."
+   }
+  ],
+  "searches_tried": [
+   "Crossref API works/10.1080/07366290600646947 (metadata + 31-reference list)",
+   "OpenAlex works/doi:10.1080/07366290600646947 (abstract_inverted_index, OA status, locations)",
+   "Semantic Scholar graph API paper + citations with contexts",
+   "doi.org -> tandfonline.com full text (403)",
+   "WebSearch: Nilsson C5-BTBP extraction properties SEIX 2006 lanthanide distribution ratio",
+   "WebSearch: exact title + Nilsson Andersson Drouet",
+   "WebSearch: research.chalmers.se Nilsson 2006 C5-BTBP",
+   "Chalmers person page jolnc -> publications 25110, 25118",
+   "WebSearch: Mikael Nilsson doctoral thesis Chalmers BTBP 2005 -> thesis record 8594, SKB reports",
+   "SKB R-05-13 (Annual Report 2004) PDF: text extracted locally with a stdlib parser",
+   "SKB R-06-45 (Annual Report 2005) PDF: text extracted",
+   "SKB R-04-22 (Annual Report 2003) PDF: no BTBP content",
+   "OpenAlex: Foreman 2005 DOI 10.1080/07366290500230735 abstract",
+   "OpenAlex: Nilsson 2006b cyclohexanone DOI 10.1080/07366290600952659, Retegan 2006 MRS, Foreman 2006 Dalton b511321k",
+   "centaur.reading.ac.uk/11251 (timeout, then Anubis bot check)",
+   "Chalmers records 162198 (Lofstrom-Engdahl 2013) and 89804 (Retegan thesis 2009)",
+   "WebSearch: C5-BTBP octanol kerosene lanthanides ICP-MS 0.005/0.01/0.015 M",
+   "WebSearch: C5-BTBP octanol kerosene Geist Weigl 2005",
+   "KIT publikationen PDF 230095731/3816540 (turned out to be C5-BPP, not relevant)",
+   "WebSearch: EUROPART final report C5-BTBP detection limit ICP-MS",
+   "WebSearch: Screening Investigations of Novel Nitrogen Donor Ligands pdf",
+   "WebSearch: Andersson thesis title (Extraction Properties of some Nitrogen-Containing Extractants...)",
+   "ResearchGate publication page (403), chalmers.academia.edu/MarkForeman (403), core.ac.uk search (403), scholar.archive.org (bot check)",
+   "WebSearch: Geist Weigl C5-BTBP FZKA report (no relevant hits)"
+  ],
+  "summary": "(1) Measurement method: the paper is paywalled (T&F 403; closed in OpenAlex and Semantic Scholar), so its Experimental section could not be read. Its abstract, rebuilt word for word from OpenAlex, covers only Am(III) and Eu(III) in 'a variety of organic diluents'. It mentions no lanthanide series and no kerosene/octanol mixture. The best open evidence on method is the same group's SKB report R-05-13 (Annual Report 2004; authors include the Chalmers co-authors), labelled SECONDARY. It reports 241Am/152Eu by gamma spectroscopy, 241Am/244Cm/252Cf by alpha spectroscopy, and inactive lanthanides by ICP-MS. The ICP-MS list given is La, Ce, Pr, Nd, Sm, Eu, Gd and Y; it does not include Tb-Lu. (2) Detection floor: no statement from the paper could be verified. R-05-13 records 'no extraction (D<10^-4)' for C5-BTBP tracer runs in trichloroethylene. That is a de facto radiometric floor at log D = -4, close to the corpus light-lanthanide value of about -4.24. R-05-13 and R-06-45 also mention near-detection-limit Eu and unevaluable low-D heavy lanthanides, but for other ligands or conditions and with no numbers. (3) Open access: no OA copy was found. Chalmers records 25110 and thesis 8594 have no PDF; ResearchGate, Academia, CORE, scholar.archive and Reading CentAUR were blocked by 403 or bot checks, which were not bypassed. Only the SKB annual reports are open. Provenance concern: the 15 corpus cells under this DOI (13 Ln, 70% kerosene / 30% 1-octanol, 0.1-1.0 M HNO3, 0.005-0.015 M ligand, curator Baosen Zhang, no data_location) are not described by the paper's abstract, and no such experiment appears in R-05-13. R-05-13 also says C5 would not dissolve in TPH or hexane. Foreman et al. 2005 (SEIX 23:645, DOI 10.1080/07366290500230735) has 'Lanthanides' in its title and an octanol/kerosene system in its abstract. Nilsson 2006's deposited Crossref reference list does not cite it. Treat the attribution as unverified and possibly wrong until someone checks the full text. Local working files are in the scratchpad: C:\\Users\\Bandai\\AppData\\Local\\Temp\\claude\\C--Users-Bandai--claude-spares-spare-9MsqWO\\0cd609d3-ed34-4de3-83c3-904e5f4bdb8b\\scratchpad\\skb_r0513.txt and C:\\Users\\Bandai\\AppData\\Local\\Temp\\claude\\C--Users-Bandai--claude-spares-spare-9MsqWO\\0cd609d3-ed34-4de3-83c3-904e5f4bdb8b\\scratchpad\\skb_r0645.txt hold the extracted report text. The parser scripts are C:\\Users\\Bandai\\AppData\\Local\\Temp\\claude\\C--Users-Bandai--claude-spares-spare-9MsqWO\\0cd609d3-ed34-4de3-83c3-904e5f4bdb8b\\scratchpad\\pdftext2.py and C:\\Users\\Bandai\\AppData\\Local\\Temp\\claude\\C--Users-Bandai--claude-spares-spare-9MsqWO\\0cd609d3-ed34-4de3-83c3-904e5f4bdb8b\\scratchpad\\oa_abs.py. Note: WebFetch saved the public SKB/KIT PDFs on its own (no deliberate download) under C:\\Users\\Bandai\\.claude\\projects\\D--ml-separator-gh\\0cd609d3-ed34-4de3-83c3-904e5f4bdb8b\\tool-results\\.",
+  "checks": [
+   {
+    "id": "F2",
+    "confirmed": true,
+    "note": "VERIFIED-FROM-SOURCE, with two small corrections. I fetched https://api.openalex.org/works/doi:10.1080/07366290600646947 myself. Record W1967345351: the C5-BTBP extraction-properties paper, Solvent Extraction and Ion Exchange, 2006. I rebuilt the abstract from abstract_inverted_index: 198 tokens at positions 0-197, no gaps.\n\nEvery substantive claim checks out:\n(1) It covers only americium(III) and europium(III), extracted \"into a variety of organic diluents\".\n(2) It covers stoichiometry, contact time, temperature, resistance to gamma irradiation, and recycling the organic phase after stripping.\n(3) Results range from no extraction to D over 1000 for Am(III).\n(4) In 1,1,2,2-tetrachloroethane the separation factor is \"above 60 ... at equilibrium, ∼5 min contact time\". The symbol is U+223C (approximately).\n(5) Americium extraction \"decreases ∼80% after a dose of 17 kGy\".\n(6) The words kerosene and octanol do not appear. No lanthanide series is named.\n\nCorrections:\n(a) The quote is not word for word. It drops \"of\". The source reads: \"ranging from no extraction to distribution ratios of over 1000 for americium(III)\".\n(b) The abstract does use \"lanthanides\" once as a general class: \"separating trivalent actinides from lanthanides\". It reports no lanthanide other than Eu.\n\nCaveat: this is OpenAlex's rebuilt copy of the abstract. I did not check the publisher's page or the full text."
+   },
+   {
+    "id": "F3",
+    "confirmed": true,
+    "note": "Every part of the claimed statement checks out against the sources. The provenance question itself is still open, so SECONDARY remains the right label.\n\nVERIFIED-FROM-SOURCE (bibliography): OpenAlex (https://api.openalex.org/works/doi:10.1080/07366290500230735) and Crossref (https://api.crossref.org/works/10.1080/07366290500230735) agree on these details:\n- Authors: Foreman, Hudson, Geist, Madic, Weigl.\n- Journal: Solvent Extraction and Ion Exchange 23(5), pp. 645-662, published 2005-09.\n- Title: \"An Investigation into the Extraction of Americium(III), Lanthanides and D-Block Metals by ... (C5-BTBP)\".\n\nVERIFIED-FROM-SOURCE (abstract): the OpenAlex abstract contains the exact sentence \"In octanol/kerosene the distribution ratios suggest that stripping will be possible.\"\n- Caveat: the abstract never mentions lanthanides in octanol/kerosene. Lanthanides appear only in the title. The rest of the abstract covers Am(III) selectivity, Pd/Rh/Ru, Cd, Fe(III) and Ni(II).\n- So nothing public shows that this paper reports lanthanide D values in kerosene/octanol.\n\nVERIFIED-FROM-SOURCE (citations): Crossref for Nilsson et al. 2006, SEIX 24(3) 299-318, DOI 10.1080/07366290600646947 (the \"Extraction Properties of C5-BTBP\" paper in the corpus):\n- It has reference-count 31.\n- None of its references carries DOI 10.1080/07366290500230735.\n- Foreman is a co-author of the paper but is not cited as a reference.\n- The OpenAlex abstract of this paper names only 1,1,2,2-tetrachloroethane as a diluent. It does not mention octanol or kerosene.\n\nCaveat the finding leaves out: the other Nilsson 2006 paper in the corpus does cite Foreman 2005.\n- Paper: Nilsson, Ekberg, Foreman, Hudson, Liljenzin, Modolo, Skarnemark, SEIX 24(6) 823-843, DOI 10.1080/07366290600952659 (cyclohexanone).\n- It has 37 references, and reference e_1_3_2_12_1 carries DOI 10.1080/07366290500230735 (https://api.crossref.org/works/10.1080/07366290600952659).\n- So \"Nilsson 2006 does not cite Foreman 2005\" is true only of the 299-318 paper.\n\nNOT ACCESSIBLE: the full text and tables of Foreman 2005. The tandfonline.com page returned HTTP 403, so I could not check whether it contains the 15 lanthanide cells.\n\nOverall: the statement as written is accurate. Whether the 15 cells come from Foreman 2005 is unresolved."
+   },
+   {
+    "id": "F4",
+    "confirmed": true,
+    "note": "VERIFIED-FROM-SOURCE, with one wording caveat. I opened https://skb.com/publication/834001/R-05-13.pdf. The fetch tool's summarizer could not read the compressed PDF, but the tool had already cached the file. I pulled the text out locally with my own ToUnicode-CMap parser: C:\\Users\\Bandai\\AppData\\Local\\Temp\\claude\\C--Users-Bandai--claude-spares-spare-9MsqWO\\0cd609d3-ed34-4de3-83c3-904e5f4bdb8b\\scratchpad\\pdf_text2.py, output in C:\\Users\\Bandai\\AppData\\Local\\Temp\\claude\\C--Users-Bandai--claude-spares-spare-9MsqWO\\0cd609d3-ed34-4de3-83c3-904e5f4bdb8b\\scratchpad\\r0513b.txt.\n\nWhat the title page confirms: \"Partitioning and Transmutation Annual Report 2004\" by Andersson, Drouet, Ekberg, Liljenzin, Magnusson, Nilsson, Retegan and Skarnemark (Nuclear Chemistry, Chalmers), dated January 2005, \"SKB Rapport R-05-13\". The page also says a PDF version can be downloaded from www.skb.se.\n\nWhat section 2.1 \"Chemical behaviour of C5-BTBP\" confirms (pp. 9-10):\n- Macro-Ln runs M1-M10 used C5 \"dissolved to 0.01 M in tert-butyl benzene together with 0.25 M 2-bromohexanoic acid\". The C5:acid ratio was 1:25. Samples were vortex-shaken, centrifuged, and aliquots were taken from both phases.\n- Measurement: \"All samples were analysed with gamma spectroscopy for 241Am and 152Eu analysis, alpha spectroscopy for 241Am, 244Cm and 252Cf and finally ICP-MS analysis for inactive lanthanides (La, Ce, Pr, Nd, Sm, Eu, Gd) and Y.\" The claimed quote matches word for word.\n- Figure captions say \"The data are from alpha (a) and gamma (g) spectrometry\", or \"from alpha spectrometry and ICP-MS measurements\".\n\nCaveats:\n1. The text does not say how the earlier trace runs (Tables 2.1-2.3) were counted. It only says experiments were \"made in triplicates with both 241Am and 152Eu\". The only explicit gamma-spectroscopy sentence in section 2.1 belongs to the macro-Ln runs. So \"trace experiments measured by gamma spectroscopy\" is a reasonable inference, not a stated fact.\n2. In the macro runs 241Am and 152Eu were also measured by gamma, not only by alpha and ICP-MS as the claim implies.\n3. The trace runs in Table 2.2 used 2-bromodecanoic acid, not 2-bromohexanoic acid.\n\nRelevant to data quality: the report says 5 min of shaking \"is not enough for reaching equilibrium\", except maybe for M1. It also reports per-value Stdev%, for example D Eu 1.78E-05 with Stdev 174.63%.\n\nLabelling: this is a primary Chalmers report, so the wording is verified from source. It is secondary only in the sense that it is not the corpus paper itself."
+   },
+   {
+    "id": "F5",
+    "confirmed": true,
+    "note": "Status should be VERIFIED-FROM-SOURCE, not SECONDARY. I fetched https://skb.com/publication/834001/R-05-13.pdf, which is public with no login. The fetch tool's text step could not parse the PDF and saved the binary automatically to C:\\Users\\Bandai\\.claude\\projects\\D--ml-separator-gh\\0cd609d3-ed34-4de3-83c3-904e5f4bdb8b\\tool-results\\webfetch-1792688489847-3j7wqg.pdf. I then decoded its FlateDecode text streams locally with a script (C:\\Users\\Bandai\\AppData\\Local\\Temp\\claude\\C--Users-Bandai--claude-spares-spare-9MsqWO\\0cd609d3-ed34-4de3-83c3-904e5f4bdb8b\\scratchpad\\pdfx\\dec.py). The title page decodes to SKB R-05-13, 'Partitioning and Transmutation Annual Report 2004', Nuclear Chemistry, Chalmers, January 2005. Authors: S. Andersson, F. Drouet, C. Ekberg, J-O. Liljenzin, D. Magnusson, M. Nilsson, T. Retegan, G. Skarnemark. The passage is in section 2.1, 'Chemical behaviour of C5-BTBP', just after Table 2.8. Every detail in the claim is in the source text: 0.005 M C5 in each diluent; aqueous phase 0.01 M H+ and 1 M NO3-; trace 241Am or 152Eu; triplicates. Verbatim: 'Hexane, TPH and trichloroethylene was also tested but C5 could not be dissolved in the two first ones'. It continues: 'no extraction (D<10-4) was observed for neither americium nor europium' with the third one. The minus sign in the exponent is a special glyph. The same glyph is used as the minus in 'E-04' in the tables, so it does read 10^-4. CAVEAT for using this as a floor: 10^-4 is stated only for this one trichloroethylene test. It is not a general detection limit for the method; the report has no 'detection limit' or 'limit' statement anywhere. In the same report, Table 2.1 (C5 in TBB, nitrate medium) lists D values at or below that level with very large spread. D Am = 1.36E-04 (Stdev 34.08%) and D Eu = 1.78E-05 (Stdev 174.63%), giving SF Am/Eu 7.65 (Stdev 177.93%). So the group did report numbers below 10^-4 elsewhere, and those come with huge relative errors. Treat 'no extraction' as D below roughly 1e-4 for this one experiment, and treat D near 1e-4 or lower as very noisy measurements, not as a consistent cutoff."
+   },
+   {
+    "id": "F6",
+    "confirmed": true,
+    "note": "Confirmed from the source itself. The status should go up from SECONDARY to VERIFIED-FROM-SOURCE.\n\nSource: https://skb.com/publication/834001/R-05-13.pdf. This is SKB Rapport R-05-13, \"Partitioning and Transmutation Annual Report 2004\", by Andersson, Drouet, Ekberg, Liljenzin, Magnusson, Nilsson, Retegan and Skarnemark (Nuclear Chemistry, Chalmers), dated January 2005.\n\nHow I read it: WebFetch alone could not show the text, but the tool kept a copy of the PDF in its tool-results cache. I decoded that copy locally with the PDF's own character maps. The relevant page (printed page 15, PDF page 12) has a font with no character map, so I decoded it by a fixed glyph offset. The result is clean, readable English that matches the rest of the report. I did not download anything separately.\n\nWhat the source states, section 2.1 (diluent screening):\n- 0.005 M C5 was dissolved in a range of diluents and contacted with 0.01 M H+ and 1 M nitrate, with trace Am-241 or Eu-152, in triplicate (Fig. 2.7).\n- Hexane, TPH and trichloroethylene were also tested. In the report's words, \"C5 could not be dissolved in the two first ones\", meaning hexane and TPH.\n- With trichloroethylene, no extraction was seen for Am or Eu (D below 10^-4).\n- 1-alcohols from hexanol to decanol were tested to find a diluent that follows the CHON principle (Fig. 2.8). The longer the chain, the lower both the extraction and the separation. The report says this is not good for processes that often use long-chain hydrocarbons such as kerosene. \"Bad news\" is the claim's paraphrase, not the report's wording.\n\nKerosene/octanol mixtures: the decoded text mentions \"kerosene\" only in that one sentence. It has no kerosene/octanol mixture experiments; octanol appears only inside the 1-alcohol series. Caveat: the axis and legend labels in Figs 2.7 and 2.8 did not decode, so this check covers the body text only.\n\nCaveats:\n1. The report calls the extractant \"C5-BTBP (C5)\" but says its structure \"can not be given\" for confidentiality. It describes it only as a BTBP derivative. Matching it to the later published C5-BTBP structure is an inference, not stated in this report.\n2. The claim's \"(0.005 M)\" is correct: it is the stated concentration for the diluent screen.\n\nDecoded text for re-checking: C:\\Users\\Bandai\\AppData\\Local\\Temp\\claude\\C--Users-Bandai--claude-spares-spare-9MsqWO\\0cd609d3-ed34-4de3-83c3-904e5f4bdb8b\\scratchpad\\f6\\text2.txt (lines about 1550-1595)."
+   },
+   {
+    "id": "F7",
+    "confirmed": true,
+    "note": "VERIFIED-FROM-SOURCE. https://skb.com/publication/834001/R-05-13.pdf is SKB R-05-13, \"Partitioning and Transmutation Annual Report 2004\" (Chalmers: Andersson, Drouet, Ekberg, Liljenzin, Magnusson, Nilsson, Retegan, Skarnemark; January 2005). WebFetch could not read the compressed PDF text, so I decoded the PDF that WebFetch itself had cached and read the passages myself.\n\n(1) C5 in cyclohexanone vs. simulated HAW (section \"Extraction using simulated HAW\", Fig. 2.23). The text says the aqueous phases were spiked with trace Am-241, Cm-244, Cf-252 and Eu-152. It then says the lanthanide values are \"the results from only one sample so far\". It says this \"makes uncertainties impossible to calculate and the final results may differ\". The claimed quote is word for word in the report: \"the heaviest lanthanides were present only in small amounts in the initial aqueous solutions\". The sentence goes on to say this \"makes the evaluation even more difficult\". The report also says the results \"are quite uncertain since only a few samples have been analysed\".\n\n(2) BODO (0.01 M BODO, 1 M 2-bromodecanoic acid in TBB; gamma analysis \"using HPGe detectors\"). Near Fig. 2.35 it states: \"Terbium, thulium, ytterbium and lutetium could not be evaluated because of either low distribution ratios and/or inherent difficulties in the spectra evaluation\". It adds that the Tb values are too high. This was checked again with a NaI(Tl) well detector instead of the HPGe.\n\n(3) Related: in the N-donor extractant section (BODO, C5, CyMe4-BTP), the report says early TBB/HA runs were \"not very good\" because of \"huge uncertainties between distribution ratios of the samples\".\n\nCaveats:\n- For C5-BTBP, the report does NOT say directly that low D made the values hard to measure. Its reasons are a single sample and small amounts of the heavy Ln. Only the BODO passage names \"low distribution ratios\".\n- The claimed status SECONDARY fits only in the sense that this is a related annual report from the same group, not one of the corpus DOIs. The wording itself is confirmed from the primary report."
+   },
+   {
+    "id": "F8",
+    "confirmed": true,
+    "note": "I checked the source myself, so this is VERIFIED-FROM-SOURCE, not SECONDARY. WebFetch could not read the text of https://skb.com/publication/1114706/R-06-45.pdf directly because the streams are compressed. The tool saved its own cached copy of the PDF, and I decompressed and parsed that copy locally without downloading anything else. All three parts of the claim hold.\n\n(0) The title page reads: SKB Rapport R-06-45, \"Partitioning and Transmutation Annual Report 2005\". It is from Nuclear Chemistry, Chalmers University of Technology, dated January 2006. Authors include Mikael Nilsson.\n\n(1) The passage sits under Figure 2-2, \"Extraction properties for CyMe4-BTBP and CyMe4-S-BTP in different organic diluents\". It says that for the semi-BTP, tetrachloroethane is easy to dissolve in and the Am/Eu SF is \"about 200\". It then says the \"distribution ratio for 152Eu is uncertain since it is close to the detection limit\". The sentence gives no number for the detection limit and no D value.\n\nA separate passage also mentions a detection limit. It concerns ICP-MS work in Tables 2-15 and 2-16, where a dash marks results \"either below the detection limit\" or doubtful in analysis. Some of those results are based on single samples. That passage gives no number either.\n\n(2) The publication list includes: M. Nilsson, S. Andersson, F. Drouet et al., \"Extraction Properties of 6,6'-bis-(5,6-dipentyl-[1,2,4]triazin-3-yl)-[2,2']bipyridinyl (C5-BTBP)\". It is marked \"Accepted for publication in Solvent Extraction and Ion Exchange 2006.\"\n\n(3) Section 2, Research, says Sofie Andersson and Mikael Nilsson \"defended their theses\", Andersson in April and Nilsson in December (2005).\n\nAnswer to Q2: yes, the report mentions a detection limit only in words, never as a number."
+   }
+  ]
+ },
+ {
+  "topic": "Shimada, Yaita, Narita, Tachimori, Okuno 2004, SEIX 22(2) 147-161, DOI 10.1081/SEI-120030392 (DMDPhPDA/CHCl3, Ln(III) from 1-5 M HNO3): public evidence for Pr/Nd D at 5 M HNO3 and SF along the series",
+  "findings": [
+   {
+    "id": "Q1a_publisher_abstract",
+    "question": "(1) Are Table 1 / Fig. 5 (Pr, Nd D at 5 M HNO3) readable on the abstract page?",
+    "status": "VERIFIED_FROM_SOURCE",
+    "statement": "The T&F abstract page returned HTTP 403. OpenAlex reproduces the publisher abstract: D of lanthanides measured from 1 to 5 M HNO3 into DMDPhPDA/CHCl3, and the number of ligands per extracted complex rises from 3 for light Ln to 4 for heavy Ln. The abstract also says acid concentration matters more than ligand concentration for D 'and the difference of distribution ratio among lanthanides'. The abstract gives no numeric D values, no SF, and does not mention Pr or Nd. Crossref has no abstract (28 references). OpenAlex and Semantic Scholar both mark the paper closed access with no OA copy.",
+    "url": "https://api.openalex.org/works/doi:10.1081/SEI-120030392",
+    "consequence": "The abstract cannot settle the one-decade discrepancy. Its only use is qualitative: inter-Ln differences depend mainly on acid concentration, which is the axis where the two corpus copies disagree. The full text is paywalled and was not read."
+   },
+   {
+    "id": "Q1b_shimada_phd_thesis",
+    "question": "(1) Is there a public full-text source (thesis/report) likely to contain the Table 1 / Fig. 5 values?",
+    "status": "VERIFIED_FROM_SOURCE",
+    "statement": "Asako Shimada's doctoral thesis, Shizuoka University, 2004-03-23, in Japanese. Title: '3価アクチノイドに対する抽出剤の開発とその抽出機構の解明' (development of extractants for trivalent actinides and their extraction mechanism). Degree 博士(理学) 甲第379号, DOI 10.14945/00003509. The repository lists one attached file, K0379.pdf (23.8 MB), marked open access. I did NOT download or read it, because the task rules forbid saving files to disk, so its contents are unverified. It plausibly holds the DMDPhPDA Ln D tables, since it shares the author and year with the SEIX paper.",
+    "url": "https://shizuoka.repo.nii.ac.jp/records/2173",
+    "consequence": "This is the most promising public route to the original D values for Pr and Nd at 5 M HNO3, and it could arbitrate between the curated and ORNL copies. Reading it needs explicit user permission to download a 23.8 MB PDF from shizuoka.repo.nii.ac.jp. The file may be a scan, in which case OCR would be needed."
+   },
+   {
+    "id": "Q1c_aesj_2003_abstract",
+    "question": "(1)/(3) Conference proceeding with this system's acid dependence along the series",
+    "status": "VERIFIED_FROM_SOURCE",
+    "statement": "AESJ 2003 fall meeting abstract (Shimada, Yaita, Okuno, Kimura; DOI 10.11561/aesj.2003f.0.460.0), in Japanese. Ln D vs [HNO3] has a slope near 3 up to about 3 M. Above 3 M, D rises sharply, 'especially for heavy Ln' (translated). A run at a fixed 4 M nitrate (HNO3 + LiNO3) also points to HNO3 molecules taking part in extraction. No numeric D, no SF, no Pr or Nd, no 5 M value.",
+    "url": "https://www.jstage.jst.go.jp/article/aesj/2003f/0/2003f_0_460/_article/-char/ja/",
+    "consequence": "Above 3 M HNO3 the D values change steeply and differ by Ln, so a one-decade slip at 5 M is chemically plausible in either direction. The abstract confirms the regime is non-linear but does not say which copy is right."
+   },
+   {
+    "id": "Q1d_serdj_2004_companion",
+    "question": "(1)/(2) Companion paper by the same group restating Ln D values",
+    "status": "NOT_ACCESSIBLE",
+    "statement": "A companion paper exists: Shimada, Yaita, Narita et al., 'Extraction of Am(III) and Lanthanide(III) Ions from HNO3 Solutions Using DMDPhPDA'. It is in Solvent Extraction Research and Development, Japan, vol. 11 (2004), pp. 1-10, and is recorded in NDL and CiNii. J-STAGE's SERDJ archive starts at vol. 17, so vol. 11 is not hosted there. The journal society site failed TLS (certificate mismatch). No abstract or full text was found.",
+    "url": "https://ndlsearch.ndl.go.jp/en/books/R000000004-I7002696",
+    "consequence": "This may be a second publication of overlapping Ln D data, so it is a possible duplicate-source risk if the corpus also holds it. Check whether any corpus DOI or record matches SERDJ 11:1-10. It is not readable publicly."
+   },
+   {
+    "id": "Q2a_jaea_patent_pda",
+    "question": "(2) Do JAEA documents restate D values for DMDPhPDA?",
+    "status": "VERIFIED_FROM_SOURCE",
+    "statement": "JAEA patent US8052947B2 (Yaita, Shiwaku, Suzuki, Okamoto; priority JP 2006-349646). It uses 0.5 M 'PDA' (N,N'-dimethyl-N,N'-diphenyl-2,6-pyridinedicarboxamide) in chloroform. Stated values: D(Am) 1.3 and D(Eu) 0.25 at 3.0 M HNO3; D(Pu) 10.2 at 3.0 M and 42.5 at 5.0 M; D(U) 0.17 at 3.0 M. No La, Ce, Pr or Nd values, no 5 M Ln values, and no stated SF.",
+    "url": "https://patents.google.com/patent/US8052947B2/en",
+    "consequence": "This gives one independent Eu D point (0.25 at 3 M HNO3, 0.5 M ligand, CHCl3) to cross-check the corpus's Eu value under matching conditions. It cannot check Pr/Nd at 5 M."
+   },
+   {
+    "id": "Q2b_later_shimada_yaita_papers",
+    "question": "(2) Do later Shimada/Yaita papers on DMDPhPDA restate the 5 M Pr/Nd D or SF?",
+    "status": "NOT_FOUND",
+    "statement": "Fujiwara (née Shimada), Nakano, Yaita, Okuno, J. Alloys Compd. 456 (2008) 429-435, is a structural/stability-constant study. OpenAlex has no abstract and its keywords are structural only. Yaita et al., Physica Scripta T115 (2005) 302, is an XAFS study of Ce-DMDPhPDA in methanol and showed no extraction data. JAEA AESJ abstracts by Arisaka/Watanabe/Kimura (2007-2010) cover alkyl-PDA adsorbents for Am/Eu, which is a different ligand. None of these states the Pr or Nd D at 5 M or an SF Pr/Nd.",
+    "url": "https://cir.nii.ac.jp/opensearch/all?q=DMDPhPDA&format=json&count=50",
+    "consequence": "No later restatement was found to arbitrate the decade discrepancy."
+   },
+   {
+    "id": "Q3a_series_direction_secondary",
+    "question": "(3) Anything stating separation behaviour along the Ln series for this system",
+    "status": "SECONDARY",
+    "statement": "An IJMS 2022 open-access paper (PMC9779341) cites Shimada 2004 as ref. [10]. It states that for pyridine-2,6-dicarboxylic acid diamides 'positive sequences D vs. Z are observed', i.e. D rises from La toward Lu. It gives no numeric D or SF for the Shimada system.",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9779341/",
+    "consequence": "This supports the sign only: D(Nd) > D(Pr), so SF Nd/Pr > 1, for this system. It gives no magnitude, so it cannot pick the decade. If one corpus copy implies D(Pr) > D(Nd) at 5 M, that copy conflicts with this secondary statement."
+   },
+   {
+    "id": "Q3b_numeric_SF_series",
+    "question": "(3) Any stated numeric separation factors along the series (e.g., SF Pr/Nd) for DMDPhPDA",
+    "status": "NOT_FOUND",
+    "statement": "No public page stated a numeric adjacent-Ln SF for DMDPhPDA. Several open-access citing works could not be read: the Energies 2022 review (MDPI, HTTP 403), the EJIC 2024 review (Wiley, 403) and JNST 2014 (T&F, 403). The Alyapyshev/Babain/Paulenova dipicolinamide abstracts (2008, 2011) give Am/Ln only, with no Ln/Ln SF.",
+    "url": "https://api.openalex.org/works?filter=cites:W2018969434,open_access.is_oa:true",
+    "consequence": "No external number exists to replace or validate the corpus SF Pr/Nd at 5 M. Treat the pair as unresolved, or apply a provenance rule, until the thesis is read."
+   },
+   {
+    "id": "Q1e_osti_inis",
+    "question": "(1) OSTI/INIS records with full text",
+    "status": "NOT_ACCESSIBLE",
+    "statement": "OSTI/ETDEWEB has a record (biblio 21130093) for the 2008 structural DMDPhPDA paper, but the OSTI host refused connections (ECONNREFUSED). INIS search and API returned HTTP 402 (Payment Required), which I did not pursue. JAEA's JOPSS search returned empty pages (JS-driven).",
+    "url": "https://www.osti.gov/etdeweb/biblio/21130093",
+    "consequence": "I could not check whether an INIS/OSTI full text exists. This is a low-probability source for the SEIX Table 1, since the main lead is the Shizuoka thesis."
+   }
+  ],
+  "searches_tried": [
+   "WebSearch: Shimada Yaita Narita Tachimori Okuno DMDPhPDA lanthanide extraction nitric acid",
+   "WebFetch: doi.org/10.1081/SEI-120030392 -> tandfonline abs (HTTP 403)",
+   "WebSearch: \"N,N'-dimethyl-N,N'-diphenylpyridine-2,6-dicarboxyamide\" extraction",
+   "WebFetch: NDL record R000000004-I7002696 (SERDJ 11:1-10)",
+   "WebFetch: J-STAGE SERDJ vol 11 contents (HTTP 500); SERDJ browse page (vols 17-33 only)",
+   "WebFetch: Crossref API works/10.1081/SEI-120030392 (no abstract, 28 refs)",
+   "WebFetch: OpenAlex works/doi:10.1081/SEI-120030392 (abstract reconstructed; closed access)",
+   "WebFetch: Semantic Scholar graph API (citations list; closed access)",
+   "WebSearch: \"DMDPhPDA\" lanthanide (extended)",
+   "WebFetch: ResearchGate SERDJ paper (HTTP 403)",
+   "WebFetch: OSTI ETDEWEB 21130093 and OSTI API (ECONNREFUSED)",
+   "WebFetch: INIS search and API (HTTP 402, not pursued)",
+   "WebFetch: JOPSS search (empty JS page)",
+   "WebSearch: site:jopss.jaea.go.jp diphenylpyridine dicarboxyamide",
+   "WebSearch: Japanese query 島田亜佐子 ピリジンジカルボキシアミド ランタノイド 抽出 硝酸",
+   "WebSearch: Asako Shimada / Asako Fujiwara thesis Shizuoka",
+   "WebFetch: CiNii OpenSearch for DMDPhPDA, diphenylpyridine-2,6-dicarboxyamide, 島田亜佐子, ピリジンジカルボキシアミド, 島田 矢板 抽出",
+   "WebFetch: J-STAGE AESJ 2003f p.460 abstract (Shimada et al.)",
+   "WebFetch: shizuoka.repo.nii.ac.jp/records/2173 (thesis record; PDF not downloaded)",
+   "WebFetch: Google Patents US8052947B2 (JAEA PDA patent)",
+   "WebFetch: OpenAlex cites:W2018969434 OA filter (22 OA citing works)",
+   "WebFetch: PMC9779341 (IJMS 2022, cites Shimada as ref 10)",
+   "WebFetch: MDPI Energies 2022 review (HTTP 403), Wiley EJIC 2024 review (HTTP 403), T&F JNST 2014 (HTTP 403)",
+   "WebFetch: OpenAlex abstracts for 10.1080/01496390802121636 and 10.1080/07366299.2011.581049 and 10.1016/j.jallcom.2007.02.056",
+   "WebFetch: J-STAGE SERDJ 17 p.19 article page (Ozawa/Suzuki/Takeshita review abstract)",
+   "WebFetch: KAKEN 15205002 and SPring-8 publication 7690 (irrelevant)",
+   "WebFetch: solventextraction.gr.jp (TLS certificate mismatch)",
+   "WebFetch: Semantic Scholar snippet search (HTTP 429)",
+   "WebSearch: JAERI-Review annual report pyridinedicarboxyamide Yaita 2003"
+  ],
+  "summary": "No public page states the Pr or Nd D at 5 M HNO3, or an SF Pr/Nd, for DMDPhPDA. The one-decade discrepancy cannot be resolved from accessible sources yet.\n\nVerified from source:\n(a) The SEIX abstract (via OpenAlex; the T&F page returned 403) has no numbers. It says acid concentration drives the inter-Ln differences. The paper is closed access.\n(b) An AESJ 2003 fall-meeting abstract by Shimada/Yaita/Okuno/Kimura says D rises sharply above about 3 M HNO3, especially for heavy Ln. A one-decade slip at 5 M is therefore chemically plausible either way.\n(c) A JAEA patent, US8052947B2, gives an independent Eu cross-check point: 0.5 M ligand in CHCl3, 3.0 M HNO3, D(Eu) = 0.25 and D(Am) = 1.3. It has no Pr or Nd values.\n\nSecondary: IJMS 2022 (PMC9779341) cites the paper for a 'positive sequence' of D vs Z. This implies D(Nd) > D(Pr), i.e. SF Nd/Pr > 1, as a sign check only.\n\nThe key lead: Shimada's 2004 Shizuoka University PhD thesis (DOI 10.14945/00003509) is open access as K0379.pdf (23.8 MB, Japanese). It very likely contains the original Ln D data. I did not download it, per the task rules. Reading it needs explicit user permission and possibly OCR.\n\nThere is also a companion paper with the same authors: SERDJ vol. 11 (2004) pp. 1-10, on Am(III) and Ln(III) with DMDPhPDA. It is not online (J-STAGE starts at vol. 17) and may duplicate the D data, so check the corpus for it.\n\nOSTI was unreachable, INIS returned HTTP 402, and the MDPI, Wiley and T&F full texts returned 403.\n\nSide effect: one WebFetch of a J-STAGE PDF (the Ozawa et al. 2010 SERDJ 17:19 review) was saved automatically by the tool to C:\\Users\\Bandai\\.claude\\projects\\D--ml-separator-gh\\0cd609d3-ed34-4de3-83c3-904e5f4bdb8b\\tool-results\\webfetch-1792688655177-twcwe9.pdf (1.1 MB). It was not opened or used. Its public abstract mentions PDA only for An/Ln separation, with no Pr/Nd.",
+  "checks": [
+   {
+    "id": "Q1a_publisher_abstract (dmdphpda)",
+    "confirmed": true,
+    "note": "I checked each part of the claim myself and it holds. Answer to Q1a: Table 1, Fig. 5 and the Pr/Nd D values at 5 M HNO3 cannot be read on any public page. The full text is NOT ACCESSIBLE.\n\nVERIFIED-FROM-SOURCE:\n(1) The T&F abstract page https://www.tandfonline.com/doi/abs/10.1081/SEI-120030392 returned HTTP 403 to me as well.\n(2) OpenAlex https://api.openalex.org/works/doi:10.1081/SEI-120030392 carries the abstract as an inverted index. Rebuilt in order, it says:\n- lanthanide D was measured from 1 to 5 M HNO3 into DMDPhPDA in CHCl3;\n- the mechanism was inferred from slope analysis;\n- ligands per extracted complex rise from 3 for light Ln to 4 for heavy Ln;\n- inner- and outer-sphere structures are proposed from an earlier EXAFS study;\n- HNO3 concentration influences D more than ligand concentration does.\nThe quoted phrase is in the text: \"the difference of distribution ratio among lanthanides\". The abstract gives no numeric D, no SF, and does not mention Pr, Nd, Table 1 or Fig. 5.\n(3) OpenAlex lists it as closed: is_oa false, oa_status closed, oa_url null, any_repository_has_fulltext false, best_oa_location null.\n(4) Crossref https://api.crossref.org/works/10.1081/SEI-120030392 has no abstract field. It gives reference-count 28 and is-referenced-by-count 60, and places the paper in SEIX vol 22, issue 2, pp. 147-161. Its only PDF link is a T&F similarity-checking URL, which is not open access.\n(5) Semantic Scholar https://api.semanticscholar.org/graph/v1/paper/DOI:10.1081/SEI-120030392 gives isOpenAccess false, openAccessPdf status CLOSED with an empty URL, and abstract null (it says the publisher elided it).\n\nOne small difference in reference counts: OpenAlex referenced_works_count is 26 and Semantic Scholar referenceCount is 34. The claim's figure of 28 is Crossref's, and it is correct."
+   },
+   {
+    "id": "Q1b_shimada_phd_thesis",
+    "confirmed": true,
+    "note": "Confirmed for the metadata; the thesis contents are still unverified, as the claim itself says.\n\nVERIFIED-FROM-SOURCE (record page https://shizuoka.repo.nii.ac.jp/records/2173 and its JSON at https://shizuoka.repo.nii.ac.jp/api/records/2173):\n- Title: '3価アクチノイドに対する抽出剤の開発とその抽出機構の解明'.\n- Creator: '島田, 亜佐子'. Degree: 博士(理学), 甲第379号, granted 2004-03-23, from 静岡大学 理工学研究科.\n- Language: jpn. Resource type: doctoral thesis, VoR.\n- Attached file: K0379.pdf, 23.8 MB, application/pdf, access right 'open access' (COAR c_abf2), licence 'license_free'.\n- DOI 10.14945/00003509 (JaLC). I checked that doi.org returns a 302 to this same record.\n- The record has no abstract and no table of contents.\n\nWhat I checked myself:\n- Header-only request (no file body saved): the file link answers 302 with 'Content-Disposition: attachment; filename=K0379.pdf' and no login. It redirects to a pre-signed object-storage URL that refused the header-only request with 403, so I could not confirm the file opens from the headers alone.\n\nVERIFIED-FROM-SOURCE (Crossref API, https://api.crossref.org/works/10.1081/sei-120030392):\n- The corpus paper's authors are A. Shimada, T. Yaita, H. Narita, S. Tachimori and K. Okuno. It is Solvent Extraction and Ion Exchange 22(2):147-161, 2004.\n- The author and year overlap is real.\n- The T&F landing page returned 403 (NOT ACCESSIBLE).\n\nSECONDARY (search-engine summary, not the PDF itself):\n- The summary of K0379.pdf says the thesis is about diamide extractants for Am(III)/Ln(III) from nitric acid. It also says distribution ratio vs metal concentration is studied.\n- It names no ligand and gives no values.\n\nNOT VERIFIED:\n- Whether the PDF contains the DMDPhPDA lanthanide D values from Table 1 / Fig. 5 of the SEIX paper. I did not open the PDF, because that would be a file download the rules forbid.\n- 'Likely contains' is still an inference. A person needs to open the PDF to confirm it."
+   },
+   {
+    "id": "Q1c_aesj_2003_abstract",
+    "confirmed": true,
+    "note": "VERIFIED-FROM-SOURCE. I opened https://www.jstage.jst.go.jp/article/aesj/2003f/0/2003f_0_460/_article/-char/ja/ myself; it is a public J-STAGE page, no login needed. It is a meeting abstract (会議録・要旨集) from the AESJ 2003 Autumn Meeting (2003年秋の大会), session I61, DOI 10.11561/aesj.2003f.0.460.0. Title: \"DMDPhPDAによる高濃度硝酸溶液からのLn(III)の抽出機構の解明\". Authors: Shimada (Shizuoka Univ.), Yaita (JAERI), Okuno (Shizuoka Univ.), Kimura (JAERI).\n\nThe abstract says the following:\n- Ln(III) distribution ratios are plotted against nitric acid concentration. Up to about 3 M, the abstract says \"傾きが3に近く\" (slope close to 3).\n- Above 3 M, it says \"特に重Lnで分配比が急激に増加し\" (D rises sharply, especially for heavy Ln).\n- In one run, \"硝酸リチウムを混合することで硝酸イオン濃度を4 Mに固定し\" (lithium nitrate is mixed in to hold nitrate at 4 M) while the HNO3 fraction is varied. This also points to HNO3 molecules taking part in extraction.\n\nNone of these appear in the abstract: numeric D values, separation factors, Pr or Nd by name, or a 5 M value. Every element of the claim matches.\n\nCaveats:\n- WebFetch returns a model summary of the page, not the raw HTML. The short Japanese fragments above came back consistently on two separate fetches.\n- On one fetch the x-axis was described as \"nitrate concentration\" rather than nitric acid. This does not change the claim.\n- The page shows the abstract only. Any full proceedings paper or figure was not checked and may not exist."
+   },
+   {
+    "id": "Q2a_jaea_patent_pda",
+    "confirmed": true,
+    "note": "VERIFIED-FROM-SOURCE. I opened https://patents.google.com/patent/US8052947B2/en twice myself, and every element of the claim matches the page.\n\n- **Bibliographic details:** the page shows publication US8052947B2, granted 2011-11-08. Inventors are Tsuyoshi Yaita, Hideaki Shiwaku, Shinichi Suzuki and Yoshihiro Okamoto. The assignee is Japan Atomic Energy Agency. Priority is JP 2006-349646, filed 2006-12-26.\n- **Extractant:** Examples 1-3 use \"a chloroform solution containing 0.5 M of N,N'-dimethyl-N,N'-diphenyl-2,6-pyridinedicarboxamide (PDA)\".\n- **Stated D values (quoted from the page):**\n  - Example 1, Pu(IV): \"DPu=10.2 and 42.5\" at \"nitric acid concentrations of 3.0 M and 5.0 M\".\n  - Example 2, U(VI): \"DU=0.17\" at 3.0 M nitric acid.\n  - Example 3, Am and Eu: \"DAm=1.3 and DEu=0.25 at a nitric acid concentration of 3.0 M\".\n- **What is absent:**\n  - The page gives no D values for La, Ce, Pr, Nd or Cm. Eu is the only lanthanide with a D value.\n  - The only 5 M value is for Pu, so there is no 5 M lanthanide value.\n  - The phrase \"separation factor\" does not appear, and no DAm/DEu ratio is stated. An SF of about 5.2 can only be calculated from the two D values.\n- **Minor omissions in the claim (they do not make it wrong):**\n  - Example 1 also states DPu=0.14 at 1.0 M HNO3.\n  - Example 4 uses a different extractant, PTA (N-octyl-N-methylphenyl-1,10-phenanthroline-2-carboxamide), 0.5 M in chloroform. It gives DAm=6 and DEu=0.3 at 1.0 M HNO3. These are not DMDPhPDA values.\n- **Caveat:** these are the patent's own example values, a single determination each. Nothing on the page says whether they restate the JAEA journal papers or are independent measurements."
+   },
+   {
+    "id": "Q3a_series_direction_secondary",
+    "confirmed": true,
+    "note": "VERIFIED-FROM-SOURCE (the paper itself is a SECONDARY source for the Shimada system). I opened https://pmc.ncbi.nlm.nih.gov/articles/PMC9779341/ myself. It is Ustynyuk et al., Int. J. Mol. Sci. 2022, 23(24):15538, on 1,10-phenanthroline-2,9-diamides. Ref. [10] is A. Shimada, T. Yaita, H. Narita, S. Tachimori, K. Okuno, Solv. Extr. Ion Exch. 2004, 22, 147-161, DOI 10.1081/SEI-120030392 (DMDPhPDA), which matches. The text says: \"in the extraction of Ln with pyridine-2,6-dicarboxylic acid diamides [10], positive sequences D vs. Z are observed\". Elsewhere it defines a positive sequence as D increasing \"in the series from La to Lu\". So \"D rises from La toward Lu\" is the article's own definition, and the claim is accurate. There are three caveats. (1) The statement is worded for the whole class of pyridine-2,6-dicarboxylic acid diamides and cites [10]; it is not a measured series given for DMDPhPDA in this paper. (2) The paper gives no numeric D or SF for ref. [10] / DMDPhPDA, which confirms that part of the claim. (3) Fig. 1a does plot D for a pyridine-2,6-dicarboxamide, but its caption credits ref. [8], not Shimada [10]. Do not use it as Shimada data. I did not access Shimada 2004 itself (Taylor & Francis, likely paywalled), so the direction reported in the primary source is still unverified there."
+   }
+  ]
+ },
+ {
+  "topic": "New, independent full lanthanide-series extraction data (training or confirmation candidates): D4GC01146E, SAFE database, and recent open-access Ln-series D sources",
+  "findings": [
+   {
+    "id": "Q1a",
+    "question": "What is Green Chemistry DOI 10.1039/D4GC01146E (title, authors, venue, licence)?",
+    "status": "VERIFIED_FROM_SOURCE",
+    "statement": "Crossref metadata gives the title 'Agile synthesis and automated, high-throughput evaluation of diglycolamides for liquid–liquid extraction of rare-earth elements'. Authors: Lun An, Yue Yao, Tyler B. Hall, Fu Zhao, Long Qi. Published in Green Chem. 26(12), 7188–7197. Licence CC BY-NC 3.0 from 22 May 2024. OpenAlex lists it as hybrid OA and records an OSTI copy (biblio 2352801, submitted version). The deposited abstract is generic: it names no metals and no conditions.",
+    "url": "https://api.crossref.org/works/10.1039/d4gc01146e",
+    "consequence": "Identity confirmed. The open licence means its ESI tables can be reused, but the metadata alone does not settle what conditions it reports."
+   },
+   {
+    "id": "Q1b",
+    "question": "Which extractants and conditions does D4GC01146E use?",
+    "status": "SECONDARY",
+    "statement": "The Ames Lab CMI highlight confirms 'over 180 runs in 48 hours' and separation of 'light and heavy REEs'. Search-engine summaries, not read from the article, say nine DGAs were made by solvent-free melt amidation in 85–96% yield. No source I could read states the acid, its concentration, the diluent or the DGA concentration.",
+    "url": "https://www.ameslab.gov/cmi/research-highlights/accelerating-process-development-by-synthesis-auto-extraction",
+    "consequence": "The extraction conditions are still unverified from the web. Take them from the ESI tables the corpus already cites; do not infer them."
+   },
+   {
+    "id": "Q1c",
+    "question": "Does the D4GC01146E article or ESI give D for a full or nearly full La–Lu series?",
+    "status": "NOT_ACCESSIBLE",
+    "statement": "The RSC HTML, PDF and landing pages returned HTTP 403. The ESI URL is in the search index (rsc.org/suppdata/d4/gc/d4gc01146e/d4gc01146e1.pdf) but returned 404 to the fetch tool. OSTI refused the connection. In the browser pane, pubs.rsc.org showed a bot check, which I did not try to pass. Local context only, not web-verified: the corpus provenance cites Tables S15, S16, S17, S18 and S20. auxiliary_ln.csv lists 14 Ln (La–Lu, no Pm) for TODGA and for N,N'-dimethyl-N,N'-dioctyl-DGA.",
+    "url": "https://pubs.rsc.org/en/content/articlehtml/2024/gc/d4gc01146e",
+    "consequence": "Whether the series is full cannot be confirmed from the web here. Locally the corpus already holds 14-Ln rows from this paper, so it is not a new independent source. Its only use would be a re-check of the transcribed ESI values (D:/ml_separator_gh/generations/gen21/round4_20261022/results/provenance/auxiliary_ln.csv)."
+   },
+   {
+    "id": "Q1d",
+    "question": "Is 10.1039/D4GC01146E in our corpus DOI list?",
+    "status": "VERIFIED_FROM_SOURCE",
+    "statement": "Yes. corpus_dois.csv has the row '10.1039/d4gc01146e,pub_4cba27f5f3,...,2024'. sources_by_doi.csv lists 8 cells, 96 c3 pairs, 5 extractants and 1 flagged cell, curated by Thomas Summers.",
+    "url": "file:///C:/Users/Bandai/AppData/Local/Temp/claude/C--Users-Bandai--claude-spares-spare-9MsqWO/0cd609d3-ed34-4de3-83c3-904e5f4bdb8b/scratchpad/corpus_dois.csv",
+    "consequence": "It is not new data. RESEARCH_IDEAS.md item 3 frames it as a 'genuinely new matched-series source', which is wrong: the publication is already in the cohort."
+   },
+   {
+    "id": "Q2a",
+    "question": "What does the SAFE documentation say about access (login?)",
+    "status": "VERIFIED_FROM_SOURCE",
+    "statement": "The /doc page says 'You need to sign up to use our database.' Users log in, browse, and download what they select with a 'Download as CSV' button. Uploads need PI or admin approval. The homepage still calls SAFE 'a centralized, publicly accessible database'. The public pages mention no API and no data licence; /terms returned 404.",
+    "url": "https://safe.lanl.gov/doc",
+    "consequence": "Data access needs an account, and the project rules forbid logging in. SAFE stays out of reach unless the user exports the CSV."
+   },
+   {
+    "id": "Q2b",
+    "question": "What record types does SAFE hold, and does it state counts of lanthanide extraction records?",
+    "status": "VERIFIED_FROM_SOURCE",
+    "statement": "On 2026-10-22 the homepage showed Metals 41, Extractants 324, Records 18388, Users 228, Downloads 4941. It describes 'experimental and computational data' covering liquid–liquid extraction and solid–liquid chromatography. Featured metals include Eu, Ce, Nd, Pr, Am and Cm, and featured extractants include TODGA, Me2-TODGA, TEHDGA and DEHPA. No public page gives a lanthanide-specific record count or a field list (D, SF, conditions). An older search-index snapshot showed 39 metals, 52 extractants and 8,716 records, so the database has roughly doubled.",
+    "url": "https://safe.lanl.gov/",
+    "consequence": "The lanthanide record count is not stated anywhere public (NOT FOUND). SAFE may hold Me2-TODGA and other DGA series that overlap the corpus, and how much overlaps cannot be judged without logging in."
+   },
+   {
+    "id": "Q2c",
+    "question": "Is the SAFE description paper open?",
+    "status": "NOT_ACCESSIBLE",
+    "statement": "The paper is Silva Garcia Leite et al., 'Creation of the Separation Archive for Elements (SAFE) Database', Solvent Extr. Ion Exch. 43(7), 847–852 (2025). It is a short letter to the editors. OpenAlex marks it closed, with no licence, and Taylor & Francis returned 403.",
+    "url": "https://api.openalex.org/works/doi:10.1080/07366299.2025.2564381",
+    "consequence": "There is no open documentation of SAFE's schema or provenance per record. Treat any SAFE export as having unknown overlap with the corpus until it is checked DOI by DOI."
+   },
+   {
+    "id": "Q3-1",
+    "question": "Candidate: 14-Ln N-heterocycle data set with numeric D",
+    "status": "VERIFIED_FROM_SOURCE",
+    "statement": "Gerasimov et al., Molecules 29 (2024) 3548, DOI 10.3390/molecules29153548, CC BY 4.0. The ligand is a 4,7-dichloro-phenanthroline-2,9-diamide (N,N'-diethyl-N,N'-di(p-hexylphenyl)), a tetradentate N,O DAPhen. It reports 14 Ln (La–Lu, no Pm) plus Am. Conditions: 3 M HNO3, 0.025 M ligand, 298 K, eight diluents (toluene, F-3, nitrobenzene, CHCl3, DCE, 1-octanol, 1-dodecanol, C4mimNTf2). Numeric Ln D values are in SI Table S3. Not in the corpus.",
+    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC11313845/fullTextXML",
+    "consequence": "This is the strongest confirmation candidate: a non-DGA class, a full series, numeric values, and several diluents at fixed acid, which isolates the diluent effect. Before use, check author or ligand overlap with the corpus phenanthroline-diamide papers (10.1039/d0ra05182a, 10.1021/acs.inorgchem.1c01729)."
+   },
+   {
+    "id": "Q3-2",
+    "question": "Candidate: fluorinated or chlorinated pyrrolidine phenanthroline diamides",
+    "status": "VERIFIED_FROM_SOURCE",
+    "statement": "IJMS 24 (2023) 5569, DOI 10.3390/ijms24065569, CC BY 4.0. Extraction was studied for 'lanthanides(III) (except for Pm(III))' with L2 (4,7-Cl2) and L3 (4,7-F2) pyrrolidine phenanthroline diamides. Conditions: 5 M HNO3, 0.01 M ligand (L3 also 0.05 M at 3 and 5 M HNO3), diluent F-3 (3-nitrobenzotrifluoride). Ln D values are plotted only (Fig. 8b,c), and no temperature is stated for the extractions. Not in the corpus.",
+    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC10056393/fullTextXML",
+    "consequence": "Two paired ligands differ only by Cl versus F at 4,7, a clean electronic-substituent contrast. The values would have to be digitised from plots (reliability caveat). The 14-element list is implied by the text, not enumerated."
+   },
+   {
+    "id": "Q3-3",
+    "question": "Candidate: phenanthroline-2,9-diamides L2–L5 (tetrabutyl, dichloro, pyrrolidine variants)",
+    "status": "VERIFIED_FROM_SOURCE",
+    "statement": "Ustynyuk et al., IJMS 23 (2022) 15538, DOI 10.3390/ijms232415538, CC BY 4.0. It reports V-shaped D-versus-Z curves 'from La to Lu' with a minimum at Gd. Conditions: 3 M HNO3 (5 M in Fig. 2b), F-3 and F-3/p-xylene mixtures, 25 °C. Ligand concentration is inconsistent: 0.7 M in Methods, 0.5 M in the Fig. 2 captions. The text says D values are given in the Supplementary Materials. Not in the corpus.",
+    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC9779341/fullTextXML",
+    "consequence": "Possibly four ligands times a full series. The exact Ln count and the SI table were not seen, and the concentration discrepancy must be resolved before use."
+   },
+   {
+    "id": "Q3-4",
+    "question": "Candidate: bis-lactam phenanthroline (BLPhen) in a hydrocarbon diluent",
+    "status": "VERIFIED_FROM_SOURCE",
+    "statement": "Karslyan et al., RSC Adv. 9 (2019) 26537, DOI 10.1039/c9ra06115k, CC BY (Europe PMC). Ligand: BLPhen with 2-octyldecyl chains. It reports 14 Ln plus Y (Fig. 2c). Conditions: 3 M HNO3, 0.3 mM of each metal, 4 mM ligand, Isopar L with 10 vol% Exxal 13, 25 °C. Values are plotted only; ESI Table SI-4 holds Eu data. Not in the corpus, which has the earlier BLPhen paper 10.1002/chem.201806443.",
+    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC9070534/fullTextXML",
+    "consequence": "A light-selective N-heterocycle series under conditions independent of the corpus paper. It needs digitising. It shares a ligand family with a corpus paper, so it should be held out by family, not as an unrelated extractant."
+   },
+   {
+    "id": "Q3-5",
+    "question": "Candidate: isomeric (N-alkyl) DGAs with a numeric 14-Ln table",
+    "status": "VERIFIED_FROM_SOURCE",
+    "statement": "Liu et al., RSC Adv. 12 (2022, online 24 Dec 2021) 790, DOI 10.1039/d1ra07020g, CC BY-NC (Europe PMC). Ligands: L^II = N,N-dimethyl-N',N'-dioctyl DGA and L^I = N,N'-dimethyl-N,N'-dioctyl DGA. Table 1 gives numeric D for all 14 Ln at 3 M HNO3 in 40/60 n-octanol/kerosene; the L^I values come from the authors' earlier study (ref. 16). These are N-alkyl isomers, not alpha-substituted. Not in the corpus.",
+    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC8978646/fullTextXML",
+    "consequence": "The L^II series is new. The L^I series probably repeats corpus DOI 10.1007/s10967-020-07242-1 (same ligand, '14 lanthanides', 2020), which must be checked before counting it. This is a DGA class, not the preferred non-DGA."
+   },
+   {
+    "id": "Q3-6",
+    "question": "Candidate: quaternary phosphonium nitrate (basic extractant), La–Lu",
+    "status": "VERIFIED_FROM_SOURCE",
+    "statement": "Onghena et al. (KU Leuven), RSC Adv. 8 (2018) 32044, DOI 10.1039/c8ra06712k, CC BY-NC (Europe PMC). The extractant is undiluted [P66614][NO3]. D was measured from La (Z=57) to Lu (Z=71) without Pm, at several NH4NO3 concentrations, 0.01 M Ln feed, A/O 1:1, 70 °C. Values are plotted only (Fig. 2). Not in the corpus.",
+    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC6333249/fullTextXML",
+    "consequence": "A non-DGA class with an opposite chemistry (anion exchange). Undiluted extractant and 70 °C are far outside the corpus domain, so it suits an out-of-domain stress test better than training. Needs digitising."
+   },
+   {
+    "id": "Q3-7",
+    "question": "Candidate: HDEHP into an ionic liquid, 14 Ln",
+    "status": "VERIFIED_FROM_SOURCE",
+    "statement": "Matsutani & Katsuta, Solvent Extr. Res. Dev. Jpn. 30(2) (2023) 121–128, DOI 10.15261/serdj.30.121, J-STAGE 'Journal Free Access'. The abstract covers 14 trivalent lanthanoids with HDEHP in [C4mim][Tf2N] against toluene, as a function of pH and HDEHP concentration. It notes 'a shaking time of more than 36 hours is needed'. From the landing page, the acid, concentrations, temperature and whether D is tabulated could not be read. Not in the corpus.",
+    "url": "https://www.jstage.jst.go.jp/article/serdj/30/2/30_121/_article",
+    "consequence": "Two diluents with the same extractant across the full series, from an acidic organophosphorus class the corpus lacks. Full text is free, but only as a PDF, which I did not read."
+   },
+   {
+    "id": "Q3-8",
+    "question": "Candidates whose Ln count or conditions could not be verified (Dalton 2026 BLPhen; Anal. Sci. 2020 TDdPTDA)",
+    "status": "NOT_ACCESSIBLE",
+    "statement": "Gao, Fang & Xiao, Dalton Trans. 55 (2026) 5679, DOI 10.1039/d5dt03012a, CC BY-NC hybrid OA. The abstract covers four BLPhen alkyl-amide variants and light, middle and heavy Ln stoichiometries; the RSC full text returned 403. Tsutsui et al., Anal. Sci. 36 (2020) 241, DOI 10.2116/analsci.19P275, free access. That paper uses tetradodecyl-phenanthroline-2,9-diamide in F-3, nitrobenzene or n-dodecane, and its landing page does not give the Ln count. Neither is in the corpus.",
+    "url": "https://api.openalex.org/works/doi:10.1039/d5dt03012a",
+    "consequence": "Both are plausible N-heterocycle series, but neither is confirmed to have 10 or more Ln with stated D. Check them manually in a browser before relying on them."
+   },
+   {
+    "id": "Q3-9",
+    "question": "Checked and excluded (fewer than 10 Ln with D, or no D)",
+    "status": "VERIFIED_FROM_SOURCE",
+    "statement": "Excluded after reading the text: Molecules 27 (2022) 1786, BTPhen, Eu only. ACS Omega 2019 (10.1021/acsomega.9b03241), HDEHDGA, La–Nd only. Molecules 30 (2025) 786, pyrazolone + phen/bipy, La/Eu/Lu only. ACS Cent. Sci. 2018 (10.1021/acscentsci.8b00223), 4 new Ln. RSC Adv. 2025 (10.1039/d5ra00815h), UDGAs, at most 3 Ln measurable. Fundam. Res. 2023 (10.1016/j.fmre.2023.01.004), DFT only, no D. Molecules 31 (2026) 656, pyrazolone-N-heterocycle chelators, gives % extraction for 'all rare earths, excluding the radioactive Pm' but not D. Inorg. Chem. Front. 2025 (10.1039/d5qi01056j), the abstract mentions only Eu among Ln.",
+    "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=%22solvent%20extraction%22%20AND%20%22distribution%20ratios%22%20AND%20lanthanides%20AND%20%22lutetium%22%20AND%20OPEN_ACCESS:y%20AND%20PUB_YEAR:[2018%20TO%202026]&format=json&resultType=lite",
+    "consequence": "These do not qualify as 10-or-more-Ln D series. Molecules 31:656 could give % extraction but would need a phase-ratio conversion, which is not to be inferred."
+   },
+   {
+    "id": "Q3-10",
+    "question": "Open-access alpha-substituted DGA full-series data, and Zenodo/figshare data sets",
+    "status": "NOT_FOUND",
+    "statement": "No open-access 2018–2026 source found with D for 10 or more Ln with an alpha-substituted (backbone-methylated) DGA. The Me-TODGA and mTDDGA hits were either in closed SEIX papers or gave Am/Cm-only tables (NJC 2023, which is corpus DOI d2nj05663a). Keyword searches through the Zenodo and figshare APIs returned only unrelated records, so no open data set of Ln distribution ratios was found.",
+    "url": "https://zenodo.org/api/records?q=lanthanide%20%22solvent%20extraction%22%20distribution&size=25&sort=mostrecent",
+    "consequence": "No new open alpha-DGA confirmation series is available. The alpha-DGA arm would rely on corpus 10.1002/chem.201806161 and 10.1039/d2nj05663a, or on SAFE (login required)."
+   }
+  ],
+  "searches_tried": [
+   "WebFetch pubs.rsc.org articlehtml/articlelanding/articlepdf d4gc01146e (all 403)",
+   "WebFetch rsc.org suppdata d4gc01146e1.pdf (404 to fetcher)",
+   "WebSearch 'Agile synthesis and automated, high-throughput evaluation of diglycolamides' Green Chemistry 2024",
+   "WebSearch An Yao Hall Zhao Qi diglycolamides melt amidation high-throughput extraction",
+   "WebSearch osti.gov Agile synthesis diglycolamides",
+   "Crossref API works/10.1039/d4gc01146e",
+   "OpenAlex works doi:10.1039/d4gc01146e",
+   "Semantic Scholar API DOI:10.1039/d4gc01146e",
+   "Europe PMC search DOI:10.1039/d4gc01146e (0 hits)",
+   "OSTI biblio 2352801 and pages/biblio/2352801 (connection refused)",
+   "Ames Lab CMI highlight page",
+   "Built-in browser pane on RSC articlehtml (stopped at bot check, not bypassed)",
+   "WebFetch safe.lanl.gov, /about, /br, /doc, /documentation (404), /terms (404)",
+   "WebSearch SAFE Separation Archive for Elements LANL",
+   "Crossref and OpenAlex for 10.1080/07366299.2025.2564381; tandfonline (403)",
+   "WebSearch phenanthroline diamide all lanthanides La–Lu distribution ratios open access",
+   "WebSearch zenodo/figshare lanthanide distribution ratios dataset",
+   "Zenodo API and figshare API keyword searches",
+   "Europe PMC full-text search: solvent extraction AND distribution ratios AND lanthanides AND lutetium, OA, 2018–2026",
+   "Europe PMC full-text search: distribution ratio/coefficient AND lanthanide AND extraction AND La AND Lu AND Tm, OA, 2018–2026",
+   "Europe PMC fullTextXML for PMC11313845, PMC10056393, PMC9779341, PMC8949807, PMC9070534, PMC8978646, PMC6333249, PMC6026780, PMC6906934, PMC11857860, PMC12943212, PMC12327835, PMC11956679",
+   "WebSearch alpha-/backbone-substituted diglycolamide lanthanide series",
+   "WebSearch Me-TODGA mTDDGA lanthanides La–Lu Jülich",
+   "WebSearch J-STAGE SERDJ lanthanides distribution ratios 2019–2023",
+   "J-STAGE landing pages serdj.30.121 and analsci.19P275",
+   "Crossref query for BLPhen alkyl substituent Dalton 2026; OpenAlex doi:10.1039/d5dt03012a",
+   "Crossref 10.1039/d5qi01056j; ORNL page for 10.1021/jacs.4c15074",
+   "Local grep of corpus_dois.csv and gen21 provenance files for candidate DOIs"
+  ],
+  "summary": "(1) D4GC01146E is An, Yao, Hall, Zhao & Qi, Green Chem. 26 (2024) 7188, CC BY-NC 3.0; Crossref verifies this. It is already in the corpus (pub_4cba27f5f3). Local provenance cites its ESI Tables S15–S20 and lists 14-Ln series for TODGA and for N,N'-dimethyl-N,N'-dioctyl-DGA, so it is not a new source. The web text and ESI were NOT ACCESSIBLE: RSC returned 403, the ESI 404, OSTI refused the connection, and the browser stopped at a bot check that I did not try to pass. The conditions therefore remain unverified from the web, and RESEARCH_IDEAS.md item 3 is wrong to call it new.\n\n(2) SAFE's /doc page says 'You need to sign up to use our database'; downloads are CSV after login. On 2026-10-22 the homepage showed 18,388 records, 41 metals and 324 extractants (an older snapshot had 8,716, 39 and 52). It covers experimental and computational liquid–liquid extraction and chromatography data. No lanthanide-specific count or field schema is public, and the 2025 SEIX description paper is closed access.\n\n(3) Verified open-access candidates with 10 or more Ln, none in the corpus:\n- Molecules 29:3548 (2024): phenanthroline diamide, 14 Ln, 3 M HNO3, 8 diluents, numeric SI Table S3. This is the best one.\n- IJMS 24:5569 (2023): Cl/F pyrrolidine phenanthroline diamides, Ln except Pm, 5 M HNO3, F-3. Plots only.\n- IJMS 23:15538 (2022): four phenanthroline diamides, La→Lu, 3 M HNO3. D in SI; the Ln count and the ligand concentration (0.7 vs 0.5 M) are unclear.\n- RSC Adv 9:26537 (2019): BLPhen, 14 Ln + Y, 3 M HNO3, Isopar L. Plots only.\n- RSC Adv 12:790 (2022): DGA N-alkyl isomers, numeric Table 1 for 14 Ln. One isomer probably duplicates corpus 10.1007/s10967-020-07242-1.\n- RSC Adv 8:32044 (2018): neat [P66614][NO3], La–Lu, 70 °C. Out of domain.\n- SERDJ 30:121 (2023): HDEHP in an ionic liquid, 14 Ln, free access. Abstract only read.\n\nNot verified: Dalton 55:5679 (2026, BLPhen variants) and Anal. Sci. 36:241 (2020, tetradodecyl-phenanthroline diamide). Not found: open alpha-substituted DGA full-series data, and any Zenodo/figshare D data set.\n\nNote: one WebFetch of a J-STAGE PDF URL was saved to disk by the tool as encrypted binary, which I could not read. File: C:\\Users\\Bandai\\.claude\\projects\\D--ml-separator-gh\\0cd609d3-ed34-4de3-83c3-904e5f4bdb8b\\tool-results\\webfetch-1792688868806-eg6v8x.pdf. I left it in place and fetched no further PDF URLs.",
+  "checks": [
+   {
+    "id": "Q1a",
+    "confirmed": true,
+    "note": "VERIFIED-FROM-SOURCE. I fetched https://api.crossref.org/works/10.1039/d4gc01146e myself. It gives the title \"Agile synthesis and automated, high-throughput evaluation of diglycolamides for liquid–liquid extraction of rare-earth elements\". Authors, in order: Lun An, Yue Yao, Tyler B. Hall, Fu Zhao, Long Qi. Venue: Green Chemistry, vol 26, issue 12, pages 7188-7197. Crossref records only the year 2024 for online publication and 2024-06-17 for the issue. Licence: http://creativecommons.org/licenses/by-nc/3.0/, start 2024-05-22, content-version \"vor\". It lists no relation and no update fields.\n\nI also fetched https://api.openalex.org/works/doi:10.1039/d4gc01146e. It gives is_oa true, oa_status \"hybrid\", primary licence cc-by-nc. It has a second location, the OSTI repository record https://www.osti.gov/biblio/2352801, version \"submittedVersion\". OpenAlex marks that OSTI copy as is_oa false and gives no pdf_url, so its existence does not show that the full text can be read there.\n\nThe deposited Crossref abstract is short. It describes a greener diglycolamide synthesis (\"reduces greenhouse gas emissions by 67%\") and a liquid-liquid extraction workflow. It says only \"rare earth\": it names no element, no acid concentration and no D or SF value. So the claim that it is \"generic\" holds.\n\nMinor nuances that do not change the verdict: OpenAlex gives the last author as \"Long Hao Qi\", while Crossref gives \"Long Qi\". I did not open the RSC article page or the OSTI page directly. The licence and OA status come from the Crossref and OpenAlex metadata only."
+   },
+   {
+    "id": "Q1b",
+    "confirmed": true,
+    "note": "CONFIRMED, status SECONDARY is correct. I opened https://www.ameslab.gov/cmi/research-highlights/accelerating-process-development-by-synthesis-auto-extraction myself. VERIFIED-FROM-SOURCE (the highlight is a secondary source, not the article): \"achieving over 180 runs in 48 hours\". It also says \"separate light and heavy rare earth elements (REE)\" and gives \"A solvent-free method to synthesize diglycolamides (scalable to 200 g)\" with \"high yields and excellent purities (up to 98%)\". The page names no specific DGAs or elements. It has no DOI and links only to a Box file, \"CMI highlight 516, March 2024\" (iastate.box.com), which I did not open. A keyword check of the page found no mention of acid, HNO3, HCl, molarity, diluent or dodecane. The detail of nine DGAs made by melt amidation at 85–96% yield (88–96% purity) appears only in search-engine summaries that quote the RSC abstract, so it is SECONDARY; I could not read it in the article. Those purities (88–96%) differ from the highlight's \"up to 98%\". NOT ACCESSIBLE: the article HTML (pubs.rsc.org/en/content/articlehtml/2024/gc/d4gc01146e) returned 403 even though search lists it as Open Access. The article landing page and the articlepdf also returned 403. The SI PDF (rsc.org/suppdata/d4/gc/d4gc01146e/d4gc01146e1.pdf) and the Chemspeed news page both returned 404. A search snippet says the SI covers making TODGA at 85% yield; that is secondary and I did not read it. NOT FOUND in any source I could read: the acid, its concentration, the diluent, the DGA concentration or the metals tested. So the claim's statement that no readable source gives the extraction conditions holds. Citation from search results (secondary): Green Chem. 2024, 26, 7188; authors An, Yao, Hall, Zhao, Qi."
+   },
+   {
+    "id": "Q1d",
+    "confirmed": true,
+    "note": "VERIFIED-FROM-SOURCE (local files, opened directly). Line 29 of C:/Users/Bandai/AppData/Local/Temp/claude/C--Users-Bandai--claude-spares-spare-9MsqWO/0cd609d3-ed34-4de3-83c3-904e5f4bdb8b/scratchpad/corpus_dois.csv is: 10.1039/d4gc01146e,pub_4cba27f5f3,\"Agile synthesis and automated, high-throughput evaluation of diglycolamides for liquid–liquid extraction of rare-earth elements\",2024.0. The DOI is lowercase in the file and matches D4GC01146E when case is ignored. One small error in the claim: the year field reads 2024.0, not 2024. D:/ml_separator_gh/generations/gen21/round4_20261022/results/provenance/sources_by_doi.csv has the matching row, with columns doi,publication_ids,cells,c3_cells,c3_pairs,extractants,chemotypes,curators,data_locations,ornl_import_cells,flagged_cells,title,year. Its values are cells=8, c3_cells=8, c3_pairs=96, extractants=5, chemotypes=sc009;sc078;sc083, curators=Thomas Summers, data_locations=Table S15;Table S15;Table S16;Table S17;Table S18;Table S20, ornl_import_cells=0, flagged_cells=1 and year=2024. Every number in the claim matches this file. This only shows that the DOI is in our own corpus and provenance tables. It says nothing about the quality of the D values in that paper."
+   },
+   {
+    "id": "Q2a",
+    "confirmed": true,
+    "note": "I fetched https://safe.lanl.gov/doc, https://safe.lanl.gov/ and https://safe.lanl.gov/terms myself on 2026-10-22. The claim is VERIFIED-FROM-SOURCE in substance, with three corrections.\n\nWhat I confirmed:\n- /doc requires an account to use the database. It says users \"log in using your email and password, then click the 'Browse Data' tab\", and then \"click the 'Download as CSV' button.\"\n- The homepage calls SAFE \"a centralized, publicly accessible database that integrates both experimental and computational data\". It also has Login and Sign Up links (/login, /signup) and a DOWNLOADS counter, which showed 4941 when I fetched it.\n- Neither public page contains the words API, license, licence, CC BY or open data.\n- The footer's 'Terms of Service' link points to /terms, and /terms returned HTTP 404. I also tried /terms-of-service, which returned 404 too.\n\nCorrections:\n1. The quote was cut short. The full sentence is \"You need to sign up to use our database if you're a new user.\"\n2. \"Uploads need PI or admin approval\" is not quite how the page describes it. The uploader role is \"approved by the group leader or admin\". The group leader then verifies the data and passes it to the admin team, which reviews it for quality and format before it is published. A PI role does exist; PIs approve requests from their group members and manage their group's data.\n3. \"No data licence\" is incomplete. The /doc footer reads \"© SAFE - The Separation Archive for Elements. All rights reserved.\" So the only rights statement on the public pages reserves all rights, and the terms page it links to returns 404.\n\nI did not log in, sign up or download anything."
+   },
+   {
+    "id": "Q2b",
+    "confirmed": true,
+    "note": "VERIFIED-FROM-SOURCE (fetched https://safe.lanl.gov/ on 2026-10-22). The homepage shows METALS 41, EXTRACTANTS 324, RECORDS 18388, USERS 228, DOWNLOADS 4941. It also shows VISTS (sic) 42977 and LATEST DATA 2026-10-21. It says SAFE \"integrates both experimental and computational data on separation processes\" and covers \"liquid–liquid extraction and solid–liquid chromatography\". The featured metals include Eu, Ce, Nd, Pr, Am and Cm, and the list also has Cf, Pu, U and Ba. The featured extractants include TODGA, Me2-TODGA, TEHDGA and DEHPA, with about 26 others (for example TBP, DEHiBA, TDDGA). I checked /, /about, /br and /doc and found no lanthanide-specific record count and no list of data fields (D, SF, conditions) on any of them. /doc only says \"Choose your data type\" and mentions a CSV download and an upload template, without naming the fields. /br calls SAFE a database for \"liquid-liquid Lanthanides and Actinides (rare earth) solvent extraction\". The older figures (39 metals, 52 extractants, 8,716 records, latest-data 2025-12-02) came from a web-search index snippet of the homepage, so they are SECONDARY. I could not see that snapshot directly. Records went from 8,716 to 18,388, about 2.1 times, so \"roughly doubled\" holds for records. Extractants grew about 6 times (52 to 324). For record structure and fields, the primary reference is the 2025 paper \"Creation of the Separation Archive for Elements (SAFE) Database\" in Solvent Extraction and Ion Exchange, cited on /about. I did not open it."
+   },
+   {
+    "id": "Q3-1",
+    "confirmed": true,
+    "note": "Confirmed, with two qualifications. I read the Europe PMC full-text XML (https://www.ebi.ac.uk/europepmc/webservices/rest/PMC11313845/fullTextXML) myself. Everything below is VERIFIED-FROM-SOURCE unless marked otherwise.\n\nWhat the source states:\n- Citation: Gerasimov, Matveev, Evsiunina ... Nenajdenko, Molecules 29(15) 3548, 2024, DOI 10.3390/molecules29153548.\n- Licence: \"Creative Commons Attribution (CC BY) license\".\n- Ligand: \"N,N'-diethyl-N,N'-di(para-hexyl-phenyl)-diamide of 1,10-phenanthroline-4,7-dichloro-2,9-dicarboxylic acid\". The abstract calls it a \"tetradentate N,O-donor diamide\".\n- Lanthanides: \"from La to Lu without Pm\", which is 14 Ln. The individual elements are not listed one by one; the 14 follow from that range.\n- Am(III) (241Am) and Eu(III) were extracted under the same conditions. Their distribution ratios are in Table S2.\n- Conditions in the Figure 3 caption, \"D(Ln) in different diluents\": 3 mol/L HNO3, 0.025 mol/L L, T = 298 ± 1 K, t = 15 min (1 h for the ionic liquid).\n- Eight extraction diluents: toluene, m-nitrobenzotrifluoride (F-3), nitrobenzene, chloroform, 1,2-dichloroethane, octanol-1, dodecanol-1 and C4mimNTf2. Acetonitrile and butanol appear only in the UV-vis work.\n- Where the Ln data sit: the main text says \"the distribution ratios decrease from La to Lu (Figure 3, Table S3)\".\n- Corpus: I grepped corpus_dois.csv and the DOI is not there. The corpus does hold other phenanthroline-diamide papers (10.1039/d0ra05182a, 10.1039/c6ra08946a, 10.1021/acs.inorgchem.1c01729), so this is the same ligand family but a new paper.\n\nQualifications:\n1. NOT ACCESSIBLE: Table S3 itself. The SI is a zip file (molecules-29-03548-s001.zip), which I did not download under the task rules. So \"numeric Ln D in Table S3\" rests on the main-text citation. I did not see the numbers myself.\n2. NOT CONFIRMED: that the Ln series was measured in all eight diluents. The Figure 3 caption only says \"different diluents\", and the text contrasts the ionic liquid with \"molecular solvents\" in general.\n\nData-quality notes from Methods (VERIFIED-FROM-SOURCE):\n- Each Ln was at 0.1 mmol/L.\n- D comes from ICP-MS of the aqueous phase before (C0) and after (C) extraction, so it is a depletion measurement, which is imprecise when D is very low or very high.\n- The text does not say whether the Ln were extracted as a mixture or one at a time.\n- The text claims D falls from La to Lu \"in all cases\". This contradicts its own ionic-liquid description: a minimum near Tb/Dy and a maximum at Yb."
+   },
+   {
+    "id": "Q3-2",
+    "confirmed": true,
+    "note": "VERIFIED-FROM-SOURCE. I opened the Europe PMC full-text XML myself (https://www.ebi.ac.uk/europepmc/webservices/rest/PMC10056393/fullTextXML) and read all of it, including the tail past character 100000.\n\nWhat the source shows:\n- Bibliographic details: \"Pyrrolidine-Derived Phenanthroline Diamides: An Influence of Fluorine Atoms on the Coordination of Lu(III) and Some Other f-Elements and Their Solvent Extraction\", Int. J. Mol. Sci. 24(6), 2023, article 5569, DOI 10.3390/ijms24065569, licence CC BY 4.0. Matches the claim.\n- Lanthanides: the text says \"The extraction of lanthanides(III) (except for Pm(III)) was also studied.\"\n- Ligands: L2 is 4,7-Cl2 and L3 is 4,7-F2. The text also says \"Ligand L1 did not participate in extraction experiments.\"\n- Conditions: the Ln experiments used 0.01 M L2 and L3 from 5 M HNO3 (Fig. 8b) and 0.05 M L3 from 3 and 5 M HNO3 (Fig. 8c). The diluent is F3, 3-nitrobenzotrifluoride (Methods: purchased from Rhodia). The Am/Eu experiments, separately, span 1-6 M HNO3 with 0.01 M ligand.\n- Data form: Ln D values appear only in Fig. 8b,c. Table 7, read in the tail of the XML, lists only Am/Eu separation factors for L2 and L3 at 1-6 M HNO3, with no individual D values and no Ln values. The supplementary files are Figures S1-S7 and Table S1 (crystal data), with no extraction data.\n- Temperature: none is stated for extraction. The only 25 °C mentions are for the UV-vis and NMR titrations.\n- Corpus check: the DOI is not in corpus_dois.csv. The corpus does contain related phenanthroline-diamide papers, e.g. 10.1039/d0ra05182a (2020, alicyclic substituents). Possible ligand-family overlap, not checked.\n\nTwo data-quality caveats beyond the claim (both VERIFIED-FROM-SOURCE):\n1. The Methods have no solvent-extraction subsection: no phase ratio, contact time or analytical method (ICP-MS or gamma), and no reference given for the procedure.\n2. The Data Availability statement says only \"Samples of the compounds are not available from the authors.\"\n\nAny Ln D values would therefore have to be digitised from Fig. 8b,c and carry unknown temperature and procedure."
+   },
+   {
+    "id": "Q3-3",
+    "confirmed": false,
+    "note": "PARTIAL. The bibliographic and condition details check out, but the claim overstates this paper as a new data source for L2–L5, and one quote is misattributed. I opened https://www.ebi.ac.uk/europepmc/webservices/rest/PMC9779341/fullTextXML myself.\n\nVERIFIED-FROM-SOURCE:\n- Citation: Ustynyuk, Zhokhova, Gloriozov, Matveev, Evsiunina, Lemport et al., \"Competing Routes in the Extraction of Lanthanide Nitrates by 1,10-Phenanthroline-2,9-diamides\", IJMS 23(24) 15538, 2022, DOI 10.3390/ijms232415538. Licence is CC BY.\n- Ligands: L2 is tetrabutyl; L3 is tetrabutyl-4,7-dichloro; L4 and L5 are the pyrrolidin-1-yl analogues without and with dichloro.\n- V-shape: the text says \"the D ratios decrease when moving from La to Gd, and then begin to grow again\". It also says \"V-shaped character of D vs. Z dependence with a minimum on the gadolinium atom\".\n- Conditions: Methods use 3 M HNO3, \"0.7 M solutions of ligands in F-3 or F-3/para-xylene mixture\", and 25 ± 1 °C. The Fig. 2 caption gives 0.5 M L2 from 3 M HNO3 and 0.5 M L3 from 5 M HNO3. The Fig. 8 caption gives L2 at 0.7 mol/L from 3 M HNO3 in pure F-3 and its mixtures with para-xylene.\n- Supplementary Materials: the text says \"the values of D for these systems are given in the Supplementary Materials\".\n- Corpus: DOI 10.3390/ijms232415538 is not in corpus_dois.csv.\n\nCORRECTIONS:\n1. The quote \"from La to Lu\" does not describe the D curves. Both occurrences are Introduction text about lanthanide contraction and the general increasing D-vs-Z trend.\n2. Most of the curves come from earlier papers that are already in the corpus. Fig. 2 has no reference numbers, but the paragraph that cites it attributes the V-shape to ref [18] and ref [20]. The text adds \"Similar dependencies were obtained for ligands L3–L5 (Figure 2)\". Ref [18] is Alyapyshev et al., RSC Adv 2016, 10.1039/C6RA08946A (corpus row 25). Ref [20] is Lemport et al., RSC Adv 2020, 10.1039/D0RA05182A (corpus row 27). So the L3–L5 V-shapes are re-plotted from prior work that is already in the corpus, not independent new data.\n3. Only L2 has new extraction measurements: Fig. 8, 0.7 M L2 in F-3 and F-3/p-xylene mixtures, 3 M HNO3. For L4 and L5 this paper reports only DFT calculations. L3 appears in new work only as a Lu complex characterised by X-ray, NMR, IR and HRMS.\n4. The 0.5 M vs 0.7 M \"inconsistency\" is most likely not an error. On the reading above, Fig. 2 shows earlier data at 0.5 M, and the new Fig. 8 data are 0.7 M, matching Methods.\n\nNOT FOUND: the main text gives no p-xylene mixture ratios and no list of which lanthanides were measured.\n\nNOT ACCESSIBLE: the Supplementary Materials (a zip download; not downloaded). The main text references only Table S1 (crystal data) and Tables S2–S6 (DFT). It names no table for the D values. The MDPI page returned 403.\n\nNET: the only new independent data candidate is the L2 set in F-3 and F-3/p-xylene (3 M HNO3, 0.7 M, 25 °C), with numbers only in the unread Supplementary Materials. The L3–L5 data should be traced to corpus DOIs 10.1039/c6ra08946a and 10.1039/d0ra05182a to avoid counting the same data twice."
+   },
+   {
+    "id": "Q3-4",
+    "confirmed": true,
+    "note": "VERIFIED-FROM-SOURCE. I opened the full-text XML myself at https://www.ebi.ac.uk/europepmc/webservices/rest/PMC9070534/fullTextXML.\n\nWhat matches the claim:\n- Bibliography: Karslyan, Sloop, Delmau, Moyer, Popovs, Paulenova, Jansone-Popova. \"Sequestration of trivalent americium and lanthanide nitrates with bis-lactam-1,10-phenanthroline ligand in a hydrocarbon solvent\". RSC Adv. 2019, 9(46), 26537-26541. DOI 10.1039/c9ra06115k.\n- Licence: CC BY 3.0.\n- Fig. 2c caption quote: \"Extraction of Ln(iii) (excluding Pm) and Y(iii) with ligand 2.\"\n- The text says \"14 lanthanides tested (excluding Pm) and yttrium\".\n- Fig. 2c conditions quote: \"4 mM 2 in Isopar L with 10 vol% Exxal 13 ... 0.3 mM of each metal in 3 M HNO3\".\n- Ln values exist only as the Fig. 2c plot. The main text gives numbers only for Am and Eu (D_Am 268±13, D_Eu 279±14), from radiotracer work with 1.0 mM ligand.\n- Corpus check: the corpus CSV has 10.1002/chem.201806443 (row 3) but not 10.1039/c9ra06115k. The paper cites the earlier work as ref. 8 (Healy et al., Chem. Eur. J. 2019).\n\nCaveats that weaken the claim's details:\n1. Chain name conflicts within the paper. The Results text says \"2-octyldecyl group on the two lactam nitrogens\". The Synthesis alkylates with \"2-octyl-1-bromododecane\", which would give 2-octyldodecyl. Check the ESI before writing a descriptor.\n2. Temperature for Fig. 2c is not tied to that experiment in the text. Methods paragraph B (stable metals, analysed by ICP-OES and/or IC) gives 25 °C ± 0.5 °C. Paragraph A (Am/Eu radiotracer) gives 25.5 °C ± 0.5 °C. Linking Fig. 2c to paragraph B is my inference.\n3. Table SI-4 does not hold the Fig. 2c data. It holds 152Eu distribution ratios from series where ligand, HNO3 or Eu were each varied one at a time. No ESI table is cited for the 14-Ln + Y data.\n4. The text alone does not show whether the Fig. 2c y-axis is D or percent extraction. The text says La and Ce are \"nearly quantitatively extracted\", and Ho to Lu show limited complexation. If the axis is %E, digitised values near 100% or 0% would give poorly defined log D.\n\nI did not open the ESI PDF, so I could not check its contents."
+   },
+   {
+    "id": "Q3-5",
+    "confirmed": true,
+    "note": "VERIFIED-FROM-SOURCE. I opened the Europe PMC full-text XML myself (https://www.ebi.ac.uk/europepmc/webservices/rest/PMC8978646/fullTextXML) and the Europe PMC core metadata record (https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=PMCID:PMC8978646&resultType=core&format=json).\n\nWhat matches the claim:\n- Title: \"Study on the extraction of lanthanides by isomeric diglycolamide extractants: an experimental and theoretical study\". Authors Liu Y., Zhao C. et al. RSC Adv. vol 12, issue 2, pp 790-797, DOI 10.1039/d1ra07020g. Europe PMC gives the first and electronic publication date as 2021-12-24.\n- Licence: Europe PMC metadata gives license \"cc by-nc\" and isOpenAccess Y. The XML itself carries only the \"(c) The Royal Society of Chemistry\" line.\n- Ligands: L^I = N,N'-dimethyl-N,N'-dioctyl DGA and L^II = N,N-dimethyl-N',N'-dioctyl DGA. They are N-alkyl isomers, not alpha-substituted.\n- Table 1, captioned \"extraction performances of L^I and L^II towards Ln(III) in 3 M HNO3\", gives numeric D with ± values for all 14 Ln (La through Lu, no Pm) for both ligands. Example rows: La 0.28 / 0.38, Eu 49.21 / 8.08, Lu 1351.16 / 193.56. The diluent is 40/60 (v/v)% n-octanol/kerosene.\n- The table's literature row gives ref 16 for the L^I column. Ref 16 is Liu et al., J. Radioanal. Nucl. Chem. 2020, 325, 409-416, doi 10.1007/s10967-020-07242-1. The text says the L^I experiments \"were carried out in our previous studies\".\n- 10.1039/d1ra07020g is not in corpus_dois.csv (grep found no match).\n\nCaveats the claim leaves out:\n(1) Half of the table is already in the corpus. The ref-16 DOI, 10.1007/s10967-020-07242-1, is in corpus_dois.csv (pub_19783c039b, \"Extraction and stripping behaviors of 14 lanthanides ... DMDODGA\", 2020). The L^I column is a re-tabulation of that paper, not independent data. Only the 14 L^II values are new, and they come from the same lab.\n(2) The table's literature row labels the L^II column \"Previous study\". That contradicts the text, which says the L^II experiments \"are reported here\". It is probably a typo, but it is an inconsistency in the source.\n(3) The extractant concentration for the Table 1 measurements is not stated. The paper gives 0.012-0.12 M for the concentration series and 0.024 M in the Table 2 caption. Temperature is also not stated. Stated conditions are a 1:1 phase ratio, 30 min shaking, 3 mM Ln(NO3)3 and ICP-MS assay.\n(4) Year: the volume 12 issue dates to 2022, but Europe PMC lists pubYear 2021. This is consistent with the claimed \"2022, online 24 Dec 2021\" wording."
+   },
+   {
+    "id": "Q3-6",
+    "confirmed": true,
+    "note": "VERIFIED-FROM-SOURCE (Europe PMC full-text XML https://www.ebi.ac.uk/europepmc/webservices/rest/PMC6333249/fullTextXML, which I opened myself). Onghena, Papagni, Rezende Souza, Banerjee, Binnemans and Vander Hoogerstraete (KU Leuven), \"Speciation of lanthanide ions in the organic phase after extraction from nitrate media by basic extractants\", RSC Adv. 8(56), 2018, pp. 32044-32054, DOI 10.1039/c8ra06712k. Extractants: [P66614][NO3], plus Aliquat 336 nitrate in the same paper. The paper says they \"were applied in their undiluted form\". The Fig. 2 caption reads: \"Distribution ratios (D) as a function of the atomic number of the lanthanides ... for different NH4NO3 concentrations in the aqueous phase. [Ln3+]aq,in = 0.01 mol L-1, A/O 1 : 1.\" The text says the range runs from La (Z = 57) to Lu (Z = 71). It also says \"Promethium was not studied due to the lack of stable isotopes.\" The experimental section says equilibrium was reached by \"shaking the mixtures at 70 °C for 4 h\". The full text has no D table, so the values appear only in Fig. 2. CAVEATS: (1) The licence comes only from Europe PMC metadata (https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=PMCID:PMC6333249&resultType=core&format=json: license \"cc by-nc\", isOpenAccess Y). The XML <permissions> holds only the RSC copyright line, and the RSC landing page returned 403, so the licence is confirmed from that metadata alone. (2) The text and caption say \"different NH4NO3 concentrations\" but never give the actual values, so they must be read off the figure. (3) The text does not list exactly which lanthanides appear in Fig. 2, so I could not check that every Ln other than Pm is plotted. (4) I did not check the ESI for tabulated D values. Not in the corpus: case-insensitive grep of corpus_dois.csv for c8ra06712k, Onghena, P66614 and phosphonium found nothing."
+   },
+   {
+    "id": "Q3-7",
+    "confirmed": true,
+    "note": "VERIFIED-FROM-SOURCE. I opened https://www.jstage.jst.go.jp/article/serdj/30/2/30_121/_article myself.\n\nBibliographic details match the claim:\n- Title: \"Extraction Behavior of Lanthanoids(III) with Bis(2-ethylhexyl)phosphoric Acid into Ionic Liquid 1-Butyl-3-methylimidazolium Bis(trifluoromethanesulfonyl)imide\".\n- Authors: Takafumi Matsutani and Shoichi Katsuta.\n- Published in Solvent Extr. Res. Dev. Jpn. 30(2), 121-128 (2023), DOI 10.15261/serdj.30.121.\n- The landing page is labelled \"JOURNAL FREE ACCESS\".\n\nThe abstract states each point in the claim:\n- \"14 trivalent lanthanoids (Lns)\".\n- \"a shaking time of more than 36 hours is needed to reach extraction equilibrium\".\n- Toluene is the comparison solvent.\n- \"The dependences of the distribution ratio on the aqueous pH and the HR concentration\".\n\nMinor wording differences: the abstract writes the extractant as bis(2-ethylhexyl)phosphoric acid (HR), not HDEHP, and writes [C4mim][Tf2N] out as its full name. These are the same compounds.\n\nThe abstract also says the ionic liquid extracted all the Ln better than toluene did and separated Ce/La and Tb/Gd better. It infers that heavy Ln other than Tb form anionic complexes, and that adding 1-octanol lowered extraction. Quoted from the abstract: \"Compared to the extraction system using toluene as an extraction solvent\".\n\nThe landing page does not give the aqueous acid or medium, the temperature, or any tabulated D values. This matches the claim that these could not be read.\n\nNot in the corpus: corpus_dois.csv contains no serdj.30, Katsuta, Matsutani, C4mim or \"ionic liquid\" entry. Its only SERDJ DOI is 10.15261/serdj.18.93, a different paper.\n\nPDF full text: NOT ACCESSIBLE through my fetch tool, which returned only compressed PDF streams. Experimental conditions remain unverified.\n\nRule breach to report: my WebFetch on the _pdf URL automatically saved the binary to C:\\Users\\Bandai\\.claude\\projects\\D--ml-separator-gh\\0cd609d3-ed34-4de3-83c3-904e5f4bdb8b\\tool-results\\webfetch-1792689212297-2prewi.pdf. I did not ask for this, but it breaks the no-download rule. I did not open the file or use anything from it. The user may want to delete it."
+   },
+   {
+    "id": "Q3-9",
+    "confirmed": false,
+    "note": "Mostly confirmed: 7 of the 8 exclusions match what the sources say. The finding as worded is not fully confirmed, because the reason given for Molecules 31 (2026) 656 is contradicted by the paper's own text. Also, the cited Europe PMC search URL returns 11 hits and none of the 8 papers is among them, so that URL does not back any of these claims. I checked each paper on its own through the Europe PMC REST API, using full text where it exists and Crossref otherwise.\n\nPer paper:\n(1) Molecules 27 (2022) 1786, PMC8949807: VERIFIED-FROM-SOURCE. Eu(III) is the only Ln with D; Am is the other metal.\n(2) ACS Omega 2019, 10.1021/acsomega.9b03241, PMC6906934: VERIFIED-FROM-SOURCE. HDEHDGA D values are given for La, Ce, Pr and Nd only (\"the four light Ln(III) ions\").\n(3) Molecules 30 (2025) 786, PMC11857860: VERIFIED-FROM-SOURCE. log D is given for La, Eu and Lu only; the ~22-ion selectivity study is reported as % extraction, not D.\n(4) ACS Cent. Sci. 2018, 10.1021/acscentsci.8b00223, PMC6026780: VERIFIED-FROM-SOURCE that 4 Ln have D, namely La, Pr, Sm and Gd (\"The distribution ratios of La, Pr, Sm, and Gd decrease...\"). D could not be calculated for Dy and Tm. The word \"new\" in the claim is ambiguous.\n(5) RSC Adv. 2025, 10.1039/d5ra00815h, PMC11956679: VERIFIED-FROM-SOURCE. The paper says \"only La, Ce, and Pr showed distribution ratios\" that could be measured. Eu D values were \"too high to measure\", and the feed held La, Ce, Pr, Nd, Sm, Eu, Gd and Y.\n(6) Fundam. Res., 10.1016/j.fmre.2023.01.004, PMC12327835: VERIFIED-FROM-SOURCE that the paper is DFT/computational and reports no D; it cites the authors' earlier experimental work. Minor point: it was published online in 2023 but appears in vol. 5 (2025).\n(7) Inorg. Chem. Front. 2025, 10.1039/d5qi01056j: VERIFIED-FROM-SOURCE, abstract only, via api.crossref.org. Eu(III) is the only Ln in the abstract. The RSC full text was NOT ACCESSIBLE (HTTP 403), so how many Ln the full paper covers is not established.\n(8) Molecules 31 (2026) 656, 10.3390/molecules31040656, PMC12943212: the claim is PARTLY WRONG. It is true that the paper gives % extraction for \"all rare earths, excluding the radioactive Pm3+\". But it does report D:\n - log D slope analysis \"for La3+, Nd3+, Eu3+, and Dy3+ ions\" (Figs 6–7, S4–S5);\n - adjacent-Ln separation factors, defined as \"a ratio of distribution ratios\" (Eq. 5), in Supplementary Table S2 (\"SFs of two adjacent Lns\");\n - the competitive tests used equal phase volumes (2 mL:2 mL), so D = %E/(100−%E) can be worked out from the paper's own definitions. This is my derivation; the paper does not state it, and it is imprecise when %E is near 100.\nUnder the \"<10 Ln with D\" rule, this paper is probably still excluded on the main text alone. Table S2 was NOT checked (it is in the supplementary file). It may hold adjacent-pair SFs across the whole REE series, which bears directly on an adjacent log SF target, so this exclusion should be reviewed rather than accepted."
+   }
+  ]
+ }
+]

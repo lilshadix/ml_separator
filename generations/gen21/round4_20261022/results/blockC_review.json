@@ -1,0 +1,704 @@
+{
+ "workflow": "wf_9800444f-48b",
+ "lenses": [
+  {
+   "lens": "leakage",
+   "findings": [
+    {
+     "id": "leakage-1",
+     "severity": "critical",
+     "file": "r4/leakage.py",
+     "line": 83,
+     "title": "deep_equal ignores torch weights, so fit poisoning cannot see a leak into block C's outer refit",
+     "description": "`deep_equal` falls through to `hasattr(a, '__dict__')` \u2192 `deep_equal(vars(a), vars(b))`. For a torch Parameter or Tensor, `vars()` is `{}`, so any two tensors of the same type compare equal. I checked this in the venv: two `slots_c._Net` built with seeds 0 and 1 (different weights) give `deep_equal(...) == True`, and so does a net whose output bias was shifted by +100. Block C's fit dict stores the refitted networks under `nets` (r4/slots_c.py:395-397). As a result, scripts/r4_poison.py:57 compares only `choice`, `inner_scores`, `zstat`, `rstat`, `b1`, `an_counts` and `n_rows`. The outer refit (`_refit`) is the only fit step that touches the fold's full An set and all outer-training Ln rows, and it is effectively unchecked. Example: if `_refit` passed `AD.an3_records()` (no exclusions) or Ln aux rows of held-out cells into `train(...)`, the poisoned run's nets would differ, yet `poison_S13.json` would report `all_identical: true`. The prediction intervention cannot catch this either, because it reuses the same fitted nets (r3/harness.py:108-133). tests/test_slots_c.py:137 also compares only `choice` and `inner_scores`. This vacuity is block-C specific: CatBoost models (block B) do compare correctly, since `deep_equal` returns False for different targets.",
+     "suggested_fix": "Add a tensor branch to `deep_equal` before the `__dict__` branch: `import torch; if isinstance(a, torch.Tensor) or isinstance(b, torch.Tensor): return isinstance(a, torch.Tensor) and isinstance(b, torch.Tensor) and a.dtype == b.dtype and a.shape == b.shape and torch.equal(a.detach(), b.detach())`. Alternatively, store `[{k: v.detach().numpy().copy() for k, v in m.state_dict().items()} for each module]` in the fit dict. Add a positive-control test: a deliberately leaky `_refit` (for example, an Ln aux row from one test cell, or one excluded An record) must make the poisoning comparison fail. In test_slots_c, compare the nets (or `predict_corr` outputs) between the real and poisoned fits.",
+     "verdict": {
+      "id": "leakage-1",
+      "confirmed": true,
+      "severity": "major",
+      "reasoning": "I confirmed this in the venv. deep_equal([_Net(0,16)],[_Net(1,16)]) returns True, and so does a net whose main[2].bias was shifted by +100. The cause: a torch Parameter is not a dict, list, ndarray or float, so it reaches the `hasattr(a,'__dict__')` branch (r4/leakage.py:83-84), and vars(Parameter) == {}. registry.fit stores out['c:S13'] = SCc.fit_slot(...), and _refit (slots_c.py:395-398) puts the trained networks only under 'nets'. The other keys either do not depend on what enters train() in the refit or depend only on the cell sets: zstat and rstat follow the extractant set and features, an_counts is computed from an_fold itself, n_rows counts rows. So a refit leak that keeps the cell sets unchanged would go unseen, for example passing AD.an3_records() instead of an_fold, or reading poisoned Y through the aux rows. The An poisoning does still check the inner stage, because inner_scores would change if an inner fit used an excluded record. The outer refit is the only fit that uses the full an_fold, and for it the check is vacuous. The prediction intervention (next_research_20261019/r3/harness.py:108-133) reuses blk['fitted'], so it cannot catch a fit-time leak. tests/test_slots_c.py:137 also compares only choice and inner_scores. I lowered the severity to major: I read _refit, SB._rows (training_cells restricted to the outer train_index weight map) and aux_data(..., tr_all, an_fold), and the current code does not leak. What is broken is the declared control (PROTOCOL \u00a78 item 2, \u00a712 'Leakage', line 552), which would report all_identical:true without having checked the refit. Nothing leaks into the results.",
+      "fix": "In r4/leakage.py deep_equal, before the `__dict__` branch, add: `import torch` (guarded by try/except ImportError), then `if isinstance(a, torch.Tensor) or isinstance(b, torch.Tensor): return isinstance(a, torch.Tensor) and isinstance(b, torch.Tensor) and a.dtype == b.dtype and a.shape == b.shape and torch.equal(a.detach(), b.detach())`. Alternatively, store per-net state_dict numpy copies in the fit dict. Add a positive-control test in which a refit fed one excluded An record (or AD.an3_records() unfiltered) makes deep_equal on the fits return False. In test_slots_c.py:137, also compare the nets (or predict_corr outputs on fixed training rows)."
+     },
+     "resolution": "r4/leakage.deep_equal compares torch tensors by value; fits also store net_state (numpy); tests: deep_equal on different nets is False; refit poison invariance with a leak positive control"
+    },
+    {
+     "id": "leakage-2",
+     "severity": "major",
+     "file": "scripts/r4_seal.py",
+     "line": 123,
+     "title": "Seal script does not parse: literal newline inside the An-record digest string",
+     "description": "The block-C (A4) addition `out[\"an3_records_sha256\"] = hashlib.sha256(an.to_csv(index=False, lineterminator=\"<LF>\").encode())...` contains a raw line feed inside a double-quoted string (bytes `= \" \\n \" )`). `ast.parse` gives `SyntaxError: unterminated string literal (detected at line 123)`; this is the only round-4 .py file that fails to parse. Effects: `r4_seal.py --seal` cannot build the A4 manifest, so the sealed inputs DATA_CONTRACT lists for block C (An record table digest, link map digest) cannot be sealed. `r4_seal.py --verify` crashes too. scripts/r4_run.py:90-92 (`seal_tag` imports r4_seal) crashes for every round-4 configuration, including S11 and S13. The current manifest (stage 'A3 close-out') holds no an3_* keys, so block C is not sealed yet.",
+     "suggested_fix": "Write the escape: `lineterminator=\"\\n\"`. Then re-run `python -c \"import ast; ast.parse(open('scripts/r4_seal.py','rb').read())\"` and `r4_seal.py --verify` (it is expected to report the code change) before sealing.",
+     "verdict": {
+      "id": "leakage-2",
+      "confirmed": true,
+      "severity": "major",
+      "reasoning": "`cat -A` on scripts/r4_seal.py lines 122-123 shows `lineterminator=\"$` followed by `\").encode()...`, a raw LF inside the string literal. Running ast.parse over every round-4 .py file gives exactly one failure: scripts/r4_seal.py, 'unterminated string literal (detected at line 123)'. scripts/r4_run.py:88-92 imports r4_seal inside seal_tag for every round-4 config (own=True), so S11 and S13 runs, --verify and --seal all crash. No manifest in manifests/ contains an an3_* key, and the current stage is the A3 close-out, so the A4 inputs that DATA_CONTRACT lists as sealed (An table digest, link map digest) cannot yet be sealed. The failure is loud rather than silent, but the sealing mechanism cannot do its job until it is fixed.",
+      "fix": "In scripts/r4_seal.py line 122, write `lineterminator=\"\\n\"` (an escape, not a literal newline) so the call fits on one line. Then run ast.parse and `r4_seal.py --verify` before sealing A4."
+     },
+     "resolution": "fixed (chr(10)); every round-4 .py parses; files normalised to LF"
+    },
+    {
+     "id": "leakage-3",
+     "severity": "major",
+     "file": "scripts/r4_poison.py",
+     "line": 45,
+     "title": "An poisoning is self-referential and never exercises the inner-block exclusions",
+     "description": "The poisoned set is `drop = ~an.rid.isin(set(AD.fold_an(bench, rec).rid))`, which is defined by the very function under test. A bug in `excluded_by` or `fold_an` (for example, a dropped copy-group clause) would change the kept set and the fit's set identically, and the check would still pass. Records removed only by `inner_an` (r4/an_data.py:116-123) are never poisoned, because they belong to the outer keep set. A regression that used `an_fold` instead of `an_j` inside the inner blocks (slots_c.py:326, 356, 378) would therefore leave every poisoned fit bit-identical. Such a regression would bias the w_X selection and the G-transfer inner part (S13 beats S11 on inner validation in at least 30 of 50 fold-fits) toward An. The inner rule matters in practice: in a label-free count over all 198 inner blocks of the 50 fold-fits, it removes a median of 133 An records per block (max 1,115), and 60 of those removals are by copy group alone. An independent recomputation found 0 violations of either the outer or inner rule on all 50 folds and 198 blocks, so the current code is correct; the control simply cannot detect a failure.",
+     "suggested_fix": "In r4_poison, also poison (with a different seed) the An records that `inner_an` removes for the inner fits. Simplest: run a third fit in which the An log D of every record outside each block's `inner_an` set is randomised only for the inner stage, and require identical `inner_scores`. Separately, derive the outer keep set from an independent re-implementation (publication / copy group / canonical extractant / linked chemotype of non-training cells, as in test_union_exclusions) rather than from `fold_an` itself, and assert it equals `fold_an`'s set.",
+     "verdict": {
+      "id": "leakage-3",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "Half of this finding holds. Refuted part: the 'self-referential' point is not a defect. Fit poisoning by construction checks the fit's data flow against the declared keep set, just as blocks A and B use rec's train_index as their definition of training. Whether the set itself is correct is tested separately: test_union_exclusions_on_every_fold recomputes clauses a-c independently and d through an_links. Confirmed part: the poisoned records are only those outside fold_an (r4_poison.py:45-48). Records that inner_an alone removes keep their real log D in both runs. A regression that used an_fold instead of an_j at slots_c.py:326/356/378 would therefore leave every poisoned fit identical. That said, PROTOCOL line 552 declares the An poisoning's scope as 'every An record the fold excludes' (outer), and the Ln inner-block isolation is not fit-poisoned either; it is checked structurally. So this is a coverage gap, not a broken declared control. Its consequences are also bounded. An inner-rule bug would bias the w_X choice and G-transfer's inner part, but it cannot leak held-out labels into the outer score, because the outer refit uses an_fold. I recomputed the inner rule independently, with copy groups, on all 198 inner blocks of the 50 fold-fits: 0 mismatches, a median of 133 and a maximum of 1,115 records removed, and 60 removals by copy group alone. These match the reviewer's numbers. The current code is correct, and the seal will freeze it. Minor (cheap robustness).",
+      "fix": "The cheapest adequate fix is the one in leakage-4: make the unit test check the inner rule, copy groups included, on all 198 blocks, against an independent recomputation. Optionally, add an r4_poison variant that randomises log D of records in an_fold but not in inner_an for one inner block, and requires inner_scores to stay identical."
+     },
+     "resolution": "An poisoning kept for outer-excluded records; inner exclusions verified by the all-block independent test and isolation table"
+    },
+    {
+     "id": "leakage-4",
+     "severity": "major",
+     "file": "tests/test_slots_c.py",
+     "line": 52,
+     "title": "Exclusion tests cover 10 of 50 fold-fits and 2 folds' inner blocks without copy groups, against PROTOCOL's 'every fold' claim",
+     "description": "PROTOCOL.md section 12 'Leakage' (line 589) says the tests cover 'the union exclusions on every fold (and on inner blocks)'. `test_union_exclusions_on_every_fold` iterates `folds_for(f, d, seeds=[130363])`, which is 5 of 25 folds per design. It checks inner blocks only when `fo.fold == 0` (line 64). The inner assertions (lines 70-72) omit the copy-group clause, which is the only reason 60 inner-block removals happen. The check is label-free and cheap: an all-50-fold, all-198-block version, copy groups included, ran in about 33 s and found 0 violations. Combined with leakage-3, nothing in the sealed chain verifies the inner rule on 48 of 50 fold-fits.",
+     "suggested_fix": "Loop over `paths.DEV_SEEDS` and every inner block of every fold, and add the copy-group assertion to the inner check (`set(an_j.copy_group) & {cg.get(p, 'own:'+p) for p in out_pubs}`). Alternatively, reword PROTOCOL section 12 to describe the actual coverage.",
+     "verdict": {
+      "id": "leakage-4",
+      "confirmed": true,
+      "severity": "major",
+      "reasoning": "tests/test_slots_c.py:52 iterates folds_for(f, d, seeds=[130363]), 1 of the 5 DEV_SEEDS (104729, 130363, 155921, 196613, 262147), so 10 of the 50 fold-fits. The inner-block branch at line 64 runs only for fold 0, which is 2 fold-fits. Its assertions at lines 70-72 check publication, extractant and chemotype, not copy group. PROTOCOL.md line 589 (sealed text, \u00a712 'Leakage') says the tests cover 'the union exclusions on every fold (and on inner blocks)'. This unit test is also the only check of the inner rule, since fit poisoning does not reach it (leakage-3). My independent recomputation on all 50 fold-fits and 198 blocks found 0 violations and 60 copy-group-only removals, which confirms that the copy-group clause matters in practice and that a full check is cheap. The implementation is correct. What is wrong is a sealed statement of control coverage that the code does not meet, which is why I rate it major on the doc/code-mismatch criterion.",
+      "fix": "In test_union_exclusions_on_every_fold, iterate seeds=list(paths.DEV_SEEDS), check inner blocks for every fold (drop the `fo.fold == 0` condition), and add the inner copy-group assertion: `assert not (set(an_j.copy_group) & {cg.get(p, 'own:'+p) for p in {str(f.publication_id.iat[i]) for i in out}})`. Alternatively, reword PROTOCOL \u00a712 line 589 to describe the actual coverage."
+     },
+     "resolution": "test_union_exclusions_on_every_fold_and_inner_block covers all 50 fold-fits and 198 inner blocks with copy groups; r4_gate_c --counts writes results/leakage/isolation_an.csv (0 overlaps in 248 checks)"
+    },
+    {
+     "id": "leakage-5",
+     "severity": "minor",
+     "file": "r4/an_data.py",
+     "line": 76,
+     "title": "Chemotype link is one hop; 'single-linkage semantics' wording would exclude about 180 more An rows per fold",
+     "description": "`an_links` links an An extractant only to cohort chemotypes with a direct member at Tanimoto >= 0.7. This matches gen11 `pools.chemotype_assignment` and DATA_CONTRACT. However, PROTOCOL.md line 449 and the an_data docstring say 'single-linkage semantics', which can be read as transitive. In a label-free count, 21 An extractants (250 rows) sit in An-An >= 0.7 single-linkage components that reach further cohort chemotypes. In all 50 dev fold-fits the kept An set contains 2-182 such rows (median 180, up to 19 extractants, against a median of 822 kept rows) whose component reaches a held-out chemotype. These are An analogues within two or more 0.7-hops of held-out chemistry, kept as training auxiliary data. The rule is declared and not a code bug, but its wording invites a stricter reading than the code implements.",
+     "suggested_fix": "State the rule explicitly in PROTOCOL section 12 and DATA_CONTRACT as 'direct (one-hop) links, gen11 chemotype_assignment; no An-An transitive closure', and record the per-fold count of kept rows that a transitive rule would remove. Optionally add that transitive exclusion as a pre-declared sensitivity.",
+     "verdict": {
+      "id": "leakage-5",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "The code matches its explicit operational definition. an_links links an An extractant to a cohort chemotype when some member has Tanimoto >= 0.7 (one hop). This is exactly gen11 pools.chemotype_assignment (src/lanthanide_separation/gen11/pools.py:52-95), and PROTOCOL lines 450-451 and DATA_CONTRACT line 176 state it in so many words. So there is no code bug. The 'single-linkage' wording (PROTOCOL 449, an_data.py:9) is technically defensible as point-to-cluster minimum distance. However, the cohort's own chemotypes are transitive single-linkage clusters (levels.tanimoto_cluster_labels), and the brief asks for chemotype exclusions 'across the union of both domains'. Both invite a transitive reading. I reproduced the reviewer's label-free counts exactly: 21 An extractants (250 rows) have An-An >= 0.7 components that reach further cohort chemotypes. In the 50 fold-fits, the kept An set contains 2-182 rows of this kind (median 180, at most 19 extractants) whose component reaches a held-out chemotype, against a median of 822 kept rows. This is a declared design choice and does not cause a leak by the project's own chemotype definition. It is substantial enough (about 22% of kept rows) that it deserves an explicit statement and disclosure. Minor.",
+      "fix": "In PROTOCOL \u00a712 'Chemotype assignment', DATA_CONTRACT 'Chemotype links' and the an_data docstring, replace 'single-linkage semantics' with 'direct (one-hop) links as in gen11 pools.chemotype_assignment; no An-An transitive closure'. Report the per-fold count of kept An rows whose An-An 0.7 component reaches a held-out chemotype (median 180 of 822). Optionally, pre-declare a transitive exclusion as a sensitivity analysis."
+     },
+     "resolution": "wording changed to direct one-hop links (gen11 rule, no An-An closure); the 21 chained extractants (241 rows, 12 publications; 18 without direct links, 164 rows) disclosed in section 12 and DATA_CONTRACT"
+    }
+   ]
+  },
+  {
+   "lens": "implementation",
+   "findings": [
+    {
+     "id": "implementation-poison-blind-to-nets",
+     "severity": "major",
+     "file": "r4/leakage.py",
+     "line": 83,
+     "title": "Fit poisoning never compares block-C network weights: deep_equal treats any two torch modules or tensors as equal",
+     "description": "deep_equal has no torch branch. A torch Tensor or Parameter is not a dict, list, ndarray or float, but it does have a __dict__ (vars(t) == {}). So the generic `hasattr(a, '__dict__')` branch compares two empty dicts and returns True whatever the values. nn.Module objects reduce to their parameters the same way.\n\nChecked: two `slots_c._Net` objects built with seeds 0 and 1 have different weights, yet `deep_equal({'nets':[a]}, {'nets':[b]})` returns True. Two plain tensors `deep_equal(torch.zeros(3), torch.ones(3))` also return True.\n\nWhy it matters:\n- `scripts/r4_poison.py:57` compares the whole fitted dict of each `c:` part, and `slots_c._refit` (line 397) stores the outer-refit networks under 'nets'. The comparison of the learned parameters, the main object fit poisoning is meant to protect, is therefore vacuous.\n- Only the other fields are really compared: choice, inner_scores, zstat, rstat, an_counts, n_rows and b1.\n- A leak that only enters the outer refit would pass. Example: aux_data in `_refit` reading `AD.an3_records()` instead of `an_fold`, which is exactly what the new An poisoning is supposed to catch.\n- The unit test `test_fit_deterministic_poison_invariant_and_support_exact` (tests/test_slots_c.py:137) likewise compares only choice and inner_scores.\n\nProtocol section 12 Leakage and section 8 item 2 ('the whole fitted chain must be bit-identical') cannot be met for block C as coded.",
+     "suggested_fix": "Add a torch branch before the generic object branch in deep_equal, e.g. `if torch.is_tensor(a) or torch.is_tensor(b): return torch.is_tensor(a) and torch.is_tensor(b) and a.dtype == b.dtype and a.shape == b.shape and torch.equal(a, b)`. Alternatively, store the refit nets as lists of numpy parameter arrays, e.g. `[p.detach().numpy().copy() for p in net.params()]`, alongside the modules. Add a unit test that deep_equal(_Net(0), _Net(1)) is False. Extend the poison unit test to compare the refit nets (with W grids that force a network choice) between the real and poisoned bench.",
+     "verdict": {
+      "id": "implementation-poison-blind-to-nets",
+      "confirmed": true,
+      "severity": "major",
+      "reasoning": "I reproduced this. In r4/leakage.py:73-85, deep_equal has no torch branch. A tensor or Parameter falls through to the generic `__dict__` branch (line 83), where vars(t) == {}, so any two tensors compare equal. I checked: deep_equal(torch.zeros(3), torch.ones(3)) returns True. deep_equal({'nets':[_Net(0,16)]}, {'nets':[_Net(1,16)]}) also returns True, although the parameters differ. vars(nn.Sequential) reduces to the _parameters/_modules dicts, whose values are Parameters with an empty vars().\n\nThe refit networks are stored under 'nets' (slots_c.py:399, after the concurrent edit). scripts/r4_poison.py:57 compares the fitted dicts with deep_equal, and registry.fit puts the c: parts in that dict. So the comparison of learned weights is vacuous. What really gets compared is choice, inner_scores, zstat, rstat, an_counts, n_rows and b1. None of those would change if only the outer refit's auxiliary rows leaked, for example _refit reading AD.an3_records() instead of an_fold, or Ln-aux rows built from non-training cells: an_counts is computed from an_fold, and n_rows/rstat come from the main rows only. The unit test (tests/test_slots_c.py:137) likewise compares only choice and inner_scores. The sealed requirement in PROTOCOL section 8 item 2 ('whole fitted chain ... bit-identical') and the section 12 Leakage claim therefore cannot be met for block C.",
+      "fix": "In r4/leakage.deep_equal, add a branch before the generic `__dict__` branch: `if torch.is_tensor(a) or torch.is_tensor(b): return torch.is_tensor(a) and torch.is_tensor(b) and a.dtype == b.dtype and a.shape == b.shape and torch.equal(a, b)`, importing torch lazily. Alternatively, have _refit also store the parameters as numpy arrays (`[[p.detach().numpy().copy() for p in n.params()] for n in nets]`). Add a unit test that deep_equal(_Net(0,16), _Net(1,16)) is False. Extend the poison test to compare the refit nets, with W grids that force a network choice."
+     },
+     "resolution": "r4/leakage.deep_equal compares torch tensors by value; fits also store net_state (numpy); tests: deep_equal on different nets is False; refit poison invariance with a leak positive control"
+    },
+    {
+     "id": "implementation-seal-syntax-error",
+     "severity": "major",
+     "file": "scripts/r4_seal.py",
+     "line": 123,
+     "title": "r4_seal.py does not parse: a literal newline is inside the lineterminator string",
+     "description": "Line 123 reads `an.to_csv(index=False, lineterminator=\"` and the string is closed on line 124. The file holds a real LF byte inside a single-quoted string literal (checked with od -c). `ast.parse` fails with 'SyntaxError: unterminated string literal (detected at line 123)'.\n\nAs a result, none of these can run:\n- `r4_seal.py --seal` and `r4_seal.py --verify`;\n- `r4_run.py`'s seal_tag (`import r4_seal`, line 91), so no round-4 configuration, including S11/S13, can be run;\n- `r4_task_identity.py` (`import r4_seal`, line 67).\n\nBlock C therefore cannot be sealed with the code as it stands.",
+     "suggested_fix": "Replace the broken literal with an escaped newline: `an.to_csv(index=False, lineterminator=\"\\n\")`. Then run `r4_seal.py --verify` once (it should now report a code/doc change rather than crash) before the A4 reseal.",
+     "verdict": {
+      "id": "implementation-seal-syntax-error",
+      "confirmed": true,
+      "severity": "major",
+      "reasoning": "I confirmed this. `cat -A` on scripts/r4_seal.py shows line 123 ending in `lineterminator=\"$` and line 124 starting with `\").encode()...`: there is a bare LF inside a one-line string literal, with no CR. ast.parse fails with 'unterminated string literal (detected at line 123)'. The other scripts (r4_run, r4_task_identity, slots_c, r4_decide) parse.\n\nscripts/r4_run.py:91 (seal_tag, used for every own round-4 config, i.e. everything except R3: reproductions and --technical-smoke) imports r4_seal. scripts/r4_task_identity.py:67 imports it too. So sealing, verification and every scored block-C run (S11/S13...) currently crash. They crash loudly, so no wrong results can come out of this, but block C cannot be sealed or run as coded.",
+      "fix": "Line 123-124: use `an.to_csv(index=False, lineterminator=\"\\n\")` on one line. Then run `r4_seal.py --verify` once (it should report the code/doc change, not crash) before the A4 reseal."
+     },
+     "resolution": "fixed (chr(10)); every round-4 .py parses; files normalised to LF"
+    },
+    {
+     "id": "implementation-zstat-degenerate-sd",
+     "severity": "major",
+     "file": "r4/slots_c.py",
+     "line": 294,
+     "title": "Encoder standardisation divides by std + 1e-9: a descriptor that is constant on the training extractants is scaled by 1e9, which saturates the encoder in 9 of 50 fold-fits",
+     "description": "_stats sets zstat = (mean, std + 1e-9) over the fit's training Ln extractants, and _zmat (line 222) applies it to every extractant, including An extractants and inner-validation/held-out Ln extractants.\n\nLabel-free check over all 198 inner blocks:\n- In 9 of them NumHDonors is identically 0 on the inner-training extractants.\n- Affected fold-fits: BP 104729/2, 130363/0, 155921/0, 196613/2, 262147/1; BPG 130363/0, 155921/0, 196613/2, 262147/1.\n- In those blocks, 29 to 31 of the 75 to 93 An extractants (those with H donors) and 1 to 3 inner-validation Ln extractants get z of about 1e9.\n- With first-layer weights of about 0.01 to 0.3, every encoder unit saturates (tanh' = 0 in float64). All those An extractants then share one encoder code, and the main head's correction for the affected validation extractants is an untrained extrapolation.\n\nEffects:\n- S11 and S13/S14/S16 inner scores in those fold-fits are distorted.\n- G-transfer's inner part (threshold 30/50) is therefore partly decided by a numerical artefact in 18% of the fold-fits.\n- Outer folds have no exactly constant column (min sd 0.163), but An extractants still reach |z| = 36.6 (NumHDonors) and 15.2 (TPSA). A median 7.5% (max 14%) of a fold's An rows have some |z| > 5, so the encoder sees heavily extrapolated, saturated inputs for part of the auxiliary domain.",
+     "suggested_fix": "Before sealing, floor the scale and bound the inputs:\n- set sd = max(sd_train, floor), with floor fixed label-free (e.g. the cohort-wide descriptor sd, or 1 for count descriptors), or set z = 0 for columns that are constant in training;\n- clip standardised descriptors to a fixed range (e.g. +/-5) before the encoder.\nDeclare the rule in PROTOCOL section 12 and add a unit test on one of the listed inner blocks asserting finite, bounded Z.",
+     "verdict": {
+      "id": "implementation-zstat-degenerate-sd",
+      "confirmed": true,
+      "severity": "major",
+      "reasoning": "I reproduced the label-free count exactly with a scratch script. It uses the same _z_raw and the inner-training cells; tr_cells in fit_slot equals blk train_index because fit_s cells are a subset of it.\n\nInner blocks:\n- 9 of 198 inner blocks have NumHDonors identically 0 on the inner-training extractants: BP 104729/2, 130363/0, 155921/0, 196613/2, 262147/1, and BPG 130363/0, 155921/0, 196613/2, 262147/1.\n- In those blocks 29-31 of 75-93 inner An extractants, and 1-3 of 7-20 inner-validation Ln extractants, get z = value/1e-9.\n\nOuter folds:\n- Minimum sd is 0.163.\n- An |z| reaches 36.6 (NumHDonors) and 13.3 (TPSA).\n\nThe code at slots_c.py:296 (`Zr.std(0) + 1e-9`) and :223 is unchanged by the concurrent edit, which only added an mvar normalisation of the main loss.\n\nOne correction: only the first encoder layer saturates. tanh(1e7) == 1.0 and 1-tanh^2 == 0 in float64; the second layer still trains. So all affected extractants share one first-layer code, not one fully fixed encoder output. The artefact is actually worse than described. The weights on that input column get no data gradient while saturated, so Adam with L2 weight decay drives them toward 0 with sign flips. My toy check gave 83 sign changes in 400 steps, ending near 1e-10. Once w*1e9 becomes O(1), the huge input sends Adam back into saturation. The code these extractants receive is therefore numerically chaotic.\n\nIn about 18% of fold-fits this makes S11 inner scores (affected validation Ln extractants) and S13/control inner scores partly an artefact. The G-transfer inner count (30/50) and the S11/S13 selections depend on it. No leakage, but it distorts a sealed gate and selection, and the fix is cheap.",
+      "fix": "In _stats, floor the scale with a label-free rule before sealing, e.g. `sd = np.where(sd_train < 1e-6, 1.0, sd_train)` or a cohort-wide descriptor sd. Clip standardised descriptors in _zmat to a fixed range (e.g. \u00b15). Declare the rule in PROTOCOL section 12 'Model'. Add a unit test on one listed inner block (e.g. BPG 130363 fold 0, inner 2) asserting finite |Z| <= the clip for the inner An and validation extractants."
+     },
+     "resolution": "scale floor (sd < 1e-6 -> 1) and clip to +-5; tested"
+    },
+    {
+     "id": "implementation-s14-not-shared-when-wln0",
+     "severity": "minor",
+     "file": "r4/slots_c.py",
+     "line": 267,
+     "title": "S14 is not a shared-head control in folds where S11's best network weight is w_Ln = 0",
+     "description": "_x_stage (line 379) fixes w_Ln at S11's best network weight, and W_LN_GRID includes 0.0. When best_wl = 0, train() skips the Ln-aux term (`if w_ln > 0`), so in S14 the Ln auxiliary head is trained only on the pseudo-lanthanide An rows (aux_data lines 186-192).\n\nS14 then reduces to S13 with a private head that encodes the metal as (x, q) instead of a 4-way one-hot. It has the same rows, weights and variance normalisation, and nothing is shared with Ln data.\n\nIn those fold-fits the sealed rule 'S13 - S14 > 0' compares two equivalent private-head variants and does not test the naive shared-head alternative it is described as testing (PROTOCOL section 12 slot table; brief section 6 'a deliberately naive shared raw-logD head'). Nothing in fitted_info or block_c reports how many fold-fits are in this state.",
+     "suggested_fix": "Record best_wl per fold in fitted_info, and report the number of fold-fits with best_wl = 0 next to the S14 rule in r4_decide. Declare in section 12 that S14 tests sharing only where w_Ln > 0. Alternatively, pre-declare that S14 uses the smallest positive w_Ln when S11's best network weight is 0, and state that this is a deliberate budget deviation for the control.",
+     "verdict": {
+      "id": "implementation-s14-not-shared-when-wln0",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "I confirmed this against the current code:\n- W_LN_GRID = (0.0, 0.3, 1.0) (slots_c.py:50).\n- _x_stage trains every arm at best_wl (line 381).\n- train() adds the Ln-aux term only `if w_ln > 0` (line 269), while the S14 An rows go through net.ln as a separate term whenever w_x > 0.\n\nSo in any fold-fit where S11's best network weight is 0, S14's 'Ln aux head' is trained only on pseudo-lanthanide An rows. Nothing is shared with Ln raw log D. That is not the brief's 'deliberately naive shared raw-logD head' (CLAUDE_CODE_PROMPT.md line 118), nor PROTOCOL section 12's S14 role.\n\nOne overstatement: S14 is then not exactly equivalent to S13. It encodes the 4 metals with a 2-D (x, q) input instead of a one-hot, which has slightly lower capacity. Still, it no longer tests sharing. best_wl can be re-derived from inner_scores['S11'], which fitted_info stores. But neither fitted_info nor block_c() reports how many fold-fits are in this state, and the protocol does not declare it.",
+      "fix": "Report the number of fold-fits (per design) with S11 best network weight 0, re-derived from inner_scores['S11'], next to the S13 - S14 rule in r4_decide.block_c. Declare in section 12 that S14 tests sharing only where w_Ln > 0. Alternatively, pre-declare that S14 uses the smallest positive w_Ln when best_wl = 0, as a declared deviation for the control."
+     },
+     "resolution": "S14's Ln term enters with weight max(w_Ln, 0.3) whenever w_X > 0, so the head is always shared; tested"
+    },
+    {
+     "id": "implementation-decide-gate-not-enforced",
+     "severity": "minor",
+     "file": "report/r4_decide.py",
+     "line": 200,
+     "title": "block_c() never applies G-transfer, crashes when S11 is missing, and mislabels a missing gate file",
+     "description": "The docstring (lines 189-190) says S13 runs only if G-transfer passed, but the code ignores the gate result.\n- The function reads results/gate_c.json only for display and for S24.\n- `G_transfer_passes` is never consulted, so S13 is evaluated (line 200), labelled and listed in finalist_eligible (line 251) whenever predictions/S13_*.parquet exist, even if the gate failed or was never evaluated. r4_run.py does not check the gate either, so the sealed route is enforced by no code.\n\nIf S13 files exist, S13 passes p13, and the S11 run files are missing, then `s11[d]` at line 214 raises TypeError (s11 is None). The S13 file already carries an S11 column that could be used instead.\n\nWhen gate_c.json is missing, line 231 writes 'untested (S24 NOT RUN: label-free count gate failed)', although the gate was never evaluated.",
+     "suggested_fix": "If gate_c.json is missing or G_transfer_passes is False:\n- mark S13 (and controls) as 'NOT RUN / not eligible (G-transfer failed or not evaluated)';\n- exclude S13 from finalist_eligible and from the transfer rule.\nAlso fall back to the S13 file's S11 column for g11 (or fail with a clear message), and distinguish 'gate not evaluated' from 'count gate failed' in the metal_state label.",
+     "verdict": {
+      "id": "implementation-decide-gate-not-enforced",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "I confirmed the main point. block_c() (report/r4_decide.py:187-252) reads gate_c.json only for display and for S24_count_gate_passes. G_transfer_passes, which r4_gate_c.py:52 writes, is never consulted. S13 is evaluated (line 200), labelled, and put in finalist_eligible (line 251) whenever its prediction files exist. r4_run.py does not check the gate either, so the 'S13 only if G-transfer passes' route is enforced only by the operator. This matches the block A/B precedent, which also leaves run order to the operator, but there it did not gate eligibility.\n\nThe TypeError at line 214 (s11[d] with s11 None) is real but only reachable if S13 is run without S11, which already violates the run order.\n\nThe metal_state sub-claim is weak. S24's count gate was counted and failed before the seal (PROTOCOL section 12), so 'count gate failed' is factually correct even without gate_c.json; only the source of that fact differs.",
+      "fix": "In block_c: if gate_c.json is missing or G_transfer_passes is False, label S13 (and the controls) 'NOT RUN / not eligible (G-transfer failed or not evaluated)', and exclude S13 from finalist_eligible and from the transfer rule. Fall back to the S13 file's S11 column for g11, or fail with a clear message when S11 is missing."
+     },
+     "resolution": "r4_decide block_c enforces G-transfer (off-route S13 never eligible; controls need g_ok); S11 fallback from the S13 table; r4_run.block_c_route refuses off-route runs"
+    },
+    {
+     "id": "implementation-tests-coverage-claims",
+     "severity": "minor",
+     "file": "tests/test_slots_c.py",
+     "line": 52,
+     "title": "The tests cover less than PROTOCOL section 12 says they do (exclusions on every fold, inner blocks, poison invariance)",
+     "description": "PROTOCOL lines 588-593 state that tests cover 'the union exclusions on every fold (and on inner blocks)', determinism and poison invariance. The tests do less:\n- test_union_exclusions_on_every_fold iterates only `seeds=[130363]` (10 of the 50 fold-fits).\n- It checks inner blocks only for fold 0 of each design (line 64).\n- Its inner checks (lines 69-72) omit the copy-group rule.\n- test_fit_deterministic_poison_invariant_and_support_exact compares only choice and inner_scores (line 137), so the refit nets are never checked; see the deep_equal finding.\n- `monkeypatch.setattr(SC, 'SEEDS', (0,))` has no effect, because train() binds `seeds=SEEDS` as a default at import time, so the shortened test still trains 3 seeds.",
+     "suggested_fix": "Make the exclusion test loop over paths.DEV_SEEDS and over every inner block of every fold; this is label-free and cheap. Add the copy-group assertion at inner level. Compare refit network parameters between the real and poisoned fits. Pass seeds explicitly, or read SEEDS inside train(), so the test schedule is what it claims.",
+     "verdict": {
+      "id": "implementation-tests-coverage-claims",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "Each point checks out:\n- tests/test_slots_c.py:52 iterates `seeds=[130363]` only, i.e. 10 of 50 fold-fits.\n- Inner blocks are checked only for fold 0 of that seed in each design (line 64).\n- The inner assertions (lines 69-72) check publication, extractant and chemotype, but not copy group.\n- The poison test compares only choice and inner_scores (line 137).\n- `monkeypatch.setattr(SC, 'SEEDS', (0,))` has no effect. I checked: SC.train.__defaults__ is ((0,1,2),) both before and after reassigning SC.SEEDS, and fit_slot/_s11_stage/_x_stage/_refit call train without seeds=. The EPOCHS and grid patches do work, because those are looked up at run time.\n\nPROTOCOL section 12 Leakage (lines 589-593) claims the tests cover 'the union exclusions on every fold (and on inner blocks)' and poison invariance. That is a doc/test mismatch, though none of it changes a scored result.",
+      "fix": "Loop the exclusion test over paths.DEV_SEEDS and every inner block of every fold (label-free), and add the copy-group assertion at inner level. Compare refit network parameters, once deep_equal is fixed, between the real and poisoned fits. Make train read SEEDS at call time (`seeds=None` -> `seeds = SEEDS if seeds is None else seeds`), or pass seeds explicitly, so the shortened test schedule is what it claims."
+     },
+     "resolution": "test_union_exclusions_on_every_fold_and_inner_block covers all 50 fold-fits and 198 inner blocks with copy groups; r4_gate_c --counts writes results/leakage/isolation_an.csv (0 overlaps in 248 checks)"
+    },
+    {
+     "id": "implementation-no-run-level-wx0-identity",
+     "severity": "minor",
+     "file": "scripts/r4_run.py",
+     "line": 218,
+     "title": "The sealed claim that 'w_X = 0 is exactly S11's best network' is never checked per fold in the scored runs",
+     "description": "slot_identity_check only requires a column to equal B1 when its inner choice is zero (lambda 'inf'). The protocol also claims S13's w_X = 0 candidate is bit-identical to S11's best network (section 12 Selection), and the S13 - S11 contrast relies on this.\n\nThat is verified only by a 15-epoch, one-fold unit test of train() (tests/test_slots_c.py:108-123). It is not checked on the real 400-epoch, 3-seed refits of the 50 fold-fits, where S11 and S13 appear together in the S13/S14/S15/S16 configs.",
+     "suggested_fix": "In slot_identity_check, for configs carrying both c:S11 and a c:S13/control part: when the part's choice is {'w_Ln': wl, 'w_X': 0.0} and c:S11's choice is {'w_Ln': wl, 'w_X': 0.0}, require max|col - S11| == 0 on that fold. When both choices are 'zero', require equality with B1, as now.",
+     "verdict": {
+      "id": "implementation-no-run-level-wx0-identity",
+      "confirmed": false,
+      "reasoning": "The statement is literally true: slot_identity_check (scripts/r4_run.py:218-232) only checks lambda == 'inf' against B1. But I could not find a defect, a failure scenario, or a doc/code mismatch.\n\nThe invariant holds by construction:\n- With w_x = 0, train() appends neither the 'priv' nor the 'an_in_ln' term.\n- Both arms then build _Net with the same seeds, main rows, zstat/rstat and Ln-aux rows. The test shows the Ln-aux rows are identical across arms.\n- The tie-breaks (ties go to 'zero', then the smaller w) mean S13 can choose w_X = 0 only when sc11[best_wl] < sc11['zero'], i.e. only when S11 chose that same (best_wl, 0) network.\n- Training is single-thread, float64 and deterministic.\n\nPROTOCOL section 12 says '(tested bit-identical)', and tests/test_slots_c.py:108-123 tests exactly that code path. Its shorter schedule does not change the structural argument. Section 12 Leakage promises only the B1 identity per fold, and that is implemented. A run-level assertion would be a cheap extra safeguard, not a fix for a concrete problem."
+     },
+     "resolution": "added anyway: slot identity requires an arm with outer choice w_X = 0 on S11's network to equal the S11 column"
+    }
+   ]
+  },
+  {
+   "lens": "controls",
+   "findings": [
+    {
+     "id": "controls-01",
+     "severity": "major",
+     "file": "r4/slots_c.py",
+     "line": 253,
+     "title": "S14 is not a shared-head control in any fold where S11 picks w_Ln = 0",
+     "description": "S14 freezes w_Ln at S11's best network weight (_x_stage line 379, best_wl from _s11_stage line 365). W_LN_GRID includes 0.0. In train() the Ln raw-logD term is only added when w_ln > 0 (lines 267-269). The S14 An rows are added as kind 'ln' (lines 253-256, 271). So when best_wl = 0, net.ln is trained on An rows only. It then acts as a second private An head whose metal input is [x, q] of the f-count analogue instead of a one-hot, and nothing about it is 'shared'. In those folds S13 and S14 are near-equivalent architectures, so the rule 'S13 - S14 > 0' (PROTOCOL l.561, r4_decide.py l.216) is a coin flip rather than a test against naive sharing. The protocol's description of S14 as a 'deliberately naive shared-head control' (l.509) holds only when best_wl > 0, and nothing records or checks this per fold.",
+     "suggested_fix": "Make S14 shared by construction. When w_X > 0, fix its Ln-aux weight to a positive value, for example max(best_wl, 0.3), or pool the An rows into the same Ln-aux loss term with one normalisation. Alternatively, record best_wl per fold in fitted_info and declare that S14 folds with best_wl = 0 are uninformative. Seal whichever choice before any block-C score.",
+     "verdict": {
+      "id": "controls-01",
+      "confirmed": true,
+      "severity": "major",
+      "reasoning": "Confirmed by reading r4/slots_c.py. W_LN_GRID = (0.0, 0.3, 1.0) at l.49. best_wl comes from _s11_stage (l.365), and _x_stage passes it unchanged to train() for S14 (l.379). In train(), the Ln raw-logD term exists only when w_ln > 0 (l.267-269). S14's An rows are appended as kind 'ln' (l.253-256) and routed to net.ln (l.271). So when best_wl = 0, net.ln is fitted on An rows only and nothing is shared with Ln log D. S13 and S14 then differ only in the head's metal input: a 4-way one-hot versus [x, q] at 4 distinct analogue metals, which an MLP with 16 hidden units can map to the same per-metal offsets. They also differ in head initialisation.\n\nThis case occurs in practice. In results/synthetic_c/AN_SIGNAL_4.json (seed 13104), S13 chose {'w_Ln': 0.0, 'w_X': 1.0}, so best_wl = 0. In that same replicate S14 chose 'zero', which illustrates the selection noise between two near-equivalent arms.\n\nOne minor correction to the finding: best_wl is recoverable per fold, because fitted_info stores inner_scores including the S11 dict (r4_run.py l.65-67). Nothing reports it or conditions the S14 rule on it, though. The effect is mainly a noisy, diluted S13 \u2212 S14 contrast pooled over folds, not a systematic false positive. Still, in those folds the control does not test what PROTOCOL l.509 says it tests.",
+      "fix": "Before sealing, make S14 shared by construction. When w_X > 0, train its Ln-aux head with a fixed positive w_Ln (for example max(best_wl, 0.3)), and declare this. Alternatively, report best_wl per fold from inner_scores and evaluate S13 \u2212 S14 only on folds with best_wl > 0, or declare that S14 is uninformative in folds where best_wl = 0. Seal whichever rule is chosen before any block-C score."
+     },
+     "resolution": "S14's Ln term enters with weight max(w_Ln, 0.3) whenever w_X > 0, so the head is always shared; tested"
+    },
+    {
+     "id": "controls-02",
+     "severity": "major",
+     "file": "PROTOCOL.md",
+     "line": 571,
+     "title": "No control can reproduce a 'smooth auxiliary at novel extractants' regularisation gain, but the protocol says S15/S16 catch regularisation",
+     "description": "PROTOCOL l.571 says S15 and S16 catch 'a gain from extra tuning or regularisation alone'. Neither control can reproduce one specific regularisation pathway. S15 reuses training-Ln raw log D, so it adds no extractant the encoder has not already seen (l.521-522 concede that novelty is unmatched). It is also redundant with the Ln-aux head whenever w_Ln > 0. S16 keeps the novel An extractants but deranges targets across extractant blocks (slots_c.py l.141-158), so its targets are non-smooth in descriptor space. Under inner tuning it will tend to pick w_X = 0, which reverts it to S11. Now suppose the real An targets are any smooth function of the encoder's own inputs, for example an extraction-strength trend in MolLogP or TPSA. Fitting them at about 80-100 new extractants can regularise h without carrying Ln-selectivity information. That gain passes S13 - S15 >= 0.005, S13 > max(S16), and the mean(S16 - S11) rule. It would be labelled 'An(III) transfer'.",
+     "suggested_fix": "Option 1: add a label-free smooth-target control before sealing (slots are available: 9 of 24 used). It keeps S13's An rows, weights and grid, but replaces log D with a fixed, standardised descriptor function plus the metal offset, at the An target variance. Add 'S13 beats it by >= 0.005' to the claim. Option 2: reword l.571 and the label so that passing S15/S16 shows only 'beyond permuted targets and reused Ln targets', and state that smoothness-driven regularisation is not excluded.",
+     "verdict": {
+      "id": "controls-02",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "The gap is real, but it is an overstatement in the text, not a broken control.\n\n- S15 (slots_c.py l.103-138) resamples training-Ln cells, so it adds no novel extractants. PROTOCOL l.521-522 concedes this.\n- S16 (l.141-158) deranges extractant blocks, so its targets are non-smooth in descriptor space.\n- Neither control reproduces a gain from fitting smooth targets at about 80-100 novel extractants. PROTOCOL l.571 nevertheless claims that 'regularisation alone is caught by them'.\n\nI downgrade to minor for three reasons:\n1. Brief \u00a76 lists exactly the controls implemented (same scaffold, naive shared head, source/diversity/weight-matched control, block-permuted targets), and no smooth label-free target control.\n2. A gain driven by real An log D's descriptor trend is still information from the An labels, so calling it 'An(III) transfer (exploratory)' is not plainly false.\n3. The concrete defect is the sentence at l.571, which claims more than S15 and S16 can show.",
+      "fix": "Reword PROTOCOL l.571, together with the claim-label description, to say that S15 and S16 exclude gains reproducible by reused Ln targets or by An targets with the extractant association broken. Also state that gains from smooth-in-descriptor auxiliary targets at novel extractants are not excluded. Optionally add the label-free smooth-target control as a declared extra slot before sealing."
+     },
+     "resolution": "section 12 states what S15 / S16 exclude and what they do not; the synthetic study adds a paired SMOOTH_NULL world"
+    },
+    {
+     "id": "controls-03",
+     "severity": "major",
+     "file": "scripts/r4_synthetic_c.py",
+     "line": 84,
+     "title": "The synthetic NULL world is S16's own null; it cannot test the false-positive pathways the claim rule must reject",
+     "description": "In NULL, the An log D is 1.5*v_e + offset + noise, with v_e drawn independently per extractant (l.85-87). That is the same distribution S16's block derangement produces, and it is non-smooth in descriptor space. S13 in NULL is therefore exchangeable with the S16 draws, and inner tuning will mostly choose w_X = 0 (S13 = S11). A NULL false-positive count near 0/6 is close to guaranteed by construction. It says nothing about the two nulls the rule actually has to reject: (a) An targets that are smooth in descriptors but unrelated to the Ln signal (controls-02), and (b) a selection-luck gain from S13's extra knob. PROTOCOL \u00a78.6 and brief \u00a78.8 require showing that the control detects its intended claim, and the realistic regularisation-only world is not represented (PROTOCOL l.598-602).",
+     "suggested_fix": "Add a SMOOTH_NULL world: An log D = 1.5*w_e + offset + noise, with w_e a smooth descriptor function orthogonal to u (for example tanh of PC3 of the same standardised descriptors). Report the transfer claim's firing rate in it alongside NULL and AN_SIGNAL, and record it in A4 before sealing.",
+     "verdict": {
+      "id": "controls-03",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "Partly confirmed. In r4_synthetic_c.py l.85-87, NULL uses an i.i.d. per-extractant level v_e, which is non-smooth in descriptors. That is essentially the distribution S16's derangement produces, so NULL does not represent a smooth-but-Ln-irrelevant An target. This is the same gap as controls-02.\n\nThe finding's point (b) is wrong. NULL is exactly the selection-luck null for S13's extra knob: S13 tunes w_X on non-informative targets and is exchangeable with the S16 draws, so any tuning-luck false positive would show up there. The NULL replicates show every arm choosing 'zero', which is 0/6 for the rule and for the gate-equivalent statistic.\n\nWhat is missing is only the smooth-null world. That duplicates controls-02's gap, so this is minor rather than major.",
+      "fix": "Optionally add a SMOOTH_NULL world: An log D = 1.5\u00b7w_e + offset + noise, where w_e is a smooth descriptor function orthogonal to u. Report its firing rate in A4. At minimum, state in A4 that NULL covers non-informative and permutation-like An targets and tuning luck, but not smooth irrelevant targets."
+     },
+     "resolution": "section 12 states what S15 / S16 exclude and what they do not; the synthetic study adds a paired SMOOTH_NULL world"
+    },
+    {
+     "id": "controls-04",
+     "severity": "major",
+     "file": "scripts/r4_synthetic_c.py",
+     "line": 146,
+     "title": "The synthetic study is structurally unable to show NULL vs AN_SIGNAL discrimination, and the protocol says nothing about the consequence",
+     "description": "There are 6 replicates per world (RESOURCE_PLAN l.66). Exact 95% intervals are therefore [0, 0.46] for 0/6 and [0.54, 1] for 6/6, so discrimination can only appear at the extremes. Three things make the extremes unreachable. First, the worlds are unpaired: the seed 13000 + 100*world_index + i (l.146) gives different Ln curves and noise per world, although synthetic() consumes the RNG identically in both worlds and could be paired by sharing the seed. Second, in AN_SIGNAL, S14 receives exactly the same An information through the shared encoder, so 'S13 - S14 > 0' is roughly a coin flip and caps the claim's power near 50%. Third, block B's equivalent study gave GEO 0/6. PROTOCOL \u00a712 (l.595-602) and \u00a78.6 say the control must first show detection, but they do not declare what happens if AN_SIGNAL power is near zero or NULL fires.",
+     "suggested_fix": "Pair the worlds: use the same seed so that only the An level column differs. Raise the replicate count, or at least report the paired difference S13 - S11 between worlds. Pre-declare in A4 that if AN_SIGNAL fires in fewer than k of n replicates, a negative transfer result is labelled 'uninformative (control power not shown)', and that if NULL or SMOOTH_NULL fires, a positive label is downgraded.",
+     "verdict": {
+      "id": "controls-04",
+      "confirmed": true,
+      "severity": "major",
+      "reasoning": "Confirmed, and the results available now make it concrete. results/synthetic_c/SUMMARY.md reports for AN_SIGNAL:\n- transfer claim 0/6 [0, 0.46];\n- crit1 S13 0/6;\n- S13 \u2212 S11 \u2265 0.005 in 1/6;\n- S11 chose B1 in all 12 replicates.\n\nSo the study does not demonstrate that the transfer claim can detect its signal, which brief \u00a78.8 requires. PROTOCOL \u00a712 l.595-602 says only that the study is 'summarised in A4'. No consequence is declared, and A4 does not yet exist (AMENDMENTS.md ends at A3). Block B's A2 did declare one ('A negative one is uninformative about geometry signals of this size').\n\nThe pairing point is correct. The seed is 13000 + 100\u00b7world + i (l.146), and synthetic() consumes the RNG identically in both worlds, because v_e is drawn even in AN_SIGNAL (l.85). A shared seed would therefore isolate the An level column.\n\nThe finding's main mechanism is overstated. The 0/6 is driven by criterion 1 never passing at this signal size, not by S14's coin flip: in the one replicate where the rule passed, S14 had chosen zero.",
+      "fix": "In A4, before sealing, record the synthetic result and state the consequence. A negative block-C result is uninformative about An signals of this size: 'no detected gain; control power not shown'. If NULL or a smooth null fires, a positive label is downgraded. Optionally rerun with paired seeds (the same seed in both worlds) and report the paired S13 \u2212 S11 difference between worlds."
+     },
+     "resolution": "synthetic run 3: paired worlds, stronger signal (0.15), SMOOTH_NULL; the consequence of low power is stated in A4 and in the claim rules"
+    },
+    {
+     "id": "controls-05",
+     "severity": "major",
+     "file": "r4/an_data.py",
+     "line": 76,
+     "title": "Union chemotype exclusion uses direct links only; 18 An extractants chain into sc009/sc016/sc036 through other An extractants",
+     "description": "an_links() links an An extractant only to cohort chemotypes it is at Tanimoto >= 0.7 to directly. PROTOCOL l.449-451 describes this as 'gen11's single-linkage pools semantics', and the brief and RESEARCH_IDEAS l.139 require exclusions over 'the union of Ln and auxiliary data'. Single linkage over the union is transitive. A label-free count shows 21 An extractants (250 rows, 12 publications) that reach extra cohort chemotypes through An-An edges at >= 0.7. Of these, 18 extractants (170 rows, 5 publications) have no direct link at all and chain into sc009 (the dominant chemotype), sc016 and sc036. None of these rows is dropped when those chemotypes are held out. The code matches gen11's direct-link rule, which gen11 itself calls direct, not single-linkage. The protocol's wording therefore mismatches the code, and the brief's union requirement is not met.",
+     "suggested_fix": "Option 1: compute links over the transitive closure of the cohort-plus-An graph at 0.7, so an An extractant inherits every chemotype its An-An component touches. Re-run the label-free counts and the gate count part. Option 2: keep direct links and declare a deviation from the brief's union semantics, with the 18-extractant / 170-row count, before sealing.",
+     "verdict": {
+      "id": "controls-05",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "I reproduced the label-free count from fingerprints only. Chaining over An-An edges at \u2265 0.7 reaches extra cohort chemotypes for:\n- 21 An extractants (250 rows, 12 publications);\n- of these, 18 have no direct link (170 rows, 5 publications);\n- the chemotypes reached are sc009, sc016 and sc036.\n\nThe code (an_data.py l.76-86) applies direct links only. That matches the operational rule written at PROTOCOL l.450 and DATA_CONTRACT l.176, and matches gen11's chemotype_assignment (pools.py l.52-95). The phrase 'single-linkage pools semantics' at l.449 can fairly be read as 'one new point joins a frozen cohort cluster when it is \u2265 0.7 to its nearest member'. So there is no code defect, and the doc/code mismatch is only a wording ambiguity.\n\nWhether the brief's 'exclusions across the union of both domains' requires transitive closure is a matter of interpretation. The chained extractants are below 0.7 to every member of the held-out chemotype, which gen11 explicitly treats as new chemistry. Still, these near-neighbour rows remain in training whenever sc009 (the dominant chemotype) is held out, and this is not disclosed. Minor.",
+      "fix": "Keep direct links but disclose the chain in PROTOCOL \u00a712 and DATA_CONTRACT: 18 extractants, 170 rows and 5 publications chain into sc009, sc016 and sc036 through An-An edges, and stay in training when those chemotypes are held out. Also reword l.449 to say 'direct \u2265 0.7 links to frozen cohort chemotypes (gen11 pools rule)'. Alternatively, switch to transitive closure over the An-An graph and recompute the gate counts. Decide before sealing."
+     },
+     "resolution": "wording changed to direct one-hop links (gen11 rule, no An-An closure); the 21 chained extractants (241 rows, 12 publications; 18 without direct links, 164 rows) disclosed in section 12 and DATA_CONTRACT"
+    },
+    {
+     "id": "controls-06",
+     "severity": "minor",
+     "file": "scripts/r4_gate_c.py",
+     "line": 67,
+     "title": "Gate G-transfer's inner part has no null calibration and omits B2",
+     "description": "The inner part passes a fold when the best of two positive-w_An fits (min over 0.3 and 1.0) beats S11's selected score. Take an irrelevant auxiliary that only perturbs training around S11's best network. If the S11 network beats B1 in inner CV, the per-fold pass probability is about 1 - 0.5^2 = 0.75 for independent symmetric perturbations, and 1/3 even under fully exchangeable scores. That can exceed the 30/50 threshold with no An information. Neither r4_synthetic_c.py nor any other script records the gate's NULL pass rate (inner scores are not saved; only 'choices'). The brief \u00a77 asks for a cheap inner signal 'over B1/B2', and block B's G-geo compared against B2 (r4_decide.py l.116-118), but this gate ignores B2. A vacuous pass only spends slots, hence minor.",
+     "suggested_fix": "Save each replicate's gate statistic (positive-w_An best vs S11 selected) in r4_synthetic_c.py for NULL and AN_SIGNAL. Alternatively, compare S13's positive-weight score with an S16 draw's at the same weight. Add 'below B2's best inner score' as G-geo did, or declare its omission.",
+     "verdict": {
+      "id": "controls-06",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "Partly confirmed. The gate's inner part (r4_gate_c.py l.66-70; PROTOCOL l.538) compares only against S11's selected score and never considers B2. Block B's G-geo did include B2 (r4_decide.py l.116-118), and brief \u00a77 asks for a signal 'over B1/B2'. The omission is not declared as a deviation.\n\nThe 'no null calibration' part is weaker than stated. A gate win is exactly 'S13's inner choice has w_X > 0', since min(sx[zero], sx['0.0']) equals the minimum of the S11 scores. The recorded synthetic choices therefore give the gate statistic directly: NULL 0/6 and AN_SIGNAL 1/6. The analytic 0.75 per-fold pass rate is a heuristic, not something measured.\n\nA vacuous pass only spends slots, so minor.",
+      "fix": "Either add B2 as a comparator, as G-geo did (S13's best positive-w_X inner score below both S11's selected score and B2's best inner score), or declare its omission in \u00a712. In A4, report the gate-equivalent synthetic rates (NULL 0/6, AN_SIGNAL 1/6), derived from S13 choices with w_X > 0."
+     },
+     "resolution": "inner part now requires S13's best positive-w_X score below both S11's selected and B2's best inner score; the synthetic gate-equivalent rate is reported"
+    },
+    {
+     "id": "controls-07",
+     "severity": "minor",
+     "file": "r4/slots_c.py",
+     "line": 55,
+     "title": "S16 uses 3 permutation draws: S13 > max(S16) passes 25% of the time under exchangeability",
+     "description": "With 3 draws, P(S13 > max(S16 draws)) = 1/4 per design when S13 is exchangeable with the draws, for example a selection-luck gain from the extra w_X knob. BP and BPG are strongly dependent. Blocks A and B used 5 draws for the analogous rules (slots_b.py l.45 N_DRAWS = 5; the S21 and S09 rules), which gives 1/6. The mean rule catches systematic gains that S16 reproduces, but not chance gains of S13 itself. The added cost is modest (RESOURCE_PLAN l.64: about 2.5 h per design for 3 draws).",
+     "suggested_fix": "Use 5 draws (seeds 20261323-27) to match the block A and B precedent, or declare the 25% exchangeable pass rate of this sub-rule in \u00a712.",
+     "verdict": {
+      "id": "controls-07",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "PERM_SEEDS holds 3 draws (slots_c.py l.55; PROTOCOL l.511), while slots_a.py l.49 and slots_b.py l.45 use N_DRAWS = 5. Under exchangeability, P(S13 > max of 3 draws) = 1/4 per design, against 1/6 with 5 draws, and BP and BPG are strongly dependent. NULL is exactly the exchangeable case. The mean rule does not tighten this much when the draws' mean gain is about 0 and S13 \u2212 S11 \u2265 0.005. The choice of 3 draws is declared, but its size under exchangeability is not.",
+      "fix": "Use 5 draws (seeds 20261323-27), as in blocks A and B, and update RESOURCE_PLAN (about 4 h per design). Otherwise declare in \u00a712 that this sub-rule passes about 25% of the time under exchangeability."
+     },
+     "resolution": "S16 uses 5 draws (seeds 20261323-27); the 1/6 chance rate is stated"
+    },
+    {
+     "id": "controls-08",
+     "severity": "minor",
+     "file": "report/r4_decide.py",
+     "line": 216,
+     "title": "The S14 rule withholds 'An attribution' when only selectivity is unshown",
+     "description": "PROTOCOL l.558-566 puts 'S13 - S14 > 0' inside the An(III) transfer claim, and failing any sub-rule gives 'An attribution not shown'. Suppose An information genuinely transfers and the naive shared head uses it equally well (as in AN_SIGNAL, where S14 sees the same An targets through the shared encoder). S15 and S16 would then pass, so An attribution is shown, but S14 makes the label read 'An attribution not shown'. The S14 contrast tests whether the private head beats naive sharing, which is a separate question from whether An labels help.",
+     "suggested_fix": "Split the label. S15 and S16 decide 'An attribution'; S14 decides a 'selective (private-head) transfer' sub-label, as S24 does for metal state. Seal the split before scoring.",
+     "verdict": {
+      "id": "controls-08",
+      "confirmed": false,
+      "reasoning": "Not a defect. The code (r4_decide.py l.216, l.243-247) matches PROTOCOL l.558-566 exactly. The bundling also follows the brief: \u00a76 frames S13 as 'selective transfer', compared against 'a deliberately naive shared raw-logD head' among the other controls, and \u00a710 says not to call a gain 'actinide transfer without the corresponding contrast'. Requiring S13 > S14 for the transfer label is therefore conservative and compliant.\n\nThe label text 'An attribution not shown' is coarse when S15 and S16 pass and only S14 fails. That is optional wording, not a broken rule. The real weakness of the S14 rule is its degeneracy when best_wl = 0, which controls-01 already covers.",
+      "fix": "Optional: when the S15 and S16 rules pass but S14 fails, word the label 'An information shown; selectivity over naive sharing not shown'. Seal this before scoring if adopted."
+     },
+     "resolution": "adopted as a design choice: S14 now decides a 'private-head selectivity' sub-label; the An(III) transfer claim rests on S11 / S15 / S16"
+    },
+    {
+     "id": "controls-09",
+     "severity": "minor",
+     "file": "PROTOCOL.md",
+     "line": 531,
+     "title": "S24's 'label-free count gate' was set after seeing the counts, and the stated rationale is incomplete",
+     "description": "RUN_RECORD (04:34) shows the >= 10%-in-every-fold threshold was introduced together with the observed minimum of 0.27%. With a median of 5.2% and a maximum of 13.4%, the outcome depends on the 'every fold' and 10% choices. The counts are label-free, so this is permissible, but \u00a712 presents the threshold as an independent gate without saying it was fixed with the counts known. The stronger reason for NOT RUN is architectural and is not stated: S13's metal one-hot enters only the private head, and the main head never sees An metal identity. So S13 contains no An-to-Ln metal-state mapping for any shuffle to break, whatever fraction of rows changes. The NOT RUN decision itself is justified.",
+     "suggested_fix": "In \u00a712, state that the threshold was set after the counts were known, and add the architectural reason. Keep the label 'metal-state specificity untested (not testable in this architecture with this An set)'.",
+     "verdict": {
+      "id": "controls-09",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "RUN_RECORD l.56 (04:34) records that S24 was 'moved behind a label-free count gate (min changed fraction 0.0027, gate >= 0.10 fails)' in the same step as the count. So the threshold was set with the counts known. PROTOCOL l.531-532 reports the counts as seen before the seal but does not say the threshold was chosen afterwards. This is permissible because the counts are label-free, but it should be disclosed.\n\nThe proposed architectural argument is overstated. Cycling metal labels within a series changes the private head's fitting residuals, and those back-propagate into the shared encoder h. A shuffle can therefore affect S13 in principle; it is not untestable 'whatever fraction of rows changes'. The NOT RUN decision is justified by the 90% Am composition.",
+      "fix": "In \u00a712, add one sentence: the 10% threshold was fixed after the label-free counts were known; the counts are label-free, so no outcome information was used. Keep the label 'metal-state specificity untested'. Do not add the architectural claim as worded."
+     },
+     "resolution": "section 12 states the threshold was fixed after the label-free counts were known"
+    },
+    {
+     "id": "controls-10",
+     "severity": "minor",
+     "file": "report/r4_decide.py",
+     "line": 251,
+     "title": "S13 stays finalist-eligible when its own falsification controls fail, contrary to \u00a76.6",
+     "description": "Sealed \u00a76.6 (PROTOCOL l.170) makes eligibility require 'their claim's falsification controls'. block_c() makes S11 and S13 eligible on criterion 1 alone, and \u00a712 l.572 does not reconcile the two. In block C this has a concrete effect. If S16 reproduces S13's gain over S11 (the An component is shown non-specific) and S13 - S11 >= 0.005, the tie rule still picks S13 over S11, so the finalist carries a component the control showed adds nothing An-specific. Block B has the same pattern, but there S05 had no control.",
+     "suggested_fix": "State in \u00a712 how \u00a76.6 applies. Either S13 is eligible only if the transfer rule passes, with S11 taking its place otherwise, or \u00a76.6's clause is explicitly read as 'claim label only', declared as an interpretation.",
+     "verdict": {
+      "id": "controls-10",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "\u00a76.6 (PROTOCOL l.170) makes eligibility require 'their claim's falsification controls'. block_c() makes S11 and S13 eligible on criterion 1 alone (r4_decide.py l.251), and \u00a712 l.572 does not reconcile the two. The project's interpretation is stated explicitly only for block A (l.300: failing a control 'downgrades the attribution, not criterion-1 eligibility'). \u00a711 and \u00a712 do not restate it.\n\nSmall correction to the finding: if S13 \u2212 S11 \u2265 0.005, S13 is chosen by the largest-\u0394R\u00b2 rule, not by the tie rule. The effect is as described: a finalist can carry an An component that S16 showed to be non-specific. This is a documentation gap, so minor.",
+      "fix": "In \u00a712, restate l.300's reading for block C: failing the transfer controls downgrades the label, not finalist eligibility. Alternatively, make S13 eligible only if the transfer rule passes, with S11 in its place otherwise. Seal the choice."
+     },
+     "resolution": "section 12 restates section 10's reading: failing a transfer control downgrades the label, not criterion-1 eligibility"
+    },
+    {
+     "id": "controls-11",
+     "severity": "minor",
+     "file": "PROTOCOL.md",
+     "line": 494,
+     "title": "Deviations from brief \u00a76 inherited from block B, and the unmatched tuning budget, are not declared for block C",
+     "description": "Brief \u00a76 says to train on hidden adjacent differences, to normalise weights per cell, and, in the Actinide-transfer paragraph, to 'preserve ... tuning budget when extra Ln or An is added'. Block C's main head reuses block B's pointwise level-residual target and per-unread-metal row weights (slots_c.py _main_rows l.71-76). \u00a711 declared these as deviations for block B (l.353-355); \u00a712 only says 'Its target is block B's' (l.467). S13 also selects over 6 network configurations (S11's 4, then 2 further w_X), against S11's 4. \u00a712 l.499 and l.571 acknowledge 'one more knob' but do not label it a deviation from the brief's 'preserve tuning budget'.",
+     "suggested_fix": "Add a 'Declared deviations from brief \u00a76' list to \u00a712 covering the pointwise target, the per-row weights and the unmatched tuning budget, mitigated by S15 and S16.",
+     "verdict": {
+      "id": "controls-11",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "The block-C main head reuses block B's pointwise level-residual target and B1's per-row weights (slots_c.py l.71-76; PROTOCOL l.467). \u00a711 l.353-355 declared both as deviations from brief \u00a76 (train on hidden adjacent differences; per-cell weight normalisation), but \u00a712 does not.\n\nOn tuning budget, S13 effectively searches B1, 3 w_Ln networks and 2 positive w_X values, against S11's 4 candidates. \u00a712 l.499 and l.571 acknowledge 'one more knob' without calling it a deviation. That part is weaker, because the brief itself requires the auxiliary weight to be tunable and allowed to be zero. Documentation only.",
+      "fix": "Add 'Declared deviations from brief \u00a76' to \u00a712: the pointwise level-residual target, B1's per-row weights (both inherited from \u00a711), and the one extra tuned knob (w_X), mitigated by the S15 and S16 rules."
+     },
+     "resolution": "section 12 declares the inherited deviations and the extra tuned knob; tie rules stated for S11 and S13/controls"
+    },
+    {
+     "id": "controls-12",
+     "severity": "minor",
+     "file": "r4/an_data.py",
+     "line": 51,
+     "title": "The 'verified, compatible-regime' An selection includes duplicates and synergistic mixtures, and calls nitrate 'the cohort's regime'",
+     "description": "Label-free counts on an3_records(): 14 rows are not gen19 MODEL tier (12 D_redundant_duplicate, 2 C_not_modelable); 115 rows are flagged in_value_conflict; 140 rows from 6 publications are two-extractant (synergistic) systems, which the encoder sees only through the primary SMILES. PROTOCOL l.440 calls nitrate 'the cohort's regime', but 92 non-HNO3 acid flags appear among the 521 cohort cells (HCl 53, H2SO4 16, carboxylic acids 23). Aqueous-complexant records are dropped because 'SANEX-type reversed selectivity is a different mechanism', yet 223 soft-N donor rows (the organic-phase SANEX ligands) are kept.",
+     "suggested_fix": "Restrict to g19_tier == 'MODEL' and n_organic_extractants == 1, or declare why they are kept. Correct the 'cohort's regime' wording. Give a rationale for keeping soft-N records while dropping complexant records. Recompute the label-free counts before sealing.",
+     "verdict": {
+      "id": "controls-12",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "I verified the label-free counts on an3_records():\n- 14 rows are g19_tier TARGET_ONLY (model_readiness: 12 D_redundant_duplicate, 2 C_not_modelable).\n- 115 rows have in_value_conflict == True. Some of these carry a record SMILES that differs from the archive consensus; for TPDGA, for example, the record is a malonamide while the consensus is a DGA.\n- 140 rows from 6 publications have n_organic_extractants == 2.\n- 223 rows are SOFT_N.\n- Among the 521 cohort cells, 92 have a non-HNO3 acid flag (HCl 53, H2SO4 16, carboxylic acids 22, HNO3+oxalic 1), so 'nitrate, the cohort's regime' (PROTOCOL l.440) is inaccurate. The cohort is about 82% HNO3.\n\nAn extra check: with the consensus SMILES, only 3 conflict rows (DMDOHEMA) would link to an extra chemotype (sc030), and that consensus is a cohort extractant. The leakage effect of the conflicts is therefore tiny. These are selection-quality and wording issues, so minor.",
+      "fix": "Restrict the An set to g19_tier == 'MODEL', in_value_conflict == False and n_organic_extractants == 1, or declare why each group is kept. Reword l.440 to say 'nitric acid, the cohort's majority regime (82% of cells)'. Give the rationale for keeping soft-N organic extractants: the cohort includes SOFT_N chemotypes. Recompute the counts before sealing."
+     },
+     "resolution": "an3_records filters g19_tier MODEL, no value conflict, one organic extractant; wording 'nitric acid, the cohort's majority regime'; soft-N organic extractants kept and justified"
+    },
+    {
+     "id": "controls-13",
+     "severity": "minor",
+     "file": "scripts/r4_run.py",
+     "line": 106,
+     "title": "Gate and route conditions are not enforced at run or decision time",
+     "description": "S13-S16 are registered (registry.py l.134-140) and r4_run.py runs them regardless of results/gate_c.json or the S13 route condition. block_c() then evaluates S13 and the controls without checking G_transfer_passes (r4_decide.py l.197-209). An accidental run would consume a slot ('count every outer-viewed variant') and be evaluated as if legitimate. There is also no runtime check that S13 equals S11 when S13's outer choice has w_X = 0, although the S13 - S11 contrast relies on it (only a unit test of train() covers it). The S11 label in code (l.249) omits the 'chemistry attribution untested' text that PROTOCOL l.557 requires.",
+     "suggested_fix": "In r4_run.py, refuse S13-S16 unless gate_c.json passes, and refuse S14-S16 unless blockC_decision shows run_controls. In block_c(), mark S13 'invalid (gate not passed)' if run without the gate. Add a per-fold identity check (S13 column == S11 column when choice w_X == 0) next to slot_identity_check. Align the S11 label text.",
+     "verdict": {
+      "id": "controls-13",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "Confirmed on three points:\n- registry.py l.132-140 registers S13-S16 unconditionally.\n- r4_run.py main() (l.98-192) never reads gate_c.json or blockC_decision.\n- block_c() evaluates S13 (r4_decide.py l.200) without checking G_transfer_passes.\nThe same holds in blocks A and B, where routes were enforced by the operator, so this is cheap robustness, not a defect.\n\nslot_identity_check only checks columns whose lambda is 'inf' against B1 (l.218-232). When S13 chooses w_X = 0, its choice is a dict, so there is no runtime check that S13 equals S11. Only the train()-level unit test covers it (test_slots_c.py l.108-123).\n\nThe S11 label sub-point is not confirmed. Code l.249 matches the quoted label at PROTOCOL l.557 exactly; 'Chemistry attribution is untested' is an explanatory sentence there, not part of the quoted label.",
+      "fix": "In r4_run.py, refuse S13 unless gate_c.json has G_transfer_passes, and refuse S14-S16 unless blockC_decision.json has run_controls. In block_c(), mark S13 'invalid (gate not passed)' when the gate failed. Extend the identity check so that the S13 column equals the S11 column exactly when the outer choice has w_X == 0."
+     },
+     "resolution": "r4_decide block_c enforces G-transfer (off-route S13 never eligible; controls need g_ok); S11 fallback from the S13 table; r4_run.block_c_route refuses off-route runs"
+    },
+    {
+     "id": "controls-14",
+     "severity": "minor",
+     "file": "scripts/r4_seal.py",
+     "line": 28,
+     "title": "The seal's evidence list has no block-C entries",
+     "description": "EVIDENCE (l.28-46) ends at the A3 files. The block-C items that \u00a712 says were seen before sealing (l.431, l.595: synthetic_c results, the S24 label-free counts, the block-C review record) would not be hashed if A4 were sealed with this list. results/synthetic_c/ is currently empty, and the S24 counts exist only as prose in PROTOCOL and RUN_RECORD.",
+     "suggested_fix": "Before the A4 seal: write the S24 per-fold changed fractions and the An counts to a results JSON; add results/synthetic_c/*.json, its SUMMARY and the block-C review JSON to EVIDENCE; then seal.",
+     "verdict": {
+      "id": "controls-14",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "EVIDENCE in scripts/r4_seal.py (l.28-46) ends with the A3 items and has no block-C entries. The inputs are covered: the An record and link digests are at l.120-127.\n\nresults/synthetic_c/ is no longer empty. It now holds 6 JSONs and SUMMARY.md, but none of them is listed. The S24 per-fold changed fractions (0.27%, 5.2%, 13.4%) exist only as prose in PROTOCOL and RUN_RECORD; no results file holds them. There is no block-C review JSON yet. Sealing A4 with this list would leave the pre-seal block-C evidence unhashed.",
+      "fix": "Before the A4 seal:\n- write the per-fold S24 changed fractions and An counts to a results JSON (label-free);\n- write the block-C review record JSON;\n- add results/synthetic_c/*.json, results/synthetic_c/SUMMARY.md, the counts JSON and the review JSON to EVIDENCE;\n- then seal."
+     },
+     "resolution": "EVIDENCE extended with the block-C pre-seal evidence (synthetic runs 2-3, counts, isolation_an, this review, test log); STAGE label A4"
+    }
+   ]
+  },
+  {
+   "lens": "consistency",
+   "findings": [
+    {
+     "id": "consistency-1",
+     "severity": "critical",
+     "file": "r4/leakage.py",
+     "line": 83,
+     "title": "Fit poisoning cannot compare block-C torch networks: deep_equal reports any two nets as identical",
+     "description": "deep_equal falls through to the `hasattr(a, '__dict__')` branch for torch objects. A torch Parameter/Tensor has an empty __dict__, so deep_equal(Parameter_a, Parameter_b) reduces to deep_equal({}, {}) == True and the weight values are never compared. I checked this directly: two `SC._Net` instances with different seeds (so different weights) give deep_equal(...) == True, and so do {'nets':[net0]} vs {'nets':[net1]}. A CatBoost control does differ, so block B is unaffected. For block C, the fit dict from slots_c._refit (r4/slots_c.py:396-398) carries the outer-refit networks under 'nets'. scripts/r4_poison.py:57 (`all(deep_equal(a[k], b[k]) ...)`) therefore certifies 'fit_identical' without ever looking at the refit weights, and those weights are what produce every held-out prediction. The check still sees choice, inner_scores, zstat, rstat and an_counts. But a leak into the outer refit of held-out Ln labels, or of any An record the fold excludes, would pass. That makes PROTOCOL \u00a78.2 ('the whole fitted chain must be bit-identical') and \u00a712's new An-record poisoning vacuous for the refit. The unit test also compares only choice and inner_scores (tests/test_slots_c.py:137), so it cannot catch this.",
+     "suggested_fix": "Before the __dict__ branch in deep_equal, add a branch for torch tensors and modules: compare tensors with `torch.equal` after detach().cpu(), together with dtype and shape, or compare each module's state_dict() key by key. Add a unit test asserting deep_equal(_Net(0,16), _Net(1,16)) is False, and one asserting that the poisoned and real block-C fits have bit-identical nets on one fold.",
+     "verdict": {
+      "id": "consistency-1",
+      "confirmed": true,
+      "severity": "major",
+      "reasoning": "I reproduced this. In r4/leakage.py:83-84, the deep_equal fallthrough calls vars() on torch objects. vars(Parameter) is {}, so any two Parameters compare equal. I ran a check: SC._Net(0,16) and SC._Net(1,16) have different weights (torch.equal is False), yet deep_equal(net_a, net_b) is True, deep_equal({'nets':[a]},{'nets':[b]}) is True, and even deep_equal(torch.zeros(3), torch.ones(3)) is True. r4/registry.py:172-175 stores SCc.fit_slot's _refit dict under the 'c:<arm>' key, and that dict carries 'nets' (r4/slots_c.py:396-398). scripts/r4_poison.py:57 therefore never compares the outer-refit weights. Those weights are the only learned part of every block-C held-out prediction. The new An poisoning (r4_poison.py:43-56) and the Ln label poisoning are caught only if they move inner_scores, choice, b1, zstat, rstat, an_counts or n_rows. A leak confined to the refit would be certified 'ALL IDENTICAL': for example, _refit passing the unexcluded An set, or the refit reading poisoned label values. an_counts would not reveal that either, because it is computed from an_fold regardless of what the refit used. The unit test (tests/test_slots_c.py:137) also checks only choice and inner_scores. I found no actual leak in the current _refit, which uses tr_all and an_fold correctly. Under the given rubric this is a control that cannot do its job (major), not a demonstrated leak. It must still be fixed before any block-C poison result is sealed or cited.",
+      "fix": "In r4/leakage.deep_equal, add a tensor branch before the __dict__ branch. Example without a hard torch import: if hasattr(a, 'detach') and hasattr(a, 'numpy'): return type(a) is type(b) and a.dtype == b.dtype and tuple(a.shape) == tuple(b.shape) and np.array_equal(a.detach().cpu().numpy(), b.detach().cpu().numpy(), equal_nan=True). Modules then recurse through vars() -> _parameters -> tensors. Alternatively, compare each net's state_dict() key by key. Add unit tests asserting that deep_equal(_Net(0,16), _Net(1,16)) is False, and that the real and poisoned block-C fits of one fold have deep_equal nets (with the test's shortened schedule and a forced positive cfg)."
+     },
+     "resolution": "r4/leakage.deep_equal compares torch tensors by value; fits also store net_state (numpy); tests: deep_equal on different nets is False; refit poison invariance with a leak positive control"
+    },
+    {
+     "id": "consistency-2",
+     "severity": "major",
+     "file": "scripts/r4_seal.py",
+     "line": 123,
+     "title": "r4_seal.py does not parse (literal CR LF inside a string), so sealing, verifying and every round-4 run fail",
+     "description": "Line 123 reads `lineterminator=\"` followed by a real CR LF and then `\").encode()` on line 124. The `\\n` escape was turned into an actual line break. ast.parse raises 'SyntaxError: unterminated string literal (detected at line 123)'. Every other round-4 .py file parses. As a result, `r4_seal.py --seal` and `--verify` cannot run. r4_run.seal_tag (scripts/r4_run.py:90-92) does `import r4_seal`, so every own configuration (S11, S13, ...) aborts before any fit. This fails loudly rather than silently, but block C cannot be sealed or run until it is fixed. It also blocks the new An-input digests (an3_records_sha256, an3_links_sha256, an3_counts) that DATA_CONTRACT 'Block C data / Sealed inputs' promises.",
+     "suggested_fix": "Restore `lineterminator=\"\\n\"` (an escaped newline) on one line. Then run `python -c \"import ast; ast.parse(open(p).read())\"` over scripts/ and r4/ before resealing. An encoding check of the edited CRLF files would also help (slots_c.py, r4_decide.py, r4_gate_c.py, r4_poison.py, r4_synthetic_c.py, test_slots_c.py are CRLF, unlike the rest).",
+     "verdict": {
+      "id": "consistency-2",
+      "confirmed": true,
+      "severity": "major",
+      "reasoning": "Confirmed from the bytes. In scripts/r4_seal.py, line 123 ends with `lineterminator=\"` and line 124 is `\").encode()).hexdigest()`. A real CRLF sits inside the string literal, while line 99 correctly has the escaped `\\n`. ast.parse fails with 'unterminated string literal (detected at line 123)'. Every other r4/, scripts/, report/ and tests/ .py file parses. r4_run.seal_tag (scripts/r4_run.py:90-92) imports r4_seal for every own configuration before any fit (line 110), so --seal, --verify and every scored block-C run abort. The failure is loud, not silent, so major rather than critical.",
+      "fix": "Rewrite lines 123-124 as one line: out[\"an3_records_sha256\"] = hashlib.sha256(an.to_csv(index=False, lineterminator=\"\\n\").encode()).hexdigest(). Then run ast.parse over r4/, scripts/, report/ and tests/ before resealing."
+     },
+     "resolution": "fixed (chr(10)); every round-4 .py parses; files normalised to LF"
+    },
+    {
+     "id": "consistency-3",
+     "severity": "major",
+     "file": "scripts/r4_seal.py",
+     "line": 28,
+     "title": "Seal evidence list and stage label not extended for A4, so block C's pre-seal evidence would not be sealed",
+     "description": "The EVIDENCE tuple (lines 28-46) is the A3 list unchanged. It contains no block-C pre-seal evidence. In A1 and A2 the synthetic results and review JSON were added: synthetic_a/*, blockA_review.json, synthetic_b/*, blockB_review.json. Missing here are results/synthetic_c/*.json (the study PROTOCOL \u00a712 line 597 says A4 summarises), the block-C pre-seal review output, and the A4 test log (results/logs/tests_a4_pre.log). After the A4 seal these files could be regenerated or edited without verify() noticing. STAGE (line 138) still reads 'stage 1 close-out (amendment A3) ... final statuses', so the A4 manifest would carry the A3 label.",
+     "suggested_fix": "Before resealing, add the block-C evidence paths to EVIDENCE: synthetic_c result JSONs (and a SUMMARY.md if one is written), results/blockC_review.json or equivalent, and the A4 test log. Update STAGE to an A4 label, e.g. 'stage 1 block C (amendment A4): S11, S13-S16 sealed; S24 NOT RUN on its count gate'.",
+     "verdict": {
+      "id": "consistency-3",
+      "confirmed": true,
+      "severity": "major",
+      "reasoning": "Confirmed. EVIDENCE (scripts/r4_seal.py:28-46) ends with the A3 items and has no block-C entries. A1 and A2 each added their synthetic study outputs and pre-seal review JSON (synthetic_a/*, blockA_review.json, synthetic_b/*, blockB_review.json). STAGE (line 138) still carries the A3 close-out text. The whole round-4 directory is untracked in git (`?? generations/gen21/round4_20261022/`), so the seal is the only integrity mechanism for pre-seal evidence. Without the additions, the block-C synthetic results and the review could change after the A4 seal and verify() would not notice. Two caveats. First, results/synthetic_c/ is currently empty and the review is ongoing, so these paths cannot be added until the files exist (build() would fail on missing paths). This is a must-do before sealing, not a bug in sealed code. Second, earlier stages never sealed a tests log, so the A4 test log is optional rather than required by precedent. STAGE is informational only; verify() does not compare it.",
+      "fix": "Once the files exist, and before running --seal, append an '# amendment A4: block-C pre-seal evidence' group to EVIDENCE: the results/synthetic_c/*.json outputs and their SUMMARY.md, the block-C review JSON (e.g. results/blockC_review.json), and optionally results/logs/tests_a4_pre.log. Set STAGE to an A4 label, e.g. 'stage 1 block C (amendment A4): S11, S13-S16 sealed; S24 NOT RUN on its count gate'."
+     },
+     "resolution": "EVIDENCE extended with the block-C pre-seal evidence (synthetic runs 2-3, counts, isolation_an, this review, test log); STAGE label A4"
+    },
+    {
+     "id": "consistency-4",
+     "severity": "minor",
+     "file": "AMENDMENTS.md",
+     "line": 276,
+     "title": "No A4 entry exists, although PROTOCOL \u00a712 relies on it and r4_seal --seal requires it",
+     "description": "PROTOCOL \u00a712 says three times that A4 lists the results seen and summarises the synthetic study (lines 427, 431, 597), but AMENDMENTS.md ends at A3. r4_seal.main refuses to reseal unless AMENDMENTS.md contains the old seal prefix '7c8b2f043ede', which it does not yet contain. RUN_RECORD also records a design change made after seeing label-free counts, which A4 must declare: synthetic run 1 was stopped at 04:34, S15 and S16 were rebuilt, and S24 was moved behind a count gate. \u00a712 line 431 lists the quantities seen but does not mention this redesign.",
+     "suggested_fix": "Write A4 before sealing. Name the superseded seal 7c8b2f043ede. List every result seen: label-free counts, the one-fold technical smoke inner scores, the synthetic runs 1 (stopped) and 2, the A4 tests and this review. Declare the label-free-count-driven redesign of S15, S16 and S24.",
+     "verdict": {
+      "id": "consistency-4",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "Confirmed. AMENDMENTS.md ends with A3 (heading at line 276) and does not contain '7c8b2f043ede', so r4_seal.main (lines 180-185) refuses to reseal. PROTOCOL \u00a712 refers to A4 at lines 431 and 597. RUN_RECORD 04:34 records that synthetic run 1 was stopped, S15/S16 were rebuilt and S24 was moved behind a count gate, all after label-free counts. \u00a712 line 431 lists the quantities seen but not this redesign. The redesign happened before block C was sealed and used only label-free counts, so it is legitimate, but the brief requires every amendment to list the results seen. The seal script itself enforces that A4 exists, which is why this is minor: it is a to-do with a substantive content requirement.",
+      "fix": "Write A4 before sealing. Name the superseded seal 7c8b2f043ede. List the results seen: label-free counts, the one-fold technical-smoke inner scores, synthetic runs 1 (stopped, no output) and 2, the A4 tests and this review. Declare that S15, S16 and S24 were redesigned after label-free counts (stated in RUN_RECORD at 04:34), and that S24 was moved behind its count gate."
+     },
+     "resolution": "AMENDMENTS A4 written before the seal, naming 7c8b2f043ede, listing all results seen and the redesigns"
+    },
+    {
+     "id": "consistency-5",
+     "severity": "minor",
+     "file": "PROTOCOL.md",
+     "line": 521,
+     "title": "Several label-free counts quoted in \u00a712 do not match a recomputation",
+     "description": "I recomputed all 50 dev fold-fits with r4.an_data and slots_c._matched_rows on the outer training set. These match exactly: totals of 1,839 rows, 41 publications and 116 extractants; metals Am 1,590 / Cm 122 / Pu 118 / Cf 9; minimum 13 publications after exclusions; S24 changed fraction min 0.27%, median 5.2%, max 13.4%. These do not match:\n- Post-exclusion extractants are 80-109, not 'about 80-100' (lines 463 and 521). The maximum of 109 is BP/BPG 155921 fold 0.\n- The Am(III) share is 82-91%, not '90%' (line 463).\n- The fold's training-Ln extractant count is 36-74, not 36-73 (line 521).\n- S15 reaches 36-72 distinct extractants, not 39-67 (line 521). For example, BPG 104729 fold 0 gives 36 and BP/BPG 155921 fold 0 gives 72.\nPost-exclusion rows span 645-1,728.",
+     "suggested_fix": "Replace the ranges with the recomputed ones (80-109 extractants, Am 82-91%, training-Ln extractants 36-74, S15 36-72 distinct extractants). Better still, write them to a sealed label-free counts JSON produced by a script, and cite that file.",
+     "verdict": {
+      "id": "consistency-5",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "I recomputed all 50 dev fold-fits with r4.an_data.fold_an and slots_c._matched_rows (label-free counts only). Pre-exclusion totals are 1,839 rows, 41 publications and 116 extractants (Am 1,590, Cm 122, Pu 118, Cf 9). After exclusions: rows 645-1,728, publications 13-38, copy groups 12-34, extractants 80-109 (max BP/BPG 155921 fold 0). The Am share is 0.82-0.91 (pre-exclusion 86.5%). Training-Ln extractants are 36-74. S15 reaches 36-72 distinct extractants (BPG 104729 fold 0 = 36; 155921 fold 0 = 72). The S24 changed fraction is min 0.27%, median 5.2%, max 13.4%. These match the reviewer exactly. \u00a712 states 'about 80-100' extractants and '90%' Am at lines 463 and 532, and '36-73' and '39-67' at line 521. No gate outcome changes.",
+      "fix": "Use the recomputed ranges: extractants 80-109, Am 82-91% (86% before exclusions), training-Ln extractants 36-74, S15 36-72. Preferably have r4_gate_c.py, which already loops over all 50 fold-fits, write these label-free counts to a sealed JSON, and cite that file."
+     },
+     "resolution": "section 12 quotes results/blockC_counts.json (all 50 fold-fits) after the A4 filters"
+    },
+    {
+     "id": "consistency-6",
+     "severity": "minor",
+     "file": "PROVENANCE.md",
+     "line": 113,
+     "title": "Sealed PROVENANCE.md (and REPORT.md) state An(III) counts and a count-gate pass under a different record definition",
+     "description": "PROVENANCE.md (a sealed DOCS item) defines An(III) without \u00a712's filters: no nitrate-only rule, complexant series kept, no ionic-liquid exclusion, no chemotype-link exclusion, and test cells only rather than all non-training cells. Under that definition it reports 2,009 rows / 36 publications / 116 extractants (line 71). It then says G-transfer An(III) 'PASSES the count thresholds (minimum over folds: 19 publications, 95 extractants, 918 rows)' (lines 72 and 113), and REPORT.md:40 repeats '19 or more publications and 95 or more An(III) extractants'. Under \u00a712's sealed definition the minima are 13 publications, 80 extractants and 645 rows. \u00a712 does not say that the PROVENANCE figures are superseded, so A4 would reseal two contradictory gate statements.",
+     "suggested_fix": "In \u00a712 (Data or Gate G-transfer) and in A4, state that PROVENANCE.md's An(III) inventory used the stage-1 provenance definition and is superseded for block C by r4/an_data.py and results/gate_c.json. Optionally add a one-line forward pointer in PROVENANCE.md, recorded as an amendment.",
+     "verdict": {
+      "id": "consistency-6",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "Confirmed. PROVENANCE.md:71-72 gives 2,009 rows / 36 publications / 116 extractants and post-exclusion minima of 19 publications / 95 extractants / 918 rows. PROVENANCE.md:113 says G-transfer An(III) 'PASSES the count thresholds' with those minima. REPORT.md:40 and AMENDMENTS A3 repeat that the count gate passes. Those figures come from a different record definition: no nitrate, complexant or ionic-liquid filters, and no chemotype links (PROVENANCE itself says chemotype isolation is 'Not done'). Under \u00a712's definition the minima are 13 / 80 / 645. \u00a712 does not say the PROVENANCE inventory is superseded, though it does cite PROVENANCE for S12 at line 514. Both statements still say 'passes', so no gate outcome conflicts, only the figures. Minor.",
+      "fix": "In \u00a712 (Data or Gate G-transfer) and in A4, state that PROVENANCE.md's An(III) inventory and count-gate figures used the stage-1 provenance definition and are superseded for block C by r4/an_data.py and results/gate_c.json. Update REPORT.md's An sentence when block C is reported."
+     },
+     "resolution": "PROVENANCE.md annotated as superseded for block C; section 12 and DATA_CONTRACT say so; REPORT.md updated when block C is reported"
+    },
+    {
+     "id": "consistency-7",
+     "severity": "minor",
+     "file": "PROTOCOL.md",
+     "line": 32,
+     "title": "\u00a70 block list and \u00a77 allocation still put S24 with S23; the move is declared only inside \u00a712",
+     "description": "\u00a70 item 1 (line 32) still lists the blocks as '..., S11\u2013S16, S17\u2013S18, S19\u2013S20 and S23\u2013S24'. \u00a77 Allocation (line 194) still reads 'S23\u2013S24: additional controls', and \u00a77 G-transfer (line 201) still includes S24 with no mention of its separate count gate. A1 and A2 annotated these lines in place ('A1 moved S21 here, see \u00a710'; 'S22: ... (amendment A2, \u00a711)'). A4 declares the change only in \u00a712 (lines 574-577), so \u00a70 and \u00a77 read as contradicting \u00a712.",
+     "suggested_fix": "Annotate \u00a70 line 32 ('S11\u2013S16 + S24 (block C; A4 moved S24 here, see \u00a712), ..., S23') and \u00a77 lines 194 and 201 ('S24: metal-state control of block C (A4, \u00a712), with its own label-free count gate'), as was done for S21 and S22.",
+     "verdict": {
+      "id": "consistency-7",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "Confirmed. PROTOCOL \u00a70 item 1 (line 32) still lists blocks '..., S11\u2013S16, S17\u2013S18, S19\u2013S20 and S23\u2013S24', with in-place A1/A2 notes for S21 and S22 but none for S24. \u00a77 Allocation still reads 'S23\u2013S24: additional controls'. \u00a77 G-transfer reads '(S12\u2013S16, S24)' with no mention of S24's separate count gate. \u00a712 lines 574-577 explicitly declare the amendment of \u00a70/\u00a77, so this is a declared change, not an undeclared contradiction. It departs from the A1/A2 precedent of annotating in place, so a reader of \u00a70/\u00a77 alone is misled. Clarity only.",
+      "fix": "Annotate in place as in A1/A2: \u00a70 line 32 'S11\u2013S16 + S24 (block C; A4 moved S24 here, see \u00a712), ..., S23'. \u00a77 allocation: 'S23: additional control; S24: metal-state control of block C (A4, \u00a712)'. \u00a77 G-transfer: note S24's own label-free count gate (\u00a712)."
+     },
+     "resolution": "section 0 and section 7 annotated in place (S24 moved to block C; copy groups; S13 vs S11 and B2; S24 count gate)"
+    },
+    {
+     "id": "consistency-8",
+     "severity": "minor",
+     "file": "scripts/r4_gate_c.py",
+     "line": 47,
+     "title": "G-transfer count part counts distinct publication ids, while \u00a77 requires independent publications",
+     "description": "PROTOCOL \u00a77 (line 202) requires '\u2265 5 independent publications'. \u00a712 (line 537) says '\u2265 5 publications', and the gate uses an_data.counts(), i.e. an.publication.nunique() over gen19 publication ids. Publications in one gen19 copy group are not independent. Recomputed: the An set has 41 publications in 37 copy groups, and the minimum over folds is 13 publications / 12 copy groups, so the gate outcome does not change. The code still does not implement the wording of the sealed \u00a77 rule.",
+     "suggested_fix": "Count copy groups (an.copy_group.nunique()) for the 'independent publications' threshold, or report both. Alternatively, amend \u00a77's wording in \u00a712 to 'distinct gen19 publications'.",
+     "verdict": {
+      "id": "consistency-8",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "Confirmed. PROTOCOL \u00a77 requires '\u2265 5 independent publications'. scripts/r4_gate_c.py:47 takes the minimum of an_data.counts()['publications'], which is an.publication.nunique() over gen19 publication ids (an_data.py:127). an3_records carries copy_group, and in this project copy groups are what define non-independence. Recomputed: 41 publications in 37 copy groups. The minimum over folds is 13 publications / 12 copy groups, so the gate outcome is unchanged. \u00a712 line 537 silently drops 'independent', and \u00a712's amendment list does not declare that change.",
+      "fix": "Have counts() also report copy_group.nunique(), and gate the publication threshold on copy groups in r4_gate_c.py (still passes at 12). Or declare in \u00a712's amendment list that 'independent publications' is operationalised as distinct gen19 publication ids."
+     },
+     "resolution": "count part gates on gen19 copy groups (min 12)"
+    },
+    {
+     "id": "consistency-9",
+     "severity": "minor",
+     "file": "RESOURCE_PLAN.md",
+     "line": 68,
+     "title": "Block C allows 6 parallel processes at 1.5 GB each on a 7.9 GB machine, contradicting the same document",
+     "description": "The block C section says 'At most 6 parallel processes (12 cores; torch single-threaded; RAM about 1.5 GB each)', which is 9 GB. The Machine section of the same file records 'RAM: 7.9 GB. Keep about 1 GB free, so at most 3 parallel fold jobs' and '6 cores / 12 threads' (lines 5-6), and RESUME.md says 'Never more than 3 parallel jobs (RAM)'. The synthetic study already ran with 6 processes (RUN_RECORD 04:36).",
+     "suggested_fix": "Either measure the per-process RSS and state a cap that fits in about 6.9 GB, or keep the cap at 3 parallel jobs. Change '12 cores' to '6 cores / 12 threads'.",
+     "verdict": {
+      "id": "consistency-9",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "Confirmed. RESOURCE_PLAN.md:68 allows 'At most 6 parallel processes (12 cores; ...; RAM about 1.5 GB each)', which is about 9 GB. The same file's Machine section (lines 5-6) records 6 cores / 12 threads and 7.9 GB RAM with 'at most 3 parallel fold jobs', and RESUME.md:34 says 'Never more than 3 parallel jobs (RAM)'. RUN_RECORD 04:36 shows synthetic run 2 used 6 processes. This is an internal inconsistency in a sealed document; it does not affect results.",
+      "fix": "Measure per-process RSS for a block-C fit and state a cap that fits in about 6.9 GB, or keep 3. Change '12 cores' to '6 cores / 12 threads'."
+     },
+     "resolution": "RESOURCE_PLAN: measured 0.45-0.6 GB per block-C process; 6 cores / 12 threads; 3-job cap kept for blocks A/B jobs"
+    },
+    {
+     "id": "consistency-10",
+     "severity": "minor",
+     "file": "tests/test_slots_c.py",
+     "line": 48,
+     "title": "\u00a712 says the union exclusions are tested on every fold and inner block; the test covers 10 of 50 fold-fits and 2 inner sets",
+     "description": "PROTOCOL \u00a712 Tests (lines 588-590) says the tests cover 'the union exclusions on every fold (and on inner blocks)'. test_union_exclusions_on_every_fold loops over folds_for(..., seeds=[130363]) only, which is 10 of the 50 dev fold-fits. It checks inner blocks only for fold 0 of that seed (line 64), i.e. 2 fold-fits. The inner check asserts publication, extractant and chemotype but not copy group (lines 70-72). Brief \u00a78.1 asks for machine-checkable overlap tables that include auxiliary data, but no isolation artefact for An records over all 50 folds exists (results/leakage/isolation_*.csv covers Ln cells only).",
+     "suggested_fix": "Either run the exclusion assertions over all five dev seeds and every inner block, including copy group, or reword \u00a712. Ideally have r4_gate_c.py (which already loops over all 50 fold-fits) write per-fold and per-inner-block An overlap counts (publication, copy group, extractant, linked chemotype) to results/leakage/isolation_an_<design>.csv.",
+     "verdict": {
+      "id": "consistency-10",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "Confirmed. tests/test_slots_c.py:52 loops folds_for(..., seeds=[130363]) only, which is 10 of 50 dev fold-fits (5 seeds \u00d7 5 folds \u00d7 2 designs; my recount found 50). Inner blocks are checked only for fold 0 of that seed (line 64), i.e. 2 fold-fits. The inner assertions (lines 69-72) cover the subset, publication, extractant and linked chemotype, but not copy group. PROTOCOL \u00a712 lines 588-589 claim 'the union exclusions on every fold (and on inner blocks)'. results/leakage/isolation_*.csv come from r4/leakage.isolation_rows, which uses only bench.frame (Ln cells), so no An overlap artefact exists. The exclusion code itself looks correct; the gap is in test coverage versus the stated claim.",
+      "fix": "Loop over paths.DEV_SEEDS and every inner block, adding a copy-group assertion for inner blocks. Or reword \u00a712 to state the tested subset. Preferably have r4_gate_c.py write per-fold and per-inner-block An overlap counts (publication, copy group, extractant, linked chemotype) to results/leakage/isolation_an_<design>.csv and seal that file."
+     },
+     "resolution": "test_union_exclusions_on_every_fold_and_inner_block covers all 50 fold-fits and 198 inner blocks with copy groups; r4_gate_c --counts writes results/leakage/isolation_an.csv (0 overlaps in 248 checks)"
+    },
+    {
+     "id": "consistency-11",
+     "severity": "minor",
+     "file": "report/r4_decide.py",
+     "line": 196,
+     "title": "block_c reads gate_c.json but never uses it to gate S13",
+     "description": "\u00a712 run order says S13 runs only if G-transfer passes, and that S11 is otherwise the only block-C slot scored. block_c() copies G_transfer into its output but evaluates S13 whenever predictions/S13_*.parquet exist (line 200). It can then mark S13 finalist-eligible (line 251) and run the transfer rule even if G_transfer_passes is False. Neither the runner nor the decision evaluator turns the gate into a mechanical route flag, unlike block A's run_S03_S04 and block B's run_S09_S22 / run_encoder_S07_S10.",
+     "suggested_fix": "Add out['run_S13'] = G_transfer_passes. If S13 predictions exist while the gate failed, label S13 'NOT RUN (gate failed; off-route run)' and exclude it from finalist_eligible, or raise an error.",
+     "verdict": {
+      "id": "consistency-11",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "Confirmed. The docstring of report/r4_decide.py block_c (lines 189-190) says S13 runs only if G-transfer passed, but the code reads gate_c.json only to copy it (lines 196-199) and for the S24 sub-gate. slot_eval('S13') is evaluated whenever predictions exist (line 200). S13 can enter finalist_eligible (line 251), and run_controls (line 209) ignores G_transfer. Neither scripts/r4_run.py nor registry.py checks any gate (grep finds none). An off-route S13 run would therefore be scored and labelled like an on-route one. This is a mechanical rule the evaluator does not enforce, and it relies on operator discipline. Minor.",
+      "fix": "In block_c, set g_ok = isinstance(out['G_transfer'], dict) and out['G_transfer'].get('G_transfer_passes') is True and out['run_S13'] = g_ok. If S13 predictions exist while not g_ok, label S13 'NOT RUN by gate (off-route run present)' and exclude it from finalist_eligible and the transfer rule; also require g_ok for run_controls."
+     },
+     "resolution": "r4_decide block_c enforces G-transfer (off-route S13 never eligible; controls need g_ok); S11 fallback from the S13 table; r4_run.block_c_route refuses off-route runs"
+    },
+    {
+     "id": "consistency-12",
+     "severity": "minor",
+     "file": "r4/an_data.py",
+     "line": 51,
+     "title": "'Verified An(III) records' include 12 non-canonical duplicate rows and 14 rows that are not model-ready",
+     "description": "an3_records() filters on metal, oxidation state, acid anion, complexant, ionic-liquid diluent and log D, but not on the gen19 tier or is_canonical_row. Among the 1,839 rows, 12 have is_canonical_row == False (class A/B duplicate members) and 14 are g19_tier TARGET_ONLY rather than MODEL. PROTOCOL \u00a712 (line 433) and DATA_CONTRACT call the set 'verified An(III) extraction records'. Brief \u00a75 asks that duplicated transcriptions be grouped with their parents and not treated as independent. The impact is small: weights are per publication, and duplicates mostly fall in the same publication.",
+     "suggested_fix": "Either filter to g19_tier == 'MODEL' (or is_canonical_row) and update the quoted counts, or declare in \u00a712 and DATA_CONTRACT that duplicate-class and non-model-ready rows are kept, with the counts (12 and 14).",
+     "verdict": {
+      "id": "consistency-12",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "Confirmed, with one correction. Among the 1,839 an3_records rows, is_canonical_row is False for 12: all are duplicate_class A_EXACT_DATABASE_DUPLICATE (8) or B_SAME_MEASUREMENT_DIFF_PROV (4), with model_readiness D_redundant_duplicate. g19_tier is TARGET_ONLY for 14 rows: those 12 plus 2 C_not_modelable rows. So there are 14 non-MODEL rows in total, of which 12 are duplicates; the finding's '12 and 14' are overlapping sets, not separate. an_data.an3_records (lines 51-55) filters on neither flag. \u00a712 and DATA_CONTRACT call the set 'verified', and the brief asks that duplicated transcriptions be grouped with their parents. Per-publication weights limit the impact, but a duplicated measurement still counts twice inside its publication.",
+      "fix": "Filter an3_records to is_canonical_row (or g19_tier == 'MODEL', which also drops the 2 not-modelable rows) and update the quoted counts, recomputing all derived counts and gates. Or declare in \u00a712 and DATA_CONTRACT that 12 duplicate-member rows and 2 not-modelable rows are kept."
+     },
+     "resolution": "an3_records filters g19_tier MODEL, no value conflict, one organic extractant; wording 'nitric acid, the cohort's majority regime'; soft-N organic extractants kept and justified"
+    },
+    {
+     "id": "consistency-13",
+     "severity": "minor",
+     "file": "PROTOCOL.md",
+     "line": 467,
+     "title": "\u00a712 omits block B's declared deviations and the S13/control tie rule",
+     "description": "\u00a712 trains the main head on 'block B's' pointwise level residual at unread metals, with B1-convention row weights (cell weight / masks). \u00a711 declared both as deviations from brief \u00a76, which asks for training on hidden pair differences with per-cell normalisation. \u00a712 does not restate or inherit those deviations for S11 and S13. \u00a712 also states a tie rule for S11 (line 496) but none for S13 and the controls. The code (r4/slots_c.py:383) breaks ties toward B1, then toward the smaller w_X.",
+     "suggested_fix": "Add to \u00a712: 'Declared deviations from brief \u00a76 (as in \u00a711): pointwise level-residual target, tuned by pair loss; B1-convention row weights.' Also add: 'S13 and controls: ties go to B1, then to the smaller w_X.'",
+     "verdict": {
+      "id": "consistency-13",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "Confirmed. The brief (CLAUDE_CODE_PROMPT.md line 92) asks to train directly on hidden strict-adjacent differences and to normalise weights per original cell. \u00a711 (PROTOCOL lines 353-355) declared both departures for block B. \u00a712 lines 467-470 reuse 'block B's' pointwise level residual with B1's masks and weights (slots_c._main_rows uses per-situation s['w']), but does not restate or inherit the declared deviations. \u00a712 states a tie rule for S11 (line 496) and none for S13 or the controls. The code (slots_c.py:383) breaks ties toward 'zero' (B1), then toward list order, i.e. the smaller w_X. The code is consistent; the sealed text is incomplete.",
+      "fix": "Add to \u00a712 Model: 'Declared deviations from brief \u00a76 (as in \u00a711): pointwise level-residual target, only the weights tuned by pair loss; B1-convention row weights (cell weight / masks), not per-cell normalisation.' Add to Selection: 'S13 and controls: ties go to B1, then to the smaller w_X.'"
+     },
+     "resolution": "section 12 declares the inherited deviations and the extra tuned knob; tie rules stated for S11 and S13/controls"
+    },
+    {
+     "id": "consistency-14",
+     "severity": "minor",
+     "file": "scripts/r4_synthetic_c.py",
+     "line": 60,
+     "title": "Synthetic latent property in code differs from its description in PROTOCOL \u00a712",
+     "description": "PROTOCOL \u00a712 (line 598) defines u = tanh(1.5 \u00b7 PC1) \u00b7 sign(PC2). The code uses tanh(1.5 \u00b7 PC1 / sd(PC1)) \u00b7 sign(PC2) (line 60), i.e. a standardised PC1, which changes how saturated u is. The An metal offsets (Am 0, Cm 0.1, Pu \u22120.3, Cf 0.2; line 50) are also not stated in \u00a712. Separately, the an_data module docstring (lines 13-14) says inner blocks exclude only against inner-validation cells, while the code (inner_an) and \u00a712 exclude against all outer-training cells outside the inner-training set.",
+     "suggested_fix": "Change \u00a712 to 'tanh(1.5 \u00b7 PC1/sd(PC1)) \u00b7 sign(PC2)' and list the metal offsets. Align the an_data.py docstring with inner_an's actual rule.",
+     "verdict": {
+      "id": "consistency-14",
+      "confirmed": true,
+      "severity": "minor",
+      "reasoning": "Confirmed. scripts/r4_synthetic_c.py:60 computes u = tanh(1.5\u00b7pc1/std(pc1))\u00b7sign(pc2). PROTOCOL \u00a712 line 598, and the script's own docstring (line 6), say tanh(1.5\u00b7PC1)\u00b7sign(PC2). The metal offsets (Am 0, Cm 0.1, Pu \u22120.3, Cf 0.2; line 50) appear in the script docstring but not in \u00a712 line 601. The an_data.py module docstring (lines 13-14) says inner blocks exclude against their inner-validation cells. inner_an (lines 116-123), its own docstring, \u00a712 line 461 and DATA_CONTRACT all exclude against every outer-training cell outside the inner-training set, which is the stricter rule. These are documentation mismatches only.",
+      "fix": "Change \u00a712 line 598 and r4_synthetic_c.py line 6 to 'tanh(1.5 \u00b7 PC1/sd(PC1)) \u00b7 sign(PC2)', and list the metal offsets in \u00a712. Change an_data.py lines 13-14 to 'Inner blocks apply the same rule again against the outer-training cells outside the block's inner-training set.'"
+     },
+     "resolution": "synthetic latent formula, offsets and inner-exclusion wording corrected in code and section 12"
+    }
+   ]
+  }
+ ],
+ "n_findings": 40,
+ "n_confirmed": 38
+}
