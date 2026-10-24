@@ -1,0 +1,250 @@
+# Run record (round 5; append-only, UTC)
+
+One line per run start and end, and per seal. Everything before the Stage-0 seal is pre-seal construction (no round-5 score).
+
+- 2026-10-24T04:40:13+00:00 START round 5 (user: "seal the Stage-0 conventions per CLAUDE_CODE_PROMPT.md, then run the Stage-1 E-CT and descriptive deliverables. Don't commit."). State: branch gen21-logsf-target, HEAD b96b0fc; untracked round4_20261022/ and round5_design_20261023/ (pre-existing); round-4 seal VERIFIED 5bacfe4cdcfc...; round-3 freeze_seal 93d3839a256c, freeze_manifest LF digest ok, 78/78 code files match their LF digests.
+- 2026-10-24T04:40:13+00:00 created round5_20261024/ (r5/, scripts/, tests/, results/, manifests/, cache/_inner); copied DATA_REQUESTS.md to DATA_REQUEST.md (Stage-0 deliverable).
+- 2026-10-24T04:42:20+00:00 START Stage-0 build workflow wf_b941fb7d-d2c (core library + r5_seal, beta_frozen + external DOPT_Q, duplicate scan + E-CT population counts + supply ledger, size gates + power in worlds, then Stage-1 item code in three batches; no round-5 scores). Data requests U1-a..U1-i, U5, U2, U3, U6, S1, U4 shown to the user once (brief 7.0); all OPEN until answered.
+- 2026-10-24T05:35:35+00:00 START EA_CHECK cache build (A, B, BR, BQ; g21.cache.build_fold + poisoning; no score)
+- 2026-10-24T05:44:24+00:00 END EA_CHECK cache build: 100 records, poisoning identical 100, isolation passed 100, build 257.4s + poison 265.8s, wall 528s
+- 2026-10-24T07:33:29+00:00 END Stage-0 build workflow wf_b941fb7d-d2c (13 agents): r5 core + r5_seal; beta_frozen -0.110809 (BPG, lambda 0.003; sensitivities BP -0.1095, lambda 0.03 -0.0878, round-4 fold mean -0.0923/-0.0949); external DOPT_Q on all 521 cells; dup scan flags 6 links (items 1, 3, 4 + 3 V2-2 pairs); E-CT PRIMARY 99/12/14/690 with and without the bit rule; supply-audit kill fires; size gate flags every chord statistic; power in worlds computed; Stage-1 item code 1.0-1.8 written, smoke-only (metrics suppressed); A/B/BR/BQ fold caches built (100, poisoning-identical). No round-5 score. START Stage-0 docs + pre-seal review workflow wf_2ceec1d9-225.
+- 2026-10-24T07:57:26+00:00 Stage-0 docs workflow: ran scripts/s0_sizegate_ect_chemotype.py (D3 fresh size check of the C-ECT chemotype fallback; synthetic nulls, 20,000 reps per cell; ECT_CHEM_SF 0 of 84 cells flagged, max size 0.0268) and scripts/s0_package_supplements.py (D2 C-GD power at the beta_frozen sensitivities, beta_frozen rows identical to power_worlds.csv; supply reach probabilities, forecasts only); wrote results/stage0/size_gate_ect_chemotype.{json,csv}, power_cgd_beta_sens.{json,csv}, supply_reach.json; wrote DATA_CONTRACT.md and CONFIRMATION_PACKAGE.md (pre-seal drafts). No round-5 score; not sealed.
+- 2026-10-24T09:10:56+00:00 Pre-seal review workflow wf_2ceec1d9-225 (fixer): Stage-0 reruns after the review fixes, 09:09-09:11 UTC: s0_sizegate.py, s0_sizegate_ect_chemotype.py, s0_power_worlds.py, s0_supply.py, s0_package_supplements.py; every record now cites beta_frozen.json LF SHA-256 2b5d0e2d...cc6264 (N1 resolved); supply audit decision 2 / 1 / 5 / 3, bracket 3 / 5 / 6 / 3, kill fires; ECT_CHEM_SF 0 of 80 gating rows flagged; power_worlds values unchanged (Clopper-Pearson columns added). Planning inputs only; no round-5 score.
+- 2026-10-24T10:03:32+00:00 Pre-seal review: --smoke (PRE-SEAL ENGINEERING CHECK, every metric suppressed) of every item rerun in sequence 09:26:38-10:02:44 UTC (s1_ea_check, s1_ect, s1_m03, s1_elab, s1_window, s1_edec, s1_ed, s1_ew, s1_ekx; all exit 0) and s1_window again 10:03:13-10:03:32 after a banner relabel; only SMOKE_COUNTS_<design>.json written (items 1.1, 1.2, 1.3, 1.5, 1.8). No score.
+- 2026-10-24T10:05:41+00:00 Pre-seal review: pytest of round-5 tests 352 passed, 1 skipped (10:03:43-10:05:41 UTC); read-only seal readiness build 10:05:55-10:06:20 UTC: 0 refusals, nothing written.
+- 2026-10-24T10:07:09+00:00 Pre-seal review folded in: 58 CONFIRMED findings (fidelity 20, mechanics 22, statistics 10, items 6); 57 applied in full, s0-items-7 applied in its required part (its recommended refit sensitivity not applied); new decisions D9-D11; RESUME.md written; results/stage0/PRESEAL_REVIEW.md lists every finding and change. No round-5 score; not sealed.
+- 2026-10-24T10:10:56+00:00 SEAL 1f0cae0064a6bb215602b1befb3ce57e181ebab23dbe71d8d6e0341c3060f1ac (54 round-5 code files, 115 repository code files, 10 documents, 138 local inputs, 452 design files; supersedes None; local only, not public preregistration). round-5 Stage 0: M35 one-currency decision, M34 inference (kill fired: every model contrast DIAGNOSTIC), CP-13 confirmation package with size-gate fallbacks D3 (supply-audit kill fires: descriptive round), closure ledger, pre-slot gate (no E-A slot), data contract (bit-identity rule: 6 links), beta_frozen -0.110809, external DOPT_Q (all 521 cells), PROVISIONAL lab key and planning amplitudes (U5, U6 open); Stage-1 item code 1.0-1.8 sealed with Stage 0 after pre-seal review wf_2ceec1d9-225 (58 confirmed findings applied); no round-5 score computed
+- 2026-10-24T10:12:02+00:00 START EA_CHECK --repro (TECHNICAL SMOKE)
+- 2026-10-24T10:12:02+00:00 START WINDOW --repro (TECHNICAL SMOKE)
+- 2026-10-24T10:12:02+00:00 START ECT --repro (TECHNICAL SMOKE)
+- 2026-10-24T10:12:28+00:00 START ECT repro seal=1f0cae0064a6
+- 2026-10-24T10:12:28+00:00 START EA_CHECK repro seal=1f0cae0064a6
+- 2026-10-24T10:12:28+00:00 START WINDOW repro seal=1f0cae0064a6
+- 2026-10-24T10:13:01+00:00 END EA_CHECK seal=1f0cae0064a6 post-run check ok (ok) repro status=0
+- 2026-10-24T10:13:01+00:00 END EA_CHECK --repro (TECHNICAL SMOKE) exit=0 (log results/logs/EA_CHECK_repro.log)
+- 2026-10-24T10:13:01+00:00 START EA_CHECK --design BPG
+- 2026-10-24T10:13:16+00:00 END WINDOW seal=1f0cae0064a6 post-run check ok (ok) repro status=0
+- 2026-10-24T10:13:17+00:00 END WINDOW --repro (TECHNICAL SMOKE) exit=0 (log results/logs/WINDOW_repro.log)
+- 2026-10-24T10:13:17+00:00 START WINDOW --design both
+- 2026-10-24T10:13:27+00:00 START EA_CHECK run seal=1f0cae0064a6
+- 2026-10-24T10:13:43+00:00 START WINDOW run seal=1f0cae0064a6
+- 2026-10-24T10:14:22+00:00 END ECT seal=1f0cae0064a6 post-run check ok (ok) repro status=0
+- 2026-10-24T10:14:23+00:00 END EA_CHECK seal=1f0cae0064a6 post-run check ok (ok) run status=0; positive control PASS on BPG; 22 files; 23s
+- 2026-10-24T10:14:23+00:00 END ECT --repro (TECHNICAL SMOKE) exit=0 (log results/logs/ECT_repro.log)
+- 2026-10-24T10:14:23+00:00 START ECT --design BPG
+- 2026-10-24T10:14:24+00:00 END EA_CHECK --design BPG exit=0 (log results/logs/EA_CHECK___design_BPG.log)
+- 2026-10-24T10:14:24+00:00 START EA_CHECK --design BP
+- 2026-10-24T10:14:51+00:00 START ECT run seal=1f0cae0064a6
+- 2026-10-24T10:14:52+00:00 START EA_CHECK run seal=1f0cae0064a6
+- 2026-10-24T10:15:48+00:00 END EA_CHECK seal=1f0cae0064a6 post-run check ok (ok) run status=0; positive control FAIL on BPG; 22 files; 23s
+- 2026-10-24T10:15:48+00:00 END EA_CHECK --design BP exit=0 (log results/logs/EA_CHECK___design_BP.log)
+- 2026-10-24T10:15:48+00:00 START ED --repro (TECHNICAL SMOKE)
+- 2026-10-24T10:16:16+00:00 START ED repro seal=1f0cae0064a6
+- 2026-10-24T10:16:54+00:00 END WINDOW seal=1f0cae0064a6 post-run check ok (ok) run status=0
+- 2026-10-24T10:16:54+00:00 END WINDOW --design both exit=0 (log results/logs/WINDOW___design_both.log)
+- 2026-10-24T10:16:54+00:00 START EDEC --repro (TECHNICAL SMOKE)
+- 2026-10-24T10:17:21+00:00 START EDEC repro seal=1f0cae0064a6
+- 2026-10-24T10:20:34+00:00 END ED seal=1f0cae0064a6 post-run check ok (ok) repro status=0
+- 2026-10-24T10:20:35+00:00 END ED --repro (TECHNICAL SMOKE) exit=0 (log results/logs/ED_repro.log)
+- 2026-10-24T10:20:35+00:00 START ED --design both
+- 2026-10-24T10:21:00+00:00 START ED run seal=1f0cae0064a6
+- 2026-10-24T10:24:32+00:00 END ECT seal=1f0cae0064a6 post-run check ok (ok) run status=0
+- 2026-10-24T10:24:32+00:00 END ECT --design BPG exit=0 (log results/logs/ECT___design_BPG.log)
+- 2026-10-24T10:24:33+00:00 START ECT --design BP
+- 2026-10-24T10:24:59+00:00 START ECT run seal=1f0cae0064a6
+- 2026-10-24T10:33:41+00:00 END EDEC seal=1f0cae0064a6 post-run check ok (ok) repro status=0
+- 2026-10-24T10:33:41+00:00 END EDEC --repro (TECHNICAL SMOKE) exit=0 (log results/logs/EDEC_repro.log)
+- 2026-10-24T10:33:41+00:00 START EDEC --design both
+- 2026-10-24T10:34:08+00:00 START EDEC run seal=1f0cae0064a6
+- 2026-10-24T10:34:31+00:00 END ECT seal=1f0cae0064a6 post-run check ok (ok) run status=0
+- 2026-10-24T10:34:32+00:00 END ECT --design BP exit=0 (log results/logs/ECT___design_BP.log)
+- 2026-10-24T10:34:32+00:00 START ECT --repro BP (TECHNICAL SMOKE)
+- 2026-10-24T10:34:58+00:00 START ECT repro seal=1f0cae0064a6
+- 2026-10-24T10:36:22+00:00 END ED seal=1f0cae0064a6 post-run check ok (ok) run status=3
+- 2026-10-24T10:36:23+00:00 END ED --design both exit=3 (log results/logs/ED___design_both.log)
+- 2026-10-24T10:36:23+00:00 START ED fit poisoning
+- 2026-10-24T10:36:49+00:00 START ED_POISON shard 0/1 seal=1f0cae0064a6
+- 2026-10-24T10:36:54+00:00 END ECT seal=1f0cae0064a6 post-run check ok (ok) repro status=0
+- 2026-10-24T10:36:55+00:00 END ECT --repro BP (TECHNICAL SMOKE) exit=0 (log results/logs/ECT_repro_BP.log)
+- 2026-10-24T10:36:55+00:00 START ECT sealed P1 reproduction test
+- 2026-10-24T10:38:46+00:00 END ECT sealed P1 reproduction test exit=0 (log results/logs/ECT_p1_test.log)
+- 2026-10-24T10:38:46+00:00 START M03 --repro (TECHNICAL SMOKE)
+- 2026-10-24T10:39:13+00:00 START ECT_M03 repro seal=1f0cae0064a6
+- 2026-10-24T10:43:34+00:00 END ECT_M03 seal=1f0cae0064a6 post-run check ok (ok) repro status=0
+- 2026-10-24T10:43:35+00:00 END M03 --repro (TECHNICAL SMOKE) exit=0 (log results/logs/M03_repro.log)
+- 2026-10-24T10:43:35+00:00 START M03 --design BPG
+- 2026-10-24T10:44:02+00:00 START ECT_M03 run seal=1f0cae0064a6
+- 2026-10-24T10:44:35+00:00 END EDEC seal=1f0cae0064a6 post-run check ok (ok) run status=0
+- 2026-10-24T10:44:36+00:00 END EDEC --design both exit=0 (log results/logs/EDEC___design_both.log)
+- 2026-10-24T10:44:36+00:00 START EW --repro (TECHNICAL SMOKE)
+- 2026-10-24T10:45:02+00:00 START EW repro seal=1f0cae0064a6
+- 2026-10-24T10:45:38+00:00 END EW seal=1f0cae0064a6 post-run check ok (ok) repro status=0
+- 2026-10-24T10:45:39+00:00 END EW --repro (TECHNICAL SMOKE) exit=0 (log results/logs/EW_repro.log)
+- 2026-10-24T10:45:39+00:00 START EW --design both
+- 2026-10-24T10:46:05+00:00 START EW run seal=1f0cae0064a6
+- 2026-10-24T10:47:10+00:00 END EW seal=1f0cae0064a6 post-run check ok (ok) run status=0
+- 2026-10-24T10:47:11+00:00 END EW --design both exit=0 (log results/logs/EW___design_both.log)
+- 2026-10-24T10:47:11+00:00 START EKX --repro (TECHNICAL SMOKE)
+- 2026-10-24T10:47:37+00:00 START EKX repro seal=1f0cae0064a6
+- 2026-10-24T10:48:13+00:00 END EKX seal=1f0cae0064a6 post-run check ok (ok) repro status=0
+- 2026-10-24T10:48:14+00:00 END EKX --repro (TECHNICAL SMOKE) exit=0 (log results/logs/EKX_repro.log)
+- 2026-10-24T10:48:14+00:00 START EKX --design both
+- 2026-10-24T10:48:40+00:00 START EKX run seal=1f0cae0064a6
+- 2026-10-24T10:50:55+00:00 END EKX seal=1f0cae0064a6 post-run check ok (ok) run status=0
+- 2026-10-24T10:50:56+00:00 END EKX --design both exit=0 (log results/logs/EKX___design_both.log)
+- 2026-10-24T10:50:56+00:00 START ELAB --repro (TECHNICAL SMOKE)
+- 2026-10-24T10:51:04+00:00 END ECT_M03 seal=1f0cae0064a6 post-run check ok (ok) run status=0
+- 2026-10-24T10:51:04+00:00 END M03 --design BPG exit=0 (log results/logs/M03___design_BPG.log)
+- 2026-10-24T10:51:04+00:00 START M03 --design BP
+- 2026-10-24T10:51:23+00:00 START ELAB repro seal=1f0cae0064a6
+- 2026-10-24T10:51:31+00:00 START ECT_M03 run seal=1f0cae0064a6
+- 2026-10-24T10:52:00+00:00 END ELAB seal=1f0cae0064a6 post-run check ok (ok) repro status=0
+- 2026-10-24T10:52:01+00:00 END ELAB --repro (TECHNICAL SMOKE) exit=0 (log results/logs/ELAB_repro.log)
+- 2026-10-24T10:52:01+00:00 START ELAB --design BPG
+- 2026-10-24T10:52:27+00:00 START ELAB run seal=1f0cae0064a6
+- 2026-10-24T10:56:51+00:00 END ELAB seal=1f0cae0064a6 post-run check ok (ok) run status=0
+- 2026-10-24T10:56:51+00:00 END ELAB --design BPG exit=0 (log results/logs/ELAB___design_BPG.log)
+- 2026-10-24T10:56:52+00:00 START ELAB --design BP
+- 2026-10-24T10:57:19+00:00 START ELAB run seal=1f0cae0064a6
+- 2026-10-24T10:58:33+00:00 END ECT_M03 seal=1f0cae0064a6 post-run check ok (ok) run status=0
+- 2026-10-24T10:58:34+00:00 END M03 --design BP exit=0 (log results/logs/M03___design_BP.log)
+- 2026-10-24T10:58:58+00:00 END ED_POISON seal=1f0cae0064a6 post-run check ok (ok) shard 0/1 status=0
+- 2026-10-24T10:58:58+00:00 END ED fit poisoning exit=0 (log results/logs/ED_poison.log)
+- 2026-10-24T11:01:31+00:00 END ELAB seal=1f0cae0064a6 post-run check ok (ok) run status=0
+- 2026-10-24T11:01:32+00:00 END ELAB --design BP exit=0 (log results/logs/ELAB___design_BP.log)
+- 2026-10-24T11:01:32+00:00 START post-run seal checks
+- 2026-10-24T11:02:05+00:00 END post-run seal checks exit=0 (log results/logs/seal_checks.log)
+- 2026-10-24T11:02:55+00:00 START ED --from-rows --design both (tables; the frozen ITEM_SPEC order: run -> s1_ed_poison.py -> --from-rows)
+- 2026-10-24T11:03:19+00:00 START ED from-rows seal=1f0cae0064a6
+- 2026-10-24T11:03:49+00:00 END ED seal=1f0cae0064a6 post-run check ok (ok) from-rows status=3
+- 2026-10-24T11:03:50+00:00 END ED --from-rows exit=3 (log results/logs/ED_from_rows.log)
+- 2026-10-24T11:08:26+00:00 SEAL 2f74292f5f44ae18fd081e01d138d35674362ef27a093961d243874b0762e172 (54 round-5 code files, 115 repository code files, 10 documents, 138 local inputs, 452 design files; supersedes 1f0cae0064a6bb215602b1befb3ce57e181ebab23dbe71d8d6e0341c3060f1ac; local only, not public preregistration). A1: E-D poisoning reads fits CSV with the round-trip float parser (comparison defect only)
+- 2026-10-24T11:09:19+00:00 START ED --repro --design both (TECHNICAL SMOKE; A1 rerun)
+- 2026-10-24T11:09:44+00:00 START ED repro seal=2f74292f5f44
+- 2026-10-24T11:13:45+00:00 END ED seal=2f74292f5f44 post-run check ok (ok) repro status=0
+- 2026-10-24T11:13:45+00:00 END ED --repro --design both (TECHNICAL SMOKE; A1 rerun) exit=0 (log results/logs/ED_repro_A1.log)
+- 2026-10-24T11:13:45+00:00 START ED --design both (A1 rerun)
+- 2026-10-24T11:14:10+00:00 START ED run seal=2f74292f5f44
+- 2026-10-24T11:29:18+00:00 END ED seal=2f74292f5f44 post-run check ok (ok) run status=3
+- 2026-10-24T11:29:19+00:00 END ED --design both (A1 rerun) exit=3 (log results/logs/ED_run_A1.log)
+- 2026-10-24T11:29:19+00:00 START ED fit poisoning (A1 rerun)
+- 2026-10-24T11:29:44+00:00 START ED_POISON shard 0/1 seal=2f74292f5f44
+- 2026-10-24T11:50:07+00:00 END ED_POISON seal=2f74292f5f44 post-run check ok (ok) shard 0/1 status=0
+- 2026-10-24T11:50:08+00:00 END ED fit poisoning (A1 rerun) exit=0 (log results/logs/ED_poison_A1.log)
+- 2026-10-24T11:50:08+00:00 START ED --from-rows --design both (A1)
+- 2026-10-24T11:50:33+00:00 START ED from-rows seal=2f74292f5f44
+- 2026-10-24T11:54:13+00:00 END ED seal=2f74292f5f44 post-run check ok (ok) from-rows status=0
+- 2026-10-24T11:54:14+00:00 END ED --from-rows --design both (A1) exit=0 (log results/logs/ED_from_rows_A1.log)
+- 2026-10-24T11:54:14+00:00 START post-run seal checks (A1)
+- 2026-10-24T11:54:48+00:00 END post-run seal checks (A1) exit=0 (log results/logs/seal_checks_A1.log)
+- 2026-10-24T13:09:21+00:00 NOTE (append-only correction, A2): the line above at 10:23-ish for the BP-only EA_CHECK run that reads 'positive control FAIL on BPG' is a formatting artefact: that run never scored BPG, and its own BP sensitivity B1 - B0 passed (summary_BP.json BP_sensitivity gate_pass true). The M35 positive control PASSED on BPG (summary_BPG.json; RUN_RECORD END EA_CHECK --design BPG line). Fixed in scripts/s1_ea_check.py under A2.
+- 2026-10-24T13:09:52+00:00 NOTE: precision for the correction above: the affected line is the END EA_CHECK line at 2026-10-24T10:15:48+00:00 (BP-only run), not '10:23'.
+- 2026-10-24T13:12:30+00:00 SEAL b96c3bef9828af2e633fdde83a83114eef21a0e3f62128fff8ad611ca325c9fc (54 round-5 code files, 115 repository code files, 10 documents, 138 local inputs, 452 design files; supersedes 2f74292f5f44ae18fd081e01d138d35674362ef27a093961d243874b0762e172; local only, not public preregistration). A2: Stage-1 results review, reporting fixes in nine items and the E-D Pareto-family correction
+- 2026-10-24T13:13:40+00:00 START ECT --repro --design BPG (TECHNICAL SMOKE) (A2)
+- 2026-10-24T13:13:40+00:00 START EA_CHECK --repro (TECHNICAL SMOKE) (A2)
+- 2026-10-24T13:13:40+00:00 START WINDOW --repro --design both (TECHNICAL SMOKE) (A2)
+- 2026-10-24T13:14:06+00:00 START ECT repro seal=b96c3bef9828
+- 2026-10-24T13:14:06+00:00 START WINDOW repro seal=b96c3bef9828
+- 2026-10-24T13:14:06+00:00 START EA_CHECK repro seal=b96c3bef9828
+- 2026-10-24T13:14:42+00:00 END EA_CHECK seal=b96c3bef9828 post-run check ok (ok) repro status=0
+- 2026-10-24T13:14:43+00:00 END EA_CHECK --repro (TECHNICAL SMOKE) (A2) exit=0 (log results/logs/EA_CHECK_A2_repro0.log)
+- 2026-10-24T13:14:43+00:00 START EA_CHECK  (A2)
+- 2026-10-24T13:14:59+00:00 END WINDOW seal=b96c3bef9828 post-run check ok (ok) repro status=0
+- 2026-10-24T13:15:00+00:00 END WINDOW --repro --design both (TECHNICAL SMOKE) (A2) exit=0 (log results/logs/WINDOW_A2_repro0.log)
+- 2026-10-24T13:15:00+00:00 START WINDOW --design both (A2)
+- 2026-10-24T13:15:10+00:00 START EA_CHECK run seal=b96c3bef9828
+- 2026-10-24T13:15:28+00:00 START WINDOW run seal=b96c3bef9828
+- 2026-10-24T13:16:18+00:00 END EA_CHECK seal=b96c3bef9828 post-run check ok (ok) run status=0; positive control PASS on BPG; BP sensitivity B1 - B0 PASS; 39 files; 32s
+- 2026-10-24T13:16:18+00:00 END EA_CHECK  (A2) exit=0 (log results/logs/EA_CHECK_A2_.log)
+- 2026-10-24T13:16:18+00:00 START ED --repro --design both (TECHNICAL SMOKE) (A2)
+- 2026-10-24T13:16:21+00:00 END ECT seal=b96c3bef9828 post-run check ok (ok) repro status=0
+- 2026-10-24T13:16:22+00:00 END ECT --repro --design BPG (TECHNICAL SMOKE) (A2) exit=0 (log results/logs/ECT_A2_repro0.log)
+- 2026-10-24T13:16:22+00:00 START ECT --repro --design BP (TECHNICAL SMOKE) (A2)
+- 2026-10-24T13:16:48+00:00 START ED repro seal=b96c3bef9828
+- 2026-10-24T13:16:51+00:00 START ECT repro seal=b96c3bef9828
+- 2026-10-24T13:18:44+00:00 END WINDOW seal=b96c3bef9828 post-run check ok (ok) run status=0
+- 2026-10-24T13:18:44+00:00 END WINDOW --design both (A2) exit=0 (log results/logs/WINDOW_A2___design_both.log)
+- 2026-10-24T13:18:44+00:00 START EW --repro --design both (TECHNICAL SMOKE) (A2)
+- 2026-10-24T13:18:46+00:00 END ECT seal=b96c3bef9828 post-run check ok (ok) repro status=0
+- 2026-10-24T13:18:47+00:00 END ECT --repro --design BP (TECHNICAL SMOKE) (A2) exit=0 (log results/logs/ECT_A2_repro1.log)
+- 2026-10-24T13:18:47+00:00 START ECT --design BPG (A2)
+- 2026-10-24T13:19:10+00:00 START EW repro seal=b96c3bef9828
+- 2026-10-24T13:19:13+00:00 START ECT run seal=b96c3bef9828
+- 2026-10-24T13:19:46+00:00 END EW seal=b96c3bef9828 post-run check ok (ok) repro status=0
+- 2026-10-24T13:19:47+00:00 END EW --repro --design both (TECHNICAL SMOKE) (A2) exit=0 (log results/logs/EW_A2_repro0.log)
+- 2026-10-24T13:19:47+00:00 START EW --design both (A2)
+- 2026-10-24T13:20:13+00:00 START EW run seal=b96c3bef9828
+- 2026-10-24T13:21:08+00:00 END ED seal=b96c3bef9828 post-run check ok (ok) repro status=0
+- 2026-10-24T13:21:08+00:00 END ED --repro --design both (TECHNICAL SMOKE) (A2) exit=0 (log results/logs/ED_A2_repro.log)
+- 2026-10-24T13:21:08+00:00 START ED --design both (rows; tables wait for the poisoning check) (A2)
+- 2026-10-24T13:21:16+00:00 END EW seal=b96c3bef9828 post-run check ok (ok) run status=0
+- 2026-10-24T13:21:17+00:00 END EW --design both (A2) exit=0 (log results/logs/EW_A2___design_both.log)
+- 2026-10-24T13:21:17+00:00 START EKX --repro --design both (TECHNICAL SMOKE) (A2)
+- 2026-10-24T13:21:35+00:00 START ED run seal=b96c3bef9828
+- 2026-10-24T13:21:43+00:00 START EKX repro seal=b96c3bef9828
+- 2026-10-24T13:22:18+00:00 END EKX seal=b96c3bef9828 post-run check ok (ok) repro status=0
+- 2026-10-24T13:22:18+00:00 END EKX --repro --design both (TECHNICAL SMOKE) (A2) exit=0 (log results/logs/EKX_A2_repro0.log)
+- 2026-10-24T13:22:18+00:00 START EKX --design both (A2)
+- 2026-10-24T13:22:44+00:00 START EKX run seal=b96c3bef9828
+- 2026-10-24T13:24:52+00:00 END EKX seal=b96c3bef9828 post-run check ok (ok) run status=0
+- 2026-10-24T13:24:52+00:00 END EKX --design both (A2) exit=0 (log results/logs/EKX_A2___design_both.log)
+- 2026-10-24T13:24:52+00:00 START ELAB --repro --design both (TECHNICAL SMOKE) (A2)
+- 2026-10-24T13:25:18+00:00 START ELAB repro seal=b96c3bef9828
+- 2026-10-24T13:25:54+00:00 END ELAB seal=b96c3bef9828 post-run check ok (ok) repro status=0
+- 2026-10-24T13:25:55+00:00 END ELAB --repro --design both (TECHNICAL SMOKE) (A2) exit=0 (log results/logs/ELAB_A2_repro0.log)
+- 2026-10-24T13:25:55+00:00 START ELAB --design BPG (A2)
+- 2026-10-24T13:26:21+00:00 START ELAB run seal=b96c3bef9828
+- 2026-10-24T13:28:27+00:00 END ECT seal=b96c3bef9828 post-run check ok (ok) run status=0
+- 2026-10-24T13:28:27+00:00 END ECT --design BPG (A2) exit=0 (log results/logs/ECT_A2___design_BPG.log)
+- 2026-10-24T13:28:28+00:00 START ECT --design BP (A2)
+- 2026-10-24T13:28:53+00:00 START ECT run seal=b96c3bef9828
+- 2026-10-24T13:30:42+00:00 END ELAB seal=b96c3bef9828 post-run check ok (ok) run status=0
+- 2026-10-24T13:30:42+00:00 END ELAB --design BPG (A2) exit=0 (log results/logs/ELAB_A2___design_BPG.log)
+- 2026-10-24T13:30:42+00:00 START ELAB --design BP (A2)
+- 2026-10-24T13:31:08+00:00 START ELAB run seal=b96c3bef9828
+- 2026-10-24T13:35:24+00:00 END ELAB seal=b96c3bef9828 post-run check ok (ok) run status=0
+- 2026-10-24T13:35:25+00:00 END ELAB --design BP (A2) exit=0 (log results/logs/ELAB_A2___design_BP.log)
+- 2026-10-24T13:36:42+00:00 END ED seal=b96c3bef9828 post-run check ok (ok) run status=3
+- 2026-10-24T13:36:43+00:00 END ED --design both (rows; tables wait for the poisoning check) (A2) exit=3 (log results/logs/ED_A2_run.log)
+- 2026-10-24T13:36:43+00:00 START ED fit poisoning (A2)
+- 2026-10-24T13:37:08+00:00 START ED_POISON shard 0/1 seal=b96c3bef9828
+- 2026-10-24T13:37:59+00:00 END ECT seal=b96c3bef9828 post-run check ok (ok) run status=0
+- 2026-10-24T13:37:59+00:00 END ECT --design BP (A2) exit=0 (log results/logs/ECT_A2___design_BP.log)
+- 2026-10-24T13:37:59+00:00 START ECT sealed P1 reproduction test (A2)
+- 2026-10-24T13:39:41+00:00 END ECT sealed P1 reproduction test (A2) exit=0 (log results/logs/ECT_A2_p1_test.log)
+- 2026-10-24T13:39:41+00:00 START EDEC --repro --design both (TECHNICAL SMOKE) (A2)
+- 2026-10-24T13:40:06+00:00 START EDEC repro seal=b96c3bef9828
+- 2026-10-24T13:41:07+00:00 END EDEC seal=b96c3bef9828 post-run check ok (ok) repro status=0
+- 2026-10-24T13:41:08+00:00 END EDEC --repro --design both (TECHNICAL SMOKE) (A2) exit=0 (log results/logs/EDEC_A2_repro0.log)
+- 2026-10-24T13:41:08+00:00 START EDEC --design both (A2)
+- 2026-10-24T13:41:32+00:00 START EDEC run seal=b96c3bef9828
+- 2026-10-24T13:51:12+00:00 END EDEC seal=b96c3bef9828 post-run check ok (ok) run status=0
+- 2026-10-24T13:51:13+00:00 END EDEC --design both (A2) exit=0 (log results/logs/EDEC_A2___design_both.log)
+- 2026-10-24T13:51:13+00:00 START M03 --repro --design BPG (TECHNICAL SMOKE) (A2)
+- 2026-10-24T13:51:37+00:00 START ECT_M03 repro seal=b96c3bef9828
+- 2026-10-24T13:55:26+00:00 END ECT_M03 seal=b96c3bef9828 post-run check ok (ok) repro status=0
+- 2026-10-24T13:55:27+00:00 END M03 --repro --design BPG (TECHNICAL SMOKE) (A2) exit=0 (log results/logs/M03_A2_repro0.log)
+- 2026-10-24T13:55:27+00:00 START M03 --repro --design BP (TECHNICAL SMOKE) (A2)
+- 2026-10-24T13:55:50+00:00 START ECT_M03 repro seal=b96c3bef9828
+- 2026-10-24T13:57:16+00:00 END ED_POISON seal=b96c3bef9828 post-run check ok (ok) shard 0/1 status=0
+- 2026-10-24T13:57:17+00:00 END ED fit poisoning (A2) exit=0 (log results/logs/ED_A2_poison.log)
+- 2026-10-24T13:57:17+00:00 START ED --from-rows --design both (A2)
+- 2026-10-24T13:57:41+00:00 START ED from-rows seal=b96c3bef9828
+- 2026-10-24T13:59:41+00:00 END ECT_M03 seal=b96c3bef9828 post-run check ok (ok) repro status=0
+- 2026-10-24T13:59:42+00:00 END M03 --repro --design BP (TECHNICAL SMOKE) (A2) exit=0 (log results/logs/M03_A2_repro1.log)
+- 2026-10-24T13:59:42+00:00 START M03 --design BPG (A2)
+- 2026-10-24T14:00:07+00:00 START ECT_M03 run seal=b96c3bef9828
+- 2026-10-24T14:01:16+00:00 END ED seal=b96c3bef9828 post-run check ok (ok) from-rows status=0
+- 2026-10-24T14:01:17+00:00 END ED --from-rows --design both (A2) exit=0 (log results/logs/ED_A2_from_rows.log)
+- 2026-10-24T14:06:15+00:00 END ECT_M03 seal=b96c3bef9828 post-run check ok (ok) run status=0
+- 2026-10-24T14:06:16+00:00 END M03 --design BPG (A2) exit=0 (log results/logs/M03_A2___design_BPG.log)
+- 2026-10-24T14:06:16+00:00 START M03 --design BP (A2)
+- 2026-10-24T14:06:39+00:00 START ECT_M03 run seal=b96c3bef9828
+- 2026-10-24T14:12:47+00:00 END ECT_M03 seal=b96c3bef9828 post-run check ok (ok) run status=0
+- 2026-10-24T14:12:47+00:00 END M03 --design BP (A2) exit=0 (log results/logs/M03_A2___design_BP.log)
+- 2026-10-24T14:12:47+00:00 START post-run seal checks (A2)
+- 2026-10-24T14:13:21+00:00 END post-run seal checks (A2) exit=0 (log results/logs/seal_checks_A2.log)
+- 2026-10-24T14:15:24+00:00 NOTE A2 rerun comparison (results/a2_rerun_comparison.txt; archive cache/_superseded_2f74292f5f44): every stored number reproduces except the changes A2 lists (EA_CHECK V2-3 rows filled; WINDOW lower percentiles 52 tail rows / 106 control rows per design, max shift 0.039; E-D (E-A rows) blanks and pareto_any_dominates_C3pop True -> False); tables that gained rows keep every old row (ECT nsib / annex_erec / v25, ED envelope_pareto, EDEC primary by statistic; ELAB rules keep all 26 outcomes and every number token).
+- 2026-10-24T14:45:53+00:00 NOTE A2: results/EA_CHECK/summary_BPG.json and summary_BP.json were first-pass files (seal 1f0cae0064a6) that the A2 both-design run does not rewrite (it writes summary.json); removed from results/ (byte-identical copies stay in cache/_superseded_2f74292f5f44/EA_CHECK/). The current EA_CHECK summary is results/EA_CHECK/summary.json (seal b96c3bef9828).
+- 2026-10-24T14:47:46+00:00 START full test suite after A2 (seal b96c3bef9828)
+- 2026-10-24T14:50:24+00:00 END full test suite after A2 exit=0: 384 passed, 1 skipped in 156.93s (0:02:36) (log results/logs/tests_post_A2.log)

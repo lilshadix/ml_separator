@@ -1,0 +1,80 @@
+{
+ "label": "LEAKAGE CHECK (section 8 items 1, 4, 5)",
+ "seal": "b96c3bef9828",
+ "intervention": {
+  "label": "LEAKAGE CHECK (section 8 item 4)",
+  "design": "BPG",
+  "targets": 229,
+  "configs": [
+   [
+    "C5_out",
+    "PRIMARY"
+   ],
+   [
+    "C5_in",
+    "PRIMARY"
+   ],
+   [
+    "C5_cell_out",
+    "PRIMARY"
+   ],
+   [
+    "C5_out",
+    "NB"
+   ],
+   [
+    "C5_out",
+    "OFS"
+   ],
+   [
+    "C5_out",
+    "QNT"
+   ],
+   [
+    "C5_out",
+    "V2"
+   ],
+   [
+    "C5_out",
+    "V25"
+   ],
+   [
+    "C5_out",
+    "C3DON"
+   ],
+   [
+    "C5_out",
+    "CELLW"
+   ]
+  ],
+  "mismatches": [],
+  "n_mismatches": 0,
+  "pc_self_guard_caught": 229,
+  "pc_samepub_guard_caught": 221,
+  "pc_samepub_guard_applicable": 221,
+  "pc_leaky_caught": 186,
+  "pc_leaky_applicable": 186,
+  "rng_seed": 3158259040,
+  "passed": true,
+  "seconds": 22.9
+ },
+ "isolation": "every donor set passes Donors.guard (no cell of the target's publication or copy group, never the target, no bit-identical copy outside NB); B1 base = round-4 REF run whose intervention and identity checks passed (r5.common.load_rows)",
+ "support": {
+  "both_ends_read_rows": 0,
+  "adjacent_lighter_first": true,
+  "readset_or_fold_inconsistent_groups": 0,
+  "b1_predict_levels_maxabs": 0.0,
+  "y_maxabs": 0.0,
+  "kx_additive_identity_maxabs": 9.992007221626409e-16,
+  "dphi_nd_on_cells_without_nd": 0
+ },
+ "fit_poisoning": "not applicable: E-KX fits nothing (u is a donor mean with K = 5 fixed; beta = the stored round-4 fold fit)",
+ "cache_poisoning": "not applicable: no new cache",
+ "code_lf_sha256": {
+  "r5/ekx.py": "7fa192491f7cb2dd71ab754d395ed6ddf3e6d33c2ff8ec8406c16cd72f720b41",
+  "r5/common.py": "9020740f5879bb17ec250b7f071d64fb2b105dc8b9a6dc4a03581015331679e6",
+  "r5/dupes.py": "d0945d4c94f4a434b21c432ea00b3dce5a10bb2e8cca8edb63f271d3b1f4d356",
+  "r5/population.py": "298976a8cb5f43f84651051d09734bef87912c442f6cbffdbc4e21c1ccb5e8d4",
+  "scripts/s1_ekx.py": "1e81674e0084c71df530ea39aed542571f95bf98c1a59a84d3fda254471eef7a"
+ }
+}

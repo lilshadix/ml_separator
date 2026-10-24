@@ -1,0 +1,88 @@
+# Item 1.0 EA_CHECK (E-A, DIAGNOSTIC, seen; BPG): per-item table
+
+**Label: EXPLORATORY (seen); DIAGNOSTIC (E-A contrasts after M34's kill); C5-out rows SENSITIVITY; HIST_D7 not fold-independent; seal b96c3bef9828**
+
+| field | value |
+|---|---|
+| Item id and estimand | 1.0 EA_CHECK (BPG): M35 positive-control and six-design check; estimand E-A (DIAGNOSTIC, seen) |
+| Population (cells, publications, units, rows per seed) | cells: 229; publications: 39; unit: cluster_cpg; units: 13; rows_per_seed: 1802.0000; seeds: 5 |
+| Design | BPG (decides); six-design table A, B, BR, BQ, BP, BPG for the training-free arms B0 and HIST_D7 only (sixdesign.csv) |
+| Read budget | four reads (code budget k = 3), DOPT_Q nested read sets of each design's fold covariance |
+| Arms on identical rows | B0, B1, HIST_D7; contrasts B1 - B0 (positive control, outside any family) and HIST_D7 - B1 under the sealed M35 gate; HIST_D7 - B0 on the six designs |
+| R², MSE, relative SSE vs B1 | see 'R², MSE, relative SSE vs B1' below |
+| Per-seed values | see 'Per-seed values' below |
+| Unit W/L/T and the descriptive tests | see 'Unit W/L/T and the descriptive tests' below |
+| LOPO and top-3 share | see 'LOPO and top-3 share' below |
+| C5-BTBP in / out | see 'C5-BTBP in / out' below |
+| Duplicate sensitivities | see 'Duplicate sensitivities' below |
+| Leakage status | cache poisoning 100 folds identical: True; isolation 100/100 (design-aware); intervention 100/100 folds, max change 0 over 72080 predictions; block['Y'] peek caught in 100/100; assert_test_isolation on the 50 BP / BPG folds (repro); fixed denominators across the six designs |
+| Compute | repro + rows 10s for A/B/BR/BQ, tables 19s, total 32s; python 3.14.5, numpy 2.5.3, pandas 3.0.5; caches: manifests/ea_check_caches.json |
+| Label | EXPLORATORY (seen); DIAGNOSTIC (E-A contrasts after M34's kill); C5-out rows SENSITIVITY; HIST_D7 not fold-independent; seal b96c3bef9828 |
+| What changed scientifically | Nothing on E-A (no E-A slot): the sealed M35 gate passes its own positive control B1 - B0 on BPG (relative SSE +0.0586, SF_POOL p 0.00317, guard +0.00501), so M35's kill does not fire and the convention is kept (DIAGNOSTIC); HIST_D7 - B1 fails the gate (relative SSE -0.0019, SF_POOL p 0.65991, guard -0.00004) on BPG. B1's own level 0.452 stands as E-A's reference; every number is a seen diagnostic. |
+| Next registered step | M35 stays the E-A decision convention (DIAGNOSTIC); the next registered step is item 1.1 (E-CT core, results/ECT/); no E-A slot is registered (section 4.5). |
+
+## R², MSE, relative SSE vs B1
+
+| arm | R2 | MSE | relSSE_vs_B1 | MAE_balanced | R2_per_seed | design | stratum | label |
+|---|---|---|---|---|---|---|---|---|
+| B0 | 0.4180 | 0.0287 | -0.0623 | 0.1061 | 0.4099;0.4117;0.4264;0.4242;0.4180 | BPG | C5_in | EXPLORATORY (seen); DIAGNOSTIC |
+| B1 | 0.4521 | 0.0270 | 0.0000 | 0.1011 | 0.4489;0.4375;0.4620;0.4589;0.4532 | BPG | C5_in | EXPLORATORY (seen); DIAGNOSTIC |
+| HIST_D7 | 0.4511 | 0.0270 | -0.0019 | 0.1011 | 0.4439;0.4441;0.4594;0.4570;0.4510 | BPG | C5_in | EXPLORATORY (seen); DIAGNOSTIC |
+| B0 | 0.4591 | 0.0238 | -0.0530 | 0.1053 | 0.4516;0.4538;0.4651;0.4634;0.4614 | BPG | C5_out | EXPLORATORY (seen); DIAGNOSTIC; SENSITIVITY |
+| B1 | 0.4863 | 0.0226 | 0.0000 | 0.1003 | 0.4837;0.4725;0.4926;0.4914;0.4911 | BPG | C5_out | EXPLORATORY (seen); DIAGNOSTIC; SENSITIVITY |
+| HIST_D7 | 0.4874 | 0.0226 | 0.0022 | 0.1003 | 0.4808;0.4810;0.4939;0.4920;0.4894 | BPG | C5_out | EXPLORATORY (seen); DIAGNOSTIC; SENSITIVITY |
+
+## Per-seed values
+
+| design | stratum | contrast | split_seed | relSSE | R2_cand | R2_ref | dR2 | dMAE_bal | label |
+|---|---|---|---|---|---|---|---|---|---|
+| BPG | C5_in | B1 - B0 | 104729 | 0.0660 | 0.4489 | 0.4099 | 0.0390 | 0.0067 | EXPLORATORY (seen); DIAGNOSTIC |
+| BPG | C5_in | B1 - B0 | 130363 | 0.0438 | 0.4375 | 0.4117 | 0.0258 | 0.0037 | EXPLORATORY (seen); DIAGNOSTIC |
+| BPG | C5_in | B1 - B0 | 155921 | 0.0621 | 0.4620 | 0.4264 | 0.0356 | 0.0054 | EXPLORATORY (seen); DIAGNOSTIC |
+| BPG | C5_in | B1 - B0 | 196613 | 0.0603 | 0.4589 | 0.4242 | 0.0347 | 0.0049 | EXPLORATORY (seen); DIAGNOSTIC |
+| BPG | C5_in | B1 - B0 | 262147 | 0.0605 | 0.4532 | 0.4180 | 0.0352 | 0.0044 | EXPLORATORY (seen); DIAGNOSTIC |
+| BPG | C5_in | HIST_D7 - B1 | 104729 | -0.0090 | 0.4439 | 0.4489 | -0.0050 | -0.0011 | EXPLORATORY (seen); DIAGNOSTIC |
+| BPG | C5_in | HIST_D7 - B1 | 130363 | 0.0118 | 0.4441 | 0.4375 | 0.0067 | 0.0014 | EXPLORATORY (seen); DIAGNOSTIC |
+| BPG | C5_in | HIST_D7 - B1 | 155921 | -0.0049 | 0.4594 | 0.4620 | -0.0026 | -0.0007 | EXPLORATORY (seen); DIAGNOSTIC |
+| BPG | C5_in | HIST_D7 - B1 | 196613 | -0.0035 | 0.4570 | 0.4589 | -0.0019 | 0.0003 | EXPLORATORY (seen); DIAGNOSTIC |
+| BPG | C5_in | HIST_D7 - B1 | 262147 | -0.0040 | 0.4510 | 0.4532 | -0.0022 | -0.0002 | EXPLORATORY (seen); DIAGNOSTIC |
+
+## Unit W/L/T and the descriptive tests
+
+| design | contrast | G | W/L/T | SF_POOL_p | SIGN_p | SF_LOG_p | IM_REL_p | gate_pass | label |
+|---|---|---|---|---|---|---|---|---|---|
+| BPG | B1 - B0 | 13 | 11/1/1 | 0.0032 | 0.0032 | 0.0071 | 0.0117 | True | EXPLORATORY (seen); DIAGNOSTIC |
+| BPG | HIST_D7 - B1 | 13 | 4/8/1 | 0.6599 | 0.9270 | 0.8799 | 0.8975 | False | EXPLORATORY (seen); DIAGNOSTIC |
+
+## LOPO and top-3 share
+
+| design | stratum | contrast | point | lo | hi | min | min_by | max | max_by | P | top3_unit_share | label |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| BPG | C5_in | B1 - B0 | 0.0586 | 0.0224 | 0.0947 | 0.0503 | pub_6a0ef8528c | 0.0678 | pub_1605e436d7 | 39 | 0.8156 | EXPLORATORY (seen); DIAGNOSTIC |
+| BPG | C5_out | B1 - B0 | 0.0503 | 0.0083 | 0.0923 | 0.0396 | pub_8415538291 | 0.0621 | pub_1605e436d7 | 38 | 0.7461 | EXPLORATORY (seen); DIAGNOSTIC; SENSITIVITY |
+| BPG | C5_in | HIST_D7 - B1 | -0.0019 | -0.0141 | 0.0102 | -0.0049 | pub_1605e436d7 | 0.0022 | pub_6a0ef8528c | 39 | NaN | EXPLORATORY (seen); DIAGNOSTIC |
+| BPG | C5_out | HIST_D7 - B1 | 0.0022 | -0.0095 | 0.0139 | -0.0015 | pub_1605e436d7 | 0.0043 | pub_f8a621ede4 | 38 | 2.6098 | EXPLORATORY (seen); DIAGNOSTIC; SENSITIVITY |
+
+## C5-BTBP in / out
+
+| design | stratum | contrast | rows_per_seed | relSSE | dR2 | SF_POOL_p | dMAE_bal | gate_pass | label |
+|---|---|---|---|---|---|---|---|---|---|
+| BPG | C5_in | B1 - B0 | 1802.0000 | 0.0586 | 0.0341 | 0.0032 | 0.0050 | True | EXPLORATORY (seen); DIAGNOSTIC |
+| BPG | C5_out | B1 - B0 | 1654.0000 | 0.0503 | 0.0272 | 0.0037 | 0.0050 | True | EXPLORATORY (seen); DIAGNOSTIC; SENSITIVITY |
+| BPG | C5_cell_out | B1 - B0 | 1792.0000 | 0.0628 | 0.0347 | 0.0032 | 0.0050 | True | EXPLORATORY (seen); DIAGNOSTIC; SENSITIVITY |
+| BPG | C5_in | HIST_D7 - B1 | 1802.0000 | -0.0019 | -0.0010 | 0.6599 | -0.0000 | False | EXPLORATORY (seen); DIAGNOSTIC |
+| BPG | C5_out | HIST_D7 - B1 | 1654.0000 | 0.0022 | 0.0012 | 0.3806 | -0.0000 | False | EXPLORATORY (seen); DIAGNOSTIC; SENSITIVITY |
+| BPG | C5_cell_out | HIST_D7 - B1 | 1792.0000 | -0.0015 | -0.0007 | 0.6204 | -0.0000 | False | EXPLORATORY (seen); DIAGNOSTIC; SENSITIVITY |
+
+## Duplicate sensitivities
+
+| design | variant | contrast | cells_kept | rows_per_seed | G | relSSE | SF_POOL_p | dR2 | dMAE_bal | gate_pass | label | note |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| BPG | noV2 | B1 - B0 | 209 | 1636.0000 | 13 | 0.0647 | 0.0032 | 0.0378 | 0.0051 | True | EXPLORATORY (seen); DIAGNOSTIC; SENSITIVITY (duplicate sensitivity) |  |
+| BPG | noBITDUP | B1 - B0 | 223 | 1780.0000 | 13 | 0.0582 | 0.0032 | 0.0338 | 0.0049 | True | EXPLORATORY (seen); DIAGNOSTIC; SENSITIVITY (duplicate sensitivity) |  |
+| BPG | V2-3 | B1 - B0 | 11 | 88.0000 | 1 | -0.0903 | NaN | -0.0504 | -0.0059 | not computable (G = 1) | EXPLORATORY (seen); DIAGNOSTIC; SENSITIVITY (duplicate sensitivity, descriptive) | G = 1 cluster_cpg unit: SF_POOL, W/L/T and the gate not computable; relative SSE, R2 of both arms, dR2 and dMAE_bal descriptive |
+| BPG | without_V2-3 | B1 - B0 | 218 | 1714.0000 | 13 | 0.0673 | 0.0032 | 0.0397 | 0.0050 | True | EXPLORATORY (seen); DIAGNOSTIC; SENSITIVITY (duplicate sensitivity) |  |
+| BPG | noV2 | HIST_D7 - B1 | 209 | 1636.0000 | 13 | -0.0038 | 0.7031 | -0.0021 | -0.0001 | False | EXPLORATORY (seen); DIAGNOSTIC; SENSITIVITY (duplicate sensitivity) |  |
+| BPG | noBITDUP | HIST_D7 - B1 | 223 | 1780.0000 | 13 | -0.0018 | 0.6519 | -0.0009 | -0.0000 | False | EXPLORATORY (seen); DIAGNOSTIC; SENSITIVITY (duplicate sensitivity) |  |
+| BPG | V2-3 | HIST_D7 - B1 | 11 | 88.0000 | 1 | 0.0316 | NaN | 0.0195 | 0.0026 | not computable (G = 1) | EXPLORATORY (seen); DIAGNOSTIC; SENSITIVITY (duplicate sensitivity, descriptive) | G = 1 cluster_cpg unit: SF_POOL, W/L/T and the gate not computable; relative SSE, R2 of both arms, dR2 and dMAE_bal descriptive |
+| BPG | without_V2-3 | HIST_D7 - B1 | 218 | 1714.0000 | 13 | -0.0042 | 0.7556 | -0.0023 | -0.0000 | False | EXPLORATORY (seen); DIAGNOSTIC; SENSITIVITY (duplicate sensitivity) |  |

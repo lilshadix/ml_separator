@@ -1,0 +1,1206 @@
+{
+ "label": "STAGE-0 DATA RULE (population counts only; no prediction, no score)",
+ "section": "CLAUDE_CODE_PROMPT.md 6.1 (population) and 5.1 (bit-identity rule)",
+ "definitions": {
+  "sibling": "any other bench cell (521) with the same publication_id and extractant SMILES and a finite V1 log D at every metal of the target (coverage from the 'metals' metadata)",
+  "CLEAN": "target and sibling outside V2-1 / V2-2 / V2-3 (r3.datav2); sibling cond__ differs from the target in at least one field family other than contact time / metal concentration",
+  "bit_rule": "links flagged by r5.dupes.bit_identity (float64-identical V1 log D at >= 3 shared metals and >= 50 % of the shared finite metals) removed from every pool; cells kept; n_sib counted after",
+  "PRIMARY": "CLEAN + bit rule, n_sib >= 2, without C5-BTBP (pub_6a0ef8528c)",
+  "units": "publication x chemotype",
+  "rows_per_seed": "scored strict-adjacent rows of the round-4 REF parquet"
+ },
+ "n_c3_targets": 229,
+ "n_v2drop_cells": 26,
+ "PRIMARY_with_bit_rule": {
+  "cells": 99,
+  "publications": 12,
+  "pub_x_chemotype_units": 14,
+  "rows_per_seed": {
+   "BPG": {
+    "per_seed": {
+     "104729": 690,
+     "130363": 690,
+     "155921": 690,
+     "196613": 690,
+     "262147": 690
+    },
+    "distinct": [
+     690
+    ]
+   },
+   "BP": {
+    "per_seed": {
+     "104729": 690,
+     "130363": 690,
+     "155921": 690,
+     "196613": 690,
+     "262147": 690
+    },
+    "distinct": [
+     690
+    ]
+   }
+  },
+  "n_bit_flagged_sibling_links": 2,
+  "bit_flagged_sibling_links": [
+   [
+    "44012938119033a5",
+    "5169c377777d282b"
+   ],
+   [
+    "d4c1e23a091d0960",
+    "e4ee526bda3920c2"
+   ]
+  ],
+  "targets_with_a_bit_flagged_sibling": [
+   "44012938119033a5",
+   "5169c377777d282b",
+   "d4c1e23a091d0960",
+   "e4ee526bda3920c2"
+  ],
+  "n_sib_bit": {
+   "2": 11,
+   "3": 11,
+   "4": 17,
+   "5": 10,
+   "6": 14,
+   "8": 1,
+   "14": 13,
+   "15": 3,
+   "18": 2,
+   "19": 17
+  }
+ },
+ "PRIMARY_without_bit_rule": {
+  "cells": 99,
+  "publications": 12,
+  "pub_x_chemotype_units": 14,
+  "rows_per_seed": {
+   "BPG": {
+    "per_seed": {
+     "104729": 690,
+     "130363": 690,
+     "155921": 690,
+     "196613": 690,
+     "262147": 690
+    },
+    "distinct": [
+     690
+    ]
+   },
+   "BP": {
+    "per_seed": {
+     "104729": 690,
+     "130363": 690,
+     "155921": 690,
+     "196613": 690,
+     "262147": 690
+    },
+    "distinct": [
+     690
+    ]
+   }
+  }
+ },
+ "PRIMARY_cells_lost_to_bit_rule": [],
+ "PRIMARY_cells_gained": [],
+ "strata": {
+  "PRIMARY": {
+   "cells": 99,
+   "publications": 12,
+   "pub_x_chemotype_units": 14,
+   "rows_per_seed": {
+    "BPG": {
+     "per_seed": {
+      "104729": 690,
+      "130363": 690,
+      "155921": 690,
+      "196613": 690,
+      "262147": 690
+     },
+     "distinct": [
+      690
+     ]
+    },
+    "BP": {
+     "per_seed": {
+      "104729": 690,
+      "130363": 690,
+      "155921": 690,
+      "196613": 690,
+      "262147": 690
+     },
+     "distinct": [
+      690
+     ]
+    }
+   },
+   "c5_cells": 0,
+   "n_sib_bit": {
+    "2": 11,
+    "3": 11,
+    "4": 17,
+    "5": 10,
+    "6": 14,
+    "8": 1,
+    "14": 13,
+    "15": 3,
+    "18": 2,
+    "19": 17
+   },
+   "change_class": {
+    "acid_conc_only": 23,
+    "acid_type(+conc)": 13,
+    "diluent_only": 19,
+    "extr_conc_only": 3,
+    "mixed": 40,
+    "temperature_only": 1
+   },
+   "bit_flagged_sibling_links": [
+    [
+     "44012938119033a5",
+     "5169c377777d282b"
+    ],
+    [
+     "d4c1e23a091d0960",
+     "e4ee526bda3920c2"
+    ]
+   ],
+   "n_bit_flagged_sibling_links": 2,
+   "targets_with_a_bit_flagged_sibling": [
+    "44012938119033a5",
+    "5169c377777d282b",
+    "d4c1e23a091d0960",
+    "e4ee526bda3920c2"
+   ],
+   "description": "CLEAN + bit rule, n_sib >= 2, without C5-BTBP (primary)"
+  },
+  "WITH_C5": {
+   "cells": 114,
+   "publications": 13,
+   "pub_x_chemotype_units": 15,
+   "rows_per_seed": {
+    "BPG": {
+     "per_seed": {
+      "104729": 838,
+      "130363": 838,
+      "155921": 838,
+      "196613": 838,
+      "262147": 838
+     },
+     "distinct": [
+      838
+     ]
+    },
+    "BP": {
+     "per_seed": {
+      "104729": 838,
+      "130363": 838,
+      "155921": 838,
+      "196613": 838,
+      "262147": 838
+     },
+     "distinct": [
+      838
+     ]
+    }
+   },
+   "c5_cells": 15,
+   "n_sib_bit": {
+    "2": 11,
+    "3": 11,
+    "4": 17,
+    "5": 10,
+    "6": 14,
+    "8": 1,
+    "13": 14,
+    "14": 14,
+    "15": 3,
+    "18": 2,
+    "19": 17
+   },
+   "change_class": {
+    "acid_conc_only": 23,
+    "acid_type(+conc)": 13,
+    "diluent_only": 19,
+    "extr_conc_only": 3,
+    "mixed": 55,
+    "temperature_only": 1
+   },
+   "bit_flagged_sibling_links": [
+    [
+     "44012938119033a5",
+     "5169c377777d282b"
+    ],
+    [
+     "d4c1e23a091d0960",
+     "e4ee526bda3920c2"
+    ]
+   ],
+   "n_bit_flagged_sibling_links": 2,
+   "targets_with_a_bit_flagged_sibling": [
+    "44012938119033a5",
+    "5169c377777d282b",
+    "d4c1e23a091d0960",
+    "e4ee526bda3920c2"
+   ],
+   "description": "as PRIMARY, with C5-BTBP (sensitivity)"
+  },
+  "GE1": {
+   "cells": 115,
+   "publications": 17,
+   "pub_x_chemotype_units": 20,
+   "rows_per_seed": {
+    "BPG": {
+     "per_seed": {
+      "104729": 820,
+      "130363": 820,
+      "155921": 820,
+      "196613": 820,
+      "262147": 820
+     },
+     "distinct": [
+      820
+     ]
+    },
+    "BP": {
+     "per_seed": {
+      "104729": 820,
+      "130363": 820,
+      "155921": 820,
+      "196613": 820,
+      "262147": 820
+     },
+     "distinct": [
+      820
+     ]
+    }
+   },
+   "c5_cells": 0,
+   "n_sib_bit": {
+    "1": 16,
+    "2": 11,
+    "3": 11,
+    "4": 17,
+    "5": 10,
+    "6": 14,
+    "8": 1,
+    "14": 13,
+    "15": 3,
+    "18": 2,
+    "19": 17
+   },
+   "change_class": {
+    "acid_conc_only": 32,
+    "acid_type(+conc)": 16,
+    "diluent_only": 19,
+    "extr_conc_only": 3,
+    "mixed": 42,
+    "temperature_only": 3
+   },
+   "bit_flagged_sibling_links": [
+    [
+     "44012938119033a5",
+     "5169c377777d282b"
+    ],
+    [
+     "d4c1e23a091d0960",
+     "e4ee526bda3920c2"
+    ]
+   ],
+   "n_bit_flagged_sibling_links": 2,
+   "targets_with_a_bit_flagged_sibling": [
+    "44012938119033a5",
+    "5169c377777d282b",
+    "d4c1e23a091d0960",
+    "e4ee526bda3920c2"
+   ],
+   "description": "CLEAN + bit rule, n_sib >= 1, without C5 (sensitivity)"
+  },
+  "GE1_WITH_C5": {
+   "cells": 130,
+   "publications": 18,
+   "pub_x_chemotype_units": 21,
+   "rows_per_seed": {
+    "BPG": {
+     "per_seed": {
+      "104729": 968,
+      "130363": 968,
+      "155921": 968,
+      "196613": 968,
+      "262147": 968
+     },
+     "distinct": [
+      968
+     ]
+    },
+    "BP": {
+     "per_seed": {
+      "104729": 968,
+      "130363": 968,
+      "155921": 968,
+      "196613": 968,
+      "262147": 968
+     },
+     "distinct": [
+      968
+     ]
+    }
+   },
+   "c5_cells": 15,
+   "n_sib_bit": {
+    "1": 16,
+    "2": 11,
+    "3": 11,
+    "4": 17,
+    "5": 10,
+    "6": 14,
+    "8": 1,
+    "13": 14,
+    "14": 14,
+    "15": 3,
+    "18": 2,
+    "19": 17
+   },
+   "change_class": {
+    "acid_conc_only": 32,
+    "acid_type(+conc)": 16,
+    "diluent_only": 19,
+    "extr_conc_only": 3,
+    "mixed": 57,
+    "temperature_only": 3
+   },
+   "bit_flagged_sibling_links": [
+    [
+     "44012938119033a5",
+     "5169c377777d282b"
+    ],
+    [
+     "d4c1e23a091d0960",
+     "e4ee526bda3920c2"
+    ]
+   ],
+   "n_bit_flagged_sibling_links": 2,
+   "targets_with_a_bit_flagged_sibling": [
+    "44012938119033a5",
+    "5169c377777d282b",
+    "d4c1e23a091d0960",
+    "e4ee526bda3920c2"
+   ],
+   "description": "CLEAN + bit rule, n_sib >= 1, with C5"
+  },
+  "EQ1": {
+   "cells": 16,
+   "publications": 8,
+   "pub_x_chemotype_units": 9,
+   "rows_per_seed": {
+    "BPG": {
+     "per_seed": {
+      "104729": 130,
+      "130363": 130,
+      "155921": 130,
+      "196613": 130,
+      "262147": 130
+     },
+     "distinct": [
+      130
+     ]
+    },
+    "BP": {
+     "per_seed": {
+      "104729": 130,
+      "130363": 130,
+      "155921": 130,
+      "196613": 130,
+      "262147": 130
+     },
+     "distinct": [
+      130
+     ]
+    }
+   },
+   "c5_cells": 0,
+   "n_sib_bit": {
+    "1": 16
+   },
+   "change_class": {
+    "acid_conc_only": 9,
+    "acid_type(+conc)": 3,
+    "mixed": 2,
+    "temperature_only": 2
+   },
+   "bit_flagged_sibling_links": [],
+   "n_bit_flagged_sibling_links": 0,
+   "targets_with_a_bit_flagged_sibling": [],
+   "description": "CLEAN + bit rule, n_sib = 1, without C5 (harm rule)"
+  },
+  "PRIMARY_NOBIT": {
+   "cells": 99,
+   "publications": 12,
+   "pub_x_chemotype_units": 14,
+   "rows_per_seed": {
+    "BPG": {
+     "per_seed": {
+      "104729": 690,
+      "130363": 690,
+      "155921": 690,
+      "196613": 690,
+      "262147": 690
+     },
+     "distinct": [
+      690
+     ]
+    },
+    "BP": {
+     "per_seed": {
+      "104729": 690,
+      "130363": 690,
+      "155921": 690,
+      "196613": 690,
+      "262147": 690
+     },
+     "distinct": [
+      690
+     ]
+    }
+   },
+   "c5_cells": 0,
+   "n_sib_bit": {
+    "2": 11,
+    "3": 11,
+    "4": 17,
+    "5": 10,
+    "6": 14,
+    "8": 1,
+    "14": 13,
+    "15": 3,
+    "18": 2,
+    "19": 17
+   },
+   "change_class": {
+    "acid_conc_only": 23,
+    "acid_type(+conc)": 13,
+    "diluent_only": 19,
+    "extr_conc_only": 3,
+    "mixed": 40,
+    "temperature_only": 1
+   },
+   "bit_flagged_sibling_links": [
+    [
+     "44012938119033a5",
+     "5169c377777d282b"
+    ],
+    [
+     "d4c1e23a091d0960",
+     "e4ee526bda3920c2"
+    ]
+   ],
+   "n_bit_flagged_sibling_links": 2,
+   "targets_with_a_bit_flagged_sibling": [
+    "44012938119033a5",
+    "5169c377777d282b",
+    "d4c1e23a091d0960",
+    "e4ee526bda3920c2"
+   ],
+   "description": "P1's CLEAN rule without the bit-identity check (P1 reproduction target; sensitivity)"
+  },
+  "WITH_C5_NOBIT": {
+   "cells": 114,
+   "publications": 13,
+   "pub_x_chemotype_units": 15,
+   "rows_per_seed": {
+    "BPG": {
+     "per_seed": {
+      "104729": 838,
+      "130363": 838,
+      "155921": 838,
+      "196613": 838,
+      "262147": 838
+     },
+     "distinct": [
+      838
+     ]
+    },
+    "BP": {
+     "per_seed": {
+      "104729": 838,
+      "130363": 838,
+      "155921": 838,
+      "196613": 838,
+      "262147": 838
+     },
+     "distinct": [
+      838
+     ]
+    }
+   },
+   "c5_cells": 15,
+   "n_sib_bit": {
+    "2": 11,
+    "3": 11,
+    "4": 17,
+    "5": 10,
+    "6": 14,
+    "8": 1,
+    "13": 14,
+    "14": 14,
+    "15": 3,
+    "18": 2,
+    "19": 17
+   },
+   "change_class": {
+    "acid_conc_only": 23,
+    "acid_type(+conc)": 13,
+    "diluent_only": 19,
+    "extr_conc_only": 3,
+    "mixed": 55,
+    "temperature_only": 1
+   },
+   "bit_flagged_sibling_links": [
+    [
+     "44012938119033a5",
+     "5169c377777d282b"
+    ],
+    [
+     "d4c1e23a091d0960",
+     "e4ee526bda3920c2"
+    ]
+   ],
+   "n_bit_flagged_sibling_links": 2,
+   "targets_with_a_bit_flagged_sibling": [
+    "44012938119033a5",
+    "5169c377777d282b",
+    "d4c1e23a091d0960",
+    "e4ee526bda3920c2"
+   ],
+   "description": "P1 CLEAN, n >= 2, with C5"
+  },
+  "GE1_NOBIT": {
+   "cells": 115,
+   "publications": 17,
+   "pub_x_chemotype_units": 20,
+   "rows_per_seed": {
+    "BPG": {
+     "per_seed": {
+      "104729": 820,
+      "130363": 820,
+      "155921": 820,
+      "196613": 820,
+      "262147": 820
+     },
+     "distinct": [
+      820
+     ]
+    },
+    "BP": {
+     "per_seed": {
+      "104729": 820,
+      "130363": 820,
+      "155921": 820,
+      "196613": 820,
+      "262147": 820
+     },
+     "distinct": [
+      820
+     ]
+    }
+   },
+   "c5_cells": 0,
+   "n_sib_bit": {
+    "1": 16,
+    "2": 11,
+    "3": 11,
+    "4": 17,
+    "5": 10,
+    "6": 14,
+    "8": 1,
+    "14": 13,
+    "15": 3,
+    "18": 2,
+    "19": 17
+   },
+   "change_class": {
+    "acid_conc_only": 32,
+    "acid_type(+conc)": 16,
+    "diluent_only": 19,
+    "extr_conc_only": 3,
+    "mixed": 42,
+    "temperature_only": 3
+   },
+   "bit_flagged_sibling_links": [
+    [
+     "44012938119033a5",
+     "5169c377777d282b"
+    ],
+    [
+     "d4c1e23a091d0960",
+     "e4ee526bda3920c2"
+    ]
+   ],
+   "n_bit_flagged_sibling_links": 2,
+   "targets_with_a_bit_flagged_sibling": [
+    "44012938119033a5",
+    "5169c377777d282b",
+    "d4c1e23a091d0960",
+    "e4ee526bda3920c2"
+   ],
+   "description": "P1 CLEAN, n >= 1, without C5"
+  },
+  "GE1_WITH_C5_NOBIT": {
+   "cells": 130,
+   "publications": 18,
+   "pub_x_chemotype_units": 21,
+   "rows_per_seed": {
+    "BPG": {
+     "per_seed": {
+      "104729": 968,
+      "130363": 968,
+      "155921": 968,
+      "196613": 968,
+      "262147": 968
+     },
+     "distinct": [
+      968
+     ]
+    },
+    "BP": {
+     "per_seed": {
+      "104729": 968,
+      "130363": 968,
+      "155921": 968,
+      "196613": 968,
+      "262147": 968
+     },
+     "distinct": [
+      968
+     ]
+    }
+   },
+   "c5_cells": 15,
+   "n_sib_bit": {
+    "1": 16,
+    "2": 11,
+    "3": 11,
+    "4": 17,
+    "5": 10,
+    "6": 14,
+    "8": 1,
+    "13": 14,
+    "14": 14,
+    "15": 3,
+    "18": 2,
+    "19": 17
+   },
+   "change_class": {
+    "acid_conc_only": 32,
+    "acid_type(+conc)": 16,
+    "diluent_only": 19,
+    "extr_conc_only": 3,
+    "mixed": 57,
+    "temperature_only": 3
+   },
+   "bit_flagged_sibling_links": [
+    [
+     "44012938119033a5",
+     "5169c377777d282b"
+    ],
+    [
+     "d4c1e23a091d0960",
+     "e4ee526bda3920c2"
+    ]
+   ],
+   "n_bit_flagged_sibling_links": 2,
+   "targets_with_a_bit_flagged_sibling": [
+    "44012938119033a5",
+    "5169c377777d282b",
+    "d4c1e23a091d0960",
+    "e4ee526bda3920c2"
+   ],
+   "description": "P1 CLEAN, n >= 1, with C5"
+  },
+  "EQ1_NOBIT": {
+   "cells": 16,
+   "publications": 8,
+   "pub_x_chemotype_units": 9,
+   "rows_per_seed": {
+    "BPG": {
+     "per_seed": {
+      "104729": 130,
+      "130363": 130,
+      "155921": 130,
+      "196613": 130,
+      "262147": 130
+     },
+     "distinct": [
+      130
+     ]
+    },
+    "BP": {
+     "per_seed": {
+      "104729": 130,
+      "130363": 130,
+      "155921": 130,
+      "196613": 130,
+      "262147": 130
+     },
+     "distinct": [
+      130
+     ]
+    }
+   },
+   "c5_cells": 0,
+   "n_sib_bit": {
+    "1": 16
+   },
+   "change_class": {
+    "acid_conc_only": 9,
+    "acid_type(+conc)": 3,
+    "mixed": 2,
+    "temperature_only": 2
+   },
+   "bit_flagged_sibling_links": [],
+   "n_bit_flagged_sibling_links": 0,
+   "targets_with_a_bit_flagged_sibling": [],
+   "description": "P1 CLEAN, n = 1"
+  },
+  "V1_GE1": {
+   "cells": 149,
+   "publications": 19,
+   "pub_x_chemotype_units": 22,
+   "rows_per_seed": {
+    "BPG": {
+     "per_seed": {
+      "104729": 1111,
+      "130363": 1111,
+      "155921": 1111,
+      "196613": 1111,
+      "262147": 1111
+     },
+     "distinct": [
+      1111
+     ]
+    },
+    "BP": {
+     "per_seed": {
+      "104729": 1111,
+      "130363": 1111,
+      "155921": 1111,
+      "196613": 1111,
+      "262147": 1111
+     },
+     "distinct": [
+      1111
+     ]
+    }
+   },
+   "c5_cells": 15,
+   "n_sib_bit": {
+    "0": 19,
+    "1": 16,
+    "2": 11,
+    "3": 11,
+    "4": 17,
+    "5": 10,
+    "6": 14,
+    "8": 1,
+    "13": 14,
+    "14": 14,
+    "15": 3,
+    "18": 2,
+    "19": 17
+   },
+   "change_class": {
+    "NONE": 19,
+    "acid_conc_only": 32,
+    "acid_type(+conc)": 16,
+    "diluent_only": 19,
+    "extr_conc_only": 3,
+    "mixed": 57,
+    "temperature_only": 3
+   },
+   "bit_flagged_sibling_links": [
+    [
+     "44012938119033a5",
+     "5169c377777d282b"
+    ],
+    [
+     "d4c1e23a091d0960",
+     "e4ee526bda3920c2"
+    ]
+   ],
+   "n_bit_flagged_sibling_links": 2,
+   "targets_with_a_bit_flagged_sibling": [
+    "44012938119033a5",
+    "5169c377777d282b",
+    "d4c1e23a091d0960",
+    "e4ee526bda3920c2"
+   ],
+   "description": "V1 pool (every covering sibling), n >= 1 (E6 population)"
+  },
+  "V1_GE2_NOC5": {
+   "cells": 112,
+   "publications": 12,
+   "pub_x_chemotype_units": 14,
+   "rows_per_seed": {
+    "BPG": {
+     "per_seed": {
+      "104729": 821,
+      "130363": 821,
+      "155921": 821,
+      "196613": 821,
+      "262147": 821
+     },
+     "distinct": [
+      821
+     ]
+    },
+    "BP": {
+     "per_seed": {
+      "104729": 821,
+      "130363": 821,
+      "155921": 821,
+      "196613": 821,
+      "262147": 821
+     },
+     "distinct": [
+      821
+     ]
+    }
+   },
+   "c5_cells": 0,
+   "n_sib_bit": {
+    "0": 13,
+    "2": 11,
+    "3": 11,
+    "4": 17,
+    "5": 10,
+    "6": 14,
+    "8": 1,
+    "14": 13,
+    "15": 3,
+    "18": 2,
+    "19": 17
+   },
+   "change_class": {
+    "NONE": 13,
+    "acid_conc_only": 23,
+    "acid_type(+conc)": 13,
+    "diluent_only": 19,
+    "extr_conc_only": 3,
+    "mixed": 40,
+    "temperature_only": 1
+   },
+   "bit_flagged_sibling_links": [
+    [
+     "44012938119033a5",
+     "5169c377777d282b"
+    ],
+    [
+     "d4c1e23a091d0960",
+     "e4ee526bda3920c2"
+    ]
+   ],
+   "n_bit_flagged_sibling_links": 2,
+   "targets_with_a_bit_flagged_sibling": [
+    "44012938119033a5",
+    "5169c377777d282b",
+    "d4c1e23a091d0960",
+    "e4ee526bda3920c2"
+   ],
+   "description": "P1's V1 stratum: V1 pool, n >= 2, without C5 (bridge to IR's numbers)"
+  }
+ },
+ "flagged_links_all": [
+  {
+   "cell_a": "5a6a2f3bf13a7d55",
+   "cell_b": "c61ecb085d8df371",
+   "n_ident": 8,
+   "n_shared": 8,
+   "publication": [
+    "pub_b9dfc468cd",
+    "pub_b9dfc468cd"
+   ],
+   "same_extractant": true,
+   "v2drop": [
+    false,
+    true
+   ],
+   "c3": [
+    true,
+    true
+   ],
+   "pools_where_removed_by_target": {
+    "5a6a2f3bf13a7d55": [],
+    "c61ecb085d8df371": [
+     "off_pub"
+    ]
+   }
+  },
+  {
+   "cell_a": "26cbed1ed70886fe",
+   "cell_b": "259e68bb986bb484",
+   "n_ident": 8,
+   "n_shared": 8,
+   "publication": [
+    "pub_b9dfc468cd",
+    "pub_b9dfc468cd"
+   ],
+   "same_extractant": false,
+   "v2drop": [
+    false,
+    false
+   ],
+   "c3": [
+    true,
+    true
+   ],
+   "pools_where_removed_by_target": {
+    "26cbed1ed70886fe": [
+     "off_pub",
+     "off_xext",
+     "plc_pub"
+    ],
+    "259e68bb986bb484": [
+     "off_pub",
+     "off_xext",
+     "plc_pub"
+    ]
+   }
+  },
+  {
+   "cell_a": "d4c1e23a091d0960",
+   "cell_b": "e4ee526bda3920c2",
+   "n_ident": 3,
+   "n_shared": 6,
+   "publication": [
+    "pub_c8195b4ca7",
+    "pub_c8195b4ca7"
+   ],
+   "same_extractant": true,
+   "v2drop": [
+    false,
+    false
+   ],
+   "c3": [
+    true,
+    true
+   ],
+   "pools_where_removed_by_target": {
+    "d4c1e23a091d0960": [
+     "clean",
+     "off_all",
+     "off_pub"
+    ],
+    "e4ee526bda3920c2": [
+     "clean",
+     "off_all",
+     "off_pub"
+    ]
+   }
+  },
+  {
+   "cell_a": "44012938119033a5",
+   "cell_b": "5169c377777d282b",
+   "n_ident": 13,
+   "n_shared": 14,
+   "publication": [
+    "pub_19783c039b",
+    "pub_19783c039b"
+   ],
+   "same_extractant": true,
+   "v2drop": [
+    false,
+    false
+   ],
+   "c3": [
+    true,
+    true
+   ],
+   "pools_where_removed_by_target": {
+    "44012938119033a5": [
+     "clean",
+     "off_all",
+     "off_pub"
+    ],
+    "5169c377777d282b": [
+     "clean",
+     "off_all",
+     "off_pub"
+    ]
+   }
+  },
+  {
+   "cell_a": "5df28757679cae26",
+   "cell_b": "f8ed87d3cf7f4281",
+   "n_ident": 8,
+   "n_shared": 8,
+   "publication": [
+    "pub_b9dfc468cd",
+    "pub_b9dfc468cd"
+   ],
+   "same_extractant": true,
+   "v2drop": [
+    false,
+    true
+   ],
+   "c3": [
+    true,
+    true
+   ],
+   "pools_where_removed_by_target": {
+    "5df28757679cae26": [],
+    "f8ed87d3cf7f4281": [
+     "off_pub"
+    ]
+   }
+  },
+  {
+   "cell_a": "247f57741141188a",
+   "cell_b": "62e7cdd6fa003391",
+   "n_ident": 8,
+   "n_shared": 8,
+   "publication": [
+    "pub_b9dfc468cd",
+    "pub_b9dfc468cd"
+   ],
+   "same_extractant": true,
+   "v2drop": [
+    false,
+    true
+   ],
+   "c3": [
+    true,
+    true
+   ],
+   "pools_where_removed_by_target": {
+    "247f57741141188a": [],
+    "62e7cdd6fa003391": [
+     "off_pub"
+    ]
+   }
+  }
+ ],
+ "n_flagged_links_all": 6,
+ "p1_reproduction_counts": {
+  "V1_GE1": {
+   "expected_P1": [
+    149,
+    19,
+    22,
+    1111
+   ],
+   "found": [
+    149,
+    19,
+    22,
+    1111
+   ],
+   "match": true
+  },
+  "GE1_WITH_C5_NOBIT": {
+   "expected_P1": [
+    130,
+    18,
+    21,
+    968
+   ],
+   "found": [
+    130,
+    18,
+    21,
+    968
+   ],
+   "match": true
+  },
+  "GE1_NOBIT": {
+   "expected_P1": [
+    115,
+    17,
+    20,
+    820
+   ],
+   "found": [
+    115,
+    17,
+    20,
+    820
+   ],
+   "match": true
+  },
+  "PRIMARY_NOBIT": {
+   "expected_P1": [
+    99,
+    12,
+    14,
+    690
+   ],
+   "found": [
+    99,
+    12,
+    14,
+    690
+   ],
+   "match": true
+  },
+  "WITH_C5_NOBIT": {
+   "expected_P1": [
+    114,
+    13,
+    15,
+    838
+   ],
+   "found": [
+    114,
+    13,
+    15,
+    838
+   ],
+   "match": true
+  },
+  "EQ1_NOBIT": {
+   "expected_P1": [
+    16,
+    8,
+    9,
+    130
+   ],
+   "found": [
+    16,
+    8,
+    9,
+    130
+   ],
+   "match": true
+  },
+  "V1_GE2_NOC5": {
+   "expected_P1": [
+    112,
+    null,
+    null,
+    821
+   ],
+   "found": [
+    112,
+    12,
+    14,
+    821
+   ],
+   "match": true
+  }
+ },
+ "p1_reproduction_all_match": true,
+ "rows_identical_BP_BPG": true,
+ "cond_rule_extra_drops_after_V2": 0,
+ "inputs": {
+  "bench": {
+   "manifest_parquet": "generations\\gen13_separation\\manifests\\cohort_exact.parquet",
+   "manifest_sha256": "3f11ac4ccb7c9f6b1fa768f4406e1f249881cfd76689ba49a9115efc08bb7fd6",
+   "n_cells": 521
+  },
+  "copied_from_LF_sha256": {
+   "P1_ct_build.py": "afd7ae542f24df305c6f174fd3e816948b28298720d543772b685ded9d7138d0",
+   "P1_ct_diag.py": "4234aa3d51a49690d75288f4c2b4907692806d6a5955b17111fa9cc2c8f66b2d"
+  }
+ },
+ "seconds": 0.5
+}

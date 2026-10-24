@@ -1,0 +1,1702 @@
+{
+ "label": "STAGE-0 SUPPLY AUDIT (metadata only; no D, log D or SF column loaded; no score)",
+ "status": "PROVISIONAL: laboratory key pending U6 review, planning amplitudes pending U5, SAFE pending U2",
+ "columns_loaded": {
+  "P4_candidates.csv": [
+   "cand_id",
+   "doi",
+   "year",
+   "journal",
+   "first_author",
+   "last_author",
+   "author_surnames",
+   "lab_id",
+   "lab_in_corpus",
+   "lab_evidence",
+   "extractant",
+   "ext_class",
+   "chemotype_label",
+   "chemotype_in_corpus",
+   "acid_medium",
+   "n_ln_reported",
+   "ln_named",
+   "strict_adjacent_pair",
+   "full_LaLu_series",
+   "sibling_conditions",
+   "sibling_desc",
+   "data_form",
+   "oa_status",
+   "screen_level",
+   "eligibility",
+   "exclusion_reason",
+   "m22_rule_8Ln_EuGdTb",
+   "search_route",
+   "notes"
+  ],
+  "P4_corpus_registry.csv": [
+   "key",
+   "year",
+   "journal",
+   "title",
+   "authors",
+   "n_rows",
+   "n_ln_metals",
+   "ln_metals",
+   "curators",
+   "extractants",
+   "c3_cells",
+   "v1_cells",
+   "in_v1_cohort"
+  ],
+  "P4_corpus_surnames.csv": [
+   "surname",
+   "n_archive_refs"
+  ],
+  "sources_by_doi.csv": [
+   "doi",
+   "publication_ids",
+   "cells",
+   "c3_cells",
+   "c3_pairs",
+   "extractants",
+   "chemotypes",
+   "curators",
+   "data_locations",
+   "ornl_import_cells",
+   "flagged_cells",
+   "title",
+   "year"
+  ]
+ },
+ "inputs_lf_sha256": {
+  "P4_candidates.csv": "7e0ad6887c58f9a50ac53f199f078aef395a4d4791e7638fe9725de5d1a97f9d",
+  "P4_corpus_registry.csv": "60b5db0f74e38adf0bc68a403069ca4af2bf57851ffdb484478f1d64ca0c7eba",
+  "P4_corpus_surnames.csv": "ed9fe5c233ccd256cd1b90d5b9e1d533694942eba8cc2e038ab86cffb2f3a66f",
+  "sources_by_doi.csv": "89cea1c4ba036b7fd66b3916979f92dc03fd3859b17fbd2806625086b90c3096"
+ },
+ "lab_key_rules": {
+  "drop_common_surnames": [
+   "liu",
+   "xu",
+   "zhang",
+   "zhou"
+  ],
+  "link_L2": ">= 2 shared distinctive family names",
+  "link_LPI": "same person (family + first initial) in a PI position (first or last author of the first ordered representation) of both references",
+  "conservative": "connected components of L2 or LPI",
+  "liberal": "senior (last-listed) person",
+  "family_given": "Chinese family-name list + cross-reference attestation + representation majority",
+  "institution_fix": {
+   "CSM-Shafer": [
+    "P",
+    "Argonne co-authors on P4-077 / P4-073 (Servis at ANL); CSM-Jensen already P [PC P4]"
+   ],
+   "Osaka-Shinohara": [
+    "P",
+    "JAEA heavy-element co-authors (Nagame, Asai, Toyoshima); not confirmed from metadata [PC P4]"
+   ],
+   "Kanazawa-Imura": [
+    "P",
+    "co-author Okamura at JAEA (P4's own note) [PC P4]"
+   ]
+  },
+  "candidate_fix": {
+   "P4-025": [
+    "lab_in_corpus",
+    "Y",
+    "two co-authors (Sasaki, Matsumiya) on archive 10.1246/cl.200431 [PC P4]"
+   ],
+   "P4-063": [
+    "eligibility",
+    "E2",
+    "adjacent pair not visible in the accessible text [PC P4]"
+   ]
+  },
+  "second_order_links_sensitivity": {
+   "KULeuven-Binnemans": "Binnemans co-authored P4-026 with the corpus Juelich lab",
+   "Mendeleev/Frumkin-Stepanov": "Kostikova co-authored P4-001 with the corpus MSU phen-diamide lab"
+  }
+ },
+ "corpus_lab_counts": {
+  "all_registry_keys": {
+   "conservative": 45,
+   "liberal": 85,
+   "references": 135
+  },
+  "v1_cohort_dois": {
+   "conservative": 24,
+   "liberal": 44,
+   "references": 58
+  },
+  "c3_dois": {
+   "conservative": 17,
+   "liberal": 31,
+   "references": 39
+  }
+ },
+ "corpus_lab_counts_sensitivity_four_named_only": {
+  "all_registry_keys": {
+   "conservative": 33,
+   "liberal": 85,
+   "references": 135
+  },
+  "v1_cohort_dois": {
+   "conservative": 20,
+   "liberal": 44,
+   "references": 58
+  },
+  "c3_dois": {
+   "conservative": 16,
+   "liberal": 31,
+   "references": 39
+  }
+ },
+ "corpus_links": {
+  "n": 329,
+  "L2": 188,
+  "LPI": 220,
+  "single_pi_only": 141,
+  "n_sensitivity_four_named_only": 386
+ },
+ "family_given_repair": {
+  "references_with_FG_decisions": 2,
+  "families_added_vs_P4_surnames": [
+   "darin",
+   "solovev",
+   "yin"
+  ],
+  "P4_surnames_not_in_repaired_parse": [
+   "dar\u2019in",
+   "guoxin",
+   "jansone\u2010popova",
+   "mei",
+   "meilong",
+   "min",
+   "sanchez\u2010quesada",
+   "shaohong",
+   "solov'ev",
+   "yu"
+  ]
+ },
+ "ect_laboratory_annotation": {
+  "V1_GE1_publications": {
+   "n_publications": 19,
+   "unmapped": [],
+   "labs_conservative": 9,
+   "labs_liberal": 16,
+   "by_publication": {
+    "pub_0a8da089ad": {
+     "doi": "10.1007/s41365-017-0229-4",
+     "lab_conservative": "LAB008",
+     "lab_liberal": "PI:sun_g",
+     "senior": "sun g."
+    },
+    "pub_0fd6ab4e40": {
+     "doi": "10.1039/d0ra05182a",
+     "lab_conservative": "LAB031",
+     "lab_liberal": "PI:ustyniuk_y",
+     "senior": "ustyniuk y."
+    },
+    "pub_1605e436d7": {
+     "doi": "10.1081/sei-200037727",
+     "lab_conservative": "LAB005",
+     "lab_liberal": "PI:morita_y",
+     "senior": "morita y."
+    },
+    "pub_19783c039b": {
+     "doi": "10.1007/s10967-020-07242-1",
+     "lab_conservative": "LAB012",
+     "lab_liberal": "PI:tian_g",
+     "senior": "tian g."
+    },
+    "pub_1c1b558856": {
+     "doi": "10.1007/s10967-017-5614-2",
+     "lab_conservative": "LAB001",
+     "lab_liberal": "PI:geist_a",
+     "senior": "geist a."
+    },
+    "pub_37086f6378": {
+     "doi": "10.1016/j.hydromet.2020.105248",
+     "lab_conservative": "LAB001",
+     "lab_liberal": "PI:panak_p",
+     "senior": "panak p."
+    },
+    "pub_4cba27f5f3": {
+     "doi": "10.1039/d4gc01146e",
+     "lab_conservative": "LAB032",
+     "lab_liberal": "PI:qi_l",
+     "senior": "qi l."
+    },
+    "pub_5a68dc5665": {
+     "doi": "10.1080/07366299.2015.1087209",
+     "lab_conservative": "LAB005",
+     "lab_liberal": "PI:nash_k",
+     "senior": "nash k."
+    },
+    "pub_6a0ef8528c": {
+     "doi": "10.1080/07366290600646947",
+     "lab_conservative": "LAB001",
+     "lab_liberal": "PI:skarnemark_g",
+     "senior": "skarnemark g."
+    },
+    "pub_8415538291": {
+     "doi": "10.1081/sei-120030392",
+     "lab_conservative": "LAB005",
+     "lab_liberal": "PI:okuno_k",
+     "senior": "okuno k."
+    },
+    "pub_a49146c8fd": {
+     "doi": "10.1002/chem.201806443",
+     "lab_conservative": "LAB002",
+     "lab_liberal": "PI:jansone-popova_s",
+     "senior": "jansone-popova s."
+    },
+    "pub_af0c74798c": {
+     "doi": "10.1081/sei-100001376",
+     "lab_conservative": "LAB005",
+     "lab_liberal": "PI:tachimori_s",
+     "senior": "tachimori s."
+    },
+    "pub_b0b3296ec5": {
+     "doi": "10.1246/cl.200431",
+     "lab_conservative": "LAB005",
+     "lab_liberal": "PI:takeshita_k",
+     "senior": "takeshita k."
+    },
+    "pub_b9dfc468cd": {
+     "doi": "10.1016/j.seppur.2014.03.005",
+     "lab_conservative": "LAB019",
+     "lab_liberal": "PI:mohamed_d",
+     "senior": "mohamed d."
+    },
+    "pub_c8195b4ca7": {
+     "doi": "10.1080/01496395.2016.1274760",
+     "lab_conservative": "LAB019",
+     "lab_liberal": "PI:mohamed_d",
+     "senior": "mohamed d."
+    },
+    "pub_ca616a18dd": {
+     "doi": "10.1080/01496395.2012.697523",
+     "lab_conservative": "LAB005",
+     "lab_liberal": "PI:nash_k",
+     "senior": "nash k."
+    },
+    "pub_cd72e4a7bb": {
+     "doi": "10.1080/07366299.2017.1415670",
+     "lab_conservative": "LAB040",
+     "lab_liberal": "PI:mariani_m",
+     "senior": "mariani m."
+    },
+    "pub_d68ed8c8cf": {
+     "doi": "10.15261/serdj.18.93",
+     "lab_conservative": "LAB005",
+     "lab_liberal": "PI:morita_y",
+     "senior": "morita y."
+    },
+    "pub_f8a621ede4": {
+     "doi": "10.1080/07366299.2010.480932",
+     "lab_conservative": "LAB008",
+     "lab_liberal": "PI:yin_s",
+     "senior": "yin s."
+    }
+   }
+  },
+  "PRIMARY_publications": {
+   "n_publications": 12,
+   "unmapped": [],
+   "labs_conservative": 7,
+   "labs_liberal": 11,
+   "by_publication": {
+    "pub_0a8da089ad": {
+     "doi": "10.1007/s41365-017-0229-4",
+     "lab_conservative": "LAB008",
+     "lab_liberal": "PI:sun_g",
+     "senior": "sun g."
+    },
+    "pub_1605e436d7": {
+     "doi": "10.1081/sei-200037727",
+     "lab_conservative": "LAB005",
+     "lab_liberal": "PI:morita_y",
+     "senior": "morita y."
+    },
+    "pub_19783c039b": {
+     "doi": "10.1007/s10967-020-07242-1",
+     "lab_conservative": "LAB012",
+     "lab_liberal": "PI:tian_g",
+     "senior": "tian g."
+    },
+    "pub_1c1b558856": {
+     "doi": "10.1007/s10967-017-5614-2",
+     "lab_conservative": "LAB001",
+     "lab_liberal": "PI:geist_a",
+     "senior": "geist a."
+    },
+    "pub_4cba27f5f3": {
+     "doi": "10.1039/d4gc01146e",
+     "lab_conservative": "LAB032",
+     "lab_liberal": "PI:qi_l",
+     "senior": "qi l."
+    },
+    "pub_5a68dc5665": {
+     "doi": "10.1080/07366299.2015.1087209",
+     "lab_conservative": "LAB005",
+     "lab_liberal": "PI:nash_k",
+     "senior": "nash k."
+    },
+    "pub_8415538291": {
+     "doi": "10.1081/sei-120030392",
+     "lab_conservative": "LAB005",
+     "lab_liberal": "PI:okuno_k",
+     "senior": "okuno k."
+    },
+    "pub_b0b3296ec5": {
+     "doi": "10.1246/cl.200431",
+     "lab_conservative": "LAB005",
+     "lab_liberal": "PI:takeshita_k",
+     "senior": "takeshita k."
+    },
+    "pub_c8195b4ca7": {
+     "doi": "10.1080/01496395.2016.1274760",
+     "lab_conservative": "LAB019",
+     "lab_liberal": "PI:mohamed_d",
+     "senior": "mohamed d."
+    },
+    "pub_cd72e4a7bb": {
+     "doi": "10.1080/07366299.2017.1415670",
+     "lab_conservative": "LAB040",
+     "lab_liberal": "PI:mariani_m",
+     "senior": "mariani m."
+    },
+    "pub_d68ed8c8cf": {
+     "doi": "10.15261/serdj.18.93",
+     "lab_conservative": "LAB005",
+     "lab_liberal": "PI:morita_y",
+     "senior": "morita y."
+    },
+    "pub_f8a621ede4": {
+     "doi": "10.1080/07366299.2010.480932",
+     "lab_conservative": "LAB008",
+     "lab_liberal": "PI:yin_s",
+     "senior": "yin s."
+    }
+   }
+  }
+ },
+ "claim_supply_lab_by_lab": {
+  "G_ECT": {
+   "unit": "new laboratory with >= 3 full-series sibling conditions of one extractant, a T1/T2 factor",
+   "verified": [
+    "Chiba-Katsuta",
+    "KULeuven-Binnemans"
+   ],
+   "e1_e2_all_convert": [
+    "CIAC",
+    "Chiba-Katsuta",
+    "Giredmet",
+    "ISSP-Turanov",
+    "KULeuven-Binnemans",
+    "Kurnakov-Belova",
+    "UCTM-Atanassova",
+    "UFV/Aveiro-Schaeffer",
+    "Utkal-Chakravortty/Reddy"
+   ],
+   "e1_e2_u_all_convert": [
+    "CIAC",
+    "Chiba-Katsuta",
+    "Giredmet",
+    "ISSP-Turanov",
+    "KULeuven-Binnemans",
+    "Kurnakov-Belova",
+    "UCTM-Atanassova",
+    "UFV/Aveiro-Schaeffer",
+    "Utkal-Chakravortty/Reddy"
+   ]
+  },
+  "G_HS": {
+   "unit": "new cation-exchange laboratory (C-GD stratum) reporting Eu, Gd, Tb, non-complexant medium",
+   "verified": [
+    "Chiba-Katsuta"
+   ],
+   "e1_e2_all_convert": [
+    "Chiba-Katsuta",
+    "TUS-Hasegawa",
+    "UCTM-Atanassova"
+   ],
+   "e1_e2_u_all_convert": [
+    "ANSTO-Soldenhoff",
+    "CIAC",
+    "Chiba-Katsuta",
+    "IPEN-Atalla",
+    "Idaho-Wai",
+    "MSU-Nifantev",
+    "TUS-Hasegawa",
+    "UCTM-Atanassova",
+    "UEC-Masuda"
+   ],
+   "classes_by_lab": {
+    "Chiba-Katsuta": [
+     "CX_ACIDIC_OP"
+    ],
+    "TUS-Hasegawa": [
+     "CX_CHELATING"
+    ],
+    "UCTM-Atanassova": [
+     "CX_CHELATING"
+    ]
+   }
+  },
+  "G_Gd": {
+   "unit": "new laboratory x chemotype unit reporting Eu, Gd, Tb, non-complexant medium (any class)",
+   "verified": [
+    [
+     "Chiba-Katsuta",
+     "acidic organophosphorus"
+    ],
+    [
+     "KULeuven-Binnemans",
+     "quaternary-onium nitrate IL"
+    ]
+   ],
+   "e1_e2_all_convert": [
+    [
+     "CIAC",
+     "neutral phosphine oxide"
+    ],
+    [
+     "CIAC",
+     "organophosphorus-anion bifunctional IL"
+    ],
+    [
+     "Chiba-Katsuta",
+     "acidic organophosphorus"
+    ],
+    [
+     "ISSP-Turanov",
+     "CMPO-like carbamoylphosphine oxide"
+    ],
+    [
+     "ISSP-Turanov",
+     "DGA in IL"
+    ],
+    [
+     "ISSP-Turanov",
+     "phosphorylurea"
+    ],
+    [
+     "KULeuven-Binnemans",
+     "quaternary-onium nitrate IL"
+    ],
+    [
+     "TUS-Hasegawa",
+     "beta-diketone synergist"
+    ],
+    [
+     "UCTM-Atanassova",
+     "8-HQ + crown synergist"
+    ],
+    [
+     "UFV/Aveiro-Schaeffer",
+     "eutectic solvent"
+    ]
+   ],
+   "e1_e2_u_all_convert": [
+    [
+     "ANSTO-Soldenhoff",
+     "acidic organophosphorus"
+    ],
+    [
+     "ANSTO-Soldenhoff",
+     "organophosphorus-anion bifunctional IL"
+    ],
+    [
+     "CIAC",
+     "neutral phosphine oxide"
+    ],
+    [
+     "CIAC",
+     "organophosphorus-anion bifunctional IL"
+    ],
+    [
+     "CIAC",
+     "phosphoryl carboxylic acid"
+    ],
+    [
+     "Chiba-Katsuta",
+     "acidic organophosphorus"
+    ],
+    [
+     "IPEN-Atalla",
+     "beta-diketone synergist"
+    ],
+    [
+     "ISSP-Turanov",
+     "CMPO-like carbamoylphosphine oxide"
+    ],
+    [
+     "ISSP-Turanov",
+     "DGA in IL"
+    ],
+    [
+     "ISSP-Turanov",
+     "neutral phosphine oxide"
+    ],
+    [
+     "ISSP-Turanov",
+     "phosphorylurea"
+    ],
+    [
+     "Idaho-Wai",
+     "crown ether carboxylic acid"
+    ],
+    [
+     "KULeuven-Binnemans",
+     "quaternary-onium nitrate IL"
+    ],
+    [
+     "MSU-Nifantev",
+     "acidic organophosphorus"
+    ],
+    [
+     "TUS-Hasegawa",
+     "beta-diketone synergist"
+    ],
+    [
+     "Tsinghua-Wang",
+     "eutectic solvent"
+    ],
+    [
+     "UCTM-Atanassova",
+     "8-HQ + crown synergist"
+    ],
+    [
+     "UEC-Masuda",
+     "acidic organophosphorus"
+    ],
+    [
+     "UFV/Aveiro-Schaeffer",
+     "eutectic solvent"
+    ],
+    [
+     "XAUAT-Li",
+     "DGA"
+    ]
+   ]
+  }
+ },
+ "expected_supply_forecasts": {
+  "P4_rates_pE2_0.5_pU_0.25": {
+   "G_ECT": 5.5,
+   "G_HS": 3.5,
+   "G_Gd": 8.5
+  },
+  "PC_P4_rates_pE2_2of6_pU_0": {
+   "G_ECT": 4.333333333333333,
+   "G_HS": 1.6666666666666665,
+   "G_Gd": 4.666666666666666
+  }
+ },
+ "audit": {
+  "claims": [
+   {
+    "claim": "C-ECT",
+    "supply": "G_ECT_UNITS",
+    "min_G": 7,
+    "realistic": [
+     2,
+     3
+    ],
+    "unit": "chemotype units (D3 ii; linked laboratory-chemotype components)",
+    "role": "test",
+    "source": "brief 4.6, 7.5; I2 confirm-4 (minimum 7; < 7 -> descriptive case series); D3 fallback (ii); the brief's realistic range counts laboratories",
+    "supply_verified_literature": 2,
+    "supply_in_hand": 2,
+    "decision_supply": 2,
+    "bracket_high": 3,
+    "below_min": true,
+    "forecasts": {
+     "P4_rates_pE2_0.5_pU_0.25": {
+      "expected": 5.5,
+      "reaches_min": false
+     },
+     "PC_P4_rates_pE2_2of6_pU_0": {
+      "expected": 4.33,
+      "reaches_min": false
+     }
+    },
+    "supply_all_convert": 6,
+    "all_convert_reaches_min": false,
+    "supply_in_hand_laboratories": 2,
+    "supply_all_convert_laboratories": 9,
+    "all_convert_distinct_chemotypes": 10,
+    "verified_units": [
+     [
+      "acidic organophosphorus"
+     ],
+     [
+      "quaternary-onium nitrate IL"
+     ]
+    ],
+    "forecast_unit": "laboratories (G_ECT); the chemotype-unit reach is in supply_reach.json"
+   },
+   {
+    "claim": "C-GD",
+    "supply": "G_HS",
+    "min_G": 6,
+    "realistic": [
+     2,
+     5
+    ],
+    "unit": "laboratories (>= 3 families)",
+    "role": "descriptive (D3 i)",
+    "source": "brief 4.6, 7.5; I2 confirm-1, confirm-2 (6 laboratories from >= 3 families)",
+    "supply_verified_literature": 1,
+    "supply_in_hand": 1,
+    "decision_supply": 1,
+    "bracket_high": 5,
+    "below_min": true,
+    "forecasts": {
+     "P4_rates_pE2_0.5_pU_0.25": {
+      "expected": 3.5,
+      "reaches_min": false
+     },
+     "PC_P4_rates_pE2_2of6_pU_0": {
+      "expected": 1.67,
+      "reaches_min": false
+     }
+    },
+    "supply_all_convert": 9,
+    "all_convert_reaches_min": true
+   },
+   {
+    "claim": "Gd-dip transport (merged SAFE + literature)",
+    "supply": "G_Gd+SAFE",
+    "min_G": 10,
+    "realistic": [
+     2,
+     6
+    ],
+    "unit": "laboratory x chemotype units",
+    "role": "descriptive (D3 i)",
+    "source": "brief 7.2, 7.5; IR M33 (>= 10 units to run); literature 2-3 verified + SAFE 0-3",
+    "supply_verified_literature": 2,
+    "supply_in_hand": 5,
+    "decision_supply": 5,
+    "bracket_high": 6,
+    "below_min": true,
+    "forecasts": {
+     "P4_rates_pE2_0.5_pU_0.25": {
+      "expected": 11.5,
+      "reaches_min": true
+     },
+     "PC_P4_rates_pE2_2of6_pU_0": {
+      "expected": 7.67,
+      "reaches_min": false
+     }
+    },
+    "supply_all_convert": 23,
+    "all_convert_reaches_min": true
+   },
+   {
+    "claim": "SAFE route (M33 gate)",
+    "supply": "SAFE",
+    "min_G": 10,
+    "realistic": [
+     0,
+     3
+    ],
+    "role": "descriptive (D3 i)",
+    "unit": "experimental multi-Ln units outside the corpus",
+    "source": "brief 4.6, 7.2 (SAFE 0-3 against 10)",
+    "supply_verified_literature": 0,
+    "supply_in_hand": 3,
+    "decision_supply": 3,
+    "bracket_high": 3,
+    "below_min": true,
+    "forecasts": {
+     "P4_rates_pE2_0.5_pU_0.25": {
+      "expected": 3.0,
+      "reaches_min": false
+     },
+     "PC_P4_rates_pE2_2of6_pU_0": {
+      "expected": 3.0,
+      "reaches_min": false
+     }
+    },
+    "supply_all_convert": 3,
+    "all_convert_reaches_min": false
+   }
+  ],
+  "kill_fires": true,
+  "kill_under_forecast": {
+   "P4_rates_pE2_0.5_pU_0.25": true,
+   "PC_P4_rates_pE2_2of6_pU_0": true
+  },
+  "kill_under_bracket_high": true,
+  "descriptive_run_trigger_gd_dip": false,
+  "outcome": "SUPPLY-AUDIT KILL: every test claim below its minimum G -> no confirmation runs; round 5 is reported as descriptive (section 7.6)",
+  "rule": "decision supply (D4) = units verified in hand from metadata under the frozen key (E1 frozen, the claim's metadata verified), the institution-link rule applied consistently, plus SAFE's maximum (3) where SAFE units count while U2 is unanswered; C-ECT counts linked chemotype units (D3 fallback ii; P4 hand labels, PROVISIONAL); below_min = decision supply < minimum G.  The kill fires when every claim with role 'test' is below its minimum (C-GD and Gd-dip transport are descriptive intervals under D3 fallback i; their '>= minimum' is a descriptive-run trigger, never a test).  Forecasts (P4's and PC P4's conversion rates), the all-convert scenario and the brief's realistic bracket (bracket_high = max(in hand, realistic high)) are reported and never decide; the audit reruns after each answered request (section 4.6)."
+ },
+ "minimum_G_source": {
+  "C-ECT": 7,
+  "C-GD": 6,
+  "Gd-dip transport": 10,
+  "SAFE route": 10
+ },
+ "supply_scenarios_confirm1_quoted": [
+  {
+   "scenario": "verified only (7 E1 labs)",
+   "G_HS": "3",
+   "G_Gd": "4-5",
+   "G_ECT": "2-3",
+   "C-GD": "below minimum (0.44-0.56 at G = 5)",
+   "A1": "0.50 at G = 5",
+   "C-B1 chain": "below minimum",
+   "C-ECT": "below minimum"
+  },
+  {
+   "scenario": "expected (about 13 labs)",
+   "G_HS": "6",
+   "G_Gd": "8",
+   "G_ECT": "5-6",
+   "C-GD": "0.62-0.74",
+   "A1": "0.83",
+   "C-B1 chain": "0.36 / 0.23",
+   "C-ECT": "0.63-0.67 at 6"
+  },
+  {
+   "scenario": "all E1 + E2 convert (16-19)",
+   "G_HS": "8",
+   "G_Gd": "10-12",
+   "G_ECT": "7-9",
+   "C-GD": "0.88-0.94",
+   "A1": "0.93",
+   "C-B1 chain": "0.52-0.65 / 0.33-0.45",
+   "C-ECT": "0.89-0.99"
+  },
+  {
+   "scenario": "extended targeted search (20-30 labs)",
+   "G_HS": "10-13",
+   "G_Gd": "13-16",
+   "G_ECT": "7-9",
+   "C-GD": "0.97-1.00",
+   "A1": "0.99",
+   "C-B1 chain": "0.70-0.83 / 0.50-0.62",
+   "C-ECT": "0.89-0.99"
+  }
+ ],
+ "U6_review_list": {
+  "single_pi_only_corpus_links": [
+   {
+    "key_a": "10.1002/slct.202202610",
+    "key_b": "10.1016/j.molliq.2021.117397",
+    "pi_shared": "venkatesan"
+   },
+   {
+    "key_a": "10.1007/bf02349516",
+    "key_b": "10.1081/sei-100001376",
+    "pi_shared": "tachimori"
+   },
+   {
+    "key_a": "10.1007/bf02349516",
+    "key_b": "10.1081/sei-120016073",
+    "pi_shared": "tachimori"
+   },
+   {
+    "key_a": "10.1007/bf02349516",
+    "key_b": "10.1081/sei-120024552",
+    "pi_shared": "tachimori"
+   },
+   {
+    "key_a": "10.1007/s10967-007-7238-4",
+    "key_b": "10.1016/j.seppur.2012.07.007",
+    "pi_shared": "suri"
+   },
+   {
+    "key_a": "10.1007/s10967-010-0467-y",
+    "key_b": "10.13182/nt01-a3198",
+    "pi_shared": "manchanda"
+   },
+   {
+    "key_a": "10.1007/s10967-015-4101-x",
+    "key_b": "10.1007/s41365-016-0055-0",
+    "pi_shared": "cui"
+   },
+   {
+    "key_a": "10.1007/s10967-015-4101-x",
+    "key_b": "10.1016/j.hydromet.2012.04.013",
+    "pi_shared": "cui"
+   },
+   {
+    "key_a": "10.1007/s10967-015-4101-x",
+    "key_b": "10.2298/jsc171109043h",
+    "pi_shared": "cui"
+   },
+   {
+    "key_a": "10.1007/s10967-017-5614-2",
+    "key_b": "10.1021/ic3000526",
+    "pi_shared": "geist"
+   },
+   {
+    "key_a": "10.1007/s10967-017-5614-2",
+    "key_b": "10.1080/07366290600761936",
+    "pi_shared": "geist"
+   },
+   {
+    "key_a": "10.1007/s10967-017-5614-2",
+    "key_b": "10.1080/07366299.2020.1794523",
+    "pi_shared": "geist"
+   },
+   {
+    "key_a": "10.1007/s10967-017-5614-2",
+    "key_b": "10.1524/ract.2010.1708",
+    "pi_shared": "geist"
+   },
+   {
+    "key_a": "10.1007/s10967-020-07368-2",
+    "key_b": "10.1080/01496395.2012.697523",
+    "pi_shared": "nash"
+   },
+   {
+    "key_a": "10.1007/s10967-020-07368-2",
+    "key_b": "10.1080/07366299.2015.1087209",
+    "pi_shared": "nash"
+   },
+   {
+    "key_a": "10.1007/s41365-016-0055-0",
+    "key_b": "10.1007/s41365-017-0229-4",
+    "pi_shared": "sun"
+   },
+   {
+    "key_a": "10.1007/s41365-016-0055-0",
+    "key_b": "10.1016/j.hydromet.2012.04.013",
+    "pi_shared": "cui;sun"
+   },
+   {
+    "key_a": "10.1007/s41365-016-0055-0",
+    "key_b": "10.1016/j.hydromet.2016.04.010",
+    "pi_shared": "sun"
+   },
+   {
+    "key_a": "10.1007/s41365-016-0055-0",
+    "key_b": "10.1016/j.hydromet.2018.07.005",
+    "pi_shared": "sun"
+   },
+   {
+    "key_a": "10.1007/s41365-016-0055-0",
+    "key_b": "10.1080/07366299.2010.480932",
+    "pi_shared": "sun"
+   },
+   {
+    "key_a": "10.1007/s41365-016-0055-0",
+    "key_b": "10.2298/jsc171109043h",
+    "pi_shared": "cui"
+   },
+   {
+    "key_a": "10.1007/s41365-017-0229-4",
+    "key_b": "10.1016/j.hydromet.2012.04.013",
+    "pi_shared": "sun"
+   },
+   {
+    "key_a": "10.1007/s41365-017-0229-4",
+    "key_b": "10.1016/j.hydromet.2016.04.010",
+    "pi_shared": "sun"
+   },
+   {
+    "key_a": "10.1007/s41365-017-0229-4",
+    "key_b": "10.1016/j.hydromet.2018.07.005",
+    "pi_shared": "sun"
+   },
+   {
+    "key_a": "10.1007/s41365-017-0229-4",
+    "key_b": "10.1080/07366299.2010.480932",
+    "pi_shared": "sun"
+   },
+   {
+    "key_a": "10.1016/j.aca.2004.09.023",
+    "key_b": "10.1016/j.aca.2005.04.061",
+    "pi_shared": "kimura"
+   },
+   {
+    "key_a": "10.1016/j.aca.2004.09.023",
+    "key_b": "10.1080/07366299.2011.539127",
+    "pi_shared": "kimura"
+   },
+   {
+    "key_a": "10.1016/j.aca.2004.09.023",
+    "key_b": "10.1080/07366299.2013.800431",
+    "pi_shared": "kimura"
+   },
+   {
+    "key_a": "10.1016/j.aca.2004.09.023",
+    "key_b": "10.1080/18811248.2007.9711301",
+    "pi_shared": "kimura"
+   },
+   {
+    "key_a": "10.1016/j.aca.2004.09.023",
+    "key_b": "10.1524/ract.92.8.463.39276",
+    "pi_shared": "kimura"
+   },
+   {
+    "key_a": "10.1016/j.aca.2005.04.061",
+    "key_b": "10.1016/j.hydromet.2017.03.005",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1016/j.aca.2005.04.061",
+    "key_b": "10.1080/07366290601169345",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1016/j.aca.2005.04.061",
+    "key_b": "10.1080/07366299.2011.539127",
+    "pi_shared": "kimura"
+   },
+   {
+    "key_a": "10.1016/j.aca.2005.04.061",
+    "key_b": "10.1080/07366299.2013.836422",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1016/j.aca.2005.04.061",
+    "key_b": "10.1080/07366299.2015.1087209",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1016/j.aca.2005.04.061",
+    "key_b": "10.1081/sei-100001376",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1016/j.aca.2005.04.061",
+    "key_b": "10.1246/cl.200431",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1016/j.aca.2005.04.061",
+    "key_b": "10.15261/serdj.18.93",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1016/j.aca.2005.04.061",
+    "key_b": "10.15261/serdj.26.21",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1016/j.aca.2005.04.061",
+    "key_b": "10.5182/jaie.18.354",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1016/j.hydromet.2012.04.013",
+    "key_b": "10.1016/j.hydromet.2016.04.010",
+    "pi_shared": "sun"
+   },
+   {
+    "key_a": "10.1016/j.hydromet.2012.04.013",
+    "key_b": "10.1016/j.hydromet.2018.07.005",
+    "pi_shared": "sun"
+   },
+   {
+    "key_a": "10.1016/j.hydromet.2012.04.013",
+    "key_b": "10.1080/07366299.2010.480932",
+    "pi_shared": "sun"
+   },
+   {
+    "key_a": "10.1016/j.hydromet.2012.04.013",
+    "key_b": "10.2298/jsc171109043h",
+    "pi_shared": "cui"
+   },
+   {
+    "key_a": "10.1016/j.hydromet.2016.04.010",
+    "key_b": "10.1016/j.hydromet.2018.07.005",
+    "pi_shared": "sun"
+   },
+   {
+    "key_a": "10.1016/j.hydromet.2016.04.010",
+    "key_b": "10.1080/07366299.2010.480932",
+    "pi_shared": "sun"
+   },
+   {
+    "key_a": "10.1016/j.hydromet.2017.03.005",
+    "key_b": "10.1080/07366290601169345",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1016/j.hydromet.2017.03.005",
+    "key_b": "10.1080/07366299.2013.800431",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1016/j.hydromet.2017.03.005",
+    "key_b": "10.1080/07366299.2013.836422",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1016/j.hydromet.2017.03.005",
+    "key_b": "10.1080/07366299.2015.1087209",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1016/j.hydromet.2017.03.005",
+    "key_b": "10.1080/18811248.2007.9711301",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1016/j.hydromet.2017.03.005",
+    "key_b": "10.1081/sei-100001376",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1016/j.hydromet.2017.03.005",
+    "key_b": "10.1246/cl.200431",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1016/j.hydromet.2017.03.005",
+    "key_b": "10.15261/serdj.18.93",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1016/j.hydromet.2017.03.005",
+    "key_b": "10.5182/jaie.18.354",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1016/j.hydromet.2018.07.005",
+    "key_b": "10.1080/07366299.2010.480932",
+    "pi_shared": "sun"
+   },
+   {
+    "key_a": "10.1016/j.ica.2016.08.008",
+    "key_b": "10.1021/jacs.7b07318",
+    "pi_shared": "ellis"
+   },
+   {
+    "key_a": "10.1016/j.jece.2013.06.023",
+    "key_b": "10.1080/07366290903565885",
+    "pi_shared": "rao"
+   },
+   {
+    "key_a": "10.1016/j.molliq.2019.111741",
+    "key_b": "10.1016/j.molliq.2021.117397",
+    "pi_shared": "venkatesan"
+   },
+   {
+    "key_a": "10.1016/j.molliq.2020.113685",
+    "key_b": "10.1016/j.molliq.2021.117397",
+    "pi_shared": "venkatesan"
+   },
+   {
+    "key_a": "10.1016/j.seppur.2014.03.005",
+    "key_b": "10.1016/s1002-0721(14)60437-3",
+    "pi_shared": "mohamed;mowafy"
+   },
+   {
+    "key_a": "10.1016/j.seppur.2014.03.005",
+    "key_b": "10.1080/01496395.2016.1274760",
+    "pi_shared": "mohamed;mowafy"
+   },
+   {
+    "key_a": "10.1016/j.seppur.2014.03.005",
+    "key_b": "10.1080/07366290600762322",
+    "pi_shared": "mowafy"
+   },
+   {
+    "key_a": "10.1016/j.seppur.2014.03.005",
+    "key_b": "10.1080/07366290601169352",
+    "pi_shared": "mowafy"
+   },
+   {
+    "key_a": "10.1016/j.seppur.2014.03.005",
+    "key_b": "10.1081/sei-100103812",
+    "pi_shared": "mowafy"
+   },
+   {
+    "key_a": "10.1016/j.seppur.2014.03.005",
+    "key_b": "10.1134/s1066362215060077",
+    "pi_shared": "mohamed;mowafy"
+   },
+   {
+    "key_a": "10.1016/s1002-0721(14)60437-3",
+    "key_b": "10.1080/01496395.2016.1274760",
+    "pi_shared": "mohamed;mowafy"
+   },
+   {
+    "key_a": "10.1016/s1002-0721(14)60437-3",
+    "key_b": "10.1080/07366290600762322",
+    "pi_shared": "mowafy"
+   },
+   {
+    "key_a": "10.1016/s1002-0721(14)60437-3",
+    "key_b": "10.1080/07366290601169352",
+    "pi_shared": "mowafy"
+   },
+   {
+    "key_a": "10.1016/s1002-0721(14)60437-3",
+    "key_b": "10.1081/sei-100103812",
+    "pi_shared": "mowafy"
+   },
+   {
+    "key_a": "10.1016/s1002-0721(14)60437-3",
+    "key_b": "10.1134/s1066362215060077",
+    "pi_shared": "mohamed;mowafy"
+   },
+   {
+    "key_a": "10.1021/acs.inorgchem.0c03727",
+    "key_b": "10.1021/acs.inorgchem.1c00715",
+    "pi_shared": "xiao"
+   },
+   {
+    "key_a": "10.1021/acs.inorgchem.0c03727",
+    "key_b": "10.1039/c4dt01489h",
+    "pi_shared": "xiao"
+   },
+   {
+    "key_a": "10.1021/acs.inorgchem.1c00715",
+    "key_b": "10.1039/c4dt01489h",
+    "pi_shared": "xiao"
+   },
+   {
+    "key_a": "10.1021/acs.inorgchem.1c01729",
+    "key_b": "10.1081/sei-120039640",
+    "pi_shared": "yaita"
+   },
+   {
+    "key_a": "10.1021/ic3000526",
+    "key_b": "10.1080/07366290600761936",
+    "pi_shared": "geist"
+   },
+   {
+    "key_a": "10.1021/ic3000526",
+    "key_b": "10.1524/ract.2010.1708",
+    "pi_shared": "geist"
+   },
+   {
+    "key_a": "10.1039/c7dt01954h",
+    "key_b": "10.1081/sei-200066296",
+    "pi_shared": "ansari"
+   },
+   {
+    "key_a": "10.1039/c7dt01954h",
+    "key_b": "10.1524/ract.2006.94.6.307",
+    "pi_shared": "ansari"
+   },
+   {
+    "key_a": "10.1080/01496395.2012.697523",
+    "key_b": "10.1080/07366299.2015.1087209",
+    "pi_shared": "nash"
+   },
+   {
+    "key_a": "10.1080/01496395.2016.1274760",
+    "key_b": "10.1080/07366290600762322",
+    "pi_shared": "mowafy"
+   },
+   {
+    "key_a": "10.1080/01496395.2016.1274760",
+    "key_b": "10.1080/07366290601169352",
+    "pi_shared": "mowafy"
+   },
+   {
+    "key_a": "10.1080/01496395.2016.1274760",
+    "key_b": "10.1081/sei-100103812",
+    "pi_shared": "mowafy"
+   },
+   {
+    "key_a": "10.1080/01496395.2016.1274760",
+    "key_b": "10.1134/s1066362215060077",
+    "pi_shared": "mohamed;mowafy"
+   },
+   {
+    "key_a": "10.1080/07366290600761936",
+    "key_b": "10.1080/07366299.2020.1794523",
+    "pi_shared": "geist"
+   },
+   {
+    "key_a": "10.1080/07366290600762322",
+    "key_b": "10.1134/s1066362215060077",
+    "pi_shared": "mowafy"
+   },
+   {
+    "key_a": "10.1080/07366290601169345",
+    "key_b": "10.1080/07366299.2013.800431",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1080/07366290601169345",
+    "key_b": "10.1080/07366299.2013.836422",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1080/07366290601169345",
+    "key_b": "10.1080/07366299.2015.1087209",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1080/07366290601169345",
+    "key_b": "10.1080/18811248.2007.9711301",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1080/07366290601169345",
+    "key_b": "10.1081/sei-100001376",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1080/07366290601169345",
+    "key_b": "10.1246/cl.200431",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1080/07366290601169345",
+    "key_b": "10.15261/serdj.18.93",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1080/07366290601169345",
+    "key_b": "10.15261/serdj.26.21",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1080/07366290601169345",
+    "key_b": "10.5182/jaie.18.354",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1080/07366290601169352",
+    "key_b": "10.1134/s1066362215060077",
+    "pi_shared": "mowafy"
+   },
+   {
+    "key_a": "10.1080/07366290701634578",
+    "key_b": "10.1080/10610278.2010.506553",
+    "pi_shared": "modolo"
+   },
+   {
+    "key_a": "10.1080/07366290701634578",
+    "key_b": "10.1524/ract.2010.1708",
+    "pi_shared": "modolo"
+   },
+   {
+    "key_a": "10.1080/07366291003685383",
+    "key_b": "10.13182/nt01-a3198",
+    "pi_shared": "manchanda"
+   },
+   {
+    "key_a": "10.1080/07366299.2011.539127",
+    "key_b": "10.1080/07366299.2013.800431",
+    "pi_shared": "kimura"
+   },
+   {
+    "key_a": "10.1080/07366299.2011.539127",
+    "key_b": "10.1080/18811248.2007.9711301",
+    "pi_shared": "kimura"
+   },
+   {
+    "key_a": "10.1080/07366299.2011.539127",
+    "key_b": "10.1524/ract.92.8.463.39276",
+    "pi_shared": "kimura"
+   },
+   {
+    "key_a": "10.1080/07366299.2013.800431",
+    "key_b": "10.1081/sei-100001376",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1080/07366299.2013.800431",
+    "key_b": "10.1246/cl.200431",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1080/07366299.2013.800431",
+    "key_b": "10.15261/serdj.26.21",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1080/07366299.2013.800431",
+    "key_b": "10.5182/jaie.18.354",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1080/07366299.2013.836422",
+    "key_b": "10.1080/18811248.2007.9711301",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1080/07366299.2013.836422",
+    "key_b": "10.1081/sei-100001376",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1080/07366299.2013.836422",
+    "key_b": "10.1081/sei-200037727",
+    "pi_shared": "morita"
+   },
+   {
+    "key_a": "10.1080/07366299.2013.836422",
+    "key_b": "10.1246/cl.200431",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1080/07366299.2013.836422",
+    "key_b": "10.15261/serdj.26.21",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1080/07366299.2013.836422",
+    "key_b": "10.5182/jaie.18.354",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1080/07366299.2015.1087209",
+    "key_b": "10.1080/18811248.2007.9711301",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1080/07366299.2015.1087209",
+    "key_b": "10.1081/sei-100001376",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1080/07366299.2015.1087209",
+    "key_b": "10.1246/cl.200431",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1080/07366299.2015.1087209",
+    "key_b": "10.15261/serdj.26.21",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1080/07366299.2015.1087209",
+    "key_b": "10.5182/jaie.18.354",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1080/07366299.2020.1794523",
+    "key_b": "10.1524/ract.2010.1708",
+    "pi_shared": "geist"
+   },
+   {
+    "key_a": "10.1080/10610278.2010.506553",
+    "key_b": "10.1524/ract.2010.1708",
+    "pi_shared": "modolo"
+   },
+   {
+    "key_a": "10.1080/18811248.2007.9711301",
+    "key_b": "10.1081/sei-100001376",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1080/18811248.2007.9711301",
+    "key_b": "10.1246/cl.200431",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1080/18811248.2007.9711301",
+    "key_b": "10.15261/serdj.18.93",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1080/18811248.2007.9711301",
+    "key_b": "10.15261/serdj.26.21",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1080/18811248.2007.9711301",
+    "key_b": "10.5182/jaie.18.354",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1081/sei-100001376",
+    "key_b": "10.1081/sei-120016073",
+    "pi_shared": "tachimori"
+   },
+   {
+    "key_a": "10.1081/sei-100001376",
+    "key_b": "10.1081/sei-120024552",
+    "pi_shared": "tachimori"
+   },
+   {
+    "key_a": "10.1081/sei-100001376",
+    "key_b": "10.1246/cl.200431",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1081/sei-100001376",
+    "key_b": "10.15261/serdj.18.93",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1081/sei-100001376",
+    "key_b": "10.15261/serdj.26.21",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1081/sei-100001376",
+    "key_b": "10.5182/jaie.18.354",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1081/sei-100103812",
+    "key_b": "10.1134/s1066362215060077",
+    "pi_shared": "mowafy"
+   },
+   {
+    "key_a": "10.1081/sei-120016073",
+    "key_b": "10.1081/sei-120024552",
+    "pi_shared": "tachimori"
+   },
+   {
+    "key_a": "10.1081/sei-120024552",
+    "key_b": "10.1081/sei-200037727",
+    "pi_shared": "apichaibukol"
+   },
+   {
+    "key_a": "10.1081/sei-200037727",
+    "key_b": "10.15261/serdj.18.93",
+    "pi_shared": "morita"
+   },
+   {
+    "key_a": "10.1246/cl.200431",
+    "key_b": "10.15261/serdj.18.93",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1246/cl.200431",
+    "key_b": "10.15261/serdj.26.21",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1246/cl.200431",
+    "key_b": "10.5182/jaie.18.354",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.1524/ract.92.8.463.39276",
+    "key_b": "10.2116/analsci.32.477",
+    "pi_shared": "suzuki"
+   },
+   {
+    "key_a": "10.15261/serdj.18.93",
+    "key_b": "10.15261/serdj.26.21",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.15261/serdj.18.93",
+    "key_b": "10.5182/jaie.18.354",
+    "pi_shared": "sasaki"
+   },
+   {
+    "key_a": "10.15261/serdj.26.21",
+    "key_b": "10.5182/jaie.18.354",
+    "pi_shared": "sasaki"
+   }
+  ],
+  "family_given_references": [
+   {
+    "key": "10.1039/c4dt01489h",
+    "family_given_decisions": "GF,GF,FG,GF,GF,GF,GF"
+   },
+   {
+    "key": "10.1080/07366299.2010.480932",
+    "family_given_decisions": "FG,FG,FG,FG,FG"
+   }
+  ],
+  "institution_link_fixes": {
+   "CSM-Shafer": [
+    "P",
+    "Argonne co-authors on P4-077 / P4-073 (Servis at ANL); CSM-Jensen already P [PC P4]"
+   ],
+   "Osaka-Shinohara": [
+    "P",
+    "JAEA heavy-element co-authors (Nagame, Asai, Toyoshima); not confirmed from metadata [PC P4]"
+   ],
+   "Kanazawa-Imura": [
+    "P",
+    "co-author Okamura at JAEA (P4's own note) [PC P4]"
+   ]
+  },
+  "second_order_links": {
+   "KULeuven-Binnemans": "Binnemans co-authored P4-026 with the corpus Juelich lab",
+   "Mendeleev/Frumkin-Stepanov": "Kostikova co-authored P4-001 with the corpus MSU phen-diamide lab"
+  },
+  "hand_vs_auto_disagreements": [
+   {
+    "cand_id": "P4-005",
+    "lab_id": "HEU-CIAE-He/Tian",
+    "lab_in_corpus_frozen": "Y",
+    "lab_in_corpus_auto": "P",
+    "auto_evidence": "senior 'zhang' in corpus: False; best shared 1 (10.1007/s10967-020-07242-1); overlap ['jiao']"
+   },
+   {
+    "cand_id": "P4-008",
+    "lab_id": "Zhejiang-Xiao",
+    "lab_in_corpus_frozen": "Y",
+    "lab_in_corpus_auto": "N",
+    "auto_evidence": "senior 'xiao' in corpus: False; best shared 0 (REF:['https://inis.iaea.org/collection/NCLCollectionStore/_Public/33/048/33048023.pd); overlap []"
+   },
+   {
+    "cand_id": "P4-017",
+    "lab_id": "CIAC-Li",
+    "lab_in_corpus_frozen": "N",
+    "lab_in_corpus_auto": "P",
+    "auto_evidence": "senior 'li' in corpus: False; best shared 1 (10.1021/acs.inorgchem.1c00715); overlap ['meng']"
+   },
+   {
+    "cand_id": "P4-022",
+    "lab_id": "JNC-Koma",
+    "lab_in_corpus_frozen": "P",
+    "lab_in_corpus_auto": "N",
+    "auto_evidence": "senior 'tanaka' in corpus: False; best shared 0 (REF:['https://inis.iaea.org/collection/NCLCollectionStore/_Public/33/048/33048023.pd); overlap []"
+   },
+   {
+    "cand_id": "P4-025",
+    "lab_id": "Chiba-Katsuta+JAEA-Sasaki",
+    "lab_in_corpus_frozen": "Y",
+    "lab_in_corpus_auto": "P",
+    "auto_evidence": "senior 'katsuta' in corpus: False; best shared 1 (10.1246/cl.200431); overlap ['matsumiya']"
+   },
+   {
+    "cand_id": "P4-032",
+    "lab_id": "UJN-Sun/Cui",
+    "lab_in_corpus_frozen": "Y",
+    "lab_in_corpus_auto": "N",
+    "auto_evidence": "senior 'cui' in corpus: False; best shared 0 (REF:['https://inis.iaea.org/collection/NCLCollectionStore/_Public/33/048/33048023.pd); overlap []"
+   },
+   {
+    "cand_id": "P4-034",
+    "lab_id": "Nanjing-Qi",
+    "lab_in_corpus_frozen": "N",
+    "lab_in_corpus_auto": "P",
+    "auto_evidence": "senior 'qi' in corpus: False; best shared 1 (10.1007/s10967-017-5248-4); overlap ['ren']"
+   },
+   {
+    "cand_id": "P4-037",
+    "lab_id": "Zanjan-Yaftian",
+    "lab_in_corpus_frozen": "Y",
+    "lab_in_corpus_auto": "P",
+    "auto_evidence": "senior 'vahedpour' in corpus: False; best shared 1 (10.1080/01496395.2016.1165252); overlap ['yaftian']"
+   },
+   {
+    "cand_id": "P4-041",
+    "lab_id": "Kanazawa-Imura",
+    "lab_in_corpus_frozen": "P",
+    "lab_in_corpus_auto": "N",
+    "auto_evidence": "senior 'imura' in corpus: False; best shared 0 (REF:['https://inis.iaea.org/collection/NCLCollectionStore/_Public/33/048/33048023.pd); overlap []"
+   },
+   {
+    "cand_id": "P4-043",
+    "lab_id": "CIAE-Tian",
+    "lab_in_corpus_frozen": "Y",
+    "lab_in_corpus_auto": "N",
+    "auto_evidence": "senior 'tian' in corpus: False; best shared 0 (REF:['https://inis.iaea.org/collection/NCLCollectionStore/_Public/33/048/33048023.pd); overlap []"
+   },
+   {
+    "cand_id": "P4-047",
+    "lab_id": "CSM-Shafer",
+    "lab_in_corpus_frozen": "P",
+    "lab_in_corpus_auto": "N",
+    "auto_evidence": "senior 'shafer' in corpus: False; best shared 0 (REF:['https://inis.iaea.org/collection/NCLCollectionStore/_Public/33/048/33048023.pd); overlap []"
+   },
+   {
+    "cand_id": "P4-049",
+    "lab_id": "JAEA-Sasaki/Tachimori",
+    "lab_in_corpus_frozen": "Y",
+    "lab_in_corpus_auto": "N",
+    "auto_evidence": "senior 'suzuki' in corpus: False; best shared 0 (REF:['https://inis.iaea.org/collection/NCLCollectionStore/_Public/33/048/33048023.pd); overlap []"
+   },
+   {
+    "cand_id": "P4-056",
+    "lab_id": "Zhejiang-Xiao",
+    "lab_in_corpus_frozen": "Y",
+    "lab_in_corpus_auto": "N",
+    "auto_evidence": "senior 'xiao' in corpus: False; best shared 0 (REF:['https://inis.iaea.org/collection/NCLCollectionStore/_Public/33/048/33048023.pd); overlap []"
+   },
+   {
+    "cand_id": "P4-059",
+    "lab_id": "HEU-CIAE-He/Tian",
+    "lab_in_corpus_frozen": "Y",
+    "lab_in_corpus_auto": "N",
+    "auto_evidence": "senior 'tian' in corpus: False; best shared 0 (REF:['https://inis.iaea.org/collection/NCLCollectionStore/_Public/33/048/33048023.pd); overlap []"
+   },
+   {
+    "cand_id": "P4-065",
+    "lab_id": "Kanazawa-Imura",
+    "lab_in_corpus_frozen": "P",
+    "lab_in_corpus_auto": "N",
+    "auto_evidence": "senior 'imura' in corpus: False; best shared 0 (REF:['https://inis.iaea.org/collection/NCLCollectionStore/_Public/33/048/33048023.pd); overlap []"
+   },
+   {
+    "cand_id": "P4-072",
+    "lab_id": "CSM-Jensen",
+    "lab_in_corpus_frozen": "P",
+    "lab_in_corpus_auto": "Y",
+    "auto_evidence": "senior 'jensen' in corpus: True; best shared 1 (10.1081/sei-120039640); overlap ['jensen']"
+   },
+   {
+    "cand_id": "P4-073",
+    "lab_id": "CSM-Shafer",
+    "lab_in_corpus_frozen": "P",
+    "lab_in_corpus_auto": "N",
+    "auto_evidence": "senior 'shafer' in corpus: False; best shared 0 (REF:['https://inis.iaea.org/collection/NCLCollectionStore/_Public/33/048/33048023.pd); overlap []"
+   },
+   {
+    "cand_id": "P4-074",
+    "lab_id": "Zhejiang-Xiao",
+    "lab_in_corpus_frozen": "Y",
+    "lab_in_corpus_auto": "N",
+    "auto_evidence": "senior 'xiao' in corpus: False; best shared 0 (REF:['https://inis.iaea.org/collection/NCLCollectionStore/_Public/33/048/33048023.pd); overlap []"
+   },
+   {
+    "cand_id": "P4-076",
+    "lab_id": "SCU-Ding",
+    "lab_in_corpus_frozen": "P",
+    "lab_in_corpus_auto": "N",
+    "auto_evidence": "senior 'ding' in corpus: False; best shared 0 (REF:['https://inis.iaea.org/collection/NCLCollectionStore/_Public/33/048/33048023.pd); overlap []"
+   },
+   {
+    "cand_id": "P4-077",
+    "lab_id": "CSM-Shafer",
+    "lab_in_corpus_frozen": "P",
+    "lab_in_corpus_auto": "N",
+    "auto_evidence": "senior 'servis' in corpus: False; best shared 0 (REF:['https://inis.iaea.org/collection/NCLCollectionStore/_Public/33/048/33048023.pd); overlap []"
+   },
+   {
+    "cand_id": "P4-078",
+    "lab_id": "ANL-Peppard",
+    "lab_in_corpus_frozen": "P",
+    "lab_in_corpus_auto": "N",
+    "auto_evidence": "senior 'lewey' in corpus: False; best shared 0 (REF:['https://inis.iaea.org/collection/NCLCollectionStore/_Public/33/048/33048023.pd); overlap []"
+   },
+   {
+    "cand_id": "P4-079",
+    "lab_id": "ANL-Peppard",
+    "lab_in_corpus_frozen": "P",
+    "lab_in_corpus_auto": "N",
+    "auto_evidence": "senior 'driscoll' in corpus: False; best shared 0 (REF:['https://inis.iaea.org/collection/NCLCollectionStore/_Public/33/048/33048023.pd); overlap []"
+   },
+   {
+    "cand_id": "P4-080",
+    "lab_id": "ANL-Peppard",
+    "lab_in_corpus_frozen": "P",
+    "lab_in_corpus_auto": "N",
+    "auto_evidence": "senior 'peppard' in corpus: False; best shared 0 (REF:['https://inis.iaea.org/collection/NCLCollectionStore/_Public/33/048/33048023.pd); overlap []"
+   },
+   {
+    "cand_id": "P4-083",
+    "lab_id": "Osaka-Shinohara",
+    "lab_in_corpus_frozen": "P",
+    "lab_in_corpus_auto": "N",
+    "auto_evidence": "senior 'shinohara' in corpus: False; best shared 0 (REF:['https://inis.iaea.org/collection/NCLCollectionStore/_Public/33/048/33048023.pd); overlap []"
+   },
+   {
+    "cand_id": "P4-091",
+    "lab_id": "JAEA-Naganawa/Shimojo",
+    "lab_in_corpus_frozen": "Y",
+    "lab_in_corpus_auto": "P",
+    "auto_evidence": "senior 'naganawa' in corpus: False; best shared 1 (10.1021/acs.inorgchem.1c01729); overlap ['shimojo']"
+   }
+  ],
+  "truncated_author_lists": []
+ }
+}

@@ -1,0 +1,32 @@
+rule_type,order,rule_id,pattern,mechanism_class,cgd_stratum,gd_medium_eligible,ect_report_class,note
+extractant,1,X01,^[\s+/]*$|\breview\b,NOT_LLE,N,,excluded,aqueous-only chelator or review: not liquid-liquid extraction data
+extractant,2,X02,eutectic,OTHER_EUTECTIC,N,,other,hydrophobic eutectic solvents (TOPO + carboxylic acid): no single mechanism; outside the C-GD stratum
+extractant,3,X03,bifunctional|\[a336\]\[|anion[- ]bifunctional|dga-anion|organophosphorus-anion,IL_BIFUNCTIONAL,N,,ionic liquid,"bifunctional ionic liquids ([A336][P507], DGA-anion ILs): ion-association of the metal salt, no proton release; ionic-liquid class, outside C-GD"
+extractant,4,X04,quaternary|aliquat|tomano3|methyltrioctylammonium|\[a336\]|\[p66614\]|onium,IL_QUATERNARY,N,,ionic liquid,quaternary-ammonium / phosphonium nitrate or thiocyanate (anion exchange); [A336][NO3] and TOMANO3 are one compound and count once
+extractant,5,X05,beta-diketone|β-diketone|\bhtta\b|\btta\b|thenoyl|acylpyrazolone|pyrazolone|hpmbp|8-hq\b|hydroxyquinolin|tropolone,CX_CHELATING,Y,,cation exchanger,"chelating cation exchangers; HTTA + TOPO and other chelator + neutral-donor synergists stay here (proton release, adduct formation); synergist flag = sensitivity"
+extractant,6,X06,carboxylic acid|versatic|naphthenic|diglycolamic acid|phosphoryl carboxylic|hydroxyacetic acid,CX_CARBOXYLIC,Y,,cation exchanger,"carboxylic-acid cation exchangers (incl. diglycolamic acid, crown-ether carboxylic acids, phosphoryl carboxylic acids)"
+extractant,7,X07,acidic\+neutral organophosph|acidic organophosph|\bhdehp\b|\bd2ehpa\b|\bdehpa\b|\bp507\b|pc88a|heh\[ehp\]|cyanex ?272|cyanex ?301|dithiophosphinic|phosphinic acid|phosphonic acid|alkylphosphoric|hydrogen phosphate,CX_ACIDIC_OP,Y,,cation exchanger,"acidic organophosphorus (HDEHP/D2EHPA, HEH[EHP]/P507, Cyanex 272/301); acidic + neutral OP synergists stay here"
+extractant,8,X08,cmpo|carbamoylphosph|carbamoylmethylphosph|phosphoryl ?acetamide|phosphorylurea,NEUTRAL_CMPO,N,,neutral solvating,"CMPO-type phosphoryl acetamides and phosphorylureas: neutral solvating, outside C-GD"
+extractant,9,X09,phosphine oxide|\btopo\b|\btrpo\b|cyanex ?92[35]|\btbp\b|neutral organophosph|phosphonate ester|phosphate ester,NEUTRAL_OP,N,,neutral solvating,"neutral organophosphorus compounds (TBP, TOPO, Cyanex 923/925): outside C-GD"
+extractant,10,X10,\bbtp\b|btbp|btphen|phenanthrolin|\bphen\b|phen-|blphen|\bpda\b|dipicolinamide|pyridine ?dicarboxamide|dicarboxamide|bipyridyl|bipyridine|triazin|terpyridin|n-donor,SOFT_N,N,,soft N-donor,"soft N-donors (BTP, BTBP, PDA and phenanthroline amides): separate descriptive family, selectivity direction varies; N-donor + acid synergists stay here"
+extractant,11,X11,diglycolamide|\bdga|dga\b|malonamide|dooda|diamide|amide,NEUTRAL_AMIDE,N,,neutral solvating,"amide O-donors (DGA, malonamides, DOODA)"
+extractant,12,X12,crown|calixarene|macrocycl,NEUTRAL_MACROCYCLE,N,,neutral solvating,"macrocycles (crown ethers, calixarenes; ion pairs with lipophilic anions)"
+extractant,13,X13,ionic liquid|\bil\b,IL_OTHER,N,,ionic liquid,other ionic-liquid extractants
+extractant,14,X99,.*,OTHER,N,,other,fallback
+medium,1,M01,lactat|citrat|dtpa|hedta|cdta|edta|\bnta\b|oxalat|tartrat|malonat|glycolat|push-pull|aqueous blphen|aqueous phen|buffer,AQ_COMPLEXANT,,N,,aqueous complexant: no Gd term (M29 rule) [IR M29]
+medium,2,M02,acetat|acetic,AQ_COMPLEXANT_ACETATE,,N,,acetate decided in advance as a complexant (excluded from the Gd claims); inclusion is a sensitivity [I2 confirm-2]
+medium,3,M03,thiocyanat|sulfat|h2so4|phosphoric|picrate|trichloroacetic,NON_INERT,,N,,"non-nitrate, non-inert medium: outside the Gd claims"
+medium,4,M04,hno3|nitrat|nh4no3|nano3|\bean\b,NITRATE,,Y,,nitrate medium
+medium,5,M05,perchlorat|naclo4|chlorid|\bhcl\b|cacl2,INERT_SALT,,Y,,inert-salt medium
+medium,6,M06,\bph\b|acidity|neutral|^u$|^$,UNKNOWN,,U,,medium not stated in the metadata
+medium,7,M99,.*,UNKNOWN,,U,,fallback
+sibling_factor,1,T01,\bph\b,T0|T1,,,,"first matching factor rule; 'a|b' = a for a cation exchanger, b otherwise; T0 = pH / [HA] / phase ratio for a cation exchanger, T1 aqueous medium, T2 organic phase [I2 confirm-4]"
+sibling_factor,2,T02,phase ratio,T0|OTHER,,,,"first matching factor rule; 'a|b' = a for a cation exchanger, b otherwise; T0 = pH / [HA] / phase ratio for a cation exchanger, T1 aqueous medium, T2 organic phase [I2 confirm-4]"
+sibling_factor,3,T03,(hdehp|d2ehpa|extractant|ligand|\bl\b|tbp|topo|il)\s*(conc|concentration)|\[ha\]|hdehp concentration,T0|T2,,,,"first matching factor rule; 'a|b' = a for a cation exchanger, b otherwise; T0 = pH / [HA] / phase ratio for a cation exchanger, T1 aqueous medium, T2 organic phase [I2 confirm-4]"
+sibling_factor,4,T04,diluent|toluene|dodecane|kerosene|chcl3|heptane|octanol|modifier|\bils?\b|ionic liquid|nitrobenzene|undiluted|crown|synergist|\balone\b|\bwith\b|without|additive|\btopo\b|\btbp\b,T2,,,,"first matching factor rule; 'a|b' = a for a cation exchanger, b otherwise; T0 = pH / [HA] / phase ratio for a cation exchanger, T1 aqueous medium, T2 organic phase [I2 confirm-4]"
+sibling_factor,5,T05,hno3|acid|nitrate|nh4no3|salt|media|medium|ionic strength|thiocyanate|chloride|acetate|water content|\bean\b|simulant|feed|composition,T1,,,,"first matching factor rule; 'a|b' = a for a cation exchanger, b otherwise; T0 = pH / [HA] / phase ratio for a cation exchanger, T1 aqueous medium, T2 organic phase [I2 confirm-4]"
+sibling_factor,6,T06,\bt\b|temperature,OTHER,,,,"first matching factor rule; 'a|b' = a for a cation exchanger, b otherwise; T0 = pH / [HA] / phase ratio for a cation exchanger, T1 aqueous medium, T2 organic phase [I2 confirm-4]"
+sibling_factor,7,T07,ligand|extractant|isomer|structure|variants,EXTRACTANT_CHANGE,,,,"first matching factor rule; 'a|b' = a for a cation exchanger, b otherwise; T0 = pH / [HA] / phase ratio for a cation exchanger, T1 aqueous medium, T2 organic phase [I2 confirm-4]"
+flag,1,F01,\bin\b(.*),IL_DILUENT,,,,an 'in <diluent>' clause naming an ionic liquid sets the IL-diluent flag (C-GD sensitivity); the class is taken from the extractant before 'in'
+flag,2,F02,aqueous\s+\S+,AQ_COMPLEXANT,,,,"an 'aqueous <ligand>' token is a hold-back complexant: removed before classification, flags the unit out of the Gd claims"
+flag,3,F03,synergist|\+,SYNERGIST,,,,mixture / synergist flag (sensitivity)

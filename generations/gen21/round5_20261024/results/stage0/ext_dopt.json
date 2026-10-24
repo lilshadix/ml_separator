@@ -1,0 +1,208 @@
+{
+ "label": "Stage-0 input (CLAUDE_CODE_PROMPT.md 4.3 item 12), computed before the Stage-0 seal; label-free read policy for new cells (no prediction, no score)",
+ "created_utc": "2026-10-24T05:00:54+00:00",
+ "pickle": {
+  "path": "cache/ext/ext_dopt.pkl",
+  "sha256": "fc261e219733d46c524f15e4a03fe6afbb72b0312926f91920101eaa480194f3",
+  "status": "rebuilt, bit-identical to the stored pickle",
+  "bytes": 18457
+ },
+ "usage": "ext = r5.frozen.load_external(); seq = r5.frozen.external_sequence(ext, dz) with dz = r5.frozen.design_for_metals(metal indices); reads = r5.frozen.read_set(seq, 4) (= seq[:3]) or 3 (= seq[:2]); B1 on new data uses beta_frozen (results/stage0/beta_frozen.json)",
+ "recipe": {
+  "source_record": {
+   "path": "cache/frozen/fold_all_BPG_104729_0.pkl",
+   "sha256": "7c862d87cbfab68841d4369c478b52ef2021615f0327f5e6fb0bba22ce1e835f",
+   "status": "loaded",
+   "seconds": null,
+   "checks": {
+    "n_bench_cells": 521,
+    "n_train": 521,
+    "train_is_intended_set": true,
+    "n_test": 0,
+    "n_outer_cell_records": 0,
+    "n_inner_blocks": 4,
+    "inner_block_sizes": [
+     [
+      69,
+      428
+     ],
+     [
+      429,
+      29
+     ],
+     [
+      454,
+      32
+     ],
+     [
+      402,
+      32
+     ]
+    ],
+    "every_train_cell_validated_once": true,
+    "inner_inside_train": true,
+    "inner_mask_leaks": 0,
+    "n_inner_cell_records": 331,
+    "inner_cell_records_unique": true,
+    "n_c3_cells": 229,
+    "c3_cells_with_inner_record": 229,
+    "orphan_cells": 0,
+    "inner_seed": 3246616,
+    "ok": true
+   }
+  },
+  "outer_recipe": "r5.frozen.outer_block = g21.cache.build_fold's outer part (fold_covariance of G14 inner OOF residuals, PSD-projected; s2 = training_noise_s2 x select_on_inner noise factor)",
+  "training_set": "every bench cell (all 229 C3 cells included), design BPG, declared inner seed gen20k.splits.inner_seed(104729, 0)",
+  "policy": "support_sequence(dz, 'DOPT_Q', min(k_max, 6), cov=C_all, noise_var=2*s2_all)",
+  "blas_threads": 1
+ },
+ "parameters": {
+  "n_train": 521,
+  "s2_all": 0.17853174009033726,
+  "noise_var": 0.3570634801806745,
+  "noise_factor": 16.0,
+  "noise_s2_robust": 0.011158233755646079,
+  "ridge_lambda_gen20": 0.3,
+  "C_all_diag": [
+   1.4101736840848598,
+   1.1286300457241372,
+   0.686177171498705,
+   0.5073167115643389,
+   0.18770404010978864,
+   0.17996225943486968,
+   0.15043337278047758,
+   0.1311778710006575,
+   0.20178084539021185,
+   0.4590428580725513,
+   0.4459031331949131,
+   0.6136926576107127,
+   0.6979607166835639,
+   0.7882526509806481
+  ],
+  "C_all_min_eig": 5.5737156289869594e-06,
+  "noise_factor_selection_scores": {
+   "G14@BLUP20@noise0.5": {
+    "0": 0.1861812957257789,
+    "3": 0.16418059557837564
+   },
+   "G14@BLUP20@noise1.0": {
+    "0": 0.1861812957257789,
+    "3": 0.16346388601076114
+   },
+   "G14@BLUP20@noise2.0": {
+    "0": 0.1861812957257789,
+    "3": 0.16295718496708256
+   },
+   "G14@BLUP20@noise4.0": {
+    "0": 0.1861812957257789,
+    "3": 0.16139351753177866
+   },
+   "G14@BLUP20@noise8.0": {
+    "0": 0.1861812957257789,
+    "3": 0.15911526882363003
+   },
+   "G14@BLUP20@noise16.0": {
+    "0": 0.1861812957257789,
+    "3": 0.1582488152472088
+   }
+  }
+ },
+ "corpus_c3": {
+  "n_cells": 229,
+  "sequence_length_counts": {
+   "3": 51,
+   "4": 34,
+   "5": 11,
+   "6": 133
+  },
+  "gd_read_rate_3_reads": "60/218",
+  "gd_read_rate_4_reads": "95/218",
+  "note": "Gd-read rate = C3 cells with Gd measured whose external read set contains Gd"
+ },
+ "sensitivities": {
+  "design_BP": {
+   "s2_all": 0.17853174009033726,
+   "noise_factor": 16.0,
+   "cov": {
+    "max_abs_diff": 0.0011774686216164953,
+    "rel_frobenius": 0.000789497932334644
+   },
+   "read_sets_vs_primary": {
+    "n_cells": 229,
+    "same_read_set_3_reads": "229/229",
+    "same_read_set_4_reads": "229/229",
+    "same_full_sequence": "229/229"
+   }
+  },
+  "outer_recipe_on_C3_only": {
+   "n_train": 229,
+   "s2_all": 0.050138020395523404,
+   "noise_factor": 4.0,
+   "noise_s2_robust": 0.012534505098880851,
+   "cov": {
+    "max_abs_diff": 0.6821895854432839,
+    "rel_frobenius": 0.5785332090493156
+   },
+   "read_sets_vs_primary": {
+    "n_cells": 229,
+    "same_read_set_3_reads": "98/229",
+    "same_read_set_4_reads": "89/229",
+    "same_full_sequence": "55/229"
+   },
+   "seconds": 1.4
+  },
+  "dev_fold_BPG_sequences": {
+   "104729": {
+    "n_cells": 229,
+    "same_read_set_3_reads": "97/229",
+    "same_read_set_4_reads": "114/229",
+    "same_full_sequence": "65/229"
+   },
+   "130363": {
+    "n_cells": 229,
+    "same_read_set_3_reads": "85/229",
+    "same_read_set_4_reads": "86/229",
+    "same_full_sequence": "70/229"
+   },
+   "155921": {
+    "n_cells": 229,
+    "same_read_set_3_reads": "90/229",
+    "same_read_set_4_reads": "73/229",
+    "same_full_sequence": "32/229"
+   },
+   "196613": {
+    "n_cells": 229,
+    "same_read_set_3_reads": "103/229",
+    "same_read_set_4_reads": "86/229",
+    "same_full_sequence": "22/229"
+   },
+   "262147": {
+    "n_cells": 229,
+    "same_read_set_3_reads": "102/229",
+    "same_read_set_4_reads": "81/229",
+    "same_full_sequence": "27/229"
+   }
+  },
+  "dev_fold_noise_factors (context: 25 cached outer folds per design)": {
+   "BPG": {
+    "0.5": 1,
+    "1.0": 1,
+    "2.0": 1,
+    "4.0": 3,
+    "8.0": 5,
+    "16.0": 14
+   },
+   "BP": {
+    "1.0": 1,
+    "4.0": 3,
+    "8.0": 6,
+    "16.0": 15
+   }
+  }
+ },
+ "code_lf_sha256": {
+  "r5/frozen.py": "f9e58876f527431c20eb01ecd0fb742ba40158041bf552255c01f89d5a90b8ec",
+  "scripts/s0_external_dopt.py": "f01c628e538ca409f00a64026f2d45f5854082fd5fbe54b8c3d575b640a91411"
+ },
+ "seconds": 5.3
+}

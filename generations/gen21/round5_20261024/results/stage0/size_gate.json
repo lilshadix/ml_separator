@@ -1,0 +1,627 @@
+{
+ "label": "STAGE-0 SIZE GATE (synthetic nulls; corpus pools are seen, label-based Stage-0 planning inputs)",
+ "brief": "CLAUDE_CODE_PROMPT.md section 4.3 item 2, section 4.2, section 8",
+ "rule": "flagged if the lower limit of the two-sided 95 % Clopper-Pearson interval (one-sided 97.5 %; P2's convention) of the size > 0.035 at nominal one-sided 0.025",
+ "reps_per_cell": 20000,
+ "clip": [
+  -0.4,
+  0.2
+ ],
+ "icc_grid": [
+  0.23,
+  0.3,
+  0.5,
+  0.69
+ ],
+ "sd_within_grid": [
+  0.05,
+  0.08,
+  0.1
+ ],
+ "compositions": [
+  "(2, 2, 2)",
+  "(3, 2, 1)",
+  "(4, 2)",
+  "(3, 3)",
+  "(2, 2, 2, 2)",
+  "(3, 2, 2, 1)",
+  "(4, 3, 2, 1, 1, 1, 1)"
+ ],
+ "sd_iid": [
+  0.1,
+  0.12,
+  0.14,
+  0.16
+ ],
+ "G_iid_chord": [
+  6,
+  8,
+  10,
+  13
+ ],
+ "G_iid_ect": [
+  6,
+  7,
+  8,
+  10,
+  13
+ ],
+ "G_floor": {
+  "C-GD": 6,
+  "Gd-dip transport": 10,
+  "C-ECT": 7
+ },
+ "beta": {
+  "value": -0.11080937578907438,
+  "source": "generations/gen21/round5_20261024/results/stage0/beta_frozen.json",
+  "sha256_lf": "2b5d0e2d0d4926e142abadd511038495542250a9f59f3a63997335a5b6cc6264",
+  "todo": null
+ },
+ "beta_half": -0.05540468789453719,
+ "seed_scheme": "numpy default_rng(paths.seed_for(seed_key)), seed_for(k) = 20261023 + crc32(k); seed_key per row",
+ "chord_pools": {
+  "emp_HS12": {
+   "classes": [
+    "nonDGA_HS"
+   ],
+   "gates": [
+    "CGD_W",
+    "CGD_R"
+   ]
+  },
+  "emp_nonDGA25": {
+   "classes": [
+    "nonDGA_HS",
+    "nonDGA_LS"
+   ],
+   "gates": [
+    "CGD_W",
+    "CGD_R",
+    "GDT_R"
+   ]
+  },
+  "emp_all44": {
+   "classes": [
+    "DGA",
+    "nonDGA_HS",
+    "nonDGA_LS"
+   ],
+   "gates": []
+  }
+ },
+ "inputs_sha256_lf": {
+  "generations/gen21/round5_design_20261023/ideas2/confirm1skepB_out/clustered_null_size.csv": "53bb5d37a43753e27523d1dfa99c799540dae02caa43762bdeceed515542b827",
+  "generations/gen21/round5_design_20261023/ideas2/confirm1skepB_out/strata_units.csv": "7159137d19d00b38efb096534c7f4addccd8abf62b0f181c187aa834e77134ae",
+  "generations/gen21/round5_design_20261023/ideas2/confirm4_skepB_out/units_primary.csv": "6ce4a6936718b0a1d4464d38ad25ec7d648a3d7e396419ab9b69dbb1742ed562"
+ },
+ "code_sha256_lf": {
+  "generations/gen21/round5_20261024/scripts/s0_sizegate.py": "be75238764b77d40204dec7b6e11ecca58f8784a54724c546d43f1e50d2f069c",
+  "generations/gen21/round5_20261024/r5/confirm.py": "96f4c3e00e2641b9cdffbcda0781ed68b6d792407866b275955f04016dc2a481",
+  "generations/gen21/round5_20261024/r5/paths.py": "68969fbcf24b05b43ef66ba6e8ffa1a06997970b10587d6286e61bc505d9ffe7"
+ },
+ "disclosure": "Corpus pools (unit chords, P1 family log ratios) are seen label-based values used only as planning null distributions (recentred to the null); they assume new laboratories resemble corpus units, which the supply does not (P4: 15 of 16 new laboratories on absent chemotypes).",
+ "notes": [
+  "The raw t-interval is location-invariant, so CGD_R / GDT_R sizes do not depend on beta; CGD_W does (fixed clip bounds), and must be rerun if beta_frozen differs from the value used.",
+  "Under parametric nulls GDT_R equals CGD_R on identical draws; GDT_R decides only at G >= 10, so only the G = 13 composition and the i.i.d. G = 10, 13 cells are decidable for it.",
+  "The C-ECT emp_P1 (right-skewed) and emp_P1_mirror (left-skewed) rows are descriptive: skewed nulls are non-gating (brief 4.2), and like every test here the sign-flip does not hold 0.025 under them.",
+  "Two-stage cells put each laboratory in one chemotype (worst case for a Gd-dip laboratory value averaged across chemotypes).",
+  "C-ECT sign-flip and SIGN are scale-free; the family-level p (I2 confirm-4 item 6) is not re-run here.",
+  "Not covered: C-GD's secondary per-unit Gd-pair SSE sign-flip and the A3 positive control."
+ ],
+ "reproduction_check": {
+  "cells": 63,
+  "max_abs_diff": 0.006900000000000003,
+  "max_abs_z": 2.45979081982021,
+  "share_abs_z_gt_2": 0.015873015873015872,
+  "note": "CGD_R confirm-rule size vs size_lab_t (20,000 reps, beta -0.0923; raw t is location-invariant)"
+ },
+ "summary": {
+  "CGD_R": {
+   "claim": "C-GD",
+   "role": "sensitivity",
+   "gating_rows": 496,
+   "flagged_rows": 328,
+   "flagged_rows_decidable_G": 328,
+   "flagged_two_stage": 322,
+   "flagged_iid": 6,
+   "max_size": 0.1434,
+   "max_size_cell": "normal icc=0.69 sdw=0.1 comp=(4, 2) rule=confirm",
+   "max_cp_lo": 0.13856976780586588,
+   "verdict": "FLAGGED: fails the size gate (fallback must be sealed, section 4.3 item 2)",
+   "max_size_by_rule_two_stage_icc": {
+    "confirm": {
+     "0.23": 0.05425,
+     "0.3": 0.0671,
+     "0.5": 0.1043,
+     "0.69": 0.1434
+    },
+    "harm": {
+     "0.23": 0.0554,
+     "0.3": 0.06705,
+     "0.5": 0.0999,
+     "0.69": 0.14035
+    },
+    "helps": {
+     "0.23": 0.05425,
+     "0.3": 0.0671,
+     "0.5": 0.1043,
+     "0.69": 0.1434
+    },
+    "kill": {
+     "0.23": 0.0554,
+     "0.3": 0.06705,
+     "0.5": 0.0999,
+     "0.69": 0.14035
+    }
+   },
+   "max_size_by_rule_iid": {
+    "confirm": 0.0277,
+    "harm": 0.05065,
+    "helps": 0.0277,
+    "kill": 0.05065
+   },
+   "flagged_cells": [
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 2, 1) G=6 rule=confirm size=0.0408 cp_lo=0.0381",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 2, 1) G=6 rule=kill size=0.0386 cp_lo=0.0359",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 2, 1) G=6 rule=helps size=0.0408 cp_lo=0.0381",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 2, 1) G=6 rule=harm size=0.0386 cp_lo=0.0359",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(4, 2) G=6 rule=confirm size=0.0527 cp_lo=0.0496",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(4, 2) G=6 rule=kill size=0.0553 cp_lo=0.0522",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(4, 2) G=6 rule=helps size=0.0527 cp_lo=0.0496",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(4, 2) G=6 rule=harm size=0.0553 cp_lo=0.0522",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 3) G=6 rule=confirm size=0.0507 cp_lo=0.0477",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 3) G=6 rule=kill size=0.0516 cp_lo=0.0486",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 3) G=6 rule=helps size=0.0507 cp_lo=0.0477",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 3) G=6 rule=harm size=0.0516 cp_lo=0.0486",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(2, 2, 2, 2) G=8 rule=kill size=0.0385 cp_lo=0.0359",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(2, 2, 2, 2) G=8 rule=harm size=0.0385 cp_lo=0.0359",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 2, 2, 1) G=8 rule=confirm size=0.0404 cp_lo=0.0377",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 2, 2, 1) G=8 rule=kill size=0.0415 cp_lo=0.0388",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 2, 2, 1) G=8 rule=helps size=0.0404 cp_lo=0.0377",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 2, 2, 1) G=8 rule=harm size=0.0415 cp_lo=0.0388",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=confirm size=0.0461 cp_lo=0.0432",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=kill size=0.0450 cp_lo=0.0422",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=helps size=0.0461 cp_lo=0.0432",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=harm size=0.0450 cp_lo=0.0422",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(2, 2, 2) G=6 rule=confirm size=0.0427 cp_lo=0.0399",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(2, 2, 2) G=6 rule=kill size=0.0409 cp_lo=0.0382",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(2, 2, 2) G=6 rule=helps size=0.0427 cp_lo=0.0399",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(2, 2, 2) G=6 rule=harm size=0.0409 cp_lo=0.0382",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 2, 1) G=6 rule=confirm size=0.0478 cp_lo=0.0449",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 2, 1) G=6 rule=kill size=0.0481 cp_lo=0.0451",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 2, 1) G=6 rule=helps size=0.0478 cp_lo=0.0449",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 2, 1) G=6 rule=harm size=0.0481 cp_lo=0.0451",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(4, 2) G=6 rule=confirm size=0.0671 cp_lo=0.0637",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(4, 2) G=6 rule=kill size=0.0646 cp_lo=0.0613",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(4, 2) G=6 rule=helps size=0.0671 cp_lo=0.0637",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(4, 2) G=6 rule=harm size=0.0646 cp_lo=0.0613",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 3) G=6 rule=confirm size=0.0597 cp_lo=0.0565",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 3) G=6 rule=kill size=0.0578 cp_lo=0.0547",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 3) G=6 rule=helps size=0.0597 cp_lo=0.0565",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 3) G=6 rule=harm size=0.0578 cp_lo=0.0547",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(2, 2, 2, 2) G=8 rule=confirm size=0.0416 cp_lo=0.0389",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(2, 2, 2, 2) G=8 rule=kill size=0.0428 cp_lo=0.0401",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(2, 2, 2, 2) G=8 rule=helps size=0.0416 cp_lo=0.0389",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(2, 2, 2, 2) G=8 rule=harm size=0.0428 cp_lo=0.0401",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 2, 2, 1) G=8 rule=confirm size=0.0457 cp_lo=0.0428",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 2, 2, 1) G=8 rule=kill size=0.0459 cp_lo=0.0431",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 2, 2, 1) G=8 rule=helps size=0.0457 cp_lo=0.0428",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 2, 2, 1) G=8 rule=harm size=0.0459 cp_lo=0.0431",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=confirm size=0.0524 cp_lo=0.0493",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=kill size=0.0536 cp_lo=0.0505",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=helps size=0.0524 cp_lo=0.0493",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=harm size=0.0536 cp_lo=0.0505",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(2, 2, 2) G=6 rule=confirm size=0.0585 cp_lo=0.0553",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(2, 2, 2) G=6 rule=kill size=0.0575 cp_lo=0.0543",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(2, 2, 2) G=6 rule=helps size=0.0585 cp_lo=0.0553",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(2, 2, 2) G=6 rule=harm size=0.0575 cp_lo=0.0543",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(3, 2, 1) G=6 rule=confirm size=0.0610 cp_lo=0.0577",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(3, 2, 1) G=6 rule=kill size=0.0614 cp_lo=0.0581",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(3, 2, 1) G=6 rule=helps size=0.0610 cp_lo=0.0577",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(3, 2, 1) G=6 rule=harm size=0.0614 cp_lo=0.0581",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(4, 2) G=6 rule=confirm size=0.0996 cp_lo=0.0955",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(4, 2) G=6 rule=kill size=0.0978 cp_lo=0.0937"
+   ]
+  },
+  "CGD_W": {
+   "claim": "C-GD",
+   "role": "primary",
+   "gating_rows": 496,
+   "flagged_rows": 328,
+   "flagged_rows_decidable_G": 328,
+   "flagged_two_stage": 322,
+   "flagged_iid": 6,
+   "max_size": 0.1471,
+   "max_size_cell": "normal icc=0.69 sdw=0.1 comp=(4, 2) rule=confirm",
+   "max_cp_lo": 0.14221760452121102,
+   "verdict": "FLAGGED: fails the size gate (fallback must be sealed, section 4.3 item 2)",
+   "max_size_by_rule_two_stage_icc": {
+    "confirm": {
+     "0.23": 0.05495,
+     "0.3": 0.0671,
+     "0.5": 0.10705,
+     "0.69": 0.1471
+    },
+    "harm": {
+     "0.23": 0.0567,
+     "0.3": 0.06745,
+     "0.5": 0.1015,
+     "0.69": 0.14585
+    },
+    "helps": {
+     "0.23": 0.0544,
+     "0.3": 0.0671,
+     "0.5": 0.1053,
+     "0.69": 0.1447
+    },
+    "kill": {
+     "0.23": 0.0557,
+     "0.3": 0.06715,
+     "0.5": 0.1002,
+     "0.69": 0.1431
+    }
+   },
+   "max_size_by_rule_iid": {
+    "confirm": 0.02775,
+    "harm": 0.05065,
+    "helps": 0.0277,
+    "kill": 0.05065
+   },
+   "flagged_cells": [
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 2, 1) G=6 rule=confirm size=0.0408 cp_lo=0.0381",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 2, 1) G=6 rule=kill size=0.0386 cp_lo=0.0359",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 2, 1) G=6 rule=helps size=0.0408 cp_lo=0.0381",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 2, 1) G=6 rule=harm size=0.0386 cp_lo=0.0359",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(4, 2) G=6 rule=confirm size=0.0527 cp_lo=0.0496",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(4, 2) G=6 rule=kill size=0.0553 cp_lo=0.0522",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(4, 2) G=6 rule=helps size=0.0527 cp_lo=0.0496",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(4, 2) G=6 rule=harm size=0.0553 cp_lo=0.0522",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 3) G=6 rule=confirm size=0.0507 cp_lo=0.0477",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 3) G=6 rule=kill size=0.0516 cp_lo=0.0486",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 3) G=6 rule=helps size=0.0507 cp_lo=0.0477",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 3) G=6 rule=harm size=0.0516 cp_lo=0.0486",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(2, 2, 2, 2) G=8 rule=kill size=0.0385 cp_lo=0.0359",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(2, 2, 2, 2) G=8 rule=harm size=0.0385 cp_lo=0.0359",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 2, 2, 1) G=8 rule=confirm size=0.0404 cp_lo=0.0377",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 2, 2, 1) G=8 rule=kill size=0.0415 cp_lo=0.0388",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 2, 2, 1) G=8 rule=helps size=0.0404 cp_lo=0.0377",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 2, 2, 1) G=8 rule=harm size=0.0415 cp_lo=0.0388",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=confirm size=0.0461 cp_lo=0.0432",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=kill size=0.0450 cp_lo=0.0422",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=helps size=0.0461 cp_lo=0.0432",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=harm size=0.0450 cp_lo=0.0422",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(2, 2, 2) G=6 rule=confirm size=0.0427 cp_lo=0.0399",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(2, 2, 2) G=6 rule=kill size=0.0409 cp_lo=0.0382",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(2, 2, 2) G=6 rule=helps size=0.0427 cp_lo=0.0399",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(2, 2, 2) G=6 rule=harm size=0.0409 cp_lo=0.0382",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 2, 1) G=6 rule=confirm size=0.0478 cp_lo=0.0449",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 2, 1) G=6 rule=kill size=0.0481 cp_lo=0.0451",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 2, 1) G=6 rule=helps size=0.0478 cp_lo=0.0449",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 2, 1) G=6 rule=harm size=0.0481 cp_lo=0.0451",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(4, 2) G=6 rule=confirm size=0.0671 cp_lo=0.0637",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(4, 2) G=6 rule=kill size=0.0646 cp_lo=0.0613",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(4, 2) G=6 rule=helps size=0.0671 cp_lo=0.0637",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(4, 2) G=6 rule=harm size=0.0646 cp_lo=0.0613",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 3) G=6 rule=confirm size=0.0597 cp_lo=0.0565",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 3) G=6 rule=kill size=0.0578 cp_lo=0.0547",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 3) G=6 rule=helps size=0.0597 cp_lo=0.0565",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 3) G=6 rule=harm size=0.0578 cp_lo=0.0547",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(2, 2, 2, 2) G=8 rule=confirm size=0.0416 cp_lo=0.0389",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(2, 2, 2, 2) G=8 rule=kill size=0.0428 cp_lo=0.0401",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(2, 2, 2, 2) G=8 rule=helps size=0.0416 cp_lo=0.0389",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(2, 2, 2, 2) G=8 rule=harm size=0.0428 cp_lo=0.0401",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 2, 2, 1) G=8 rule=confirm size=0.0457 cp_lo=0.0428",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 2, 2, 1) G=8 rule=kill size=0.0459 cp_lo=0.0431",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 2, 2, 1) G=8 rule=helps size=0.0457 cp_lo=0.0428",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 2, 2, 1) G=8 rule=harm size=0.0459 cp_lo=0.0431",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=confirm size=0.0524 cp_lo=0.0493",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=kill size=0.0536 cp_lo=0.0505",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=helps size=0.0524 cp_lo=0.0493",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=harm size=0.0536 cp_lo=0.0505",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(2, 2, 2) G=6 rule=confirm size=0.0585 cp_lo=0.0553",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(2, 2, 2) G=6 rule=kill size=0.0575 cp_lo=0.0543",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(2, 2, 2) G=6 rule=helps size=0.0585 cp_lo=0.0553",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(2, 2, 2) G=6 rule=harm size=0.0575 cp_lo=0.0543",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(3, 2, 1) G=6 rule=confirm size=0.0610 cp_lo=0.0577",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(3, 2, 1) G=6 rule=kill size=0.0614 cp_lo=0.0581",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(3, 2, 1) G=6 rule=helps size=0.0610 cp_lo=0.0577",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(3, 2, 1) G=6 rule=harm size=0.0614 cp_lo=0.0582",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(4, 2) G=6 rule=confirm size=0.0996 cp_lo=0.0955",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(4, 2) G=6 rule=kill size=0.0978 cp_lo=0.0937"
+   ]
+  },
+  "ECT_SF": {
+   "claim": "C-ECT",
+   "role": "primary",
+   "gating_rows": 43,
+   "flagged_rows": 21,
+   "flagged_rows_decidable_G": 11,
+   "flagged_two_stage": 21,
+   "flagged_iid": 0,
+   "max_size": 0.0979,
+   "max_size_cell": "normal (scale-free) icc=0.69 sdw=1.0 comp=(4, 2) rule=confirm",
+   "max_cp_lo": 0.09381504069898594,
+   "verdict": "FLAGGED: fails the size gate (fallback must be sealed, section 4.3 item 2)",
+   "max_size_by_rule_two_stage_icc": {
+    "confirm": {
+     "0.23": 0.04535,
+     "0.3": 0.05065,
+     "0.5": 0.0701,
+     "0.69": 0.0979
+    }
+   },
+   "max_size_by_rule_iid": {
+    "confirm": 0.0265
+   },
+   "flagged_cells": [
+    "two_stage/normal (scale-free) icc=0.23 sdw=1.0 comp=(3, 2, 2, 1) G=8 rule=confirm size=0.0377 cp_lo=0.0351",
+    "two_stage/normal (scale-free) icc=0.23 sdw=1.0 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=confirm size=0.0454 cp_lo=0.0425",
+    "two_stage/normal (scale-free) icc=0.3 sdw=1.0 comp=(4, 2) G=6 rule=confirm size=0.0450 cp_lo=0.0422",
+    "two_stage/normal (scale-free) icc=0.3 sdw=1.0 comp=(3, 3) G=6 rule=confirm size=0.0396 cp_lo=0.0369",
+    "two_stage/normal (scale-free) icc=0.3 sdw=1.0 comp=(2, 2, 2, 2) G=8 rule=confirm size=0.0394 cp_lo=0.0367",
+    "two_stage/normal (scale-free) icc=0.3 sdw=1.0 comp=(3, 2, 2, 1) G=8 rule=confirm size=0.0437 cp_lo=0.0410",
+    "two_stage/normal (scale-free) icc=0.3 sdw=1.0 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=confirm size=0.0507 cp_lo=0.0477",
+    "two_stage/normal (scale-free) icc=0.5 sdw=1.0 comp=(2, 2, 2) G=6 rule=confirm size=0.0382 cp_lo=0.0356",
+    "two_stage/normal (scale-free) icc=0.5 sdw=1.0 comp=(3, 2, 1) G=6 rule=confirm size=0.0425 cp_lo=0.0398",
+    "two_stage/normal (scale-free) icc=0.5 sdw=1.0 comp=(4, 2) G=6 rule=confirm size=0.0641 cp_lo=0.0608",
+    "two_stage/normal (scale-free) icc=0.5 sdw=1.0 comp=(3, 3) G=6 rule=confirm size=0.0626 cp_lo=0.0593",
+    "two_stage/normal (scale-free) icc=0.5 sdw=1.0 comp=(2, 2, 2, 2) G=8 rule=confirm size=0.0561 cp_lo=0.0529",
+    "two_stage/normal (scale-free) icc=0.5 sdw=1.0 comp=(3, 2, 2, 1) G=8 rule=confirm size=0.0632 cp_lo=0.0599",
+    "two_stage/normal (scale-free) icc=0.5 sdw=1.0 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=confirm size=0.0701 cp_lo=0.0666",
+    "two_stage/normal (scale-free) icc=0.69 sdw=1.0 comp=(2, 2, 2) G=6 rule=confirm size=0.0482 cp_lo=0.0453",
+    "two_stage/normal (scale-free) icc=0.69 sdw=1.0 comp=(3, 2, 1) G=6 rule=confirm size=0.0609 cp_lo=0.0576",
+    "two_stage/normal (scale-free) icc=0.69 sdw=1.0 comp=(4, 2) G=6 rule=confirm size=0.0979 cp_lo=0.0938",
+    "two_stage/normal (scale-free) icc=0.69 sdw=1.0 comp=(3, 3) G=6 rule=confirm size=0.0964 cp_lo=0.0923",
+    "two_stage/normal (scale-free) icc=0.69 sdw=1.0 comp=(2, 2, 2, 2) G=8 rule=confirm size=0.0676 cp_lo=0.0642",
+    "two_stage/normal (scale-free) icc=0.69 sdw=1.0 comp=(3, 2, 2, 1) G=8 rule=confirm size=0.0767 cp_lo=0.0731",
+    "two_stage/normal (scale-free) icc=0.69 sdw=1.0 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=confirm size=0.0901 cp_lo=0.0862"
+   ]
+  },
+  "ECT_SIGN": {
+   "claim": "C-ECT",
+   "role": "win share",
+   "gating_rows": 43,
+   "flagged_rows": 11,
+   "flagged_rows_decidable_G": 1,
+   "flagged_two_stage": 11,
+   "flagged_iid": 0,
+   "max_size": 0.0979,
+   "max_size_cell": "normal (scale-free) icc=0.69 sdw=1.0 comp=(4, 2) rule=win-share",
+   "max_cp_lo": 0.09381504069898594,
+   "verdict": "FLAGGED: fails the size gate (fallback must be sealed, section 4.3 item 2)",
+   "max_size_by_rule_two_stage_icc": {
+    "win-share": {
+     "0.23": 0.0344,
+     "0.3": 0.04505,
+     "0.5": 0.06415,
+     "0.69": 0.0979
+    }
+   },
+   "max_size_by_rule_iid": {
+    "win-share": 0.0169
+   },
+   "flagged_cells": [
+    "two_stage/normal (scale-free) icc=0.3 sdw=1.0 comp=(4, 2) G=6 rule=win-share size=0.0450 cp_lo=0.0422",
+    "two_stage/normal (scale-free) icc=0.3 sdw=1.0 comp=(3, 3) G=6 rule=win-share size=0.0396 cp_lo=0.0369",
+    "two_stage/normal (scale-free) icc=0.5 sdw=1.0 comp=(2, 2, 2) G=6 rule=win-share size=0.0382 cp_lo=0.0356",
+    "two_stage/normal (scale-free) icc=0.5 sdw=1.0 comp=(3, 2, 1) G=6 rule=win-share size=0.0425 cp_lo=0.0398",
+    "two_stage/normal (scale-free) icc=0.5 sdw=1.0 comp=(4, 2) G=6 rule=win-share size=0.0641 cp_lo=0.0608",
+    "two_stage/normal (scale-free) icc=0.5 sdw=1.0 comp=(3, 3) G=6 rule=win-share size=0.0626 cp_lo=0.0593",
+    "two_stage/normal (scale-free) icc=0.69 sdw=1.0 comp=(2, 2, 2) G=6 rule=win-share size=0.0482 cp_lo=0.0453",
+    "two_stage/normal (scale-free) icc=0.69 sdw=1.0 comp=(3, 2, 1) G=6 rule=win-share size=0.0609 cp_lo=0.0576",
+    "two_stage/normal (scale-free) icc=0.69 sdw=1.0 comp=(4, 2) G=6 rule=win-share size=0.0979 cp_lo=0.0938",
+    "two_stage/normal (scale-free) icc=0.69 sdw=1.0 comp=(3, 3) G=6 rule=win-share size=0.0964 cp_lo=0.0923",
+    "two_stage/normal (scale-free) icc=0.69 sdw=1.0 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=win-share size=0.0457 cp_lo=0.0428"
+   ]
+  },
+  "GDT_R": {
+   "claim": "Gd-dip transport",
+   "role": "primary (M33 laboratory-mean t-interval)",
+   "gating_rows": 480,
+   "flagged_rows": 322,
+   "flagged_rows_decidable_G": 48,
+   "flagged_two_stage": 322,
+   "flagged_iid": 0,
+   "max_size": 0.1434,
+   "max_size_cell": "normal icc=0.69 sdw=0.1 comp=(4, 2) rule=confirm",
+   "max_cp_lo": 0.13856976780586588,
+   "verdict": "FLAGGED: fails the size gate (fallback must be sealed, section 4.3 item 2)",
+   "max_size_by_rule_two_stage_icc": {
+    "confirm": {
+     "0.23": 0.05425,
+     "0.3": 0.0671,
+     "0.5": 0.1043,
+     "0.69": 0.1434
+    },
+    "harm": {
+     "0.23": 0.0554,
+     "0.3": 0.06705,
+     "0.5": 0.0999,
+     "0.69": 0.14035
+    },
+    "helps": {
+     "0.23": 0.05425,
+     "0.3": 0.0671,
+     "0.5": 0.1043,
+     "0.69": 0.1434
+    },
+    "kill": {
+     "0.23": 0.0554,
+     "0.3": 0.06705,
+     "0.5": 0.0999,
+     "0.69": 0.14035
+    }
+   },
+   "max_size_by_rule_iid": {
+    "confirm": 0.0277,
+    "harm": 0.0313,
+    "helps": 0.0277,
+    "kill": 0.0313
+   },
+   "flagged_cells": [
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 2, 1) G=6 rule=confirm size=0.0408 cp_lo=0.0381",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 2, 1) G=6 rule=kill size=0.0386 cp_lo=0.0359",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 2, 1) G=6 rule=helps size=0.0408 cp_lo=0.0381",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 2, 1) G=6 rule=harm size=0.0386 cp_lo=0.0359",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(4, 2) G=6 rule=confirm size=0.0527 cp_lo=0.0496",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(4, 2) G=6 rule=kill size=0.0553 cp_lo=0.0522",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(4, 2) G=6 rule=helps size=0.0527 cp_lo=0.0496",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(4, 2) G=6 rule=harm size=0.0553 cp_lo=0.0522",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 3) G=6 rule=confirm size=0.0507 cp_lo=0.0477",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 3) G=6 rule=kill size=0.0516 cp_lo=0.0486",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 3) G=6 rule=helps size=0.0507 cp_lo=0.0477",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 3) G=6 rule=harm size=0.0516 cp_lo=0.0486",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(2, 2, 2, 2) G=8 rule=kill size=0.0385 cp_lo=0.0359",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(2, 2, 2, 2) G=8 rule=harm size=0.0385 cp_lo=0.0359",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 2, 2, 1) G=8 rule=confirm size=0.0404 cp_lo=0.0377",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 2, 2, 1) G=8 rule=kill size=0.0415 cp_lo=0.0388",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 2, 2, 1) G=8 rule=helps size=0.0404 cp_lo=0.0377",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(3, 2, 2, 1) G=8 rule=harm size=0.0415 cp_lo=0.0388",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=confirm size=0.0461 cp_lo=0.0432",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=kill size=0.0450 cp_lo=0.0422",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=helps size=0.0461 cp_lo=0.0432",
+    "two_stage/normal icc=0.23 sdw=0.05 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=harm size=0.0450 cp_lo=0.0422",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(2, 2, 2) G=6 rule=confirm size=0.0427 cp_lo=0.0399",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(2, 2, 2) G=6 rule=kill size=0.0409 cp_lo=0.0382",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(2, 2, 2) G=6 rule=helps size=0.0427 cp_lo=0.0399",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(2, 2, 2) G=6 rule=harm size=0.0409 cp_lo=0.0382",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 2, 1) G=6 rule=confirm size=0.0478 cp_lo=0.0449",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 2, 1) G=6 rule=kill size=0.0481 cp_lo=0.0451",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 2, 1) G=6 rule=helps size=0.0478 cp_lo=0.0449",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 2, 1) G=6 rule=harm size=0.0481 cp_lo=0.0451",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(4, 2) G=6 rule=confirm size=0.0671 cp_lo=0.0637",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(4, 2) G=6 rule=kill size=0.0646 cp_lo=0.0613",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(4, 2) G=6 rule=helps size=0.0671 cp_lo=0.0637",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(4, 2) G=6 rule=harm size=0.0646 cp_lo=0.0613",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 3) G=6 rule=confirm size=0.0597 cp_lo=0.0565",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 3) G=6 rule=kill size=0.0578 cp_lo=0.0547",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 3) G=6 rule=helps size=0.0597 cp_lo=0.0565",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 3) G=6 rule=harm size=0.0578 cp_lo=0.0547",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(2, 2, 2, 2) G=8 rule=confirm size=0.0416 cp_lo=0.0389",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(2, 2, 2, 2) G=8 rule=kill size=0.0428 cp_lo=0.0401",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(2, 2, 2, 2) G=8 rule=helps size=0.0416 cp_lo=0.0389",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(2, 2, 2, 2) G=8 rule=harm size=0.0428 cp_lo=0.0401",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 2, 2, 1) G=8 rule=confirm size=0.0457 cp_lo=0.0428",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 2, 2, 1) G=8 rule=kill size=0.0459 cp_lo=0.0431",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 2, 2, 1) G=8 rule=helps size=0.0457 cp_lo=0.0428",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(3, 2, 2, 1) G=8 rule=harm size=0.0459 cp_lo=0.0431",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=confirm size=0.0524 cp_lo=0.0493",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=kill size=0.0536 cp_lo=0.0505",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=helps size=0.0524 cp_lo=0.0493",
+    "two_stage/normal icc=0.3 sdw=0.05 comp=(4, 3, 2, 1, 1, 1, 1) G=13 rule=harm size=0.0536 cp_lo=0.0505",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(2, 2, 2) G=6 rule=confirm size=0.0585 cp_lo=0.0553",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(2, 2, 2) G=6 rule=kill size=0.0575 cp_lo=0.0543",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(2, 2, 2) G=6 rule=helps size=0.0585 cp_lo=0.0553",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(2, 2, 2) G=6 rule=harm size=0.0575 cp_lo=0.0543",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(3, 2, 1) G=6 rule=confirm size=0.0610 cp_lo=0.0577",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(3, 2, 1) G=6 rule=kill size=0.0614 cp_lo=0.0581",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(3, 2, 1) G=6 rule=helps size=0.0610 cp_lo=0.0577",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(3, 2, 1) G=6 rule=harm size=0.0614 cp_lo=0.0581",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(4, 2) G=6 rule=confirm size=0.0996 cp_lo=0.0955",
+    "two_stage/normal icc=0.5 sdw=0.05 comp=(4, 2) G=6 rule=kill size=0.0978 cp_lo=0.0937"
+   ]
+  }
+ },
+ "skewed_seen_nulls_descriptive": {
+  "ECT_SF|emp_P1|G=6": {
+   "size": 0.0057,
+   "cp_lo": 0.004704030212304272,
+   "would_flag": false
+  },
+  "ECT_SIGN|emp_P1|G=6": {
+   "size": 0.01505,
+   "cp_lo": 0.013408417488723293,
+   "would_flag": false
+  },
+  "ECT_SF|emp_P1_mirror|G=6": {
+   "size": 0.0347,
+   "cp_lo": 0.032206366646611355,
+   "would_flag": false
+  },
+  "ECT_SIGN|emp_P1_mirror|G=6": {
+   "size": 0.01575,
+   "cp_lo": 0.014070126703682557,
+   "would_flag": false
+  },
+  "ECT_SF|emp_P1|G=7": {
+   "size": 0.00555,
+   "cp_lo": 0.004567803033445887,
+   "would_flag": false
+  },
+  "ECT_SIGN|emp_P1|G=7": {
+   "size": 0.00815,
+   "cp_lo": 0.006950867384343952,
+   "would_flag": false
+  },
+  "ECT_SF|emp_P1_mirror|G=7": {
+   "size": 0.07575,
+   "cp_lo": 0.07211979458107122,
+   "would_flag": true
+  },
+  "ECT_SIGN|emp_P1_mirror|G=7": {
+   "size": 0.00775,
+   "cp_lo": 0.006581656711164123,
+   "would_flag": false
+  },
+  "ECT_SF|emp_P1|G=8": {
+   "size": 0.00735,
+   "cp_lo": 0.006213269984048154,
+   "would_flag": false
+  },
+  "ECT_SIGN|emp_P1|G=8": {
+   "size": 0.0039,
+   "cp_lo": 0.0030839722291216252,
+   "would_flag": false
+  },
+  "ECT_SF|emp_P1_mirror|G=8": {
+   "size": 0.06155,
+   "cp_lo": 0.05825808903943142,
+   "would_flag": true
+  },
+  "ECT_SIGN|emp_P1_mirror|G=8": {
+   "size": 0.0035,
+   "cp_lo": 0.002729407217377268,
+   "would_flag": false
+  },
+  "ECT_SF|emp_P1|G=10": {
+   "size": 0.00745,
+   "cp_lo": 0.006305285868925282,
+   "would_flag": false
+  },
+  "ECT_SIGN|emp_P1|G=10": {
+   "size": 0.01025,
+   "cp_lo": 0.008900642723307577,
+   "would_flag": false
+  },
+  "ECT_SF|emp_P1_mirror|G=10": {
+   "size": 0.06195,
+   "cp_lo": 0.05864793763374437,
+   "would_flag": true
+  },
+  "ECT_SIGN|emp_P1_mirror|G=10": {
+   "size": 0.01025,
+   "cp_lo": 0.008900642723307577,
+   "would_flag": false
+  },
+  "ECT_SF|emp_P1|G=13": {
+   "size": 0.00825,
+   "cp_lo": 0.007043291653962482,
+   "would_flag": false
+  },
+  "ECT_SIGN|emp_P1|G=13": {
+   "size": 0.01125,
+   "cp_lo": 0.009834706997297464,
+   "would_flag": false
+  },
+  "ECT_SF|emp_P1_mirror|G=13": {
+   "size": 0.0603,
+   "cp_lo": 0.057040071279009466,
+   "would_flag": true
+  },
+  "ECT_SIGN|emp_P1_mirror|G=13": {
+   "size": 0.01245,
+   "cp_lo": 0.010959463672169132,
+   "would_flag": false
+  }
+ }
+}

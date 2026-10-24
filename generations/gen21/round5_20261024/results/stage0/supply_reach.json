@@ -1,0 +1,210 @@
+{
+ "label": "STAGE-0 SUPPLY FORECAST (metadata only; forecasts are reported, never counted: D4)",
+ "brief": "CLAUDE_CODE_PROMPT.md section 4.3 item 1 ('each with the probability of reaching its minimum')",
+ "model": "verified count 1; E2-only units convert with p_E2, U-only units with p_U, independently; mean = the audit's expected-yield formula (asserted); Gd-dip adds SAFE at its maximum 3 (U2 unanswered)",
+ "caveats": [
+  "C-GD's '>= 3 extractant families' condition is not modelled: its probability is an upper bound.",
+  "Conversion rates are P4's assumed rates and PC P4's corrected ones, not measured rates.",
+  "C-ECT chemotype units use P4's hand chemotype labels (upper bound on the frozen gen6 map's count, P4 notes)."
+ ],
+ "reach": {
+  "C-ECT": {
+   "supply_key": "G_ECT",
+   "min_G": 7,
+   "verified": 2,
+   "e2_only": 7,
+   "u_only": 0,
+   "safe_added": 0,
+   "P4_rates_pE2_0.5_pU_0.25": {
+    "expected": 5.5,
+    "P_reach_min": 0.2266
+   },
+   "PC_P4_rates_pE2_2of6_pU_0": {
+    "expected": 4.33,
+    "P_reach_min": 0.0453
+   },
+   "all_convert": 9
+  },
+  "C-GD": {
+   "supply_key": "G_HS",
+   "min_G": 6,
+   "verified": 1,
+   "e2_only": 2,
+   "u_only": 6,
+   "safe_added": 0,
+   "P4_rates_pE2_0.5_pU_0.25": {
+    "expected": 3.5,
+    "P_reach_min": 0.0623
+   },
+   "PC_P4_rates_pE2_2of6_pU_0": {
+    "expected": 1.67,
+    "P_reach_min": 0.0
+   },
+   "all_convert": 9
+  },
+  "Gd-dip transport (merged SAFE + literature)": {
+   "supply_key": "G_Gd",
+   "min_G": 10,
+   "verified": 2,
+   "e2_only": 8,
+   "u_only": 10,
+   "safe_added": 3,
+   "P4_rates_pE2_0.5_pU_0.25": {
+    "expected": 11.5,
+    "P_reach_min": 0.8459,
+    "P_reach_min_SAFE_0": 0.3005
+   },
+   "PC_P4_rates_pE2_2of6_pU_0": {
+    "expected": 7.67,
+    "P_reach_min": 0.0879,
+    "P_reach_min_SAFE_0": 0.0002
+   },
+   "all_convert": 23
+  },
+  "SAFE route (M33 gate)": {
+   "min_G": 10,
+   "max_possible": 3,
+   "P_reach_min": 0.0,
+   "note": "SAFE 0-3 expected (IR M33); 3 < 10 at any rate"
+  }
+ },
+ "ect_fallback_chemotype_units": {
+  "all_convert": {
+   "labs": [
+    "CIAC",
+    "Chiba-Katsuta",
+    "Giredmet",
+    "ISSP-Turanov",
+    "KULeuven-Binnemans",
+    "Kurnakov-Belova",
+    "UCTM-Atanassova",
+    "UFV/Aveiro-Schaeffer",
+    "Utkal-Chakravortty/Reddy"
+   ],
+   "lab_chemotype_pairs": [
+    [
+     "CIAC",
+     "neutral phosphine oxide"
+    ],
+    [
+     "CIAC",
+     "organophosphorus-anion bifunctional IL"
+    ],
+    [
+     "Chiba-Katsuta",
+     "acidic organophosphorus"
+    ],
+    [
+     "Giredmet",
+     "quaternary ammonium thiocyanate"
+    ],
+    [
+     "ISSP-Turanov",
+     "CMPO-like carbamoylphosphine oxide"
+    ],
+    [
+     "ISSP-Turanov",
+     "DGA in IL"
+    ],
+    [
+     "ISSP-Turanov",
+     "neutral phosphine oxide"
+    ],
+    [
+     "ISSP-Turanov",
+     "phosphorylurea"
+    ],
+    [
+     "KULeuven-Binnemans",
+     "quaternary-onium nitrate IL"
+    ],
+    [
+     "Kurnakov-Belova",
+     "acidic organophosphorus"
+    ],
+    [
+     "UCTM-Atanassova",
+     "8-HQ + crown synergist"
+    ],
+    [
+     "UFV/Aveiro-Schaeffer",
+     "eutectic solvent"
+    ],
+    [
+     "Utkal-Chakravortty/Reddy",
+     "neutral phosphine oxide"
+    ]
+   ],
+   "distinct_chemotypes": 10,
+   "chemotype_units_linked": 6,
+   "units": [
+    [
+     "8-HQ + crown synergist"
+    ],
+    [
+     "CMPO-like carbamoylphosphine oxide",
+     "DGA in IL",
+     "neutral phosphine oxide",
+     "organophosphorus-anion bifunctional IL",
+     "phosphorylurea"
+    ],
+    [
+     "acidic organophosphorus"
+    ],
+    [
+     "eutectic solvent"
+    ],
+    [
+     "quaternary ammonium thiocyanate"
+    ],
+    [
+     "quaternary-onium nitrate IL"
+    ]
+   ]
+  },
+  "verified": {
+   "labs": [
+    "Chiba-Katsuta",
+    "KULeuven-Binnemans"
+   ],
+   "lab_chemotype_pairs": [
+    [
+     "Chiba-Katsuta",
+     "acidic organophosphorus"
+    ],
+    [
+     "KULeuven-Binnemans",
+     "quaternary-onium nitrate IL"
+    ]
+   ],
+   "distinct_chemotypes": 2,
+   "chemotype_units_linked": 2,
+   "units": [
+    [
+     "acidic organophosphorus"
+    ],
+    [
+     "quaternary-onium nitrate IL"
+    ]
+   ]
+  },
+  "reach_chemotype_units": {
+   "P4_rates_pE2_0.5_pU_0.25": {
+    "P_reach_7_units_linked": 0.0,
+    "P_reach_7_distinct_chemotypes": 0.5
+   },
+   "PC_P4_rates_pE2_2of6_pU_0": {
+    "P_reach_7_units_linked": 0.0,
+    "P_reach_7_distinct_chemotypes": 0.2757
+   }
+  }
+ },
+ "inputs_sha256_lf": {
+  "generations/gen21/round5_20261024/results/stage0/supply_audit.json": "296dab67ab823460605bc050aa2ff2b0707bb09d226205e79ccff39bbbb219cd",
+  "generations/gen21/round5_20261024/results/stage0/lab_key.csv": "9c75e174ed5257a3a6dcd1df068fe066927d17756628a2b594db34aacafa8925"
+ },
+ "code_sha256_lf": {
+  "generations/gen21/round5_20261024/scripts/s0_package_supplements.py": "ef76831d4385573757e4a9a12fc7989f7d84988f485755f961f7d6c654cfd59a",
+  "generations/gen21/round5_20261024/r5/supply.py": "956b991ade5b66e1efdf2f2f21fd55956fa4c2508c4715e7f5d801eac1368456"
+ }
+}

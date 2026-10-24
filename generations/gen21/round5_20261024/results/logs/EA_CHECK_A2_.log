@@ -1,0 +1,59 @@
+round-5 seal verified b96c3bef9828
+  repro BPG: 9010 rows, passed True
+  repro BP: 9010 rows, passed True
+  TECHNICAL SMOKE reproduction: 18020 rows, passed True: BPG max|dB1| 0.0, max|dB0| 0.0, max|dHIST_D7| 0.0; BP max|dB1| 0.0, max|dB0| 0.0, max|dHIST_D7| 0.0
+  A: 9010 rows
+  B: 9010 rows
+  BR: 9010 rows
+  BQ: 9010 rows
+design stratum     contrast   relSSE  SF_POOL_p  dMAE_bal      dR2  gate_pass                                       label
+   BPG   C5_in      B1 - B0  0.05856    0.00317   0.00501  0.03407       True              EXPLORATORY (seen); DIAGNOSTIC
+   BPG  C5_out      B1 - B0  0.05029    0.00366   0.00499  0.02720       True EXPLORATORY (seen); DIAGNOSTIC; SENSITIVITY
+   BPG   C5_in HIST_D7 - B1 -0.00193    0.65991  -0.00004 -0.00102      False              EXPLORATORY (seen); DIAGNOSTIC
+   BPG  C5_out HIST_D7 - B1  0.00219    0.38062  -0.00004  0.00116      False EXPLORATORY (seen); DIAGNOSTIC; SENSITIVITY
+    BP   C5_in      B1 - B0  0.05852    0.00269   0.00526  0.03405       True EXPLORATORY (seen); DIAGNOSTIC; SENSITIVITY
+    BP  C5_out      B1 - B0  0.05042    0.00317   0.00524  0.02727       True EXPLORATORY (seen); DIAGNOSTIC; SENSITIVITY
+    BP   C5_in HIST_D7 - B1 -0.00248    0.69604  -0.00026 -0.00133      False EXPLORATORY (seen); DIAGNOSTIC; SENSITIVITY
+    BP  C5_out HIST_D7 - B1  0.00128    0.44824  -0.00025  0.00068      False EXPLORATORY (seen); DIAGNOSTIC; SENSITIVITY
+consistency checks: {"B1 - B0 BPG": {"label": "CONSISTENCY CHECK", "relSSE_pct": {"seen": 5.85, "now": 5.86, "match": false, "now_seed_mean": 0.05856309788715595, "now_pooled_over_seeds": 0.0585380374493345, "now_pooled_over_seeds_pct": 5.85, "note": "the seen 5.85 % is the replay's pooled-over-seeds ratio 1 - sum_s SSE_B1 / sum_s SSE_B0 (now 0.05854, 5.85 %); the sealed M35 currency compared here is the seed mean of the per-seed ratios (0.05856, 5.86 %); the difference (+0.00003) is definitional; match stays as registered"}, "SF_POOL_p": {"seen": 0.00317, "now": 0.00317, "match": true}}, "B1 - B0 BP": {"label": "CONSISTENCY CHECK", "SF_POOL_p": {"seen": 0.00269, "now": 0.00269, "match": true}}}
+wrote:
+   generations/gen21/round5_20261024/results/EA_CHECK/repro.json
+   generations/gen21/round5_20261024/results/leakage/intervention_EA_CHECK.json
+   generations/gen21/round5_20261024/results/EA_CHECK/gate_BPG.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/c5_BPG.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/units_BPG.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/perseed_BPG.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/bigfold_BPG.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/lopo_BPG.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/lopo_values_BPG.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/breadth_BPG.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/breadth_units_BPG.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/giant_publications_BPG.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/arms_BPG.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/duplicates_BPG.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/m08_moments_BPG.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/rows_EA_BPG.parquet
+   generations/gen21/round5_20261024/results/EA_CHECK/gate_BP.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/c5_BP.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/units_BP.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/perseed_BP.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/bigfold_BP.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/lopo_BP.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/lopo_values_BP.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/breadth_BP.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/breadth_units_BP.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/giant_publications_BP.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/arms_BP.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/duplicates_BP.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/m08_moments_BP.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/rows_EA_BP.parquet
+   generations/gen21/round5_20261024/results/EA_CHECK/sixdesign_levels.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/sixdesign.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/sixdesign_units.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/sixdesign_readsets.csv
+   generations/gen21/round5_20261024/results/EA_CHECK/rows_sixdesign.parquet
+   generations/gen21/round5_20261024/results/EA_CHECK/summary.json
+   generations/gen21/round5_20261024/results/EA_CHECK/PER_ITEM_TABLE_BPG.md
+   generations/gen21/round5_20261024/results/EA_CHECK/PER_ITEM_TABLE_BP.md
+   generations/gen21/round5_20261024/results/EA_CHECK/ITEM_TABLE.md
+post-run seal check EA_CHECK: ok (ok; round 4: VERIFIED ok 5bacfe4cdcfc8d63171c46497e06b80605cc7fb1e0e7531c5fd81daadb1bbaa5; round 3 ok: True)

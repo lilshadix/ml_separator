@@ -1,0 +1,49 @@
+{
+ "label": "in-run reproduction check (arms run)",
+ "mode": "run",
+ "design": "BPG",
+ "seal": "b96c3bef9828",
+ "started_utc": "2026-10-24T13:41:32+00:00",
+ "targets": {
+  "B1_r4 (fold betas) = REF B1 within 8.9e-16": {
+   "rows": 9010,
+   "maxabs": 8.881784197001252e-16,
+   "ok": true
+  },
+  "D7_r4 (identity) = REF HIST_D7 within 1e-12": {
+   "maxabs": 1.3461454173580023e-15,
+   "ok": true
+  },
+  "y identical (E-CT rows vs E-A rows)": {
+   "maxabs": 0.0,
+   "ok": true
+  },
+  "support contract (no pair with both ends read; strict adjacency; hull flags from read sets)": {
+   "rows": 9010,
+   "both_ends_read_rows": 0,
+   "non_strict_adjacent_rows": 0,
+   "hull_recount_mismatch_rows": 0,
+   "ok": true
+  }
+ },
+ "erec_status": "available",
+ "note": "brief 6.0 lists no E-DEC value target; IR M14 / M15 / I2 recipe-3 values are seen, not targets",
+ "passed": true,
+ "code_lf_sha256": {
+  "r5/edec.py": "d707f45cba14152365cfae015098491827d1d1ca376bfb9f60fd67fabe487dd1",
+  "scripts/s1_edec.py": "64cc178462162e799cf660f666af5233e2407db2797029b53483a59b1afd31cc",
+  "r5/common.py": "9020740f5879bb17ec250b7f071d64fb2b105dc8b9a6dc4a03581015331679e6",
+  "r5/ect.py": "e75872af0b21865e76c44930b3f838f9d90578383f891aabfdd56af4d15a5425",
+  "r5/population.py": "298976a8cb5f43f84651051d09734bef87912c442f6cbffdbc4e21c1ccb5e8d4",
+  "r5/dupes.py": "d0945d4c94f4a434b21c432ea00b3dce5a10bb2e8cca8edb63f271d3b1f4d356",
+  "r5/paths.py": "68969fbcf24b05b43ef66ba6e8ffa1a06997970b10587d6286e61bc505d9ffe7"
+ },
+ "sources_lf_sha256": {
+  "generations/gen21/round5_design_20261023/ideas2/scripts/recipe3_skepB_signcheck.py": {
+   "recorded": "c9ae42cc2b54ea3c6cb2ddb676b0eb4b76b3a5e5b5bfa5be631e0c4a3e2aebb6",
+   "found": "c9ae42cc2b54ea3c6cb2ddb676b0eb4b76b3a5e5b5bfa5be631e0c4a3e2aebb6"
+  }
+ },
+ "sources_match": true,
+ "record": "the arms run re-checks the brief-6.0 targets before any scored write and rewrites this file; the standalone --repro run (TECHNICAL SMOKE) is recorded in RUN_RECORD.md"
+}
